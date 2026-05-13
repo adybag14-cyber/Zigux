@@ -7,6 +7,8 @@ const SurveySummary = struct {
     shared_phase11_header_survey_present: bool,
     watchdog_info_layout_assert_present: bool,
     winsize_layout_assert_present: bool,
+    hvc_hv_ops_layout_assert_present: bool,
+    hvc_header_constants_checked: bool,
     hvc_export_surface_checked: bool,
 };
 
@@ -92,11 +94,15 @@ test "phase11 shared header parity survey manifest records the maintained packet
     try std.testing.expect(manifest.survey_summary.shared_phase11_header_survey_present);
     try std.testing.expect(manifest.survey_summary.watchdog_info_layout_assert_present);
     try std.testing.expect(manifest.survey_summary.winsize_layout_assert_present);
+    try std.testing.expect(manifest.survey_summary.hvc_hv_ops_layout_assert_present);
+    try std.testing.expect(manifest.survey_summary.hvc_header_constants_checked);
     try std.testing.expect(manifest.survey_summary.hvc_export_surface_checked);
 
     var saw_build_gate = false;
     var saw_watchdog_layout = false;
     var saw_winsize_layout = false;
+    var saw_hv_ops_layout = false;
+    var saw_header_constant = false;
     var saw_export_surface = false;
 
     for (manifest.gaps) |gap| {
@@ -119,6 +125,16 @@ test "phase11 shared header parity survey manifest records the maintained packet
             saw_winsize_layout = true;
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-hv-ops-layout-assert")) {
+            saw_hv_ops_layout = true;
+            try expectContains(gap.why_now, "size 72, alignment 8");
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-header-constant-assert")) {
+            saw_header_constant = true;
+            try expectContains(gap.why_now, "MAX_NR_HVC_CONSOLES");
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-export-signature-assert")) {
             saw_export_surface = true;
             try expectContains(gap.why_now, "notifier_hangup_irq");
@@ -128,6 +144,8 @@ test "phase11 shared header parity survey manifest records the maintained packet
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_watchdog_layout);
     try std.testing.expect(saw_winsize_layout);
+    try std.testing.expect(saw_hv_ops_layout);
+    try std.testing.expect(saw_header_constant);
     try std.testing.expect(saw_export_surface);
 }
 
@@ -193,6 +211,8 @@ test "phase11 shared header parity survey keeps the note pinned to the manifest 
     try expectContains(note, "lane: `P11-L18`");
     try expectContains(note, "phase11-dw-wdt-watchdog-info-layout-assert");
     try expectContains(note, "phase11-hvc-console-winsize-layout-assert");
+    try expectContains(note, "phase11-hvc-console-hv-ops-layout-assert");
+    try expectContains(note, "phase11-hvc-console-header-constant-assert");
     try expectContains(note, "phase11-hvc-console-export-signature-assert");
     try expectContains(note, "phase11-uapi-header-parity-surface");
     try expectContains(note, "notifier_hangup_irq");
