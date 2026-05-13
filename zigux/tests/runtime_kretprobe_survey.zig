@@ -29,18 +29,27 @@ const RollbackBoundarySummary = struct {
     blocked_parity_status: []const u8,
 };
 
+const RoadmapGapSummary = struct {
+    roadmap_phase_goal: []const u8,
+    landed_pilot_state: []const u8,
+    missing_capability: []const u8,
+    blocked_deliverable: []const u8,
+    next_gate: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    roadmap_gap_summary: RoadmapGapSummary,
     lifecycle_boundary_summary: LifecycleBoundarySummary,
     rollback_boundary_summary: RollbackBoundarySummary,
     gaps: []const Gap,
 };
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+    try std.testing.expect(std.mem.indexOf(u8, needle) != null);
 }
 
 fn readRepoFileAlloc(allocator: std.mem.Allocator, path: []const u8, max_bytes: usize) ![]u8 {
@@ -133,6 +142,26 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("zigux/tests/runtime_*", manifest.roadmap_destinations[0]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_*", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqualStrings(
+        "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
+        manifest.roadmap_gap_summary.roadmap_phase_goal,
+    );
+    try std.testing.expectEqualStrings(
+        "starter_landed_without_loadable_runtime_substrate",
+        manifest.roadmap_gap_summary.landed_pilot_state,
+    );
+    try std.testing.expectEqualStrings(
+        "shared runtime substrate that can turn the bounded register_kretprobe and unregister_kretprobe handoff plan into a real loadable module path",
+        manifest.roadmap_gap_summary.missing_capability,
+    );
+    try std.testing.expectEqualStrings(
+        "loadable Phase 9 runtime kretprobe pilot module parity",
+        manifest.roadmap_gap_summary.blocked_deliverable,
+    );
+    try std.testing.expectEqualStrings(
+        "keep the loader scaffold, shared-request lifecycle proof, and prepared-plan drift guard explicit until the shared runtime loader substrate can consume the handoff plan",
+        manifest.roadmap_gap_summary.next_gate,
+    );
 
     try std.testing.expect(manifest.lifecycle_boundary_summary.pre_execution_handoff_only);
     try std.testing.expect(manifest.lifecycle_boundary_summary.requires_idle_registration_snapshot);
