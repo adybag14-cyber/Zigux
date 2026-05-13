@@ -113,10 +113,10 @@
     },
     {
       "id": "phase10-notification-data-summary-helper",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The current ring helper packet makes queue-local notify, used, callback, and packed event-index state reviewable, but it still does not expose a dedicated notification-data summary that covers split next-avail state together with packed wrap-bit transitions."
+      "why_now": "The live ring helper packet now exposes queue-local notification-data summary state for split next-avail bookkeeping together with packed wrap-bit transitions, so the bounded queue-wrapper ladder should keep that helper explicit as landed evidence instead of leaving it parked as the next rung."
     },
     {
       "id": "phase10-broken-queue-poll-guard",
