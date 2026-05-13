@@ -61,6 +61,7 @@ pub const ConcurrencyAudit = struct {
     posture: []const u8,
     checkpoints: []const AuditCheckpoint,
     blocked_live_behaviors: []const []const u8,
+    current_slice_id: []const u8,
     next_step: []const u8,
 };
 
@@ -300,6 +301,7 @@ pub const WorkqueueBridgeLab = struct {
             .posture = descriptor().posture,
             .checkpoints = audit_checkpoints[0..],
             .blocked_live_behaviors = blocked_live_behaviors[0..],
+            .current_slice_id = currentSliceId(),
             .next_step = nextAuditFocus(),
         };
     }
@@ -314,6 +316,10 @@ pub const WorkqueueBridgeLab = struct {
 
     pub fn auditCheckpointCount() usize {
         return audit_checkpoints.len;
+    }
+
+    pub fn currentSliceId() []const u8 {
+        return "phase14-workqueue-scheduler-visible-worker-state-refinement";
     }
 
     pub fn nextAuditFocus() []const u8 {
@@ -361,6 +367,7 @@ test "workqueue bridge concurrency audit matches blocked-maintenance packet" {
     try std.testing.expectEqual(@as(usize, 15), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 7), audit.blocked_live_behaviors.len);
     try std.testing.expectEqual(@as(usize, 15), WorkqueueBridgeLab.auditCheckpointCount());
+    try std.testing.expectEqualStrings("phase14-workqueue-scheduler-visible-worker-state-refinement", audit.current_slice_id);
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "blocked maintenance") != null);
     try std.testing.expectEqualStrings("pending-bit-claim-window", audit.checkpoints[8].id);
     try std.testing.expect(audit.checkpoints[8].guard == .pending_bit_claim_window);
