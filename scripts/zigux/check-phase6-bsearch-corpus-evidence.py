@@ -125,7 +125,8 @@ REQUIRED_SNIPPETS = {
         "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
         "- direct local corpus evidence checker self-test: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`",
-        "Current `master` also still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig` as a compact shared seed companion for the representative ascending, descending, hit-or-miss, symbol, and packed-record cases.",
+        "Current `master` still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, but only as a parked seed companion that mirrors the representative ascending, descending, hit-or-miss, symbol, and packed-record cases already exercised inline.",
+        "Reviewers should treat that file as support evidence outside the executable packet rather than as a separate replay surface or a standalone timing-style perf route.",
     ],
     PERF_SURVEY_PATH.as_posix(): [
         "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig`, not a separate wall-clock perf harness",
@@ -532,8 +533,14 @@ def run_self_test() -> None:
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
-            "Current `master` also still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig` as a compact shared seed companion for the representative ascending, descending, hit-or-miss, symbol, and packed-record cases.",
+            "Current `master` still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, but only as a parked seed companion that mirrors the representative ascending, descending, hit-or-miss, symbol, and packed-record cases already exercised inline.",
             "Current `master` still carries no fixture companion.",
+        )
+        assert_failure(
+            root,
+            SLICE_PATH.as_posix(),
+            "Reviewers should treat that file as support evidence outside the executable packet rather than as a separate replay surface or a standalone timing-style perf route.",
+            "Reviewers should treat that file as the live executable packet.",
         )
         assert_failure(
             root,
