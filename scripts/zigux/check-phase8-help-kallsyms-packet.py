@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 
 SCRIPT_PATH = "scripts/zigux/check-phase8-help-kallsyms-packet.py"
+DOCS_ROOT_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -15,6 +16,7 @@ SEQUENCING_PATH = "Documentation/zigux/phase8-tooling-lane-sequencing.md"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
+    DOCS_ROOT_PATH,
     REVIEW_CHECKLIST_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
@@ -22,6 +24,11 @@ REQUIRED_FILES = (
 )
 
 REQUIRED_MARKERS = {
+    DOCS_ROOT_PATH: (
+        "`Documentation/zigux/phase8-help-slice.md`",
+        "`Documentation/zigux/phase8-kallsyms-slice.md`",
+        "`make -C zigux phase8`",
+    ),
     REVIEW_CHECKLIST_PATH: (
         "if the change touches the shared Phase 8 help-and-kallsyms packet",
         "`Documentation/zigux/phase8-help-slice.md`",
@@ -134,6 +141,10 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{details}")
 
         mutations = (
+            (
+                DOCS_ROOT_PATH,
+                "`Documentation/zigux/phase8-kallsyms-slice.md`",
+            ),
             (
                 REVIEW_CHECKLIST_PATH,
                 "if the change touches the shared Phase 8 help-and-kallsyms packet",
