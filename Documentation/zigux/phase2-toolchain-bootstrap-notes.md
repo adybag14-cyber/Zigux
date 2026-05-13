@@ -7,6 +7,8 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - policy file: `scripts/zigux/zig-toolchain-policy.json`
 - shared tests README alignment self-test: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`
 - shared tests README alignment gate: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
+- shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`
+- shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
 - shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`
 - shared kconfig bridge gate: `python3 scripts/zigux/check-kconfig-bridge.py`
 - shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`
@@ -43,6 +45,7 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 ## Alignment Notes
 
 - `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py` keep this dedicated bootstrap note aligned with `zigux/tests/fixtures/phase2_cross_targets.json`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase2.py`, and `scripts/zigux/validate-phase2-closure.py` so the bounded three-target compile matrix stays reviewable from the same Phase 2 note instead of being implied only by sibling reminder surfaces
+- `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py` keep this dedicated bootstrap note aligned with `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-confdata-bridge-survey.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` so the shipped `16-case` conf bridge plus `13-case` confdata fixture replay stays reviewable from the same Phase 2 note instead of being implied only by sibling reminder surfaces
 - the shared tests README alignment self-test and gate keep this dedicated bootstrap note aligned with `zigux/tests/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/Makefile`, and the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay surface instead of leaving this note coupled to the broader Phase 2 packet by implication alone
 - the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded direct `zig test scripts/zigux/fixdep.zig` replay, the committed genksyms bridge fixture packet, and the checker-backed kconfig bridge plus confdata manifest packet reviewable without reopening the dedicated genksyms or kconfig lanes from this bootstrap note
 - the active Phase 2 closure note and tests root keep the shipped fixdep workflow gate plus the direct `zig test scripts/zigux/fixdep.zig` replay explicit beside the same bounded tools route
