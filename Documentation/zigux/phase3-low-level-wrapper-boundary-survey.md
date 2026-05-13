@@ -25,14 +25,14 @@ The direct helper files plus the focused replay keep that surface explicit.
 - `zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `bitSet`, `bitReset`, `bitToggle`, `compareExchange`, and `compareExchangeWeak`, including helper-local non-`seq_cst` ordering, signed min/max, and bit-wrapper replays.
 - `zigux/helpers/barrier.zig` keeps the approved barrier surface explicit through `acquire`, `release`, `full`, and `acquireRelease`, including the barrier-locality and handoff replays that current `master` already ships.
 - `zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.
-- `zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, and odd-offset checks plus the non-`seq_cst` atomic and barrier locality or handoff proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` to keep this focused route bounded.
+- `zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, and odd-offset checks plus the non-`seq_cst` atomic, barrier locality or handoff, and shared allocator-or-panic consumer proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` to keep this focused route bounded.
 - `zigux/tests/phase3_low_level_wrappers_build.zig` is the focused build route that lets this packet stay reviewable without reopening the broader `zigux/tests/build.zig` lane.
 
 ## Adjacent Packet Boundary
 
 This lane no longer owns the policy-and-unsafe packet just because the current focused replay still imports adjacent helpers.
 
-- `zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned by `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` and its coupled policy validators, even when the current low-level replay consumes those helpers as prerequisites.
+- `zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned by `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` and its coupled policy validators, even when the current low-level replay still imports them for the shared allocator-and-panic consumer proof.
 - the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.
 - this low-level wrapper note should therefore describe direct MMIO behavior only and leave policy admission, reserved-byte decoding, raw-pointer bridge scope, allocator policy, and panic policy drift to the adjacent packet.
 
