@@ -66,6 +66,8 @@ SURVEY_NOTE_MARKERS = [
     "scripts/zigux/check-phase11-hvc-survey-packet.py",
     "make -C zigux phase11-hvc-survey",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
+    "khvcd polling-contract summary",
+    "`hvc_hangup()` disconnect summary",
     "`hvc_cleanup()` tty-port release handoff summary",
     "sysrq handoff stays unavailable after teardown",
 ]
@@ -79,6 +81,8 @@ SLICE_NOTE_MARKERS = [
     "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "drivers/tty/hvc/hvc_console_sysrq.zig",
+    "khvcd polling-contract summary",
+    "`hvc_hangup()` disconnect summary",
     ABSENT_DIRECT_COMPANION_MARKER,
 ]
 
@@ -108,9 +112,13 @@ VALIDATION_MATRIX_MARKERS = [
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`make -C zigux phase11-hvc-survey` archival route fail-closed",
     ABSENT_DIRECT_COMPANION_MATRIX_MARKER,
+    "khvcd polling-contract summary",
+    "khvcd worker-entry summary",
+    "`hvc_hangup()` disconnect summary",
     "targetless notifier no-unregister edge",
     "`hvc_cleanup()` tty-port release handoff",
     "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+    "host-free khvcd polling-contract, worker-entry, hangup-disconnect, notifier, remove, or cleanup handoff",
 ]
 
 FORBIDDEN_MARKERS = {
@@ -192,7 +200,7 @@ WORKFLOW_MARKERS = [
     "run: make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 19
 
 
 class CheckError(RuntimeError):
@@ -359,9 +367,11 @@ def run_self_test() -> None:
             (REQUIRED_FILES["survey_gate"], 'layout_assert.assertOffset(WinsizeLayout, "ws_ypixel", 6);'),
             (REQUIRED_FILES["survey_gate"], "hvc_cleanup tty-port release handoff"),
             (REQUIRED_FILES["survey_note"], ABSENT_DIRECT_COMPANION_MARKER),
+            (REQUIRED_FILES["survey_note"], "khvcd polling-contract summary"),
             (REQUIRED_FILES["slice_note"], ABSENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["teardown_note"], ABSENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["validation_matrix"], ABSENT_DIRECT_COMPANION_MATRIX_MARKER),
+            (REQUIRED_FILES["validation_matrix"], "host-free khvcd polling-contract, worker-entry, hangup-disconnect, notifier, remove, or cleanup handoff"),
             (REQUIRED_FILES["modem_control_split"], 'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back"'),
             (REQUIRED_FILES["poll_retry_split"], 'test "phase11 hvc console keeps sysrq handoff unavailable after teardown"'),
             (REQUIRED_FILES["sysrq_helper"], "pub fn summarizeSysrqHandoff"),
