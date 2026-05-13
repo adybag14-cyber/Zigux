@@ -136,7 +136,7 @@ REQUIRED_MARKERS = {
         "`zigux/bindings/notifier_abi.zig`",
         "`include/zigux/abi.h`",
         "`drivers/tty/hvc/hvc_console.h`",
-        "Current `master` also does not yet materialize a dedicated Phase 13 packet summary in `zigux/tests/README.md`",
+        "Current `master` also materializes the dedicated Phase 13 packet summary in `zigux/tests/README.md`, so keep that broader tests-root guide aligned with the contributor workflow guide and shared-helper sequencing note as shipped Phase 13 review evidence instead of framing it as a pending shared-surface follow-up.",
     ],
     "scripts/zigux/README.md": [
         "Phase 13 flow - keep the shared Phase 13 contributor packet explicit through the shipped contributor and release-surface notes:",
@@ -339,7 +339,7 @@ def run_self_test() -> int:
                 marker
                 for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
                 if marker
-                != "Current `master` also does not yet materialize a dedicated Phase 13 packet summary in `zigux/tests/README.md`"
+                != "Current `master` also materializes the dedicated Phase 13 packet summary in `zigux/tests/README.md`, so keep that broader tests-root guide aligned with the contributor workflow guide and shared-helper sequencing note as shipped Phase 13 review evidence instead of framing it as a pending shared-surface follow-up."
             )
             + "\n",
         )
@@ -347,9 +347,9 @@ def run_self_test() -> int:
             validate(root),
             [
                 "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:"
-                "Current `master` also does not yet materialize a dedicated Phase 13 packet summary in `zigux/tests/README.md`"
+                "Current `master` also materializes the dedicated Phase 13 packet summary in `zigux/tests/README.md`, so keep that broader tests-root guide aligned with the contributor workflow guide and shared-helper sequencing note as shipped Phase 13 review evidence instead of framing it as a pending shared-surface follow-up."
             ],
-            "missing_pending_tests_root_phrase_failed",
+            "missing_materialized_tests_root_phrase_failed",
         )
         write_text(
             root,
