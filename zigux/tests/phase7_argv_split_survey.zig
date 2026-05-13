@@ -75,6 +75,9 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-argv-split-slice.md");
     defer allocator.free(slice_note);
 
+    const helper_lane_note = try readRepoFile(allocator, "Documentation/zigux/phase7-helper-lane-sequencing.md");
+    defer allocator.free(helper_lane_note);
+
     const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
     defer allocator.free(docs_root);
 
@@ -136,6 +139,11 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact");
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
     try expectContains(slice_note, "python3 scripts/zigux/check-phase7-argv-split-packet.py");
+
+    try expectContains(helper_lane_note, "argv-split packet, lane `P7-L09`:");
+    try expectContains(helper_lane_note, "Documentation/zigux/phase7-argv-split-slice.md");
+    try expectContains(helper_lane_note, "PHASE7_ARGV_SPLIT_LANE=P7-L09");
+    try expectContains(helper_lane_note, "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.");
 
     try expectContains(docs_root, "Documentation/zigux/phase7-argv-split-slice.md");
     try expectContains(docs_root, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample");
