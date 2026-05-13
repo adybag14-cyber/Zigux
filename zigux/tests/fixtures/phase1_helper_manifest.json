@@ -255,7 +255,14 @@
         "test \"strstarts mirrors the header-level prefix helper\"",
         "test \"strEndsWith honors C-string boundaries\""
       ],
-      "prefix_suffix_review_summary": "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields",
+      "prefix_suffix_review_summary": "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture keys",
+      "lookup_review_anchors": [
+        "test \"matchString finds C-string matches and preserves first-match order\"",
+        "test \"match_string mirrors matchString for empty and matched lists\""
+      ],
+      "lookup_review_summary": "helper-local string lookup anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string fixture keys, so C-string list lookup order and the Linux-style alias remain review-visible at the helper surface",
+      "strnchr_review_anchor": "test \"strnchr honors count and C-string boundaries\"",
+      "strnchr_review_summary": "the direct strnchr follow-up stays explicit because the shared Phase 1 replay still does not carry a dedicated counted-search fixture key, so count-limited scanning and embedded-NUL stop behavior remain owned by the helper-local anchor",
       "trim_nul_review_anchor": "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"",
       "trim_nul_review_summary": "the direct trim follow-up stays explicit because the shared Phase 1 string fixture records the trimmed bytes but not the preserved tail bytes beyond the first embedded terminator",
       "phase1_trim_cstr_replay_anchor": "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"",
