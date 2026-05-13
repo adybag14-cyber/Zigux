@@ -45,6 +45,14 @@ ANCHOR_MANIFEST_MARKERS = [
     "- `zigux/tests/phase14_ring_buffer_manifest.json`",
     "- `zigux/tests/phase14_rcu_tree_manifest.json`",
 ]
+ROLLBACK_THRESHOLD_MARKER = "- rollback threshold: `0` tolerated same-packet drifts across anchor-local manifests, anchor-local survey notes, the compile shard matrix, and shared replay wiring"
+ROLLBACK_FALLBACK_PATH_MARKER = "- fallback path: keep this shared smoke lane parked and rerun `make -C zigux phase14-validate` before reopening any anchor-local or shared follow-up"
+ROLLBACK_TRIGGER_MARKERS = [
+    "  - anchor-local manifest drift",
+    "  - anchor-local survey note drift",
+    "  - compile shard matrix drift",
+    "  - shared replay wiring drift",
+]
 RELEASE_BOUNDARY_MARKERS = [
     "- bounded-internal sequencing guard: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain the two study-only anchors that can still receive same-phase bounded boundary-map or concurrency-audit follow-through, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors carried by the current Phase 14 shared smoke packet through their dedicated Phase 14 survey and manifest evidence instead of active delivery lanes; any status-change or reopen request still belongs to the Phase 15 freeze-map governance packet",
     "- `kernel/rcu/tree.c`: remains blocked from active delivery and is currently governed by the shared smoke packet plus its dedicated Phase 14 survey note `Documentation/zigux/phase14-rcu-tree-survey.md` and manifest `zigux/tests/phase14_rcu_tree_manifest.json`; the Phase 15 readiness and handoff packet only governs any later freeze-map status review, so `zigux/tests/phase14_rcu_tree_survey.zig` remains the current full-bundle-only freeze-in-C survey replay rather than a placeholder bridge or status-change claim",
@@ -184,6 +192,10 @@ def check(root: Path) -> list[str]:
         f"- rollback owner: `{ROLLBACK_OWNER}`",
         f"- status bucket: `{STATUS_BUCKET}`",
         f"- validation gate: `{VALIDATION_GATE}`",
+        ROLLBACK_THRESHOLD_MARKER,
+        ROLLBACK_FALLBACK_PATH_MARKER,
+        "- automatic return-to-blocked triggers:",
+        *ROLLBACK_TRIGGER_MARKERS,
         "- attached-toolchain fallback examples for this note's shared replay routes only:",
         SMOKE_NOTE_SHARED_GUARD_MARKER,
         "Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
@@ -191,7 +203,7 @@ def check(root: Path) -> list[str]:
         if marker not in smoke_note:
             errors.append(f"missing marker in {SMOKE_NOTE_PATH.as_posix()}: {marker}")
 
-    for marker in ATTACHED_TOOLCHAIN_EXAMPLES + ANCHOR_MANIFEST_MARKERS:
+    for marker in ATTACHED_TOOLCHAIN_EXAMPLES + ANCHOR_MANIFEST_MARKERS + ROLLBACK_TRIGGER_MARKERS:
         count = smoke_note.count(marker)
         if count != 1:
             errors.append(
@@ -286,6 +298,10 @@ def current_smoke_note_text() -> str:
         f"- rollback owner: `{ROLLBACK_OWNER}`",
         f"- status bucket: `{STATUS_BUCKET}`",
         f"- validation gate: `{VALIDATION_GATE}`",
+        ROLLBACK_THRESHOLD_MARKER,
+        ROLLBACK_FALLBACK_PATH_MARKER,
+        "- automatic return-to-blocked triggers:",
+        *ROLLBACK_TRIGGER_MARKERS,
         "- attached-toolchain fallback examples for this note's shared replay routes only:",
         *ATTACHED_TOOLCHAIN_EXAMPLES,
         *[
@@ -427,6 +443,26 @@ def run_self_test() -> int:
             return 1
         write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
 
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            current_smoke_note_text().replace(ROLLBACK_FALLBACK_PATH_MARKER + "\n", "", 1),
+        )
+        if not any(ROLLBACK_FALLBACK_PATH_MARKER in error for error in check(root)):
+            print("self-test expected rollback fallback marker failure", file=sys.stderr)
+            return 1
+        write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
+
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            current_smoke_note_text().replace(ROLLBACK_TRIGGER_MARKERS[-1] + "\n", "", 1),
+        )
+        if not any(ROLLBACK_TRIGGER_MARKERS[-1] in error for error in check(root)):
+            print("self-test expected rollback trigger marker failure", file=sys.stderr)
+            return 1
+        write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
+
         write(root, CHECKLIST_PATH, "")
         if not any(CHECKLIST_PATH.as_posix() in error for error in check(root)):
             print("self-test expected checklist drift failure", file=sys.stderr)
@@ -533,7 +569,7 @@ def run_self_test() -> int:
         write(root, MAKEFILE_PATH, current_makefile_text())
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=13")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
