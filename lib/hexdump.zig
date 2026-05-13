@@ -239,6 +239,18 @@ test "hex dump pads to the ascii column" {
     try std.testing.expectEqualStrings("AB..", linebuf[expected_column..written]);
 }
 
+test "grouped ascii output keeps the grouped hex prefix and required length aligned" {
+    var linebuf: [80]u8 = undefined;
+    const input = [_]u8{ 'A', 'B', 'C', 'D' };
+    const written = hexDumpToBuffer(&input, 16, 2, &linebuf, true);
+    const expected_hex = if (native_endian == .little) "4241 4443" else "4142 4344";
+    const expected_column = asciiColumn(16, 2);
+
+    try std.testing.expectEqual(requiredLineLength(input.len, 16, 2, true), written);
+    try std.testing.expectEqualStrings(expected_hex, linebuf[0..expected_hex.len]);
+    try std.testing.expectEqualStrings("ABCD", linebuf[expected_column..written]);
+}
+
 test "hex dump truncation still reports the full logical length" {
     var linebuf: [8]u8 = undefined;
     const input = [_]u8{ 0x00, 0x01, 0x02, 0x03 };
