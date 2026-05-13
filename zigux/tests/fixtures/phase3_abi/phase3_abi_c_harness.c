@@ -36,7 +36,9 @@ int main(void)
         "\"sample_major\":%u,"
         "\"sample_minor\":%u,"
         "\"sample_encoded\":%u,"
+        "\"range_first_minor\":%u,"
         "\"range_count\":%u,"
+        "\"range_fits\":%u,"
         "\"range_last_encoded\":%u"
         "},"
         "\"structs\":{"
@@ -73,7 +75,11 @@ int main(void)
         42U,
         7U,
         zigux_mkdev(42U, 7U),
+        7U,
         4U,
+        (unsigned)(zigux_major(zigux_mkdev(42U, 7U)) == 42U &&
+                   zigux_minor(zigux_mkdev(42U, 7U)) == 7U &&
+                   (7U + 4U - 1U) <= ZIGUX_DEV_MINOR_MASK),
         zigux_mkdev(42U, 7U + 4U - 1U),
         sizeof(struct zigux_boundary_header),
         _Alignof(struct zigux_boundary_header),
