@@ -40,9 +40,9 @@ NOTE_MARKERS = (
 )
 
 NOTE_MAINTENANCE_CLOSURE_MARKERS = (
-    "shared docs-root and review-checklist maintenance undercounts are already closed on current `master`",
-    "shared docs-root and review-checklist maintenance undercounts are now closed on current `master`",
-    "`Documentation/zigux/review-checklist.md` already keeps the same maintenance packet aligned",
+    "shared docs-root maintenance undercount is",
+    "shared review-checklist plus broader scripts-root and tests-root parity-scorecard-survey undercount",
+    "that remaining drift stays owned by the shared-summary companion lane rather than this packet-local review-process note",
 )
 
 POLICY_MARKERS = (
@@ -573,14 +573,14 @@ def run_self_test() -> int:
         _write(
             note_path,
             _read(note_path).replace(
-                "shared docs-root and review-checklist maintenance undercounts are already closed on current `master`\n",
+                "shared docs-root maintenance undercount is\n",
                 "",
                 1,
             ),
         )
         _assert_only(
             validate(root),
-            ["note:missing:shared docs-root and review-checklist maintenance undercounts are already closed on current `master`"],
+            ["note:missing:shared docs-root maintenance undercount is"],
             "missing_note_maintenance_handoff_closure_marker",
         )
         _seed_fixture_tree(root)
@@ -590,14 +590,14 @@ def run_self_test() -> int:
         _write(
             note_path,
             _read(note_path).replace(
-                "`Documentation/zigux/review-checklist.md` already keeps the same maintenance packet aligned\n",
+                "shared review-checklist plus broader scripts-root and tests-root parity-scorecard-survey undercount\n",
                 "",
                 1,
             ),
         )
         _assert_only(
             validate(root),
-            ["note:missing:`Documentation/zigux/review-checklist.md` already keeps the same maintenance packet aligned"],
+            ["note:missing:shared review-checklist plus broader scripts-root and tests-root parity-scorecard-survey undercount"],
             "missing_note_review_checklist_alignment_marker",
         )
         _seed_fixture_tree(root)
