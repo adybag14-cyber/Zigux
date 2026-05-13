@@ -21,6 +21,7 @@ TESTS_README_PATH = "zigux/tests/README.md"
 FREEZE_MAP_MANIFEST_PATH = "zigux/tests/phase15_freeze_map_manifest.json"
 PARITY_SCORECARD_PATH = "zigux/tests/phase15_parity_scorecard.json"
 READINESS_MANIFEST_PATH = "zigux/tests/phase15_readiness_gate_manifest.json"
+PARITY_SCORECARD_SURVEY_PATH = "Documentation/zigux/phase15-parity-scorecard-survey.md"
 
 NOTE_MARKERS = (
     "## Trigger Conditions",
@@ -29,6 +30,7 @@ NOTE_MARKERS = (
     "## Reopen Trigger Catalog",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
     "Keep the Phase 15 governance lane in maintenance mode.",
+    PARITY_SCORECARD_SURVEY_PATH,
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
@@ -174,6 +176,7 @@ HANDOFF_NEXT_STEP_MARKERS = (
     "zigux/tests/README.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    PARITY_SCORECARD_SURVEY_PATH,
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
@@ -313,6 +316,7 @@ def validate(root: Path) -> list[str]:
         FREEZE_MAP_MANIFEST_PATH,
         PARITY_SCORECARD_PATH,
         READINESS_MANIFEST_PATH,
+        PARITY_SCORECARD_SURVEY_PATH,
     )
     for rel in required_files:
         if not (root / rel).exists():
@@ -534,6 +538,7 @@ def _seed_fixture_tree(root: Path) -> None:
         )
         + "\n",
     )
+    _write(root / PARITY_SCORECARD_SURVEY_PATH, "# parity scorecard survey\n")
 
 
 def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
@@ -554,6 +559,16 @@ def run_self_test() -> int:
         note_path = root / NOTE_PATH
         _write(note_path, _read(note_path).replace("## Decision Buckets\n", "", 1))
         _assert_only(validate(root), ["note:missing:## Decision Buckets"], "missing_note_marker")
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        note_path = root / NOTE_PATH
+        _write(note_path, _read(note_path).replace(PARITY_SCORECARD_SURVEY_PATH + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"note:missing:{PARITY_SCORECARD_SURVEY_PATH}"],
+            "missing_note_parity_scorecard_survey_marker",
+        )
         _seed_fixture_tree(root)
         case_count += 1
 
@@ -636,6 +651,17 @@ def run_self_test() -> int:
             validate(root),
             ["manifest_handoff_next_step:missing:Documentation/zigux/review-checklist.md"],
             "missing_handoff_review_checklist_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace(PARITY_SCORECARD_SURVEY_PATH + " ", "", 1)
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            [f"manifest_handoff_next_step:missing:{PARITY_SCORECARD_SURVEY_PATH}"],
+            "missing_handoff_parity_scorecard_survey_marker",
         )
         _seed_fixture_tree(root)
         case_count += 1
