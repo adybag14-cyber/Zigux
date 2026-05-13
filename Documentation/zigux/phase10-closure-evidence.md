@@ -76,6 +76,8 @@ The remaining honest repo-reality gaps in this lane are still the packet-local s
 
 That means the current same-lane truthfulness work is no longer a docs-root repair. The shipped shared reminder surfaces are aligned again, and the lane should stay parked below risky transport until a fresh repo-first reread finds another bounded reminder, checker, manifest, survey, or helper-test drift.
 
+`scripts/zigux/README.md` still presents those five missing slice-note companions as repo-reality gaps rather than shipped shared review surfaces, so the closure packet and the scripts-root reminder stay aligned on current `master`.
+
 The broader roadmap gap is still the blocked risky-transport and registration-lifecycle side of `virtio_input`: real event delivery, `input_register_device()` lifecycle coverage, transport-backed queue callbacks, and freeze, restore, remove, or reset parity remain out of scope.
 
 This closure note therefore remains a checkpoint for truthfulness, not a tranche-closure claim: risky transport work is still blocked, the Architecture Council reopen remains unattached, and the roadmap's dual-implementation requirement remains parked at the same blocked risky-transport boundary recorded in the closure manifest.
