@@ -17,9 +17,7 @@
     "shared_request_surface": "zigux/kernel/runtime_loader.zig",
     "shared_loader_lane": "P9-L11",
     "live_registration_parity": "blocked_on_runtime_substrate",
-    "prepared_snapshot_owned_by_loader_request": true,
-    "initialized_shared_request_snapshot_retained_across_later_selftest": true,
-    "selftest_complete_shared_request_snapshot_retained_across_later_exit": true
+    "prepared_snapshot_owned_by_loader_request": true
   },
   "roadmap_gap_summary": {
     "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
