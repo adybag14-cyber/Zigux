@@ -157,7 +157,7 @@
         "test \"rbtree inserts and traverses in sorted order\"",
         "test \"rbtree erase and replace keep traversal consistent\"",
         "test \"rbtree ordered Linux-style aliases mirror traversal and replacement helpers\"",
-        "test \"rbtree eraseInit detaches erased nodes and keeps traversal stable\"",
+        "test \"rbtree eraseInit detaches erased node\"",
         "test \"rbtree postorder and empty node helpers behave\"",
         "test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
         "test \"rbtree nextMatch walks the duplicate range in order\"",
@@ -255,7 +255,7 @@
         "test \"strstarts mirrors the header-level prefix helper\"",
         "test \"strEndsWith honors C-string boundaries\""
       ],
-      "prefix_suffix_review_summary": "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields",
+      "prefix_suffix_review_summary": "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture keys",
       "lookup_review_anchors": [
         "test \"matchString finds C-string matches and preserves first-match order\"",
         "test \"match_string mirrors matchString for empty and matched lists\""
