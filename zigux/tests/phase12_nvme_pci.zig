@@ -26,6 +26,34 @@ test "phase12 nvme pci prp shape reports multi-page throughput fanout" {
     try std.testing.expectEqual(@as(u16, 3), shape.prp_list_entries);
 }
 
+test "phase12 nvme pci recovery restore summary keeps admin-first replay and DMA budget reviewable" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+
+    const admin = try lab.planAdminQueue(64, 64, false);
+    const first_io = try lab.planIoQueue(64, 64, true);
+    const second_io = try lab.planIoQueue(32, 64, false);
+
+    try std.testing.expectEqual(@as(u16, 2), admin.required_host_dma_pages);
+    try std.testing.expectEqual(@as(u16, 1), first_io.required_host_dma_pages);
+    try std.testing.expectEqual(@as(u16, 1), second_io.required_host_dma_pages);
+
+    _ = lab.beginReset();
+    const restore = try lab.recoveryQueueRestoreSummary();
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", restore.anchor);
+    try std.testing.expectEqual(nvme_pci.RecoveryState.reset_frozen, restore.state);
+    try std.testing.expectEqual(@as(u32, 1), restore.reset_generation);
+    try std.testing.expectEqual(@as(u16, 64), restore.admin_queue_depth);
+    try std.testing.expectEqual(@as(u16, 2), restore.admin_host_dma_pages);
+    try std.testing.expectEqual(@as(usize, 2), restore.io_queue_count);
+    try std.testing.expectEqual(@as(u32, 2), restore.io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 4), restore.total_host_dma_pages);
+    try std.testing.expect(restore.restores_admin_first);
+    try std.testing.expect(restore.restores_io_after_admin);
+
+    _ = lab.completeReset();
+    try std.testing.expectError(error.ResetNotFrozen, lab.recoveryQueueRestoreSummary());
+}
+
 test "phase12 nvme pci dropped backlog retirement stays blocked until recovery plans are rebuilt" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     const descriptor = nvme_pci.NvmePciQueueLab.descriptor();
