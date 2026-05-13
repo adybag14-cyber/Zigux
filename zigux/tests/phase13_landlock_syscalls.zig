@@ -102,6 +102,36 @@ test "phase13 landlock syscalls keeps add-rule dispatch explicit for both helper
     try std.testing.expectEqual(@as(?u16, 443), net_plan.dispatched_rule.port);
 }
 
+test "phase13 landlock syscalls keeps add-rule wrapper rejection explicit" {
+    try std.testing.expectError(error.InvalidRulesetFd, syscalls.SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = -1,
+        .ruleset_mode = syscalls.fmode_can_write,
+        .rule_type = syscalls.rule_type_path_beneath,
+        .handled_access_fs = 0x1,
+        .path_allowed_access = 0x1,
+        .parent_fd = 3,
+    }));
+
+    try std.testing.expectError(error.UnsupportedFlags, syscalls.SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = 7,
+        .ruleset_mode = syscalls.fmode_can_write,
+        .flags = 1,
+        .rule_type = syscalls.rule_type_path_beneath,
+        .handled_access_fs = 0x1,
+        .path_allowed_access = 0x1,
+        .parent_fd = 3,
+    }));
+
+    try std.testing.expectError(error.InsufficientRulesetMode, syscalls.SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = 7,
+        .ruleset_mode = syscalls.fmode_can_read,
+        .rule_type = syscalls.rule_type_net_port,
+        .handled_access_net = 0x10,
+        .net_allowed_access = 0x10,
+        .port = 443,
+    }));
+}
+
 test "phase13 landlock syscalls keeps release-side helper discipline explicit" {
     try std.testing.expectError(error.MissingFile, syscalls.SyscallsHelperLab.planFopRulesetRelease(.{
         .file_present = false,
