@@ -191,6 +191,13 @@ REQUIRED_MARKERS = {
         "\"phase9-runtime-bitmap-top-bit-tests\"",
         "runtime_bitmap_top_bit_contract.zig",
     ],
+    ALLOCATOR_INIT_FLOW_PATH: [
+        "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs",
+        "phase 9 runtime loader allocator/init-flow replay rejects missing-init, premature-selftest, exited, duplicate-init, duplicate-selftest, or incomplete handoffs",
+        "phase 9 runtime loader allocator/init-flow replay keeps prepared snapshots pinned when requestRuntimeLoad sees prepared-plan drift",
+        "runtime_loader.keepsAllocatorInitFlowConsistent(",
+        "try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());",
+    ],
     LOADER_GAP_MANIFEST_PATH: [
         '"lane_key": "P9-L18"',
         LOADER_GAP_MANIFEST_NOTE_SURFACE_MARKER,
@@ -445,6 +452,38 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, "missing_marker:zigux/tests/phase9_build.zig:runtime_loader_gap_survey.zig")
+
+        write_fixture_tree(base)
+        allocator_init_flow_path = base / ALLOCATOR_INIT_FLOW_PATH
+        allocator_init_flow = allocator_init_flow_path.read_text(encoding="utf-8")
+        allocator_init_flow_path.write_text(
+            allocator_init_flow.replace(
+                "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:zigux/tests/runtime_loader_allocator_init_flow.zig:phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs",
+        )
+
+        write_fixture_tree(base)
+        allocator_init_flow_path = base / ALLOCATOR_INIT_FLOW_PATH
+        allocator_init_flow = allocator_init_flow_path.read_text(encoding="utf-8")
+        allocator_init_flow_path.write_text(
+            allocator_init_flow.replace(
+                "try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:zigux/tests/runtime_loader_allocator_init_flow.zig:try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());",
+        )
 
         write_fixture_tree(base)
         survey_path = base / LOADER_GAP_SURVEY_PATH
