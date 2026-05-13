@@ -327,7 +327,14 @@
       "c_abi_equality_dynamic_lengths": 33,
       "c_abi_equality_max_probe_formula": "len == 0 ? 1 : 2 * len + 1",
       "c_abi_equality_record_member_size_replay": true,
-      "fixture_companion": "zigux/tests/fixtures/phase6_bsearch_vectors.zig"
+      "fixture_companion": "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
+      "fixture_ascending_values": 15,
+      "fixture_descending_values": 15,
+      "fixture_hit_queries": 5,
+      "fixture_miss_queries": 5,
+      "fixture_sorted_symbols": 4,
+      "fixture_packed_records": 7,
+      "fixture_dynamic_case_lengths": 33
     },
     "checksum": {
       "c_parity_cases": 22
