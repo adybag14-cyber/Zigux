@@ -6,7 +6,7 @@ This note records the bounded governance and review-owner split for the shared P
 
 This note is for the syscall side of the active Phase 13 Landlock packet only.
 
-Current `master` materializes a small `security/landlock/syscalls.zig` helper starter. The shipped surface stays intentionally narrow: pure reviewable planners for `landlock_restrict_self()` with the `no_new_privs` versus `CAP_SYS_ADMIN` credential-gate split kept explicit, the current restrict-self logging-flag translation and the special `ruleset_fd = -1` plus `LANDLOCK_RESTRICT_SELF_LOG_SUBDOMAINS_OFF` detached logging-update path, bounded `landlock_add_rule()` planning for both the `path_beneath` and `net_port` branches with ruleset-write and path-or-port handoff checks, the release-side `fop_ruleset_release()` ownership drop, and the combined `ruleset_fops` wrapper contract. Keep syscall wording tied to current-`master` readback instead of assuming broader syscall parity or live enforcement.
+Current `master` materializes a small `security/landlock/syscalls.zig` helper starter. The shipped surface stays intentionally narrow: pure reviewable planners for `landlock_create_ruleset()` query-versus-create dispatch, minimum `landlock_ruleset_attr` copy sizing, handled filesystem or network access-mask validation, and scope validation before the still-blocked `anon_inode_getfd()` boundary; `landlock_restrict_self()` with the `no_new_privs` versus `CAP_SYS_ADMIN` credential-gate split kept explicit; the current restrict-self logging-flag translation and the special `ruleset_fd = -1` plus `LANDLOCK_RESTRICT_SELF_LOG_SUBDOMAINS_OFF` detached logging-update path; bounded `landlock_add_rule()` planning for both the `path_beneath` and `net_port` branches with ruleset-write and path-or-port handoff checks; the release-side `fop_ruleset_release()` ownership drop; and the combined `ruleset_fops` wrapper contract. Keep syscall wording tied to current-`master` readback instead of assuming broader syscall parity or live enforcement.
 
 Current `master` now also materializes the direct helper-local companions for that same bounded packet:
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
@@ -44,7 +44,8 @@ The direct lane-local replay surface on current `master` is now the helper plus 
 Use this note to keep these boundaries explicit:
 - syscall policy wording, review prompts, and reminder-surface ownership belong here
 - ruleset-helper ownership stays with `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
-- helper-owned wording must stay descriptor-backed and must not drift into claims about live credential mutation, live ruleset ownership, live file-descriptor installation, or live syscall enforcement
+- helper-owned wording must stay descriptor-backed and must not drift into claims about live credential mutation, live ruleset ownership, live file-descriptor installation, live syscall enforcement, or successful anonymous-inode registration
+- the shipped helper packet keeps `landlock_create_ruleset()` explicit through `CreateRulesetMode`, the named query flags, minimum `landlock_ruleset_attr` sizing, handled-access and scope validation, and an explicit stop before `anon_inode_getfd()`
 - the shipped helper packet keeps the credential-gate split explicit through `CredentialGate.no_new_privs` and `CredentialGate.cap_sys_admin_override` while staying planning-only rather than mutating live credentials
 - the shipped helper packet also keeps restrict-self logging policy explicit through the current named logging flags, the boolean translation they imply for same-exec, new-exec, and subdomain logging, and the special detached `ruleset_fd = -1` plus `LANDLOCK_RESTRICT_SELF_LOG_SUBDOMAINS_OFF` path that updates logging posture without claiming a new domain install
 - the shipped add-rule packet keeps the `path_beneath` versus `net_port` split explicit through `AddRuleAction`, ruleset-write access validation, access-mask handling checks, and the distinct parent-fd versus port handoff cues
@@ -59,7 +60,8 @@ Keep this packet parked unless a future lane can add another equally bounded pla
 If a change updates the Phase 13 Landlock syscalls packet, verify that:
 - no wording here implies extra shared replay steps beyond the shipped direct helper-local packet
 - syscall-facing policy claims stay separate from ruleset-helper ownership and from adjacent notifier evidence
-- helper-owned wording still matches `SyscallsHelperLab.descriptor()`, including the bounded release-side `ruleset_fops` planning surface and the false live-state flags
+- helper-owned wording still matches `SyscallsHelperLab.descriptor()`, including the bounded `landlock_create_ruleset()` planning surface, the bounded release-side `ruleset_fops` planning surface, and the false live-state flags
+- helper-owned wording still keeps the named create-ruleset query flags, the minimum attr-sizing boundary, and the pre-`anon_inode_getfd()` stop explicit
 - helper-owned wording still keeps the `no_new_privs` versus `CAP_SYS_ADMIN` credential-gate split, the named restrict-self logging flags, and the detached subdomains-only logging-update case explicit
 - helper-owned wording still keeps the `path_beneath` versus `net_port` add-rule split explicit
 - helper-owned wording still frames the packet as planning-only helper work rather than live syscall enforcement
