@@ -24,6 +24,9 @@ BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
 BASE64_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
+PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
+MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 ABSENT_PATHS = [
     BASE64_PERF_PATH,
@@ -40,6 +43,9 @@ PRESENT_PATHS = [
     CHECKSUM_SLICE_PATH,
     HEXDUMP_SLICE_PATH,
     HEXDUMP_VECTORS_PATH,
+    PHASE6_BUILD_PATH,
+    MAKEFILE_PATH,
+    WORKFLOW_PATH,
 ]
 
 BASE64_CASES = [
@@ -124,7 +130,32 @@ REQUIRED_SNIPPETS = {
     HEXDUMP_SLICE_PATH.as_posix(): [
         "- current review posture: focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle; `16B-plain-g1` stays capped at `max_slowdown_pct = 175`, `32B-ascii-g2` and `16B-ascii-g4` stay capped at `max_slowdown_pct = 550`, and `16B-ascii-g8` stays capped at `max_slowdown_pct = 600`, with `zigux/tests/phase6_hexdump_perf_matrix.zig` exact-checking the documented case labels, lengths, row sizes, group sizes, ascii flags, replay counts, slowdown caps, and buffer-fit guard before `zigux/tests/phase6_hexdump_perf.zig` times expected output and required length for every fixture-backed perf case",
     ],
+    PHASE6_BUILD_PATH.as_posix(): [
+        'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
+        'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
+        'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
+    ],
+    MAKEFILE_PATH.as_posix(): [
+        "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
+    ],
+    WORKFLOW_PATH.as_posix(): [
+        "- name: Self-test Phase 6 perf-threshold checker",
+        "run: python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
+        "- name: Check Phase 6 perf threshold markers",
+        "- name: Run Phase 6 base64 perf gate",
+        "- name: Run Phase 6 checksum perf gate",
+        "- name: Run Phase 6 hexdump perf gate",
+    ],
 }
+
+REQUIRED_EXACT_CHECKS = [
+    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
+    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
+    "make -C zigux phase6-perf",
+    "make -C zigux phase6-base64-perf",
+    "make -C zigux phase6-checksum-perf",
+    "make -C zigux phase6-hexdump-perf",
+]
 
 
 def read_text(path: Path) -> str:
@@ -211,10 +242,7 @@ def validate_manifest(repo_root: Path) -> None:
     exact_checks = manifest.get("exact_checks")
     if not isinstance(exact_checks, list):
         raise ValidationError(f"missing exact_checks in {MANIFEST_PATH}")
-    for command in [
-        "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
-        "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
-    ]:
+    for command in REQUIRED_EXACT_CHECKS:
         if command not in exact_checks:
             raise ValidationError(f"missing exact Phase 6 perf-threshold check in {MANIFEST_PATH}: {command}")
 
@@ -286,10 +314,7 @@ def scaffold_repo(root: Path) -> None:
                 "cases": HEXDUMP_CASES,
             },
         },
-        "exact_checks": [
-            "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
-            "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
-        ],
+        "exact_checks": list(REQUIRED_EXACT_CHECKS),
     }
     write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
@@ -334,6 +359,12 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
+            MANIFEST_PATH,
+            '"make -C zigux phase6-perf"',
+            '"make -C zigux phase6-perf-doc"',
+        )
+        assert_failure(
+            root,
             SURVEY_PATH,
             "only keeps the hexdump leg runnable",
             "keeps all three legs runnable",
@@ -355,6 +386,24 @@ def run_self_test() -> None:
             CHECKSUM_SLICE_PATH,
             "this slice is blocked until the checksum helper packet is restored or the shared packet routes are rewritten to match the absent helper state",
             "this slice is now fully restored",
+        )
+        assert_failure(
+            root,
+            PHASE6_BUILD_PATH,
+            'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
+            'const checksum_perf_step = b.step("phase6-checksum-review", "Run Phase 6 checksum perf gate");',
+        )
+        assert_failure(
+            root,
+            MAKEFILE_PATH,
+            "phase6-hexdump-review phase6-base64-perf",
+            "phase6-hexdump-review phase6-base64-review",
+        )
+        assert_failure(
+            root,
+            WORKFLOW_PATH,
+            "- name: Run Phase 6 hexdump perf gate",
+            "- name: Run Phase 6 hexdump perf review",
         )
         absent_path = root / BASE64_PERF_PATH
         write(absent_path, "unexpected\n")
