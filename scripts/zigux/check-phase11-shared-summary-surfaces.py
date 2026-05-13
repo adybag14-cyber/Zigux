@@ -58,7 +58,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 12
 
 
 class CheckError(RuntimeError):
@@ -132,6 +132,7 @@ def run_self_test() -> None:
             (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][0]),
             (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][1]),
             (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][0]),
+            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][1]),
         ]
 
         for idx, (relative_path, marker) in enumerate(required_cases, start=1):
