@@ -34,9 +34,11 @@ test "phase 7 string helpers survey keeps the current missing-helper packet trut
     try expectContains(manifest, "\"current_master_truthfulness\":");
     try expectContains(manifest, "\"phase7-string-helpers-helper\"");
     try expectContains(manifest, "\"phase7-string-helpers-dedicated-tests\"");
-    try expectContains(manifest, "\"phase7-string-helpers-scripts-readme-boundary\"");
-    try expectContains(manifest, "scripts-root Phase 5 no-string-sample reminder in scripts/zigux/README.md still reads narrower");
+    try expectContains(manifest, "the shared validate-phase7 surface plus the scripts-root and sample-root Phase 5 no-string-sample reminders now match the synced docs-root parked packet");
     try expectContains(manifest, "\"status\": \"missing_on_master\"");
+    try expectNotContains(manifest, "\"phase7-string-helpers-validator-truthfulness\"");
+    try expectNotContains(manifest, "\"phase7-string-helpers-scripts-readme-boundary\"");
+    try expectNotContains(manifest, "still reads narrower");
 
     const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
     defer allocator.free(docs_root);
@@ -60,6 +62,8 @@ test "phase 7 string helpers survey keeps the current missing-helper packet trut
     const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
     defer allocator.free(scripts_root);
     try expectContains(scripts_root, "validate-phase7.py");
+    try expectContains(scripts_root, "Documentation/zigux/review-checklist.md");
+    try expectContains(scripts_root, "Documentation/zigux/phase7-string-helpers-slice.md");
     try expectContains(scripts_root, "check-phase7-build-wiring.py");
     try expectContains(scripts_root, "check-phase7-make-wrapper-selftest-alignment.py");
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
