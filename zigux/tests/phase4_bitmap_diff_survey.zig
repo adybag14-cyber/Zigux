@@ -73,7 +73,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff_survey);
     try std.testing.expectEqualStrings("7010c4816a604be03ef46876765925edb9852e47", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("24418ad890696a59b95276fe8dec7eaeecf25172", manifest.helper_replay_blob_sha);
-    try std.testing.expectEqualStrings("65f09070ed5687f7aa4bf57c5696a17f81c8f98d", manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("88797a6fbd1adf307dfaa8ac0713c9fd85ea33f1", manifest.gate_evidence_blob_sha);
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_diff_source), manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_live_helper_replay_source), manifest.helper_replay_blob_sha);
@@ -101,15 +101,15 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
 }
 
 test "phase 4 bitmap survey keeps the shared build route explicit" {
-    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".root_source_file = b.path(\\\"bitmap_diff.zig\\\")") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".root_source_file = b.path(\\\"phase4_bitmap_diff_survey.zig\\\")") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".root_source_file = b.path(\\\"phase4_bitmap_live_helper_replay.zig\\\")") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".name = \\\"phase4-bitmap-diff-tests\\\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".name = \\\"phase4-bitmap-diff-survey-tests\\\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".name = \\\"phase4-bitmap-live-helper-replay-tests\\\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "\\\"phase4-bitmap-diff\\\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "\\\"phase4-bitmap-diff-survey\\\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "\\\"phase4-bitmap-live-helper-replay\\\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".root_source_file = b.path(\"bitmap_diff.zig\")") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".root_source_file = b.path(\"phase4_bitmap_diff_survey.zig\")") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".root_source_file = b.path(\"phase4_bitmap_live_helper_replay.zig\")") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".name = \"phase4-bitmap-diff-tests\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".name = \"phase4-bitmap-diff-survey-tests\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, ".name = \"phase4-bitmap-live-helper-replay-tests\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "\"phase4-bitmap-diff\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "\"phase4-bitmap-diff-survey\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "\"phase4-bitmap-live-helper-replay\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "manifest-backed Phase 4 bitmap rollback survey") != null);
 }
 
@@ -166,7 +166,7 @@ test "phase 4 bitmap survey keeps zero-length and copy-alignment rollback checks
         bitmap_diff_source,
         "test_copy aligned 97-bit replay keeps the full second word before the filled tail resumes",
     );
-    try expectContains(bitmap_diff_source, "test \\\"bitmap diff gate rejects out-of-bounds bitmap operations\\\" {");
+    try expectContains(bitmap_diff_source, "test \"bitmap diff gate rejects out-of-bounds bitmap operations\" {");
     try expectContains(
         bitmap_diff_source,
         "try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.findNthSet(BitmapHarness.bitmap_nbits + 1, 0));",
