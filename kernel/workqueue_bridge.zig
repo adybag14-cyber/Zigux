@@ -323,7 +323,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Keep the packet in blocked maintenance and only reopen for bridge-local truthfulness drift across the slice note, survey note, manifest, or shared Phase 14 reminder surfaces.";
+        return "Keep the packet in blocked maintenance and only reopen for bridge-local truthfulness drift across the bridge, dedicated test, manifest, slice note, or survey note.";
     }
 };
 
