@@ -490,6 +490,36 @@ test "runtime kretprobe loader keeps direct shared runtime-load transitions from
     ));
 }
 
+test "runtime kretprobe loader rejects idle shared-loader handoff before any live registration claim" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+    _ = try module.runSelftest();
+
+    var prepared_loader = RuntimeKretprobeLoader{};
+    var shared_request = try prepared_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, prepared_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
+
+    var idle_loader = RuntimeKretprobeLoader{};
+    try std.testing.expectEqual(LoaderStage.idle, idle_loader.stage());
+
+    try std.testing.expectError(error.InvalidLoaderState, idle_loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.idle, idle_loader.stage());
+    try std.testing.expectEqual(LoaderStage.prepared, prepared_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
+}
+
 test "runtime kretprobe loader surfaces prepared shared selftest-hook drift before any live registration claim" {
     var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
     try module.retargetSymbol("do_sys_openat2");
