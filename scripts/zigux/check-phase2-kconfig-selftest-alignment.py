@@ -38,7 +38,7 @@ VALIDATOR_EXACT_COUNTS = {
 CLOSURE_VALIDATOR_MARKERS = (
     "shared kconfig selftest-alignment self-test",
     'KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"',
-    "16-case` conf bridge plus `12-case` confdata fixture replay",
+    "16-case` conf bridge plus `13-case` confdata fixture replay",
 )
 
 WORKFLOW_LINES = (
@@ -94,10 +94,10 @@ PHASE2_BOOTSTRAP_NOTES_MARKERS = (
 )
 
 PHASE2_CONFDATA_SURVEY_MARKERS = (
-    "`zigux/tests/fixtures/kconfig_bridge/cases.json` currently carries a `confdata_cases` packet with 12 fixture cases: `sample`, `escaped_strings`, `escaped_control_sequences`, `trailing_escaped_backslash`, `sample_crlf`, `explicit_n_tristate`, `final_trailing_carriage_return`, `final_unterminated_unset_comment`, `uppercase_tristate`, `non_config_lines`, `empty_config_symbol_names`, and `last_state_transitions`.",
-    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 12-case packet, and names the current helper-local anchor list for the bridge tests.",
+    "`zigux/tests/fixtures/kconfig_bridge/cases.json` currently carries a `confdata_cases` packet with 13 fixture cases: `sample`, `escaped_strings`, `escaped_control_sequences`, `trailing_escaped_backslash`, `sample_crlf`, `explicit_n_tristate`, `final_trailing_carriage_return`, `final_unterminated_unset_comment`, `uppercase_tristate`, `non_config_lines`, `empty_config_symbol_names`, `last_state_transitions`, and `duplicate_malformed_quoted_assignment`.",
+    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-kconfig-readme-alignment.py`, `scripts/zigux/validate-phase2.py`, and `scripts/zigux/validate-phase2-closure.py` now keep the already-landed confdata bridge packet reviewable through the shared Phase 2 reminder surface instead of reviving the older dedicated `check-kconfig-bridge.py` scaffold claim.",
-    "When a writable checkout and Zig toolchain are available, run `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`, `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test`, and `python3 scripts/zigux/validate-phase2-closure.py` together so the already-landed bridge packet stays replay-validated through the shared Phase 2 reminder surface.",
+    "When a writable checkout and Zig toolchain are available, rerun `python3 scripts/zigux/check-kconfig-bridge.py --self-test`, the full `python3 scripts/zigux/check-kconfig-bridge.py` gate, and the shared Phase 2 closure validators against the now `13-case` confdata packet.",
 )
 
 PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
