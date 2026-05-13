@@ -198,6 +198,35 @@ EXPECTED_SHARED_GATES = [
     MAKEFILE_PATH.as_posix(),
 ]
 
+EXPECTED_TESTS_ROOT_PRESENT_ENTRYPOINTS = [
+    PHASE6_BUILD_PATH.as_posix(),
+    MANIFEST_PATH.as_posix(),
+    CATALOG_PATH.as_posix(),
+    PERF_SURVEY_PATH.as_posix(),
+    Path("zigux/tests/phase6_base64_c_parity.zig").as_posix(),
+    Path("zigux/tests/fixtures/phase6_base64_c_harness.c").as_posix(),
+    BASE64_PARITY_SCRIPT_PATH.as_posix(),
+    Path("zigux/tests/phase6_bsearch.zig").as_posix(),
+    Path("zigux/tests/phase6_bsearch_lower_bound_c_abi.zig").as_posix(),
+    Path("zigux/tests/phase6_bsearch_c_abi_budget.zig").as_posix(),
+    Path("zigux/tests/fixtures/phase6_bsearch_vectors.zig").as_posix(),
+    Path("zigux/tests/phase6_checksum_c_parity.zig").as_posix(),
+    Path("zigux/tests/fixtures/phase6_checksum_c_harness.c").as_posix(),
+    CHECKSUM_PARITY_SCRIPT_PATH.as_posix(),
+    Path("zigux/tests/phase6_hexdump.zig").as_posix(),
+    Path("zigux/tests/phase6_hexdump_perf.zig").as_posix(),
+    HEXDUMP_MATRIX_PATH.as_posix(),
+    Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig").as_posix(),
+]
+
+EXPECTED_TESTS_ROOT_PUBLIC_TREE_GAPS = [path.as_posix() for path in ABSENT_PATHS]
+
+EXPECTED_TESTS_ROOT_TRUTHFULNESS_NOTE = (
+    "zigux/tests/README.md should keep tests_root_present_entrypoints as the current Phase 6 "
+    "tests-root evidence packet and keep tests_root_public_tree_gaps explicit as missing "
+    "public-tree files until those helper-owned base64 and checksum assets return."
+)
+
 EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES = [
     "python3 scripts/zigux/check-phase6-base64-c-parity.py",
     "make -C zigux phase6-base64-c-parity",
@@ -254,6 +283,24 @@ def validate_manifest(repo_root: Path) -> None:
     shared_gates = manifest.get("shared_gates")
     if shared_gates != EXPECTED_SHARED_GATES:
         raise ValidationError(f"unexpected shared_gates in {MANIFEST_PATH}: {shared_gates!r}")
+
+    tests_root_present_entrypoints = manifest.get("tests_root_present_entrypoints")
+    if tests_root_present_entrypoints != EXPECTED_TESTS_ROOT_PRESENT_ENTRYPOINTS:
+        raise ValidationError(
+            "unexpected tests_root_present_entrypoints in "
+            f"{MANIFEST_PATH}: {tests_root_present_entrypoints!r}"
+        )
+
+    tests_root_public_tree_gaps = manifest.get("tests_root_public_tree_gaps")
+    if tests_root_public_tree_gaps != EXPECTED_TESTS_ROOT_PUBLIC_TREE_GAPS:
+        raise ValidationError(
+            "unexpected tests_root_public_tree_gaps in "
+            f"{MANIFEST_PATH}: {tests_root_public_tree_gaps!r}"
+        )
+
+    tests_root_truthfulness_note = manifest.get("tests_root_truthfulness_note")
+    if tests_root_truthfulness_note != EXPECTED_TESTS_ROOT_TRUTHFULNESS_NOTE:
+        raise ValidationError(f"unexpected tests_root_truthfulness_note in {MANIFEST_PATH}")
 
     inventory_only_blocked_routes = manifest.get("inventory_only_blocked_routes")
     if inventory_only_blocked_routes != EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES:
@@ -343,6 +390,9 @@ def scaffold_repo(root: Path) -> None:
         "packet_state_summary": dict(EXPECTED_PACKET_STATE_SUMMARY),
         "shared_route_truthfulness_note": EXPECTED_SHARED_ROUTE_NOTE,
         "shared_gates": list(EXPECTED_SHARED_GATES),
+        "tests_root_present_entrypoints": list(EXPECTED_TESTS_ROOT_PRESENT_ENTRYPOINTS),
+        "tests_root_public_tree_gaps": list(EXPECTED_TESTS_ROOT_PUBLIC_TREE_GAPS),
+        "tests_root_truthfulness_note": EXPECTED_TESTS_ROOT_TRUTHFULNESS_NOTE,
         "inventory_only_blocked_routes": list(EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES),
         "surveyed_commit": "a0f4d7e",
         "helpers": [
@@ -453,6 +503,12 @@ def run_self_test() -> None:
             MANIFEST_PATH,
             '"shared_gates": [',
             '"shared_gate_inventory": [',
+        )
+        assert_failure(
+            root,
+            MANIFEST_PATH,
+            '"tests_root_truthfulness_note": "zigux/tests/README.md should keep tests_root_present_entrypoints as the current Phase 6 tests-root evidence packet and keep tests_root_public_tree_gaps explicit as missing public-tree files until those helper-owned base64 and checksum assets return."',
+            '"tests_root_truthfulness_note": "zigux/tests/README.md may summarize any broader helper packet it wants."',
         )
         assert_failure(
             root,
