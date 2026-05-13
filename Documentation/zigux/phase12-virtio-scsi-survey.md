@@ -74,12 +74,12 @@ This note does not claim:
 
 ## Next bounded step
 
-The next honest same-lane move is a bounded control-path governance follow-up, not a runtime storage-path jump.
+The next honest same-lane move is a narrower survey-packet or direct-replay truthfulness repair, not a runtime storage-path jump.
 
 The next bounded step is:
 
-1. keep the current starter focused on queue layout, request-submit sequencing, completion-handback sequencing, host-limit, queue-depth, command-buffer ownership, io-map, and transport-reset recovery summaries instead of widening into live DMA or host-registration code
-2. reland one control-path governance follow-up beside the current `virtio_scsi` starter so the control-queue and TMF-facing boundary becomes reviewable without overclaiming runtime behavior
-3. revisit broader Phase 12 bundle wiring only after that follow-up exists and still fits the bounded complex-driver packet
+1. keep the current starter focused on queue layout, request-submit sequencing, completion-handback sequencing, host-limit, queue-depth, command-buffer ownership, control-path governance, io-map, and transport-reset recovery summaries instead of widening into live DMA or host-registration code
+2. treat control-path governance, command-buffer ownership, request-submit sequencing, completion-handback sequencing, and recovery ordering as already-landed bounded review surfaces inside the current survey packet
+3. only reopen this lane for one equally narrow direct-replay or survey-packet tightening if those bounded surfaces drift again; otherwise leave it parked until a later DMA-safe, `scsi_host`, or TMF-facing packet is ready
 
 Until then, treat the current `virtio_scsi` starter as a real but deliberately small Phase 12 queue-submit-completion-and-recovery survey packet, not as a live storage-driver proof.
