@@ -189,7 +189,7 @@ test "offset rename exchange planning keeps managed-slot swap and rollback expec
 
 test "phase13 libfs manifest records the current helper-first filesystem packet" {
     try expectContains(manifest_text, "\"lane_key\": \"P13-L04\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-12\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-13\"");
     try expectContains(manifest_text, "\"current_libfs_zig_present\": true");
     try expectContains(manifest_text, "\"current_phase13_libfs_test_present\": true");
     try expectContains(manifest_text, "\"current_phase13_libfs_reviewability_present\": true");
@@ -198,6 +198,7 @@ test "phase13 libfs manifest records the current helper-first filesystem packet"
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-acquire-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-release-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-publish-helper\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-addressability-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-reviewability-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-build-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-live-dcache-mutation\"");
@@ -208,6 +209,8 @@ test "phase13 libfs manifest records the current helper-first filesystem packet"
     try expectContains(manifest_text, "transaction acquire planning");
     try expectContains(manifest_text, "simple_transaction_release()");
     try expectContains(manifest_text, "transaction publish planning");
+    try expectContains(manifest_text, "generic_check_addressable()");
+    try expectContains(manifest_text, "addressability helper");
     try expectContains(manifest_text, "simple_transaction_get()");
     try expectContains(manifest_text, "offset-based rename planning");
     try expectContains(manifest_text, "live dcache entry insertion");
