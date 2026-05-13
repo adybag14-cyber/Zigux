@@ -602,6 +602,33 @@ test "runtime atomic64 loader keeps shared release failures from desynchronizing
     ));
 }
 
+test "runtime atomic64 loader keeps direct shared runtime-load transitions from desynchronizing shared release state" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(0x1111_1111_2222_2222);
+    _ = try module.runSelftest();
+
+    var loader = RuntimeAtomic64Loader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    const pending_plan = try shared_request.requestRuntimeLoad();
+
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
+
+    try std.testing.expectError(error.InvalidLoaderState, loader.releaseSharedWithoutSubstrate(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
+}
+
 test "runtime atomic64 loader rejects idle shared-loader handoff before any local runtime state exists" {
     var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
     try module.init(0x1111_1111_2222_2222);
