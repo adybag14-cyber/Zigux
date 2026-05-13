@@ -84,6 +84,8 @@ FILE_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
         "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+        "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+        "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
         "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py",
         "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
@@ -254,6 +256,8 @@ LINE_EXACT_COUNT_CHECKS = {
     ".github/workflows/zigux-bootstrap.yml": {
         "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
         "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+        "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
+        "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
         "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
         "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
         "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
