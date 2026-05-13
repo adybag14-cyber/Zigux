@@ -61,6 +61,7 @@ MATRIX_MARKERS = [
     "`zigux/tests/phase4_perf_baseline_survey.zig` dedicated local survey that keeps the approved local benchmark commands and the approved local-only acceptable limits machine-checked for both landed rollback gates",
     "`local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending`",
     "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners",
+    "* current acceptable-limit status: the dedicated survey packet now carries approved local-only acceptable limits for both atomic64 and bitmap, and shared CI perf coverage is still not claimed",
 ]
 
 GATE_EVIDENCE_MARKERS = [
@@ -68,6 +69,8 @@ GATE_EVIDENCE_MARKERS = [
     "zigux/tests/phase4_perf_baseline_survey.zig",
     "shared CI perf coverage out of scope",
     "Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion",
+    "while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.",
+    "atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
 ]
 
 CHECKLIST_MARKERS = [
@@ -101,7 +104,10 @@ SELF_TEST_CASES = [
     "survey_checker_test_drift",
     "survey_local_only_test_drift",
     "matrix_local_only_posture_drift",
+    "matrix_acceptable_limit_drift",
     "gate_evidence_promotion_owner_drift",
+    "gate_evidence_limit_summary_drift",
+    "gate_evidence_coordination_owner_drift",
     "review_checklist_coordination_owner_drift",
     "tests_readme_wrapper_drift",
     "build_shared_test_scope_drift",
@@ -243,7 +249,7 @@ def build_fixture_tree(root: Path) -> None:
     )
     write_text(
         root / SURVEY_REL,
-        '\n'.join(
+        "\n".join(
             [
                 'const std = @import("std");',
                 '',
@@ -279,6 +285,7 @@ def build_fixture_tree(root: Path) -> None:
                 "`zigux/tests/phase4_perf_baseline_survey.zig` dedicated local survey that keeps the approved local benchmark commands and the approved local-only acceptable limits machine-checked for both landed rollback gates",
                 "`local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending`",
                 "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners",
+                "* current acceptable-limit status: the dedicated survey packet now carries approved local-only acceptable limits for both atomic64 and bitmap, and shared CI perf coverage is still not claimed",
             ]
         )
         + "\n",
@@ -292,6 +299,8 @@ def build_fixture_tree(root: Path) -> None:
                 "zigux/tests/phase4_perf_baseline_survey.zig",
                 "shared CI perf coverage out of scope",
                 "Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion",
+                "while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.",
+                "atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
             ]
         )
         + "\n",
@@ -377,7 +386,7 @@ def run_self_test() -> int:
             root / MANIFEST_REL,
             replace_once(read_text(root / MANIFEST_REL), '"acceptable_limit_max_elapsed_ns": 12288', '"acceptable_limit_max_elapsed_ns": 12289'),
         )
-        if not expect_failure(root, "manifest_marker:\"acceptable_limit_max_elapsed_ns\": 12288"):
+        if not expect_failure(root, 'manifest_marker:"acceptable_limit_max_elapsed_ns": 12288'):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("manifest limit drift case did not fail closed")
             return 1
@@ -430,6 +439,21 @@ def run_self_test() -> int:
         build_fixture_tree(root)
 
         write_text(
+            root / MATRIX_REL,
+            replace_once(
+                read_text(root / MATRIX_REL),
+                "* current acceptable-limit status: the dedicated survey packet now carries approved local-only acceptable limits for both atomic64 and bitmap, and shared CI perf coverage is still not claimed",
+                "* current acceptable-limit status: the dedicated survey packet now carries tentative acceptable limits for both atomic64 and bitmap, and shared CI perf coverage is still not claimed",
+            ),
+        )
+        if not expect_failure(root, "matrix_marker:* current acceptable-limit status: the dedicated survey packet now carries approved local-only acceptable limits for both atomic64 and bitmap, and shared CI perf coverage is still not claimed"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("matrix acceptable-limit drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
             root / GATE_EVIDENCE_REL,
             replace_once(
                 read_text(root / GATE_EVIDENCE_REL),
@@ -440,6 +464,36 @@ def run_self_test() -> int:
         if not expect_failure(root, "gate_evidence_marker:Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("gate evidence promotion owner drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / GATE_EVIDENCE_REL,
+            replace_once(
+                read_text(root / GATE_EVIDENCE_REL),
+                "atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
+                "atomic64 keeps `median_elapsed_ns <= 9216` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
+            ),
+        )
+        if not expect_failure(root, "gate_evidence_marker:atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples."):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("gate evidence limit summary drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / GATE_EVIDENCE_REL,
+            replace_once(
+                read_text(root / GATE_EVIDENCE_REL),
+                "while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.",
+                "while the Tooling and Validation Team stays named as the only coordination owner for that policy call.",
+            ),
+        )
+        if not expect_failure(root, "gate_evidence_marker:while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call."):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("gate evidence coordination-owner drift case did not fail closed")
             return 1
         case_count += 1
         build_fixture_tree(root)
