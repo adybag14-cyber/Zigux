@@ -66,6 +66,8 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-build-wiring.py",
     ],
     "scripts/zigux/README.md": [
+        "Documentation/zigux/review-checklist.md",
+        "Documentation/zigux/phase7-string-helpers-slice.md",
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-build-wiring.py",
         "make -C zigux phase7-validate",
@@ -321,6 +323,32 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            scripts_readme_text.replace("Documentation/zigux/review-checklist.md", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_scripts_readme_review_checklist_marker",
+            tmp_root,
+            "scripts/zigux/README.md: Documentation/zigux/review-checklist.md",
+        )
+        write_fixture_root(tmp_root)
+
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            scripts_readme_text.replace("Documentation/zigux/phase7-string-helpers-slice.md", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_scripts_readme_string_helpers_slice_marker",
+            tmp_root,
+            "scripts/zigux/README.md: Documentation/zigux/phase7-string-helpers-slice.md",
+        )
+        write_fixture_root(tmp_root)
+
         makefile_path = tmp_root / "zigux/Makefile"
         makefile_text = makefile_path.read_text(encoding="utf-8")
         missing_makefile_marker = "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py"
@@ -400,8 +428,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=19")
-
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=21")
 
 
 def main() -> int:
