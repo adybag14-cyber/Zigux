@@ -83,7 +83,7 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
     try std.testing.expectEqualStrings("P12-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("unresolved_on_master", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings("2026-05-12", manifest.verified_on);
+    try std.testing.expectEqualStrings("2026-05-13", manifest.verified_on);
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_scsi_zig_present);
@@ -100,12 +100,12 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_gate_present);
 
     try std.testing.expectEqualStrings("starter_present_runtime_dma_blocked", manifest.roadmap_gap_check.dma_safe_abstractions.status);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.dma_safe_abstractions.current_surface, "command and sense-buffer ownership planning") != null);
-    try std.testing.expectEqualStrings("starter_queue_host_limit_depth_io_map_recovery_present_direct_tests_present_shared_smoke_present", manifest.roadmap_gap_check.queueing_correctness.status);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.queueing_correctness.current_surface, "command-buffer ownership planning") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.dma_safe_abstractions.current_surface, "request-submit sequencing") != null);
+    try std.testing.expectEqualStrings("starter_queue_submit_host_limit_depth_io_map_recovery_present_direct_tests_present_shared_smoke_present", manifest.roadmap_gap_check.queueing_correctness.status);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.queueing_correctness.current_surface, "request-submit sequencing") != null);
     try std.testing.expectEqualStrings("starter_recovery_summary_present_runtime_execution_missing", manifest.roadmap_gap_check.throughput_and_recovery_parity.status);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface, "pre-runtime command-buffer ownership") != null);
-    try std.testing.expectEqualStrings("support_packet_and_survey_packet_present", manifest.roadmap_gap_check.segmented_rollout.status);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface, "request-submit ordering") != null);
+    try std.testing.expectEqualStrings("support_packet_survey_packet_and_submit_summary_present", manifest.roadmap_gap_check.segmented_rollout.status);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.segmented_rollout.current_surface, "request-submit sequencing summary") != null);
 
     var saw_support_packet = false;
@@ -115,10 +115,11 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
     var saw_host_limit = false;
     var saw_queue_depth = false;
     var saw_command_buffer = false;
+    var saw_request_submit = false;
     var saw_io_map_recovery = false;
     var saw_runtime_gap = false;
 
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
     for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
@@ -132,7 +133,7 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
             saw_survey_note = true;
             try std.testing.expectEqualStrings("survey_present", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-scsi-survey.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "command-buffer ownership") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "request-submit sequencing") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-survey-gate")) {
             saw_survey_gate = true;
@@ -159,6 +160,11 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
             try std.testing.expectEqualStrings("landed_on_master", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "captureCommandBufferOwnershipSummary()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-request-submit-sequencing-summary")) {
+            saw_request_submit = true;
+            try std.testing.expectEqualStrings("landed_on_master", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "captureRequestSubmitSequencingSummary()") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-io-map-and-recovery-summary")) {
             saw_io_map_recovery = true;
             try std.testing.expectEqualStrings("landed_on_master", gap.status);
@@ -178,6 +184,7 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
     try std.testing.expect(saw_host_limit);
     try std.testing.expect(saw_queue_depth);
     try std.testing.expect(saw_command_buffer);
+    try std.testing.expect(saw_request_submit);
     try std.testing.expect(saw_io_map_recovery);
     try std.testing.expect(saw_runtime_gap);
 }
@@ -193,21 +200,23 @@ test "phase12 virtio scsi survey note stays aligned with the bounded queue-and-r
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("2026-05-12", manifest.verified_on);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-queue-and-recovery-survey") != null);
+    try std.testing.expectEqualStrings("2026-05-13", manifest.verified_on);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-queue-submit-and-recovery-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `drivers/scsi/virtio_scsi.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "captureProbeSnapshot()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "captureHostLimitSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "captureQueueDepthSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "captureRequestSubmitSequencingSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "captureCommandBufferOwnershipSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "captureIoQueueMapSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryQueuePlan()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryEventBufferOwnershipSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryHostScanSummary()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "host-scan restore ordering stay reviewable") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "request-queue selection") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-kick submit ordering stay reviewable") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_virtio_scsi_packet.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe request submission") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded request-submit sequencing follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded completion-handback sequencing follow-up") != null);
 }
 
 test "phase12 virtio scsi survey gate keeps present lane files explicit" {
