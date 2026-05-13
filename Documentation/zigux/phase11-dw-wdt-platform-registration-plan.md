@@ -7,8 +7,8 @@ This note records the next bounded follow-up for the surviving Phase 11 DesignWa
 The live repository still keeps the DesignWare lane reviewable through:
 
 - `drivers/watchdog/dw_wdt.zig` for bounded TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, probe-time bookkeeping, and registration-facing handoff summaries
+- `drivers/watchdog/dw_wdt_verify.zig` for direct teardown ownership and restart failure-mode parity that stays compile-local and host-free beside the bounded driver packet
 - `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` for the surviving owner-lane continuity packet, pinned to `P11-L10`
-- direct teardown and failure-mode parity stays as a future same-lane follow-through target rather than shipped current-`master` evidence through `drivers/watchdog/dw_wdt_verify.zig`
 
 That means the honest next step is no longer to pretend the older DesignWare manifest, survey, validation-matrix, or teardown packet is still shipped on current `master`.
 
@@ -44,6 +44,7 @@ The first scaffold packet should stay publishable with bounded proof only:
 
 - update this plan note, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` together when the DesignWare packet meaning changes
 - keep proof bounded to the checker self-test plus the narrowest truthful Zig-side review available for the scaffold change
+- keep `drivers/watchdog/dw_wdt_verify.zig` compile-local and host-free so teardown ownership and restart failure-mode parity stay explicit while platform-backed acquisition remains the next bounded follow-through
 - create a new DesignWare manifest, survey, validation-matrix, or teardown surface only if a future scaffold lands enough new lane evidence to justify reviving it
 - Phase 11 shared build replay only as a truthfulness check, not as a claim that hardware-backed behavior is complete
 
@@ -53,6 +54,7 @@ The first scaffold packet should stay publishable with bounded proof only:
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `scripts/zigux/check-phase11-dw-wdt-packet.py`
 - `drivers/watchdog/dw_wdt.zig`
+- `drivers/watchdog/dw_wdt_verify.zig`
 
 ## Handoff
 
