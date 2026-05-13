@@ -32,10 +32,14 @@ REQUIRED_MARKERS = {
     "docs_root": [
         "Phase 11 notes -",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
+        "`hvc_cleanup()`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
     ],
     "review_checklist": [
         "if the change touches the shared Phase 11 simple-driver packet",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
+        "`zigux/tests/phase11_hvc_cleanup.zig`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
     ],
     "scripts_root": [
         "Phase 11 flow -",
@@ -44,10 +48,14 @@ REQUIRED_MARKERS = {
     "tests_root": [
         "keep the shared Phase 11 simple-driver packet explicit in the tests root too",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
+        "`zigux/tests/phase11_hvc_cleanup.zig`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
     ],
     "tests_companion": [
         "## Phase 11 tests-root packet",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
+        "`zigux/tests/phase11_hvc_cleanup.zig`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
     ],
 }
 
@@ -61,7 +69,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 27
 
 
 class CheckError(RuntimeError):
@@ -126,18 +134,16 @@ def run_self_test() -> None:
         build_self_test_fixture(fixture_root)
         run_check(fixture_root)
 
-        required_cases = [
+        required_cases: list[tuple[str, str]] = [
             (FILES["contract_note"], CONTRACT_MARKERS[3]),
             (FILES["contract_note"], CONTRACT_MARKERS[4]),
             (FILES["contract_note"], CONTRACT_MARKERS[5]),
             (FILES["contract_note"], CONTRACT_MARKERS[8]),
             (FILES["contract_note"], CONTRACT_MARKERS[9]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][1]),
-            (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][0]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][1]),
-            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][0]),
-            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][1]),
         ]
+        for label, markers in REQUIRED_MARKERS.items():
+            for marker in markers:
+                required_cases.append((FILES[label], marker))
 
         for idx, (relative_path, marker) in enumerate(required_cases, start=1):
             case_root = tmpdir / f"required_{idx}"
