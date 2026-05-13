@@ -14,7 +14,10 @@ REQUIRED_FILES = {
     "manifest": "zigux/tests/phase11_hvc_console_manifest.json",
     "build_inventory": "zigux/tests/fixtures/phase11_build_inventory.json",
     "driver_starter": "drivers/tty/hvc/hvc_console.zig",
+    "verify_helper": "drivers/tty/hvc/hvc_console_verify.zig",
     "survey_gate": "zigux/tests/phase11_hvc_console_survey.zig",
+    "console_replay": "zigux/tests/phase11_hvc_console.zig",
+    "cleanup_replay": "zigux/tests/phase11_hvc_cleanup.zig",
     "survey_note": "Documentation/zigux/phase11-hvc-console-survey.md",
     "slice_note": "Documentation/zigux/phase11-hvc-console-slice.md",
     "teardown_note": "Documentation/zigux/phase11-hvc-console-teardown-note.md",
@@ -164,12 +167,31 @@ DRIVER_STARTER_MARKERS = [
     "pub fn hvc_kick() void {}",
 ]
 
+VERIFY_HELPER_MARKERS = [
+    'test "hvc_console verify keeps remove handoff explicit when tty is already absent" {',
+    'test "hvc_console verify keeps cleanup prerequisite failures explicit" {',
+    'test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces" {',
+    'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks" {',
+]
+
 SURVEY_GATE_MARKERS = [
     'test "phase11 hvc_console survey manifest records the landed starter and remaining tty gap cleanly"',
     'test "phase11 hvc_console survey keeps the dedicated archival packet explicit"',
     'test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step"',
     'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"',
     "try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);",
+]
+
+CONSOLE_REPLAY_MARKERS = [
+    'test "phase11 hvc console keeps tty-registration handoff boundaries reviewable" {',
+    'test "phase11 hvc console keeps sysrq handoff boundaries reviewable" {',
+    'test "phase11 hvc console keeps notifier handoff boundaries reviewable" {',
+]
+
+CLEANUP_REPLAY_MARKERS = [
+    'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable" {',
+    "try std.testing.expect(hangup_cleanup.drops_tty_port_reference);",
+    "try std.testing.expectError(error.CleanupRequiresFinalCloseOrHangup, console.summarizeCleanupHandoff(.{",
 ]
 
 MODEM_CONTROL_SPLIT_MARKERS = [
@@ -291,7 +313,10 @@ def run_check(root: Path) -> None:
 
     expect_markers(REQUIRED_FILES["build_inventory"], read_text(root, REQUIRED_FILES["build_inventory"]), BUILD_INVENTORY_MARKERS)
     expect_markers(REQUIRED_FILES["driver_starter"], read_text(root, REQUIRED_FILES["driver_starter"]), DRIVER_STARTER_MARKERS)
+    expect_markers(REQUIRED_FILES["verify_helper"], read_text(root, REQUIRED_FILES["verify_helper"]), VERIFY_HELPER_MARKERS)
     expect_markers(REQUIRED_FILES["survey_gate"], read_text(root, REQUIRED_FILES["survey_gate"]), SURVEY_GATE_MARKERS)
+    expect_markers(REQUIRED_FILES["console_replay"], read_text(root, REQUIRED_FILES["console_replay"]), CONSOLE_REPLAY_MARKERS)
+    expect_markers(REQUIRED_FILES["cleanup_replay"], read_text(root, REQUIRED_FILES["cleanup_replay"]), CLEANUP_REPLAY_MARKERS)
     expect_markers(REQUIRED_FILES["survey_note"], survey_note, SURVEY_NOTE_MARKERS)
     expect_markers(REQUIRED_FILES["slice_note"], slice_note, SLICE_NOTE_MARKERS)
     expect_markers(REQUIRED_FILES["teardown_note"], teardown_note, TEARDOWN_NOTE_MARKERS)
@@ -330,7 +355,10 @@ def build_fixture(root: Path, surveyed_commit: str) -> None:
     write(root / REQUIRED_FILES["manifest"], build_manifest_text(surveyed_commit))
     write(root / REQUIRED_FILES["build_inventory"], "\n".join(BUILD_INVENTORY_MARKERS) + "\n")
     write(root / REQUIRED_FILES["driver_starter"], "\n".join(DRIVER_STARTER_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["verify_helper"], "\n".join(VERIFY_HELPER_MARKERS) + "\n")
     write(root / REQUIRED_FILES["survey_gate"], "\n".join(SURVEY_GATE_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["console_replay"], "\n".join(CONSOLE_REPLAY_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["cleanup_replay"], "\n".join(CLEANUP_REPLAY_MARKERS) + "\n")
     write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS + [surveyed_commit]) + "\n")
     write(root / REQUIRED_FILES["slice_note"], "\n".join(SLICE_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["teardown_note"], "\n".join(TEARDOWN_NOTE_MARKERS) + "\n")
@@ -379,11 +407,14 @@ def run_self_test() -> None:
 
         missing_marker_cases = [
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[-1]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[1]),
             (REQUIRED_FILES["survey_note"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["slice_note"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["teardown_note"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["validation_matrix"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["survey_gate"], 'try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);'),
+            (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[-1]),
+            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[-1]),
             (REQUIRED_FILES["makefile"], "phase11-hvc-survey:"),
             (REQUIRED_FILES["workflow"], "run: make -C zigux phase11-hvc-survey"),
         ]
@@ -408,6 +439,10 @@ def run_self_test() -> None:
             expect_failure(tmpdir, stale_marker)
 
         reset_fixture(tmpdir)
+        (tmpdir / REQUIRED_FILES["verify_helper"]).unlink()
+        expect_failure(tmpdir, f"missing required file: {REQUIRED_FILES['verify_helper']}")
+
+        reset_fixture(tmpdir)
         (tmpdir / REQUIRED_FILES["manifest"]).write_text(build_manifest_text("z" * 40), encoding="utf-8")
         expect_failure(tmpdir, "invalid surveyed_commit")
 
@@ -417,7 +452,7 @@ def run_self_test() -> None:
         (tmpdir / REQUIRED_FILES["manifest"]).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_failure(tmpdir, "expected hvc_console_test_present to stay false")
 
-        case_count = len(missing_marker_cases) + len(stale_cases) + 2
+        case_count = len(missing_marker_cases) + len(stale_cases) + 3
         print("PHASE11_HVC_SURVEY_PACKET_SELF_TEST=pass")
         print(f"PHASE11_HVC_SURVEY_PACKET_SELF_TEST_CASE_COUNT={case_count}")
         print(f"PHASE11_HVC_SURVEY_PACKET_SELF_TEST_COMMIT={commit}")
