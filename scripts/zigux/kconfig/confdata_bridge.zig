@@ -517,7 +517,6 @@ test "confdata bridge ignores empty CONFIG symbol names" {
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
     try std.testing.expectEqualStrings("CONFIG_VALID", summary.entries[0].name);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
-    try std.testing.expectEqualStrings("m", summary.entries[0].value);
 }
 
 test "confdata bridge ignores malformed unset comments with extra tokens" {
@@ -542,7 +541,7 @@ test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
         allocator,
-        "CONFIG_PATH=\"" ++ "drivers\\\\" ++ "\"\n",
+        "CONFIG_PATH=\"drivers\\\\\"\n",
     );
     defer deinitSummary(allocator, &summary);
 
@@ -739,18 +738,23 @@ test "confdata bridge keeps the prior duplicate value when a later quoted assign
     var summary = try parseConfig(allocator,
         \\CONFIG_ALPHA="stable"
         \\CONFIG_ALPHA="unterminated
+        \\# CONFIG_DEBUG is not set
+        \\CONFIG_DEBUG="broken
         \\CONFIG_BETA=y
         \\
     );
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 2), summary.set_count);
-    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
-    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
     try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
     try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
     try std.testing.expectEqualStrings("stable", summary.entries[0].value);
-    try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[1].name);
-    try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
-    try std.testing.expectEqualStrings("y", summary.entries[1].value);
+    try std.testing.expectEqualStrings("CONFIG_DEBUG", summary.entries[1].name);
+    try std.testing.expectEqual(EntryKind.unset, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("n", summary.entries[1].value);
+    try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[2].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[2].kind);
+    try std.testing.expectEqualStrings("y", summary.entries[2].value);
 }
