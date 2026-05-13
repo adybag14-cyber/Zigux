@@ -1,6 +1,6 @@
 const std = @import("std");
 const base64 = @import("base64");
-const fixtures = @import("fixtures/phase6_base64_vectors.zig");
+const fixtures = @import("fixtures/phase6_base64_c_parity_vectors.zig");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
