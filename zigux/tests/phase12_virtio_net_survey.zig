@@ -71,7 +71,7 @@ fn pathExists(path: []const u8) !bool {
     return true;
 }
 
-test "phase12 virtio net survey manifest keeps the bounded control-queue recovery packet truthful" {
+test "phase12 virtio net survey manifest keeps the bounded control-queue payload packet truthful" {
     const manifest_json = try readFileAlloc("zigux/tests/phase12_virtio_net_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
@@ -82,7 +82,7 @@ test "phase12 virtio net survey manifest keeps the bounded control-queue recover
     try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("unresolved_on_master", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings("2026-05-12", manifest.verified_on);
+    try std.testing.expectEqualStrings("2026-05-13", manifest.verified_on);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
@@ -98,20 +98,21 @@ test "phase12 virtio net survey manifest keeps the bounded control-queue recover
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
 
     try std.testing.expectEqualStrings("starter_present_runtime_data_path_blocked", manifest.roadmap_gap_check.dma_safe_abstractions.status);
-    try std.testing.expectEqualStrings("starter_queue_summary_control_queue_recovery_and_refill_present_direct_gate_present_shared_smoke_present", manifest.roadmap_gap_check.queueing_correctness.status);
-    try std.testing.expectEqualStrings("starter_control_queue_recovery_and_refill_summary_present_throughput_gate_missing", manifest.roadmap_gap_check.throughput_and_recovery_parity.status);
-    try std.testing.expectEqualStrings("starter_queue_summary_control_queue_recovery_and_refill_direct_lab_present_shared_route_present", manifest.roadmap_gap_check.segmented_rollout.status);
+    try std.testing.expectEqualStrings("starter_queue_summary_control_queue_recovery_refill_and_payload_shape_present_direct_gate_present_shared_smoke_present", manifest.roadmap_gap_check.queueing_correctness.status);
+    try std.testing.expectEqualStrings("starter_control_queue_payload_shape_and_refill_summary_present_throughput_gate_missing", manifest.roadmap_gap_check.throughput_and_recovery_parity.status);
+    try std.testing.expectEqualStrings("starter_queue_summary_control_queue_recovery_refill_payload_shape_direct_lab_present_shared_route_present", manifest.roadmap_gap_check.segmented_rollout.status);
 
     var saw_starter = false;
     var saw_syntax_lab = false;
     var saw_build_gap = false;
     var saw_queue_summary_followup = false;
     var saw_control_queue_followup = false;
+    var saw_control_payload_followup = false;
     var saw_recovery_gap = false;
     var saw_refill_gap = false;
     var saw_runtime_gap = false;
 
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
     for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
@@ -142,11 +143,21 @@ test "phase12 virtio net survey manifest keeps the bounded control-queue recover
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "control-queue recovery planner") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "RSS resync") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-control-queue-payload-shaping-followup")) {
+            saw_control_payload_followup = true;
+            try std.testing.expectEqualStrings("landed_on_master", gap.status);
+            try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "receive-mode") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hash-report") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "MAC") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "VLAN") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "RSS") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-queue-recovery-followup")) {
             saw_recovery_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freezeForReset()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "controlQueueRecoveryPlan()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "planControlQueuePayloadShape()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recoveryQueuePlan()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-refill-order-followup")) {
@@ -165,12 +176,13 @@ test "phase12 virtio net survey manifest keeps the bounded control-queue recover
     try std.testing.expect(saw_build_gap);
     try std.testing.expect(saw_queue_summary_followup);
     try std.testing.expect(saw_control_queue_followup);
+    try std.testing.expect(saw_control_payload_followup);
     try std.testing.expect(saw_recovery_gap);
     try std.testing.expect(saw_refill_gap);
     try std.testing.expect(saw_runtime_gap);
 }
 
-test "phase12 virtio net survey note stays aligned with the bounded control-queue follow-up" {
+test "phase12 virtio net survey note stays aligned with the bounded control-queue payload follow-up" {
     const survey_note = try readFileAlloc("Documentation/zigux/phase12-virtio-net-survey.md", 16 * 1024);
     defer std.testing.allocator.free(survey_note);
 
@@ -181,16 +193,17 @@ test "phase12 virtio net survey note stays aligned with the bounded control-queu
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("2026-05-12", manifest.verified_on);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-control-queue-recovery-and-refill-summary") != null);
+    try std.testing.expectEqualStrings("2026-05-13", manifest.verified_on);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-control-queue-payload-shaping") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `drivers/net/virtio_net.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeQueueTopology()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeReceiveRefill()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "controlQueueRecoveryPlan()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "planControlQueuePayloadShape()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryQueuePlan()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `zigux/tests/phase12_virtio_net_syntax_lab.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe receive ownership") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded control-queue payload-shaping follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact reviewability refresh") != null);
 }
 
 test "phase12 virtio net survey gate keeps present lane files explicit" {
