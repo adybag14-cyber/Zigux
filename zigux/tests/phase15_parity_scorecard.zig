@@ -63,6 +63,40 @@ fn expectMetricLine(scorecard_doc: []const u8, label: []const u8, value: usize) 
     try expectContains(scorecard_doc, rendered);
 }
 
+fn expectAnchorPacketAlignment(scorecard_doc: []const u8, governance_note: []const u8, anchor: Anchor) !void {
+    try std.testing.expectEqualStrings("Phase 15", anchor.phase);
+    try std.testing.expectEqualStrings("freeze_in_c", anchor.current_status_bucket);
+    try std.testing.expectEqualStrings(anchor.current_blocker, anchor.evidence_archive.latest_blocker_disposition);
+
+    try expectContains(scorecard_doc, anchor.path);
+    try expectContains(scorecard_doc, anchor.phase);
+    try expectContains(scorecard_doc, anchor.current_status_bucket);
+    try expectContains(scorecard_doc, anchor.lane_owner);
+    try expectContains(scorecard_doc, anchor.required_approver_set);
+    try expectContains(scorecard_doc, anchor.validation_gate_summary);
+    try expectContains(scorecard_doc, anchor.rollback_owner);
+    try expectContains(scorecard_doc, anchor.current_blocker);
+    try expectContains(scorecard_doc, anchor.evidence_archive.decision_record_path);
+    try expectContains(scorecard_doc, anchor.evidence_archive.benchmark_notes_status);
+    try expectContains(scorecard_doc, anchor.evidence_archive.replay_command);
+    try expectContains(scorecard_doc, anchor.next_honest_posture);
+    for (anchor.evidence_archive.linked_evidence) |linked_evidence| {
+        try expectContains(scorecard_doc, linked_evidence);
+    }
+
+    try expectContains(governance_note, anchor.path);
+    try expectContains(governance_note, anchor.lane_owner);
+    try expectContains(governance_note, anchor.phase);
+    try expectContains(governance_note, anchor.current_status_bucket);
+    try expectContains(governance_note, anchor.required_approver_set);
+    try expectContains(governance_note, anchor.validation_gate_summary);
+    try expectContains(governance_note, anchor.rollback_owner);
+    try expectContains(governance_note, anchor.evidence_archive.decision_record_path);
+    try expectContains(governance_note, anchor.evidence_archive.benchmark_notes_status);
+    try expectContains(governance_note, anchor.evidence_archive.replay_command);
+    try expectContains(governance_note, anchor.evidence_archive.latest_blocker_disposition);
+}
+
 fn countStatusBucket(anchors: []const Anchor, expected_status_bucket: []const u8) usize {
     var count: usize = 0;
     for (anchors) |anchor| {
@@ -200,19 +234,7 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectMetricLine(scorecard_doc, "Architecture Council approvals recorded for status change", parsed.value.metrics.architecture_council_status_change_approval_count);
 
     for (parsed.value.anchors) |anchor| {
-        try expectContains(scorecard_doc, anchor.path);
-        try expectContains(scorecard_doc, anchor.lane_owner);
-        try expectContains(scorecard_doc, anchor.required_approver_set);
-        try expectContains(scorecard_doc, anchor.validation_gate_summary);
-        try expectContains(scorecard_doc, anchor.rollback_owner);
-        try expectContains(scorecard_doc, anchor.current_blocker);
-        try expectContains(scorecard_doc, anchor.evidence_archive.decision_record_path);
-        try expectContains(scorecard_doc, anchor.evidence_archive.replay_command);
-
+        try expectAnchorPacketAlignment(scorecard_doc, governance_note, anchor);
         try expectContains(freeze_map, anchor.path);
-        try expectContains(governance_note, anchor.path);
-        try expectContains(governance_note, anchor.lane_owner);
-        try expectContains(governance_note, anchor.required_approver_set);
-        try expectContains(governance_note, anchor.evidence_archive.latest_blocker_disposition);
     }
 }
