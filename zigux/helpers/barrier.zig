@@ -10,6 +10,21 @@ test "phase3 barrier wrappers compile" {
     acquireRelease();
 }
 
+test "phase3 barrier wrappers keep compiler fences reviewable" {
+    var words = [_]u16{ 7, 11, 13, 17 };
+
+    compiler();
+    words[1] = words[0] + words[2];
+    compiler();
+    try std.testing.expectEqual(@as(u16, 7), words[0]);
+    try std.testing.expectEqual(@as(u16, 20), words[1]);
+    try std.testing.expectEqual(@as(u16, 13), words[2]);
+
+    words[3] = words[1] + 5;
+    compiler();
+    try std.testing.expectEqual(@as(u16, 25), words[3]);
+}
+
 test "phase3 barrier wrappers keep barrier locality reviewable" {
     var left: u8 = 7;
     var right: u8 = 19;
