@@ -122,7 +122,11 @@ test "phase4 test_fsmount survey keeps shared validation matrix aligned" {
     );
     try requireRepoMarker(
         "Documentation/zigux/phase4-validation-matrix.md",
-        "* dedicated local survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
+        "* dedicated local survey wrapper: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "* dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
     );
     try requireRepoMarker(
         "Documentation/zigux/phase4-validation-matrix.md",
