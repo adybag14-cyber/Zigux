@@ -19,6 +19,7 @@ MARKERS = {
         "# Phase 11 Shared Replay Contract",
         "* `PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful`",
         "* `scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "* `scripts/zigux/check-phase11-build-inventory.py`",
         "* direct GitHub contents reads can still return 404 for `zigux/tests/phase11_build.zig`",
         "* direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
         "* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
@@ -31,6 +32,7 @@ MARKERS = {
     "closure_note": [
         "# Phase 11 Closure Note",
         "* `PHASE11_CLOSURE_STATUS=shared_packet_truthful`",
+        "`scripts/zigux/check-phase11-build-inventory.py`",
         "`zigux/tests/fixtures/phase11_build_inventory.json`",
         "* direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
         "* the shared `zigux/tests/fixtures/phase11_build_inventory.json` records the shared test inventory, the dedicated HVC replay split, and the explicit shared replay markers beside `zigux/tests/phase11_build.zig`",
@@ -40,6 +42,7 @@ MARKERS = {
     "lane_note": [
         "# Phase 11 Driver Lane Sequencing",
         "shared sequencing lane `P11-Y06`",
+        "`scripts/zigux/check-phase11-build-inventory.py`",
         "`zigux/tests/fixtures/phase11_build_inventory.json` anchor",
         "the contents bridge still materializes `zigux/tests/fixtures/phase11_build_inventory.json`",
         "there is no shared `validate-phase11.py`, the shared `zigux/tests/fixtures/phase11_build_inventory.json` is materialized and should stay explicit beside `zigux/tests/phase11_build.zig`",
@@ -119,14 +122,17 @@ def run_self_test() -> None:
         run_check(fixture_root)
 
         required_cases = [
-            (FILES["note"], MARKERS["note"][4]),
+            (FILES["note"], MARKERS["note"][3]),
             (FILES["note"], MARKERS["note"][5]),
             (FILES["note"], MARKERS["note"][6]),
-            (FILES["closure_note"], MARKERS["closure_note"][3]),
+            (FILES["note"], MARKERS["note"][7]),
+            (FILES["closure_note"], MARKERS["closure_note"][2]),
             (FILES["closure_note"], MARKERS["closure_note"][4]),
+            (FILES["closure_note"], MARKERS["closure_note"][5]),
             (FILES["lane_note"], MARKERS["lane_note"][2]),
             (FILES["lane_note"], MARKERS["lane_note"][3]),
             (FILES["lane_note"], MARKERS["lane_note"][4]),
+            (FILES["lane_note"], MARKERS["lane_note"][5]),
         ]
 
         for idx, (relative_path, marker) in enumerate(required_cases, start=1):
