@@ -116,6 +116,11 @@ test "phase 7 string helper boundary keeps the restored starter packet and no-sa
     try expectContains(samples_root, "lib/string_helpers.zig");
     try expectContains(samples_root, "zigux/tests/phase7_string_helpers.zig");
 
+    try std.Io.Dir.cwd().access(io, "scripts/zigux/validate-phase7.py", .{});
+    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-make-wrapper.py", .{});
+    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py", .{});
+    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-build-wiring.py", .{});
+
     const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
     defer allocator.free(scripts_root);
     try expectContains(scripts_root, "current `master` still ships no standalone `samples/zigux/*string*` Phase 5 reference sample");
