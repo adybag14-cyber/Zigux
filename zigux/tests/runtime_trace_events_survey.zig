@@ -318,7 +318,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try std.testing.expectEqualStrings("blocked_on_runtime_substrate", manifest.gaps[0].status);
     try std.testing.expectEqualStrings("runtime_substrate", manifest.gaps[0].kind);
     try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.gaps[0].zigux_destination);
-    try std.testing.expect(manifest.gaps[0].why_now.len > 0);
+    try std.testing.expectEqualStrings(
+        "The roadmap's loadable runtime pilot module step still depends on a shared runtime substrate beyond the current reviewable family-local trace-events packet, including runtime task ownership, polling and event-loop substrate, polling-backed wake or dispatch behavior, and the still-blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and `depmod` script or manifest state boundary.",
+        manifest.gaps[0].why_now,
+    );
 
     try expectContains(survey_note, "reviewable family-local starter plus the adjacent shared loader-facing reminder packet");
     try expectContains(
@@ -333,6 +336,14 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(
         survey_note,
         "runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior",
+    );
+    try expectContains(
+        survey_note,
+        "That still-blocked boundary also includes `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and `depmod` script or manifest state.",
+    );
+    try expectContains(
+        survey_note,
+        "Those alias and depmod surfaces remain review-only metadata boundaries rather than shipped trace-events-family evidence.",
     );
     try expectContains(survey_note, "Do not invent a dedicated `validate-phase9.py` route");
     try expectContains(module_slice_note, "the broader runtime-substrate handoff remains a separate blocked step");
@@ -352,11 +363,11 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(module_slice_note, "Do not invent `validate-phase9.py`, a trace-events-only validator, or a cleared runtime-substrate handoff.");
     try expectContains(
         runtime_trace_events_module,
-        "test \\\"runtime trace-events sample keeps replay-summary continuity explicit after selftest completion\\\" {",
+        "test \"runtime trace-events sample keeps replay-summary continuity explicit after selftest completion\" {",
     );
     try expectContains(
         runtime_trace_events_module,
-        "test \\\"runtime trace-events module gate keeps selftest-ready failed-exit rollback explicit\\\" {",
+        "test \"runtime trace-events module gate keeps selftest-ready failed-exit rollback explicit\" {",
     );
     try expectContains(
         runtime_trace_events_module,
@@ -369,19 +380,19 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
 
     try expectContains(
         runtime_trace_events_loader,
-        "test \\\"runtime trace-events loader keeps initialized shared-request snapshots stable across later selftest activity\\\" {",
+        "test \"runtime trace-events loader keeps initialized shared-request snapshots stable across later selftest activity\" {",
     );
     try expectContains(
         runtime_trace_events_loader,
-        "test \\\"runtime trace-events loader rejects prepared shared selftest-hook drift before any local runtime handoff\\\" {",
+        "test \"runtime trace-events loader rejects prepared shared selftest-hook drift before any local runtime handoff\" {",
     );
     try expectContains(
         runtime_trace_events_loader,
-        "test \\\"runtime trace-events loader rejects registration snapshot drift\\\" {",
+        "test \"runtime trace-events loader rejects registration snapshot drift\" {",
     );
     try expectContains(
         runtime_trace_events_loader,
-        "test \\\"runtime trace-events loader keeps selftest-ready single registration drain explicit before shared handoff\\\" {",
+        "test \"runtime trace-events loader keeps selftest-ready single registration drain explicit before shared handoff\" {",
     );
     try expectContains(
         runtime_trace_events_loader,
