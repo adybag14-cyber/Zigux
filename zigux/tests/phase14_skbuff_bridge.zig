@@ -105,7 +105,7 @@ test "phase14 skbuff bridge manifest records the live blocked ownership packet" 
     try std.testing.expect(hasChecklistEntry(
         manifest.decision_checklist,
         "segmentation-tail-publication-consumer-contract",
-        &[_][]const u8{ "skb_segment", "segs->prev", "validate_xmit_skb_list" },
+        &[_][]const u8{ "skb_segment", "segs->prev", "validate_xmit_skb_list", "tail = skb->prev" },
     ));
 }
 
