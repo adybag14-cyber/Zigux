@@ -107,6 +107,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "zigux/tests/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "scripts/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "scripts/zigux/validate-phase15.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "scripts/zigux/check-phase15-shared-summary-gap.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "Documentation/zigux/phase15-governance-lane-sequencing.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "zigux/tests/phase15_handoff_next_steps_manifest.json") != null);
@@ -215,6 +216,8 @@ test "phase 15 architecture council review-process manifest records the bounded 
             try std.testing.expectEqualStrings("scripts/zigux/README.md; zigux/tests/README.md; scripts/zigux/check-phase15-shared-summary-gap.py", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Documentation/zigux/phase15-parity-scorecard-survey.md") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "python3 scripts/zigux/check-phase15-shared-summary-gap.py") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "start with `scripts/zigux/README.md` as the smallest remaining reminder") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "widen into `zigux/tests/README.md` only if the scripts-root repair no longer closes the shared-summary drift") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -293,6 +296,8 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`defer_or_reject`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase15-docs-readme-maintenance-note-undercount") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "remaining open shared-summary drift is now explicit on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`scripts/zigux/README.md` and `zigux/tests/README.md` still undercount `Documentation/zigux/phase15-parity-scorecard-survey.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "scripts/zigux/check-phase15-shared-summary-gap.py") != null);
 }
 
 test "phase 15 review checklist stays aligned with the council review-process hook" {
