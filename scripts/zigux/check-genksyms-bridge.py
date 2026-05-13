@@ -123,7 +123,7 @@ EXPECTED_CLOSURE_MARKERS = [
     "the dedicated `Phase 2 genksyms` bridge packet remains the live `22-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 11
+EXPECTED_SELF_TEST_CASE_COUNT = 12
 
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -196,6 +196,37 @@ def validate_phase2_tool_manifest(payload: dict[str, object]) -> list[str]:
     return issues
 
 
+def validate_manifest_fixture_files(root: Path, manifest: dict[str, object]) -> list[str]:
+    issues: list[str] = []
+    fixture_root = manifest.get("fixture_root")
+    if not isinstance(fixture_root, str) or not fixture_root:
+        return ["genksyms_manifest:fixture_root:expected=non_empty_string"]
+
+    if not (root / fixture_root).is_dir():
+        issues.append(f"missing_fixture_root:{fixture_root}")
+
+    fixture_case_source = manifest.get("fixture_case_source")
+    if not isinstance(fixture_case_source, str) or not fixture_case_source:
+        issues.append("genksyms_manifest:fixture_case_source:expected=non_empty_string")
+    elif not (root / fixture_case_source).is_file():
+        issues.append(f"missing_fixture:{fixture_case_source}")
+
+    for packet_key in ("stdout_packet", "process_packet"):
+        packet = manifest.get(packet_key)
+        if not isinstance(packet, list):
+            issues.append(f"genksyms_manifest:{packet_key}:expected=list")
+            continue
+        for entry in packet:
+            if not isinstance(entry, str) or not entry:
+                issues.append(f"genksyms_manifest:{packet_key}:invalid_entry:{entry!r}")
+                continue
+            fixture_path = f"{fixture_root}/{entry}"
+            if not (root / fixture_path).is_file():
+                issues.append(f"missing_fixture:{fixture_path}")
+
+    return issues
+
+
 def validate_root(root: Path) -> list[str]:
     issues: list[str] = []
     required = [
@@ -221,6 +252,7 @@ def validate_root(root: Path) -> list[str]:
                 genksyms_manifest, EXPECTED_GENKSYMS_MANIFEST, "genksyms_manifest"
             )
         )
+        issues.extend(validate_manifest_fixture_files(root, genksyms_manifest))
 
     phase2_tool_manifest, load_issues = load_json(
         root / PHASE2_TOOL_MANIFEST_REL, "phase2_tool_manifest"
@@ -313,6 +345,10 @@ def build_self_test_root(root: Path) -> None:
         root / WORKFLOW_REL,
         "\n".join(EXPECTED_WORKFLOW_LINES) + "\n",
     )
+    write_text(root / EXPECTED_GENKSYMS_MANIFEST["fixture_case_source"], "[]\n")
+    for packet_key in ("stdout_packet", "process_packet"):
+        for filename in EXPECTED_GENKSYMS_MANIFEST[packet_key]:
+            write_text(root / EXPECTED_GENKSYMS_MANIFEST["fixture_root"] / filename, "{}\n")
 
 
 def run_self_test() -> int:
@@ -436,6 +472,13 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert f"exact_count:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[0]}:count=2:expected=1" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        missing_fixture_path = root / EXPECTED_GENKSYMS_MANIFEST["fixture_root"] / "version_expected.json"
+        missing_fixture_path.unlink()
+        issues = validate_root(root)
+        assert f"missing_fixture:{EXPECTED_GENKSYMS_MANIFEST['fixture_root']}/version_expected.json" in issues
         case_count += 1
 
     assert case_count == EXPECTED_SELF_TEST_CASE_COUNT
