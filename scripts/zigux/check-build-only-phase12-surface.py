@@ -52,11 +52,15 @@ PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 PHASE12_VIRTIO_NET_DRIVER_PATH = "drivers/net/virtio_net.zig"
 PHASE12_VIRTIO_NET_TEST_PATH = "zigux/tests/phase12_virtio_net.zig"
 PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH = "zigux/tests/phase12_virtio_net_syntax_lab.zig"
+PHASE12_VIRTIO_NET_MANIFEST_PATH = "zigux/tests/phase12_virtio_net_manifest.json"
+PHASE12_VIRTIO_NET_SURVEY_PATH = "zigux/tests/phase12_virtio_net_survey.zig"
 PHASE12_VIRTIO_SCSI_DRIVER_PATH = "drivers/scsi/virtio_scsi.zig"
 PHASE12_VIRTIO_SCSI_TEST_PATH = "zigux/tests/phase12_virtio_scsi.zig"
 PHASE12_VIRTIO_SCSI_SYNTAX_LAB_PATH = "zigux/tests/phase12_virtio_scsi_syntax_lab.zig"
 PHASE12_REPEATED_REPLAN_PATH = "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig"
 PHASE12_PACKET_PATH = "zigux/tests/phase12_virtio_scsi_packet.zig"
+PHASE12_LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+PHASE12_VALIDATE_PATH = "scripts/zigux/validate-phase12.py"
 
 REQUIRED_FILES = [
     DOCS_README_PATH,
@@ -78,11 +82,15 @@ REQUIRED_FILES = [
     PHASE12_VIRTIO_NET_DRIVER_PATH,
     PHASE12_VIRTIO_NET_TEST_PATH,
     PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH,
+    PHASE12_VIRTIO_NET_MANIFEST_PATH,
+    PHASE12_VIRTIO_NET_SURVEY_PATH,
     PHASE12_VIRTIO_SCSI_DRIVER_PATH,
     PHASE12_VIRTIO_SCSI_TEST_PATH,
     PHASE12_VIRTIO_SCSI_SYNTAX_LAB_PATH,
     PHASE12_REPEATED_REPLAN_PATH,
     PHASE12_PACKET_PATH,
+    PHASE12_LIBBPF_SNAPSHOT_PATH,
+    PHASE12_VALIDATE_PATH,
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -97,6 +105,7 @@ DOCS_ROOT_MARKERS = [
     "`drivers/net/virtio_net.zig`",
     "`zigux/tests/phase12_virtio_net.zig`",
     "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
+    "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
     "`scripts/zigux/validate-phase12.py`",
     "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet reviewable from the docs root through the shipped build-only contract",
     "while broader `nvme_pci` and direct libbpf replay files stay recorded only through the shared fallback, survey, verify-shard, or anti-overlap notes until they actually land on `master`",
@@ -153,6 +162,8 @@ TESTS_README_MARKERS = [
     "`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`",
     "`Documentation/zigux/phase12-virtio-net-survey.md`",
     "`Documentation/zigux/phase12-libbpf-segment-survey.md`",
+    "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
+    "`scripts/zigux/validate-phase12.py`",
     "while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`",
     "the still-absent direct `phase12_nvme_pci` and `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
     "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
@@ -166,6 +177,7 @@ RELEASE_READINESS_SURVEY_MARKERS = [
     "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
     "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
     "the parked verify-shard note still governs the shared libbpf packet",
+    "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
     "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
     "the next honest same-lane follow-through is a one-file scripts-root reread",
@@ -619,14 +631,30 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_file:{PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH}")
 
         write_fixture_tree(base)
+        (base / PHASE12_VIRTIO_NET_MANIFEST_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_VIRTIO_NET_MANIFEST_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_VIRTIO_NET_SURVEY_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_VIRTIO_NET_SURVEY_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_LIBBPF_SNAPSHOT_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_LIBBPF_SNAPSHOT_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_VALIDATE_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_VALIDATE_PATH}")
+
+        write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
         docs_root_path.write_text(
             docs_root_path.read_text(encoding="utf-8").replace(
-                DOCS_ROOT_MARKERS[12], "", 1
+                DOCS_ROOT_MARKERS[11], "", 1
             ),
             encoding="utf-8",
         )
-        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[12]}")
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[11]}")
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
@@ -655,13 +683,13 @@ def run_self_test() -> int:
         readiness_path = base / RELEASE_READINESS_SURVEY_PATH
         readiness_path.write_text(
             readiness_path.read_text(encoding="utf-8").replace(
-                RELEASE_READINESS_SURVEY_MARKERS[2], "", 1
+                RELEASE_READINESS_SURVEY_MARKERS[4], "", 1
             ),
             encoding="utf-8",
         )
         expect_failure(
             base,
-            f"release_readiness_survey:{RELEASE_READINESS_SURVEY_MARKERS[2]}",
+            f"release_readiness_survey:{RELEASE_READINESS_SURVEY_MARKERS[4]}",
         )
 
         write_fixture_tree(base)
@@ -806,7 +834,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=15")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=19")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
