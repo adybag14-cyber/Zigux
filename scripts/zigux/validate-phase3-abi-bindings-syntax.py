@@ -103,9 +103,54 @@ README_MARKERS = (
     "make -C zigux phase3",
 )
 
+DEV_T_HEADER_MARKERS = (
+    "#define ZIGUX_DEV_MINOR_BITS 20U",
+    "#define ZIGUX_DEV_MINOR_MASK ((1U << ZIGUX_DEV_MINOR_BITS) - 1U)",
+    "#define ZIGUX_DEV_MAJOR_MAX ((1U << (32U - ZIGUX_DEV_MINOR_BITS)) - 1U)",
+    "static inline uint32_t zigux_mkdev(uint32_t major_id, uint32_t minor_id)",
+    "static inline uint32_t zigux_major(uint32_t dev)",
+    "static inline uint32_t zigux_minor(uint32_t dev)",
+)
+
+DEV_T_BINDING_MARKERS = (
+    "pub const minor_bits: u5 = 20;",
+    "pub const minor_mask: u32 = (@as(u32, 1) << minor_bits) - 1;",
+    "pub const max_major: u32 = (@as(u32, 1) << (32 - minor_bits)) - 1;",
+    "pub const EncodeError = error{",
+    "    MajorOutOfRange,",
+    "    MinorOutOfRange,",
+    "    RangeExhausted,",
+    "pub fn majorValid(major_id: u32) bool {",
+    "pub fn minorValid(minor_id: u32) bool {",
+    "pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 {",
+    "pub fn major(dev: u32) u32 {",
+    "pub fn minor(dev: u32) u32 {",
+    "pub fn rangeFits(first_minor: u32, count: u32) bool {",
+    "pub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 {",
+)
+
+NOTIFIER_BINDING_MARKERS = (
+    "pub const NotifierResult = enum(u32) {",
+    "    done = 0,",
+    "    ok = 1,",
+    "    stop = 2,",
+    "pub const NotifierBlock = extern struct {",
+    "    notifier_call: usize,",
+    "    next: usize,",
+    "    priority: i32,",
+)
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def _check_markers(path: Path, markers: tuple[str, ...], label: str) -> list[str]:
+    if not path.is_file():
+        return [f"missing repo file: {path.as_posix()}"]
+
+    text = _read(path)
+    return [f"missing {label} marker: {marker}" for marker in markers if marker not in text]
 
 
 def validate_repo(repo_root: Path) -> list[str]:
@@ -137,6 +182,19 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in README_MARKERS:
             if marker not in readme_text:
                 issues.append(f"missing scripts README marker: {marker}")
+    issues.extend(
+        _check_markers(repo_root / Path("include/zigux/dev_t.h"), DEV_T_HEADER_MARKERS, "dev_t header")
+    )
+    issues.extend(
+        _check_markers(repo_root / Path("zigux/bindings/dev_t.zig"), DEV_T_BINDING_MARKERS, "dev_t binding")
+    )
+    issues.extend(
+        _check_markers(
+            repo_root / Path("zigux/bindings/notifier_abi.zig"),
+            NOTIFIER_BINDING_MARKERS,
+            "notifier binding",
+        )
+    )
     return issues
 
 
@@ -148,6 +206,12 @@ def _write(path: Path, text: str) -> None:
 def _populate_repo(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         _write(root / rel_path, "# stub\n")
+    _write(root / Path("include/zigux/dev_t.h"), "\n".join(DEV_T_HEADER_MARKERS) + "\n")
+    _write(root / Path("zigux/bindings/dev_t.zig"), "\n".join(DEV_T_BINDING_MARKERS) + "\n")
+    _write(
+        root / Path("zigux/bindings/notifier_abi.zig"),
+        "\n".join(NOTIFIER_BINDING_MARKERS) + "\n",
+    )
     _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
     _write(root / NEXT_STEP_NOTE_PATH, "\n".join(NEXT_STEP_NOTE_MARKERS) + "\n")
     _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
@@ -236,7 +300,7 @@ def run_self_test() -> int:
             print("expected missing dump-gate marker was not reported")
             return 1
         case_count += 1
-        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
+        _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
         _write(root / README_PATH, _read(root / README_PATH).replace("zigux/uapi/dev_t.zig\n", "", 1))
         issues = validate_repo(root)
         expected_readme_marker = "missing scripts README marker: zigux/uapi/dev_t.zig"
@@ -279,6 +343,54 @@ def run_self_test() -> int:
         if expected_low_level_readme_marker not in issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
             print("expected missing low-level README marker was not reported")
+            return 1
+        case_count += 1
+        _populate_repo(root)
+        _write(
+            root / Path("zigux/bindings/dev_t.zig"),
+            _read(root / Path("zigux/bindings/dev_t.zig")).replace(
+                "pub fn rangeFits(first_minor: u32, count: u32) bool {\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_dev_t_binding_marker = "missing dev_t binding marker: pub fn rangeFits(first_minor: u32, count: u32) bool {"
+        if expected_dev_t_binding_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing dev_t binding marker was not reported")
+            return 1
+        case_count += 1
+        _populate_repo(root)
+        _write(
+            root / Path("zigux/bindings/notifier_abi.zig"),
+            _read(root / Path("zigux/bindings/notifier_abi.zig")).replace(
+                "    priority: i32,\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_notifier_binding_marker = "missing notifier binding marker:     priority: i32,"
+        if expected_notifier_binding_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing notifier binding marker was not reported")
+            return 1
+        case_count += 1
+        _populate_repo(root)
+        _write(
+            root / Path("include/zigux/dev_t.h"),
+            _read(root / Path("include/zigux/dev_t.h")).replace(
+                "#define ZIGUX_DEV_MAJOR_MAX ((1U << (32U - ZIGUX_DEV_MINOR_BITS)) - 1U)\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_dev_t_header_marker = "missing dev_t header marker: #define ZIGUX_DEV_MAJOR_MAX ((1U << (32U - ZIGUX_DEV_MINOR_BITS)) - 1U)"
+        if expected_dev_t_header_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing dev_t header marker was not reported")
             return 1
         case_count += 1
     print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass")
