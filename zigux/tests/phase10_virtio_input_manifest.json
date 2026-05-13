@@ -33,6 +33,7 @@
       "Documentation/zigux/phase10-virtio-input-survey.md",
       "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
       "drivers/virtio/virtio_input.zig",
+      "drivers/virtio/virtio_input_probe_preflight.zig",
       "drivers/virtio/virtio_input_verify.zig",
       "scripts/zigux/check-phase10-input-packet.py",
       "zigux/tests/phase10_virtio_input.zig",
@@ -68,7 +69,7 @@
       "status": "starter_landed",
       "kind": "reviewability",
       "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "Fresh current-master public-tree rereads now materialize the direct helper, verify, checker, and focused preflight plus status-drain packet again, so the reminder surfaces should keep that landed bundle explicit instead of recording it as missing."
+      "why_now": "Fresh current-master public-tree rereads now materialize the direct helper, direct probe-preflight helper, verify, checker, and focused preflight plus status-drain packet again, so the reminder surfaces should keep that landed bundle explicit instead of recording it as missing."
     },
     {
       "id": "phase10-virtio-input-teardown-observation-replay",
