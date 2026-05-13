@@ -29,6 +29,7 @@ REQUIRED_CONTEXT = (
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "`drivers/virtio/virtio_ring_verify.zig`",
     "`zigux/tests/phase10_virtio_input.zig`",
+    "`zigux/tests/phase10_virtio_input_probe_preflight.zig`",
     "`drivers/virtio/virtio_input_verify.zig`",
     "`zigux/tests/phase10_virtio_mmio.zig`",
     "`drivers/virtio/virtio_mmio_verify.zig`",
@@ -124,8 +125,8 @@ def run_self_test() -> int:
         "`zigux/tests/phase10_virtio_ring_survey.zig`, "
         "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`, "
         "`zigux/tests/phase10_virtio_input.zig`, "
-        "`drivers/virtio/virtio_input_verify.zig`, "
         "`zigux/tests/phase10_virtio_input_probe_preflight.zig`, "
+        "`drivers/virtio/virtio_input_verify.zig`, "
         "`zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, "
         "`zigux/tests/phase10_virtio_input_registration_preflight.zig`, "
         "`zigux/tests/phase10_virtio_input_teardown_observation.zig`, "
@@ -173,6 +174,19 @@ def run_self_test() -> int:
         assert "`zigux/tests/phase10_closure_manifest.json`" in str(exc)
     else:
         raise AssertionError("expected missing closure manifest failure")
+
+    missing_probe_preflight_replay = good.replace(
+        "`zigux/tests/phase10_virtio_input.zig`, "
+        "`zigux/tests/phase10_virtio_input_probe_preflight.zig`, ",
+        "`zigux/tests/phase10_virtio_input.zig`, ",
+        1,
+    )
+    try:
+        check_text(missing_probe_preflight_replay)
+    except SystemExit as exc:
+        assert "`zigux/tests/phase10_virtio_input_probe_preflight.zig`" in str(exc)
+    else:
+        raise AssertionError("expected missing probe-preflight replay failure")
 
     missing_core_surfaces_checker = good.replace(
         "`scripts/zigux/check-phase10-harness-coverage.py`, "
@@ -278,7 +292,7 @@ def run_self_test() -> int:
         raise AssertionError("expected ring reset reuse summary failure")
 
     print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
