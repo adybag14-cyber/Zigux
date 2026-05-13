@@ -76,6 +76,8 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`make -C zigux phase8-libbpf-segments-test`",
         "`make -C zigux phase8-perf-buffer-poll-test`",
+        "`make -C zigux phase8-test`",
+        "`make -C zigux phase8`",
     ),
     REVIEW_CHECKLIST_PATH: (
         "if the change touches the shared parked Phase 8 libbpf packet",
@@ -190,6 +192,8 @@ def run_self_test() -> int:
             (TESTS_README_PATH, "`make -C zigux phase8-help-test`"),
             (TESTS_README_PATH, "`make -C zigux phase8-help-kallsyms-test`"),
             (TESTS_README_PATH, "`make -C zigux phase8-kallsyms-test`"),
+            (TESTS_README_PATH, "`make -C zigux phase8-test`"),
+            (TESTS_README_PATH, "`make -C zigux phase8`"),
             (SCRIPTS_README_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
             (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-libbpf-segment-gate.py`"),
             (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-libbpf-shard-routes.py`"),
