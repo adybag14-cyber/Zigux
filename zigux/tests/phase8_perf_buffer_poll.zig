@@ -34,7 +34,9 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "first failing ready buffer");
     try expectContains(note, "final return-path choice between a successful ready count and the first processing failure");
     try expectContains(note, "bounded buffer-fd lookup and errno shaping");
+    try expectContains(note, "bounded buffer-window lookup and mapped-size passthrough");
     try expectContains(note, "`perf_buffer__buffer_fd(buf_idx)` slot lookup classification");
+    try expectContains(note, "`perf_buffer__buffer(buf_idx, &buf, &buf_size)` slot lookup classification");
     try expectContains(note, "ready-buffer processing attempts cannot exceed observed ready events");
     try expectContains(note, "non-ready wait observations cannot claim record processing");
     try expectContains(note, "reject impossible post-wait buffer state combinations");
@@ -90,6 +92,47 @@ test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         perf_buffer_poll.resolveBufferFdLookupReturn(invalid),
+    );
+}
+
+test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {
+    const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    const found = perf_buffer_poll.summarizeBufferWindowLookup(&buffer_windows, 2);
+    try std.testing.expectEqual(
+        perf_buffer_poll.BufferWindowLookupDisposition.found_window,
+        found.disposition,
+    );
+    try std.testing.expectEqual(@as(?usize, 8192), found.mapped_size);
+    try std.testing.expectEqual(
+        @as(i32, 0),
+        perf_buffer_poll.resolveBufferWindowLookupReturn(found),
+    );
+
+    const missing = perf_buffer_poll.summarizeBufferWindowLookup(&buffer_windows, 1);
+    try std.testing.expectEqual(
+        perf_buffer_poll.BufferWindowLookupDisposition.missing_window,
+        missing.disposition,
+    );
+    try std.testing.expectEqual(@as(?usize, null), missing.mapped_size);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveBufferWindowLookupReturn(missing),
+    );
+
+    const invalid = perf_buffer_poll.summarizeBufferWindowLookup(&buffer_windows, 4);
+    try std.testing.expectEqual(
+        perf_buffer_poll.BufferWindowLookupDisposition.invalid_index,
+        invalid.disposition,
+    );
+    try std.testing.expectEqual(@as(?usize, null), invalid.mapped_size);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_poll.resolveBufferWindowLookupReturn(invalid),
     );
 }
 
