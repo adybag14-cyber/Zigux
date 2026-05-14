@@ -129,6 +129,7 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", build_gap.zigux_destination);
     try expectContains(build_gap.why_now, "visible on current master");
     try expectContains(build_gap.why_now, "runtime_loader_gap_survey.zig");
+    try expectContains(build_gap.why_now, "phase9-runtime-atomic64-loader-tests");
 
     const survey_gap = findGap(manifest.gaps, "runtime-atomic64-survey-gate") orelse return error.MissingSurveyGap;
     try std.testing.expectEqualStrings("starter_landed", survey_gap.status);
@@ -166,6 +167,7 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(survey_note, "visible shared-loader reminder packet");
     try expectContains(survey_note, "not a completed loadable runtime-module path");
     try expectContains(survey_note, "`phase9-runtime-loader-shared-tests`");
+    try expectContains(survey_note, "`zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig`");
 
     try expectContains(module_slice, "`PHASE9_LANE_KEY=P9-L04`");
     try expectSurveyedCommitMarker(module_slice, manifest.surveyed_commit);
@@ -179,6 +181,7 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(module_slice, "`zigux/kernel/runtime_loader_contract.zig`");
     try expectContains(module_slice, "visible review-only evidence");
     try expectContains(module_slice, "not a completed loadable runtime-module path");
+    try expectContains(module_slice, "`zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig`");
 
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps initialized shared-request snapshots stable across later selftest activity");
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps selftest-complete shared-request snapshots stable across later exit activity");
@@ -191,6 +194,7 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(runtime_loader_allocator_init_flow, "phase 9 runtime loader allocator/init-flow replay keeps selftest-complete prepared snapshots stable even if later live state would look exited");
 
     try expectContains(phase9_build, "runtime_atomic64_loader.zig");
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-loader-tests\"");
     try expectContains(phase9_build, "runtime_loader_allocator_init_flow.zig");
     try expectContains(phase9_build, "runtime_loader_gap_survey.zig");
     try expectContains(phase9_build, "../kernel/runtime_loader_contract.zig");
