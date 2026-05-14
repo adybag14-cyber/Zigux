@@ -19,6 +19,7 @@ REQUIRED_MARKERS = (
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/check-phase3-abi-dump-gate.py",
+    "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/check-phase3-policy-byte-guards.py",
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
@@ -78,6 +79,7 @@ CURRENT_PACKET_MARKERS = {
     "zigux/uapi/version.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
+    "scripts/zigux/check-phase3-abi.py": 1,
     "zigux/tests/phase3_low_level_wrappers.zig": 1,
     "zigux/tests/phase3_low_level_wrappers_build.zig": 2,
     "zigux/Makefile": 1,
@@ -104,6 +106,7 @@ SHARED_REMINDER_MARKERS = {
     "scripts/zigux/README.md": 1,
     "zigux/tests/README.md": 1,
     "scripts/zigux/validate_phase3_selftest.py": 1,
+    "scripts/zigux/check-phase3-abi.py": 1,
     "scripts/zigux/validate-phase3-validator-support-surface.py": 1,
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 1,
     "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
@@ -374,6 +377,19 @@ def run_self_test() -> int:
             note_sample,
             "## Current packet",
             "## Review boundary",
+            "scripts/zigux/check-phase3-abi.py",
+        )
+    )
+    if not any("scripts/zigux/check-phase3-abi.py" in issue for issue in issues):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected current-packet focused ABI gate drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Current packet",
+            "## Review boundary",
             "zigux/tests/phase3_low_level_wrappers_build.zig",
         )
     )
@@ -429,6 +445,19 @@ def run_self_test() -> int:
     ):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected shared-reminder governance-validator drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Shared reminder",
+            None,
+            "scripts/zigux/check-phase3-abi.py",
+        )
+    )
+    if not any("scripts/zigux/check-phase3-abi.py" in issue for issue in issues):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared-reminder focused ABI gate drift was not reported")
         return 1
 
     issues = validate_text(
@@ -528,6 +557,14 @@ def run_self_test() -> int:
     if not any("include/zigux/dev_t.h" in issue for issue in issues):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected boundary-note current-surface drift was not reported")
+        return 1
+
+    issues = validate_boundary_note_text(
+        boundary_sample.replace("scripts/zigux/check-phase3-abi.py", "", 1)
+    )
+    if not any("scripts/zigux/check-phase3-abi.py" in issue for issue in issues):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected boundary-note focused ABI gate drift was not reported")
         return 1
 
     issues = validate_boundary_note_text(
