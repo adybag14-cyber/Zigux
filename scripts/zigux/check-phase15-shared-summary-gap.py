@@ -26,12 +26,16 @@ REQUIRED_FILES = (
 SURVEY_MARKER = "Documentation/zigux/phase15-parity-scorecard-survey.md"
 SEQUENCING_MARKER = "Documentation/zigux/phase15-governance-lane-sequencing.md"
 CHECKER_MARKER = "scripts/zigux/check-phase15-shared-summary-gap.py"
+ALIGNMENT_CHECKER_MARKER = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
+LANE_OWNER_ALIGNMENT_MARKER = "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
 
 FILE_MARKERS = {
     DOCS_README_REL: (
         "Phase 15 notes",
         SURVEY_MARKER,
         SEQUENCING_MARKER,
+        ALIGNMENT_CHECKER_MARKER,
+        LANE_OWNER_ALIGNMENT_MARKER,
         "make -C zigux phase15-validate",
         "make -C zigux phase15-test",
         "make -C zigux phase15",
@@ -94,6 +98,8 @@ def _seed(root: Path) -> None:
                 "Phase 15 notes",
                 SURVEY_MARKER,
                 SEQUENCING_MARKER,
+                ALIGNMENT_CHECKER_MARKER,
+                LANE_OWNER_ALIGNMENT_MARKER,
                 "make -C zigux phase15-validate",
                 "make -C zigux phase15-test",
                 "make -C zigux phase15",
@@ -151,6 +157,26 @@ def run_self_test() -> int:
             validate(root),
             [f"{DOCS_README_REL}:missing:{SURVEY_MARKER}"],
             "docs_readme_missing_survey",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace(ALIGNMENT_CHECKER_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{DOCS_README_REL}:missing:{ALIGNMENT_CHECKER_MARKER}"],
+            "docs_readme_missing_alignment_checker",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace(LANE_OWNER_ALIGNMENT_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{DOCS_README_REL}:missing:{LANE_OWNER_ALIGNMENT_MARKER}"],
+            "docs_readme_missing_lane_owner_alignment",
         )
         _seed(root)
         case_count += 1
@@ -221,7 +247,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the current Phase 15 shared summaries keep the parity-scorecard survey, "
-            "lane-sequencing note, and replay-route packet explicit."
+            "lane-sequencing note, docs-root alignment checker, lane-owner alignment surface, and replay-route packet explicit."
         )
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
