@@ -14,6 +14,7 @@ import tempfile
 from pathlib import Path
 
 MARKER = "PHASE14_CHECK_PACKET=tests_readme_smoke_summary"
+SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
 SMOKE_MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 TESTS_README_PACKET_ANCHOR = "  * `zigux/tests/phase14_build.zig`"
@@ -38,6 +39,9 @@ TESTS_README_AFTER_ANCHOR_LINES = (
 )
 TESTS_README_ROUTE_MARKERS = [
     "make -C zigux phase14-smoke",
+]
+SCRIPTS_README_MARKERS = [
+    "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
 ]
 REQUIRED_SHARED_SMOKE_SURFACES = [
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
@@ -201,6 +205,17 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
     if manifest is not None:
         require_manifest_alignment(errors, manifest)
 
+    scripts_readme_path = root / SCRIPTS_README_PATH
+    if not scripts_readme_path.exists():
+        errors.append(f"missing file: {SCRIPTS_README_PATH.as_posix()}")
+    else:
+        require_exact_count(
+            errors,
+            SCRIPTS_README_PATH.as_posix(),
+            read_text(scripts_readme_path),
+            SCRIPTS_README_MARKERS,
+        )
+
     path = root / TESTS_README_PATH
     if not path.exists():
         errors.append(f"missing file: {TESTS_README_PATH.as_posix()}")
@@ -253,6 +268,16 @@ def good_tests_readme_text() -> str:
     ) + "\n"
 
 
+def good_scripts_readme_text() -> str:
+    return "\n".join(
+        [
+            "# scripts/zigux",
+            "Phase 14 notes",
+            "- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`",
+        ]
+    ) + "\n"
+
+
 def good_smoke_manifest_text() -> str:
     manifest = {
         "shared_smoke_surfaces": REQUIRED_SHARED_SMOKE_SURFACES,
@@ -275,6 +300,7 @@ def expect_contains(errors: list[str], needle: str, label: str) -> None:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
+        write_text(root / SCRIPTS_README_PATH, good_scripts_readme_text())
         write_text(root / TESTS_README_PATH, good_tests_readme_text())
         write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
 
@@ -283,6 +309,37 @@ def run_self_test() -> int:
             for error in errors:
                 print(f"- {error}", file=sys.stderr)
             return 1
+
+        write_text(
+            root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
+                "scripts/zigux/check-phase14-tests-readme-smoke-summary-drift.py",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
+            "self-test expected missing scripts-readme checker marker failure",
+        )
+        write_text(root / SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write_text(
+            root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
+                "scripts/zigux/check-phase14-tests-readme-smoke-summary.py\n"
+                "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
+            "self-test expected duplicate scripts-readme checker marker failure",
+        )
+        write_text(root / SCRIPTS_README_PATH, good_scripts_readme_text())
 
         write_text(
             root / TESTS_README_PATH,
@@ -598,8 +655,8 @@ def run_self_test() -> int:
         write_text(
             root / SMOKE_MANIFEST_PATH,
             good_smoke_manifest_text().replace(
-                "\"zigux/tests/phase14_workqueue_reviewability.zig\"",
-                "\"zigux/tests/phase14_workqueue_reviewability_drift.zig\"",
+                '"zigux/tests/phase14_workqueue_reviewability.zig"',
+                '"zigux/tests/phase14_workqueue_reviewability_drift.zig"',
                 1,
             ),
         )
@@ -613,8 +670,8 @@ def run_self_test() -> int:
         write_text(
             root / SMOKE_MANIFEST_PATH,
             good_smoke_manifest_text().replace(
-                "\"zigux/tests/phase14_ring_buffer_manifest.json\"",
-                "\"zigux/tests/phase14_ring_buffer_manifest_drift.json\"",
+                '"zigux/tests/phase14_ring_buffer_manifest.json"',
+                '"zigux/tests/phase14_ring_buffer_manifest_drift.json"',
                 1,
             ),
         )
@@ -655,7 +712,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=24")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=26")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
@@ -675,6 +732,10 @@ def run_self_test() -> int:
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_ROUTE_MARKER_COUNT="
         f"{len(TESTS_README_ROUTE_MARKERS)}"
+    )
+    print(
+        "PHASE14_TESTS_README_SMOKE_SUMMARY_SCRIPTS_MARKER_COUNT="
+        f"{len(SCRIPTS_README_MARKERS)}"
     )
     return 0
 
