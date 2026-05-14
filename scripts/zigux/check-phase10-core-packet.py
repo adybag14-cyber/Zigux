@@ -30,6 +30,9 @@ EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_core_module",
     '"phase10-virtio-core-tests"',
     "run_phase10_virtio_core_tests",
+    "phase10_virtio_core_verify_module",
+    '"phase10-virtio-core-verify-tests"',
+    "run_phase10_virtio_core_verify_tests",
     "phase10_virtio_core_survey_module",
     '"phase10-virtio-core-survey-tests"',
     "run_phase10_virtio_core_survey_tests",
@@ -370,6 +373,19 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_core_build_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
+        build_path.write_text(
+            original_build.replace(
+                "run_phase10_virtio_core_verify_tests",
+                "run_phase10_virtio_core_verify_drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(root)
+        if "build:run_phase10_virtio_core_verify_tests" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_core_verify_build_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
         core_test_path = root / "zigux/tests/phase10_virtio_core.zig"
         original_core_test = core_test_path.read_text(encoding="utf-8")
         core_test_path.write_text(
@@ -396,7 +412,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_tests_readme_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
