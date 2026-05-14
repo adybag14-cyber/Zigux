@@ -12,15 +12,30 @@ from phase3_catalog import discover_phase3_slices
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PREFIX = "check-phase3-"
 
+# Keep the focused ABI runner aligned with the landed boundary packet rather than
+# only the direct replay binaries.
 ABI_COMMAND_PLAN = (
     (sys.executable, "scripts/zigux/check-phase3-abi.py"),
     (sys.executable, "scripts/zigux/check-phase3-abi-dump-gate.py"),
+    (sys.executable, "scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
     (sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"),
     (sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
     (sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
+    (sys.executable, "scripts/zigux/validate-phase3-export-uapi-survey.py"),
+    (sys.executable, "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
+    (sys.executable, "scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
+    (sys.executable, "scripts/zigux/survey-phase3-abi-constant-parity.py"),
+    (sys.executable, "scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    (sys.executable, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
     ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),
-    ("zig", "build", "phase3-low-level-wrappers-test", "--build-file", "zigux/tests/phase3_low_level_wrappers_build.zig"),
+    (
+        "zig",
+        "build",
+        "phase3-low-level-wrappers-test",
+        "--build-file",
+        "zigux/tests/phase3_low_level_wrappers_build.zig",
+    ),
 )
 
 WRAPPER_STUB = """#!/usr/bin/env python3
@@ -149,12 +164,25 @@ def run_self_test() -> int:
     assert observed_calls == [
         ((sys.executable, "scripts/zigux/check-phase3-abi.py"), ROOT, False),
         ((sys.executable, "scripts/zigux/check-phase3-abi-dump-gate.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-policy-unsafe-survey.py"), ROOT, False),
         ((sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"), ROOT, False),
         ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"), ROOT, False),
         ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-export-uapi-survey.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-abi-bindings-syntax.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/survey-phase3-abi-constant-parity.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-abi-header-family-survey.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ROOT, False),
         (("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"), ROOT, False),
         (("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"), ROOT, False),
-        (("zig", "build", "phase3-low-level-wrappers-test", "--build-file", "zigux/tests/phase3_low_level_wrappers_build.zig"), ROOT, False),
+        ((
+            "zig",
+            "build",
+            "phase3-low-level-wrappers-test",
+            "--build-file",
+            "zigux/tests/phase3_low_level_wrappers_build.zig",
+        ), ROOT, False),
     ]
 
     observed_calls.clear()
