@@ -9,7 +9,7 @@ This document records the bounded Phase 15 governance lane around surveying the 
 - `PHASE15_SLICE=parity-tracking-gap-vs-roadmap-refresh`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one survey-grade note that compares the roadmap's parity-scorecard requirement against the live scorecard note, machine-readable JSON, and dedicated Zig guard without widening into new deep-core implementation or shared-summary follow-through
-- survey rechecked against current `master` on 2026-05-13; the dedicated parity-scorecard packet still carries dated readback marker `current-master-readback-2026-05-12`
+- survey rechecked against current `master` on 2026-05-14; the dedicated parity-scorecard packet now carries dated readback marker `current-master-readback-2026-05-13`
 - product boundary:
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `zigux/tests/phase15_parity_scorecard.json`
@@ -24,7 +24,7 @@ The honest same-lane question on current `master` is no longer whether Zigux lac
 
 ## Current master readback
 
-The 2026-05-13 reread shows these dedicated parity-scorecard surfaces present on current `master`:
+The 2026-05-14 reread shows these dedicated parity-scorecard surfaces present on current `master`:
 
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `zigux/tests/phase15_parity_scorecard.json`
@@ -35,7 +35,7 @@ Those three surfaces still agree on the dedicated parity-scorecard packet shape:
 - lane key: `P15-Y03`
 - slice: `parity-scorecard-baseline`
 - provenance mode: `dated_master_readback`
-- surveyed commit marker: `current-master-readback-2026-05-12`
+- surveyed commit marker: `current-master-readback-2026-05-13`
 - posture: `blocked_posture_accounting_not_port_readiness`
 
 The live machine-readable metrics now cover:
@@ -63,15 +63,15 @@ The roadmap-required parity scorecard packet is no longer missing on current `ma
 
 The dedicated scorecard note, machine-readable JSON companion, and dedicated Zig guard are all present and aligned, so the core parity-tracking requirement named by the roadmap is currently satisfied inside the Phase 15 governance packet.
 
-The current same-lane gap is survey truthfulness only:
+The previously open same-lane gap was survey truthfulness only:
 
-- this survey note was still filed under older `P15-L11` verification metadata
-- it still reported a 2026-05-11 readback after the scorecard packet moved to the 2026-05-12 dated-readback posture
-- it still claimed `zigux/tests/phase15_parity_scorecard.zig` was not present on `master`
-- it still claimed the broader reporting packet was mispointing at a nonexistent Zig replay surface even though the dedicated Zig guard now exists beside the JSON companion
-- it underreported the current scorecard metrics by omitting the governance-only blocker aggregate that now splits the blocked anchors between pure Phase 15 governance evidence and Phase 14-coupled bridge evidence
+- this survey note had still been filed under older verification metadata
+- it had still reported a 2026-05-11 reread after the dedicated scorecard packet moved to the 2026-05-13 dated-readback posture
+- it had still claimed `zigux/tests/phase15_parity_scorecard.zig` was not present on `master`
+- it had still claimed the broader reporting packet was mispointing at a nonexistent Zig replay surface even though the dedicated Zig guard now exists beside the JSON companion
+- it had underreported the current scorecard metrics by omitting the governance-only blocker aggregate that now splits the blocked anchors between pure Phase 15 governance evidence and Phase 14-coupled bridge evidence
 
-That means the live roadmap-versus-repo parity gap is narrower than this survey previously said: the product gap is closed, while the survey note itself had become the stale artifact.
+That survey-local truthfulness gap is now closed. The product gap stays closed too: the parity-scorecard requirement is satisfied, and this survey has been refreshed to match the current dedicated scorecard packet instead of lagging behind it.
 
 ## Honest current posture
 
