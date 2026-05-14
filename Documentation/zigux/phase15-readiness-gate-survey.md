@@ -6,10 +6,10 @@ This document records the parked Phase 15 readiness gate for the current Archite
 - `PHASE15_LANE_KEY=P15-L01`
 - `PHASE15_SLICE=readiness-gate-survey`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-13`
+- `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-14`
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the current readiness packet remains a maintenance-mode governance surface only
-- Later repo movement still requires a fresh bounded provenance refresh before this note should claim a newer reviewed head than `current-master-readback-2026-05-13`
+- Later repo movement still requires a fresh bounded provenance refresh before this note should claim a newer reviewed head than `current-master-readback-2026-05-14`
 
 ## Readiness at Reviewed Head
 
@@ -29,6 +29,7 @@ The current Phase 15 readiness packet is the shared governance bundle around:
 - `python3 scripts/zigux/validate-phase15.py`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/phase15_build.zig`
 - `zig build test --build-file zigux/tests/phase15_build.zig`
@@ -44,7 +45,7 @@ The readiness gate for this packet is still architectural truthfulness, not a ne
 
 Readiness here means:
 - the freeze-map, review-process, parity-scorecard survey, parity-scorecard, indefinite-C policy, handoff-next-steps, readiness-gate, and governance-lane-sequencing notes all point at the same blocked posture
-- the validator-first route stays explicit through `python3 scripts/zigux/validate-phase15.py` and `make -C zigux phase15-validate`
+- the validator-first route stays explicit through `python3 scripts/zigux/validate-phase15.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `make -C zigux phase15-validate`
 - the shared replay route stays explicit through `zigux/tests/phase15_build.zig`, `zig build test --build-file zigux/tests/phase15_build.zig`, `make -C zigux phase15-test`, and `make -C zigux phase15`
 - the docs-root Phase 15 summary stays reviewable through `Documentation/zigux/README.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `python3 scripts/zigux/validate-phase15.py`; there is no separate dedicated docs-root Zig guard on current `master`
 - the remaining blocker is still `phase15-deep-core-status-change-blocker`
