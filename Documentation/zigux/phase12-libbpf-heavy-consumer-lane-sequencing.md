@@ -37,7 +37,7 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
 
 ## Boundaries
 - This note must not imply `skeleton.zig`, object-loader parity, relocation parity, direct queue-routing delivery, or other unshipped libbpf runtime surfaces.
-- Current `master` does ship `scripts/zigux/validate-phase12.py` as an unwired helper, but there is still no shipped shared `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route.
+- Current `master` now ships the validator-first support bundle through `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`, but there is still no focused-libbpf-only replay or cross-build replay, so this note must keep that support bundle distinct from the smoke-first shared replay order.
 - `Documentation/zigux/freeze-map.md` remains the boundary owner for deeper queueing and transport anchors, so this note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 
 ## Next Bounded Step
