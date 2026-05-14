@@ -53,6 +53,10 @@ Exact 2026-05-13 readback also shows `scripts/zigux/check-phase8-libbpf-shard-ro
 
 That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit so the deferred routing segment stays framed as broader setup-side parity rather than as if no routing-side helper evidence exists yet.
 
+Current mixed 2026-05-14 readback also shows that the next shared reminder-surface drift now sits outside this lane: `scripts/zigux/README.md` still omits `scripts/zigux/check-phase8-exec-cmd-packet.py` even though `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `zigux/Makefile`, and the shipped exec-cmd packet still keep that checker explicit on `master`.
+
+Treat that scripts-root omission as shared wording upkeep rather than as a fresh file-path-and-handle resource-boundary regression inside this libbpf survey packet.
+
 That leaves the narrower same-lane task as keeping this survey parked and truthful about that already-landed checker coverage instead of reopening the same checker-local step.
 
 ## Non-goals
@@ -66,11 +70,12 @@ This survey slice does not yet claim:
 - any reopen of deferred object-model, descriptor-lifecycle, or bridge-heavy libbpf work
 
 ## Next bounded step
-Keep the libbpf survey packet parked after this survey-and-checker sync unless a fresh shared reminder-surface drift reappears against the current readable helper-plus-build evidence.
+Keep the libbpf survey packet parked after this survey-and-checker sync. The next reopen cue on current `master` is the shared `scripts/zigux/README.md` inventory correction for `scripts/zigux/check-phase8-exec-cmd-packet.py`, not a new bridge-packet or manifest drift inside this P8-L13 survey.
 
 Preferred order:
 1. re-read the dedicated Phase 8 libbpf shard files named by `zigux/tests/phase8_build.zig` before calling any helper packet removed
 2. confirm the shared bridge-boundary note and `scripts/zigux/check-phase8-libbpf-shard-routes.py` still agree on the focused bridge and perf-buffer replay markers while the dedicated survey stays aligned with that already-landed checker state
-3. keep the helper-local `online_cpu_routing.zig` evidence explicit while staying smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, standalone timer or clockevent helper behavior, or broader timeout-sensitive routing behavior
+3. if `scripts/zigux/README.md` still omits `scripts/zigux/check-phase8-exec-cmd-packet.py`, leave that reminder-surface repair to the shared wording lane instead of reopening this survey as a resource-boundary regression
+4. keep the helper-local `online_cpu_routing.zig` evidence explicit while staying smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, standalone timer or clockevent helper behavior, or broader timeout-sensitive routing behavior
 
 especially the explicit `standalone timer or clockevent helper behavior` and broader timeout-sensitive routing behavior boundaries that keep this packet smaller than the deferred interrupt-routing work.
