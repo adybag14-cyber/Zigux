@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that the Phase 13 scripts README does not list shipped survey notes as gaps."""
+"""Check that the Phase 13 scripts README does not list shipped packet notes as gaps."""
 
 from __future__ import annotations
 
@@ -16,8 +16,9 @@ SUPPORTING_PATHS = (
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
 )
-SHIPPED_SURVEY_NOTES = (
+SHIPPED_PHASE13_PACKET_NOTES = (
     "Documentation/zigux/phase13-libfs-survey.md",
+    "Documentation/zigux/phase13-landlock-ruleset-slice.md",
     "Documentation/zigux/phase13-landlock-ruleset-survey.md",
     "Documentation/zigux/phase13-landlock-syscalls-slice.md",
     "Documentation/zigux/phase13-landlock-syscalls-survey.md",
@@ -53,7 +54,7 @@ def validate(root: Path) -> list[str]:
         errors.append("missing_marker:scripts_readme:phase13_gap_line")
     else:
         gap_suffix = gap_line.split(GAP_LIST_MARKER, 1)[1] if GAP_LIST_MARKER in gap_line else gap_line
-        for rel in SHIPPED_SURVEY_NOTES:
+        for rel in SHIPPED_PHASE13_PACKET_NOTES:
             if rel in gap_suffix:
                 errors.append(f"scripts_readme:shipped_note_listed_as_gap:{rel}")
 
@@ -63,11 +64,11 @@ def validate(root: Path) -> list[str]:
             errors.append(f"missing_file:{rel}")
             continue
         text = _read(path)
-        for shipped in SHIPPED_SURVEY_NOTES[1:]:
+        for shipped in SHIPPED_PHASE13_PACKET_NOTES[1:]:
             if "landlock" in shipped and shipped not in text:
                 errors.append(f"supporting_doc:missing_marker:{rel}:{shipped}")
-        if rel.endswith("phase13-contributor-workflow-guide.md") and SHIPPED_SURVEY_NOTES[0] not in text:
-            errors.append(f"supporting_doc:missing_marker:{rel}:{SHIPPED_SURVEY_NOTES[0]}")
+        if rel.endswith("phase13-contributor-workflow-guide.md") and SHIPPED_PHASE13_PACKET_NOTES[0] not in text:
+            errors.append(f"supporting_doc:missing_marker:{rel}:{SHIPPED_PHASE13_PACKET_NOTES[0]}")
 
     return errors
 
@@ -83,10 +84,10 @@ def run_self_test() -> int:
         "Phase 13 flow - keep the shared Phase 13 contributor packet explicit through the shipped contributor and release-surface notes:\n"
         "- broad scripts-root reminders should keep `Documentation/zigux/phase13-landlock-syscalls-governance.md` explicit beside "
         "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`, keep adjacent notifier evidence separate from the four helper anchors, "
-        "keep the shipped `Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, "
-        "`Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `Documentation/zigux/phase13-landlock-syscalls-survey.md` explicit as "
-        "landed helper-packet notes, and treat missing direct paths such as `Documentation/zigux/phase13-libfs-slice.md` and "
-        "`Documentation/zigux/phase13-landlock-ruleset-slice.md` as repo-reality gaps instead of borrowing old checker names.\n"
+        "keep the shipped `Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-landlock-ruleset-slice.md`, "
+        "`Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and "
+        "`Documentation/zigux/phase13-landlock-syscalls-survey.md` explicit as landed helper-packet notes, and treat missing direct paths such as "
+        "`Documentation/zigux/phase13-libfs-slice.md` and `zigux/tests/phase13_build.zig` as repo-reality gaps instead of borrowing old checker names.\n"
     )
     bad_readme = (
         "# scripts/zigux\n"
@@ -99,21 +100,24 @@ def run_self_test() -> int:
     )
     contributor = (
         "Current `master` materializes the bounded `libfs` foothold through `Documentation/zigux/phase13-libfs-survey.md`.\n"
-        "Current `master` also materializes the helper-local Landlock packet through `Documentation/zigux/phase13-landlock-ruleset-survey.md`, "
-        "`Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `Documentation/zigux/phase13-landlock-syscalls-survey.md`.\n"
+        "Current `master` also materializes the helper-local Landlock packet through `Documentation/zigux/phase13-landlock-ruleset-slice.md`, "
+        "`Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and "
+        "`Documentation/zigux/phase13-landlock-syscalls-survey.md`.\n"
     )
     release = (
-        "Broad summaries should also keep the paired Landlock ownership, ruleset-survey, syscall-governance, and syscall-survey notes explicit through:\n"
+        "Broad summaries should also keep the paired Landlock ownership, ruleset-slice, ruleset-survey, syscall-governance, and syscall-survey notes explicit through:\n"
+        "`Documentation/zigux/phase13-landlock-ruleset-slice.md`\n"
         "`Documentation/zigux/phase13-landlock-ruleset-survey.md`\n"
         "`Documentation/zigux/phase13-landlock-syscalls-slice.md`\n"
         "`Documentation/zigux/phase13-landlock-syscalls-survey.md`\n"
     )
     traceability = (
+        "Keep the current `landlock/ruleset` mapping explicit through:\n"
+        "`Documentation/zigux/phase13-landlock-ruleset-slice.md`\n"
+        "`Documentation/zigux/phase13-landlock-ruleset-survey.md`\n"
         "Keep the current `landlock/syscalls` mapping explicit through:\n"
         "`Documentation/zigux/phase13-landlock-syscalls-slice.md`\n"
         "`Documentation/zigux/phase13-landlock-syscalls-survey.md`\n"
-        "Keep the current `landlock/ruleset` mapping explicit through:\n"
-        "`Documentation/zigux/phase13-landlock-ruleset-survey.md`\n"
     )
 
     with tempfile.TemporaryDirectory(prefix="phase13-scripts-readme-") as tmpdir:
@@ -126,7 +130,7 @@ def run_self_test() -> int:
 
         _write(root / SCRIPTS_README, bad_readme)
         errors = validate(root)
-        assert len(errors) == 4
+        assert len(errors) == 5
         assert all(err.startswith("scripts_readme:shipped_note_listed_as_gap:") for err in errors)
 
         _write(root / SCRIPTS_README, "# scripts/zigux\n")
@@ -137,7 +141,7 @@ def run_self_test() -> int:
         _write(root / SCRIPTS_README, good_readme)
         _write(root / SUPPORTING_PATHS[0], "Current `master` materializes the bounded `libfs` foothold.\n")
         errors = validate(root)
-        assert f"supporting_doc:missing_marker:{SUPPORTING_PATHS[0]}:{SHIPPED_SURVEY_NOTES[0]}" in errors
+        assert f"supporting_doc:missing_marker:{SUPPORTING_PATHS[0]}:{SHIPPED_PHASE13_PACKET_NOTES[0]}" in errors
 
     print("PHASE13_SCRIPTS_README_SHIPPED_SURVEY_CHECK=pass")
     print("PHASE13_SCRIPTS_README_SHIPPED_SURVEY_CHECK_CASE_COUNT=4")
@@ -146,7 +150,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check the Phase 13 scripts README summary against shipped survey-note reality."
+        description="Check the Phase 13 scripts README summary against shipped Phase 13 packet-note reality."
     )
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--self-test", action="store_true")
