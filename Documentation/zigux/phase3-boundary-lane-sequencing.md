@@ -87,7 +87,6 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
   - `scripts/zigux/validate-phase3-validator-support-surface.py`
   - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
-  - `scripts/zigux/validate-phase3-linux-zigux-header-governance.py`
   - `scripts/zigux/survey-phase3-abi-constant-parity.py`
   - `scripts/zigux/phase3_catalog.py`
   - `scripts/zigux/phase3_check_lib.py`
@@ -96,7 +95,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `zigux/uapi/dev_t.zig`
   - `zigux/bindings/abi.zig`
   - `zigux/Makefile`
-- shared anti-overlap owner-map packet, lane `P3-X12`:
+- shared anti-overlap owner-map packet, lane `P3-X10`:
   - `Documentation/zigux/phase3-boundary-lane-sequencing.md`
 - shared closure and lane-state packet, lane `P3-X11`:
   - `Documentation/zigux/phase3-boundary-lane-sequencing.md`
@@ -115,7 +114,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 ## Anti-overlap rules
 
 - do not route `zigux/helpers/mmio.zig` by file path alone; route it by behavior class instead
-- if the drift is about this note's packet map, the split between baseline packet lanes and the current maintenance lanes, or which shared lane owns anti-overlap wording versus closure wording, keep it in `P3-X12` and update `Documentation/zigux/phase3-boundary-lane-sequencing.md` only
+- if the drift is about this note's packet map, the split between baseline packet lanes and the current maintenance lanes, or which shared lane owns anti-overlap wording versus closure wording, keep it in `P3-X10` and update `Documentation/zigux/phase3-boundary-lane-sequencing.md` only
 - if the drift is about shared closure, ledger, or lane-state reminders after the owner map already points at the right packet lanes, keep it in `P3-X11`
 - do not route `zigux/helpers/layout_assert.zig` by file path alone either; if the drift is about struct layouts, exported constants, helper entrypoints consumed by the shared ABI packet, or `survey-phase3-abi-constant-parity.py`, keep it in the shared ABI and bindings packet
 - if the drift is about panic-mode decoding, allocator-mode decoding, unsafe-scope bytes, typed policy relays, MMIO interop-policy admission, or the policy-and-unsafe survey wording, keep it in the policy and unsafe packet
@@ -129,4 +128,4 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 
 ## Current bounded rule
 
-This note is the shared substrate owner map only. `P3-X12` owns shared anti-overlap routing corrections when this note's packet map or live lane handoff drifts, and `P3-X11` stays reserved for shared closure, ledger, or lane-state corrections after the routing split already matches the live packet lanes. Neither shared lane should reopen packet-local helpers, surveys, validators, manifests, or headers on its own. It does not claim a new helper family, another replay tranche, or broader kernel-port progress. Future Phase 3 follow-up should reopen one packet only using the split above.
+This note is the shared substrate owner map only. `P3-X10` owns shared anti-overlap routing corrections when this note's packet map or live lane handoff drifts, and `P3-X11` stays reserved for shared closure, ledger, or lane-state corrections after the routing split already matches the live packet lanes. Neither shared lane should reopen packet-local helpers, surveys, validators, manifests, or headers on its own. It does not claim a new helper family, another replay tranche, or broader kernel-port progress. Future Phase 3 follow-up should reopen one packet only using the split above.
