@@ -2,11 +2,11 @@
 
 This note is the driver-local owner map for the bounded NVMe PCI lane family on current `master`.
 
-It keeps the active `P12-L05` starter-plus-slice-plus-survey lane, the later `P12-Y02` reopen lane, and the shared Phase 12 release packet from collapsing into one blurry reminder surface while a bounded starter plus verifier plus slice-note plus survey packet is present and the broader shared-build route remains incomplete on current `master`.
+It keeps the active `P12-L08` starter-plus-slice-plus-survey lane, the later `P12-Y02` reopen lane, and the shared Phase 12 release packet from collapsing into one blurry reminder surface while a bounded starter plus verifier plus slice-note plus survey packet is present and the broader shared-build route remains incomplete on current `master`.
 
 ## Status
 - `PHASE12_STATUS=active`
-- `PHASE12_LANE_KEY=P12-L05`
+- `PHASE12_LANE_KEY=P12-L08`
 - scope: one bounded same-driver survey, owner-map, slice-note, DMA-note, or recovery-governance follow-through tied only to the Phase 12 NVMe PCI packet
 - later reopen alias: `P12-Y02`
 - shared release-packet companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
@@ -20,11 +20,11 @@ It keeps the active `P12-L05` starter-plus-slice-plus-survey lane, the later `P1
 ## Current Master Reality
 Current `master` ships the bounded starter `drivers/nvme/host/pci.zig`, the bounded verifier shard `drivers/nvme/host/pci_verify.zig`, the direct replay `zigux/tests/phase12_nvme_pci.zig`, the slice note `Documentation/zigux/phase12-nvme-pci-slice.md`, the survey note `Documentation/zigux/phase12-nvme-pci-survey.md`, the survey gate `zigux/tests/phase12_nvme_pci_survey.zig`, and the manifest anchor `zigux/tests/phase12_nvme_pci_manifest.json`. Treat those files as queue-planning, PRP-shape, and reset-governance evidence only, not as proof that the shared build wiring or a live runtime path is already complete.
 
-Because the starter, verifier, direct replay, slice note, survey note, survey gate, and manifest anchor are present together, `P12-L05` now owns the same-driver truthfulness, slice-note, survey-note, survey-gate, manifest, and bounded queue-planning or recovery follow-through on current `master`. `P12-Y02` should stay framed as a later reopen alias for the broader packet or one owner-map cleanup once the shared-build route or a later runtime packet moves.
+Because the starter, verifier, direct replay, slice note, survey note, survey gate, and manifest anchor are present together, `P12-L08` now owns the same-driver truthfulness, slice-note, survey-note, survey-gate, manifest, and bounded queue-planning or recovery follow-through on current `master`. `P12-Y02` should stay framed as a later reopen alias for the broader packet or one owner-map cleanup once the shared-build route or a later runtime packet moves.
 
 ## Ownership Split
-- `P12-L05` owns the shipped direct packet: queue planning, queue-count reservation, PRP buffer-shape accounting, reset-summary bookkeeping, the verifier shard, the direct replay, the slice note, the survey note, the survey gate, the manifest anchor, and bounded DMA-note or recovery-governance preflights that stay within the current starter-plus-verifier-plus-review-surface packet
-- `P12-Y02` owns only a later same-driver reopen once the shared-build route or a later runtime packet exists again, or a driver-local owner-map cleanup that cannot be handled inside the active starter-present `P12-L05` pass
+- `P12-L08` owns the shipped direct packet: queue planning, queue-count reservation, PRP buffer-shape accounting, reset-summary bookkeeping, the verifier shard, the direct replay, the slice note, the survey note, the survey gate, the manifest anchor, and bounded DMA-note or recovery-governance preflights that stay within the current starter-plus-verifier-plus-review-surface packet
+- `P12-Y02` owns only a later same-driver reopen once the shared-build route or a later runtime packet exists again, or a driver-local owner-map cleanup that cannot be handled inside the active starter-present `P12-L08` pass
 - the shared Phase 12 release packet remains outside this lane except for pointer updates that keep the starter-plus-verifier-plus-review-surface-versus-shared-build split truthful
 - `virtio_net`, `virtio_scsi`, and libbpf heavy-consumer reviewability are not part of this lane
 
