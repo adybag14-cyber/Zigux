@@ -49,6 +49,8 @@ REQUIRED_MARKERS = (
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
     "zigux/bindings/abi.zig",
+    "zigux/tests/phase3_low_level_wrappers.zig",
+    "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/Makefile",
     "python3 scripts/zigux/phase3_catalog.py --self-test",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
@@ -59,6 +61,7 @@ REQUIRED_MARKERS = (
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "make -C zigux phase3-validate",
     "make -C zigux phase3-selftest",
+    "make -C zigux phase3-low-level-wrappers-test",
     "make -C zigux phase3",
     "shipped helper entrypoints on current `master`",
 )
@@ -74,11 +77,14 @@ CURRENT_PACKET_MARKERS = {
     "zigux/uapi/version.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
+    "zigux/tests/phase3_low_level_wrappers.zig": 1,
+    "zigux/tests/phase3_low_level_wrappers_build.zig": 1,
     "zigux/Makefile": 1,
     "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py": 1,
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py": 1,
     "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test": 1,
+    "make -C zigux phase3-low-level-wrappers-test": 1,
 }
 
 REVIEW_BOUNDARY_MARKERS = {
@@ -106,11 +112,14 @@ SHARED_REMINDER_MARKERS = {
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md": 1,
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py": 1,
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py": 1,
-    "include/zigux/dev_t.h": 2,
-    "zigux/uapi/version.zig": 2,
+    "zigux/tests/phase3_low_level_wrappers.zig": 1,
+    "zigux/tests/phase3_low_level_wrappers_build.zig": 1,
+    "include/zigux/dev_t.h": 1,
+    "zigux/uapi/version.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
     "make -C zigux phase3-selftest": 1,
+    "make -C zigux phase3-low-level-wrappers-test": 1,
 }
 
 BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS = {
@@ -353,6 +362,19 @@ def run_self_test() -> int:
     issues = validate_text(
         replace_in_section(
             note_sample,
+            "## Current packet",
+            "## Review boundary",
+            "zigux/tests/phase3_low_level_wrappers_build.zig",
+        )
+    )
+    if not any("zigux/tests/phase3_low_level_wrappers_build.zig" in issue for issue in issues):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected current-packet low-level-wrapper build drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
             "## Review boundary",
             "## Non-goals",
             "Documentation/zigux/phase3-abi-bindings-survey.md",
@@ -387,12 +409,12 @@ def run_self_test() -> int:
             note_sample,
             "## Shared reminder",
             None,
-            "include/zigux/dev_t.h",
+            "zigux/tests/phase3_low_level_wrappers.zig",
         )
     )
-    if not any("include/zigux/dev_t.h" in issue for issue in issues):
+    if not any("zigux/tests/phase3_low_level_wrappers.zig" in issue for issue in issues):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared-reminder dev_t header drift was not reported")
+        print("expected shared-reminder low-level-wrapper replay drift was not reported")
         return 1
 
     issues = validate_text(
@@ -400,12 +422,12 @@ def run_self_test() -> int:
             note_sample,
             "## Shared reminder",
             None,
-            "zigux/uapi/version.zig",
+            "make -C zigux phase3-low-level-wrappers-test",
         )
     )
-    if not any("zigux/uapi/version.zig" in issue for issue in issues):
+    if not any("make -C zigux phase3-low-level-wrappers-test" in issue for issue in issues):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
-        print("expected shared-reminder version companion drift was not reported")
+        print("expected shared-reminder low-level-wrapper route drift was not reported")
         return 1
 
     issues = validate_boundary_note_text(
