@@ -177,6 +177,9 @@ REQUIRED_MARKERS = {
         "phase7-validate:",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -225,6 +228,14 @@ REQUIRED_MARKERS = {
     ],
 }
 
+REQUIRED_EXACT_LINES = {
+    "zigux/Makefile": [
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
+    ],
+}
+
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
@@ -237,6 +248,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         for marker in markers:
             if marker not in text:
                 missing_markers.append(f"{rel}: {marker}")
+    for rel, lines in REQUIRED_EXACT_LINES.items():
+        text_lines = (root / rel).read_text(encoding="utf-8").splitlines()
+        for line in lines:
+            if line not in text_lines:
+                missing_markers.append(f"{rel}: {line}")
     return [], missing_markers
 
 
@@ -244,7 +260,8 @@ def write_fixture_tree(tmp_root: Path) -> None:
     for rel in REQUIRED_FILES:
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        lines = REQUIRED_MARKERS.get(rel, ["fixture"])
+        lines = list(REQUIRED_MARKERS.get(rel, ["fixture"]))
+        lines.extend(REQUIRED_EXACT_LINES.get(rel, []))
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -556,6 +573,72 @@ def run_self_test() -> None:
         remove_once(
             tmp_root,
             "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py\n",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\n",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py --self-test",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py --self-test",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py\n",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/Makefile",
             "phase7-string-helpers-survey:",
         )
         expect_missing_marker(
@@ -656,7 +739,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=34")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=40")
 
 
 def main() -> int:
@@ -687,7 +770,7 @@ def main() -> int:
 
     print("PHASE7_VALIDATION=pass")
     print(f"PHASE7_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE7_REQUIRED_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    print(f"PHASE7_REQUIRED_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values()) + sum(len(lines) for lines in REQUIRED_EXACT_LINES.values())}")
     return 0
 
 
