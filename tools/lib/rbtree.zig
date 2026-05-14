@@ -397,7 +397,6 @@ fn deleteFixup(root: *Root, initial_node: ?*Node, initial_parent: ?*Node) void {
                     }
                     sibling = current_parent.right;
                 }
-
                 if (sibling) |s| {
                     s.color = current_parent.color;
                 }
@@ -797,7 +796,6 @@ test "rbtree ordered Linux-style aliases mirror traversal and replacement helper
     var alias_replacement = Entry{ .key = 10 };
     var primary_root = Root.init();
     var alias_root = Root.init();
-
     for (&primary_entries, &alias_entries) |*primary_entry, *alias_entry| {
         add(&primary_entry.node, &primary_root, less);
         add(&alias_entry.node, &alias_root, less);
@@ -1295,6 +1293,14 @@ test "rbtree cached-root Linux-style aliases mirror the primary helpers" {
         }
     }.read;
 
+    const returnedIdentity = struct {
+        fn read(node: ?*Node) ?struct { i32, usize } {
+            const current = node orelse return null;
+            const entry: *const Entry = @fieldParentPtr("node", current);
+            return .{ entry.key, entry.serial };
+        }
+    }.read;
+
     var primary_first = Entry{ .key = 10, .serial = 0 };
     var alias_first = Entry{ .key = 10, .serial = 0 };
     var primary_second = Entry{ .key = 5, .serial = 1 };
@@ -1326,11 +1332,18 @@ test "rbtree cached-root Linux-style aliases mirror the primary helpers" {
     try std.testing.expectEqual(primary_existing_entry.key, alias_existing_entry.key);
     try std.testing.expectEqual(primary_existing_entry.serial, alias_existing_entry.serial);
 
-    try std.testing.expectEqual(eraseCached(&primary_second.node, &primary_root) != null, rb_erase_cached(&alias_second.node, &alias_root) != null);
+    try std.testing.expectEqual(
+        returnedIdentity(eraseCached(&primary_second.node, &primary_root)),
+        returnedIdentity(rb_erase_cached(&alias_second.node, &alias_root)),
+    );
     try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
 
     replaceNodeCached(&primary_first.node, &primary_replacement.node, &primary_root);
     rb_replace_node_cached(&alias_first.node, &alias_replacement.node, &alias_root);
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    try std.testing.expectEqual(@as(?struct { i32, usize }, null), returnedIdentity(eraseCached(&primary_third.node, &primary_root)));
+    try std.testing.expectEqual(@as(?struct { i32, usize }, null), returnedIdentity(rb_erase_cached(&alias_third.node, &alias_root)));
     try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
 
     eraseInitCached(&primary_replacement.node, &primary_root);
