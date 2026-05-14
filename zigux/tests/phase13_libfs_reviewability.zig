@@ -237,6 +237,7 @@ test "transaction publish planner stays helper-only and barrier-ordered" {
     try std.testing.expectEqual(libfs.simple_transaction_limit, publish.transaction_limit);
     try std.testing.expect(publish.requires_private_data);
     try std.testing.expect(publish.publishes_after_barrier);
+    try std.testing.expect(publish.reuses_staged_private_data);
     try std.testing.expectEqual(libfs.simple_transaction_limit, publish.published_response_size);
     try std.testing.expectEqual(@as(usize, 0), empty_publish.published_response_size);
 
