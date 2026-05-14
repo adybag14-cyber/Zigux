@@ -183,6 +183,7 @@ EXPECTED_BENCH = {
 EXPECTED_BITMAP_MANIFEST = {
     "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
     "final_partial_word_anchor": 'test "bitmap range helpers clamp the final partial word"',
+    "fill_tail_clamp_anchor": 'test "bitmap fill clamps tail bits in partial words"',
     "predicate_tail_mask_anchor": 'test "bitmap predicates ignore out-of-range tail bits"',
     "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
     "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word boundary, final-partial range boundary, fill tail-clamp, cross-word scnprintf collapse, truncation, empty-bitmap caller-buffer preservation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master",
@@ -686,6 +687,13 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/bitmap.zig"]["predicate_tail_mask_anchor"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "bitmap_manifest:predicate_tail_mask_anchor" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"]["fill_tail_clamp_anchor"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "bitmap_manifest:fill_tail_clamp_anchor" in collect_missing_markers(root)
         case_count += 1
         make_fixture_root(root)
 
