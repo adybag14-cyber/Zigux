@@ -83,8 +83,25 @@ BUILD_MARKERS = (
     "phase3-dump",
 )
 
-REQUIRED_REPLAY_CONSTANT_KEYS = (
+REQUIRED_REPLAY_TOP_LEVEL_KEYS = (
     "abi_version",
+    "dev_t",
+)
+
+REQUIRED_REPLAY_DEV_T_KEYS = (
+    "minor_bits",
+    "minor_mask",
+    "max_major",
+    "sample_major",
+    "sample_minor",
+    "sample_encoded",
+    "range_first_minor",
+    "range_count",
+    "range_fits",
+    "range_last_encoded",
+)
+
+REQUIRED_REPLAY_CONSTANT_KEYS = (
     "facility_kernel",
     "facility_helpers",
     "facility_drivers",
@@ -100,9 +117,11 @@ REQUIRED_REPLAY_CONSTANT_KEYS = (
     "unsafe_scope_raw_pointer_bridge",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied",
-    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_window_flag_window_applied",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped",
 )
+
+REQUIRED_EXPECTED_ABI_VERSION = 1
 
 REQUIRED_EXPECTED_CONSTANT_VALUES = {
     "facility_kernel": 1,
@@ -120,8 +139,21 @@ REQUIRED_EXPECTED_CONSTANT_VALUES = {
     "unsafe_scope_raw_pointer_bridge": 2,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped": 1,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": 1,
-    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied": 1,
+    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_window_flag_window_applied": 1,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped": 1,
+}
+
+REQUIRED_EXPECTED_DEV_T_VALUES = {
+    "minor_bits": 20,
+    "minor_mask": 1048575,
+    "max_major": 4095,
+    "sample_major": 42,
+    "sample_minor": 7,
+    "sample_encoded": 44040199,
+    "range_first_minor": 7,
+    "range_count": 4,
+    "range_fits": 1,
+    "range_last_encoded": 44040202,
 }
 
 REQUIRED_REPLAY_STRUCT_MARKERS = (
@@ -214,28 +246,28 @@ def _check_markers(path: Path, markers: tuple[str, ...], label: str) -> list[str
     return [f"missing {label} marker: {marker}" for marker in markers if marker not in text]
 
 
-def _validate_replay_struct_markers(path: Path, label: str) -> list[str]:
+def _validate_replay_markers(path: Path, markers: tuple[str, ...], label: str) -> list[str]:
     try:
         text = _read(path)
     except FileNotFoundError:
         return [f"missing repo file: {path.as_posix()}"]
-    return [
-        f"missing {label} struct marker: {marker}"
-        for marker in REQUIRED_REPLAY_STRUCT_MARKERS
-        if marker not in text
-    ]
+    return [f"missing {label} marker: {marker}" for marker in markers if marker not in text]
+
+
+def _validate_replay_struct_markers(path: Path, label: str) -> list[str]:
+    return _validate_replay_markers(path, REQUIRED_REPLAY_STRUCT_MARKERS, f"{label} struct")
 
 
 def _validate_replay_constant_markers(path: Path, label: str) -> list[str]:
-    try:
-        text = _read(path)
-    except FileNotFoundError:
-        return [f"missing repo file: {path.as_posix()}"]
-    return [
-        f"missing {label} constant marker: {marker}"
-        for marker in REQUIRED_REPLAY_CONSTANT_KEYS
-        if marker not in text
-    ]
+    return _validate_replay_markers(path, REQUIRED_REPLAY_CONSTANT_KEYS, f"{label} constant")
+
+
+def _validate_replay_top_level_keys(path: Path, label: str) -> list[str]:
+    return _validate_replay_markers(path, REQUIRED_REPLAY_TOP_LEVEL_KEYS, f"{label} top-level key")
+
+
+def _validate_replay_dev_t_keys(path: Path, label: str) -> list[str]:
+    return _validate_replay_markers(path, REQUIRED_REPLAY_DEV_T_KEYS, f"{label} dev_t key")
 
 
 def _validate_expected_fixture(path: Path) -> list[str]:
@@ -246,17 +278,39 @@ def _validate_expected_fixture(path: Path) -> list[str]:
     except json.JSONDecodeError as exc:
         return [f"invalid expected fixture JSON: {exc.msg}"]
 
+    issues: list[str] = []
+
+    abi_version = payload.get("abi_version")
+    if abi_version is None:
+        issues.append(f"{path}:missing_expected_key:abi_version")
+    elif abi_version != REQUIRED_EXPECTED_ABI_VERSION:
+        issues.append(f"{path}:wrong_expected_value:abi_version:{abi_version}")
+
     constants = payload.get("constants")
     if not isinstance(constants, dict):
-        return [f"{path}:missing_constants_object"]
+        issues.append(f"{path}:missing_constants_object")
+    else:
+        for constant_name, expected_value in REQUIRED_EXPECTED_CONSTANT_VALUES.items():
+            actual_value = constants.get(constant_name)
+            if actual_value is None:
+                issues.append(f"{path}:missing_expected_constant:{constant_name}")
+            elif actual_value != expected_value:
+                issues.append(
+                    f"{path}:wrong_expected_constant:{constant_name}:{actual_value}"
+                )
 
-    issues: list[str] = []
-    for constant_name, expected_value in REQUIRED_EXPECTED_CONSTANT_VALUES.items():
-        actual_value = constants.get(constant_name)
-        if actual_value is None:
-            issues.append(f"{path}:missing_expected_constant:{constant_name}")
-        elif actual_value != expected_value:
-            issues.append(f"{path}:wrong_expected_constant:{constant_name}:{actual_value}")
+    dev_t = payload.get("dev_t")
+    if not isinstance(dev_t, dict):
+        issues.append(f"{path}:missing_dev_t_object")
+    else:
+        for field_name, expected_value in REQUIRED_EXPECTED_DEV_T_VALUES.items():
+            actual_value = dev_t.get(field_name)
+            if actual_value is None:
+                issues.append(f"{path}:missing_expected_dev_t_field:{field_name}")
+            elif actual_value != expected_value:
+                issues.append(
+                    f"{path}:wrong_expected_dev_t_field:{field_name}:{actual_value}"
+                )
 
     structs = payload.get("structs")
     if not isinstance(structs, dict):
@@ -279,7 +333,9 @@ def _validate_expected_fixture(path: Path) -> list[str]:
         if actual_align is None:
             issues.append(f"{path}:missing_expected_struct_align:{struct_name}")
         elif actual_align != expected_layout["align"]:
-            issues.append(f"{path}:wrong_expected_struct_align:{struct_name}:{actual_align}")
+            issues.append(
+                f"{path}:wrong_expected_struct_align:{struct_name}:{actual_align}"
+            )
 
         actual_offsets = actual_layout.get("offsets")
         if not isinstance(actual_offsets, dict):
@@ -289,7 +345,9 @@ def _validate_expected_fixture(path: Path) -> list[str]:
         for field_name, expected_offset in expected_layout["offsets"].items():
             actual_offset = actual_offsets.get(field_name)
             if actual_offset is None:
-                issues.append(f"{path}:missing_expected_struct_offset:{struct_name}:{field_name}")
+                issues.append(
+                    f"{path}:missing_expected_struct_offset:{struct_name}:{field_name}"
+                )
             elif actual_offset != expected_offset:
                 issues.append(
                     f"{path}:wrong_expected_struct_offset:{struct_name}:{field_name}:{actual_offset}"
@@ -318,14 +376,19 @@ def validate_repo(repo_root: Path) -> list[str]:
     issues.extend(_check_markers(repo_root / MAKEFILE_PATH, MAKEFILE_MARKERS, "makefile"))
     issues.extend(_check_markers(repo_root / WORKFLOW_PATH, WORKFLOW_MARKERS, "workflow"))
     issues.extend(_check_markers(repo_root / BUILD_PATH, BUILD_MARKERS, "build file"))
+
     for rel_path in REQUIRED_PACKET_FILES:
         if not (repo_root / rel_path).is_file():
             issues.append(f"missing repo file: {rel_path.as_posix()}")
 
     issues.extend(_validate_replay_struct_markers(repo_root / DUMP_PATH, "dump"))
     issues.extend(_validate_replay_constant_markers(repo_root / DUMP_PATH, "dump"))
+    issues.extend(_validate_replay_top_level_keys(repo_root / DUMP_PATH, "dump"))
+    issues.extend(_validate_replay_dev_t_keys(repo_root / DUMP_PATH, "dump"))
     issues.extend(_validate_replay_struct_markers(repo_root / HARNESS_PATH, "harness"))
     issues.extend(_validate_replay_constant_markers(repo_root / HARNESS_PATH, "harness"))
+    issues.extend(_validate_replay_top_level_keys(repo_root / HARNESS_PATH, "harness"))
+    issues.extend(_validate_replay_dev_t_keys(repo_root / HARNESS_PATH, "harness"))
     issues.extend(_validate_expected_fixture(repo_root / EXPECTED_PATH))
     return issues
 
@@ -338,7 +401,9 @@ def _write(path: Path, text: str) -> None:
 def _expected_fixture_stub() -> str:
     return json.dumps(
         {
+            "abi_version": REQUIRED_EXPECTED_ABI_VERSION,
             "constants": REQUIRED_EXPECTED_CONSTANT_VALUES,
+            "dev_t": REQUIRED_EXPECTED_DEV_T_VALUES,
             "structs": REQUIRED_EXPECTED_STRUCT_LAYOUTS,
         },
         indent=2,
@@ -363,15 +428,23 @@ def _populate_repo(root: Path) -> None:
     _write(root / MAKEFILE_PATH, "\n".join(MAKEFILE_MARKERS) + "\n")
     _write(root / WORKFLOW_PATH, "\n".join(WORKFLOW_MARKERS) + "\n")
     _write(root / BUILD_PATH, _build_stub())
-    _write(
-        root / DUMP_PATH,
-        "\n".join(REQUIRED_REPLAY_CONSTANT_KEYS + REQUIRED_REPLAY_STRUCT_MARKERS) + "\n",
-    )
-    _write(
-        root / HARNESS_PATH,
-        "\n".join(REQUIRED_REPLAY_CONSTANT_KEYS + REQUIRED_REPLAY_STRUCT_MARKERS) + "\n",
-    )
+    replay_stub = "\n".join(
+        REQUIRED_REPLAY_TOP_LEVEL_KEYS
+        + REQUIRED_REPLAY_DEV_T_KEYS
+        + REQUIRED_REPLAY_CONSTANT_KEYS
+        + REQUIRED_REPLAY_STRUCT_MARKERS
+    ) + "\n"
+    _write(root / DUMP_PATH, replay_stub)
+    _write(root / HARNESS_PATH, replay_stub)
     _write(root / EXPECTED_PATH, _expected_fixture_stub())
+
+
+def _expect_issue(issues: list[str], expected: str, detail: str) -> int:
+    if expected in issues:
+        return 0
+    print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
+    print(detail)
+    return 1
 
 
 def run_self_test() -> int:
@@ -397,13 +470,11 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_repo(root)
-        expected = (
-            "missing slice note marker: "
-            "python3 scripts/zigux/check-phase3-abi-dump-gate.py --self-test"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing slice-note dump-gate marker was not reported")
+        if _expect_issue(
+            issues,
+            "missing slice note marker: python3 scripts/zigux/check-phase3-abi-dump-gate.py --self-test",
+            "expected missing slice-note dump-gate marker was not reported",
+        ):
             return 1
         case_count += 1
 
@@ -414,10 +485,11 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_repo(root)
-        expected = "missing tests README marker: zigux/tests/phase3_abi_dump.zig"
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing tests README dump marker was not reported")
+        if _expect_issue(
+            issues,
+            "missing tests README marker: zigux/tests/phase3_abi_dump.zig",
+            "expected missing tests README dump marker was not reported",
+        ):
             return 1
         case_count += 1
 
@@ -428,10 +500,11 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_repo(root)
-        expected = 'missing phase3 validator marker: Path("scripts/zigux/check-phase3-abi-dump-gate.py")'
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing validator dump-gate marker was not reported")
+        if _expect_issue(
+            issues,
+            'missing phase3 validator marker: Path("scripts/zigux/check-phase3-abi-dump-gate.py")',
+            "expected missing validator dump-gate marker was not reported",
+        ):
             return 1
         case_count += 1
 
@@ -446,13 +519,11 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_repo(root)
-        expected = (
-            'missing phase3 selftest driver marker: '
-            'Path("scripts/zigux/check-phase3-abi-dump-gate.py"), ("--self-test",)'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing selftest-driver dump-gate marker was not reported")
+        if _expect_issue(
+            issues,
+            'missing phase3 selftest driver marker: Path("scripts/zigux/check-phase3-abi-dump-gate.py"), ("--self-test",)',
+            "expected missing selftest-driver dump-gate marker was not reported",
+        ):
             return 1
         case_count += 1
 
@@ -467,27 +538,11 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_repo(root)
-        expected = (
-            "missing makefile marker: "
-            "$(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py --self-test"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing makefile dump-gate self-test marker was not reported")
-            return 1
-        case_count += 1
-
-        _populate_repo(root)
-        broken = root / MAKEFILE_PATH
-        broken.write_text(
-            _read(broken).replace("phase3-interop:\n", "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = "missing makefile marker: phase3-interop:"
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing makefile interop target was not reported")
+        if _expect_issue(
+            issues,
+            "missing makefile marker: $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py --self-test",
+            "expected missing makefile dump-gate self-test marker was not reported",
+        ):
             return 1
         case_count += 1
 
@@ -498,24 +553,23 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_repo(root)
-        expected = "missing workflow marker: run: python3 scripts/zigux/run-phase3-checks.py"
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing workflow interop replay marker was not reported")
+        if _expect_issue(
+            issues,
+            "missing workflow marker: run: python3 scripts/zigux/run-phase3-checks.py",
+            "expected missing workflow interop replay marker was not reported",
+        ):
             return 1
         case_count += 1
 
         _populate_repo(root)
         broken = root / BUILD_PATH
-        broken.write_text(
-            _read(broken).replace("phase3-dump", "phase3-shadow-dump", 1),
-            encoding="utf-8",
-        )
+        broken.write_text(_read(broken).replace("phase3-dump", "phase3-shadow-dump", 1), encoding="utf-8")
         issues = validate_repo(root)
-        expected = "missing build file marker: phase3-dump"
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing build-step marker was not reported")
+        if _expect_issue(
+            issues,
+            "missing build file marker: phase3-dump",
+            "expected missing build-step marker was not reported",
+        ):
             return 1
         case_count += 1
 
@@ -523,38 +577,59 @@ def run_self_test() -> int:
         missing_packet_file = REQUIRED_PACKET_FILES[0]
         (root / missing_packet_file).unlink()
         issues = validate_repo(root)
-        expected = f"missing repo file: {missing_packet_file.as_posix()}"
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing dump packet file was not reported")
+        if _expect_issue(
+            issues,
+            f"missing repo file: {missing_packet_file.as_posix()}",
+            "expected missing dump packet file was not reported",
+        ):
             return 1
         case_count += 1
 
         _populate_repo(root)
         broken = root / DUMP_PATH
-        broken.write_text(
-            _read(broken).replace("boundary_header\n", "", 1),
-            encoding="utf-8",
-        )
+        broken.write_text(_read(broken).replace("boundary_header\n", "", 1), encoding="utf-8")
         issues = validate_repo(root)
-        expected = "missing dump struct marker: boundary_header"
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing core dump struct marker was not reported")
+        if _expect_issue(
+            issues,
+            "missing dump struct marker: boundary_header",
+            "expected missing core dump struct marker was not reported",
+        ):
             return 1
         case_count += 1
 
         _populate_repo(root)
         broken = root / DUMP_PATH
-        broken.write_text(
-            _read(broken).replace("allocator_arena\n", "", 1),
-            encoding="utf-8",
-        )
+        broken.write_text(_read(broken).replace("allocator_arena\n", "", 1), encoding="utf-8")
         issues = validate_repo(root)
-        expected = "missing dump constant marker: allocator_arena"
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing dump constant marker was not reported")
+        if _expect_issue(
+            issues,
+            "missing dump constant marker: allocator_arena",
+            "expected missing dump constant marker was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / DUMP_PATH
+        broken.write_text(_read(broken).replace("abi_version\n", "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            "missing dump top-level key marker: abi_version",
+            "expected missing dump abi_version key was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / DUMP_PATH
+        broken.write_text(_read(broken).replace("sample_encoded\n", "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            "missing dump dev_t key marker: sample_encoded",
+            "expected missing dump dev_t key was not reported",
+        ):
             return 1
         case_count += 1
 
@@ -569,27 +644,35 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_repo(root)
-        expected = (
-            "missing harness struct marker: "
-            "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing harness struct marker was not reported")
+        if _expect_issue(
+            issues,
+            "missing harness struct marker: chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view",
+            "expected missing harness struct marker was not reported",
+        ):
             return 1
         case_count += 1
 
         _populate_repo(root)
         broken = root / HARNESS_PATH
-        broken.write_text(
-            _read(broken).replace("panic_warn\n", "", 1),
-            encoding="utf-8",
-        )
+        broken.write_text(_read(broken).replace("panic_warn\n", "", 1), encoding="utf-8")
         issues = validate_repo(root)
-        expected = "missing harness constant marker: panic_warn"
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing harness constant marker was not reported")
+        if _expect_issue(
+            issues,
+            "missing harness constant marker: panic_warn",
+            "expected missing harness constant marker was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / HARNESS_PATH
+        broken.write_text(_read(broken).replace("range_last_encoded\n", "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            "missing harness dev_t key marker: range_last_encoded",
+            "expected missing harness dev_t key was not reported",
+        ):
             return 1
         case_count += 1
 
@@ -599,10 +682,11 @@ def run_self_test() -> int:
         payload["constants"].pop("unsafe_scope_raw_pointer_bridge", None)
         broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = validate_repo(root)
-        expected = f"{root / EXPECTED_PATH}:missing_expected_constant:unsafe_scope_raw_pointer_bridge"
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing expected-fixture constant was not reported")
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:missing_expected_constant:unsafe_scope_raw_pointer_bridge",
+            "expected missing expected-fixture constant was not reported",
+        ):
             return 1
         case_count += 1
 
@@ -612,10 +696,67 @@ def run_self_test() -> int:
         payload["constants"]["status_flag_error"] = 7
         broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = validate_repo(root)
-        expected = f"{root / EXPECTED_PATH}:wrong_expected_constant:status_flag_error:7"
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected wrong expected-fixture constant was not reported")
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:wrong_expected_constant:status_flag_error:7",
+            "expected wrong expected-fixture constant was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
+        payload.pop("abi_version", None)
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:missing_expected_key:abi_version",
+            "expected missing expected-fixture abi_version was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
+        payload["abi_version"] = 9
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:wrong_expected_value:abi_version:9",
+            "expected wrong expected-fixture abi_version was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
+        payload["dev_t"].pop("minor_mask", None)
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:missing_expected_dev_t_field:minor_mask",
+            "expected missing expected-fixture dev_t field was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
+        payload["dev_t"]["range_count"] = 6
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:wrong_expected_dev_t_field:range_count:6",
+            "expected wrong expected-fixture dev_t field was not reported",
+        ):
             return 1
         case_count += 1
 
@@ -625,10 +766,11 @@ def run_self_test() -> int:
         payload["structs"].pop("boundary_header", None)
         broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = validate_repo(root)
-        expected = f"{root / EXPECTED_PATH}:missing_expected_struct:boundary_header"
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing expected-fixture core struct was not reported")
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:missing_expected_struct:boundary_header",
+            "expected missing expected-fixture core struct was not reported",
+        ):
             return 1
         case_count += 1
 
@@ -638,49 +780,11 @@ def run_self_test() -> int:
         payload["structs"]["interop_policy"]["offsets"]["reserved"] = 5
         broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = validate_repo(root)
-        expected = (
-            f"{root / EXPECTED_PATH}:wrong_expected_struct_offset:"
-            "interop_policy:reserved:5"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected wrong core expected-fixture struct offset was not reported")
-            return 1
-        case_count += 1
-
-        _populate_repo(root)
-        broken = root / EXPECTED_PATH
-        payload = json.loads(_read(broken))
-        payload["structs"][
-            "chrdev_notify_ack_window_policy_budget_window_delivery_window_view"
-        ]["size"] = 16
-        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = validate_repo(root)
-        expected = (
-            f"{root / EXPECTED_PATH}:wrong_expected_struct_size:"
-            "chrdev_notify_ack_window_policy_budget_window_delivery_window_view:16"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected wrong expected-fixture struct size was not reported")
-            return 1
-        case_count += 1
-
-        _populate_repo(root)
-        broken = root / EXPECTED_PATH
-        payload = json.loads(_read(broken))
-        payload["structs"][
-            "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary"
-        ]["offsets"].pop("skipped", None)
-        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = validate_repo(root)
-        expected = (
-            f"{root / EXPECTED_PATH}:missing_expected_struct_offset:"
-            "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary:skipped"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_DUMP_GATE_SELF_TEST=fail")
-            print("expected missing expected-fixture struct offset was not reported")
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:wrong_expected_struct_offset:interop_policy:reserved:5",
+            "expected wrong core expected-fixture struct offset was not reported",
+        ):
             return 1
         case_count += 1
 
