@@ -354,9 +354,17 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(helper_impl, "pub fn eraseLinked");
     try expectContains(helper_impl, "pub fn clearLinkedNode");
     try expectContains(helper_impl, "pub fn eraseInit");
+    try expectContains(helper_impl, "pub fn rb_find(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node");
+    try expectContains(helper_impl, "pub fn rb_find_first(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node");
+    try expectContains(helper_impl, "pub fn rb_next_match(key: anytype, node: *const Node, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node");
+    try expectContains(helper_impl, "pub fn rb_erase_init(node: *Node, root: *Root) void");
     try expectContains(helper_impl, "pub fn replaceNodeCached");
+    try expectContains(helper_impl, "pub fn rb_replace_node(victim: *Node, new: *Node, root: *Root) void");
     try expectContains(helper_impl, "pub fn firstPostorder");
+    try expectContains(helper_impl, "pub fn rb_first_postorder(root: *const Root) ?*Node");
     try expectContains(helper_impl, "pub fn nextPostorder");
+    try expectContains(helper_impl, "pub fn rb_next_postorder(node: ?*const Node) ?*Node");
+    try expectContains(helper_impl, "test \"rbtree primary Linux-style aliases mirror traversal and duplicate-search helpers\"");
     try expectContains(helper_impl, "test \"rbtree linked helpers track leftmost and neighbour links\"");
     try expectContains(helper_impl, "test \"rbtree eraseInit clears detached nodes after erase\"");
     try expectContains(helper_impl, "test \"rbtree replaceNode keeps displaced nodes non-empty until cleared\"");
