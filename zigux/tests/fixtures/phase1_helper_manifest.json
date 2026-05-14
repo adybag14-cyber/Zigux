@@ -99,7 +99,8 @@
       ],
       "zero_bit_noop_anchor": "test \"bitmap zero-bit helpers stay explicit no-ops\"",
       "zero_bit_binary_identity_anchor": "test \"bitmap zero-bit binary helpers stay explicit identity operations\"",
-      "linux_alias_anchor": "test \"bitmap Linux-style aliases mirror the primary helper surface\""
+      "linux_alias_anchor": "test \"bitmap Linux-style aliases mirror the primary helper surface\"",
+      "next_safe_step_note": "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen the already-closed closure-validator or validator-summary packets by default."
     },
     "tools/lib/find_bit.zig": {
       "helper_test_anchors": [
