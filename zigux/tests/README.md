@@ -104,14 +104,17 @@ Key entrypoints
   * `zigux/tests/phase8_pin_path.zig`
   * `zigux/tests/phase8_bpf_type_names.zig`
   * `zigux/tests/phase8_file_path_handle_bridge.zig`
-  * `zigux/tests/phase8_file_path_handleBridge_only_build.zig`
+  * `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
   * `zigux/tests/phase8_perf_buffer_poll.zig`
   * `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
   * `zigux/tests/phase8_libbpf_segments.zig`
   * `zigux/tests/phase8_libbpf_segments_only_build.zig`
   * `scripts/zigux/check-phase8-tests-readme-alignment.py`
+  * `scripts/zigux/check-phase8-exec-cmd-packet.py`
   * `scripts/zigux/check-phase8-help-kallsyms-packet.py`
   * `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+  * `scripts/zigux/check-phase8-libbpf-segment-gate.py`
+  * `scripts/zigux/check-phase8-libbpf-shard-routes.py`
   * `make -C zigux phase8-validate`
   * `make -C zigux phase8-exec-cmd-test`
   * `make -C zigux phase8-help-test`
