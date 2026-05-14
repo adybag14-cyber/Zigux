@@ -176,7 +176,7 @@ def _extract_make_target_commands(text: str, target: str) -> list[str] | None:
             continue
         commands: list[str] = []
         for body_line in lines[index + 1 :]:
-            if not body_line.startswith("	"):
+            if not body_line.startswith("\t"):
                 break
             commands.append(body_line.strip())
         return commands
@@ -483,6 +483,26 @@ def run_self_test() -> int:
             print("expected missing validator-support surface repo file was not reported")
             return 1
         _write(root / missing_validator_support_path, "# stub\n")
+
+        missing_phase4_validator_path = Path("scripts/zigux/validate-phase4.py")
+        (root / missing_phase4_validator_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase4_validator_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 4 validator repo file was not reported")
+            return 1
+        _write(root / missing_phase4_validator_path, "# stub\n")
+
+        missing_phase4_artifact_contract_path = Path("scripts/zigux/check-artifact-diff-contract.py")
+        (root / missing_phase4_artifact_contract_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase4_artifact_contract_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 4 artifact-diff contract repo file was not reported")
+            return 1
+        _write(root / missing_phase4_artifact_contract_path, "# stub\n")
 
         missing_phase4_path = Path("scripts/zigux/check-phase4-gate-evidence.py")
         (root / missing_phase4_path).unlink()
