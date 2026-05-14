@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-module-starter`
 - `PHASE9_LANE_KEY=P9-L13`
-- `PHASE9_SURVEYED_AT=2026-05-14`
+- `PHASE9_SURVEYED_COMMIT=dc9121502a99ed8c88d79081c6d83a8eada20a00`
 - scope: lifecycle starter, dedicated sample and diff packet, directly readable module and loader packet, adjacent shared-request binding, initialized and selftest-complete shared-request snapshot replays, shared runtime-loader facade plus allocator/init-flow contract replay, selftest summary, failed-exit retention until drain, maxactive-overflow retention until drain, and survey-manifest closure while the shared runtime substrate remains blocked
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
@@ -18,11 +18,13 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
   - `zigux/kernel/runtime_loader.zig`
   - `zigux/kernel/runtime_loader_contract.zig`
 
+This note keeps the manifest-backed inspected commit explicit so the module-slice review surface stays pinned to `zigux/tests/runtime_kretprobe_manifest.json` while the shared runtime substrate remains blocked.
+
 ## Why This Slice Exists
 
 The live Phase 9 tree still identifies `samples/kprobes/kretprobe_example.c` as the runtime pilot anchor, and the current review packet keeps a sample-root guide, a directly readable loader scaffold, a dedicated sample and diff leg, a module test, a manifest, and shared allocator/init-flow proof on `master`.
 
-This slice keeps the smallest honest runtime-facing note in place: a sample-backed lifecycle scaffold that makes the kretprobe handoff, tracing proof, and failure-mode evidence reviewable without claiming loadable-module parity. The current Phase 9 build packet, sample-root guidance, and dedicated survey gate keep `samples/zigux/runtime_kretprobe.zig` and `zigux/tests/runtime_kretprobe_diff.zig` explicit beside the loader and module packet, so this note can describe the landed starter family directly rather than restating those tracing legs as missing review debt.
+This slice keeps the smallest honest runtime-facing note in place: a sample-backed lifecycle scaffold that makes the kretprobe handoff, tracing proof, and failure-mode evidence reviewable without claiming loadable-module parity. This keeps the note focused on the bounded starter that makes the kretprobe handoff and failure-mode evidence reviewable without claiming loadable-module parity. The current Phase 9 build packet, sample-root guidance, and dedicated survey gate keep `samples/zigux/runtime_kretprobe.zig` and `zigux/tests/runtime_kretprobe_diff.zig` explicit beside the loader and module packet, so this note can describe the landed starter family directly rather than restating those tracing legs as missing review debt.
 
 `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in review-only study scope for the shared loader packet, so this starter may describe the bounded in-memory handoff plan, the sample-side contract, the sample-side loader scaffold, the shared loader-request binding, and the shared runtime-loader contract replay, but it must not imply scheduler parity, live runtime registration ownership, or any Architecture Council-approved status change.
 
