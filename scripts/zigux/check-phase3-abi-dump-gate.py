@@ -119,6 +119,9 @@ REQUIRED_REPLAY_CONSTANT_KEYS = (
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped",
+    "notifier_done",
+    "notifier_ok",
+    "notifier_stop",
 )
 
 REQUIRED_EXPECTED_ABI_VERSION = 1
@@ -141,6 +144,9 @@ REQUIRED_EXPECTED_CONSTANT_VALUES = {
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": 1,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied": 1,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped": 1,
+    "notifier_done": 0,
+    "notifier_ok": 1,
+    "notifier_stop": 2,
 }
 
 REQUIRED_EXPECTED_DEV_T_VALUES = {
@@ -164,6 +170,7 @@ REQUIRED_REPLAY_STRUCT_MARKERS = (
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_summary",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary",
+    "notifier_block",
 )
 
 REQUIRED_EXPECTED_STRUCT_LAYOUTS = {
@@ -229,6 +236,15 @@ REQUIRED_EXPECTED_STRUCT_LAYOUTS = {
             "attempted": 0,
             "applied": 4,
             "skipped": 8,
+        },
+    },
+    "notifier_block": {
+        "size": 24,
+        "align": 8,
+        "offsets": {
+            "notifier_call": 0,
+            "next": 8,
+            "priority": 16,
         },
     },
 }
