@@ -356,6 +356,32 @@ def run_self_test() -> None:
             lane_note,
             lane_note_text,
             "phase1_direct_owner_current_repo_reality",
+            CURRENT_REPO_REALITY_MARKERS[0],
+            "",
+            0,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_current_repo_reality",
+            CURRENT_REPO_REALITY_MARKERS[0],
+            CURRENT_REPO_REALITY_MARKERS[0] + "\n" + CURRENT_REPO_REALITY_MARKERS[0],
+            2,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_current_repo_reality",
             CURRENT_REPO_REALITY_MARKERS[1],
             "",
             0,
@@ -384,6 +410,32 @@ def run_self_test() -> None:
             "phase1_direct_owner_current_repo_reality",
             CURRENT_REPO_REALITY_MARKERS[3],
             CURRENT_REPO_REALITY_MARKERS[3] + "\n" + CURRENT_REPO_REALITY_MARKERS[3],
+            2,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_companion",
+            COMPANION_MARKERS[0],
+            "",
+            0,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_companion",
+            COMPANION_MARKERS[0],
+            COMPANION_MARKERS[0] + "\n" + COMPANION_MARKERS[0],
             2,
         )
         case_count += 1
