@@ -328,3 +328,92 @@ pub const RuntimeAtomic64Sample = struct {
         self.setStage(.exited);
     }
 };
+
+test "runtime atomic64 sample keeps selftest-complete replay local to the sample" {
+    const descriptor = RuntimeAtomic64Sample.descriptor();
+    try std.testing.expectEqualStrings("runtime_atomic64", descriptor.name);
+    try std.testing.expectEqualStrings("lib/atomic64_test.c", descriptor.anchor);
+    try std.testing.expect(descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selftest_hook);
+
+    var module = RuntimeAtomic64Sample{};
+    const cold_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.cold, cold_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 0), cold_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_snapshot.exit_runs);
+    try std.testing.expect(!cold_snapshot.allows_counter_ops);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
+
+    try module.init(0x1111_1111_2222_2222);
+    const initialized_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.exit_runs);
+    try std.testing.expect(initialized_snapshot.allows_counter_ops);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), module.snapshotCounter());
+
+    const seeded_swap = try module.swapCounter(-9);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), seeded_swap);
+    try std.testing.expectEqual(@as(i64, -9), module.snapshotCounter());
+
+    const initialized_compare = try module.compareSwapCounter(-9, 17);
+    try std.testing.expect(initialized_compare.stored);
+    try std.testing.expectEqual(@as(i64, -9), initialized_compare.previous);
+    try std.testing.expectEqual(@as(i64, 17), module.snapshotCounter());
+
+    const initialized_summary = try module.runSelftest();
+    try std.testing.expectEqualStrings("lib/atomic64_test.c", initialized_summary.anchor);
+    try std.testing.expectEqual(@as(usize, 5), initialized_summary.operation_families.len);
+    try std.testing.expect(initialized_summary.checked_returning_paths);
+    try std.testing.expect(initialized_summary.checked_bitwise_paths);
+    try std.testing.expect(initialized_summary.checked_guard_paths);
+
+    const selftest_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftest_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftest_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftest_snapshot.exit_runs);
+    try std.testing.expect(selftest_snapshot.allows_counter_ops);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const replay_add = try module.addCounter(6);
+    try std.testing.expectEqual(@as(i64, 17), replay_add.previous);
+    try std.testing.expectEqual(@as(i64, 23), replay_add.final);
+
+    const replay_compare = try module.compareSwapCounter(23, 31);
+    try std.testing.expect(replay_compare.stored);
+    try std.testing.expectEqual(@as(i64, 23), replay_compare.previous);
+    try std.testing.expectEqual(@as(i64, 31), module.snapshotCounter());
+
+    const replay_add_unless = try module.addUnlessCounter(4, 99);
+    try std.testing.expect(replay_add_unless.changed);
+    try std.testing.expectEqual(@as(i64, 31), replay_add_unless.previous);
+    try std.testing.expectEqual(@as(i64, 35), module.snapshotCounter());
+
+    const and_result = try module.andCounter(0b1_1111);
+    try std.testing.expectEqual(@as(i64, 35), and_result.previous);
+    try std.testing.expectEqual(@as(i64, 3), and_result.final);
+
+    const xor_result = try module.xorCounter(0b1_0010);
+    try std.testing.expectEqual(@as(i64, 3), xor_result.previous);
+    try std.testing.expectEqual(@as(i64, 17), xor_result.final);
+
+    const post_selftest_summary = module.summary();
+    try std.testing.expectEqual(@as(i64, 17), post_selftest_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), post_selftest_summary.exit_runs);
+
+    try module.exit();
+    const exited_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, exited_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.exit_runs);
+    try std.testing.expect(!exited_snapshot.allows_counter_ops);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 17));
+}
