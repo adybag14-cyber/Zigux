@@ -125,6 +125,7 @@ REQUIRED_MARKERS = {
         "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
         "`make -C zigux phase11-hvc-survey`",
+        "`make -C zigux phase11-contract`",
     ],
 }
 
@@ -264,6 +265,7 @@ def run_self_test() -> None:
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][3]),
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][6]),
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][7]),
+            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][8]),
         ]
 
         for idx, (relative_path, marker) in enumerate(required_cases, start=1):
