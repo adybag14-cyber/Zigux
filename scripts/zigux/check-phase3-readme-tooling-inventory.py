@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-close the Phase 3 tooling inventory reminder, shared interop route markers, and shared Phase 4 route markers."""
+"""Fail-close the scripts README tooling inventory reminder and shared route markers."""
 
 from __future__ import annotations
 
@@ -105,8 +105,16 @@ REQUIRED_MARKERS = (
     "check-phase7-argv-split-packet.py",
     "check-phase7-rbtree-parity.py",
     "check-phase7-build-wiring.py",
+    "validate-phase15.py",
+    "check-phase15-docs-readme-alignment.py",
+    "check-phase15-scripts-readme-alignment.py",
+    "check-phase15-review-process-handoff.py",
+    "check-phase15-shared-summary-gap.py",
     "make -C zigux phase4-validate",
     "make -C zigux phase4",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
+    "make -C zigux phase15",
 )
 REQUIRED_README_SNIPPETS = (
     PHASE4_VALIDATE_ROUTE_SNIPPET,
@@ -153,6 +161,11 @@ REQUIRED_REPO_FILES = (
     Path("scripts/zigux/check-phase7-argv-split-packet.py"),
     Path("scripts/zigux/check-phase7-rbtree-parity.py"),
     Path("scripts/zigux/check-phase7-build-wiring.py"),
+    Path("scripts/zigux/validate-phase15.py"),
+    Path("scripts/zigux/check-phase15-docs-readme-alignment.py"),
+    Path("scripts/zigux/check-phase15-scripts-readme-alignment.py"),
+    Path("scripts/zigux/check-phase15-review-process-handoff.py"),
+    Path("scripts/zigux/check-phase15-shared-summary-gap.py"),
 )
 
 
@@ -427,6 +440,36 @@ def run_self_test() -> int:
         print("expected Phase 7 build-wiring marker was not reported")
         return 1
 
+    broken = validate_text(sample.replace("check-phase15-docs-readme-alignment.py", "", 1))
+    if "check-phase15-docs-readme-alignment.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected Phase 15 docs-readme-alignment marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("check-phase15-scripts-readme-alignment.py", "", 1))
+    if "check-phase15-scripts-readme-alignment.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected Phase 15 scripts-readme-alignment marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("check-phase15-review-process-handoff.py", "", 1))
+    if "check-phase15-review-process-handoff.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected Phase 15 review-process-handoff marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("check-phase15-shared-summary-gap.py", "", 1))
+    if "check-phase15-shared-summary-gap.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected Phase 15 shared-summary-gap marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("make -C zigux phase15-validate", "", 1))
+    if "make -C zigux phase15-validate" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected Phase 15 validate route marker was not reported")
+        return 1
+
     broken = validate_readme_snippets(sample.replace(PHASE4_VALIDATE_ROUTE_SNIPPET, "", 1))
     if PHASE4_VALIDATE_ROUTE_SNIPPET not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
@@ -678,6 +721,56 @@ def run_self_test() -> int:
             print("expected missing Phase 7 build-wiring repo file was not reported")
             return 1
         _write(root / missing_phase7_build_wiring_path, "# stub\n")
+
+        missing_phase15_validate_path = Path("scripts/zigux/validate-phase15.py")
+        (root / missing_phase15_validate_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase15_validate_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 15 validator repo file was not reported")
+            return 1
+        _write(root / missing_phase15_validate_path, "# stub\n")
+
+        missing_phase15_docs_readme_alignment_path = Path("scripts/zigux/check-phase15-docs-readme-alignment.py")
+        (root / missing_phase15_docs_readme_alignment_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase15_docs_readme_alignment_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 15 docs-readme-alignment repo file was not reported")
+            return 1
+        _write(root / missing_phase15_docs_readme_alignment_path, "# stub\n")
+
+        missing_phase15_scripts_readme_alignment_path = Path("scripts/zigux/check-phase15-scripts-readme-alignment.py")
+        (root / missing_phase15_scripts_readme_alignment_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase15_scripts_readme_alignment_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 15 scripts-readme-alignment repo file was not reported")
+            return 1
+        _write(root / missing_phase15_scripts_readme_alignment_path, "# stub\n")
+
+        missing_phase15_review_process_handoff_path = Path("scripts/zigux/check-phase15-review-process-handoff.py")
+        (root / missing_phase15_review_process_handoff_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase15_review_process_handoff_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 15 review-process-handoff repo file was not reported")
+            return 1
+        _write(root / missing_phase15_review_process_handoff_path, "# stub\n")
+
+        missing_phase15_shared_summary_gap_path = Path("scripts/zigux/check-phase15-shared-summary-gap.py")
+        (root / missing_phase15_shared_summary_gap_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase15_shared_summary_gap_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 15 shared-summary-gap repo file was not reported")
+            return 1
+        _write(root / missing_phase15_shared_summary_gap_path, "# stub\n")
 
         makefile = _baseline_makefile().replace(
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py\n",
