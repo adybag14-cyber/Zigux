@@ -49,6 +49,17 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase12_virtio_scsi_syntax_lab_module.addImport("virtio_scsi", virtio_scsi_module);
+    const phase12_virtio_scsi_repeated_replan_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_scsi_repeated_replan_gate.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase12_virtio_scsi_repeated_replan_module.addImport("virtio_scsi", virtio_scsi_module);
+    const phase12_virtio_scsi_packet_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_scsi_packet.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const nvme_pci_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/nvme/host/pci.zig"),
@@ -107,6 +118,14 @@ pub fn build(b: *std.Build) void {
         .name = "phase12-cross-virtio-scsi-syntax-lab-tests",
         .root_module = phase12_virtio_scsi_syntax_lab_module,
     });
+    const phase12_virtio_scsi_repeated_replan_tests = b.addTest(.{
+        .name = "phase12-cross-virtio-scsi-repeated-replan-gate-tests",
+        .root_module = phase12_virtio_scsi_repeated_replan_module,
+    });
+    const phase12_virtio_scsi_packet_tests = b.addTest(.{
+        .name = "phase12-cross-virtio-scsi-packet-tests",
+        .root_module = phase12_virtio_scsi_packet_module,
+    });
     const phase12_nvme_pci_tests = b.addTest(.{
         .name = "phase12-cross-nvme-pci-tests",
         .root_module = phase12_nvme_pci_module,
@@ -135,6 +154,8 @@ pub fn build(b: *std.Build) void {
     cross_step.dependOn(&phase12_virtio_scsi_tests.step);
     cross_step.dependOn(&phase12_virtio_scsi_survey_tests.step);
     cross_step.dependOn(&phase12_virtio_scsi_syntax_lab_tests.step);
+    cross_step.dependOn(&phase12_virtio_scsi_repeated_replan_tests.step);
+    cross_step.dependOn(&phase12_virtio_scsi_packet_tests.step);
     cross_step.dependOn(&phase12_nvme_pci_tests.step);
     cross_step.dependOn(&phase12_nvme_pci_survey_tests.step);
     cross_step.dependOn(&phase12_raw_github_coverage_survey_tests.step);
