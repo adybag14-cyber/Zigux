@@ -37,6 +37,8 @@ COMPILE_GATE = "zig build phase3-test --build-file zigux/tests/build.zig"
 DUMP_GATE = "zig build phase3-dump --build-file zigux/tests/build.zig"
 INTEROP_ROUTE = "python3 scripts/zigux/run-phase3-checks.py --slug abi"
 INTEROP_MAKE = "make -C zigux phase3-interop"
+MAKEFILE_RUN_PREFIX = "cd $(ZIGUX_ROOT) && "
+MAKEFILE_COMPILE_GATE = "$(ZIG) build phase3-test --build-file zigux/tests/build.zig"
 LOW_LEVEL_WRAPPERS_GATE = (
     "$(ZIG) build phase3-low-level-wrappers-test --build-file "
     "zigux/tests/phase3_low_level_wrappers_build.zig"
@@ -118,13 +120,29 @@ def normalized_lines(text: str) -> list[str]:
     return lines
 
 
+def normalized_makefile_lines(text: str) -> list[str]:
+    lines: list[str] = []
+    for line in normalized_lines(text):
+        if line.startswith(MAKEFILE_RUN_PREFIX):
+            line = line[len(MAKEFILE_RUN_PREFIX) :]
+        lines.append(line)
+    return lines
+
+
 def blob_sha(path: Path) -> str:
     data = path.read_bytes()
     return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
 
 
-def require_exact(issues: list[str], text: str, prefix: str, marker: str) -> None:
-    count = normalized_lines(text).count(marker)
+def require_exact(
+    issues: list[str],
+    text: str,
+    prefix: str,
+    marker: str,
+    *,
+    line_parser=normalized_lines,
+) -> None:
+    count = line_parser(text).count(marker)
     if count == 0:
         issues.append(f"missing_{prefix}:{marker}")
     elif count != 1:
@@ -151,16 +169,16 @@ def extract_section(text: str, heading: str, next_heading: str) -> str | None:
     if start == -1:
         return None
     if start == 0:
-        section = text[len(f"{heading}\n"):]
+        section = text[len(f"{heading}\n") :]
     else:
-        section = text[start + len(f"\n{heading}\n"):]
+        section = text[start + len(f"\n{heading}\n") :]
     stop = section.find(f"\n{next_heading}\n")
     return section if stop == -1 else section[:stop]
 
 
 def backtick_value(text: str, key: str) -> list[str]:
     prefix = f"`{key}="
-    return [line[len(prefix):-1] for line in normalized_lines(text) if line.startswith(prefix) and line.endswith("`")]
+    return [line[len(prefix) : -1] for line in normalized_lines(text) if line.startswith(prefix) and line.endswith("`")]
 
 
 def write(path: Path, text: str) -> None:
@@ -272,7 +290,7 @@ def validate(root: Path) -> list[str]:
             "phase3-interop:",
             "$(PYTHON) scripts/zigux/run-phase3-checks.py",
             "phase3-abi:",
-            "$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
+            MAKEFILE_COMPILE_GATE,
             "phase3-low-level-wrappers-test:",
             LOW_LEVEL_WRAPPERS_GATE,
             DUMP_GATE,
@@ -281,8 +299,9 @@ def validate(root: Path) -> list[str]:
     }
     for rel, markers in exact_lists.items():
         text = (root / rel).read_text(encoding="utf-8")
+        line_parser = normalized_makefile_lines if rel == MAKEFILE else normalized_lines
         for marker in markers:
-            require_exact(issues, text, rel.stem, marker)
+            require_exact(issues, text, rel.stem, marker, line_parser=line_parser)
 
     contains_lists = {
         KERNEL_EXPORT_GOVERNANCE: (
@@ -346,7 +365,7 @@ def validate(root: Path) -> list[str]:
         "- name: Check discovered Phase 3 parity",
         "run: python3 scripts/zigux/run-phase3-checks.py",
         "- name: Run Phase 3 ABI/interp substrate tests",
-        "run: zig build phase3-test --build-file zigux/tests/build.zig",
+        f"run: {COMPILE_GATE}",
     ):
         count = workflow_lines.count(marker)
         if count == 0:
@@ -387,7 +406,7 @@ def build_valid_workspace(root: Path) -> None:
     write(
         root / ABI_DUMP,
         'try writer.writeAll("{\\\"abi_version\\\":");\n'
-        'try writeDevT(writer);\n'
+        "try writeDevT(writer);\n"
         'try writeStruct(writer, "boundary_header", abi.BoundaryHeader);\n',
     )
     write(root / SCRIPTS_README, f"- `validate-phase3-export-uapi-survey.py`\n- `Documentation/zigux/phase3-linux-zigux-header-governance.md`\n- `include/linux/zigux.h`\n- `include/zigux/abi.h`\n- `{DUMP_GATE}`\n")
@@ -395,19 +414,19 @@ def build_valid_workspace(root: Path) -> None:
     write(root / ABI_NEXT_STEP, "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n- `zigux/kernel/export_shim.zig`\n- `zigux/uapi/version.zig`\n- `zigux/uapi/dev_t.zig`\n- `zigux/tests/phase3_abi_dump.zig`\n- `scripts/zigux/validate-phase3-export-uapi-survey.py`\n")
     write(
         root / MAKEFILE,
-        f"phase3-validate:\n"
-        "\t$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n"
-        "\t$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py\n"
+        "phase3-validate:\n"
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n"
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py\n"
         "phase3-abi:\n"
-        "\t$(ZIG) build phase3-test --build-file zigux/tests/build.zig\n"
+        f"\tcd $(ZIGUX_ROOT) && {MAKEFILE_COMPILE_GATE}\n"
         "phase3-low-level-wrappers-test:\n"
-        f"\t{LOW_LEVEL_WRAPPERS_GATE}\n"
+        f"\tcd $(ZIGUX_ROOT) && {LOW_LEVEL_WRAPPERS_GATE}\n"
         "phase3-interop:\n"
-        "\t$(PYTHON) scripts/zigux/run-phase3-checks.py\n"
-        f"\t{DUMP_GATE}\n"
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py\n"
+        f"\tcd $(ZIGUX_ROOT) && {DUMP_GATE}\n"
         f"{PHASE3_AGGREGATE_ROUTE}\n",
     )
-    write(root / WORKFLOW, "- name: Validate Phase 3 export/UAPI survey\n  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py\n- name: Self-test Phase 3 export/UAPI survey\n  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n- name: Check discovered Phase 3 parity\n  run: python3 scripts/zigux/run-phase3-checks.py\n- name: Run Phase 3 ABI/interp substrate tests\n  run: zig build phase3-test --build-file zigux/tests/build.zig\n")
+    write(root / WORKFLOW, f"- name: Validate Phase 3 export/UAPI survey\n  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py\n- name: Self-test Phase 3 export/UAPI survey\n  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n- name: Check discovered Phase 3 parity\n  run: python3 scripts/zigux/run-phase3-checks.py\n- name: Run Phase 3 ABI/interp substrate tests\n  run: {COMPILE_GATE}\n")
     write(root / VALIDATOR, "# placeholder\n")
 
     write(
@@ -605,6 +624,18 @@ def run_self_test() -> int:
         assert (
             f"missing_Makefile:{PHASE3_AGGREGATE_ROUTE}" in issues
         ), issues
+        case_count += 1
+
+        build_valid_workspace(root)
+        write(
+            root / MAKEFILE,
+            (root / MAKEFILE).read_text(encoding="utf-8").replace(
+                f"\tcd $(ZIGUX_ROOT) && {COMPILE_GATE}\n",
+                f"\t{COMPILE_GATE}\n",
+                1,
+            ),
+        )
+        assert validate(root) == [], validate(root)
         case_count += 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
