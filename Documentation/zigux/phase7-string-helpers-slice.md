@@ -7,7 +7,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_STATUS=starter_landed`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-L04`
-- lane-key note: this `P7-L04` marker is a packet-local historical helper-slice tag for the restored string-helpers starter packet and should not be read as the current bootstrap-glue schedule owner
+- lane-key note: `P7-L04` is the live helper-local lane for the restored string-helpers starter packet; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with the separate Phase 7 shared-control lanes
 - scope: keep the Phase 7 string-helpers lane limited to the restored starter packet and the no-sample review boundary
 - lane state: current `master` now carries both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`, while the dedicated survey, dedicated no-string-sample boundary replay, dedicated manifest packet, shared build-wiring checker, shared validator, make-wrapper alignment note, shared build route, and Linux-style `make -C zigux phase7` replay keep that restored starter packet reviewable without claiming the broader parked family is fully landed
 
