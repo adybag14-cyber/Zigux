@@ -108,6 +108,26 @@ fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
     return count;
 }
 
+fn expectOrderedMarkersInSection(
+    haystack: []const u8,
+    section_header: []const u8,
+    section_footer: []const u8,
+    expected_markers: []const []const u8,
+) !void {
+    const section_start = std.mem.indexOf(u8, haystack, section_header) orelse
+        return error.MissingOrderedMarkerSectionHeader;
+    const section_end = std.mem.indexOfPos(u8, haystack, section_start, section_footer) orelse
+        return error.MissingOrderedMarkerSectionFooter;
+    const section = haystack[section_start..section_end];
+
+    var cursor: usize = 0;
+    for (expected_markers) |marker| {
+        const offset = std.mem.indexOfPos(u8, section, cursor, marker) orelse
+            return error.MissingOrderedSectionMarker;
+        cursor = offset + marker.len;
+    }
+}
+
 test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current local-only perf evidence explicit" {
     const parsed = try std.json.parseFromSlice(
         Manifest,
@@ -126,6 +146,19 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.live_gate_path);
     try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.owner);
     try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.rollback_owner);
+    const perf_baseline_manifest_source = try readRepoFile(
+        std.testing.allocator,
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+    );
+    defer std.testing.allocator.free(perf_baseline_manifest_source);
+    try expectOrderedMarkersInSection(
+        perf_baseline_manifest_source,
+        "\"owner\": \"Validation and Perf Team\"",
+        "\"decision_owner\": \"Validation and Perf Team\"",
+        &.{
+            "\"rollback_owner\": \"Validation and Perf Team\"",
+        },
+    );
     try expectBlobShaMatchesSource(manifest.live_gate_blob_sha, runtime_atomic64_diff_source);
     try std.testing.expectEqual(sourceLineCount(runtime_atomic64_diff_source), manifest.live_gate_line_count);
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.runtime_replay_path);
