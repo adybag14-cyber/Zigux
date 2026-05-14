@@ -25,6 +25,34 @@ test "phase 7 string helpers starter covers whitespace trimming and prefix skipp
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0, '\t', '\n', 0, 'x' }, &strim_whitespace_only);
 }
 
+test "phase 7 string helpers starter formats bounded sizes with three significant figures" {
+    var buf = [_]u8{0} ** 16;
+    const written = string_helpers.stringGetSize(1536, 1, string_helpers.STRING_UNITS_2, &buf, 0);
+    try std.testing.expectEqual(@as(usize, 8), written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', ' ', 'K', 'i', 'B', 0 }, buf[0 .. written + 1]);
+
+    var zero_buf = [_]u8{ '#', '#', '#', '#', '#', '#', '#', '#' };
+    const zero_written = string_helpers.string_get_size(42, 0, string_helpers.STRING_UNITS_10, &zero_buf, 0);
+    try std.testing.expectEqual(@as(usize, 3), zero_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '0', ' ', 'B', 0 }, zero_buf[0 .. zero_written + 1]);
+
+    var flag_buf = [_]u8{0} ** 16;
+    const flag_written = string_helpers.stringGetSize(
+        1536,
+        1,
+        string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES,
+        &flag_buf,
+        0,
+    );
+    try std.testing.expectEqual(@as(usize, 6), flag_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', 'K', 'i', 0 }, flag_buf[0 .. flag_written + 1]);
+
+    var truncated = [_]u8{ '#', '#', '#', '#', '#' };
+    const truncated_written = string_helpers.string_get_size(1536, 1, string_helpers.STRING_UNITS_2, &truncated, truncated.len);
+    try std.testing.expectEqual(@as(usize, 8), truncated_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', 0 }, &truncated);
+}
+
 test "phase 7 string helpers starter keeps sysfs matching newline aware" {
     try std.testing.expect(string_helpers.sysfsStreq("zigux\n", "zigux"));
     try std.testing.expect(string_helpers.sysfs_streq("zigux", "zigux\n"));
