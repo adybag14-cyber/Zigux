@@ -20,10 +20,10 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 
 - `current master` does not have a remaining roadmap gap at the level of conf bridge scaffolding. The bridge, checker, fixture packet, manifest, and shared Phase 2 reminder surfaces are already present.
 - The honest remaining work for this file family is smaller than scaffolding: keep the bridge-local truthfulness surfaces aligned when the bridge grows.
-- The live bridge helper surface has moved beyond the older minimal anchor subset. `scripts/zigux/check-kconfig-bridge.py` and `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json` still model the earlier eight-anchor helper packet even though `scripts/zigux/kconfig/conf_bridge.zig` now carries additional bridge-local tests for the mode surface, silent ordering, mode-argument validation, option parsing, and duplicate-option rejection.
-- That smaller helper-anchor truthfulness follow-through belongs in the separate conf bridge maintenance lane rather than reopening this survey lane as if scaffolding were still missing.
+- The live bridge helper surface has moved beyond the current checker-backed subset. `scripts/zigux/check-kconfig-bridge.py` and `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json` now agree on a 14-anchor helper packet, but `scripts/zigux/kconfig/conf_bridge.zig` currently carries 30 bridge-local test anchors spanning the mode-surface check, the `silentoldconfig` alias, empty `nosilentupdate` omission, `--silent` ordering, sentinel and override env handling, mode-argument validation, and duplicate-option rejection.
+- That smaller helper-anchor parity follow-through belongs in the separate conf bridge maintenance lane rather than reopening this survey lane as if scaffolding were still missing.
 
 ## Next Bounded Step
 
 - Leave this survey lane parked unless current `master` later loses one of the scaffold surfaces above or the roadmap expectation for the conf bridge changes.
-- If the conf bridge family reopens first, start with a fresh current-master reread of `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/check-kconfig-bridge.py`, and `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, then keep the follow-through to the smaller helper-anchor truthfulness repair instead of recreating a missing-scaffold narrative.
+- If the conf bridge family reopens first, start with a fresh current-master reread of `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/check-kconfig-bridge.py`, and `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, then keep the follow-through to the smaller checker-and-manifest helper-anchor parity repair instead of recreating a missing-scaffold narrative.
