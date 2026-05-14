@@ -172,6 +172,10 @@ pub fn bitmap_weighted_or(dst: []Word, src1: []const Word, src2: []const Word, n
     return weightedOr(dst, src1, src2, nbits);
 }
 
+pub fn __bitmap_weighted_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightedOr(dst, src1, src2, nbits);
+}
+
 pub fn xorBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     const nwords = bitsToWords(nbits);
     std.debug.assert(dst.len >= nwords);
@@ -200,6 +204,10 @@ pub fn weightedXor(dst: []Word, src1: []const Word, src2: []const Word, nbits: u
 }
 
 pub fn bitmap_weighted_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightedXor(dst, src1, src2, nbits);
+}
+
+pub fn __bitmap_weighted_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
     return weightedXor(dst, src1, src2, nbits);
 }
 
@@ -281,6 +289,10 @@ pub fn bitmap_complement(dst: []Word, src: []const Word, nbits: usize) void {
     complement(dst, src, nbits);
 }
 
+pub fn __bitmap_complement(dst: []Word, src: []const Word, nbits: usize) void {
+    complement(dst, src, nbits);
+}
+
 pub fn replace(dst: []Word, old: []const Word, new: []const Word, mask: []const Word, nbits: usize) void {
     assertBitmapLen(dst, nbits);
     assertBitmapLen(old, nbits);
@@ -299,6 +311,10 @@ pub fn replace(dst: []Word, old: []const Word, new: []const Word, mask: []const 
 }
 
 pub fn bitmap_replace(dst: []Word, old: []const Word, new: []const Word, mask: []const Word, nbits: usize) void {
+    replace(dst, old, new, mask, nbits);
+}
+
+pub fn __bitmap_replace(dst: []Word, old: []const Word, new: []const Word, mask: []const Word, nbits: usize) void {
     replace(dst, old, new, mask, nbits);
 }
 
@@ -1020,6 +1036,9 @@ test "bitmap low-level __bitmap aliases mirror the primary helper surface" {
     const nbits = bits_per_long + 5;
     const lhs = [_]Word{ ~@as(Word, 0), (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
     const rhs = [_]Word{ 0x0f, (@as(Word, 1) << 2) };
+    const replace_old = [_]Word{ ~@as(Word, 0), (@as(Word, 1) << 1) | (@as(Word, 1) << 9) };
+    const replace_new = [_]Word{ 0x0f, (@as(Word, 1) << 2) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+    const replace_mask = [_]Word{ 0xff, (@as(Word, 1) << 2) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
 
     try std.testing.expectEqual(weight(&lhs, nbits), __bitmap_weight(&lhs, nbits));
 
@@ -1042,15 +1061,29 @@ test "bitmap low-level __bitmap aliases mirror the primary helper surface" {
     orBits(&primary_dst, &lhs, &rhs, nbits);
     __bitmap_or(&alias_dst, &lhs, &rhs, nbits);
     try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+    try std.testing.expectEqual(weightedOr(&primary_dst, &lhs, &rhs, nbits), __bitmap_weighted_or(&alias_dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqual(weight(&primary_dst, nbits), __bitmap_weighted_or(&alias_dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
 
     xorBits(&primary_dst, &lhs, &rhs, nbits);
     __bitmap_xor(&alias_dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+    try std.testing.expectEqual(weightedXor(&primary_dst, &lhs, &rhs, nbits), __bitmap_weighted_xor(&alias_dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqual(weight(&primary_dst, nbits), __bitmap_weighted_xor(&alias_dst, &lhs, &rhs, nbits));
     try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
 
     try std.testing.expectEqual(andBits(&primary_dst, &lhs, &rhs, nbits), __bitmap_and(&alias_dst, &lhs, &rhs, nbits));
     try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
 
     try std.testing.expectEqual(andNotBits(&primary_dst, &lhs, &rhs, nbits), __bitmap_andnot(&alias_dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    complement(&primary_dst, &lhs, nbits);
+    __bitmap_complement(&alias_dst, &lhs, nbits);
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    replace(&primary_dst, &replace_old, &replace_new, &replace_mask, nbits);
+    __bitmap_replace(&alias_dst, &replace_old, &replace_new, &replace_mask, nbits);
     try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
 
     try std.testing.expectEqual(equal(&lhs, &rhs, nbits), __bitmap_equal(&lhs, &rhs, nbits));
