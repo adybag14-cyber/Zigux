@@ -7,6 +7,37 @@
 
 int main(void)
 {
+    const struct zigux_notifier_block single = {
+        .notifier_call = 0,
+        .next = (uintptr_t)0,
+        .priority = 7,
+    };
+    const struct zigux_notifier_block descending_third = {
+        .notifier_call = 0,
+        .next = (uintptr_t)0,
+        .priority = -4,
+    };
+    const struct zigux_notifier_block descending_second = {
+        .notifier_call = 0,
+        .next = (uintptr_t)&descending_third,
+        .priority = 8,
+    };
+    const struct zigux_notifier_block descending_first = {
+        .notifier_call = 0,
+        .next = (uintptr_t)&descending_second,
+        .priority = 8,
+    };
+    const struct zigux_notifier_block rising_second = {
+        .notifier_call = 0,
+        .next = (uintptr_t)0,
+        .priority = 5,
+    };
+    const struct zigux_notifier_block rising_first = {
+        .notifier_call = 0,
+        .next = (uintptr_t)&rising_second,
+        .priority = 3,
+    };
+
     printf(
         "{"
         "\"abi_version\":%u,"
@@ -27,7 +58,7 @@ int main(void)
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped\":%u,"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied\":%u,"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied\":%u,"
-        "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped\":%u,"
+        "\"chrdev_notify_ack_window_policy_budget_WINDOW_delivery_window_budget_window_status_skipped\":%u,"
         "\"notifier_done\":%u,"
         "\"notifier_ok\":%u,"
         "\"notifier_stop\":%u"
@@ -43,6 +74,12 @@ int main(void)
         "\"range_count\":%u,"
         "\"range_fits\":%u,"
         "\"range_last_encoded\":%u"
+        "},"
+        "\"notifier_chain\":{"
+        "\"empty_ok\":%u,"
+        "\"single_ok\":%u,"
+        "\"descending_ok\":%u,"
+        "\"rising_ok\":%u"
         "},"
         "\"structs\":{"
         "\"boundary_header\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"size\":%zu,\"abi_version\":%zu,\"flags\":%zu}},"
@@ -88,6 +125,10 @@ int main(void)
                    zigux_minor(zigux_mkdev(42U, 7U)) == 7U &&
                    (7U + 4U - 1U) <= ZIGUX_DEV_MINOR_MASK),
         zigux_mkdev(42U, 7U + 4U - 1U),
+        (unsigned)zigux_notifier_chain_has_nonincreasing_priority(NULL),
+        (unsigned)zigux_notifier_chain_has_nonincreasing_priority(&single),
+        (unsigned)zigux_notifier_chain_has_nonincreasing_priority(&descending_first),
+        (unsigned)zigux_notifier_chain_has_nonincreasing_priority(&rising_first),
         sizeof(struct zigux_boundary_header),
         _Alignof(struct zigux_boundary_header),
         offsetof(struct zigux_boundary_header, size),
@@ -114,7 +155,7 @@ int main(void)
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, applied),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, skipped),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, delivered),
-        sizeof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view),
+        sizeof(struct zigux_chrdev_notify_ack_WINDOW_policy_budget_window_delivery_window_budget_view),
         _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view, budget),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view, window),
