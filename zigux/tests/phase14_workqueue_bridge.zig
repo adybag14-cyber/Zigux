@@ -15,6 +15,13 @@ const SurveySummary = struct {
     preexisting_phase14_workqueue_survey_note_present: bool,
 };
 
+const MaintenanceHandoff = struct {
+    current_lane_posture: []const u8,
+    replay_before_trusting: []const []const u8,
+    reopen_conditions: []const []const u8,
+    next_future_target: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -30,6 +37,7 @@ const Manifest = struct {
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
+    maintenance_handoff: MaintenanceHandoff,
     gaps: []const Gap,
 };
 
@@ -70,6 +78,14 @@ test "phase14 workqueue bridge manifest records the blocked-maintenance packet" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_survey_note_present);
+    try std.testing.expectEqualStrings("blocked_maintenance", manifest.maintenance_handoff.current_lane_posture);
+    try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.replay_before_trusting.len);
+    try std.testing.expectEqualStrings("zig test zigux/tests/phase14_workqueue_reviewability.zig", manifest.maintenance_handoff.replay_before_trusting[0]);
+    try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase14_build.zig --summary all", manifest.maintenance_handoff.replay_before_trusting[1]);
+    try std.testing.expectEqualStrings("make -C zigux phase14", manifest.maintenance_handoff.replay_before_trusting[2]);
+    try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.reopen_conditions[0], "blocked-maintenance posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "workqueue-local") != null);
     try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
