@@ -236,9 +236,9 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(runtime_loader_allocator_init_flow, "phase 9 runtime loader allocator/init-flow replay keeps selftest-complete prepared snapshots stable even if later live state would look exited");
 
     try expectContains(phase9_build, "runtime_atomic64_loader.zig");
-    try expectContains(phase9_build, "\\\"phase9-runtime-atomic64-sample-tests\\\"");
-    try expectContains(phase9_build, "\\\"phase9-runtime-atomic64-module-tests\\\"");
-    try expectContains(phase9_build, "\\\"phase9-runtime-atomic64-loader-tests\\\"");
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-sample-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-module-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-loader-tests\"");
     try expectContains(phase9_build, "runtime_loader_allocator_init_flow.zig");
     try expectContains(phase9_build, "runtime_loader_gap_survey.zig");
     try expectContains(phase9_build, "../kernel/runtime_loader_contract.zig");
