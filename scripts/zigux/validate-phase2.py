@@ -133,7 +133,7 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
 )
 PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
 PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 36
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 28
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 30
 
 
 def build_validation_commands(
@@ -265,6 +265,34 @@ def run_self_test() -> list[str]:
             [
                 "phase2_validation_commands:count=25:expected=26",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tests-readme-alignment.py",
+            ],
+        ),
+        (
+            "command_inventory_missing_kconfig_readme_alignment_self_test",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (KCONFIG_README_ALIGNMENT_CHECKER, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
+            ],
+        ),
+        (
+            "command_inventory_missing_kconfig_readme_alignment_gate",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (KCONFIG_README_ALIGNMENT_CHECKER,)
+                )
+            ),
+            [
+                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-kconfig-readme-alignment.py",
             ],
         ),
         (
