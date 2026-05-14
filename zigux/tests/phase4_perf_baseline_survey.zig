@@ -144,10 +144,10 @@ test "phase4 perf baseline survey keeps exact local-only iteration and sample co
 
 test "phase4 perf baseline survey keeps reversible delivery evidence explicit" {
     try requireMarker(
-        "\"reversible_delivery_evidence\": \"keep scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_manifest.json, zigux/tests/phase4_perf_baseline_survey.zig, zigux/tests/README.md, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, Documentation/zigux/review-checklist.md, zigux/Makefile, and zigux/tests/phase4_build.zig aligned",
+        "\"reversible_delivery_evidence\": \"keep scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_manifest.json, zigux/tests/phase4_perf_baseline_survey.zig, zigux/tests/README.md, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, Documentation/zigux/phase4-reversible-delivery-evidence.md, Documentation/zigux/phase4-validation-lane-sequencing.md, Documentation/zigux/review-checklist.md, zigux/Makefile, and zigux/tests/phase4_build.zig aligned",
     );
     try requireMarker(
-        "the dedicated local-only perf packet, the dedicated local-only checker, the shared rollback-ownership matrix, the exact-readback note, the review checklist, the Linux-style wrapper, and the shared Phase 4 build entrypoint",
+        "the dedicated local-only perf packet, the dedicated local-only checker, the tests-root packet, the shared rollback-ownership matrix, the exact-readback note, the reversible-delivery handoff note, the anti-overlap sequencing note, the review checklist, the Linux-style wrapper, and the shared Phase 4 build entrypoint",
     );
     try requireMarker(
         "current decision owner, coordination owners, approved local-only acceptable limits, and still-pending shared-CI promotion posture measurable and reversible on the current head.",
@@ -156,7 +156,7 @@ test "phase4 perf baseline survey keeps reversible delivery evidence explicit" {
 
 test "phase4 perf baseline survey keeps the bounded next step explicit" {
     try requireMarker(
-        "\"ready_next\": \"keep the dedicated perf-baseline packet local-only while scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_survey.zig, zigux/tests/README.md, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, and Documentation/zigux/review-checklist.md continue to fail closed",
+        "\"ready_next\": \"keep the dedicated perf-baseline packet local-only while scripts/zigux/check-phase4-perf-baseline-packet.py, zigux/tests/phase4_perf_baseline_survey.zig, zigux/tests/README.md, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, Documentation/zigux/phase4-reversible-delivery-evidence.md, Documentation/zigux/phase4-validation-lane-sequencing.md, and Documentation/zigux/review-checklist.md continue to fail closed",
     );
     try requireMarker(
         "decision-owner, coordination-owner, acceptable-limit, and shared-CI-pending promotion markers; only widen beyond that packet if a later bounded Phase 4 lane intentionally approves broader shared CI perf coverage.",
@@ -228,6 +228,21 @@ test "phase4 perf baseline survey keeps the shared gate-evidence perf-governance
     try requireRepoMarker(
         "Documentation/zigux/phase4-gate-evidence.md",
         "the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion",
+    );
+}
+
+test "phase4 perf baseline survey keeps the reversible-delivery perf-governance packet aligned" {
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-reversible-delivery-evidence.md",
+        "`Validation and Perf Team` owns the dedicated local-only perf packet and any future broader perf-promotion decision.",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-reversible-delivery-evidence.md",
+        "If the local benchmark commands, acceptable limits, or shared-CI-pending posture drifts, repair the dedicated local-only perf packet first.",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-lane-sequencing.md",
+        "If a change only refreshes approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.",
     );
 }
 
