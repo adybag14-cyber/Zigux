@@ -51,6 +51,10 @@ test "phase 7 string helpers starter pads bounded copies without reading past th
     var short_source = [_]u8{ '#', '#', '#', '#', '#' };
     string_helpers.memcpyAndPad(&short_source, "go", 4, '!');
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'g', 'o', '!', '!', '!' }, &short_source);
+
+    var requested_beyond_source = [_]u8{ '#', '#', '#', '#', '#' };
+    string_helpers.memcpyAndPad(&requested_beyond_source, "go", 8, '!');
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'g', 'o', '!', '!', '!' }, &requested_beyond_source);
 }
 
 test "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix" {
