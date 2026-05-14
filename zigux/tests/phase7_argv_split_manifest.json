@@ -77,7 +77,7 @@
   "gaps": [
     {
       "id": "phase7-build-gate",
-      "status": "starter_landed",
+      "status": "parked",
       "current_replay_status": "route_present_on_master",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_build.zig",
@@ -85,42 +85,42 @@
     },
     {
       "id": "phase7-argv-split-helper",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "runtime_leaf_helper",
       "zigux_destination": "lib/argv_split.zig",
       "why_now": "The roadmap names lib/argv_split.zig directly, and the live helper already delivers the bounded whitespace-only countArgc and argvSplit surface with copied-buffer ownership, canonical blank sentinels, repeatable teardown, and a null-terminated argv view."
     },
     {
       "id": "phase7-argv-split-dedicated-tests",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_argv_split.zig",
       "why_now": "A dedicated Phase 7 gate keeps the argv_split starter surface reviewable around whitespace collapsing, first-NUL stop behavior, quote-as-literal non-goals, per-call ownership independence, and blank-input sentinel teardown safety across both deinit and argvFree, including shared-sentinel stability when one blank result is torn down beside another."
     },
     {
       "id": "phase7-argv-split-shared-fixtures",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "validation",
       "zigux_destination": "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
       "why_now": "The shared fixture layer keeps the focused parity and first-NUL ownership inputs reviewable from one source instead of leaving the argv_split gate entirely inline."
     },
     {
       "id": "phase7-argv-split-slice-note",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase7-argv-split-slice.md",
       "why_now": "The slice note records the bounded product surface and the explicit non-goals so this Phase 7 lane stays tied to the actual runtime helper instead of expanding into parser churn."
     },
     {
       "id": "phase7-argv-split-survey-gate",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_argv_split_survey.zig",
       "why_now": "A machine-checked survey gate keeps the roadmap anchor, dedicated packet checker, and landed ownership-review surfaces explicit without reopening argv parsing behavior."
     },
     {
       "id": "phase7-argv-split-packet-checker",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "validation",
       "zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py",
       "why_now": "The dedicated packet checker is already part of the parked Phase 7 review surface, so the manifest should record that fail-closed ownership hook instead of leaving it implicit in surrounding docs and scripts indexes."
