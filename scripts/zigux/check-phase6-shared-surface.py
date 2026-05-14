@@ -166,6 +166,14 @@ REQUIRED_SNIPPETS = {
         "- current `master` still lacks `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         "- current review posture: blocked; the checksum roadmap anchor still belongs in the bounded Phase 6 helper packet, but current `master` only keeps the direct C parity scaffolding, and it cannot honestly claim the broader helper-local replay or slowdown gate until the missing checksum helper and fixture packet return",
     ],
+    HEXDUMP_SLICE_PATH.as_posix(): [
+        "- `PHASE6_STATUS=parked`",
+        "- `zigux/tests/phase6_hexdump_perf.zig`",
+        "- `zigux/tests/phase6_hexdump_perf_matrix.zig`",
+        "- `scripts/zigux/check-phase6-hexdump-packet.py`",
+        "- current review posture: focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle, but the serialized `length_cases` fixture is still one row short of the helper's empty-input contract",
+        "- the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still keeps the empty plain zero-length row aligned with the focused replay and the helper's landed empty-input contract, but the empty ASCII zero-length row has not been serialized into that helper-local fixture packet yet",
+    ],
     PHASE6_BUILD_PATH.as_posix(): [
         'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
         'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
@@ -336,7 +344,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / BASE64_SLICE_PATH, "\n".join(REQUIRED_SNIPPETS[BASE64_SLICE_PATH.as_posix()] + [""]))
     write(root / BSEARCH_SLICE_PATH, "# Phase 6 Bsearch Slice\n")
     write(root / CHECKSUM_SLICE_PATH, "\n".join(REQUIRED_SNIPPETS[CHECKSUM_SLICE_PATH.as_posix()] + [""]))
-    write(root / HEXDUMP_SLICE_PATH, "# Phase 6 Hexdump Slice\n")
+    write(root / HEXDUMP_SLICE_PATH, "\n".join(REQUIRED_SNIPPETS[HEXDUMP_SLICE_PATH.as_posix()] + [""]))
     write(root / PHASE6_BUILD_PATH, "\n".join(REQUIRED_SNIPPETS[PHASE6_BUILD_PATH.as_posix()] + [""]))
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_SNIPPETS[MAKEFILE_PATH.as_posix()] + [""]))
     write(root / WORKFLOW_PATH, "\n".join(REQUIRED_SNIPPETS[WORKFLOW_PATH.as_posix()] + [""]))
