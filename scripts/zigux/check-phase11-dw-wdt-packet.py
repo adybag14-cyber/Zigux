@@ -62,6 +62,8 @@ MARKERS = {
         "blocked_on_live_platform_registration",
         "blocked_on_live_mmio",
         "test \"phase11 dw_wdt platform handoff keeps missing timer-clock acquisition explicit\"",
+        "pub const PlatformResourcePreflightSummary = struct {",
+        "pub fn platformResourcePreflightSummary",
     ],
     "verify_file": [
         "pub fn summarizeStopTeardown",
@@ -95,10 +97,13 @@ MARKERS = {
         "ProbeTimeoutOrigin.blocked_missing_timer_clock",
         "blocked_on_live_platform_registration",
         "blocked_on_live_mmio",
+        'test "platform resource preflight keeps named acquisition surfaces explicit"',
+        'test "platform resource preflight keeps shared fallback and missing-clock block explicit"',
+        "platformResourcePreflightSummary",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 30
+SELF_TEST_CASE_COUNT = 35
 
 
 class CheckError(RuntimeError):
@@ -173,6 +178,8 @@ def run_self_test() -> None:
             ("driver_file", 8),
             ("driver_file", 9),
             ("driver_file", 12),
+            ("driver_file", 13),
+            ("driver_file", 14),
             ("verify_file", 0),
             ("verify_file", 4),
             ("verify_file", 5),
@@ -185,6 +192,9 @@ def run_self_test() -> None:
             ("registration_scaffold", 5),
             ("registration_scaffold", 12),
             ("registration_scaffold", 13),
+            ("registration_scaffold", 15),
+            ("registration_scaffold", 16),
+            ("registration_scaffold", 17),
         ]
 
         for idx, (label, marker_index) in enumerate(cases, start=1):
