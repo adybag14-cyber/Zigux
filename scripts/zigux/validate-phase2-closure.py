@@ -5,7 +5,6 @@ import argparse
 import json
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -13,9 +12,22 @@ ROOT = Path(__file__).resolve().parents[2]
 VALIDATE_PHASE2 = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 CHECK_PHASE2_TESTS_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
-CHECK_PHASE2_KCONFIG_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
-CHECK_PHASE2_TOOL_MANIFEST_PACKETS = ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"
+CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT = (
+    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"
+)
+CHECK_PHASE2_KCONFIG_README_ALIGNMENT = (
+    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"
+)
+CHECK_PHASE2_TOOL_MANIFEST_PACKETS = (
+    ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"
+)
+CHECK_PHASE2_CROSS = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
+CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = (
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
+)
+CHECK_KCONFIG_BRIDGE = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 CHECK_GENKSYMS_BRIDGE = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"
+
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_ARTIFACT_TOOLS_MANIFEST = (
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json"
@@ -31,30 +43,32 @@ PHASE2_MAKEFILE = ROOT / "zigux" / "Makefile"
 PHASE2_WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 FIXDEP_CASES = ROOT / "zigux" / "tests" / "fixtures" / "fixdep" / "cases.json"
 KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
-KCONFIG_BRIDGE_CONF_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
+KCONFIG_BRIDGE_CONF_MANIFEST = (
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
+)
 KCONFIG_BRIDGE_CONFDATA_MANIFEST = (
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json"
 )
 
 FIXDEP_CLOSURE_MARKER = (
-    "the current `fixdep` closure packet now stays explicit as the eleven-case artifact replay under "
-    "`zigux/tests/fixtures/fixdep/cases.json`, including the escaped-newline rustc-style pre-target "
-    "comment case, the concatenated same-target dep tail, and the bounded `/dev/full` stdout-write "
-    "cases that preserve the original parse-error or missing-dependency stderr contract"
+    "the current `fixdep` closure packet now stays explicit as the twelve-case artifact replay under "
+    "`zigux/tests/fixtures/fixdep/cases.json`, including the plain escaped-newline dependency continuation "
+    "case, the escaped-newline rustc-style pre-target comment case, the concatenated same-target dep tail, "
+    "and the bounded `/dev/full` stdout-write cases that preserve the original parse-error or "
+    "missing-dependency stderr contract"
 )
 
 PHASE2_COMPANION_NOTES_MARKER = (
     "`Documentation/zigux/phase2-fixdep-next-step-note.md` and "
-    "`Documentation/zigux/phase2-confdata-bridge-survey.md` are active Phase 2 companion notes "
-    "on current `master`: the fixdep note records that `scripts/zigux/check-phase2-fixdep-gate.py`, "
+    "`Documentation/zigux/phase2-confdata-bridge-survey.md` are active Phase 2 companion notes on current "
+    "`master`: the fixdep note records that `scripts/zigux/check-phase2-fixdep-gate.py`, "
     "`Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase2-closure.md`, and "
-    "`zigux/tests/fixtures/fixdep/cases.json` already agree on the same live eleven-case packet "
-    "and keeps the parked validation rerun explicit, and the confdata survey keeps the roadmap-backed "
-    "scaffold marked closed so future reopening stays bridge-local instead of recreating "
-    "missing-scaffold claims."
+    "`zigux/tests/fixtures/fixdep/cases.json` already agree on the same live twelve-case packet and keeps "
+    "the parked validation rerun explicit, and the confdata survey keeps the roadmap-backed scaffold marked "
+    "closed so future reopening stays bridge-local instead of recreating missing-scaffold claims."
 )
 
-PHASE2_REQUIRED_SOURCE_MARKERS = [
+PHASE2_REQUIRED_SOURCE_MARKERS = (
     "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`",
@@ -75,12 +89,12 @@ PHASE2_REQUIRED_SOURCE_MARKERS = [
     "shared genksyms bridge self-test: `python3 scripts/zigux/check-genksyms-bridge.py --self-test`",
     "shared genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`",
     "committed genksyms bridge fixture packet: `zigux/tests/fixtures/genksyms_bridge/`",
-    "committed genksyms CRC and mk_elfconfig artifact fixture packets: `zigux/tests/fixtures/genksyms_crc/` and `zigux/tests/fixtures/mk_elfconfig/`",
+    "committed artifact-tools manifest packet: `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "the dedicated `Phase 2 genksyms` bridge packet remains the live `23-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`, and the shared reminder surfaces should keep that fixture-backed bridge evidence explicit without drifting back to older undercounts or claiming standalone checker scripts that are not present on current `master`",
-    "the current `kconfig` closure packet now stays explicit as the `16-case` conf bridge plus `13-case` confdata fixture replay under `zigux/tests/fixtures/kconfig_bridge/cases.json`, with `syncconfig` `nosilentupdate`, explicit `allconfig` overrides, the `defconfig` and `savedefconfig` mode-argument packet, the rewrite-mode trio (`yes2modconfig`, `mod2yesconfig`, `mod2noconfig`), and the duplicate-malformed quoted reassignment replay all carried through the shared checker and committed expected outputs instead of leaving those later bridge expansions implicit",
-]
+    "the current `kconfig` closure packet now stays explicit as the `16-case` conf bridge plus `13-case` confdata fixture replay under `zigux/tests/fixtures/kconfig_bridge/cases.json`, with `scripts/zigux/check-kconfig-bridge.py`, `syncconfig` `nosilentupdate`, explicit `allconfig` overrides, the `defconfig` and `savedefconfig` mode-argument packet, the rewrite-mode trio (`yes2modconfig`, `mod2yesconfig`, `mod2noconfig`), and the duplicate-malformed quoted reassignment replay all carried through the shared checker and committed expected outputs instead of leaving those later bridge expansions implicit",
+)
 
 PHASE2_MAKEFILE_RUN_COUNTS = {
     'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"': 1,
@@ -89,6 +103,8 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test": 1,
@@ -97,35 +113,48 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
 
 PHASE2_WORKFLOW_RUN_COUNTS = {
     "run: python3 scripts/zigux/validate-phase2.py": 1,
+    "run: python3 scripts/zigux/validate-phase2-closure.py": 1,
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
-    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test": 1,
-    "run: python3 scripts/zigux/check-genksyms-bridge.py": 1,
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "run: python3 scripts/zigux/check-kconfig-bridge.py": 1,
+    "run: python3 scripts/zigux/check-phase2-cross.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test": 1,
+    "run: python3 scripts/zigux/check-genksyms-bridge.py": 1,
 }
 
 PHASE2_VALIDATION_COMMAND_SPECS = (
     (VALIDATE_PHASE2,),
     (CHECK_PHASE2_TESTS_README_ALIGNMENT,),
+    (CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT,),
     (CHECK_PHASE2_KCONFIG_README_ALIGNMENT,),
+    (CHECK_KCONFIG_BRIDGE,),
     (CHECK_PHASE2_TOOL_MANIFEST_PACKETS,),
+    (CHECK_PHASE2_CROSS,),
+    (CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT,),
     (CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE,),
     (CHECK_GENKSYMS_BRIDGE,),
 )
 
-PHASE2_VALIDATOR_MARKERS = [
+PHASE2_VALIDATOR_MARKERS = (
+    'PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER = (',
+    'KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"',
     'PHASE2_TOOL_MANIFEST_PACKET_CHECKER = (',
-    '    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test"),',
-    '    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER,),',
-    '    "scripts/zigux/check-phase2-tool-manifest-packets.py",',
-    '    "zigux/tests/fixtures/phase2_tool_manifest.json",',
-    '    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",',
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 25",
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 33",
-]
+    '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py",',
+    '"scripts/zigux/check-kconfig-bridge.py",',
+    '"zigux/tests/fixtures/phase2_tool_manifest.json",',
+    '"zigux/tests/fixtures/phase2_artifact_tools_manifest.json",',
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 26",
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 34",
+)
 
 EXPECTED_FIXDEP_CASES = (
     {"name": "sample"},
@@ -133,6 +162,7 @@ EXPECTED_FIXDEP_CASES = (
     {"name": "sample_escaped_space"},
     {"name": "sample_escaped_colon"},
     {"name": "sample_concatenated"},
+    {"name": "sample_dependency_continuation"},
     {"name": "sample_comment_continuation"},
     {"name": "sample_comment_only"},
     {"name": "sample_comment_only_stdout_full", "stdout_mode": "dev_full"},
@@ -301,15 +331,27 @@ EXPECTED_CONF_MANIFEST = {
         "allmodconfig_expected.json",
         "randconfig_expected.json",
     ],
+    "helper_local_anchors": [
+        "conf bridge mode surface stays aligned with conf.c long options",
+        "conf bridge emits olddefconfig argv and env",
+        "conf bridge emits syncconfig auto files",
+        "conf bridge emits syncconfig nosilentupdate when present",
+        "conf bridge emits alldefconfig argv and env",
+        "conf bridge emits explicit empty allconfig override for allmodconfig",
+        "conf bridge emits randconfig tunables when present",
+        "conf bridge emits explicit randconfig allconfig override when present",
+        "conf bridge emits yes2modconfig argv and env",
+        "conf bridge emits defconfig mode argument before kconfig",
+        "conf bridge emits savedefconfig mode argument before kconfig",
+        "conf bridge escapes low control bytes in JSON strings",
+        "bridge options parser accepts explicit allconfig override for allmodconfig",
+        "bridge options parser accepts syncconfig nosilentupdate",
+    ],
 }
 
 EXPECTED_CONFDATA_CASES = (
     {"name": "sample", "input": "sample.config", "expected": "sample_expected.json"},
-    {
-        "name": "escaped_strings",
-        "input": "escaped_strings.config",
-        "expected": "escaped_strings_expected.json",
-    },
+    {"name": "escaped_strings", "input": "escaped_strings.config", "expected": "escaped_strings_expected.json"},
     {
         "name": "escaped_control_sequences",
         "input": "escaped_control_sequences.config",
@@ -341,11 +383,7 @@ EXPECTED_CONFDATA_CASES = (
         "input": "uppercase_tristate.config",
         "expected": "uppercase_tristate_expected.json",
     },
-    {
-        "name": "non_config_lines",
-        "input": "non_config_lines.config",
-        "expected": "non_config_lines_expected.json",
-    },
+    {"name": "non_config_lines", "input": "non_config_lines.config", "expected": "non_config_lines_expected.json"},
     {
         "name": "empty_config_symbol_names",
         "input": "empty_config_symbol_names.config",
@@ -386,6 +424,7 @@ EXPECTED_CONFDATA_MANIFEST = {
         "confdata bridge recognizes uppercase tristate assignments",
         "confdata bridge ignores non-CONFIG lines like upstream confdata",
         "confdata bridge ignores empty CONFIG symbol names",
+        "confdata bridge ignores malformed unset comments with extra tokens",
         "confdata bridge keeps trailing escaped backslashes in quoted strings",
         "confdata bridge emits escaped quoted payloads before trailing suffix bytes",
         "confdata bridge leaves malformed quoted values as raw scalar values",
@@ -396,6 +435,9 @@ EXPECTED_CONFDATA_MANIFEST = {
     ],
 }
 
+SELF_TEST_CHECK_COUNT = 15
+
+
 def require_files(paths: list[Path]) -> list[str]:
     missing: list[str] = []
     for path in paths:
@@ -404,7 +446,7 @@ def require_files(paths: list[Path]) -> list[str]:
     return missing
 
 
-def validate_required_markers(text: str, markers: list[str], label: str) -> list[str]:
+def validate_required_markers(text: str, markers: tuple[str, ...], label: str) -> list[str]:
     return [f"{label}:missing:{marker}" for marker in markers if marker not in text]
 
 
@@ -416,24 +458,6 @@ def validate_exact_lines(text: str, counts: dict[str, int], label: str) -> list[
         if count != expected:
             issues.append(f"{label}:exact_count:{marker}:count={count}:expected={expected}")
     return issues
-
-
-def command_tail(command: list[str]) -> str:
-    tail_parts: list[str] = []
-    for part in command[1:]:
-        path = Path(part)
-        if path.is_absolute():
-            try:
-                tail_parts.append(str(path.relative_to(ROOT)))
-                continue
-            except ValueError:
-                pass
-        tail_parts.append(str(part))
-    return " ".join(tail_parts)
-
-
-def build_validation_commands() -> list[list[str]]:
-    return [[sys.executable, str(spec[0]), *[str(part) for part in spec[1:]]] for spec in PHASE2_VALIDATION_COMMAND_SPECS]
 
 
 def load_json_object(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -462,9 +486,8 @@ def load_json_list(path: Path, label: str) -> tuple[list[object] | None, list[st
 
 def validate_fixdep_cases(payload: list[object]) -> list[str]:
     issues: list[str] = []
-    expected_count = len(EXPECTED_FIXDEP_CASES)
-    if len(payload) != expected_count:
-        issues.append(f"fixdep_cases:count={len(payload)}:expected={expected_count}")
+    if len(payload) != len(EXPECTED_FIXDEP_CASES):
+        issues.append(f"fixdep_cases:count={len(payload)}:expected={len(EXPECTED_FIXDEP_CASES)}")
     for index, expected_case in enumerate(EXPECTED_FIXDEP_CASES):
         if index >= len(payload):
             break
@@ -472,15 +495,14 @@ def validate_fixdep_cases(payload: list[object]) -> list[str]:
         if not isinstance(case, dict):
             issues.append(f"fixdep_cases[{index}]:expected_object")
             continue
-        name = expected_case["name"]
         for field_name, expected_value in expected_case.items():
             actual_value = case.get(field_name)
             if actual_value != expected_value:
                 issues.append(
-                    f"fixdep_cases:{name}:{field_name}:expected={expected_value}:actual={actual_value}"
+                    f"fixdep_cases:{expected_case['name']}:{field_name}:expected={expected_value}:actual={actual_value}"
                 )
-    if len(payload) > expected_count:
-        for case in payload[expected_count:]:
+    if len(payload) > len(EXPECTED_FIXDEP_CASES):
+        for case in payload[len(EXPECTED_FIXDEP_CASES) :]:
             extra_name = case.get("name", "<missing>") if isinstance(case, dict) else "<non_object>"
             issues.append(f"fixdep_cases:unexpected_extra:{extra_name}")
     return issues
@@ -496,12 +518,8 @@ def validate_case_list(
     raw_cases = payload.get(key)
     if not isinstance(raw_cases, list):
         return [], [f"kconfig_bridge_cases:{key}:expected_list"]
-    if not raw_cases:
-        return [], [f"kconfig_bridge_cases:{key}:empty"]
-
-    expected_count = len(expected_cases)
-    if len(raw_cases) != expected_count:
-        issues.append(f"kconfig_bridge_cases:{key}:count={len(raw_cases)}:expected={expected_count}")
+    if len(raw_cases) != len(expected_cases):
+        issues.append(f"kconfig_bridge_cases:{key}:count={len(raw_cases)}:expected={len(expected_cases)}")
 
     required_files: list[Path] = []
     seen_paths: set[str] = set()
@@ -512,32 +530,31 @@ def validate_case_list(
         if not isinstance(case, dict):
             issues.append(f"kconfig_bridge_cases:{key}[{index}]:expected_object")
             continue
-        name = expected_case["name"]
         for field_name, expected_value in expected_case.items():
             actual_value = case.get(field_name)
             if actual_value != expected_value:
                 issues.append(
-                    f"kconfig_bridge_cases:{name}:{field_name}:expected={expected_value}:actual={actual_value}"
+                    f"kconfig_bridge_cases:{expected_case['name']}:{field_name}:expected={expected_value}:actual={actual_value}"
                 )
         unexpected_fields = sorted(set(case.keys()) - set(expected_case.keys()))
         for field_name in unexpected_fields:
-            issues.append(f"kconfig_bridge_cases:{name}:{field_name}:unexpected={case.get(field_name)}")
+            issues.append(
+                f"kconfig_bridge_cases:{expected_case['name']}:{field_name}:unexpected={case.get(field_name)}"
+            )
         for field_name in ("input", "expected"):
             value = case.get(field_name)
             if isinstance(value, str) and value:
                 if value in seen_paths:
-                    issues.append(f"kconfig_bridge_cases:{name}:{field_name}:duplicate_reference:{value}")
+                    issues.append(
+                        f"kconfig_bridge_cases:{expected_case['name']}:{field_name}:duplicate_reference:{value}"
+                    )
                 else:
                     seen_paths.add(value)
                     required_files.append(KCONFIG_BRIDGE_CASES.parent / value)
-    if len(raw_cases) > expected_count:
-        for case in raw_cases[expected_count:]:
-            extra_name = case.get("name", "<missing>") if isinstance(case, dict) else "<non_object>"
-            issues.append(f"kconfig_bridge_cases:{key}:unexpected_extra:{extra_name}")
     return required_files, issues
 
 
-def validate_manifest(payload: dict[str, object], *, expected: dict[str, object], label: str) -> list[str]:
+def validate_manifest(payload: dict[str, object], expected: dict[str, object], label: str) -> list[str]:
     issues: list[str] = []
     for field_name, expected_value in expected.items():
         actual_value = payload.get(field_name)
@@ -546,118 +563,44 @@ def validate_manifest(payload: dict[str, object], *, expected: dict[str, object]
     return issues
 
 
+def build_validation_commands() -> list[list[str]]:
+    return [[sys.executable, str(spec[0]), *[str(part) for part in spec[1:]]] for spec in PHASE2_VALIDATION_COMMAND_SPECS]
+
+
 def run_self_test_checks() -> list[str]:
     checks = [
+        ("required_markers_ok", validate_required_markers(" ".join(PHASE2_REQUIRED_SOURCE_MARKERS), PHASE2_REQUIRED_SOURCE_MARKERS, "phase2_closure"), []),
         (
-            "validation_commands_include_shared_validator",
-            validate_required_markers(
-                "\n".join(command_tail(command) for command in build_validation_commands()),
-                ["scripts/zigux/validate-phase2.py"],
-                "phase2_validation_commands",
-            ),
-            [],
-        ),
-        (
-            "validation_commands_include_genksyms_bridge",
-            validate_required_markers(
-                "\n".join(command_tail(command) for command in build_validation_commands()),
-                ["scripts/zigux/check-genksyms-bridge.py"],
-                "phase2_validation_commands",
-            ),
-            [],
-        ),
-        (
-            "validation_commands_missing_shared_validator",
-            validate_required_markers(
-                "\n".join(
-                    [
-                        "scripts/zigux/check-phase2-tests-readme-alignment.py",
-                        "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-                        "scripts/zigux/check-phase2-tool-manifest-packets.py",
-                        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-                        "scripts/zigux/check-genksyms-bridge.py",
-                    ]
-                ),
-                ["scripts/zigux/validate-phase2.py"],
-                "phase2_validation_commands",
-            ),
-            ["phase2_validation_commands:missing:scripts/zigux/validate-phase2.py"],
-        ),
-        (
-            "validation_commands_missing_genksyms_bridge",
-            validate_required_markers(
-                "\n".join(
-                    [
-                        "scripts/zigux/validate-phase2.py",
-                        "scripts/zigux/check-phase2-tests-readme-alignment.py",
-                        "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-                        "scripts/zigux/check-phase2-tool-manifest-packets.py",
-                        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-                    ]
-                ),
-                ["scripts/zigux/check-genksyms-bridge.py"],
-                "phase2_validation_commands",
-            ),
-            ["phase2_validation_commands:missing:scripts/zigux/check-genksyms-bridge.py"],
-        ),
-        (
-            "fixdep_cases_ok",
-            validate_fixdep_cases([dict(case) for case in EXPECTED_FIXDEP_CASES]),
-            [],
-        ),
-        (
-            "fixdep_cases_missing_dev_full",
-            validate_fixdep_cases(
-                [
-                    *[dict(case) for case in EXPECTED_FIXDEP_CASES[:7]],
-                    {"name": "sample_comment_only_stdout_full"},
-                    *[dict(case) for case in EXPECTED_FIXDEP_CASES[8:]],
-                ]
-            ),
-            ["fixdep_cases:sample_comment_only_stdout_full:stdout_mode:expected=dev_full:actual=None"],
-        ),
-        (
-            "fixdep_cases_missing_closure_marker",
-            validate_required_markers(
-                "\n".join(marker for marker in PHASE2_REQUIRED_SOURCE_MARKERS if marker != FIXDEP_CLOSURE_MARKER),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
+            "required_markers_missing_fixdep",
+            validate_required_markers(" ".join(marker for marker in PHASE2_REQUIRED_SOURCE_MARKERS if marker != FIXDEP_CLOSURE_MARKER), PHASE2_REQUIRED_SOURCE_MARKERS, "phase2_closure"),
             [f"phase2_closure:missing:{FIXDEP_CLOSURE_MARKER}"],
         ),
         (
-            "companion_notes_marker_missing",
-            validate_required_markers(
-                "\n".join(
-                    marker for marker in PHASE2_REQUIRED_SOURCE_MARKERS if marker != PHASE2_COMPANION_NOTES_MARKER
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            [f"phase2_closure:missing:{PHASE2_COMPANION_NOTES_MARKER}"],
+            "makefile_exact_counts_missing_kconfig_bridge_self_test",
+            validate_exact_lines("\n".join(key for key in PHASE2_MAKEFILE_RUN_COUNTS if not key.endswith("check-kconfig-bridge.py --self-test")), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"),
+            ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test:count=0:expected=1"],
         ),
         (
-            "genksyms_bridge_marker_missing",
-            validate_required_markers(
-                "\n".join(
-                    marker
-                    for marker in PHASE2_REQUIRED_SOURCE_MARKERS
-                    if marker != "shared genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`"
-                ),
-                PHASE2_REQUIRED_SOURCE_MARKERS,
-                "phase2_closure",
-            ),
-            ["phase2_closure:missing:shared genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`"],
+            "workflow_exact_counts_missing_cross_self_test",
+            validate_exact_lines("\n".join(key for key in PHASE2_WORKFLOW_RUN_COUNTS if key != "run: python3 scripts/zigux/check-phase2-cross.py --self-test"), PHASE2_WORKFLOW_RUN_COUNTS, "workflow"),
+            ["workflow:exact_count:run: python3 scripts/zigux/check-phase2-cross.py --self-test:count=0:expected=1"],
         ),
+        ("fixdep_cases_ok", validate_fixdep_cases([dict(case) for case in EXPECTED_FIXDEP_CASES]), []),
         (
-            "conf_cases_ok",
-            validate_case_list(
-                {"conf_cases": [dict(case) for case in EXPECTED_CONF_CASES]},
-                key="conf_cases",
-                expected_cases=EXPECTED_CONF_CASES,
-            )[1],
-            [],
+            "fixdep_cases_missing_dependency_continuation",
+            validate_fixdep_cases([dict(case) for case in EXPECTED_FIXDEP_CASES if case["name"] != "sample_dependency_continuation"]),
+            [
+                "fixdep_cases:count=11:expected=12",
+                "fixdep_cases:sample_dependency_continuation:name:expected=sample_dependency_continuation:actual=sample_comment_continuation",
+                "fixdep_cases:sample_comment_continuation:name:expected=sample_comment_continuation:actual=sample_comment_only",
+                "fixdep_cases:sample_comment_only:name:expected=sample_comment_only:actual=sample_comment_only_stdout_full",
+                "fixdep_cases:sample_comment_only_stdout_full:name:expected=sample_comment_only_stdout_full:actual=sample_missing_dep",
+                "fixdep_cases:sample_comment_only_stdout_full:stdout_mode:expected=dev_full:actual=None",
+                "fixdep_cases:sample_missing_dep:name:expected=sample_missing_dep:actual=sample_missing_dep_stdout_full",
+                "fixdep_cases:sample_missing_dep_stdout_full:name:expected=sample_missing_dep_stdout_full:actual=sample_output_write",
+            ],
         ),
+        ("conf_cases_ok", validate_case_list({"conf_cases": [dict(case) for case in EXPECTED_CONF_CASES]}, key="conf_cases", expected_cases=EXPECTED_CONF_CASES)[1], []),
         (
             "conf_cases_missing_mode_arg",
             validate_case_list(
@@ -680,209 +623,54 @@ def run_self_test_checks() -> list[str]:
             )[1],
             ["kconfig_bridge_cases:defconfig:mode_arg:expected=arch/arm64/configs/defconfig:actual=None"],
         ),
+        ("confdata_cases_ok", validate_case_list({"confdata_cases": [dict(case) for case in EXPECTED_CONFDATA_CASES]}, key="confdata_cases", expected_cases=EXPECTED_CONFDATA_CASES)[1], []),
         (
-            "conf_manifest_case_count_mismatch",
-            validate_manifest(
-                dict(EXPECTED_CONF_MANIFEST, case_count=15),
-                expected=EXPECTED_CONF_MANIFEST,
-                label="kconfig_bridge_conf_manifest",
-            ),
-            ["kconfig_bridge_conf_manifest:case_count:expected=16:actual=15"],
-        ),
-        (
-            "confdata_cases_ok",
-            validate_case_list(
-                {"confdata_cases": [dict(case) for case in EXPECTED_CONFDATA_CASES]},
-                key="confdata_cases",
-                expected_cases=EXPECTED_CONFDATA_CASES,
-            )[1],
-            [],
-        ),
-        (
-            "confdata_cases_missing_input",
+            "confdata_cases_duplicate_reference",
             validate_case_list(
                 {
                     "confdata_cases": [
-                        {"name": "sample", "expected": "sample_expected.json"},
-                        *[dict(case) for case in EXPECTED_CONFDATA_CASES[1:]],
+                        {"name": "sample", "input": "sample.config", "expected": "sample_expected.json"},
+                        {"name": "escaped_strings", "input": "sample.config", "expected": "escaped_strings_expected.json"},
+                        *[dict(case) for case in EXPECTED_CONFDATA_CASES[2:]],
                     ]
                 },
                 key="confdata_cases",
                 expected_cases=EXPECTED_CONFDATA_CASES,
             )[1],
-            ["kconfig_bridge_cases:sample:input:expected=sample.config:actual=None"],
+            [
+                "kconfig_bridge_cases:escaped_strings:input:expected=escaped_strings.config:actual=sample.config",
+                "kconfig_bridge_cases:escaped_strings:input:duplicate_reference:sample.config",
+            ],
         ),
         (
-            "confdata_manifest_case_count_mismatch",
-            validate_manifest(
-                dict(EXPECTED_CONFDATA_MANIFEST, case_count=11),
-                expected=EXPECTED_CONFDATA_MANIFEST,
-                label="kconfig_bridge_confdata_manifest",
-            ),
+            "conf_manifest_mismatch",
+            validate_manifest(dict(EXPECTED_CONF_MANIFEST, case_count=15), EXPECTED_CONF_MANIFEST, "kconfig_bridge_conf_manifest"),
+            ["kconfig_bridge_conf_manifest:case_count:expected=16:actual=15"],
+        ),
+        (
+            "confdata_manifest_mismatch",
+            validate_manifest(dict(EXPECTED_CONFDATA_MANIFEST, case_count=11), EXPECTED_CONFDATA_MANIFEST, "kconfig_bridge_confdata_manifest"),
             ["kconfig_bridge_confdata_manifest:case_count:expected=13:actual=11"],
         ),
         (
-            "workflow_tests_readme_selftest_missing",
-            validate_exact_lines(
-                "run: python3 scripts/zigux/validate-phase2.py\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n"
-                "run: python3 scripts/zigux/check-genksyms-bridge.py\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n",
-                PHASE2_WORKFLOW_RUN_COUNTS,
-                "workflow",
-            ),
-            [
-                "workflow:exact_count:run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test:count=0:expected=1"
-            ],
+            "validator_markers_missing_command_count",
+            validate_required_markers(" ".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 26"), PHASE2_VALIDATOR_MARKERS, "phase2_validator"),
+            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 26"],
         ),
         (
-            "workflow_genksyms_bridge_selftest_missing",
-            validate_exact_lines(
-                "run: python3 scripts/zigux/validate-phase2.py\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-genksyms-bridge.py\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n",
-                PHASE2_WORKFLOW_RUN_COUNTS,
-                "workflow",
-            ),
-            [
-                "workflow:exact_count:run: python3 scripts/zigux/check-genksyms-bridge.py --self-test:count=0:expected=1"
-            ],
+            "validator_markers_missing_required_count",
+            validate_required_markers(" ".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 34"), PHASE2_VALIDATOR_MARKERS, "phase2_validator"),
+            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 34"],
         ),
-        (
-            "workflow_kconfig_bridge_selftest_missing",
-            validate_exact_lines(
-                "run: python3 scripts/zigux/validate-phase2.py\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n"
-                "run: python3 scripts/zigux/check-genksyms-bridge.py\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-kconfig-bridge.py\n",
-                PHASE2_WORKFLOW_RUN_COUNTS,
-                "workflow",
-            ),
-            [
-                "workflow:exact_count:run: python3 scripts/zigux/check-kconfig-bridge.py --self-test:count=0:expected=1"
-            ],
-        ),
-        (
-            "workflow_kconfig_bridge_gate_missing",
-            validate_exact_lines(
-                "run: python3 scripts/zigux/validate-phase2.py\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n"
-                "run: python3 scripts/zigux/check-genksyms-bridge.py\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test\n"
-                "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py\n"
-                "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test\n",
-                PHASE2_WORKFLOW_RUN_COUNTS,
-                "workflow",
-            ),
-            [
-                "workflow:exact_count:run: python3 scripts/zigux/check-kconfig-bridge.py:count=0:expected=1"
-            ],
-        ),
-        (
-            "makefile_phase2_validation_missing",
-            validate_exact_lines(
-                "\n".join(
-                    [
-                        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-                    ]
-                ),
-                PHASE2_MAKEFILE_RUN_COUNTS,
-                "makefile",
-            ),
-            ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py:count=0:expected=1"],
-        ),
-        (
-            "makefile_kconfig_bridge_selftest_missing",
-            validate_exact_lines(
-                "\n".join(
-                    [
-                        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
-                    ]
-                ),
-                PHASE2_MAKEFILE_RUN_COUNTS,
-                "makefile",
-            ),
-            ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test:count=0:expected=1"],
-        ),
-        (
-            "makefile_kconfig_bridge_gate_missing",
-            validate_exact_lines(
-                "\n".join(
-                    [
-                        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-                        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
-                    ]
-                ),
-                PHASE2_MAKEFILE_RUN_COUNTS,
-                "makefile",
-            ),
-            ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py:count=0:expected=1"],
-        ),
-        (
-            "phase2_validator_missing_tool_manifest_command",
-            validate_required_markers(
-                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != '    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test"),'),
-                PHASE2_VALIDATOR_MARKERS,
-                "phase2_validator",
-            ),
-            ['phase2_validator:missing:    (PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test"),'],
-        ),
-        (
-            "phase2_validator_missing_command_count_marker",
-            validate_required_markers(
-                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 25"),
-                PHASE2_VALIDATOR_MARKERS,
-                "phase2_validator",
-            ),
-            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 25"],
-        ),
-        (
-            "phase2_validator_missing_required_file_count_marker",
-            validate_required_markers(
-                "\n".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 33"),
-                PHASE2_VALIDATOR_MARKERS,
-                "phase2_validator",
-            ),
-            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 33"],
-        ),
+        ("command_count_ok", [] if len(build_validation_commands()) == len(PHASE2_VALIDATION_COMMAND_SPECS) else ["command_count_mismatch"], []),
     ]
 
     issues: list[str] = []
     for name, actual, expected in checks:
         if actual != expected:
             issues.append(f"self_test:{name}:actual={actual}:expected={expected}")
+    if len(checks) != SELF_TEST_CHECK_COUNT:
+        issues.append(f"self_test:count:actual={len(checks)}:expected={SELF_TEST_CHECK_COUNT}")
     return issues
 
 
@@ -890,19 +678,82 @@ def run(command: list[str]) -> int:
     return subprocess.run(command, cwd=ROOT, check=False).returncode
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate the current live Phase 2 closure packet on current master."
+def collect_issues() -> list[str]:
+    issues: list[str] = []
+    closure_text = PHASE2_CLOSURE_DOC.read_text(encoding="utf-8")
+    validator_text = VALIDATE_PHASE2.read_text(encoding="utf-8")
+
+    issues.extend(validate_required_markers(closure_text, PHASE2_REQUIRED_SOURCE_MARKERS, "phase2_closure"))
+    issues.extend(validate_exact_lines(PHASE2_MAKEFILE.read_text(encoding="utf-8"), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"))
+    issues.extend(validate_exact_lines(PHASE2_WORKFLOW.read_text(encoding="utf-8"), PHASE2_WORKFLOW_RUN_COUNTS, "workflow"))
+    issues.extend(validate_required_markers(validator_text, PHASE2_VALIDATOR_MARKERS, "phase2_validator"))
+
+    fixdep_cases_payload, fixdep_issues = load_json_list(FIXDEP_CASES, "fixdep_cases")
+    issues.extend(fixdep_issues)
+    if fixdep_cases_payload is not None:
+        issues.extend(validate_fixdep_cases(fixdep_cases_payload))
+
+    cases_payload, cases_issues = load_json_object(KCONFIG_BRIDGE_CASES, "kconfig_bridge_cases")
+    issues.extend(cases_issues)
+    if cases_payload is not None:
+        conf_required, conf_issues = validate_case_list(cases_payload, key="conf_cases", expected_cases=EXPECTED_CONF_CASES)
+        confdata_required, confdata_issues = validate_case_list(
+            cases_payload,
+            key="confdata_cases",
+            expected_cases=EXPECTED_CONFDATA_CASES,
+        )
+        issues.extend(conf_issues)
+        issues.extend(confdata_issues)
+        for path in require_files(conf_required + confdata_required):
+            issues.append(f"kconfig_bridge_cases:missing_expected:{path}")
+
+    conf_manifest_payload, conf_manifest_issues = load_json_object(KCONFIG_BRIDGE_CONF_MANIFEST, "kconfig_bridge_conf_manifest")
+    issues.extend(conf_manifest_issues)
+    if conf_manifest_payload is not None:
+        issues.extend(validate_manifest(conf_manifest_payload, EXPECTED_CONF_MANIFEST, "kconfig_bridge_conf_manifest"))
+
+    confdata_manifest_payload, confdata_manifest_issues = load_json_object(
+        KCONFIG_BRIDGE_CONFDATA_MANIFEST,
+        "kconfig_bridge_confdata_manifest",
     )
+    issues.extend(confdata_manifest_issues)
+    if confdata_manifest_payload is not None:
+        issues.extend(
+            validate_manifest(
+                confdata_manifest_payload,
+                EXPECTED_CONFDATA_MANIFEST,
+                "kconfig_bridge_confdata_manifest",
+            )
+        )
+    return issues
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate the current live Phase 2 closure packet on current master.")
     parser.add_argument("--self-test", action="store_true", help="Run closure-validator self coverage.")
     args = parser.parse_args()
+
+    if args.self_test:
+        issues = run_self_test_checks()
+        if issues:
+            print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=fail")
+            for issue in issues:
+                print(issue)
+            return 1
+        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
+        print(f"PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT={SELF_TEST_CHECK_COUNT}")
+        return 0
 
     required = [
         VALIDATE_PHASE2,
         CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE,
         CHECK_PHASE2_TESTS_README_ALIGNMENT,
+        CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT,
         CHECK_PHASE2_KCONFIG_README_ALIGNMENT,
         CHECK_PHASE2_TOOL_MANIFEST_PACKETS,
+        CHECK_PHASE2_CROSS,
+        CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT,
+        CHECK_KCONFIG_BRIDGE,
         CHECK_GENKSYMS_BRIDGE,
         PHASE2_TOOL_MANIFEST,
         PHASE2_ARTIFACT_TOOLS_MANIFEST,
@@ -918,104 +769,28 @@ def main() -> int:
     ]
     missing = require_files(required)
     if missing:
-        label = "PHASE2_CLOSURE_VALIDATION_SELF_TEST" if args.self_test else "PHASE2_CLOSURE_VALIDATION"
-        print(f"{label}=fail")
+        print("PHASE2_CLOSURE_VALIDATION=fail")
         print("PHASE2_CLOSURE_VALIDATION_MISSING_FILES_START")
         for item in missing:
             print(item)
         print("PHASE2_CLOSURE_VALIDATION_MISSING_FILES_END")
         return 1
 
-    issues: list[str] = []
-    closure_text = PHASE2_CLOSURE_DOC.read_text(encoding="utf-8")
-    issues.extend(validate_required_markers(closure_text, PHASE2_REQUIRED_SOURCE_MARKERS, "phase2_closure"))
-    issues.extend(validate_exact_lines(PHASE2_MAKEFILE.read_text(encoding="utf-8"), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"))
-    issues.extend(validate_exact_lines(PHASE2_WORKFLOW.read_text(encoding="utf-8"), PHASE2_WORKFLOW_RUN_COUNTS, "workflow"))
-    issues.extend(
-        validate_required_markers(
-            VALIDATE_PHASE2.read_text(encoding="utf-8"),
-            PHASE2_VALIDATOR_MARKERS,
-            "phase2_validator",
-        )
-    )
-
-    fixdep_cases_payload, fixdep_issues = load_json_list(FIXDEP_CASES, "fixdep_cases")
-    issues.extend(fixdep_issues)
-    if fixdep_cases_payload is not None:
-        issues.extend(validate_fixdep_cases(fixdep_cases_payload))
-
-    cases_payload, cases_issues = load_json_object(KCONFIG_BRIDGE_CASES, "kconfig_bridge_cases")
-    issues.extend(cases_issues)
-    if cases_payload is not None:
-        conf_required, conf_list_issues = validate_case_list(
-            cases_payload,
-            key="conf_cases",
-            expected_cases=EXPECTED_CONF_CASES,
-        )
-        issues.extend(conf_list_issues)
-        confdata_required, confdata_list_issues = validate_case_list(
-            cases_payload,
-            key="confdata_cases",
-            expected_cases=EXPECTED_CONFDATA_CASES,
-        )
-        issues.extend(confdata_list_issues)
-        for path in require_files(conf_required + confdata_required):
-            issues.append(f"kconfig_bridge_cases:missing_expected:{path}")
-
-    conf_manifest_payload, conf_manifest_issues = load_json_object(
-        KCONFIG_BRIDGE_CONF_MANIFEST,
-        "kconfig_bridge_conf_manifest",
-    )
-    issues.extend(conf_manifest_issues)
-    if conf_manifest_payload is not None:
-        issues.extend(
-            validate_manifest(
-                conf_manifest_payload,
-                expected=EXPECTED_CONF_MANIFEST,
-                label="kconfig_bridge_conf_manifest",
-            )
-        )
-
-    confdata_manifest_payload, confdata_manifest_issues = load_json_object(
-        KCONFIG_BRIDGE_CONFDATA_MANIFEST,
-        "kconfig_bridge_confdata_manifest",
-    )
-    issues.extend(confdata_manifest_issues)
-    if confdata_manifest_payload is not None:
-        issues.extend(
-            validate_manifest(
-                confdata_manifest_payload,
-                expected=EXPECTED_CONFDATA_MANIFEST,
-                label="kconfig_bridge_confdata_manifest",
-            )
-        )
-
-    if args.self_test:
-        issues.extend(run_self_test_checks())
-        if issues:
-            print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=fail")
-            for issue in issues:
-                print(issue)
-            return 1
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-        print("PHASE2_CLOSURE_VALIDATION_SELF_TEST_CHECK_COUNT=25")
-        return 0
-
+    issues = collect_issues()
     if issues:
         print("PHASE2_CLOSURE_VALIDATION=fail")
         for issue in issues:
             print(issue)
         return 1
 
-    commands = build_validation_commands()
-    for command in commands:
+    for command in build_validation_commands():
         if run(command) != 0:
             print("PHASE2_CLOSURE_VALIDATION=fail")
             print(f"PHASE2_CLOSURE_VALIDATION_FAILED_COMMAND={' '.join(command[1:])}")
             return 1
 
     print("PHASE2_CLOSURE_VALIDATION=pass")
-    print(f"PHASE2_CLOSURE_VALIDATION_COMMAND_COUNT={len(commands)}")
+    print(f"PHASE2_CLOSURE_VALIDATION_COMMAND_COUNT={len(PHASE2_VALIDATION_COMMAND_SPECS)}")
     return 0
 
 
