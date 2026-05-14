@@ -12,6 +12,7 @@ from typing import Any
 SELF_PATH = Path(__file__).resolve()
 DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 VALIDATE_PHASE1_REL = Path("scripts/zigux/validate-phase1.py")
+DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
 STRING_HELPER_REL = Path("tools/lib/string.zig")
 FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")
 
@@ -23,6 +24,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase1-bench.py",
+    "scripts/zigux/check-phase1-direct-owner-markers.py",
     "scripts/zigux/check-phase1-installer-companion-checks.py",
     "scripts/zigux/check-phase1-installer-review-surfaces.py",
     "scripts/zigux/check-phase1-parity.py",
@@ -304,6 +306,11 @@ EXPECTED_RBTREE_MANIFEST = {
 EXPECTED_STRING_HELPER_TESTS = [
     'test "strtobool accepts common Linux forms"',
     'test "strlcpy copies and returns the source length"',
+    'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
+    'test "strscpyPad zero-pads the tail after a short source"',
+    'test "strscpyPad stops at embedded NUL and pads the remaining tail"',
+    'test "strscpyPad preserves strscpy truncation semantics"',
+    'test "strscpy_pad mirrors strscpyPad padding semantics"',
     'test "streq matches C-string equality semantics"',
     'test "skip trim remove and replace spaces work in place"',
     'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
@@ -378,6 +385,7 @@ def collect_bench_markers(bench: Any) -> list[str]:
     if bench.get("status") != EXPECTED_BENCH["status"]:
         missing.append("bench:status")
     if bench.get("iterations") != EXPECTED_BENCH["iterations"]:
+
         missing.append("bench:iterations")
     if bench.get("checksums") != EXPECTED_BENCH["checksums"]:
         missing.append("bench:checksums")
@@ -398,6 +406,20 @@ def run_phase1_validator(root: Path) -> list[str]:
         return []
     detail = (result.stdout + result.stderr).strip()
     return [f"phase1_validator_failed:{detail}"]
+
+
+def run_direct_owner_checker(root: Path) -> list[str]:
+    checker = root / DIRECT_OWNER_CHECKER_REL
+    result = subprocess.run(
+        [sys.executable, str(checker), "--root", str(root)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        return []
+    detail = (result.stdout + result.stderr).strip()
+    return [f"phase1_direct_owner_checker_failed:{detail}"]
 
 
 def collect_bitmap_manifest_markers(manifest: Any) -> list[str]:
@@ -536,6 +558,7 @@ def collect_missing_markers(root: Path) -> list[str]:
 
     missing: list[str] = []
     missing.extend(run_phase1_validator(root))
+    missing.extend(run_direct_owner_checker(root))
     missing.extend(require_markers(workflow, "workflow", WORKFLOW_MARKERS))
     if "mlugg/setup-zig@" in workflow:
         missing.append("workflow:unexpected mlugg/setup-zig@ reference")
@@ -601,6 +624,7 @@ def make_fixture_root(root: Path) -> None:
         ) + "\n",
     )
     write_text(root, "scripts/zigux/validate-phase1.py", "import sys\nif __name__ == '__main__':\n    print('PHASE1_VALIDATION=pass')\n    raise SystemExit(0)\n")
+    write_text(root, str(DIRECT_OWNER_CHECKER_REL), "import sys\nif __name__ == '__main__':\n    print('PHASE1_DIRECT_OWNER_MARKERS=pass')\n    raise SystemExit(0)\n")
 
 
 def run_self_test() -> None:
@@ -756,6 +780,12 @@ def run_self_test() -> None:
         phase1_validator = root / VALIDATE_PHASE1_REL
         phase1_validator.write_text("import sys\nif __name__ == '__main__':\n    print('PHASE1_VALIDATION=fail')\n    raise SystemExit(1)\n", encoding="utf-8")
         assert any(item.startswith("phase1_validator_failed:") for item in collect_missing_markers(root))
+        case_count += 1
+        make_fixture_root(root)
+
+        direct_owner_checker = root / DIRECT_OWNER_CHECKER_REL
+        direct_owner_checker.write_text("import sys\nif __name__ == '__main__':\n    print('PHASE1_DIRECT_OWNER_MARKERS=fail')\n    raise SystemExit(1)\n", encoding="utf-8")
+        assert any(item.startswith("phase1_direct_owner_checker_failed:") for item in collect_missing_markers(root))
         case_count += 1
         make_fixture_root(root)
 
