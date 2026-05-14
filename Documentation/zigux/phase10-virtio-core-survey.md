@@ -29,7 +29,7 @@ Current `master` still keeps the bounded core packet reviewable through the mani
 - the direct `drivers/virtio/virtio_verify.zig` replay already keeps the wrapper-facing lifecycle guard checkpoints, narrowed-feature summaries, failed-status teardown, and reset replay reviewable beside the helper-local packet and the shared Phase 10 build route.
 - the landed driver-id helper already keeps bounded `register_virtio_device()`, `virtio_uevent()`, `virtio_id_match()`, and `virtio_dev_match()` reviewable through exact, wildcard, and unmatched paths without claiming bus registration, and its coverage-disposition helper keeps exact coverage, wildcard coverage, wildcard shadowing, and unmatched table outcomes explicit.
 - the roadmap-facing parity evidence for this bounded packet now explicitly spans the Phase 10 destination family `drivers/virtio/*.zig` plus the justified bridging-helper boundary in `zigux/kernel/` and `zigux/helpers/`.
-- shared Phase 10 reminder surfaces and the live docs tree still frame `Documentation/zigux/phase10-virtio-core-slice.md` as an absent packet-local companion on current `master`, so the core manifest, survey gate, and dedicated checker must keep that path explicit as a repo-reality gap rather than treating it as shipped validation evidence.
+- the packet-local companion `Documentation/zigux/phase10-virtio-core-slice.md` now keeps the direct helper, driver-id, verify replay, focused reset replay, survey gate, and shared build-backed review path grouped as shipped core-lane evidence on current `master` without widening into ring, MMIO, or transport-facing lifecycle claims.
 - the remaining roadmap bridges to a true lab driver are still blocked outside this lane: dual implementations for risky transport-facing paths plus probe, full remove, and reset lifecycle state remain too risky to claim from the core helper alone.
 
 ## Recorded gaps
@@ -37,7 +37,7 @@ Current `master` still keeps the bounded core packet reviewable through the mani
 - the landed `phase10-virtio-core-lab-starter`
 - the landed `phase10-virtio-core-lab-gate`
 - the landed `phase10-virtio-core-reset-queue-gate`
-- the repo-reality gap `phase10-core-slice-note` for `Documentation/zigux/phase10-virtio-core-slice.md`
+- the landed `phase10-core-slice-note`
 - the landed `phase10-virtio-core-survey-gate`
 - the landed `phase10-virtio-core-survey-note`
 - the landed `phase10-virtio-core-verify-replay`
@@ -55,7 +55,7 @@ Current `master` still keeps the bounded core packet reviewable through the mani
 - the still-blocked `phase10-core-dual-implementation-bridge`
 - the still-blocked `phase10-core-probe-remove-lifecycle`
 
-That keeps the lane concrete and reviewable without overstating progress: the current core packet already owns the roadmap-facing `lab-only driver validation` evidence on the survey note, manifest, dedicated checker, direct verify replay, tests-root companion, and shared build surfaces; the packet-local slice-note companion remains a repo-reality gap; and the still-missing dual-implementation boundary plus the transport-backed probe or remove bridge remain explicitly blocked instead of implied.
+That keeps the lane concrete and reviewable without overstating progress: the current core packet already owns the roadmap-facing `lab-only driver validation` evidence on the slice note, survey note, manifest, dedicated checker, direct verify replay, tests-root companion, and shared build surfaces; and the still-missing dual-implementation boundary plus the transport-backed probe or remove bridge remain explicitly blocked instead of implied.
 
 ## Freeze Boundary
 The current core packet stays aligned with `Documentation/zigux/freeze-map.md` by keeping the risky transport posture explicit.
@@ -84,4 +84,4 @@ This survey slice does not claim:
 - `make -C zigux phase10`
 
 ## Next bounded step
-Leave the broader Phase 10 virtio lane parked unless a fresh repo reread finds one more directly coupled same-lane drift. Inside this core packet, the next honest bounded step is to keep `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `scripts/zigux/check-phase10-core-packet.py`, and this survey note aligned around the repo-reality gap for `Documentation/zigux/phase10-virtio-core-slice.md` while preserving the blocked dual-implementation and probe/remove bridges.
+Leave the broader Phase 10 virtio lane parked unless a fresh repo reread finds one more directly coupled same-lane drift. Inside this core packet, the next honest bounded step is to keep `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `scripts/zigux/check-phase10-core-packet.py`, and this survey note aligned while preserving the blocked dual-implementation and probe/remove bridges.
