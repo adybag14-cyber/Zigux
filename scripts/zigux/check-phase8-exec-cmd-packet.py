@@ -115,6 +115,7 @@ REQUIRED_MARKERS = {
     EXEC_CMD_TEST_PATH: (
         'test "phase 8 exec-cmd module imports cleanly" {',
         'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {',
+        'test "phase 8 exec-cmd focused replay accepts the last deferred execl handoff before overflow" {',
         'test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary explicit" {',
         'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {',
         'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {',
@@ -274,7 +275,7 @@ def assert_order_case(root: Path, rel_path: str, earlier_marker: str, later_mark
         + earlier_marker
         + text[later_index + len(later_marker) :]
     )
-    (root / rel_path).write_text(swapped, encoding="utf-8")
+    (root / rel_path).writeText(swapped, encoding="utf-8")
 
     result = run_validator(root)
     expected = f"marker-order:{rel_path}:{earlier_marker}:{later_marker}"
@@ -329,6 +330,7 @@ def run_self_test() -> int:
             (EXEC_CMD_SLICE_PATH, "zig test tools/lib/subcmd/exec-cmd.zig"),
             (EXEC_CMD_SLICE_PATH, "python3 scripts/zigux/check-phase8-exec-cmd-packet.py"),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {'),
+            (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay accepts the last deferred execl handoff before overflow" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd workflow keeps the focused replay ahead of sibling help shards" {'),
