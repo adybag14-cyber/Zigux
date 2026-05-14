@@ -40,6 +40,14 @@
     "expected_exit_code": 0
   },
   {
+    "name": "sample_dependency_continuation",
+    "depfile": "sample_dependency_continuation.d",
+    "target": "sample_dependency_continuation.o",
+    "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_dependency_continuation_source.c -o sample_dependency_continuation.o",
+    "expected": "sample_dependency_continuation_expected.txt",
+    "expected_exit_code": 0
+  },
+  {
     "name": "sample_comment_continuation",
     "depfile": "sample_comment_continuation.d",
     "target": "sample_comment_continuation.o",
