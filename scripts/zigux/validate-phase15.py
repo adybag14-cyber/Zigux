@@ -204,7 +204,7 @@ LANE_SEQUENCING_MARKERS = [
     "- `parity-scorecard`: owns `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/tests/phase15_parity_scorecard.json`, and `zigux/tests/phase15_parity_scorecard.zig`",
     "- `indefinite-c-policy`: owns `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
     "- `readiness-gate`: owns `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_readiness_gate.zig`, and `scripts/zigux/validate-phase15.py`",
-    "- `handoff-next-steps`: owns `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_STEPS.zig`",
+    "- `handoff-next-steps`: owns `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig`",
     "- `shared-summaries`: owns `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/check-phase15-shared-summary-gap.py",
@@ -565,7 +565,7 @@ def _seed_fixture_tree(root: Path) -> None:
         "zigux/tests/phase15_handoff_next_steps.zig",
         "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
         "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-        "zigux/tests/phase15_governance_lane_SEQUENCING.zig",
+        "zigux/tests/phase15_governance_lane_sequencing.zig",
         "zigux/tests/phase15_readiness_gate.zig",
     ):
         _write(root, rel, "// stub\n")
