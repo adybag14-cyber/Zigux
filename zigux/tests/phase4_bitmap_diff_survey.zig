@@ -110,6 +110,7 @@ test "phase 4 bitmap survey keeps the shared build route explicit" {
     try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "\"phase4-bitmap-diff-survey\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "\"phase4-bitmap-live-helper-replay\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "manifest-backed Phase 4 bitmap rollback survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "test_step.dependOn(&run_bitmap_live_helper_replay_tests.step);") != null);
 }
 
 test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
