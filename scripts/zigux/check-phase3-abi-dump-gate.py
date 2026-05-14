@@ -86,6 +86,7 @@ BUILD_MARKERS = (
 REQUIRED_REPLAY_TOP_LEVEL_KEYS = (
     "abi_version",
     "dev_t",
+    "notifier_chain",
 )
 
 REQUIRED_REPLAY_DEV_T_KEYS = (
@@ -169,7 +170,7 @@ REQUIRED_REPLAY_STRUCT_MARKERS = (
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_view",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_summary",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view",
-    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_summary",
     "notifier_block",
 )
 
@@ -650,6 +651,18 @@ def run_self_test() -> int:
         case_count += 1
 
         _populate_repo(root)
+        broken = root / DUMP_PATH
+        broken.write_text(_read(broken).replace("notifier_chain\n", "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            "missing dump top-level key marker: notifier_chain",
+            "expected missing dump notifier-chain key was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
         broken = root / HARNESS_PATH
         broken.write_text(
             _read(broken).replace(
@@ -718,7 +731,6 @@ def run_self_test() -> int:
             "expected wrong expected-fixture constant was not reported",
         ):
             return 1
-        case_count += 1
 
         _populate_repo(root)
         broken = root / EXPECTED_PATH
