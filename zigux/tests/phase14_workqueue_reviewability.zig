@@ -45,6 +45,14 @@ fn readReviewChecklistSource() ![]u8 {
     return readRootFile("Documentation/zigux/review-checklist.md", 128 * 1024);
 }
 
+fn readWorkqueueBridgeTestSource() ![]u8 {
+    return readRootFile("zigux/tests/phase14_workqueue_bridge.zig", 64 * 1024);
+}
+
+fn readRingBufferSurveyTestSource() ![]u8 {
+    return readRootFile("zigux/tests/phase14_ring_buffer_survey.zig", 64 * 1024);
+}
+
 test "phase14 shared smoke manifest keeps workqueue reviewability explicit" {
     try expectContains(manifest_source, "\"zigux/tests/phase14_workqueue_reviewability.zig\"");
     try expectContains(manifest_source, "\"label\": \"phase14-workqueue-reviewability-tests\"");
@@ -186,6 +194,26 @@ test "phase14 review checklist keeps the workqueue packet explicit in the shared
     try expectContains(review_checklist_source, "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` kept explicit as the two boundary-study-only anchors");
     try expectContains(review_checklist_source, "`kernel/rcu/tree.c` plus `net/core/skbuff.c` kept explicit as the two freeze-in-C-governed anchors");
     try expectContains(review_checklist_source, "without implying an active deep-core port claim");
+}
+
+test "phase14 reviewability gate keeps non-freeze replay roots explicit" {
+    const build_source = try readBuildSource();
+    defer std.testing.allocator.free(build_source);
+
+    const workqueue_bridge_test_source = try readWorkqueueBridgeTestSource();
+    defer std.testing.allocator.free(workqueue_bridge_test_source);
+
+    const ring_buffer_survey_test_source = try readRingBufferSurveyTestSource();
+    defer std.testing.allocator.free(ring_buffer_survey_test_source);
+
+    try expectContains(build_source, "phase14_workqueue_bridge.zig");
+    try expectContains(build_source, "phase14_ring_buffer_survey.zig");
+    try expectContains(workqueue_bridge_test_source, "phase14 workqueue bridge manifest records the blocked-maintenance packet");
+    try expectContains(workqueue_bridge_test_source, "phase14-workqueue-live-execution-blocker");
+    try expectContains(workqueue_bridge_test_source, "phase14-workqueue-scheduler-visible-worker-state-refinement");
+    try expectContains(ring_buffer_survey_test_source, "phase14 ring-buffer survey manifest records the current study-only packet");
+    try expectContains(ring_buffer_survey_test_source, "phase14-ring-buffer-maintenance-handoff");
+    try expectContains(ring_buffer_survey_test_source, "phase14-ring-buffer-zig-port-blocker");
 }
 
 test "phase14 workqueue survey keeps blocked-maintenance boundaries explicit" {
