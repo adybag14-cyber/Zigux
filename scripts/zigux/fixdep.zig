@@ -54,6 +54,12 @@ fn bytesBeforeFirstNull(text: []const u8) []const u8 {
     return text[0 .. (std.mem.indexOfScalar(u8, text, 0) orelse text.len)];
 }
 
+fn shouldUnescapeEscapedSpecial(token: []const u8) bool {
+    var start = token.len;
+    while (start > 0 and token[start - 1] == '\\') : (start -= 1) {}
+    return ((token.len - start) % 2) == 0;
+}
+
 fn formatDependencyFileErrorMessage(
     buffer: []u8,
     kind: DependencyFileFailure,
@@ -309,7 +315,7 @@ const Processor = struct {
                     if (cursor + 1 < scan_text.len and scan_text[cursor + 1] == '\n') {
                         break;
                     }
-                    if (cursor + 1 < scan_text.len and (scan_text[cursor + 1] == '#' or scan_text[cursor + 1] == ':')) {
+                    if (cursor + 1 < scan_text.len and (scan_text[cursor + 1] == '#' or scan_text[cursor + 1] == ':') and shouldUnescapeEscapedSpecial(token.items)) {
                         cursor += 1;
                         try token.append(self.arena.allocator(), scan_text[cursor]);
                         cursor += 1;
@@ -322,13 +328,6 @@ const Processor = struct {
                         cursor += 1;
                         continue;
                     }
-                    try token.append(self.arena.allocator(), scan_text[cursor]);
-                    cursor += 1;
-                    if (cursor < scan_text.len) {
-                        try token.append(self.arena.allocator(), scan_text[cursor]);
-                        cursor += 1;
-                    }
-                    continue;
                 }
 
                 try token.append(self.arena.allocator(), scan_text[cursor]);
@@ -517,6 +516,13 @@ test "config parsing stops at the first embedded NUL" {
         "    $(wildcard include/config/ZIGUX_VISIBLE) \\\n",
         capture.list.items,
     );
+}
+
+test "escaped special unescaping follows trailing backslash parity" {
+    try std.testing.expect(shouldUnescapeEscapedSpecial(&.{}));
+    try std.testing.expect(!shouldUnescapeEscapedSpecial(&.{ '\\' }));
+    try std.testing.expect(shouldUnescapeEscapedSpecial(&.{ '\\', '\\' }));
+    try std.testing.expect(!shouldUnescapeEscapedSpecial(&.{ '\\', '\\', '\\' }));
 }
 
 test "dep parsing returns NoTargets for comment-only depfiles" {
