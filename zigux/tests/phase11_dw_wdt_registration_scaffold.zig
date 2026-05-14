@@ -192,3 +192,31 @@ test "platform registration scaffold summary keeps blocked timeout-programming b
     try std.testing.expect(summary.blocked_on_live_platform_registration);
     try std.testing.expect(summary.blocked_on_live_mmio);
 }
+
+test "platform registration scaffold summary keeps missing timer clock block explicit" {
+    const summary = dw_wdt.platformRegistrationScaffoldSummary(.{
+        .has_named_tclk = false,
+        .has_shared_clock = false,
+        .has_pclk = true,
+        .has_reset_control = true,
+        .has_pretimeout_irq = false,
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = false,
+    });
+
+    try std.testing.expectEqual(
+        dw_wdt.RegistrationScaffoldState.blocked_missing_timer_clock,
+        summary.state,
+    );
+    try std.testing.expectEqual(
+        dw_wdt.ProbeTimeoutOrigin.blocked_missing_timer_clock,
+        summary.probe_timeout_origin,
+    );
+    try std.testing.expect(!summary.registration_requested);
+    try std.testing.expect(!summary.stop_on_reboot_requested);
+    try std.testing.expect(summary.reset_release_ready);
+    try std.testing.expect(!summary.reset_release_requested);
+    try std.testing.expect(summary.blocked_on_live_platform_registration);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
