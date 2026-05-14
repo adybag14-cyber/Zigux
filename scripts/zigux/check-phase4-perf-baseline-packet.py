@@ -21,6 +21,11 @@ BUILD_REL = Path("zigux/tests/phase4_build.zig")
 MAKEFILE_REL = Path("zigux/Makefile")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
+EXPECTED_COORDINATION_OWNERS = [
+    "ABI and Runtime Team",
+    "Shared Subsystems Pod",
+]
+
 REQUIRED_FILES = [
     MANIFEST_REL,
     SURVEY_REL,
@@ -49,6 +54,8 @@ MANIFEST_MARKERS = [
     '"acceptable_limit_max_elapsed_ns": 8192',
     '"acceptable_limit_max_elapsed_ns": 12288',
     '"status": "shared CI perf promotion pending"',
+    '"owner": "Validation and Perf Team"',
+    '"coordination_owners": [',
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
 ]
 
@@ -146,6 +153,11 @@ SELF_TEST_CASES = [
     "ready_next_tests_readme_drift",
     "ready_next_policy_marker_drift",
     "manifest_limit_drift",
+    "manifest_decision_owner_drift",
+    "manifest_coordination_owners_drift",
+    "manifest_promotion_decision_status_drift",
+    "manifest_promotion_decision_owner_drift",
+    "manifest_promotion_decision_coordination_owners_drift",
     "survey_checker_test_drift",
     "survey_local_only_test_drift",
     "matrix_local_only_posture_drift",
@@ -181,6 +193,10 @@ def missing_markers(text: str, markers: list[str], prefix: str) -> list[str]:
     return [f"{prefix}:{marker}" for marker in markers if marker not in text]
 
 
+def write_manifest(root: Path, manifest: dict[str, object]) -> None:
+    write_text(root / MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+
+
 def validate_root(root: Path) -> list[str]:
     failures: list[str] = []
     for rel_path in REQUIRED_FILES:
@@ -209,6 +225,21 @@ def validate_root(root: Path) -> list[str]:
             failures.append(f"manifest_marker:{marker}")
     if manifest.get("shared_ci_perf_promotion_status") != "pending":
         failures.append("manifest_field:shared_ci_perf_promotion_status")
+    if manifest.get("decision_owner") != "Validation and Perf Team":
+        failures.append("manifest_field:decision_owner")
+    if manifest.get("coordination_owners") != EXPECTED_COORDINATION_OWNERS:
+        failures.append("manifest_field:coordination_owners")
+
+    promotion_decision = manifest.get("promotion_decision")
+    if not isinstance(promotion_decision, dict):
+        failures.append("manifest_field:promotion_decision")
+    else:
+        if promotion_decision.get("status") != "shared CI perf promotion pending":
+            failures.append("manifest_field:promotion_decision.status")
+        if promotion_decision.get("owner") != "Validation and Perf Team":
+            failures.append("manifest_field:promotion_decision.owner")
+        if promotion_decision.get("coordination_owners") != EXPECTED_COORDINATION_OWNERS:
+            failures.append("manifest_field:promotion_decision.coordination_owners")
 
     reversible_delivery_evidence = manifest.get("reversible_delivery_evidence")
     if not isinstance(reversible_delivery_evidence, str) or not reversible_delivery_evidence.strip():
@@ -329,7 +360,13 @@ def build_fixture_tree(root: Path) -> None:
                     "acceptable_limit_max_elapsed_ns": 12288,
                 },
                 "promotion_decision": {
+                    "id": "phase4-perf-baseline-shared-promotion-decision",
                     "status": "shared CI perf promotion pending",
+                    "owner": "Validation and Perf Team",
+                    "coordination_owners": [
+                        "ABI and Runtime Team",
+                        "Shared Subsystems Pod",
+                    ],
                 },
             },
             indent=2,
@@ -344,26 +381,26 @@ def build_fixture_tree(root: Path) -> None:
                 "",
                 'test "phase4 perf baseline survey keeps the dedicated local checker packet explicit" {',
                 '    const checker = try std.fs.cwd().readFileAlloc(',
-                '        std.testing.allocator,',
+                "        std.testing.allocator,",
                 '        "scripts/zigux/check-phase4-perf-baseline-packet.py",',
-                '        1024 * 1024,',
-                '    );',
-                '    defer std.testing.allocator.free(checker);',
+                "        1024 * 1024,",
+                "    );",
+                "    defer std.testing.allocator.free(checker);",
                 '    try std.testing.expect(std.mem.indexOf(u8, checker, "PHASE4_PERF_BASELINE_PACKET_CHECK=pass") != null);',
                 '    try std.testing.expect(std.mem.indexOf(u8, checker, "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass") != null);',
-                '}',
+                "}",
                 "",
                 'test "phase4 perf baseline survey keeps the dedicated local checker local-only" {',
                 '    const checker = try std.fs.cwd().readFileAlloc(',
-                '        std.testing.allocator,',
+                "        std.testing.allocator,",
                 '        "scripts/zigux/check-phase4-perf-baseline-packet.py",',
-                '        1024 * 1024,',
-                '    );',
-                '    defer std.testing.allocator.free(checker);',
+                "        1024 * 1024,",
+                "    );",
+                "    defer std.testing.allocator.free(checker);",
                 '    try std.testing.expect(std.mem.indexOf(u8, checker, "phase4 perf baseline packet stays local-only and self-tested") != null);',
                 '    try std.testing.expect(std.mem.indexOf(u8, checker, "workflow_unexpected_marker:phase4-perf-baseline-survey") != null);',
                 '    try std.testing.expect(std.mem.indexOf(u8, checker, "workflow_unexpected_marker:check-phase4-perf-baseline-packet.py") != null);',
-                '}',
+                "}",
                 "",
             ]
         ),
@@ -566,6 +603,62 @@ def run_self_test() -> int:
         if not expect_failure(root, "manifest_field:ready_next:shared-CI-pending promotion"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("ready-next policy marker drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        manifest = json.loads(read_text(root / MANIFEST_REL))
+        manifest["decision_owner"] = "Tooling and Validation Team"
+        write_manifest(root, manifest)
+        if not expect_failure(root, "manifest_field:decision_owner"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest decision-owner drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        manifest = json.loads(read_text(root / MANIFEST_REL))
+        manifest["coordination_owners"] = ["ABI and Runtime Team"]
+        write_manifest(root, manifest)
+        if not expect_failure(root, "manifest_field:coordination_owners"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest coordination-owner drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        manifest = json.loads(read_text(root / MANIFEST_REL))
+        promotion_decision = manifest.get("promotion_decision", {})
+        if isinstance(promotion_decision, dict):
+            promotion_decision["status"] = "shared CI perf promotion approved"
+        write_manifest(root, manifest)
+        if not expect_failure(root, "manifest_field:promotion_decision.status"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest promotion-decision status drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        manifest = json.loads(read_text(root / MANIFEST_REL))
+        promotion_decision = manifest.get("promotion_decision", {})
+        if isinstance(promotion_decision, dict):
+            promotion_decision["owner"] = "Tooling and Validation Team"
+        write_manifest(root, manifest)
+        if not expect_failure(root, "manifest_field:promotion_decision.owner"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest promotion-decision owner drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        manifest = json.loads(read_text(root / MANIFEST_REL))
+        promotion_decision = manifest.get("promotion_decision", {})
+        if isinstance(promotion_decision, dict):
+            promotion_decision["coordination_owners"] = ["ABI and Runtime Team"]
+        write_manifest(root, manifest)
+        if not expect_failure(root, "manifest_field:promotion_decision.coordination_owners"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest promotion-decision coordination-owner drift case did not fail closed")
             return 1
         case_count += 1
         build_fixture_tree(root)
