@@ -69,7 +69,7 @@ const Manifest = struct {
 };
 
 fn isAllowedStatus(status: []const u8) bool {
-    return std.mem.eql(u8, status, "starter_landed") or
+    return std.mem.eql(u8, status, "parked") or
         std.mem.eql(u8, status, "ready_next");
 }
 
@@ -300,7 +300,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\","
 );
 
-    var starter_landed_count: usize = 0;
+    var parked_count: usize = 0;
     var ready_next_count: usize = 0;
     var saw_helper = false;
     var saw_survey_gate = false;
@@ -313,27 +313,27 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
         try std.testing.expect(isAllowedStatus(gap.status));
         try expectStringSliceContains(manifest.review_surfaces, gap.zigux_destination);
 
-        if (std.mem.eql(u8, gap.status, "starter_landed")) {
-            starter_landed_count += 1;
+        if (std.mem.eql(u8, gap.status, "parked")) {
+            parked_count += 1;
         } else if (std.mem.eql(u8, gap.status, "ready_next")) {
             ready_next_count += 1;
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-argv-split-helper")) {
             saw_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("parked", gap.status);
             try std.testing.expectEqualStrings("lib/argv_split.zig", gap.zigux_destination);
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-argv-split-survey-gate")) {
             saw_survey_gate = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("parked", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase7_argv_split_survey.zig", gap.zigux_destination);
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-argv-split-packet-checker")) {
             saw_packet_checker = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("parked", gap.status);
             try std.testing.expectEqualStrings("scripts/zigux/check-phase7-argv-split-packet.py", gap.zigux_destination);
         }
 
@@ -343,7 +343,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
         }
     }
 
-    try std.testing.expectEqual(manifest.gaps.len, starter_landed_count);
+    try std.testing.expectEqual(manifest.gaps.len, parked_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_survey_gate);
