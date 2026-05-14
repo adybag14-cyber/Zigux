@@ -322,6 +322,13 @@ const Processor = struct {
                         cursor += 1;
                         continue;
                     }
+                    try token.append(self.arena.allocator(), scan_text[cursor]);
+                    cursor += 1;
+                    if (cursor < scan_text.len) {
+                        try token.append(self.arena.allocator(), scan_text[cursor]);
+                        cursor += 1;
+                    }
+                    continue;
                 }
 
                 try token.append(self.arena.allocator(), scan_text[cursor]);
@@ -785,6 +792,50 @@ test "dep parsing unescapes escaped hash and colon dependency tokens" {
             "$(deps_escaped.o):\n",
         capture.list.items,
     );
+}
+
+test "double backslash before hash still starts a comment like C fixdep" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try std.testing.expectError(
+        error.ReadDependencyFile,
+        processor.parseDepFile(&capture, "missing_hash.o: source.rmeta missing\\\\#dep.h\n", "missing_hash.o"),
+    );
+    try std.testing.expectEqualStrings(
+        "source_missing_hash.o := source.rmeta\n\n" ++
+            "deps_missing_hash.o := \\\n" ++
+            "  missing\\\\ \\\n",
+        capture.list.items,
+    );
+    try std.testing.expectEqualStrings("missing\\\\", processor.last_file_error_path);
+    try std.testing.expectEqual(error.FileNotFound, processor.last_file_error.?);
+    try std.testing.expectEqual(DependencyFileFailure.open, processor.last_file_error_kind);
 }
 
 test "dep parsing keeps the first source across concatenated target entries" {
