@@ -8,6 +8,9 @@
     "riscv64-linux-musl"
   ],
   "zig_test_files": [
-    "scripts/zigux/fixdep.zig"
+    "scripts/zigux/fixdep.zig",
+    "scripts/zigux/genksyms.zig",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig"
   ]
 }
