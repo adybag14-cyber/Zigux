@@ -26,6 +26,7 @@ REQUIRED_MARKERS = {
         "scope: first low-risk argument-vector parsing and teardown helpers only",
         "keep stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path",
         "keep copied-buffer ownership so later source mutation does not affect split results",
+        "non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact",
         "zigux/tests/phase7_argv_split_survey.zig",
         "zigux/tests/phase7_argv_split_manifest.json",
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
@@ -186,6 +187,20 @@ def run_self_test() -> None:
             "slice_lane_key_marker",
             tmp_root,
             "Documentation/zigux/phase7-argv-split-slice.md: PHASE7_LANE_KEY=P7-L09",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact",
+            "",
+            "slice_teardown_safety_marker",
+        )
+        expect_missing_marker(
+            "slice_teardown_safety_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact",
         )
         write_fixture_root(tmp_root)
 
@@ -370,7 +385,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: pub fn cArgv",
         )
 
-    case_count = 15
+    case_count = 16
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
