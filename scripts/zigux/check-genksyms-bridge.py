@@ -20,10 +20,11 @@ GENKSYMS_CASES_REL = "zigux/tests/fixtures/genksyms_bridge/cases.json"
 GENKSYMS_MANIFEST_REL = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
 PHASE2_TOOL_MANIFEST_REL = "zigux/tests/fixtures/phase2_tool_manifest.json"
 PHASE2_CLOSURE_REL = "Documentation/zigux/phase2-closure.md"
-PHASE2_CLOSURE_VALIDATOR_REL = "scripts/zigux/validate-phase2-closure.py"
 TESTS_README_REL = "zigux/tests/README.md"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_REL = "zigux/Makefile"
+VALIDATE_PHASE2_REL = "scripts/zigux/validate-phase2.py"
+VALIDATE_PHASE2_CLOSURE_REL = "scripts/zigux/validate-phase2-closure.py"
 
 EXPECTED_GENKSYMS_CASES = [
     {
@@ -142,7 +143,11 @@ EXPECTED_GENKSYMS_CASES = [
     },
     {
         "name": "version",
-        "argv": ["-Vd", "--reference", "foo.symref"],
+        "argv": [
+            "-Vd",
+            "--reference",
+            "foo.symref",
+        ],
         "mode": "process_json",
         "expected": "version_expected.json",
     },
@@ -294,6 +299,24 @@ EXPECTED_TESTS_README_MARKERS = [
     "the shipped genksyms bridge direct replay",
 ]
 
+EXPECTED_PHASE2_VALIDATOR_MARKERS = [
+    'GENKSYMS_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"',
+    '    (GENKSYMS_BRIDGE_CHECKER, "--self-test"),',
+    '    (GENKSYMS_BRIDGE_CHECKER,),',
+    '        "scripts/zigux/check-genksyms-bridge.py --self-test",',
+    '        "scripts/zigux/check-genksyms-bridge.py",',
+    '        "zig test scripts/zigux/genksyms.zig",',
+]
+
+EXPECTED_PHASE2_CLOSURE_VALIDATOR_MARKERS = [
+    'CHECK_GENKSYMS_BRIDGE = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"',
+    '    (CHECK_GENKSYMS_BRIDGE,),',
+    '    "shared genksyms bridge self-test: `python3 scripts/zigux/check-genksyms-bridge.py --self-test`",',
+    '    "shared genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`",',
+    '    "committed genksyms bridge fixture packet: `zigux/tests/fixtures/genksyms_bridge/`",',
+    '    "the dedicated `Phase 2 genksyms` bridge packet remains the live `23-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`, and the shared reminder surfaces should keep that fixture-backed bridge evidence explicit without drifting back to older undercounts or claiming standalone checker scripts that are not present on current `master`",',
+]
+
 
 def expected_closure_case_marker() -> str:
     return (
@@ -311,17 +334,7 @@ EXPECTED_CLOSURE_MARKERS = [
     expected_closure_case_marker(),
 ]
 
-EXPECTED_CLOSURE_VALIDATOR_MARKERS = [
-    'CHECK_GENKSYMS_BRIDGE = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"',
-    '        CHECK_GENKSYMS_BRIDGE,',
-    '    (CHECK_GENKSYMS_BRIDGE,),',
-    "shared genksyms bridge self-test: `python3 scripts/zigux/check-genksyms-bridge.py --self-test`",
-    "shared genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`",
-    "committed genksyms bridge fixture packet: `zigux/tests/fixtures/genksyms_bridge/`",
-    expected_closure_case_marker(),
-]
-
-EXPECTED_SELF_TEST_CASE_COUNT = 24
+EXPECTED_SELF_TEST_CASE_COUNT = 25
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -347,7 +360,7 @@ def validate_expected_object(
     return issues
 
 
-def validate_expected_case_list(payload: object, label: str, *, root: Path) -> list[str]:
+def validate_expected_case_list(payload: object, label: str) -> list[str]:
     if not isinstance(payload, list):
         return [f"invalid_shape:{label}:expected_list"]
 
@@ -386,7 +399,7 @@ def validate_expected_case_list(payload: object, label: str, *, root: Path) -> l
         expected_path = fixture_root / str(case.get("expected", ""))
         if not expected_path.name:
             issues.append(f"{label}:{case.get('name', '<unnamed>')}:missing_expected")
-        elif not (root / expected_path).is_file():
+        elif not (ROOT / expected_path).is_file():
             issues.append(f"missing_file:{expected_path.as_posix()}")
     return issues
 
@@ -443,10 +456,11 @@ def validate_root(root: Path) -> list[str]:
         GENKSYMS_MANIFEST_REL,
         PHASE2_TOOL_MANIFEST_REL,
         PHASE2_CLOSURE_REL,
-        PHASE2_CLOSURE_VALIDATOR_REL,
         TESTS_README_REL,
         WORKFLOW_REL,
         MAKEFILE_REL,
+        VALIDATE_PHASE2_REL,
+        VALIDATE_PHASE2_CLOSURE_REL,
     ]
     for rel_path in required:
         if not (root / rel_path).is_file():
@@ -458,7 +472,12 @@ def validate_root(root: Path) -> list[str]:
     genksyms_cases, load_issues = load_json(root / GENKSYMS_CASES_REL, "genksyms_cases")
     issues.extend(load_issues)
     if genksyms_cases is not None:
-        issues.extend(validate_expected_case_list(genksyms_cases, "genksyms_cases", root=root))
+        root_for_paths = ROOT
+        try:
+            globals()["ROOT"] = root
+            issues.extend(validate_expected_case_list(genksyms_cases, "genksyms_cases"))
+        finally:
+            globals()["ROOT"] = root_for_paths
 
     genksyms_manifest, load_issues = load_json(root / GENKSYMS_MANIFEST_REL, "genksyms_manifest")
     issues.extend(load_issues)
@@ -489,33 +508,47 @@ def validate_root(root: Path) -> list[str]:
 
     tests_readme = (root / TESTS_README_REL).read_text(encoding="utf-8")
     issues.extend(validate_markers(tests_readme, EXPECTED_TESTS_README_MARKERS, TESTS_README_REL))
-    issues.extend(validate_exact_counts(tests_readme, EXPECTED_TESTS_README_MARKERS, TESTS_README_REL))
+    issues.extend(
+        validate_exact_counts(tests_readme, EXPECTED_TESTS_README_MARKERS, TESTS_README_REL)
+    )
 
     closure_text = (root / PHASE2_CLOSURE_REL).read_text(encoding="utf-8")
     issues.extend(validate_markers(closure_text, EXPECTED_CLOSURE_MARKERS, PHASE2_CLOSURE_REL))
     issues.extend(validate_exact_counts(closure_text, EXPECTED_CLOSURE_MARKERS, PHASE2_CLOSURE_REL))
-
-    closure_validator_text = (root / PHASE2_CLOSURE_VALIDATOR_REL).read_text(encoding="utf-8")
-    issues.extend(
-        validate_markers(
-            closure_validator_text,
-            EXPECTED_CLOSURE_VALIDATOR_MARKERS,
-            PHASE2_CLOSURE_VALIDATOR_REL,
-        )
-    )
-    issues.extend(
-        validate_exact_counts(
-            closure_validator_text,
-            EXPECTED_CLOSURE_VALIDATOR_MARKERS,
-            PHASE2_CLOSURE_VALIDATOR_REL,
-        )
-    )
 
     workflow_text = (root / WORKFLOW_REL).read_text(encoding="utf-8")
     issues.extend(validate_line_counts(workflow_text, EXPECTED_WORKFLOW_LINES, WORKFLOW_REL))
 
     makefile_text = (root / MAKEFILE_REL).read_text(encoding="utf-8")
     issues.extend(validate_line_counts(makefile_text, EXPECTED_MAKEFILE_LINES, MAKEFILE_REL))
+
+    validate_phase2_text = (root / VALIDATE_PHASE2_REL).read_text(encoding="utf-8")
+    issues.extend(
+        validate_markers(
+            validate_phase2_text, EXPECTED_PHASE2_VALIDATOR_MARKERS, VALIDATE_PHASE2_REL
+        )
+    )
+    issues.extend(
+        validate_exact_counts(
+            validate_phase2_text, EXPECTED_PHASE2_VALIDATOR_MARKERS, VALIDATE_PHASE2_REL
+        )
+    )
+
+    validate_phase2_closure_text = (root / VALIDATE_PHASE2_CLOSURE_REL).read_text(encoding="utf-8")
+    issues.extend(
+        validate_markers(
+            validate_phase2_closure_text,
+            EXPECTED_PHASE2_CLOSURE_VALIDATOR_MARKERS,
+            VALIDATE_PHASE2_CLOSURE_REL,
+        )
+    )
+    issues.extend(
+        validate_exact_counts(
+            validate_phase2_closure_text,
+            EXPECTED_PHASE2_CLOSURE_VALIDATOR_MARKERS,
+            VALIDATE_PHASE2_CLOSURE_REL,
+        )
+    )
 
     return issues
 
@@ -526,7 +559,10 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(root / GENKSYMS_CASES_REL, json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\n")
+    write_text(
+        root / GENKSYMS_CASES_REL,
+        json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\n",
+    )
     write_text(
         root / GENKSYMS_MANIFEST_REL,
         json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\n",
@@ -575,14 +611,30 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
     )
-    write_text(root / TESTS_README_REL, "\n".join(EXPECTED_TESTS_README_MARKERS) + "\n")
-    write_text(root / PHASE2_CLOSURE_REL, "\n".join(EXPECTED_CLOSURE_MARKERS) + "\n")
     write_text(
-        root / PHASE2_CLOSURE_VALIDATOR_REL,
-        "\n".join(EXPECTED_CLOSURE_VALIDATOR_MARKERS) + "\n",
+        root / TESTS_README_REL,
+        "\n".join(EXPECTED_TESTS_README_MARKERS) + "\n",
     )
-    write_text(root / WORKFLOW_REL, "\n".join(EXPECTED_WORKFLOW_LINES) + "\n")
-    write_text(root / MAKEFILE_REL, "\n".join(EXPECTED_MAKEFILE_LINES) + "\n")
+    write_text(
+        root / PHASE2_CLOSURE_REL,
+        "\n".join(EXPECTED_CLOSURE_MARKERS) + "\n",
+    )
+    write_text(
+        root / WORKFLOW_REL,
+        "\n".join(EXPECTED_WORKFLOW_LINES) + "\n",
+    )
+    write_text(
+        root / MAKEFILE_REL,
+        "\n".join(EXPECTED_MAKEFILE_LINES) + "\n",
+    )
+    write_text(
+        root / VALIDATE_PHASE2_REL,
+        "\n".join(EXPECTED_PHASE2_VALIDATOR_MARKERS) + "\n",
+    )
+    write_text(
+        root / VALIDATE_PHASE2_CLOSURE_REL,
+        "\n".join(EXPECTED_PHASE2_CLOSURE_VALIDATOR_MARKERS) + "\n",
+    )
     fixture_root = root / "zigux" / "tests" / "fixtures" / "genksyms_bridge"
     for filename in sorted({case["expected"] for case in EXPECTED_GENKSYMS_CASES}):
         write_text(fixture_root / filename, "{}\n")
@@ -613,6 +665,7 @@ def run_self_test() -> int:
         write_text(root / GENKSYMS_CASES_REL, json.dumps(payload, indent=2) + "\n")
         issues = validate_root(root)
         assert "genksyms_cases:case_count:expected=23:actual=22" in issues
+        assert "genksyms_cases:names:expected=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'missing_dump_types_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument', 'too_many_reference_files']:actual=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'missing_dump_types_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument']" in issues
         case_count += 1
 
         build_self_test_root(root)
@@ -658,7 +711,9 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_root(root)
-        assert f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[0]}:count=0:expected=1" in issues
+        assert (
+            f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[0]}:count=0:expected=1" in issues
+        )
         case_count += 1
 
         build_self_test_root(root)
@@ -668,7 +723,9 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_root(root)
-        assert f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
+        assert (
+            f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
+        )
         case_count += 1
 
         build_self_test_root(root)
@@ -678,7 +735,9 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_root(root)
-        assert f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[1]}:count=0:expected=1" in issues
+        assert (
+            f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[1]}:count=0:expected=1" in issues
+        )
         case_count += 1
 
         build_self_test_root(root)
@@ -688,7 +747,9 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_root(root)
-        assert f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[2]}:count=0:expected=1" in issues
+        assert (
+            f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[2]}:count=0:expected=1" in issues
+        )
         case_count += 1
 
         build_self_test_root(root)
@@ -698,7 +759,9 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_root(root)
-        assert f"line_count:{MAKEFILE_REL}:{EXPECTED_MAKEFILE_LINES[0]}:count=0:expected=1" in issues
+        assert (
+            f"line_count:{MAKEFILE_REL}:{EXPECTED_MAKEFILE_LINES[0]}:count=0:expected=1" in issues
+        )
         case_count += 1
 
         build_self_test_root(root)
@@ -708,7 +771,9 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_root(root)
-        assert f"line_count:{MAKEFILE_REL}:{EXPECTED_MAKEFILE_LINES[1]}:count=2:expected=1" in issues
+        assert (
+            f"line_count:{MAKEFILE_REL}:{EXPECTED_MAKEFILE_LINES[1]}:count=2:expected=1" in issues
+        )
         case_count += 1
 
         build_self_test_root(root)
@@ -718,7 +783,10 @@ def run_self_test() -> int:
             for manifest in phase2_tool_manifest["packet_manifests"]
             if manifest != GENKSYMS_MANIFEST_REL
         ]
-        write_text(root / PHASE2_TOOL_MANIFEST_REL, json.dumps(phase2_tool_manifest, indent=2) + "\n")
+        write_text(
+            root / PHASE2_TOOL_MANIFEST_REL,
+            json.dumps(phase2_tool_manifest, indent=2) + "\n",
+        )
         issues = validate_root(root)
         assert f"phase2_tool_manifest:missing_packet_manifest:{GENKSYMS_MANIFEST_REL}" in issues
         case_count += 1
@@ -726,9 +794,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         phase2_tool_manifest = json.loads((root / PHASE2_TOOL_MANIFEST_REL).read_text(encoding="utf-8"))
         phase2_tool_manifest["families"] = [
-            family for family in phase2_tool_manifest["families"] if family != "genksyms_bridge"
+            family
+            for family in phase2_tool_manifest["families"]
+            if family != "genksyms_bridge"
         ]
-        write_text(root / PHASE2_TOOL_MANIFEST_REL, json.dumps(phase2_tool_manifest, indent=2) + "\n")
+        write_text(
+            root / PHASE2_TOOL_MANIFEST_REL,
+            json.dumps(phase2_tool_manifest, indent=2) + "\n",
+        )
         issues = validate_root(root)
         assert "phase2_tool_manifest:missing_family:genksyms_bridge" in issues
         case_count += 1
@@ -743,53 +816,41 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert f"missing_marker:{TESTS_README_REL}:{EXPECTED_TESTS_README_MARKERS[0]}" in issues
-        assert f"exact_count:{TESTS_README_REL}:{EXPECTED_TESTS_README_MARKERS[0]}:count=0:expected=1" in issues
+        assert (
+            f"exact_count:{TESTS_README_REL}:{EXPECTED_TESTS_README_MARKERS[0]}:count=0:expected=1"
+            in issues
+        )
         case_count += 1
 
         build_self_test_root(root)
         closure_path = root / PHASE2_CLOSURE_REL
         closure_path.write_text(
-            closure_path.read_text(encoding="utf-8").replace(EXPECTED_CLOSURE_MARKERS[1] + "\n", "", 1),
+            closure_path.read_text(encoding="utf-8").replace(
+                EXPECTED_CLOSURE_MARKERS[1] + "\n", "", 1
+            ),
             encoding="utf-8",
         )
         issues = validate_root(root)
         assert f"missing_marker:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[1]}" in issues
-        assert f"exact_count:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[1]}:count=0:expected=1" in issues
-        case_count += 1
-
-        build_self_test_root(root)
-        closure_validator_path = root / PHASE2_CLOSURE_VALIDATOR_REL
-        closure_validator_path.write_text(
-            closure_validator_path.read_text(encoding="utf-8").replace(
-                EXPECTED_CLOSURE_VALIDATOR_MARKERS[1] + "\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_root(root)
         assert (
-            f"missing_marker:{PHASE2_CLOSURE_VALIDATOR_REL}:{EXPECTED_CLOSURE_VALIDATOR_MARKERS[1]}"
-            in issues
-        )
-        assert (
-            f"exact_count:{PHASE2_CLOSURE_VALIDATOR_REL}:{EXPECTED_CLOSURE_VALIDATOR_MARKERS[1]}:count=0:expected=1"
+            f"exact_count:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[1]}:count=0:expected=1"
             in issues
         )
         case_count += 1
 
         build_self_test_root(root)
-        closure_validator_path = root / PHASE2_CLOSURE_VALIDATOR_REL
-        closure_validator_path.write_text(
-            closure_validator_path.read_text(encoding="utf-8").replace(
-                f"`{EXPECTED_GENKSYMS_MANIFEST['case_count']}-case`",
-                f"`{EXPECTED_GENKSYMS_MANIFEST['case_count'] - 1}-case`",
-                1,
+        closure_path = root / PHASE2_CLOSURE_REL
+        stale_case_marker = f"`{EXPECTED_GENKSYMS_MANIFEST['case_count'] - 1}-case`"
+        closure_path.write_text(
+            closure_path.read_text(encoding="utf-8").replace(
+                f"`{EXPECTED_GENKSYMS_MANIFEST['case_count']}-case`", stale_case_marker, 1
             ),
             encoding="utf-8",
         )
         issues = validate_root(root)
-        assert f"missing_marker:{PHASE2_CLOSURE_VALIDATOR_REL}:{EXPECTED_CLOSURE_VALIDATOR_MARKERS[-1]}" in issues
+        assert f"missing_marker:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[1]}" in issues
         assert (
-            f"exact_count:{PHASE2_CLOSURE_VALIDATOR_REL}:{EXPECTED_CLOSURE_VALIDATOR_MARKERS[-1]}:count=0:expected=1"
+            f"exact_count:{PHASE2_CLOSURE_REL}:{EXPECTED_CLOSURE_MARKERS[1]}:count=0:expected=1"
             in issues
         )
         case_count += 1
@@ -798,9 +859,7 @@ def run_self_test() -> int:
         genksyms_path = root / GENKSYMS_TOOL_REL
         genksyms_path.write_text(
             genksyms_path.read_text(encoding="utf-8").replace(
-                f'test "{EXPECTED_GENKSYMS_MANIFEST["helper_local_anchors"][0]}" {{}}\n',
-                "",
-                1,
+                f'test "{EXPECTED_GENKSYMS_MANIFEST["helper_local_anchors"][0]}" {{}}\n', "", 1
             ),
             encoding="utf-8",
         )
@@ -830,6 +889,38 @@ def run_self_test() -> int:
         assert "invalid_shape:genksyms_cases:expected_list" in issues
         case_count += 1
 
+        build_self_test_root(root)
+        validate_phase2_path = root / VALIDATE_PHASE2_REL
+        validate_phase2_path.write_text(
+            validate_phase2_path.read_text(encoding="utf-8").replace(
+                EXPECTED_PHASE2_VALIDATOR_MARKERS[3] + "\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"missing_marker:{VALIDATE_PHASE2_REL}:{EXPECTED_PHASE2_VALIDATOR_MARKERS[3]}" in issues
+        assert (
+            f"exact_count:{VALIDATE_PHASE2_REL}:{EXPECTED_PHASE2_VALIDATOR_MARKERS[3]}:count=0:expected=1"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        validate_phase2_closure_path = root / VALIDATE_PHASE2_CLOSURE_REL
+        validate_phase2_closure_path.write_text(
+            validate_phase2_closure_path.read_text(encoding="utf-8").replace(
+                EXPECTED_PHASE2_CLOSURE_VALIDATOR_MARKERS[5] + "\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"missing_marker:{VALIDATE_PHASE2_CLOSURE_REL}:{EXPECTED_PHASE2_CLOSURE_VALIDATOR_MARKERS[5]}" in issues
+        assert (
+            f"exact_count:{VALIDATE_PHASE2_CLOSURE_REL}:{EXPECTED_PHASE2_CLOSURE_VALIDATOR_MARKERS[5]}:count=0:expected=1"
+            in issues
+        )
+        case_count += 1
+
     assert case_count == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={case_count}")
@@ -838,7 +929,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check the Phase 2 genksyms bridge packet and workflow wiring."
+        description="Check the Phase 2 genksyms bridge packet plus workflow and Makefile wiring."
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage.")
     args = parser.parse_args()
@@ -859,6 +950,7 @@ def main() -> int:
     )
     print(f"PHASE2_GENKSYMS_BRIDGE_WORKFLOW_HOOK_COUNT={len(EXPECTED_WORKFLOW_LINES)}")
     print(f"PHASE2_GENKSYMS_BRIDGE_MAKEFILE_HOOK_COUNT={len(EXPECTED_MAKEFILE_LINES)}")
+    print("PHASE2_GENKSYMS_BRIDGE_VALIDATOR_FILE_COUNT=2")
     return 0
 
 
