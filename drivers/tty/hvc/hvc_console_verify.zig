@@ -118,7 +118,7 @@ pub fn summarizeTargetlessSysrqDispatch(request: TargetlessSysrqDispatchRequest)
 
     return .{
         .handoff = handoff,
-        .notifier_callback_implied = request.notifier_callback_implied and request.target_vtermno != null,
+        .notifier_callback_implied = request.notifier_callback_implied and handoff.invokes_sysrq_handler,
         .targetless_dispatch_without_notifier = request.target_vtermno == null and !request.notifier_callback_implied,
     };
 }
@@ -204,4 +204,21 @@ test "hvc_console verify keeps targetless sysrq dispatch from implying notifier 
     try std.testing.expect(summary.handoff.keeps_live_sysrq_execution_out_of_scope);
     try std.testing.expect(!summary.notifier_callback_implied);
     try std.testing.expect(summary.targetless_dispatch_without_notifier);
+}
+
+test "hvc_console verify keeps non-kernel sysrq literal fallback from implying notifier callbacks" {
+    const summary = summarizeTargetlessSysrqDispatch(.{
+        .target_vtermno = 0,
+        .byte = 0x0f,
+        .toggles_sysrq_mode = false,
+        .invokes_sysrq_handler = true,
+        .notifier_callback_implied = true,
+        .is_kernel_console = false,
+    });
+
+    try std.testing.expect(!summary.handoff.invokes_sysrq_handler);
+    try std.testing.expect(summary.handoff.falls_back_to_literal);
+    try std.testing.expect(summary.handoff.keeps_live_sysrq_execution_out_of_scope);
+    try std.testing.expect(!summary.notifier_callback_implied);
+    try std.testing.expect(!summary.targetless_dispatch_without_notifier);
 }
