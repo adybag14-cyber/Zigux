@@ -13,13 +13,21 @@ test "phase12 virtio scsi syntax lab keeps current queue-planning exports reacha
     _ = virtio_scsi.HostLimitSummary;
     _ = virtio_scsi.QueueDepthRequest;
     _ = virtio_scsi.QueueDepthSummary;
+    _ = virtio_scsi.CommandBufferOwnershipRequest;
+    _ = virtio_scsi.CommandBufferOwnershipSummary;
+    _ = virtio_scsi.ControlPathGovernanceRequest;
+    _ = virtio_scsi.ControlPathGovernanceSummary;
+    _ = virtio_scsi.RequestSubmitSequencingRequest;
+    _ = virtio_scsi.RequestSubmitSequencingSummary;
     _ = virtio_scsi.IoQueueMapSummary;
+    _ = virtio_scsi.RecoveryAction;
     _ = virtio_scsi.RecoverySummary;
     _ = virtio_scsi.RecoveryQueuePlan;
     _ = virtio_scsi.RecoveryIoQueueMapSummary;
     _ = virtio_scsi.RecoveryQueueDepthSummary;
     _ = virtio_scsi.RecoveryEventBufferOwnershipSummary;
     _ = virtio_scsi.RecoveryHostScanSummary;
+    _ = virtio_scsi.RequestQueueKind;
     _ = virtio_scsi.RequestQueueSummary;
     _ = virtio_scsi.CompletionHandbackSummary;
 
@@ -29,6 +37,9 @@ test "phase12 virtio scsi syntax lab keeps current queue-planning exports reacha
     try std.testing.expect(descriptor.provides_probe_config_snapshot);
     try std.testing.expect(descriptor.provides_host_limit_summary);
     try std.testing.expect(descriptor.provides_queue_depth_summary);
+    try std.testing.expect(descriptor.provides_command_buffer_ownership_summary);
+    try std.testing.expect(descriptor.provides_control_path_governance_summary);
+    try std.testing.expect(descriptor.provides_request_submit_sequencing_summary);
     try std.testing.expect(descriptor.provides_completion_handback_summary);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_scsi_host);
@@ -90,10 +101,100 @@ test "phase12 virtio scsi syntax lab keeps current queue-planning exports reacha
     try std.testing.expect(depth.tracks_queue_depth);
     try std.testing.expect(depth.uses_change_queue_depth);
 
+    const command_buffers = try lab.captureCommandBufferOwnershipSummary(.{
+        .queue_depth = .{
+            .host_limit = .{
+                .probe = .{
+                    .num_queues = 4,
+                    .requested_poll_queues = 2,
+                    .cmd_per_lun = 64,
+                    .max_target = 255,
+                    .max_lun = 32,
+                    .max_sectors = 1024,
+                },
+                .synthetic_can_queue = 16,
+            },
+            .requested_depth = 10,
+        },
+        .command_bytes = 48,
+        .sense_bytes = 96,
+    });
+    try std.testing.expectEqualStrings(descriptor.anchor, command_buffers.anchor);
+    try std.testing.expectEqual(@as(u32, 10), command_buffers.clamped_queue_depth);
+    try std.testing.expectEqual(@as(u32, 48), command_buffers.command_bytes_per_request);
+    try std.testing.expectEqual(@as(u32, 96), command_buffers.sense_bytes_per_request);
+    try std.testing.expectEqual(@as(u64, 480), command_buffers.total_command_bytes);
+    try std.testing.expectEqual(@as(u64, 960), command_buffers.total_sense_bytes);
+    try std.testing.expect(command_buffers.owns_one_command_buffer_per_request);
+    try std.testing.expect(command_buffers.owns_one_sense_buffer_per_request);
+    try std.testing.expect(command_buffers.requires_dma_mapping_later);
+    try std.testing.expect(command_buffers.preserves_pre_registration_scope);
+
+    const control_path = try lab.captureControlPathGovernanceSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 4,
+                        .requested_poll_queues = 2,
+                        .cmd_per_lun = 64,
+                        .max_target = 255,
+                        .max_lun = 32,
+                        .max_sectors = 1024,
+                    },
+                    .synthetic_can_queue = 16,
+                },
+                .requested_depth = 10,
+            },
+            .command_bytes = 48,
+            .sense_bytes = 96,
+        },
+    });
+    try std.testing.expectEqual(@as(u16, virtio_scsi.control_queue_index), control_path.control_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), control_path.event_queue_index);
+    try std.testing.expect(control_path.control_queue_is_dedicated);
+    try std.testing.expect(control_path.control_path_requires_control_queue_before_tmf);
+    try std.testing.expect(control_path.control_path_uses_event_queue_for_async_notifications);
+    try std.testing.expect(control_path.control_path_requires_dma_mapping_later);
+    try std.testing.expect(control_path.control_path_blocks_while_transport_frozen);
+    try std.testing.expect(control_path.stays_pre_runtime_only);
+
     const request_queue = try lab.requestQueue(3);
     try std.testing.expectEqual(@as(u16, 3), request_queue.local_index);
     try std.testing.expectEqual(@as(u16, 5), request_queue.global_index);
     try std.testing.expectEqual(virtio_scsi.RequestQueueKind.request_poll, request_queue.kind);
+
+    const submit = try lab.captureRequestSubmitSequencingSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 4,
+                        .requested_poll_queues = 2,
+                        .cmd_per_lun = 64,
+                        .max_target = 255,
+                        .max_lun = 32,
+                        .max_sectors = 1024,
+                    },
+                    .synthetic_can_queue = 16,
+                },
+                .requested_depth = 10,
+            },
+            .command_bytes = 48,
+            .sense_bytes = 96,
+        },
+        .queue_local_index = 3,
+    });
+    try std.testing.expectEqual(@as(u16, 5), submit.queue_global_index);
+    try std.testing.expectEqual(virtio_scsi.RequestQueueKind.request_poll, submit.queue_kind);
+    try std.testing.expectEqual(@as(u32, 48), submit.command_bytes_per_request);
+    try std.testing.expectEqual(@as(u32, 96), submit.sense_bytes_per_request);
+    try std.testing.expect(submit.submission_uses_preallocated_buffers);
+    try std.testing.expect(submit.submission_requires_queue_selection);
+    try std.testing.expect(submit.submission_requires_dma_mapping_before_kick);
+    try std.testing.expect(submit.submission_requires_kick_after_descriptors_ready);
+    try std.testing.expect(submit.submission_blocks_while_transport_frozen);
+    try std.testing.expect(submit.stays_pre_runtime_only);
 
     const handback = try lab.captureCompletionHandbackSummary(.{
         .ownership = .{
@@ -111,10 +212,14 @@ test "phase12 virtio scsi syntax lab keeps current queue-planning exports reacha
                 },
                 .requested_depth = 10,
             },
+            .command_bytes = 48,
+            .sense_bytes = 96,
         },
         .queue_local_index = 3,
     });
     try std.testing.expectEqual(@as(u16, 5), handback.queue_global_index);
+    try std.testing.expectEqual(@as(u32, 48), handback.command_bytes_per_request);
+    try std.testing.expectEqual(@as(u32, 96), handback.sense_bytes_per_request);
     try std.testing.expect(handback.completion_requires_used_ring_before_handback);
     try std.testing.expect(handback.completion_reads_sense_before_recycle);
     try std.testing.expect(handback.completion_returns_command_buffer_after_handback);
