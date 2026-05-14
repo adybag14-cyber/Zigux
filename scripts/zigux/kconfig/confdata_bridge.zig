@@ -342,16 +342,19 @@ test "confdata bridge decodes escaped quoted strings" {
         \\CONFIG_BANNER="zigux \"bridge\""
         \\CONFIG_PATH="drivers\\zigux"
         \\CONFIG_SUFFIX="zigux"tail
+        \\CONFIG_EMPTY=""
         \\
     );
     defer deinitSummary(allocator, &summary);
 
-    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 4), summary.entries.len);
     try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
     try std.testing.expectEqualStrings("zigux \"bridge\"", summary.entries[0].value);
     try std.testing.expectEqualStrings("drivers\\zigux", summary.entries[1].value);
     try std.testing.expectEqual(EntryKind.string, summary.entries[2].kind);
     try std.testing.expectEqualStrings("zigux", summary.entries[2].value);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[3].kind);
+    try std.testing.expectEqualStrings("", summary.entries[3].value);
 }
 
 test "confdata bridge strips backslashes from escaped control sequences like upstream confdata" {
