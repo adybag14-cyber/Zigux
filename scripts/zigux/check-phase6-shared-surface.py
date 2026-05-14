@@ -16,6 +16,7 @@ class ValidationError(RuntimeError):
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
+TESTS_README_PATH = Path("zigux/tests/README.md")
 BASE64_SLICE_PATH = Path("Documentation/zigux/phase6-base64-slice.md")
 BSEARCH_SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 CHECKSUM_SLICE_PATH = Path("Documentation/zigux/phase6-checksum-slice.md")
@@ -145,6 +146,14 @@ REQUIRED_SNIPPETS = {
         "* checksum shared posture: `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` still advertise a dedicated checksum slowdown gate, but current `zigux/tests/phase6_build.zig` no longer defines that dedicated build step and current `master` lacks `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`, so that replay is currently not runnable from the committed tree",
         "* the current bundled Phase 6 route inventory still advertises three dedicated helper-local perf gates beside the aggregate `phase6-perf` marker, but only the checksum leg remains documentary because its helper-local replay packet is absent and its direct `phase6_build.zig` step is gone from `master`; the base64 leg is back to a directly readable helper-owned slowdown replay through `zigux/tests/phase6_base64_perf.zig` and the restored `phase6-base64-perf` step in `zigux/tests/phase6_build.zig`",
     ],
+    TESTS_README_PATH.as_posix(): [
+        "* `zigux/tests/phase6_helper_parity_manifest.json`",
+        "* `Documentation/zigux/phase6-helper-parity-catalog.md`",
+        "* `Documentation/zigux/phase6-perf-gate-survey.md`",
+        "* `scripts/zigux/check-phase6-shared-surface.py`",
+        "* `zigux/tests/phase6_base64_perf.zig`",
+        "* current public-tree Phase 6 gaps: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+    ],
     BASE64_SLICE_PATH.as_posix(): [
         "- `PHASE6_STATUS=reviewable`",
         "- current `master` keeps `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_base64_perf.zig`",
@@ -157,8 +166,8 @@ REQUIRED_SNIPPETS = {
         "- current review posture: blocked; the checksum roadmap anchor still belongs in the bounded Phase 6 helper packet, but current `master` only keeps the direct C parity scaffolding, and it cannot honestly claim the broader helper-local replay or slowdown gate until the missing checksum helper and fixture packet return",
     ],
     PHASE6_BUILD_PATH.as_posix(): [
-        "const base64_perf_step = b.step(\"phase6-base64-perf\", \"Run Phase 6 base64 perf gate\");",
-        "const hexdump_perf_step = b.step(\"phase6-hexdump-perf\", \"Run Phase 6 hexdump perf gate\");",
+        'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
+        'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
     ],
     MAKEFILE_PATH.as_posix(): [
         "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
@@ -176,7 +185,7 @@ REQUIRED_SNIPPETS = {
 }
 
 ABSENT_BUILD_SNIPPETS = [
-    "const checksum_perf_step = b.step(\"phase6-checksum-perf\", \"Run Phase 6 checksum perf gate\");",
+    'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
 ]
 
 
@@ -279,6 +288,7 @@ def validate_paths(repo_root: Path) -> None:
     required = {
         CATALOG_PATH.as_posix(),
         PERF_SURVEY_PATH.as_posix(),
+        TESTS_README_PATH.as_posix(),
         BASE64_SLICE_PATH.as_posix(),
         CHECKSUM_SLICE_PATH.as_posix(),
         BSEARCH_SLICE_PATH.as_posix(),
@@ -312,6 +322,7 @@ def write(path: Path, content: str) -> None:
 def scaffold_repo(root: Path) -> None:
     write(root / CATALOG_PATH, "\n".join(REQUIRED_SNIPPETS[CATALOG_PATH.as_posix()] + ["- surveyed head: `test-head`", ""]))
     write(root / PERF_SURVEY_PATH, "\n".join(REQUIRED_SNIPPETS[PERF_SURVEY_PATH.as_posix()] + [""]))
+    write(root / TESTS_README_PATH, "\n".join(REQUIRED_SNIPPETS[TESTS_README_PATH.as_posix()] + [""]))
     write(root / BASE64_SLICE_PATH, "\n".join(REQUIRED_SNIPPETS[BASE64_SLICE_PATH.as_posix()] + [""]))
     write(root / BSEARCH_SLICE_PATH, "# Phase 6 Bsearch Slice\n")
     write(root / CHECKSUM_SLICE_PATH, "\n".join(REQUIRED_SNIPPETS[CHECKSUM_SLICE_PATH.as_posix()] + [""]))
@@ -407,6 +418,12 @@ def run_self_test() -> None:
             PERF_SURVEY_PATH,
             "zigux/tests/phase6_base64_perf.zig` are directly readable on current `master`",
             "zigux/tests/phase6_base64_perf.zig` are not directly readable on current `master`",
+        )
+        assert_failure(
+            root,
+            TESTS_README_PATH,
+            "`zigux/tests/phase6_base64_perf.zig`",
+            "`zigux/tests/phase6_checksum_perf.zig`",
         )
         assert_failure(
             root,
