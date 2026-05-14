@@ -154,6 +154,8 @@ FILE_MARKERS = {
         "Documentation/zigux/phase2-closure.md",
         "Documentation/zigux/review-checklist.md",
         "scripts/zigux/README.md",
+        "scripts/zigux/validate-phase2.py",
+        "scripts/zigux/validate-phase2-closure.py",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
         "scripts/zigux/check-phase2-tool-manifest-packets.py",
