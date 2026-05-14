@@ -398,6 +398,21 @@ def run_self_test() -> int:
         write(tmp_root / MAKEFILE_PATH, good_makefile_text())
         write(
             tmp_root / MAKEFILE_PATH,
+            good_makefile_text().replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase12.py\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "marker count drift in zigux/Makefile: scripts/zigux/validate-phase12.py",
+            "self-test expected makefile validator-route failure",
+        )
+
+        write(tmp_root / MAKEFILE_PATH, good_makefile_text())
+        write(
+            tmp_root / MAKEFILE_PATH,
             good_makefile_text().replace("phase12: phase12-validate phase12-smoke phase12-test", "phase12: phase12-smoke phase12-test", 1),
         )
         expect_contains(
@@ -436,7 +451,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=13")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
