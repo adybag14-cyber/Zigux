@@ -15,7 +15,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=264b9dbcb591fe6fd6bc1112bce7889b1e5f1b7c`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_BLOB_SHA=b1124a72419da4d11e76768005ae800b64be3a0b`
+- `PHASE3_MMIO_BLOB_SHA=1e8e2ae810b6f25b407ed265df21f52ab2796246`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_UNSAFE_BLOB_SHA=920cf324c9ef018c0074f420ddaaa8dffc1c2bcf`
@@ -35,7 +35,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Roadmap Contract
 
-Phase 3 is where Zigux starts defining permanent C and Zig boundary rules rather than only helper scaffolding.
+Phase 3 is where Zigux starts defining permanent C and Zigux boundary rules rather than only helper scaffolding.
 
 For this lane, the roadmap-backed contract is still narrow:
 
