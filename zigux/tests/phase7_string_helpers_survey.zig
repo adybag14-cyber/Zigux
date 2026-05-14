@@ -41,6 +41,11 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "bounded memcpy-and-pad copy semantics");
     try expectContains(manifest, "in-place replacement inside the exported C-string prefix");
     try expectContains(manifest, "expanded starter packet");
+    try expectContains(manifest, "\"ownership_focus\": [");
+    try expectContains(manifest, "first-NUL-bounded helpers keep caller-provided slices explicit so whitespace trimming and prefix skipping stop at the exported C-string boundary");
+    try expectContains(manifest, "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit");
+    try expectContains(manifest, "stringEscapeMem() and stringEscapeStrAnyNp() keep append-limited and dictionary-mode output accounting inside caller-owned storage");
+    try expectContains(manifest, "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 
