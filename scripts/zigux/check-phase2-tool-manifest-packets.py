@@ -307,6 +307,7 @@ KCONFIG_CONFDATA_MANIFEST_EXPECTED = {
         "confdata bridge keeps explicit n assignments as tristate values",
         "confdata bridge recognizes uppercase tristate assignments",
         "confdata bridge ignores non-CONFIG lines like upstream confdata",
+        "confdata bridge ignores empty CONFIG symbol names",
         "confdata bridge keeps trailing escaped backslashes in quoted strings",
         "confdata bridge emits escaped quoted payloads before trailing suffix bytes",
         "confdata bridge leaves malformed quoted values as raw scalar values",
