@@ -26,6 +26,7 @@ pub const ModuleDescriptor = struct {
     provides_offset_seek_planning: bool,
     provides_offset_readdir_planning: bool,
     provides_offset_add_planning: bool,
+    provides_offset_remove_planning: bool,
     provides_offset_rename_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
@@ -206,6 +207,20 @@ pub const OffsetAddPlan = struct {
     remaps_allocator_busy_to_no_space: bool,
 };
 
+pub const OffsetRemoveStatus = enum {
+    ok,
+    missing_offset,
+};
+
+pub const OffsetRemovePlan = struct {
+    anchor: []const u8,
+    current_offset: i64,
+    recorded_slot_class: ?OffsetSlotClass,
+    status: OffsetRemoveStatus,
+    erases_map_entry: bool,
+    clears_recorded_offset: bool,
+};
+
 pub const OffsetRenameStatus = enum {
     ok,
     missing_destination_offset,
@@ -276,6 +291,7 @@ pub const LibfsHelperLab = struct {
             .provides_offset_seek_planning = true,
             .provides_offset_readdir_planning = true,
             .provides_offset_add_planning = true,
+            .provides_offset_remove_planning = true,
             .provides_offset_rename_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
@@ -602,6 +618,28 @@ pub const LibfsHelperLab = struct {
         };
     }
 
+    pub fn planSimpleOffsetRemove(current_offset: i64) OffsetRemovePlan {
+        if (current_offset == 0) {
+            return .{
+                .anchor = descriptor().anchor,
+                .current_offset = current_offset,
+                .recorded_slot_class = null,
+                .status = .missing_offset,
+                .erases_map_entry = false,
+                .clears_recorded_offset = false,
+            };
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .current_offset = current_offset,
+            .recorded_slot_class = classifyOffsetSlot(current_offset),
+            .status = .ok,
+            .erases_map_entry = true,
+            .clears_recorded_offset = true,
+        };
+    }
+
     pub fn planSimpleOffsetRename(source_offset: ?i64, destination_offset: ?i64) OffsetRenamePlan {
         const source_slot_class = classifyOffsetSlot(source_offset);
         const destination_slot_class = classifyOffsetSlot(destination_offset);
@@ -669,6 +707,7 @@ test "libfs helper descriptor stays anchored to fs/libfs.c" {
     try std.testing.expect(descriptor.provides_offset_seek_planning);
     try std.testing.expect(descriptor.provides_offset_readdir_planning);
     try std.testing.expect(descriptor.provides_offset_add_planning);
+    try std.testing.expect(descriptor.provides_offset_remove_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
@@ -980,6 +1019,31 @@ test "offset add plan rejects prepopulated dentries and preserves allocator fail
     try std.testing.expect(!failure.records_offset_in_dentry);
     try std.testing.expect(!failure.stores_dentry_in_map);
     try std.testing.expect(!failure.remaps_allocator_busy_to_no_space);
+}
+
+test "offset remove plan clears managed offsets and keeps the zero-offset noop explicit" {
+    const missing = LibfsHelperLab.planSimpleOffsetRemove(0);
+    const managed = LibfsHelperLab.planSimpleOffsetRemove(dir_offset_min + 6);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", missing.anchor);
+    try std.testing.expectEqual(OffsetRemoveStatus.missing_offset, missing.status);
+    try std.testing.expectEqual(@as(?OffsetSlotClass, null), missing.recorded_slot_class);
+    try std.testing.expect(!missing.erases_map_entry);
+    try std.testing.expect(!missing.clears_recorded_offset);
+
+    try std.testing.expectEqual(OffsetRemoveStatus.ok, managed.status);
+    try std.testing.expectEqual(@as(?OffsetSlotClass, .managed_entry), managed.recorded_slot_class);
+    try std.testing.expect(managed.erases_map_entry);
+    try std.testing.expect(managed.clears_recorded_offset);
+}
+
+test "offset remove plan follows any recorded nonzero slot value" {
+    const reserved = LibfsHelperLab.planSimpleOffsetRemove(dir_offset_first);
+
+    try std.testing.expectEqual(OffsetRemoveStatus.ok, reserved.status);
+    try std.testing.expectEqual(@as(?OffsetSlotClass, .first_real_entry), reserved.recorded_slot_class);
+    try std.testing.expect(reserved.erases_map_entry);
+    try std.testing.expect(reserved.clears_recorded_offset);
 }
 
 test "offset rename plan preserves destination slot value for managed entries" {
