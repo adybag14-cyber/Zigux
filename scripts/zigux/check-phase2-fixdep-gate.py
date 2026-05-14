@@ -92,6 +92,11 @@ TESTS_README_MARKERS = [
     "zig test scripts/zigux/fixdep.zig",
 ]
 
+EXACT_PACKET_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": WORKFLOW_MARKERS,
+    "zigux/Makefile": MAKEFILE_MARKERS,
+}
+
 EXPECTED_CASE_NAMES = [
     "sample",
     "sample_multi_target",
@@ -218,6 +223,23 @@ def collect_missing_markers(text: str, markers: list[str], *, prefix: str) -> li
     return [f"{prefix}:{marker}" for marker in markers if marker not in text]
 
 
+def collect_exact_packet_issues(text: str, markers: list[str], *, prefix: str) -> list[str]:
+    issues: list[str] = []
+    lines = [line.strip() for line in text.splitlines()]
+    last_index = -1
+    for marker in markers:
+        positions = [index for index, line in enumerate(lines) if line == marker]
+        count = len(positions)
+        if count != 1:
+            issues.append(f"{prefix}:count:{marker}:expected=1:got={count}")
+            continue
+        index = positions[0]
+        if index <= last_index:
+            issues.append(f"{prefix}:order:{marker}")
+        last_index = index
+    return issues
+
+
 def validate_cases(root: Path) -> list[str]:
     issues: list[str] = []
     cases_path = root / "zigux/tests/fixtures/fixdep/cases.json"
@@ -295,6 +317,9 @@ def validate_root(root: Path) -> list[str]:
     for rel_path, markers in FILE_MARKERS.items():
         text = (root / rel_path).read_text(encoding="utf-8")
         issues.extend(collect_missing_markers(text, markers, prefix=rel_path))
+        exact_markers = EXACT_PACKET_MARKERS.get(rel_path)
+        if exact_markers is not None:
+            issues.extend(collect_exact_packet_issues(text, exact_markers, prefix=rel_path))
 
     issues.extend(validate_cases(root))
     return issues
@@ -423,12 +448,45 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / ".github/workflows/zigux-bootstrap.yml"
-        path.write_text(
+        path.writeText(
             path.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[4], "", 1),
             encoding="utf-8",
         )
         issues = validate_root(root)
         assert f".github/workflows/zigux-bootstrap.yml:{WORKFLOW_MARKERS[4]}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / ".github/workflows/zigux-bootstrap.yml"
+        path.write_text(
+            path.read_text(encoding="utf-8") + WORKFLOW_MARKERS[1] + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            ".github/workflows/zigux-bootstrap.yml:count:"
+            f"{WORKFLOW_MARKERS[1]}:expected=1:got=2"
+        ) in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / "zigux/Makefile"
+        original = path.read_text(encoding="utf-8")
+        reordered = original.replace(
+            "\n".join(MAKEFILE_MARKERS),
+            "\n".join(
+                [
+                    MAKEFILE_MARKERS[0],
+                    MAKEFILE_MARKERS[2],
+                    MAKEFILE_MARKERS[1],
+                    MAKEFILE_MARKERS[3],
+                ]
+            ),
+            1,
+        )
+        path.write_text(reordered, encoding="utf-8")
+        issues = validate_root(root)
+        assert f"zigux/Makefile:order:{MAKEFILE_MARKERS[2]}" in issues
         case_count += 1
 
         build_self_test_root(root)
