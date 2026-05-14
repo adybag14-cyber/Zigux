@@ -60,9 +60,10 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "PHASE7_STATUS=starter_landed",
-        "restored starter packet",
-        "current `master` now carries both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
-        "The next bounded follow-through should stay inside the restored starter packet",
+        "expanded starter packet",
+        "lib/string_helpers.zig",
+        "zigux/tests/phase7_string_helpers.zig",
+        "The next bounded follow-through should keep the expanded starter packet truthful",
     ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
         "scripts/zigux/validate-phase7.py",
@@ -88,6 +89,7 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+        "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
         "make -C zigux phase7-string-helpers-survey",
         "make -C zigux phase7-string-helpers-sample-boundary",
         "make -C zigux phase7-cmdline-survey",
@@ -95,26 +97,25 @@ REQUIRED_MARKERS = {
         "make -C zigux phase7-rbtree-survey",
     ],
     "Documentation/zigux/README.md": [
+        "Documentation/zigux/phase7-string-helpers-slice.md",
         "Documentation/zigux/phase7-cmdline-slice.md",
         "Documentation/zigux/phase7-argv-split-slice.md",
         "Documentation/zigux/phase7-rbtree-slice.md",
+        "lib/string_helpers.zig",
+        "zigux/tests/phase7_string_helpers.zig",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "zigux/tests/phase7_argv_split_manifest.json",
     ],
     "Documentation/zigux/review-checklist.md": [
+        "Documentation/zigux/phase7-string-helpers-slice.md",
         "Documentation/zigux/phase7-cmdline-slice.md",
         "Documentation/zigux/phase7-argv-split-slice.md",
         "Documentation/zigux/phase7-rbtree-slice.md",
     ],
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
-        "Documentation/zigux/phase7-string-helpers-slice.md",
-        "Documentation/zigux/phase7-cmdline-slice.md",
-        "Documentation/zigux/phase7-argv-split-slice.md",
         "PHASE7_SHARED_CONTROL_LANE=P7-Y05",
         "PHASE7_HELPER_SEQUENCING_LANE=P7-Y06",
         "PHASE7_SHARED_DOCS_ROOT_LANE=P7-Y08",
-        "PHASE7_ANTI_OVERLAP_RULE=P7-Y06 owns only the shared helper-lane owner map, P7-Y08 owns only the docs-root tranche summary, and helper-local slices keep their own lane keys without reusing either shared note lane.",
-        "- `Documentation/zigux/phase7-rbtree-slice.md`",
         "PHASE7_STRING_HELPERS_LANE=P7-L04",
         "PHASE7_CMDLINE_LANE=P7-L05",
         "PHASE7_ARGV_SPLIT_LANE=P7-L09",
@@ -122,12 +123,11 @@ REQUIRED_MARKERS = {
         "PHASE7_RBTREE_LANE=P7-L13",
         "`P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift;",
         "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
-        "`argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
         "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
-        "`rbtree` is parked as a landed helper-local packet because `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `scripts/zigux/check-phase7-rbtree-parity.py` remain directly readable on current `master`, and the shared `zigux/tests/phase7_build.zig` route is directly readable again as a shared bundle reminder rather than a missing-sibling blocker.",
-        "`P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift; the dedicated replay, survey, manifest, and parity packet are already visible on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.",
+        "`P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift;",
     ],
     "samples/zigux/README.md": [
+        "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;",
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;",
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;",
         "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;",
@@ -139,12 +139,21 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-build-wiring.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
+        "lib/string_helpers.zig",
+        "zigux/tests/phase7_string_helpers.zig",
+        "zigux/tests/phase7_string_helpers_survey.zig",
+        "zigux/tests/phase7_string_helpers_manifest.json",
+        "zigux/tests/phase7_string_helpers_sample_boundary.zig",
         "zigux/tests/phase7_cmdline_survey.zig",
         "zigux/tests/phase7_argv_split_survey.zig",
         "zigux/tests/phase7_rbtree_survey.zig",
         "make -C zigux phase7-validate",
     ],
     "zigux/tests/README.md": [
+        "zigux/tests/phase7_string_helpers.zig",
+        "zigux/tests/phase7_string_helpers_survey.zig",
+        "zigux/tests/phase7_string_helpers_manifest.json",
+        "zigux/tests/phase7_string_helpers_sample_boundary.zig",
         "zigux/tests/phase7_cmdline.zig",
         "zigux/tests/phase7_cmdline_survey.zig",
         "zigux/tests/phase7_cmdline_manifest.json",
@@ -194,18 +203,23 @@ REQUIRED_MARKERS = {
         "phase7: phase7-validate phase7-test",
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
-        "\"current_master_state\": \"restored_starter_packet\"",
-        "\"lib/string_helpers.zig\"",
-        "\"zigux/tests/phase7_string_helpers.zig\"",
+        "\"current_master_state\": \"expanded_starter_packet\"",
+        "\"stringEscapeMem\"",
+        "\"string_escape_str_any_np\"",
+        "\"memcpyAndPad\"",
+        "\"strreplace\"",
+        "\"shared no-sample boundary and validator-backed reviewability\"",
     ],
     "zigux/tests/phase7_string_helpers_survey.zig": [
-        "restored starter packet",
-        "lib/string_helpers.zig",
-        "zigux/tests/phase7_string_helpers.zig",
+        "expanded starter packet",
+        "stringEscapeMem()",
+        "string_escape_str_any_np()",
+        "memcpyAndPad()",
+        "strreplace()",
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
-        "restored starter packet",
-        "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;",
+        "expanded helper packet",
+        "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
         "scripts/zigux/validate-phase7.py",
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
@@ -218,12 +232,20 @@ REQUIRED_MARKERS = {
         "pub fn trimSpaces",
         "pub fn sysfsStreq",
         "pub fn matchString",
+        "pub fn sysfsMatchString",
+        "pub fn stringGetSize",
+        "pub fn stringUnescapeAny",
+        "pub fn stringEscapeMem",
+        "pub fn stringEscapeStrAnyNp",
+        "pub fn memcpyAndPad",
         "pub fn strreplace",
     ],
     "zigux/tests/phase7_string_helpers.zig": [
         "phase 7 string helpers starter covers whitespace trimming and prefix skipping",
-        "phase 7 string helpers starter keeps sysfs matching newline aware",
-        "phase 7 string helpers starter matches tables through the first null entry",
+        "phase 7 string helpers starter formats bounded sizes with three significant figures",
+        "phase 7 string helpers starter unescapes supported escape families and preserves unsupported escapes",
+        "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
+        "phase 7 string helpers starter pads bounded copies without reading past the provided source slice",
         "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix",
     ],
 }
@@ -271,10 +293,10 @@ def expect_missing_file(tmp_root: Path, rel: str) -> None:
     assert missing_files == [rel]
 
 
-def expect_missing_marker(tmp_root: Path, marker: str) -> None:
+def expect_missing_marker(tmp_root: Path, expected: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == []
-    assert missing_markers == [marker]
+    assert missing_markers == [expected]
 
 
 def remove_once(tmp_root: Path, rel: str, old: str) -> None:
@@ -291,455 +313,86 @@ def run_self_test() -> None:
         write_fixture_tree(tmp_root)
         assert validate(tmp_root) == ([], [])
 
-        (tmp_root / "zigux/tests/phase7_argv_split_manifest.json").unlink()
-        expect_missing_file(tmp_root, "zigux/tests/phase7_argv_split_manifest.json")
+        (tmp_root / "zigux/tests/phase7_string_helpers_manifest.json").unlink()
+        expect_missing_file(tmp_root, "zigux/tests/phase7_string_helpers_manifest.json")
         write_fixture_tree(tmp_root)
 
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/review-checklist.md",
-            "Documentation/zigux/phase7-argv-split-slice.md",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/review-checklist.md: Documentation/zigux/phase7-argv-split-slice.md",
-        )
-        write_fixture_tree(tmp_root)
+        cases = [
+            (
+                "phase7-string-helpers-slice next-step marker",
+                "Documentation/zigux/phase7-string-helpers-slice.md",
+                "The next bounded follow-through should keep the expanded starter packet truthful",
+                "Documentation/zigux/phase7-string-helpers-slice.md: The next bounded follow-through should keep the expanded starter packet truthful",
+            ),
+            (
+                "helper-lane sequencing argv lane marker",
+                "Documentation/zigux/phase7-helper-lane-sequencing.md",
+                "PHASE7_ARGV_SPLIT_LANE=P7-L09",
+                "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_LANE=P7-L09",
+            ),
+            (
+                "workflow phase7 validate route",
+                ".github/workflows/zigux-bootstrap.yml",
+                "make -C zigux phase7-validate",
+                ".github/workflows/zigux-bootstrap.yml: make -C zigux phase7-validate",
+            ),
+            (
+                "build string helpers direct test entry",
+                "zigux/tests/phase7_build.zig",
+                "\"phase7-string-helpers-tests\"",
+                "zigux/tests/phase7_build.zig: \"phase7-string-helpers-tests\"",
+            ),
+            (
+                "makefile phase7 test route",
+                "zigux/Makefile",
+                "phase7-test:",
+                "zigux/Makefile: phase7-test:",
+            ),
+            (
+                "makefile build-wiring direct route",
+                "zigux/Makefile",
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py\n",
+                "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
+            ),
+            (
+                "string helper sample boundary expanded packet marker",
+                "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+                "expanded helper packet",
+                "zigux/tests/phase7_string_helpers_sample_boundary.zig: expanded helper packet",
+            ),
+            (
+                "string helper survey escape marker",
+                "zigux/tests/phase7_string_helpers_survey.zig",
+                "stringEscapeMem()",
+                "zigux/tests/phase7_string_helpers_survey.zig: stringEscapeMem()",
+            ),
+            (
+                "string helper manifest expanded state marker",
+                "zigux/tests/phase7_string_helpers_manifest.json",
+                "\"current_master_state\": \"expanded_starter_packet\"",
+                "zigux/tests/phase7_string_helpers_manifest.json: \"current_master_state\": \"expanded_starter_packet\"",
+            ),
+            (
+                "lib string helpers escape function",
+                "lib/string_helpers.zig",
+                "pub fn stringEscapeMem",
+                "lib/string_helpers.zig: pub fn stringEscapeMem",
+            ),
+            (
+                "string helper test escape coverage",
+                "zigux/tests/phase7_string_helpers.zig",
+                "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
+                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
+            ),
+        ]
 
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_SHARED_CONTROL_LANE=P7-Y05",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_SHARED_CONTROL_LANE=P7-Y05",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_HELPER_SEQUENCING_LANE=P7-Y06",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_HELPER_SEQUENCING_LANE=P7-Y06",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_SHARED_DOCS_ROOT_LANE=P7-Y08",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_SHARED_DOCS_ROOT_LANE=P7-Y08",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_ANTI_OVERLAP_RULE=P7-Y06 owns only the shared helper-lane owner map, P7-Y08 owns only the docs-root tranche summary, and helper-local slices keep their own lane keys without reusing either shared note lane.",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ANTI_OVERLAP_RULE=P7-Y06 owns only the shared helper-lane owner map, P7-Y08 owns only the docs-root tranche summary, and helper-local slices keep their own lane keys without reusing either shared note lane.",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_STRING_HELPERS_LANE=P7-L04",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_STRING_HELPERS_LANE=P7-L04",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "`P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift;",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift;",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_CMDLINE_LANE=P7-L05",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_CMDLINE_LANE=P7-L05",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "Documentation/zigux/phase7-argv-split-slice.md",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: Documentation/zigux/phase7-argv-split-slice.md",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_ARGV_SPLIT_LANE=P7-L09",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_LANE=P7-L09",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "`argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: `argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "- `Documentation/zigux/phase7-rbtree-slice.md`",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: - `Documentation/zigux/phase7-rbtree-slice.md`",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_RBTREE_LANE=P7-L13",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_RBTREE_LANE=P7-L13",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "`rbtree` is parked as a landed helper-local packet because `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `scripts/zigux/check-phase7-rbtree-parity.py` remain directly readable on current `master`, and the shared `zigux/tests/phase7_build.zig` route is directly readable again as a shared bundle reminder rather than a missing-sibling blocker.",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: `rbtree` is parked as a landed helper-local packet because `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `scripts/zigux/check-phase7-rbtree-parity.py` remain directly readable on current `master`, and the shared `zigux/tests/phase7_build.zig` route is directly readable again as a shared bundle reminder rather than a missing-sibling blocker.",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "`P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift; the dedicated replay, survey, manifest, and parity packet are already visible on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift; the dedicated replay, survey, manifest, and parity packet are already visible on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "scripts/zigux/README.md",
-            "zigux/tests/phase7_rbtree_survey.zig",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "scripts/zigux/README.md: zigux/tests/phase7_rbtree_survey.zig",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-            "zigux/tests/phase7_string_helpers_manifest.json",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_sample_boundary.zig: zigux/tests/phase7_string_helpers_manifest.json",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-            "scripts/zigux/check-phase7-make-wrapper.py",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-make-wrapper.py",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-            "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-            "scripts/zigux/check-phase7-build-wiring.py",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-build-wiring.py",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/tests/phase7_build.zig",
-            "\"phase7-string-helpers-survey-tests\"",
-        )
-        expect_missing_marker(
-            tmp_root,
-            'zigux/tests/phase7_build.zig: "phase7-string-helpers-survey-tests"',
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/tests/phase7_build.zig",
-            "\"phase7-string-helpers-sample-boundary-tests\"",
-        )
-        expect_missing_marker(
-            tmp_root,
-            'zigux/tests/phase7_build.zig: "phase7-string-helpers-sample-boundary-tests"',
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/Makefile",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/Makefile",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py\n",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/Makefile",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/Makefile",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\n",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/Makefile",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py --self-test",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py --self-test",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/Makefile",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py\n",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/Makefile",
-            "phase7-string-helpers-survey:",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/Makefile: phase7-string-helpers-survey:",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/Makefile",
-            "phase7-string-helpers-sample-boundary:",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/Makefile: phase7-string-helpers-sample-boundary:",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            ".github/workflows/zigux-bootstrap.yml",
-            "make -C zigux phase7-validate",
-        )
-        expect_missing_marker(
-            tmp_root,
-            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase7-validate",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            ".github/workflows/zigux-bootstrap.yml",
-            "make -C zigux phase7-test",
-        )
-        expect_missing_marker(
-            tmp_root,
-            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase7-test",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/tests/phase7_build.zig",
-            "\"phase7-argv-split-survey-tests\"",
-        )
-        expect_missing_marker(
-            tmp_root,
-            'zigux/tests/phase7_build.zig: "phase7-argv-split-survey-tests"',
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/Makefile",
-            "phase7-cmdline-survey:",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/Makefile: phase7-cmdline-survey:",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "zigux/Makefile",
-            "phase7: phase7-validate phase7-test",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "zigux/Makefile: phase7: phase7-validate phase7-test",
-        )
-        write_fixture_tree(tmp_root)
-
-        makefile_path = tmp_root / "zigux/Makefile"
-        original_makefile = makefile_path.read_text(encoding="utf-8")
-        updated_makefile = original_makefile.replace(
-            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
-            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig",
-            1,
-        )
-        assert updated_makefile != original_makefile
-        makefile_path.write_text(updated_makefile, encoding="utf-8")
-        expect_missing_marker(
-            tmp_root,
-            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
-        )
-        write_fixture_tree(tmp_root)
-
-        remove_once(
-            tmp_root,
-            "Documentation/zigux/phase7-rbtree-slice.md",
-            "scripts/zigux/check-phase7-rbtree-parity.py",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-rbtree-slice.md: scripts/zigux/check-phase7-rbtree-parity.py",
-        )
+        for _, rel, marker, expected in cases:
+            remove_once(tmp_root, rel, marker)
+            expect_missing_marker(tmp_root, expected)
+            write_fixture_tree(tmp_root)
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=40")
+    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={1 + len(cases)}")
 
 
 def main() -> int:
@@ -770,7 +423,10 @@ def main() -> int:
 
     print("PHASE7_VALIDATION=pass")
     print(f"PHASE7_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE7_REQUIRED_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values()) + sum(len(lines) for lines in REQUIRED_EXACT_LINES.values())}")
+    print(
+        "PHASE7_REQUIRED_MARKER_COUNT="
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values()) + sum(len(lines) for lines in REQUIRED_EXACT_LINES.values())}"
+    )
     return 0
 
 
