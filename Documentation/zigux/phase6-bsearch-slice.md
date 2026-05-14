@@ -25,6 +25,7 @@
 - `zigux/tests/phase6_bsearch.zig`
 - `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - `zigux/tests/phase6_bsearch_c_abi_budget.zig`
+- compact shared seed fixture companion: `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
 - direct local rerun route: `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`
 - Linux-style rerun route: `make -C zigux phase6-bsearch-test`
 - direct local corpus evidence checker route: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
@@ -33,9 +34,9 @@
 - focused direct C ABI equality-budget parity across typed and raw ascending and descending sorted inputs plus packed-record `member_size` ranges through `zigux/tests/phase6_bsearch_c_abi_budget.zig`
 - runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses
 
-The current packet intentionally keeps its representative sorted inputs, deterministic query seeding, and case-size corpus inline in the focused `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig` replays so the executable helper packet stays small and directly reviewable instead of moving those cases behind a separate fixture-driven test surface. The same packet still keeps its bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route, and the dedicated bsearch-only rerun routes keep that packet reviewable without dragging the rest of the shared Phase 6 helper bundle into every follow-up.
+The current packet intentionally keeps the direct equality probes, duplicate-span checks, descending-order paths, and mutable write-through coverage concentrated in `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig` so the helper surface stays small and directly reviewable. The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion is still part of that executable packet today: `phase6_bsearch.zig` reuses its representative ascending and descending arrays, and the bounds-focused plus direct C ABI budget replays reuse its dynamic-length and packed-record seed corpus.
 
-Current `master` still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, but only as a parked seed companion that mirrors the representative ascending, descending, hit-or-miss, symbol, and packed-record cases already exercised inline. Reviewers should treat that file as support evidence outside the executable packet rather than as a separate replay surface or a standalone timing-style perf route.
+Reviewers should treat that fixture as compact shared packet support rather than as a separate standalone timing-style route.
 
 Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable` without widening Phase 6 into a separate wrapper family.
 
