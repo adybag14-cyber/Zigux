@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L16",
   "phase": "Phase 12",
-  "surveyed_commit": "db2badeb31e4d5411ee165dcc35f7297a200981a",
+  "surveyed_commit": "a70206b581461c243b9c6e7ccb28980f50ef5d9a",
   "snapshot_scope": "parked Phase 12 libbpf note packet on current master",
   "tracked_file_count": 4,
   "supporting_notes": [
@@ -14,17 +14,17 @@
     "zigux/tests/phase12_libbpf_manifest.json",
     "zigux/tests/phase12_libbpf_segments.zig",
     "zigux/tests/phase12_libbpf_reviewability.zig",
-    "tools/lib/bpf/zigux_segments/manifest.json",
-    "tools/lib/bpf/zigux_segments/verify.zig"
+    "tools/lib/bpf/zigux_segments/verify.zig",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
   ],
   "files": [
     {
       "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-      "blob_sha": "3185d3a44e128bb16bc56339a87c04ffb2fd35f4"
+      "blob_sha": "1cbe1532fcaa027eb67f9633f11aef51719eb4b6"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-      "blob_sha": "024e1f350cea9e5858c44d88395559df262b9009"
+      "blob_sha": "b1c3fef97233798e2d1fbede62ef4098ba409d2a"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
