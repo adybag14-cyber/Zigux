@@ -55,6 +55,11 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     try expectContains(note, "`.modinfo`");
     try expectContains(note, "`MODULE_ALIAS()`");
     try expectContains(note, "`depmod` script or manifest state");
+    try expectContains(note, "`scripts/zigux/kconfig/conf_bridge.zig`");
+    try expectContains(note, "`scripts/zigux/kconfig/confdata_bridge.zig`");
+    try expectContains(note, "`rust/exports.c`");
+    try expectContains(note, "`zigux/kernel/export_shim.zig`");
+    try expectContains(note, "Those surfaces remain Phase 2 config-surface bridge references and Phase 3\nsymbol-export boundary references rather than Phase 9 runtime evidence.");
 
     try expectContains(manifest, "\"lane_key\": \"P9-L18\"");
     try expectContains(manifest, "\"shared_runtime_loader_files_present\": true");
