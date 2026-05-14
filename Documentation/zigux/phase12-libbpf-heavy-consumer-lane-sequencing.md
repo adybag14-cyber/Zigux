@@ -18,15 +18,17 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
 
 ## Lane Scope
 - Keep the shared libbpf packet explicit through `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and the still-present `zigux/tests/fixtures/phase12_libbpf_snapshot.json` snapshot anchor, while treating the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` as parked note-owned boundaries until they land again on current `master`.
-- Keep the shared replay order fixed unless a new shipped route lands first:
-  1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
-  2. `make -C zigux phase12-smoke`
-  3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-  4. `make -C zigux phase12`
-- If `zig` is unavailable on `PATH`, reuse that same order only through the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only fallback entrypoint.
-- Keep the degraded-workflow checker pair explicit beside that same order too:
+- Keep the shared validator-first then smoke-first order fixed unless a new shipped route lands first:
+  1. `make -C zigux phase12-validate`
+  2. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+  3. `make -C zigux phase12-smoke`
+  4. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+  5. `make -C zigux phase12`
+- If `zig` is unavailable on `PATH`, reuse that same validator-first then smoke-first order only through the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12`, instead of inventing a focused libbpf-only fallback entrypoint.
+- Keep the degraded-workflow support bundle explicit beside that same order too:
   - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
-  - `python3 scripts/zigux/check-build-only-phase12-surface.py`
+  - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
+  - `make -C zigux phase12-validate`
 
 ## Anti-Overlap Rules
 - Shared-packet follow-through here should prefer one-file truthfulness repairs in `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, or `scripts/zigux/check-build-only-phase12-surface.py` before reopening helper-local behavior.
@@ -41,4 +43,4 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
 - `Documentation/zigux/freeze-map.md` remains the boundary owner for deeper queueing and transport anchors, so this note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 
 ## Next Bounded Step
-If this lane reopens soon, reread `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` against the current smoke-first Phase 12 packet, the same checker pair, the same two-versus-two fallback split, and the same present-versus-shipped verify-shard boundary before widening helper-local or loader-facing claims. Current `master` already keeps those shared wording surfaces aligned around that bounded packet, so the next honest same-lane follow-through is to leave this owner map parked unless that shared release packet, checker pair, fallback split, or parked verify-shard boundary moves first rather than reopening helper-local, scripts-root, or tests-root churn preemptively.
+If this lane reopens soon, reread `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` against the current validator-first then smoke-first Phase 12 packet, the same dedicated support checker, the same two-versus-two fallback split, and the same present-versus-shipped verify-shard boundary before widening helper-local or loader-facing claims. Current `master` already keeps those shared wording surfaces aligned around that bounded packet, so the next honest same-lane follow-through is to leave this owner map parked unless that shared release packet, the dedicated support checker, the fallback split, or the parked verify-shard boundary moves first rather than reopening helper-local, scripts-root, or tests-root churn preemptively.
