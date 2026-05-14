@@ -263,6 +263,9 @@ pub const VirtioNetProbeLab = struct {
             .hdr_len_bytes = if (request.uses_udp_tunnel_headers) tunnel_header_len_bytes else default_headroom_bytes,
         };
         self.last_probe_snapshot = snapshot;
+        self.last_queue_topology_summary = null;
+        self.last_mergeable_plan = null;
+        self.last_refill_summary = null;
         return snapshot;
     }
 
@@ -786,6 +789,67 @@ test "freezeForReset captures the last queue summary and refill expectations" {
     try std.testing.expect(frozen.mergeable_buffer_refill_required);
     try std.testing.expectEqual(@as(u16, 0), frozen.recovery_generation);
     try std.testing.expectError(error.TransportResetInProgress, lab.freezeForReset());
+}
+
+test "captureProbeSnapshot clears stale refill planning before a fresh reset replay" {
+    var lab = VirtioNetProbeLab.init();
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+    });
+    _ = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 6000,
+        .headroom_bytes = 64,
+        .mergeable_rx_bufs = true,
+    });
+    try std.testing.expect(lab.last_queue_topology_summary != null);
+    try std.testing.expect(lab.last_mergeable_plan != null);
+    try std.testing.expect(lab.last_refill_summary != null);
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 1,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    try std.testing.expect(lab.last_queue_topology_summary == null);
+    try std.testing.expect(lab.last_mergeable_plan == null);
+    try std.testing.expect(lab.last_refill_summary == null);
+    try std.testing.expectError(error.QueueTopologyUnavailable, lab.freezeForReset());
+
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 1,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    const frozen = try lab.freezeForReset();
+    try std.testing.expectEqual(@as(u16, 1), frozen.remembered_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), frozen.remembered_total_queue_count);
+    try std.testing.expect(!frozen.receive_buffer_refill_required);
+    try std.testing.expect(!frozen.mergeable_buffer_refill_required);
+
+    const plan = try lab.recoveryQueuePlan();
+    try std.testing.expectEqual(@as(u16, 1), plan.effective_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), plan.total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), plan.first_control_queue_index);
+    try std.testing.expect(!plan.requires_receive_buffer_refill);
+    try std.testing.expect(!plan.requires_mergeable_buffer_refill);
+    try std.testing.expect(!plan.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(PostResetProbeReplayCheckpoint.after_transmit_queue_restore, plan.post_reset_probe_replay_checkpoint);
 }
 
 test "recoveryQueuePlan mirrors the frozen queue summary" {
