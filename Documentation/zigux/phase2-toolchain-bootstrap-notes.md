@@ -42,6 +42,12 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin
 - the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset now stays explicit across this dedicated note, `Documentation/zigux/README.md`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md`, while `scripts/zigux/check-phase2-toolchain-pin-scope.py` keeps the pin-scope guard fail-closed on the same six-route inventory
 
+## Upgrade Policy
+
+- the Phase 2 toolchain policy keeps `channel` and `minimum_version` in lockstep so the pinned bootstrap archive and the minimum accepted Zig version do not drift apart
+- the Phase 2 toolchain policy requires refreshing the pinned `x86_64-linux` archive sha256 whenever the pinned channel changes
+- the Phase 2 toolchain policy requires rerunning `make -C zigux phase2-toolchain` and `make -C zigux phase2-validate` before landing any pinned Zig change
+
 ## Alignment Notes
 
 - `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py` keep this dedicated bootstrap note aligned with `zigux/tests/fixtures/phase2_cross_targets.json`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase2.py`, and `scripts/zigux/validate-phase2-closure.py` so the bounded three-target compile matrix stays reviewable from the same Phase 2 note instead of being implied only by sibling reminder surfaces
