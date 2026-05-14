@@ -442,6 +442,20 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "zigux/tests/phase7_argv_split.zig",
+            "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
+            "",
+            "tests_repeatable_deinit_marker",
+        )
+        expect_missing_marker(
+            "tests_repeatable_deinit_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig",
             "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
             "",
             "tests_argv_free_marker",
@@ -508,7 +522,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: if (argc == 0) {",
         )
 
-    case_count = 24
+    case_count = 25
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
