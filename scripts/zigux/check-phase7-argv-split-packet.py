@@ -62,6 +62,7 @@ REQUIRED_MARKERS = {
         "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");",
         "phase 7 argvSplit matches focused parity fixtures",
         "phase 7 argvSplit token buffer does not alias the source text",
+        "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
         "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
         "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
@@ -382,6 +383,20 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "zigux/tests/phase7_argv_split.zig",
+            "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
+            "",
+            "tests_argc_mirror_marker",
+        )
+        expect_missing_marker(
+            "tests_argc_mirror_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig",
             "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
             "",
             "tests_shared_blank_deinit_marker",
@@ -448,7 +463,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: pub fn cArgv",
         )
 
-    case_count = 20
+    case_count = 21
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
