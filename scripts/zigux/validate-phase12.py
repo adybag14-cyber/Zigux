@@ -33,6 +33,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase12_nvme_pci.zig",
     "zigux/tests/phase12_nvme_pci_manifest.json",
     "zigux/tests/phase12_nvme_pci_survey.zig",
+    "scripts/zigux/check-build-only-phase12-surface.py",
     "scripts/zigux/check-phase12-release-readiness-packet.py",
     "scripts/zigux/validate-phase12.py",
 ]
@@ -139,6 +140,7 @@ FIXTURE_OVERRIDES = {
     "zigux/tests/phase12_nvme_pci.zig": "// fixture\n",
     "zigux/tests/phase12_nvme_pci_manifest.json": "{\n  \"lane_key\": \"P12-L08\",\n  \"phase\": \"Phase 12\",\n  \"anchor\": \"drivers/nvme/host/pci.c\",\n  \"survey_summary\": {\n    \"preexisting_nvme_pci_zig_present\": true,\n    \"preexisting_nvme_pci_verifier_present\": true,\n    \"preexisting_phase12_direct_test_present\": true,\n    \"preexisting_phase12_survey_note_present\": true,\n    \"preexisting_phase12_survey_gate_present\": true\n  }\n}\n",
     "zigux/tests/phase12_nvme_pci_survey.zig": "// phase12 nvme pci survey manifest keeps the bounded queue-and-recovery packet truthful\n// phase12 nvme pci survey note stays aligned with the bounded queue-and-recovery starter\n// phase12 nvme pci survey gate keeps present lane files explicit\n// Documentation/zigux/phase12-nvme-pci-survey.md\n// drivers/nvme/host/pci_verify.zig\n// zigux/tests/phase12_nvme_pci.zig\n",
+    "scripts/zigux/check-build-only-phase12-surface.py": "#!/usr/bin/env python3\n",
     "scripts/zigux/check-phase12-release-readiness-packet.py": "#!/usr/bin/env python3\n",
 }
 
@@ -216,6 +218,7 @@ def run_self_test() -> None:
         ("missing_phase12_nvme_direct_test", "zigux/tests/phase12_nvme_pci.zig"),
         ("missing_phase12_nvme_manifest", "zigux/tests/phase12_nvme_pci_manifest.json"),
         ("missing_phase12_nvme_survey_gate", "zigux/tests/phase12_nvme_pci_survey.zig"),
+        ("missing_phase12_build_only_surface_checker", "scripts/zigux/check-build-only-phase12-surface.py"),
         ("missing_phase12_release_readiness_checker", "scripts/zigux/check-phase12-release-readiness-packet.py"),
     ]
 
