@@ -24,19 +24,20 @@ MARKERS = {
         "# Phase 11 DesignWare Watchdog Platform Registration Plan",
         "This note records the next bounded follow-up for the surviving Phase 11 DesignWare watchdog packet on current `master`.",
         "The live repository still keeps the DesignWare lane reviewable through:",
-        "`drivers/watchdog/dw_wdt.zig` for bounded TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, probe-time bookkeeping, and registration-facing handoff summaries",
+        "`drivers/watchdog/dw_wdt.zig` for bounded TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, probe-time bookkeeping, registration-facing handoff summaries, and an explicit missing timer-clock block",
         "`drivers/watchdog/dw_wdt_verify.zig` for direct teardown ownership and restart failure-mode parity that stays compile-local and host-free beside the bounded driver packet",
-        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig` for the bounded acquisition-facing scaffold that keeps timer-clock, APB-clock, reset-release, and imported-running handoff reviewable without widening into live platform behavior",
+        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig` for the bounded acquisition-facing scaffold that keeps timer-clock, APB-clock, reset-release, imported-running handoff, and the missing timer-clock failure path reviewable without widening into live platform behavior",
         "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` for the surviving owner-lane continuity packet, pinned to `P11-L10`",
         "That means the honest next step is no longer to pretend the older DesignWare manifest, survey, validation-matrix, or teardown packet is still shipped on current `master`.",
         "The next bounded follow-up is still to keep `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` aligned with one acquisition-facing platform-registration scaffold without widening into live platform behavior.",
+        "- keep missing timer-clock acquisition blocked as a distinct scaffold state so the bounded packet does not imply registration is ready before timer-clock acquisition succeeds",
         "- update this plan note, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` together when the DesignWare packet meaning changes",
         "- keep `drivers/watchdog/dw_wdt_verify.zig` compile-local and host-free so teardown ownership and restart failure-mode parity stay explicit while platform-backed acquisition remains the next bounded follow-through",
-        "If no scaffold lands yet, keep these reminder surfaces aligned with the surviving DesignWare packet instead of reviving removed manifest-backed evidence.",
+        "If clock acquisition lands first, leave reset wiring for the next bounded step. If reset acquisition lands first, leave clock-path execution for the next bounded step. Keep the missing timer-clock failure path explicit until live acquisition exists.",
     ],
     "lane_sequencing": [
-        "* DesignWare lane `P11-L10` owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the surviving bounded DesignWare packet; keep the landed direct DesignWare replay files and compile-local teardown or restart proofs explicit in shared summaries without widening them into broader platform-registration closure claims",
-        "7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`, pinned to `P11-L10`, while the next bounded step still remains platform-backed registration scaffolding rather than reviving removed manifest-backed reminder surfaces or widening the compile-local teardown or restart proofs into hardware-backed closure.",
+        "* DesignWare lane `P11-L10` owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as the surviving bounded DesignWare packet; keep the landed direct DesignWare replay files, compile-local teardown or restart proofs, and the missing timer-clock registration block explicit in shared summaries without widening them into broader platform-registration closure claims",
+        "7. Keep the DesignWare lane honest: on current `master` the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`, pinned to `P11-L10`, while the next bounded step still remains platform-backed registration scaffolding rather than reviving removed manifest-backed reminder surfaces, widening the compile-local teardown or restart proofs into hardware-backed closure, or treating a missing timer clock as registration-ready.",
     ],
     "tests_companion": [
         "## Phase 11 tests-root packet",
@@ -49,14 +50,18 @@ MARKERS = {
     ],
     "driver_file": [
         "pub const RegistrationScaffoldState",
+        "blocked_missing_timer_clock",
         "pub const TimerClockPath",
         "pub const ProbeTimeoutOrigin",
+        "ProbeTimeoutOrigin = enum",
         "pub const default_restart_priority",
         "pub fn platformHandoffSummary",
         "pub fn registrationOrderSummary",
         "pub fn platformRegistrationScaffoldSummary",
+        "ProbeTimeoutOrigin.blocked_missing_timer_clock",
         "blocked_on_live_platform_registration",
         "blocked_on_live_mmio",
+        "test \"phase11 dw_wdt platform handoff keeps missing timer-clock acquisition explicit\"",
     ],
     "verify_file": [
         "pub fn summarizeStopTeardown",
@@ -80,17 +85,20 @@ MARKERS = {
         'test "registration order summary keeps blocked registration explicit when drvdata is missing"',
         'test "platform registration scaffold summary keeps ready imported-state probe anchors explicit"',
         'test "platform registration scaffold summary keeps blocked timeout-programming branch explicit"',
+        'test "platform registration scaffold summary keeps missing timer clock block explicit"',
         "platformHandoffSummary",
         "registrationOrderSummary",
         "platformRegistrationScaffoldSummary",
         "RegistrationScaffoldState.import_running_state_then_register",
         "RegistrationScaffoldState.blocked_missing_drvdata",
+        "RegistrationScaffoldState.blocked_missing_timer_clock",
+        "ProbeTimeoutOrigin.blocked_missing_timer_clock",
         "blocked_on_live_platform_registration",
         "blocked_on_live_mmio",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 30
 
 
 class CheckError(RuntimeError):
@@ -152,7 +160,8 @@ def run_self_test() -> None:
             ("plan_note", 5),
             ("plan_note", 7),
             ("plan_note", 8),
-            ("plan_note", 10),
+            ("plan_note", 9),
+            ("plan_note", 11),
             ("lane_sequencing", 0),
             ("lane_sequencing", 1),
             ("tests_companion", 1),
@@ -161,7 +170,9 @@ def run_self_test() -> None:
             ("tests_companion", 5),
             ("tests_companion", 6),
             ("driver_file", 0),
-            ("driver_file", 6),
+            ("driver_file", 8),
+            ("driver_file", 9),
+            ("driver_file", 12),
             ("verify_file", 0),
             ("verify_file", 4),
             ("verify_file", 5),
@@ -171,7 +182,9 @@ def run_self_test() -> None:
             ("registration_scaffold", 0),
             ("registration_scaffold", 2),
             ("registration_scaffold", 3),
-            ("registration_scaffold", 10),
+            ("registration_scaffold", 5),
+            ("registration_scaffold", 12),
+            ("registration_scaffold", 13),
         ]
 
         for idx, (label, marker_index) in enumerate(cases, start=1):
