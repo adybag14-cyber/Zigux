@@ -42,6 +42,9 @@ TESTS_README_ROUTE_MARKERS = [
 ]
 SCRIPTS_README_MARKERS = [
     "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
+    "zigux/tests/README.md",
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+    "zigux/tests/phase14_workqueue_reviewability.zig",
 ]
 REQUIRED_SHARED_SMOKE_SURFACES = [
     "zigux/tests/README.md",
@@ -315,6 +318,9 @@ def good_scripts_readme_text() -> str:
             "# scripts/zigux",
             "Phase 14 notes",
             "- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`",
+            "- `zigux/tests/README.md`",
+            "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
+            "- `zigux/tests/phase14_workqueue_reviewability.zig`",
         ]
     ) + "\n"
 
