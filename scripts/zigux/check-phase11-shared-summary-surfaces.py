@@ -71,7 +71,7 @@ REQUIRED_MARKERS = {
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
         "`make -C zigux phase11-hvc-survey`",
         "DesignWare lane `P11-L10` owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`",
-        "the surviving DesignWare lane evidence is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`, pinned to `P11-L10`",
+        "Keep the DesignWare lane honest: on current `master` the surviving `P11-L10` platform-registration follow-through still lives in `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; keep that surviving packet explicit beside `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` and the shared Phase 11 reminder stack without reintroducing absent DesignWare survey, manifest, or validation-matrix surfaces as still-shipped evidence, without treating the scaffold as the shared packet anchor, and without widening the compile-local teardown or restart proofs into hardware-backed closure or treating a missing timer clock as registration-ready.",
     ],
     "docs_root": [
         "Phase 11 notes -",
