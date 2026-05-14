@@ -481,7 +481,7 @@ PHASE2_REVIEW_NOTES_EXACT_COUNTS = {
     PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS[0]: 1,
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 12
+EXPECTED_SELF_TEST_CASE_COUNT = 14
 
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -841,6 +841,20 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert any(issue.startswith("phase2_artifact_tools_manifest:artifact_tools:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
+        closure_doc = root / PHASE2_CLOSURE_DOC_RELATIVE_PATH
+        closure_doc.unlink()
+        issues = validate_root(root)
+        assert f"missing_file:{PHASE2_CLOSURE_DOC_RELATIVE_PATH}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        tool_manifest = root / "zigux/tests/fixtures/phase2_tool_manifest.json"
+        tool_manifest.unlink()
+        issues = validate_root(root)
+        assert "missing_file:phase2_tool_manifest" in issues
         case_count += 1
 
     assert case_count == EXPECTED_SELF_TEST_CASE_COUNT
