@@ -48,9 +48,9 @@ Current exact tree readback no longer supports calling `zigux/tests/phase8_build
 
 That same checker packet should also keep the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit so the deferred routing segment stays framed as broader setup-side parity rather than as if no routing-side helper evidence exists yet.
 
-Current mixed 2026-05-14 readback also shows that the next shared reminder-surface drift now sits outside this lane: `scripts/zigux/README.md` still omits `scripts/zigux/check-phase8-exec-cmd-packet.py` even though `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `zigux/Makefile`, and the shipped exec-cmd packet still keep that checker explicit on `master`.
+Current mixed 2026-05-14 readback also closes the older scripts-root omission cue outside this lane: `scripts/zigux/README.md` now explicitly carries `scripts/zigux/check-phase8-exec-cmd-packet.py` alongside the broader Phase 8 checker inventory that `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `zigux/Makefile`, and the shipped exec-cmd packet already keep visible on `master`.
 
-Treat that scripts-root omission as shared wording upkeep rather than as a fresh file-path-and-handle resource-boundary regression inside this libbpf survey packet.
+That scripts-root alignment keeps this survey focused on libbpf helper-local truthfulness rather than reopening shared wording from a stale non-libbpf cue.
 
 That leaves the narrower same-lane task as keeping this survey parked and truthful about the currently readable manifest, test, and helper-local routing evidence instead of reopening the same checker-local step.
 
@@ -70,7 +70,7 @@ Keep the libbpf survey packet parked after this current-tree refresh unless a fr
 Preferred order:
 1. re-read the exact current-tree packet before calling any broader build surface live again, starting with `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `zigux/tests/phase8_libbpf_segments.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, and `zigux/tests/phase8_pin_path.zig`
 2. confirm the dedicated survey, `scripts/zigux/check-phase8-libbpf-shard-routes.py`, and the shared reminder packet no longer imply that `zigux/tests/phase8_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, or `tools/lib/bpf/zigux_segments/verify.zig` are still visible current-tree replay surfaces
-3. if `scripts/zigux/README.md` still omits `scripts/zigux/check-phase8-exec-cmd-packet.py`, leave that reminder-surface repair to the shared wording lane instead of reopening this survey as a resource-boundary regression
+3. treat the older `scripts/zigux/README.md` exec-cmd-checker omission cue as closed on current `master`; only reopen shared wording from this libbpf survey lane if a fresh scripts-root drift appears that the dedicated sequencing note and current scripts packet both confirm
 4. keep the helper-local `online_cpu_routing.zig` evidence explicit while staying smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, standalone timer or clockevent helper behavior, or broader timeout-sensitive routing behavior
 
 especially the explicit `standalone timer or clockevent helper behavior` and broader timeout-sensitive routing behavior boundaries that keep this packet smaller than the deferred interrupt-routing work.
