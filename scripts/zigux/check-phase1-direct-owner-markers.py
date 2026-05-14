@@ -10,9 +10,15 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 
 REQUIRED_FILES = [
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
+]
+
+DOCS_ROOT_MARKERS = [
+    "- `scripts/zigux/check-phase1-direct-owner-markers.py` also remains part of the live Phase 1 reminder packet beside `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of leaving the helper-family owner map implicit from the lane note alone.",
+    "- `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py` keep that owner-map replay explicit too: the self-test replays the bounded exact-count logic, while the live route guards the shipped Phase 1 direct-owner markers without widening the counted reminder packet.",
 ]
 
 DIRECT_OWNER_MARKERS = [
@@ -84,10 +90,12 @@ def collect_exact_count_markers(text: str, label: str, markers: list[str], *, ls
 
 
 def collect_missing_markers(root: Path) -> list[str]:
+    docs_root = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
     lane_note = (root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md").read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
     missing: list[str] = []
+    missing.extend(collect_exact_count_markers(docs_root, "phase1_direct_owner_docs_root", DOCS_ROOT_MARKERS))
     missing.extend(collect_exact_count_markers(lane_note, "phase1_direct_owner_marker", DIRECT_OWNER_MARKERS))
     missing.extend(
         collect_exact_count_markers(
@@ -118,6 +126,20 @@ def collect_missing_markers(root: Path) -> list[str]:
 
 
 def make_fixture_root(root: Path) -> None:
+    docs_root = root / "Documentation/zigux/README.md"
+    docs_root.parent.mkdir(parents=True, exist_ok=True)
+    docs_root.write_text(
+        "\n".join(
+            [
+                "# Zigux Documentation",
+                "",
+                *DOCS_ROOT_MARKERS,
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
     lane_note = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
     lane_note.parent.mkdir(parents=True, exist_ok=True)
     lane_note.write_text(
@@ -183,10 +205,16 @@ def run_self_test() -> None:
         assert collect_missing_markers(root) == []
         case_count += 1
 
+        docs_root = root / "Documentation/zigux/README.md"
         lane_note = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
         makefile = root / "zigux/Makefile"
         workflow = root / ".github/workflows/zigux-bootstrap.yml"
 
+        docs_root.unlink()
+        assert collect_missing_files(root) == ["Documentation/zigux/README.md"]
+        case_count += 1
+
+        make_fixture_root(root)
         lane_note.unlink()
         assert collect_missing_files(root) == ["Documentation/zigux/phase1-host-helper-lane-sequencing.md"]
         case_count += 1
@@ -217,6 +245,30 @@ def run_self_test() -> None:
         )
         assert collect_missing_markers(root) == []
         case_count += 1
+
+        make_fixture_root(root)
+        docs_root_text = docs_root.read_text(encoding="utf-8")
+        for marker in DOCS_ROOT_MARKERS:
+            expect_missing_exact_count(
+                root,
+                docs_root,
+                docs_root_text,
+                "phase1_direct_owner_docs_root",
+                marker,
+                "",
+                0,
+            )
+            case_count += 1
+            expect_missing_exact_count(
+                root,
+                docs_root,
+                docs_root_text,
+                "phase1_direct_owner_docs_root",
+                marker,
+                marker + "\n" + marker,
+                2,
+            )
+            case_count += 1
 
         make_fixture_root(root)
         lane_note_text = lane_note.read_text(encoding="utf-8")
@@ -439,7 +491,7 @@ def main() -> int:
     print(f"PHASE1_DIRECT_OWNER_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_DIRECT_OWNER_REQUIRED_MARKER_COUNT="
-        f"{len(DIRECT_OWNER_MARKERS) + len(CURRENT_REPO_REALITY_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS) + len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(DIRECT_OWNER_MARKERS) + len(CURRENT_REPO_REALITY_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS) + len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS)}"
     )
     return 0
 
