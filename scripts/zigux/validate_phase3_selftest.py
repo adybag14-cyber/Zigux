@@ -44,15 +44,15 @@ SELFTEST_OUTPUT_MARKERS = {
     ),
     Path("scripts/zigux/check-phase3-policy-byte-guards.py"): (
         "PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass",
-        "PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=13",
+        "PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=15",
     ),
     Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"): (
         "PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST=pass",
-        "PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=6",
+        "PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=9",
     ),
     Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"): (
         "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass",
-        "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=5",
+        "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=6",
     ),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"): (
         "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass",
