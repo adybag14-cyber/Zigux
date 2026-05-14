@@ -66,10 +66,14 @@ REQUIRED_MARKERS = {
         "The next bounded follow-through should keep the expanded starter packet truthful",
     ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
+        "PHASE7_STATUS=parked",
+        "PHASE7_LANE_KEY=P7-L05",
         "scripts/zigux/validate-phase7.py",
         "zigux/tests/phase7_cmdline_manifest.json",
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+        "make -C zigux phase7-cmdline-survey",
         "make -C zigux phase7-validate",
+        "keep that shared route framed as a cross-packet review surface rather than a fresh cmdline-local green claim unless the full shared replay is rerun",
     ],
     "Documentation/zigux/phase7-argv-split-slice.md": [
         "scripts/zigux/validate-phase7.py",
@@ -331,6 +335,30 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase7-string-helpers-slice.md",
                 "The next bounded follow-through should keep the expanded starter packet truthful",
                 "Documentation/zigux/phase7-string-helpers-slice.md: The next bounded follow-through should keep the expanded starter packet truthful",
+            ),
+            (
+                "phase7 cmdline slice parked status marker",
+                "Documentation/zigux/phase7-cmdline-slice.md",
+                "PHASE7_STATUS=parked",
+                "Documentation/zigux/phase7-cmdline-slice.md: PHASE7_STATUS=parked",
+            ),
+            (
+                "phase7 cmdline slice lane key marker",
+                "Documentation/zigux/phase7-cmdline-slice.md",
+                "PHASE7_LANE_KEY=P7-L05",
+                "Documentation/zigux/phase7-cmdline-slice.md: PHASE7_LANE_KEY=P7-L05",
+            ),
+            (
+                "phase7 cmdline slice survey make route",
+                "Documentation/zigux/phase7-cmdline-slice.md",
+                "make -C zigux phase7-cmdline-survey",
+                "Documentation/zigux/phase7-cmdline-slice.md: make -C zigux phase7-cmdline-survey",
+            ),
+            (
+                "phase7 cmdline slice shared route posture",
+                "Documentation/zigux/phase7-cmdline-slice.md",
+                "keep that shared route framed as a cross-packet review surface rather than a fresh cmdline-local green claim unless the full shared replay is rerun",
+                "Documentation/zigux/phase7-cmdline-slice.md: keep that shared route framed as a cross-packet review surface rather than a fresh cmdline-local green claim unless the full shared replay is rerun",
             ),
             (
                 "phase7 make-wrapper note live validator route",
