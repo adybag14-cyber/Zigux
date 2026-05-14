@@ -270,6 +270,11 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
         if expected_case is None:
             raise ValueError(f"{CASES_PATH}:unexpected_name:{name}")
 
+        expected_fields = {"name", *expected_case.keys()}
+        unexpected_fields = sorted(set(raw_case) - expected_fields)
+        if unexpected_fields:
+            raise ValueError(f"{CASES_PATH}:{name}:unexpected_field:{unexpected_fields[0]}")
+
         validated_case = dict(raw_case)
         for field_name, expected_value in expected_case.items():
             actual_value = validated_case.get(field_name, 0 if field_name == "expected_exit_code" else None)
@@ -374,6 +379,14 @@ def run_self_test() -> int:
         f"{CASES_PATH}:unexpected_name:unexpected_fixdep_case",
     )
 
+    unexpected_field_cases = copy_valid_cases(valid_cases)
+    find_case(unexpected_field_cases, "sample")["unexpected_field"] = "unexpected"
+    expect_failure(
+        "unexpected_field",
+        lambda: validate_cases(unexpected_field_cases),
+        f"{CASES_PATH}:sample:unexpected_field:unexpected_field",
+    )
+
     reordered_cases = copy_valid_cases(valid_cases)
     reordered_cases[0], reordered_cases[1] = reordered_cases[1], reordered_cases[0]
     expect_failure(
@@ -457,7 +470,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 11}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 12}")
     return 0
 
 
