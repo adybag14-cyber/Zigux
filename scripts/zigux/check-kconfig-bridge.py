@@ -106,7 +106,7 @@ ALLCONFIG_SENTINEL_MODES = {
     "alldefconfig",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 22
+EXPECTED_SELF_TEST_CASE_COUNT = 23
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -718,6 +718,14 @@ def run_self_test() -> int:
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert ("INVALID_CONF_CASE_SYNCCONFIG_FIELDS", "oldaskconfig:nosilentupdate") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][0]["silent"] = False
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert ("INVALID_CONF_CASE_SILENT_FIELDS", "oldaskconfig:silent") in issues
         checks_run += 1
 
         build_self_test_root(root)
