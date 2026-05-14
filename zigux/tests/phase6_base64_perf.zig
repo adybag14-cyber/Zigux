@@ -196,6 +196,26 @@ fn nsPerOp(elapsed_ns: u64, reps: usize) u64 {
     return @max(@as(u64, 1), @divFloor(elapsed_ns, @as(u64, @intCast(reps))));
 }
 
+fn expectPerfCaseReferenceParity(case: PerfCase) !void {
+    const variant = fixtureVariant(case.variant_name);
+    var helper_encoded: [fixtures.perf_encoded_buf_size]u8 = undefined;
+    var reference_encoded: [fixtures.perf_encoded_buf_size]u8 = undefined;
+    var helper_decoded: [fixtures.perf_payload_buf_size]u8 = undefined;
+    var reference_decoded: [fixtures.perf_payload_buf_size]u8 = undefined;
+    var reference_decode_scratch: [fixtures.perf_encoded_buf_size]u8 = undefined;
+
+    const helper_encoded_len = try base64.encode(helper_encoded[0..], case.payload, case.padding, variant);
+    const reference_encoded_slice = try referenceEncode(case.reference_kind, reference_encoded[0..], case.payload);
+    try std.testing.expectEqualSlices(u8, reference_encoded_slice, helper_encoded[0..helper_encoded_len]);
+
+    const helper_decoded_len = try base64.decode(helper_decoded[0..], helper_encoded[0..helper_encoded_len], case.padding, variant);
+    const reference_decoded_len = try referenceDecode(case.reference_kind, reference_decoded[0..], reference_encoded_slice, reference_decode_scratch[0..]);
+    try std.testing.expectEqual(case.payload.len, helper_decoded_len);
+    try std.testing.expectEqual(case.payload.len, reference_decoded_len);
+    try std.testing.expectEqualSlices(u8, case.payload, helper_decoded[0..helper_decoded_len]);
+    try std.testing.expectEqualSlices(u8, case.payload, reference_decoded[0..reference_decoded_len]);
+}
+
 fn runPerfCase(case: PerfCase) !PerfResult {
     const variant = fixtureVariant(case.variant_name);
     var helper_encoded: [fixtures.perf_encoded_buf_size]u8 = undefined;
@@ -274,5 +294,11 @@ test "phase 6 base64 perf matrix keeps all shipped variant-and-padding replays" 
         try std.testing.expectEqual(expected.max_encode_slowdown_pct, actual.max_encode_slowdown_pct);
         try std.testing.expectEqual(expected.max_decode_slowdown_pct, actual.max_decode_slowdown_pct);
         try std.testing.expectEqualStrings(fixtures.perf_payload, actual.payload);
+    }
+}
+
+test "phase 6 base64 perf cases keep helper and reference codecs aligned before timing" {
+    for (fixtures.perf_cases) |case| {
+        try expectPerfCaseReferenceParity(case);
     }
 }
