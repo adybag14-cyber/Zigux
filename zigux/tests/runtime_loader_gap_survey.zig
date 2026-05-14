@@ -206,7 +206,7 @@ test "phase 9 runtime loader gap survey keeps rollback, metadata-only trace-even
     try expectCount(
         init_flow,
         "try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));",
-        7,
+        8,
     );
 
     try expectContains(trace_loader, "registrationSnapshot");
