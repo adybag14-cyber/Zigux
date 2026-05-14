@@ -383,6 +383,7 @@ pub fn platformRegistrationScaffoldSummary(
 }
 
 pub const TeardownOutcome = enum {
+    idle_noop,
     continued_heartbeat,
     reset_control_stop,
 };
@@ -436,18 +437,23 @@ pub const DwWdtLab = struct {
 
     pub fn teardownSummary(self: *DwWdtLab) !TeardownSummary {
         const running_before_teardown = self.running;
-        const can_stop = self.reset_control_available;
+        const can_stop = self.reset_control_available and running_before_teardown;
         const stop_invoked = running_before_teardown;
 
         self.interrupt_pending = false;
         if (can_stop) self.running = false;
 
         return .{
-            .outcome = if (can_stop) .reset_control_stop else .continued_heartbeat,
+            .outcome = if (!running_before_teardown)
+                .idle_noop
+            else if (can_stop)
+                .reset_control_stop
+            else
+                .continued_heartbeat,
             .can_stop = can_stop,
             .running_before_teardown = running_before_teardown,
             .stop_invoked = stop_invoked,
-            .enable_bit_cleared = can_stop and running_before_teardown,
+            .enable_bit_cleared = can_stop,
             .interrupt_cleared = true,
             .running_after_teardown = self.running,
             .hardware_running_after_teardown = self.running,
@@ -607,6 +613,46 @@ test "phase11 dw_wdt platform registration scaffold keeps shared-clock fallback 
     try std.testing.expect(!blocked.reset_release_requested);
     try std.testing.expect(blocked.blocked_on_live_platform_registration);
     try std.testing.expect(!blocked.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt teardown summary keeps idle, stoppable, and unstoppable paths distinct" {
+    var idle = try DwWdtLab.initFixedTops(7, true);
+    try idle.setInterruptPending(true);
+    const idle_summary = try idle.teardownSummary();
+    try std.testing.expectEqual(TeardownOutcome.idle_noop, idle_summary.outcome);
+    try std.testing.expect(!idle_summary.can_stop);
+    try std.testing.expect(!idle_summary.running_before_teardown);
+    try std.testing.expect(!idle_summary.stop_invoked);
+    try std.testing.expect(!idle_summary.enable_bit_cleared);
+    try std.testing.expect(idle_summary.interrupt_cleared);
+    try std.testing.expect(!idle_summary.running_after_teardown);
+    try std.testing.expect(!idle_summary.hardware_running_after_teardown);
+
+    var unstoppable = try DwWdtLab.initFixedTops(7, false);
+    _ = try unstoppable.start();
+    try unstoppable.setInterruptPending(true);
+    const unstoppable_summary = try unstoppable.teardownSummary();
+    try std.testing.expectEqual(TeardownOutcome.continued_heartbeat, unstoppable_summary.outcome);
+    try std.testing.expect(!unstoppable_summary.can_stop);
+    try std.testing.expect(unstoppable_summary.running_before_teardown);
+    try std.testing.expect(unstoppable_summary.stop_invoked);
+    try std.testing.expect(!unstoppable_summary.enable_bit_cleared);
+    try std.testing.expect(unstoppable_summary.interrupt_cleared);
+    try std.testing.expect(unstoppable_summary.running_after_teardown);
+    try std.testing.expect(unstoppable_summary.hardware_running_after_teardown);
+
+    var stoppable = try DwWdtLab.initFixedTops(7, true);
+    _ = try stoppable.start();
+    try stoppable.setInterruptPending(true);
+    const stoppable_summary = try stoppable.teardownSummary();
+    try std.testing.expectEqual(TeardownOutcome.reset_control_stop, stoppable_summary.outcome);
+    try std.testing.expect(stoppable_summary.can_stop);
+    try std.testing.expect(stoppable_summary.running_before_teardown);
+    try std.testing.expect(stoppable_summary.stop_invoked);
+    try std.testing.expect(stoppable_summary.enable_bit_cleared);
+    try std.testing.expect(stoppable_summary.interrupt_cleared);
+    try std.testing.expect(!stoppable_summary.running_after_teardown);
+    try std.testing.expect(!stoppable_summary.hardware_running_after_teardown);
 }
 
 test "phase11 dw_wdt remove summary clears interrupts while distinguishing reset-backed shutdown" {
