@@ -82,6 +82,13 @@
       "why_now": "The wrapper-facing verifier replay stays landed beside the probe-preflight summary and the status-drain replay so wrapper ordering remains reviewable below risky transport."
     },
     {
+      "id": "phase10-virtio-input-probe-preflight-replay",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_input_probe_preflight.zig",
+      "why_now": "The probe-preflight replay keeps identity, queue-plan, and registration-handoff blocker ordering explicit before real input registration or transport-backed callback execution."
+    },
+    {
       "id": "phase10-virtio-input-queue-callback-preflight-replay",
       "status": "starter_landed",
       "kind": "validation",
