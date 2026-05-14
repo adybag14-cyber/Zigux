@@ -212,12 +212,12 @@ test "phase 15 architecture council review-process manifest records the bounded 
         }
         if (std.mem.eql(u8, gap.id, "phase15-shared-summary-parity-scorecard-survey-undercount")) {
             saw_shared_summary_parity_scorecard_survey_undercount = true;
-            try std.testing.expectEqualStrings("blocked_on_shared_summaries", gap.status);
-            try std.testing.expectEqualStrings("scripts/zigux/README.md; zigux/tests/README.md; scripts/zigux/check-phase15-shared-summary-gap.py", gap.zigux_destination);
+            try std.testing.expectEqualStrings("landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/README.md; scripts/zigux/README.md; scripts/zigux/check-phase15-shared-summary-gap.py", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Documentation/zigux/phase15-parity-scorecard-survey.md") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "python3 scripts/zigux/check-phase15-shared-summary-gap.py") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "start with `scripts/zigux/README.md` as the smallest remaining reminder") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "widen into `zigux/tests/README.md` only if the scripts-root repair no longer closes the shared-summary drift") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "docs-root and scripts-root reminders both keep") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "zigux/tests/README.md") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -225,10 +225,10 @@ test "phase 15 architecture council review-process manifest records the bounded 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), landed_count);
+    try std.testing.expectEqual(@as(usize, 13), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), open_count);
-    try std.testing.expectEqual(@as(usize, 1), blocked_on_shared_summaries_count);
+    try std.testing.expectEqual(@as(usize, 0), blocked_on_shared_summaries_count);
     try std.testing.expect(saw_doc);
     try std.testing.expect(saw_manifest);
     try std.testing.expect(saw_test);
@@ -295,8 +295,9 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`bounded_dual_implementation`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`defer_or_reject`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase15-docs-readme-maintenance-note-undercount") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "remaining open shared-summary drift is now explicit on current `master`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`scripts/zigux/README.md` and `zigux/tests/README.md` still undercount `Documentation/zigux/phase15-parity-scorecard-survey.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "The broader scripts-root and tests-root parity-scorecard-survey undercount recorded in older handoffs is no longer the active shared-summary problem on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`scripts/zigux/README.md` already keeps `Documentation/zigux/phase15-parity-scorecard-survey.md` explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/tests/README.md` remains intentionally scoped by `Documentation/zigux/phase15-governance-lane-sequencing.md` plus `scripts/zigux/check-phase15-shared-summary-gap.py` to the sequencing-marker plus replay-route packet instead of a duplicate parity-scorecard-survey reminder") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "scripts/zigux/check-phase15-shared-summary-gap.py") != null);
 }
 
