@@ -354,7 +354,7 @@ def run_self_test() -> int:
         missing_files, _ = validate(root)
         if "drivers/virtio/virtio_verify.zig" not in missing_files:
             raise SystemExit("phase10-core-self-test:expected_verify_replay_file_missing")
-        write_fixture(root, "drivers/virtio/virtio_verify.zig", fixture["drivers/virtio/virtio_verify.zig"])
+        writeFixture(root, "drivers/virtio/virtio_verify.zig", fixture["drivers/virtio/virtio_verify.zig"])
 
         tests_readme_checker_path = root / "scripts/zigux/check-phase10-tests-readme-core-surfaces.py"
         tests_readme_checker_path.unlink()
@@ -417,7 +417,7 @@ def run_self_test() -> int:
 
         survey_path = root / "Documentation/zigux/phase10-virtio-core-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
-        survey_path.writeText(
+        survey_path.write_text(
             original_survey.replace("phase10-core-slice-note", "phase10-core-slice-drift", 1),
             encoding="utf-8",
         )
