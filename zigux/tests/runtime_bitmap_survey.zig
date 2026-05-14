@@ -255,6 +255,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(survey_note, "`zig test zigux/tests/runtime_bitmap_survey.zig`");
     try expectContains(survey_note, "`zig build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig`");
     try expectContains(survey_note, "`make -C zigux phase9-runtime-bitmap-top-bit-test`");
+    try expectContains(survey_note, "`zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig`");
     try expectContains(survey_note, "`zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`");
     try expectContains(survey_note, "`make -C zigux phase9-runtime-loader-shared-tests`");
     try expectContains(survey_note, "`make -C zigux phase9`");
@@ -348,5 +349,6 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-loader-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
 }
