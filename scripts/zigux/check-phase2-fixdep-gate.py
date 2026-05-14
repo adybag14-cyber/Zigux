@@ -448,7 +448,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / ".github/workflows/zigux-bootstrap.yml"
-        path.writeText(
+        path.write_text(
             path.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[4], "", 1),
             encoding="utf-8",
         )
