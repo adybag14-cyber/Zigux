@@ -99,6 +99,12 @@ REQUIRED_MARKERS = (
     "check-phase4-workflow-route-counts.py",
     "check-phase4-perf-baseline-packet.py",
     "check-phase6-shared-surface.py",
+    "validate-phase7.py",
+    "check-phase7-make-wrapper.py",
+    "check-phase7-make-wrapper-selftest-alignment.py",
+    "check-phase7-argv-split-packet.py",
+    "check-phase7-rbtree-parity.py",
+    "check-phase7-build-wiring.py",
     "make -C zigux phase4-validate",
     "make -C zigux phase4",
 )
@@ -141,9 +147,12 @@ REQUIRED_REPO_FILES = (
     Path("scripts/zigux/check-phase4-workflow-route-counts.py"),
     Path("scripts/zigux/check-phase4-perf-baseline-packet.py"),
     Path("scripts/zigux/check-phase6-shared-surface.py"),
+    Path("scripts/zigux/validate-phase7.py"),
     Path("scripts/zigux/check-phase7-make-wrapper.py"),
+    Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py"),
     Path("scripts/zigux/check-phase7-argv-split-packet.py"),
     Path("scripts/zigux/check-phase7-rbtree-parity.py"),
+    Path("scripts/zigux/check-phase7-build-wiring.py"),
 )
 
 
@@ -400,6 +409,24 @@ def run_self_test() -> int:
         print("expected Phase 6 shared-surface marker was not reported")
         return 1
 
+    broken = validate_text(sample.replace("validate-phase7.py", "", 1))
+    if "validate-phase7.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected Phase 7 validator marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("check-phase7-make-wrapper-selftest-alignment.py", "", 1))
+    if "check-phase7-make-wrapper-selftest-alignment.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected Phase 7 make-wrapper selftest-alignment marker was not reported")
+        return 1
+
+    broken = validate_text(sample.replace("check-phase7-build-wiring.py", "", 1))
+    if "check-phase7-build-wiring.py" not in broken:
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+        print("expected Phase 7 build-wiring marker was not reported")
+        return 1
+
     broken = validate_readme_snippets(sample.replace(PHASE4_VALIDATE_ROUTE_SNIPPET, "", 1))
     if PHASE4_VALIDATE_ROUTE_SNIPPET not in broken:
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
@@ -592,6 +619,16 @@ def run_self_test() -> int:
             return 1
         _write(root / missing_phase6_shared_surface_path, "# stub\n")
 
+        missing_phase7_validate_path = Path("scripts/zigux/validate-phase7.py")
+        (root / missing_phase7_validate_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase7_validate_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 7 validator repo file was not reported")
+            return 1
+        _write(root / missing_phase7_validate_path, "# stub\n")
+
         missing_phase7_make_wrapper_path = Path("scripts/zigux/check-phase7-make-wrapper.py")
         (root / missing_phase7_make_wrapper_path).unlink()
         broken = validate_repo_files(root)
@@ -601,6 +638,16 @@ def run_self_test() -> int:
             print("expected missing Phase 7 make-wrapper repo file was not reported")
             return 1
         _write(root / missing_phase7_make_wrapper_path, "# stub\n")
+
+        missing_phase7_make_wrapper_selftest_alignment_path = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
+        (root / missing_phase7_make_wrapper_selftest_alignment_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase7_make_wrapper_selftest_alignment_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 7 make-wrapper selftest-alignment repo file was not reported")
+            return 1
+        _write(root / missing_phase7_make_wrapper_selftest_alignment_path, "# stub\n")
 
         missing_phase7_argv_split_path = Path("scripts/zigux/check-phase7-argv-split-packet.py")
         (root / missing_phase7_argv_split_path).unlink()
@@ -621,6 +668,16 @@ def run_self_test() -> int:
             print("expected missing Phase 7 rbtree-parity repo file was not reported")
             return 1
         _write(root / missing_phase7_rbtree_parity_path, "# stub\n")
+
+        missing_phase7_build_wiring_path = Path("scripts/zigux/check-phase7-build-wiring.py")
+        (root / missing_phase7_build_wiring_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase7_build_wiring_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 7 build-wiring repo file was not reported")
+            return 1
+        _write(root / missing_phase7_build_wiring_path, "# stub\n")
 
         makefile = _baseline_makefile().replace(
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py\n",
