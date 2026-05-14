@@ -163,6 +163,7 @@ test "phase 4 bitmap survey keeps current exact-fill divergence explicit" {
 test "phase 4 bitmap survey keeps zero-length and copy-alignment rollback checks explicit" {
     try expectContains(bitmap_diff_source, "test_zero_nbits zero-length range and prefix edits leave seeded bits unchanged");
     try expectContains(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
+    try expectContains(bitmap_diff_source, "test_copy exact 23-bit replay from a cleared destination");
     try expectContains(bitmap_diff_source, "test_copy exact word-aligned replay from a cleared destination");
     try expectContains(
         bitmap_diff_source,
