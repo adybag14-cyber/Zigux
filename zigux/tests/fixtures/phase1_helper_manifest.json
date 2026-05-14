@@ -207,6 +207,7 @@
         "test \"rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned\"",
         "test \"rbtree eraseInitCached clears singleton cached roots before reseed\""
       ],
+      "cached_root_alias_anchor": "test \"rbtree cached-root Linux-style aliases mirror the primary helpers\"",
       "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root leftmost-return fixture keys",
       "next_safe_step_note": "If this helper lane reopens, the smallest shared-replay expansion is a dedicated iterator or cached-root leftmost-return fixture key; until then, matchIterator coverage plus cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors."
     },
