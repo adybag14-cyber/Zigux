@@ -115,6 +115,23 @@ pub const RecoveryEventBufferOwnershipSummary = struct {
     requires_event_rearm_before_request_queue_reuse: bool,
 };
 
+pub const RecoveryRequestQueueRestoreSummary = struct {
+    anchor: []const u8,
+    queue_local_index: u16,
+    queue_global_index: u16,
+    queue_kind: RequestQueueKind,
+    remembered_request_queues: u16,
+    remembered_poll_queues: u16,
+    event_queue_index: u16,
+    requested_depth: ?u32,
+    clamped_queue_depth: ?u32,
+    recovery_generation: u16,
+    requires_control_queue_restore_before_queue_enable: bool,
+    requires_event_rearm_before_queue_enable: bool,
+    requires_queue_depth_restore_before_queue_enable: bool,
+    requires_descriptors_ready_before_kick: bool,
+};
+
 pub const RecoveryHostScanSummary = struct {
     anchor: []const u8,
     remembered_request_queues: u16,
@@ -696,6 +713,38 @@ pub const VirtioScsiQueueLab = struct {
         };
     }
 
+    pub fn recoveryRequestQueueRestoreSummary(
+        self: *const Self,
+        local_index: u16,
+    ) !RecoveryRequestQueueRestoreSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        if (local_index >= layout.request_queues) {
+            return error.RequestQueueIndexOutOfRange;
+        }
+
+        const depth = self.frozen_queue_depth_summary;
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_local_index = local_index,
+            .queue_global_index = try checkedAddU16(request_queue_base, local_index),
+            .queue_kind = if (local_index < layout.default_queues) .request else .request_poll,
+            .remembered_request_queues = layout.request_queues,
+            .remembered_poll_queues = layout.poll_queues,
+            .event_queue_index = layout.event_queue_index,
+            .requested_depth = if (depth) |summary| summary.requested_depth else null,
+            .clamped_queue_depth = if (depth) |summary| summary.clamped_queue_depth else null,
+            .recovery_generation = self.recovery_generation,
+            .requires_control_queue_restore_before_queue_enable = true,
+            .requires_event_rearm_before_queue_enable = true,
+            .requires_queue_depth_restore_before_queue_enable = if (depth) |summary| summary.uses_change_queue_depth else false,
+            .requires_descriptors_ready_before_kick = true,
+        };
+    }
+
     pub fn recoveryHostScanSummary(self: *const Self) !RecoveryHostScanSummary {
         if (!self.transport_frozen) {
             return error.TransportNotFrozen;
@@ -757,3 +806,56 @@ pub const VirtioScsiQueueLab = struct {
         return std.math.cast(u32, value) orelse error.QueueCountOverflow;
     }
 };
+
+test "virtio scsi recovery request queue restore summary records queue ordering and remembered depth" {
+    var lab = VirtioScsiQueueLab.init();
+    _ = try lab.captureQueueDepthSummary(.{
+        .host_limit = .{
+            .probe = .{
+                .num_queues = 5,
+                .requested_poll_queues = 2,
+                .cmd_per_lun = 9,
+                .max_target = 3,
+                .max_lun = 2,
+                .max_sectors = 1536,
+            },
+            .synthetic_can_queue = 7,
+        },
+        .requested_depth = 11,
+    });
+    _ = try lab.freezeForTransportReset();
+
+    const summary = try lab.recoveryRequestQueueRestoreSummary(4);
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 4), summary.queue_local_index);
+    try std.testing.expectEqual(@as(u16, 6), summary.queue_global_index);
+    try std.testing.expectEqual(RequestQueueKind.request_poll, summary.queue_kind);
+    try std.testing.expectEqual(@as(u16, 5), summary.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 2), summary.remembered_poll_queues);
+    try std.testing.expectEqual(@as(u16, event_queue_index), summary.event_queue_index);
+    try std.testing.expectEqual(@as(?u32, 11), summary.requested_depth);
+    try std.testing.expectEqual(@as(?u32, 7), summary.clamped_queue_depth);
+    try std.testing.expectEqual(@as(u16, 0), summary.recovery_generation);
+    try std.testing.expect(summary.requires_control_queue_restore_before_queue_enable);
+    try std.testing.expect(summary.requires_event_rearm_before_queue_enable);
+    try std.testing.expect(summary.requires_queue_depth_restore_before_queue_enable);
+    try std.testing.expect(summary.requires_descriptors_ready_before_kick);
+}
+
+test "virtio scsi recovery request queue restore summary rejects invalid timing and missing depth state" {
+    var lab = VirtioScsiQueueLab.init();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRequestQueueRestoreSummary(0));
+
+    _ = try lab.planQueueLayout(4, 1);
+    _ = try lab.freezeForTransportReset();
+    try std.testing.expectError(error.RequestQueueIndexOutOfRange, lab.recoveryRequestQueueRestoreSummary(4));
+
+    const summary = try lab.recoveryRequestQueueRestoreSummary(0);
+    try std.testing.expectEqual(RequestQueueKind.request, summary.queue_kind);
+    try std.testing.expectEqual(@as(?u32, null), summary.requested_depth);
+    try std.testing.expectEqual(@as(?u32, null), summary.clamped_queue_depth);
+    try std.testing.expect(!summary.requires_queue_depth_restore_before_queue_enable);
+
+    _ = try lab.restoreAfterTransportReset();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRequestQueueRestoreSummary(0));
+}
