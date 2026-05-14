@@ -103,10 +103,15 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
         "Documentation/zigux/phase7-string-helpers-slice.md",
         "Documentation/zigux/phase7-cmdline-slice.md",
+        "Documentation/zigux/phase7-argv-split-slice.md",
         "PHASE7_STRING_HELPERS_LANE=P7-L04",
         "PHASE7_CMDLINE_LANE=P7-L05",
+        "PHASE7_ARGV_SPLIT_LANE=P7-L09",
+        "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
         "`P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift;",
         "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
+        "`argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
+        "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
     ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;",
@@ -314,6 +319,61 @@ def run_self_test() -> None:
 
         remove_once(
             tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "Documentation/zigux/phase7-argv-split-slice.md",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: Documentation/zigux/phase7-argv-split-slice.md",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_ARGV_SPLIT_LANE=P7-L09",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_LANE=P7-L09",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "`argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: `argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
             "scripts/zigux/README.md",
             "zigux/tests/phase7_rbtree_survey.zig",
         )
@@ -444,7 +504,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=18")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=22")
 
 
 def main() -> int:
