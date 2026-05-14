@@ -126,7 +126,7 @@
     "source": "manifest_derived",
     "lane_keys": {
       "core": "P10-L01",
-      "ring": "P10-L10",
+      "ring": "P10-L07",
       "input": "P10-L13",
       "mmio": "P10-L10"
     },
