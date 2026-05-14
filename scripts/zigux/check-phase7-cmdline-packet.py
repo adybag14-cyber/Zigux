@@ -193,7 +193,7 @@ def run_self_test() -> None:
                 "slice_shared_route_marker",
                 "Documentation/zigux/phase7-cmdline-slice.md",
                 "shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`;",
-                "Documentation/zigux/phase7-cmdline-slice.md: shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`;;",
+                "Documentation/zigux/phase7-cmdline-slice.md: shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`;",
             ),
             (
                 "helper_lane_owner_marker",
