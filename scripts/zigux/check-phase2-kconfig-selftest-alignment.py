@@ -90,7 +90,7 @@ MAKEFILE_LINES = (
 SCRIPTS_README_MARKERS = (
     "check-phase2-kconfig-readme-alignment.py --self-test",
     "dedicated kconfig bridge checker packet documented through the shared Phase 2 reminder surface",
-    "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, `validate-phase2-closure.py`, `check-phase2-toolchain-pin-scope.py`, `check-phase2-tests-readme-alignment.py`, `check-phase2-kconfig-readme-alignment.py`, `check-phase2-tool-manifest-packets.py`, `check-phase2-fixdep-gate.py`, `check-fixdep-diff.py`, `check-genksyms-bridge.py`, `check-phase2-cross.py`, `check-phase2-cross-selftest-alignment.py`, and `check-phase2-kconfig-selftest-alignment.py` are the live shared scripts-root Phase 2 helpers on current `master`",
+    "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, `validate-phase2-closure.py`, `check-phase2-toolchain-pin-scope.py`, `check-phase2-tests-readme-alignment.py`, `check-phase2-kconfig-readme-alignment.py`, `check-phase2-tool-manifest-packets.py`, `check-phase2-fixdep-gate.py`, `check-fixdep-diff.py`, `check-genksyms-bridge.py`, `check-phase2-cross.py`, `check-phase2-cross-selftest-alignment.py`, `check-phase2-kconfig-selftest-alignment.py`, and `check-kconfig-bridge.py` are the live shared scripts-root Phase 2 helpers on current `master`",
 )
 
 TESTS_README_MARKERS = (
