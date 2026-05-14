@@ -14,6 +14,7 @@ Current `master` ships the shared loader-facing packet directly:
 - `zigux/kernel/runtime_loader_contract.zig`
 - `zigux/tests/runtime_loader_allocator_init_flow.zig`
 - `zigux/tests/runtime_loader_gap_survey.zig`
+- `zigux/tests/runtime_trace_events_loader_substrate_drift.zig`
 - `zigux/tests/phase9_build.zig`
 - `scripts/zigux/check-phase9-build-only-surface.py`
 - `samples/zigux/runtime_atomic64_loader.zig`
@@ -40,6 +41,10 @@ or `phase9-validate` route on current `master`.
   `registrationSnapshot`, `prepareSharedRequest`,
   `requestSharedRuntimeLoad`, and `releaseSharedWithoutSubstrate`
   reviewable as metadata-only loader handoff evidence
+- `zigux/tests/runtime_trace_events_loader_substrate_drift.zig` keeps the
+  prepared shared runtime-substrate drift rejection explicit for the
+  trace-events pilot family, so the cleared sample-local parity proof stays
+  reviewable beside the shared loader packet
 
 ## Boundaries
 
@@ -100,6 +105,14 @@ and the focused `make -C zigux phase9-runtime-loader-shared-tests`,
 `make -C zigux phase9-test`, and `make -C zigux phase9` replay routes instead
 of leaving that packet blurred into the tail of the Phase 8 flow.
 
+Fresh repo-first inspection now also shows
+`zigux/tests/runtime_loader_gap_manifest.json` no longer records any remaining
+sample-local parity gap for trace-events and instead points at
+`zigux/tests/runtime_trace_events_loader_substrate_drift.zig` as the cleared
+replay surface, so this note should keep that landed proof visible as shipped
+shared-loader evidence rather than treating trace-events loader drift as open
+family-local follow-through.
+
 That means the earlier docs-root undercount and the later tests-root undercount
 are both cleared on current `master`; the remaining same-lane follow-through is
 now future reminder drift around the blocked module-metadata and
@@ -110,8 +123,9 @@ depmod-publication boundary rather than shared packet inventory sync.
 Leave this note parked unless `Documentation/zigux/README.md`,
 `scripts/zigux/README.md`, `zigux/tests/README.md`, or
 `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` drifts again
-around the shared loader-gap packet or the blocked module-metadata and
-depmod-publication boundary.
+around the shared loader-gap packet, the landed
+`zigux/tests/runtime_trace_events_loader_substrate_drift.zig` proof, or the
+blocked module-metadata and depmod-publication boundary.
 
 When that happens, start with the smallest shared reminder surface that
 regresses, keep the exact owner map and blocked publication boundary deferred
