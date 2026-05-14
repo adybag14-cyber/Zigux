@@ -43,7 +43,7 @@ The real current gap is now survey truthfulness about the already-landed checker
 
 The older narrower readback cue is now closed. Public mixed readback keeps the broader helper-plus-build packet visible on current `master`, so this survey should stay grounded in the readable manifest, helper roots, and build surfaces instead of repeating the older claim that `zigux/tests/phase8_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, or `tools/lib/bpf/zigux_segments/verify.zig` are absent from current reviewable evidence.
 
-That same checker packet should also keep the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit so the deferred routing segment stays framed as broader setup-side parity rather than as if no routing-side helper evidence exists yet.
+That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit so the deferred routing segment stays framed as broader setup-side parity rather than as if no routing-side helper evidence exists yet.
 
 Current mixed 2026-05-14 readback also closes the older scripts-root omission cue outside this lane: `scripts/zigux/README.md` now explicitly carries the broader Phase 8 checker inventory alongside the shared sequencing, the bridge-boundary note, the bridge-slice note, and the live build-surface reminders that current `master` still exposes.
 
