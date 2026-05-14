@@ -292,9 +292,9 @@ test "phase 9 runtime loader gap survey keeps atomic64 approved-family drift pro
     try expectContains(atomic64_loader, "anchor_request.plan.anchor = \"lib/atomic64_test_drift.c\";");
     try expectContains(atomic64_loader, "entry_request.plan.entry_symbol = \"zigux_runtime_atomic64_init_drift\";");
     try expectContains(atomic64_loader, "exit_request.plan.exit_symbol = \"zigux_runtime_atomic64_exit_drift\";");
-    try expectContains(atomic64_loader, "try std.testing.expectError(error.InvalidPilotFamilyContract, anchor_loader.requestSharedRuntimeLoad(&anchor_request));");
-    try expectContains(atomic64_loader, "try std.testing.expectError(error.InvalidPilotFamilyContract, entry_loader.requestSharedRuntimeLoad(&entry_request));");
-    try expectContains(atomic64_loader, "try std.testing.expectError(error.InvalidPilotFamilyContract, exit_loader.requestSharedRuntimeLoad(&exit_request));");
+    try expectContains(atomic64_loader, "try std.testing.expectError(error.PreparedPlanDrift, anchor_loader.requestSharedRuntimeLoad(&anchor_request));");
+    try expectContains(atomic64_loader, "try std.testing.expectError(error.PreparedPlanDrift, entry_loader.requestSharedRuntimeLoad(&entry_request));");
+    try expectContains(atomic64_loader, "try std.testing.expectError(error.PreparedPlanDrift, exit_loader.requestSharedRuntimeLoad(&exit_request));");
 
     try expectContains(bitmap_loader, "runtime bitmap loader keeps initialized shared-request snapshots stable across later selftest activity");
     try expectContains(bitmap_loader, "try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);");
