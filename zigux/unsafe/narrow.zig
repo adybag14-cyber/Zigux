@@ -74,6 +74,10 @@ pub fn permitsNoUnsafe(scope: UnsafeScopeTag) bool {
     return scope == .none;
 }
 
+pub fn requireNoUnsafe(scope: UnsafeScopeTag) UnsafeScopeError!void {
+    if (!permitsNoUnsafe(scope)) return error.UnsafeScopeDenied;
+}
+
 pub fn permitsNoUnsafePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return permitsNoUnsafe(scopeFromInteropPolicyBytes(unsafe_scope, reserved) orelse return false);
 }
@@ -102,6 +106,10 @@ pub fn permitsVolatileMmio(scope: UnsafeScopeTag) bool {
     return scope == .volatile_mmio;
 }
 
+pub fn requireVolatileMmio(scope: UnsafeScopeTag) UnsafeScopeError!void {
+    if (!permitsVolatileMmio(scope)) return error.UnsafeScopeDenied;
+}
+
 pub fn permitsVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return permitsVolatileMmio(scopeFromInteropPolicyBytes(unsafe_scope, reserved) orelse return false);
 }
@@ -128,6 +136,10 @@ pub fn requireVolatileMmioByte(unsafe_scope: u8) UnsafeScopeError!void {
 
 pub fn permitsRawPointerBridge(scope: UnsafeScopeTag) bool {
     return scope == .raw_pointer_bridge;
+}
+
+pub fn requireRawPointerBridge(scope: UnsafeScopeTag) UnsafeScopeError!void {
+    if (!permitsRawPointerBridge(scope)) return error.UnsafeScopeDenied;
 }
 
 pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
@@ -376,6 +388,9 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expect(permitsNoUnsafe(.none));
     try std.testing.expect(!permitsNoUnsafe(.volatile_mmio));
     try std.testing.expect(!permitsNoUnsafe(.raw_pointer_bridge));
+    try requireNoUnsafe(.none);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafe(.volatile_mmio));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafe(.raw_pointer_bridge));
     try std.testing.expect(permitsNoUnsafeByte(0));
     try std.testing.expect(!permitsNoUnsafeByte(1));
     try std.testing.expect(!permitsNoUnsafeByte(2));
@@ -395,6 +410,9 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expect(!permitsVolatileMmio(.none));
     try std.testing.expect(permitsVolatileMmio(.volatile_mmio));
     try std.testing.expect(!permitsVolatileMmio(.raw_pointer_bridge));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmio(.none));
+    try requireVolatileMmio(.volatile_mmio);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmio(.raw_pointer_bridge));
     try std.testing.expect(!permitsVolatileMmioByte(0));
     try std.testing.expect(permitsVolatileMmioByte(1));
     try std.testing.expect(!permitsVolatileMmioByte(2));
@@ -413,6 +431,9 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expect(!permitsRawPointerBridge(.none));
     try std.testing.expect(!permitsRawPointerBridge(.volatile_mmio));
     try std.testing.expect(permitsRawPointerBridge(.raw_pointer_bridge));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridge(.none));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridge(.volatile_mmio));
+    try requireRawPointerBridge(.raw_pointer_bridge);
     try std.testing.expect(!permitsRawPointerBridgeByte(0));
     try std.testing.expect(!permitsRawPointerBridgeByte(1));
     try std.testing.expect(permitsRawPointerBridgeByte(2));
