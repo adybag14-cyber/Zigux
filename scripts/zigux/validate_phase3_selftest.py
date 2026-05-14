@@ -54,6 +54,10 @@ SELFTEST_OUTPUT_MARKERS = {
         "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass",
         "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=5",
     ),
+    Path("scripts/zigux/validate-phase3-export-uapi-survey.py"): (
+        "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass",
+        "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=15",
+    ),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"): (
         "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
     ),
@@ -254,7 +258,7 @@ def _synthetic_makefile_text() -> str:
 
 def _synthetic_selftest_script(rel_path: Path) -> str:
     lines = ["#!/usr/bin/env python3"]
-    for marker in SELFTEST_OUTPUT_MARKERS.get(rel_path, ()):
+    for marker in SELFTEST_OUTPUT_MARKERS.get(rel_path, ()): 
         lines.append(f"print({marker!r})")
     lines.append("raise SystemExit(0)")
     lines.append("")
