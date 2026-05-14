@@ -46,12 +46,13 @@ Base raw URL prefix:
 - use this file only as a read-only fallback index; it does not add a new replay surface
 - keep the same smoke-first release order explicit beside this catalog: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
 - keep the focused direct packet explicit too: the current smoke shard for this driver is `zigux/tests/phase12_virtio_scsi.zig` plus `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
-- keep the fallback split honest: this file is the only commit-pinned direct replay artifact, while the newer `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` remain shared-tree current-master survey companions for the widened queue-submit-completion-and-recovery packet, `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than commit-pinned fallback artifacts, and `scripts/zigux/validate-phase12.py` remains unwired support material rather than a shipped validator route
+- keep the fallback split honest: this file is the only commit-pinned direct replay artifact, while the newer `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` remain shared-tree current-master survey companions for the widened queue-submit-completion-and-recovery packet, `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than commit-pinned fallback artifacts, and the shipped `make -C zigux phase12-validate` route keeps `scripts/zigux/validate-phase12.py` plus `scripts/zigux/check-phase12-release-readiness-packet.py` inside the validator-first support bundle rather than turning them into standalone direct replay routes
 - keep `zigux/tests/phase12_build.zig`, `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` visible as shared-tree raw-read anchors for the shipped smoke-first packet rather than treating them as extra commit-pinned artifacts
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening any PMO wording around this artifact
 
 ## Boundaries
-- this note must not imply a shipped `phase12-validate` route, a validator-first route around `scripts/zigux/validate-phase12.py`, any shared `check-phase12-*.py` packet beyond the build-only checker named above, a focused `virtio_scsi`-only replay route, or a cross-build replay that current `master` does not ship
+- this note must not treat the shipped `make -C zigux phase12-validate` route as a second direct replay packet, a focused `virtio_scsi`-only replay, a cross-build replay, or a promotion of the `scripts/zigux/validate-phase12.py` helper beyond the validator-first support bundle
+- this note must not imply a broader shared `check-phase12-*.py` family beyond `scripts/zigux/check-build-only-phase12-surface.py` and `scripts/zigux/check-phase12-release-readiness-packet.py`
 - this note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`
 - this note is a public-read pointer catalog only, not a release-closure claim and not a second survey note
 
@@ -71,5 +72,7 @@ Base raw URL prefix:
   - `zigux/tests/phase12_virtio_scsi_manifest.json` -> blob `edeb0c6a92d8b14c0e965f329f82870efe6e1947`
   - `zigux/Makefile` -> blob `8d4779d698888216ad87cb0e5a3b7f088f9a0d31`
 - current-master support-material boundary rechecked beside the same packet:
+  - `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `842a71d531646b9c52ab19af68a41629498f5dfd`
   - `scripts/zigux/validate-phase12.py` -> blob `a1b3895271e811629e92fbb08666ab9812f04a97`
+  - `.github/workflows/zigux-bootstrap.yml` -> blob `08ae60d97fbaeff12354d6a7888460c2c07b078b`
 - this exact-evidence recheck preserves the existing split: this catalog stays pinned to `ee64eec272a352da1d967999c99bb3c3560c9b97` for direct raw replay, while the blob list above records what the broader current-master packet looked like immediately before this note refresh.
