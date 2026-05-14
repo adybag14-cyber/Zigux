@@ -912,7 +912,7 @@ test "bitmap diff gate keeps the manifest-backed rollback packet aligned" {
 
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P4-L07", manifest.lane_key);
+    try std.testing.expectEqualStrings("P4-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.roadmap_target_path);
     try std.testing.expect(manifest.roadmap_bitmap_diff_present);
