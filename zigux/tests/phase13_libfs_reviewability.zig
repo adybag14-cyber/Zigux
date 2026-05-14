@@ -15,6 +15,7 @@ test "descriptor keeps the current bounded helper surface explicit" {
     try std.testing.expect(descriptor.provides_addressability_planning);
     try std.testing.expect(descriptor.provides_offset_seek_planning);
     try std.testing.expect(descriptor.provides_offset_readdir_planning);
+    try std.testing.expect(descriptor.provides_offset_add_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
@@ -108,7 +109,7 @@ test "addressability planner stays reviewable without implying live page-cache o
     try std.testing.expect(sector_overflow.within_page_window);
 }
 
-test "offset rename helpers stay reviewable as managed-slot planners rather than live directory mutation" {
+test "offset add and rename helpers stay reviewable as managed-slot planners rather than live directory mutation" {
     try std.testing.expectEqual(libfs.OffsetSlotClass.missing, libfs.LibfsHelperLab.classifyOffsetSlot(null));
     try std.testing.expectEqual(libfs.OffsetSlotClass.out_of_range, libfs.LibfsHelperLab.classifyOffsetSlot(-1));
     try std.testing.expectEqual(libfs.OffsetSlotClass.dot_entry_window, libfs.LibfsHelperLab.classifyOffsetSlot(0));
@@ -117,6 +118,11 @@ test "offset rename helpers stay reviewable as managed-slot planners rather than
     try std.testing.expectEqual(libfs.OffsetSlotClass.end_of_directory, libfs.LibfsHelperLab.classifyOffsetSlot(libfs.dir_offset_end_of_directory));
     try std.testing.expectEqual(libfs.OffsetSlotClass.out_of_range, libfs.LibfsHelperLab.classifyOffsetSlot(libfs.dir_offset_end_of_directory + 1));
 
+    const add_ok = libfs.LibfsHelperLab.planSimpleOffsetAdd(0, .{ .allocated = libfs.dir_offset_min + 5 });
+    const add_busy = libfs.LibfsHelperLab.planSimpleOffsetAdd(0, .busy);
+    const add_prepopulated = libfs.LibfsHelperLab.planSimpleOffsetAdd(libfs.dir_offset_min + 2, .{ .allocated = libfs.dir_offset_min + 6 });
+    const add_out_of_range = libfs.LibfsHelperLab.planSimpleOffsetAdd(0, .{ .allocated = libfs.dir_offset_first });
+    const add_failure = libfs.LibfsHelperLab.planSimpleOffsetAdd(0, .failure);
     const rename_ok = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 4, libfs.dir_offset_min + 9);
     const rename_missing_destination = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 5, null);
     const rename_reserved = libfs.LibfsHelperLab.planSimpleOffsetRename(libfs.dir_offset_min + 1, libfs.dir_offset_first);
@@ -124,6 +130,33 @@ test "offset rename helpers stay reviewable as managed-slot planners rather than
     const exchange_missing_source = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(null, libfs.dir_offset_min + 6);
     const exchange_reserved_source = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(0, libfs.dir_offset_min + 7);
     const exchange_reserved = libfs.LibfsHelperLab.planSimpleOffsetRenameExchange(libfs.dir_offset_min + 3, libfs.dir_offset_end_of_directory);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", add_ok.anchor);
+    try std.testing.expectEqual(libfs.OffsetAddStatus.ok, add_ok.status);
+    try std.testing.expect(add_ok.records_offset_in_dentry);
+    try std.testing.expect(add_ok.stores_dentry_in_map);
+    try std.testing.expect(!add_ok.remaps_allocator_busy_to_no_space);
+
+    try std.testing.expectEqual(libfs.OffsetAddStatus.no_space, add_busy.status);
+    try std.testing.expectEqual(@as(?i64, null), add_busy.allocated_offset);
+    try std.testing.expect(!add_busy.records_offset_in_dentry);
+    try std.testing.expect(!add_busy.stores_dentry_in_map);
+    try std.testing.expect(add_busy.remaps_allocator_busy_to_no_space);
+
+    try std.testing.expectEqual(libfs.OffsetAddStatus.dentry_already_has_offset, add_prepopulated.status);
+    try std.testing.expectEqual(@as(?i64, null), add_prepopulated.allocated_offset);
+    try std.testing.expect(!add_prepopulated.records_offset_in_dentry);
+    try std.testing.expect(!add_prepopulated.stores_dentry_in_map);
+
+    try std.testing.expectEqual(libfs.OffsetAddStatus.allocated_offset_out_of_range, add_out_of_range.status);
+    try std.testing.expectEqual(@as(?i64, null), add_out_of_range.allocated_offset);
+    try std.testing.expect(!add_out_of_range.records_offset_in_dentry);
+    try std.testing.expect(!add_out_of_range.stores_dentry_in_map);
+
+    try std.testing.expectEqual(libfs.OffsetAddStatus.allocator_failure, add_failure.status);
+    try std.testing.expectEqual(@as(?i64, null), add_failure.allocated_offset);
+    try std.testing.expect(!add_failure.records_offset_in_dentry);
+    try std.testing.expect(!add_failure.stores_dentry_in_map);
 
     try std.testing.expectEqualStrings("fs/libfs.c", rename_ok.anchor);
     try std.testing.expectEqual(libfs.OffsetRenameStatus.ok, rename_ok.status);
