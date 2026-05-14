@@ -39,10 +39,12 @@ NEXT_STEP_MARKERS = [
     "- If the helper sits in the shared-replay parked set, reread only its shared replay, fixture, build-route, and review-surface packet and land one drift repair if needed.",
     "- If the helper sits in the direct-anchor set, reread only that helper's direct anchors plus any already-committed shared fixture keys it owns and land one bounded follow-up if needed.",
     "- For `tools/lib/bitmap.zig`, do not replay the older closed exact-marker validator cue; current `master` already exact-requires and self-tests `PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW` and `PHASE1_BITMAP_LINUX_ALIAS_REVIEW`, so leave the bitmap closure-validator packet parked unless a fresh reread shows direct-anchor drift or committed shared replay drift.",
+    "- For `tools/lib/bitmap.zig`, the earlier closure-note cross-word `bitmap.scnprintf()` follow-through is also closed on current `master`: `Documentation/zigux/phase1-closure.md` already keeps `PHASE1_BITMAP_SCNPRINTF_CROSS_WORD_REVIEW` explicit, so leave that note parked unless a fresh reread shows new direct-anchor drift or committed shared replay drift.",
     "- For `tools/lib/bitmap.zig`, the earlier validator-summary wording follow-through is also closed on current `master`: `scripts/zigux/validate-phase1.py` already matches the live bitmap `review_packet_summary` in `zigux/tests/fixtures/phase1_helper_manifest.json`, so leave that validator packet parked unless a fresh reread shows new direct-anchor drift or committed shared replay drift.",
     "- The next smallest same-lane shared-validation step is closed for this owner-map packet: `scripts/zigux/check-phase1-direct-owner-markers.py` exact-checks the four `PHASE1_*_DIRECT_OWNER` lines in this note before any helper-local replay widening.",
     "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=leave the shared reminder packet parked now that Documentation/zigux/review-checklist.md carries the same self-test-versus-live route-role wording as Documentation/zigux/README.md; if a future host-tools-alpha run reopens Phase 1, start from the helper-specific next-safe-step markers below instead of another shared reminder pass`",
     "- Treat the helper-specific next-safe-step markers below as the tie-breaker whenever multiple older saved helper cues still exist in Memory; choose the helper's own next-safe-step marker instead of widening into a neighboring helper family.",
+    "- `zigux/tests/fixtures/phase1_helper_manifest.json` now records helper-local `next_safe_step_note` entries for `tools/lib/bitmap.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`, while `tools/lib/find_bit.zig` still relies on the owner-map tie-breaker below; until current `master` lands the matching `find_bit` manifest note, treat `PHASE1_FIND_BIT_NEXT_SAFE_STEP` below as the authoritative tie-breaker instead of reopening that helper family from older saved cues or shared-validator paths`",
     "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen the already-closed closure-validator or validator-summary packets by default`",
     "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or for committed tail-clamped replay drift`",
     "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens for exactly one next widening only: a dedicated shared iterator fixture key or a dedicated cached-root leftmost-return fixture key, never both in the same run`",
@@ -286,7 +288,7 @@ def run_self_test() -> None:
             lane_note,
             lane_note_text,
             "phase1_direct_owner_next_step",
-            NEXT_STEP_MARKERS[7],
+            NEXT_STEP_MARKERS[5],
             "",
             0,
         )
@@ -299,9 +301,35 @@ def run_self_test() -> None:
             lane_note,
             lane_note_text,
             "phase1_direct_owner_next_step",
-            NEXT_STEP_MARKERS[7],
-            NEXT_STEP_MARKERS[7] + "\n" + NEXT_STEP_MARKERS[7],
+            NEXT_STEP_MARKERS[8],
+            "",
+            0,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_next_step",
+            NEXT_STEP_MARKERS[8],
+            NEXT_STEP_MARKERS[8] + "\n" + NEXT_STEP_MARKERS[8],
             2,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_next_step",
+            NEXT_STEP_MARKERS[10],
+            "",
+            0,
         )
         case_count += 1
 
