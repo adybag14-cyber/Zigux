@@ -20,7 +20,7 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 
 - `current master` does not have a remaining roadmap gap at the level of conf bridge scaffolding. The bridge, checker, fixture packet, manifest, and shared Phase 2 reminder surfaces are already present.
 - The honest remaining work for this file family is smaller than scaffolding: keep the bridge-local truthfulness surfaces aligned when the bridge grows.
-- The live bridge helper surface has moved beyond the current checker-backed subset. `scripts/zigux/check-kconfig-bridge.py` and `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json` now agree on a 14-anchor helper packet, but `scripts/zigux/kconfig/conf_bridge.zig` currently carries 30 bridge-local test anchors spanning the mode-surface check, the `silentoldconfig` alias, empty `nosilentupdate` omission, `--silent` ordering, sentinel and override env handling, mode-argument validation, and duplicate-option rejection.
+- The live bridge helper surface has moved beyond the current checker-backed subset. `scripts/zigux/check-kconfig-bridge.py` and `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json` now agree on a 14-anchor helper packet, but `scripts/zigux/kconfig/conf_bridge.zig` currently carries 31 bridge-local test anchors spanning the mode-surface check, the `silentoldconfig` alias, empty `nosilentupdate` omission, `--silent` ordering, sentinel and override env handling, mode-argument validation, and duplicate-option rejection.
 - That smaller helper-anchor parity follow-through belongs in the separate conf bridge maintenance lane rather than reopening this survey lane as if scaffolding were still missing.
 
 ## Next Bounded Step
