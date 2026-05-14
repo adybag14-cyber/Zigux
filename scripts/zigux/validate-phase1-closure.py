@@ -281,6 +281,7 @@ EXPECTED_RBTREE_MANIFEST = {
         "find_missing",
         "find_first_serial",
         "next_match_serials",
+        "match_iterator_serials",
         "next_match_terminal_null",
     ],
     "ordered_alias_anchor": 'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
@@ -299,8 +300,8 @@ EXPECTED_RBTREE_MANIFEST = {
         'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
         'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
     ],
-    "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root leftmost-return fixture keys",
-    "next_safe_step_note": "If this helper lane reopens, the smallest shared-replay expansion is a dedicated iterator or cached-root leftmost-return fixture key; until then, matchIterator coverage plus cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors.",
+    "review_packet_summary": "shared find, first-match, next-match, and match-iterator duplicate-search parity stays explicit through the Phase 1 fixture and replay, while cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships a dedicated cached-root leftmost-return fixture key",
+    "next_safe_step_note": "If this helper lane reopens, the smallest shared-replay expansion is now the dedicated cached-root leftmost-return fixture key; until then, cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors.",
 }
 
 EXPECTED_STRING_HELPER_TESTS = [
@@ -354,6 +355,7 @@ STRING_LOOKUP_ANCHOR_PREFIXES = (
     'test "match_string ',
 )
 
+
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
 
@@ -385,7 +387,6 @@ def collect_bench_markers(bench: Any) -> list[str]:
     if bench.get("status") != EXPECTED_BENCH["status"]:
         missing.append("bench:status")
     if bench.get("iterations") != EXPECTED_BENCH["iterations"]:
-
         missing.append("bench:iterations")
     if bench.get("checksums") != EXPECTED_BENCH["checksums"]:
         missing.append("bench:checksums")
