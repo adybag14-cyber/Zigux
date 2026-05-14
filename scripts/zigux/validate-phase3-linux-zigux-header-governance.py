@@ -41,6 +41,9 @@ HEADER_HELPERS = (
     "zigux_export_status_ok",
     "zigux_boundary_header_make",
     "zigux_boundary_header_make_compatible",
+    "zigux_boundary_header_is_current_abi_version",
+    "zigux_boundary_header_is_compatible_size",
+    "zigux_boundary_header_is_canonical_size",
 )
 REQUIRED_BOUNDARY_MARKERS = {
     "keep canonical and future-compatible constructors as thin named relays over the canonical header and starter UAPI ownership": 1,
@@ -107,7 +110,7 @@ def validate_text(note_text: str, header_text: str) -> list[str]:
         actual_count = header_text.count(include_marker)
         if actual_count != 1:
             issues.append(
-                f"header include count drift: {include_marker} (expected 1, found {actual_count})"
+                f'header include count drift: {include_marker} (expected 1, found {actual_count})'
             )
 
     for helper in HEADER_HELPERS:
@@ -129,14 +132,17 @@ def validate_text(note_text: str, header_text: str) -> list[str]:
 
 def run_self_test() -> int:
     sample_header = (
-        '#ifndef _LINUX_ZIGUX_H\n'
-        '#define _LINUX_ZIGUX_H\n\n'
+        "#ifndef _LINUX_ZIGUX_H\n"
+        "#define _LINUX_ZIGUX_H\n\n"
         '#include "../zigux/abi.h"\n'
         '#include "../zigux/dev_t.h"\n\n'
-        'static inline int zigux_export_status_ok(struct zigux_export_status status)\n{\n    return status.code;\n}\n\n'
-        'static inline struct zigux_boundary_header zigux_boundary_header_make(uint16_t flags)\n{\n    return zigux_default_header(flags);\n}\n\n'
-        'static inline struct zigux_boundary_header zigux_boundary_header_make_compatible(uint32_t size, uint16_t flags)\n{\n    struct zigux_boundary_header header = zigux_default_header(flags);\n    header.size = size;\n    return header;\n}\n\n'
-        '#endif\n'
+        "static inline int zigux_export_status_ok(struct zigux_export_status status)\n{\n    return status.code;\n}\n\n"
+        "static inline struct zigux_boundary_header zigux_boundary_header_make(uint16_t flags)\n{\n    return zigux_default_header(flags);\n}\n\n"
+        "static inline struct zigux_boundary_header zigux_boundary_header_make_compatible(uint32_t size, uint16_t flags)\n{\n    struct zigux_boundary_header header = zigux_default_header(flags);\n    header.size = size;\n    return header;\n}\n\n"
+        "static inline int zigux_boundary_header_is_current_abi_version(uint16_t abi_version)\n{\n    return abi_version == (uint16_t)ZIGUX_ABI_VERSION;\n}\n\n"
+        "static inline int zigux_boundary_header_is_compatible_size(uint32_t size)\n{\n    return size >= (uint32_t)sizeof(struct zigux_boundary_header);\n}\n\n"
+        "static inline int zigux_boundary_header_is_canonical_size(uint32_t size)\n{\n    return size == (uint32_t)sizeof(struct zigux_boundary_header);\n}\n\n"
+        "#endif\n"
     )
     sample_blob = _git_blob_sha(sample_header)
     sample_note = f"""## Scope
@@ -162,6 +168,9 @@ live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`
 `zigux_export_status_ok()`
 `zigux_boundary_header_make()`
 `zigux_boundary_header_make_compatible()`
+`zigux_boundary_header_is_current_abi_version()`
+`zigux_boundary_header_is_compatible_size()`
+`zigux_boundary_header_is_canonical_size()`
 keep canonical and future-compatible constructors as thin named relays over the canonical header and starter UAPI ownership
 aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally
 """
@@ -221,29 +230,59 @@ aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` o
         print("expected bindings marker drift was not reported")
         return 1
 
-    broken = validate_text(sample_note.replace('`zigux_boundary_header_make_compatible()`', '', 1), sample_header)
-    expected = 'governance note helper marker missing: zigux_boundary_header_make_compatible()'
+    broken = validate_text(sample_note.replace("`zigux_boundary_header_make_compatible()`", "", 1), sample_header)
+    expected = "governance note helper marker missing: zigux_boundary_header_make_compatible()"
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected governance-note helper drift was not reported")
         return 1
 
-    broken = validate_text(sample_note.replace(sample_blob, 'deadbeef', 1), sample_header)
-    expected = f'blob marker drift: PHASE3_ZIGUX_H_BLOB_SHA={sample_blob} (expected 1, found 0)'
+    broken = validate_text(
+        sample_note.replace("`zigux_boundary_header_is_current_abi_version()`", "", 1),
+        sample_header,
+    )
+    expected = "governance note helper marker missing: zigux_boundary_header_is_current_abi_version()"
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected current-abi helper drift was not reported")
+        return 1
+
+    broken = validate_text(
+        sample_note.replace("`zigux_boundary_header_is_compatible_size()`", "", 1),
+        sample_header,
+    )
+    expected = "governance note helper marker missing: zigux_boundary_header_is_compatible_size()"
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected compatible-size helper drift was not reported")
+        return 1
+
+    broken = validate_text(
+        sample_note.replace("`zigux_boundary_header_is_canonical_size()`", "", 1),
+        sample_header,
+    )
+    expected = "governance note helper marker missing: zigux_boundary_header_is_canonical_size()"
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected canonical-size helper drift was not reported")
+        return 1
+
+    broken = validate_text(sample_note.replace(sample_blob, "deadbeef", 1), sample_header)
+    expected = f"blob marker drift: PHASE3_ZIGUX_H_BLOB_SHA={sample_blob} (expected 1, found 0)"
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected blob drift was not reported")
         return 1
 
-    broken = validate_text(sample_note, sample_header.replace('#include "../zigux/dev_t.h"\n', '', 1))
+    broken = validate_text(sample_note, sample_header.replace('#include "../zigux/dev_t.h"\n', "", 1))
     expected = 'header include count drift: #include "../zigux/dev_t.h" (expected 1, found 0)'
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected include drift was not reported")
         return 1
 
-    broken = validate_text(sample_note, sample_header.replace('zigux_export_status_ok', 'zigux_export_status_nope', 1))
-    expected = 'header helper missing: zigux_export_status_ok'
+    broken = validate_text(sample_note, sample_header.replace("zigux_export_status_ok", "zigux_export_status_nope", 1))
+    expected = "header helper missing: zigux_export_status_ok"
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected header helper drift was not reported")
@@ -255,24 +294,24 @@ aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` o
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--self-test', action='store_true')
-    parser.add_argument('--repo-root', type=Path, default=Path('.'))
+    parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--repo-root", type=Path, default=Path("."))
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    note_text = load_text(args.repo_root / NOTE_PATH, 'governance note')
-    header_text = load_text(args.repo_root / HEADER_PATH, 'Linux-facing header')
+    note_text = load_text(args.repo_root / NOTE_PATH, "governance note")
+    header_text = load_text(args.repo_root / HEADER_PATH, "Linux-facing header")
     issues = validate_text(note_text, header_text)
     if issues:
         for issue in issues:
             print(issue, file=sys.stderr)
         return 1
 
-    print(f'validated {args.repo_root / NOTE_PATH}')
+    print(f"validated {args.repo_root / NOTE_PATH}")
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     raise SystemExit(main())
