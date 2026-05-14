@@ -63,6 +63,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - exact perf-matrix preflight: `zigux/tests/phase6_hexdump_perf_matrix.zig`
 - fixtures: `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`
+- direct local perf-threshold checker: `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
 - Linux-style packet review route: `make -C zigux phase6-hexdump-review`
 - direct local rerun route: `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`
 - Linux-style rerun route: `make -C zigux phase6-hexdump-test`
@@ -73,6 +74,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 ## Shared Routes
 
 ### Reviewable on current `master`
+- `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
 - `make -C zigux phase6-bsearch-test`
 - `make -C zigux phase6-hexdump-test`
 - `make -C zigux phase6-hexdump-review`
