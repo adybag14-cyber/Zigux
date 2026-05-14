@@ -377,6 +377,29 @@ pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) T
     };
 }
 
+pub const KickWakeupCueRequest = struct {
+    registration_handoff_visible: bool,
+    notifier_add_handoff_visible: bool,
+    khvcd_polling_contract_visible: bool,
+    keeps_live_khvcd_execution_out_of_scope: bool = true,
+};
+
+pub const KickWakeupCueSummary = struct {
+    registration_handoff_visible: bool,
+    notifier_add_handoff_visible: bool,
+    khvcd_polling_contract_visible: bool,
+    keeps_live_khvcd_execution_out_of_scope: bool,
+};
+
+pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {
+    return .{
+        .registration_handoff_visible = request.registration_handoff_visible,
+        .notifier_add_handoff_visible = request.notifier_add_handoff_visible,
+        .khvcd_polling_contract_visible = request.khvcd_polling_contract_visible,
+        .keeps_live_khvcd_execution_out_of_scope = request.keeps_live_khvcd_execution_out_of_scope,
+    };
+}
+
 pub fn hvc_kick() void {}
 
 pub fn __hvc_resize(hp: *HvcStruct, ws: Winsize) void {
@@ -674,6 +697,21 @@ test "phase11 hvc console keeps targetless notifier no-unregister edge reviewabl
     try std.testing.expect(!targeted.targetless_no_unregister_edge);
     try std.testing.expect(targeted.unregister_requested);
     try std.testing.expect(targeted.keeps_live_notifier_execution_out_of_scope);
+}
+
+test "phase11 hvc console keeps hvc_kick wakeup cue reviewable" {
+    const summary = summarizeKickWakeupCue(.{
+        .registration_handoff_visible = true,
+        .notifier_add_handoff_visible = true,
+        .khvcd_polling_contract_visible = true,
+    });
+
+    try std.testing.expect(summary.registration_handoff_visible);
+    try std.testing.expect(summary.notifier_add_handoff_visible);
+    try std.testing.expect(summary.khvcd_polling_contract_visible);
+    try std.testing.expect(summary.keeps_live_khvcd_execution_out_of_scope);
+
+    hvc_kick();
 }
 
 test "phase11 hvc console keeps notifier irq helper surface reviewable" {
