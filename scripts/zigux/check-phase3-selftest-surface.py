@@ -128,6 +128,8 @@ TESTS_README_MARKER_COUNTS = {
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "Documentation/zigux/phase3-validator-support-surface.md": 1,
     "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
+    "include/zigux/dev_t.h": 1,
+    "zigux/uapi/version.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
 }
 TESTS_README_REMINDER_ONLY_MARKER_COUNTS = {
@@ -554,6 +556,36 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected tests README reminder-only drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        tests_path.write_text(
+            _read(tests_path).replace("include/zigux/dev_t.h", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: "
+            "include/zigux/dev_t.h (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected tests README dev_t header drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        tests_path.write_text(
+            _read(tests_path).replace("zigux/uapi/version.zig", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: "
+            "zigux/uapi/version.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected tests README version companion drift was not reported")
             return 1
 
         _populate_repo(root)
