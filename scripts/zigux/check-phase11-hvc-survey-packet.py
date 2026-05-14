@@ -166,6 +166,10 @@ VALIDATION_MATRIX_MARKERS = [
     "`summarizeNotifierAddOutcome()`",
     "`drivers/tty/hvc/hvc_console_sysrq.zig`",
     "host-free khvcd, notifier, remove, or cleanup handoff",
+    "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove-handoff path explicit when the tty is already absent",
+    "cleanup prerequisite failures and the targetless notifier no-unregister edge reviewable",
+    "targetless sysrq dispatch from implying notifier callbacks",
+    "the direct verify helper keeps tty-already-absent remove handoff",
 ]
 
 DRIVER_STARTER_MARKERS = [
@@ -448,6 +452,7 @@ def run_self_test() -> None:
             (REQUIRED_FILES["teardown_note"], "HUPCL-gated modem-line shutdown"),
             (REQUIRED_FILES["teardown_note"], "stale hangup short-circuit behavior"),
             (REQUIRED_FILES["validation_matrix"], PRESENT_DIRECT_COMPANION_MARKER),
+            (REQUIRED_FILES["validation_matrix"], "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove-handoff path explicit when the tty is already absent"),
             (REQUIRED_FILES["survey_gate"], 'try std.testing.expect(manifest.survey_summary.hvc_console_test_present);'),
             (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[-1]),
             (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[-1]),
