@@ -142,6 +142,11 @@ test "phase 7 string helper boundary keeps the expanded helper packet and curren
     const samples_root = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_root);
     try expectContains(samples_root, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;");
+    try expectContains(samples_root, "keep the ownership-focus packet visible there too");
+    try expectContains(samples_root, "first-NUL trimming and prefix skipping stop at the exported C-string boundary");
+    try expectContains(samples_root, "exact-fit and zero-capacity unescape destinations stay caller-owned");
+    try expectContains(samples_root, "append-limited escape accounting stays inside caller storage");
+    try expectContains(samples_root, "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations");
     try expectContains(samples_root, "treat any new `samples/zigux/*string*.zig` file as review-blocking");
     try expectContains(samples_root, "lib/string_helpers.zig");
     try expectContains(samples_root, "zigux/tests/phase7_string_helpers.zig");
