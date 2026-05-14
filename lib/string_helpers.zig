@@ -13,6 +13,19 @@ pub const UNESCAPE_SPECIAL: u32 = @as(u32, 1) << 3;
 pub const UNESCAPE_ANY: u32 = UNESCAPE_SPACE | UNESCAPE_OCTAL | UNESCAPE_HEX | UNESCAPE_SPECIAL;
 pub const UNESCAPE_ALL_MASK: u32 = UNESCAPE_ANY;
 
+pub const ESCAPE_SPACE: u32 = @as(u32, 1) << 0;
+pub const ESCAPE_SPECIAL: u32 = @as(u32, 1) << 1;
+pub const ESCAPE_NULL: u32 = @as(u32, 1) << 2;
+pub const ESCAPE_OCTAL: u32 = @as(u32, 1) << 3;
+pub const ESCAPE_ANY: u32 = ESCAPE_SPACE | ESCAPE_OCTAL | ESCAPE_SPECIAL | ESCAPE_NULL;
+pub const ESCAPE_NP: u32 = @as(u32, 1) << 4;
+pub const ESCAPE_ANY_NP: u32 = ESCAPE_ANY | ESCAPE_NP;
+pub const ESCAPE_HEX: u32 = @as(u32, 1) << 5;
+pub const ESCAPE_NA: u32 = @as(u32, 1) << 6;
+pub const ESCAPE_NAP: u32 = @as(u32, 1) << 7;
+pub const ESCAPE_APPEND: u32 = @as(u32, 1) << 8;
+pub const ESCAPE_ALL_MASK: u32 = (@as(u32, 1) << 9) - 1;
+
 const string_units_10 = [_][]const u8{ "", "k", "M", "G", "T", "P", "E", "Z", "Y" };
 const string_units_2 = [_][]const u8{ "", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi" };
 
@@ -38,6 +51,14 @@ fn isOctDigit(ch: u8) bool {
     return ch >= '0' and ch <= '7';
 }
 
+fn isAscii(ch: u8) bool {
+    return ch <= 0x7f;
+}
+
+fn isPrintable(ch: u8) bool {
+    return ch >= 0x20 and ch <= 0x7e;
+}
+
 fn hexNibble(ch: u8) ?u8 {
     return switch (ch) {
         '0'...'9' => ch - '0',
@@ -45,6 +66,14 @@ fn hexNibble(ch: u8) ?u8 {
         'A'...'F' => ch - 'A' + 10,
         else => null,
     };
+}
+
+fn hexUpperNibble(ch: u8) u8 {
+    return "0123456789ABCDEF"[ch >> 4];
+}
+
+fn hexLowerNibble(ch: u8) u8 {
+    return "0123456789ABCDEF"[ch & 0x0f];
 }
 
 fn stringUnitsDivisor(units_base: u32) u128 {
@@ -122,6 +151,67 @@ fn matchUnescapeSpecial(src: []const u8) ?UnescapeMatch {
         else => return null,
     };
     return .{ .value = value, .consumed = 1 };
+}
+
+fn emitEscapeByte(dst: []u8, limit: usize, out_index: *usize, value: u8) void {
+    if (out_index.* < limit) {
+        dst[out_index.*] = value;
+    }
+    out_index.* += 1;
+}
+
+fn escapePassthrough(ch: u8, dst: []u8, limit: usize, out_index: *usize) void {
+    emitEscapeByte(dst, limit, out_index, ch);
+}
+
+fn escapeSpace(ch: u8, dst: []u8, limit: usize, out_index: *usize) bool {
+    const escaped: ?u8 = switch (ch) {
+        '\n' => 'n',
+        '\r' => 'r',
+        '\t' => 't',
+        '\x0b' => 'v',
+        '\x0c' => 'f',
+        else => null,
+    };
+    const value = escaped orelse return false;
+    emitEscapeByte(dst, limit, out_index, '\\');
+    emitEscapeByte(dst, limit, out_index, value);
+    return true;
+}
+
+fn escapeSpecial(ch: u8, dst: []u8, limit: usize, out_index: *usize) bool {
+    const escaped: ?u8 = switch (ch) {
+        '\\' => '\\',
+        '\x07' => 'a',
+        '\x1b' => 'e',
+        '"' => '"',
+        else => null,
+    };
+    const value = escaped orelse return false;
+    emitEscapeByte(dst, limit, out_index, '\\');
+    emitEscapeByte(dst, limit, out_index, value);
+    return true;
+}
+
+fn escapeNull(ch: u8, dst: []u8, limit: usize, out_index: *usize) bool {
+    if (ch != 0) return false;
+    emitEscapeByte(dst, limit, out_index, '\\');
+    emitEscapeByte(dst, limit, out_index, '0');
+    return true;
+}
+
+fn escapeOctal(ch: u8, dst: []u8, limit: usize, out_index: *usize) void {
+    emitEscapeByte(dst, limit, out_index, '\\');
+    emitEscapeByte(dst, limit, out_index, ((ch >> 6) & 0x07) + '0');
+    emitEscapeByte(dst, limit, out_index, ((ch >> 3) & 0x07) + '0');
+    emitEscapeByte(dst, limit, out_index, (ch & 0x07) + '0');
+}
+
+fn escapeHex(ch: u8, dst: []u8, limit: usize, out_index: *usize) void {
+    emitEscapeByte(dst, limit, out_index, '\\');
+    emitEscapeByte(dst, limit, out_index, 'x');
+    emitEscapeByte(dst, limit, out_index, hexUpperNibble(ch));
+    emitEscapeByte(dst, limit, out_index, hexLowerNibble(ch));
 }
 
 pub fn skipSpaces(text: []const u8) []const u8 {
@@ -344,6 +434,78 @@ pub fn stringUnescapeAnyInplace(buf: []u8) usize {
 
 pub fn string_unescape_any_inplace(buf: []u8) usize {
     return stringUnescapeAnyInplace(buf);
+}
+
+pub fn stringEscapeMem(src: []const u8, dst: []u8, size: usize, flags: u32, only: ?[]const u8) usize {
+    const limit = if (size == 0) dst.len else @min(size, dst.len);
+    const dict = only orelse &[_]u8{};
+    const dict_len = cStringLen(dict);
+    const is_dict = dict_len > 0;
+    const is_append = (flags & ESCAPE_APPEND) != 0;
+    var out_index: usize = 0;
+
+    for (src) |ch| {
+        const in_dict = is_dict and std.mem.indexOfScalar(u8, dict[0..dict_len], ch) != null;
+
+        if (!(is_append or in_dict) and is_dict) {
+            escapePassthrough(ch, dst, limit, &out_index);
+            continue;
+        }
+        if (!(is_append and in_dict) and isAscii(ch) and isPrintable(ch) and (flags & ESCAPE_NAP) != 0) {
+            escapePassthrough(ch, dst, limit, &out_index);
+            continue;
+        }
+        if (!(is_append and in_dict) and isPrintable(ch) and (flags & ESCAPE_NP) != 0) {
+            escapePassthrough(ch, dst, limit, &out_index);
+            continue;
+        }
+        if (!(is_append and in_dict) and isAscii(ch) and (flags & ESCAPE_NA) != 0) {
+            escapePassthrough(ch, dst, limit, &out_index);
+            continue;
+        }
+        if ((flags & ESCAPE_SPACE) != 0 and escapeSpace(ch, dst, limit, &out_index)) continue;
+        if ((flags & ESCAPE_SPECIAL) != 0 and escapeSpecial(ch, dst, limit, &out_index)) continue;
+        if ((flags & ESCAPE_NULL) != 0 and escapeNull(ch, dst, limit, &out_index)) continue;
+        if ((flags & ESCAPE_OCTAL) != 0) {
+            escapeOctal(ch, dst, limit, &out_index);
+            continue;
+        }
+        if ((flags & ESCAPE_HEX) != 0) {
+            escapeHex(ch, dst, limit, &out_index);
+            continue;
+        }
+        escapePassthrough(ch, dst, limit, &out_index);
+    }
+
+    return out_index;
+}
+
+pub fn string_escape_mem(src: []const u8, dst: []u8, size: usize, flags: u32, only: ?[]const u8) usize {
+    return stringEscapeMem(src, dst, size, flags, only);
+}
+
+pub fn stringEscapeMemAnyNp(src: []const u8, dst: []u8, size: usize, only: ?[]const u8) usize {
+    return stringEscapeMem(src, dst, size, ESCAPE_ANY_NP, only);
+}
+
+pub fn string_escape_mem_any_np(src: []const u8, dst: []u8, size: usize, only: ?[]const u8) usize {
+    return stringEscapeMemAnyNp(src, dst, size, only);
+}
+
+pub fn stringEscapeStr(src: []const u8, dst: []u8, size: usize, flags: u32, only: ?[]const u8) usize {
+    return stringEscapeMem(src[0..cStringLen(src)], dst, size, flags, only);
+}
+
+pub fn string_escape_str(src: []const u8, dst: []u8, size: usize, flags: u32, only: ?[]const u8) usize {
+    return stringEscapeStr(src, dst, size, flags, only);
+}
+
+pub fn stringEscapeStrAnyNp(src: []const u8, dst: []u8, size: usize, only: ?[]const u8) usize {
+    return stringEscapeStr(src, dst, size, ESCAPE_ANY_NP, only);
+}
+
+pub fn string_escape_str_any_np(src: []const u8, dst: []u8, size: usize, only: ?[]const u8) usize {
+    return stringEscapeStrAnyNp(src, dst, size, only);
 }
 
 pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
