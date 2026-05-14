@@ -167,6 +167,15 @@ REQUIRED_SURVEY_MARKERS = [
     'layout_assert.assertOffset(WinSize, "ws_ypixel", 6);',
     "layout_assert.assertSize(HvOps, 72);",
     "layout_assert.assertAlign(HvOps, 8);",
+    'layout_assert.assertFieldType(HvOps, "get_chars", ?*const fn (vtermno: u32, buf: [*]u8, count: c_int) callconv(.c) c_int);',
+    'layout_assert.assertFieldType(HvOps, "put_chars", ?*const fn (vtermno: u32, buf: [*]const u8, count: c_int) callconv(.c) c_int);',
+    'layout_assert.assertFieldType(HvOps, "flush", ?*const fn (vtermno: u32, wait: bool) callconv(.c) c_int);',
+    'layout_assert.assertFieldType(HvOps, "notifier_add", ?*const fn (hp: *HvcStruct, irq: c_int) callconv(.c) c_int);',
+    'layout_assert.assertFieldType(HvOps, "notifier_del", ?*const fn (hp: *HvcStruct, irq: c_int) callconv(.c) void);',
+    'layout_assert.assertFieldType(HvOps, "notifier_hangup", ?*const fn (hp: *HvcStruct, irq: c_int) callconv(.c) void);',
+    'layout_assert.assertFieldType(HvOps, "tiocmget", ?*const fn (hp: *HvcStruct) callconv(.c) c_int);',
+    'layout_assert.assertFieldType(HvOps, "tiocmset", ?*const fn (hp: *HvcStruct, set: c_uint, clear: c_uint) callconv(.c) c_int);',
+    'layout_assert.assertFieldType(HvOps, "dtr_rts", ?*const fn (hp: *HvcStruct, active: bool) callconv(.c) void);',
     'layout_assert.assertOffset(HvOps, "get_chars", 0);',
     'layout_assert.assertOffset(HvOps, "put_chars", 8);',
     'layout_assert.assertOffset(HvOps, "flush", 16);',
@@ -469,6 +478,13 @@ def run_self_test() -> int:
         expect_failure(
             root,
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            'layout_assert.assertFieldType(HvOps, "tiocmset", ?*const fn (hp: *HvcStruct, set: c_uint, clear: c_uint) callconv(.c) c_int);',
+            'layout_assert.assertFieldType(HvOps, "tiocmset", ?*const fn (hp: *HvcStruct, set: usize, clear: usize) callconv(.c) c_int);',
+            "survey missing markers",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
             'layout_assert.assertOffset(HvOps, "notifier_hangup", 40);',
             'layout_assert.assertOffset(HvOps, "notifier_hangup", 44);',
             "survey missing markers",
@@ -593,7 +609,7 @@ def run_self_test() -> int:
             "build inventory shared_split_replays mismatch",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=24")
+    print("phase11-header-boundary-packet: self-test cases=25")
     return 0
 
 
