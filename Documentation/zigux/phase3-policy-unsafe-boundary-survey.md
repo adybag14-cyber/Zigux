@@ -86,5 +86,5 @@ Current same-family progress already includes helper-local explicit-byte decodin
 ## Next Bounded Step
 
 - leave this lane parked unless `zigux/tests/fixtures/phase3_abi_manifest.json` or `Documentation/zigux/phase3-abi-slice.md` drifts again from this survey
-- keep the next same-lane change to one shared-ABI marker or wording refresh tied only to this packet
-- if a broader policy-and-unsafe helper family or a new direct focused replay ever lands later, resurvey this note against the exact live files before claiming that surface here
+- keep the next same-lane change to one shared-ABI marker, one directly coupled focused-replay note refresh, or one validator-wording refresh tied only to this packet
+- if the directly coupled focused low-level replay, one of the dedicated policy packet checks, or a broader policy-and-unsafe helper family changes later, resurvey this note against the exact live files before claiming that surface here
