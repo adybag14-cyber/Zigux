@@ -83,7 +83,7 @@ pub const Request = struct {
     silent: bool = false,
     mode_arg: ?[]const u8 = null,
     allconfig: ?[]const u8 = null,
-    seed: ?[]const u8 = null,
+    seed: ?u32 = null,
     probability: ?[]const u8 = null,
     nosilentupdate: ?[]const u8 = null,
 };
@@ -91,7 +91,7 @@ pub const Request = struct {
 const BridgeOptions = struct {
     silent: bool = false,
     allconfig: ?[]const u8 = null,
-    seed: ?[]const u8 = null,
+    seed: ?u32 = null,
     probability: ?[]const u8 = null,
     nosilentupdate: ?[]const u8 = null,
 };
@@ -165,6 +165,48 @@ fn validateModeArgument(mode: Mode, value: []const u8) ModeArgumentError![]const
     return value;
 }
 
+fn parseRandconfigSeed(text: []const u8) ?u32 {
+    if (text.len == 0) return null;
+    var body = text;
+    var negative = false;
+    switch (body[0]) {
+        '+' => body = body[1..],
+        '-' => {
+            negative = true;
+            body = body[1..];
+        },
+        else => {},
+    }
+    if (body.len == 0) return null;
+
+    const base: u8, const digits: []const u8 = blk: {
+        if (body.len >= 2 and body[0] == '0' and (body[1] == 'x' or body[1] == 'X')) {
+            break :blk .{ 16, body[2..] };
+        }
+        if (body.len > 1 and body[0] == '0') {
+            break :blk .{ 8, body[1..] };
+        }
+        break :blk .{ 10, body };
+    };
+    if (digits.len == 0) return null;
+
+    var value: u64 = 0;
+    for (digits) |digit| {
+        const nibble: u8 = switch (digit) {
+            '0'...'9' => digit - '0',
+            'a'...'f' => 10 + digit - 'a',
+            'A'...'F' => 10 + digit - 'A',
+            else => return null,
+        };
+        if (nibble >= base) return null;
+        value = std.math.mul(u64, value, base) catch return null;
+        value = std.math.add(u64, value, nibble) catch return null;
+    }
+
+    const truncated: u32 = @truncate(value);
+    return if (negative) 0 -% truncated else truncated;
+}
+
 fn writeHexLower(writer: anytype, value: u8) !void {
     const digits = "0123456789abcdef";
     try writer.writeByte(digits[value >> 4]);
@@ -215,7 +257,7 @@ fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsEr
             if (saw_seed) return error.DuplicateSeed;
             saw_seed = true;
             const value = arg["seed=".len..];
-            options.seed = if (value.len == 0) null else value;
+            options.seed = parseRandconfigSeed(value);
             continue;
         }
         if (std.mem.startsWith(u8, arg, "probability=")) {
@@ -281,8 +323,10 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     }
     if (request.mode == .randconfig) {
         if (request.seed) |seed| {
+            var seed_buffer: [16]u8 = undefined;
+            const rendered_seed = try std.fmt.bufPrint(&seed_buffer, "0x{X}", .{seed});
             try writer.writeAll(",\"KCONFIG_SEED\":\"");
-            try writeJsonEscaped(writer, seed);
+            try writer.writeAll(rendered_seed);
             try writer.writeAll("\"");
         }
         if (request.probability) |probability| {
@@ -623,7 +667,7 @@ test "conf bridge emits randconfig tunables when present" {
         .kconfig = "Kconfig",
         .config = "rand/.config",
         .arch = "x86_64",
-        .seed = "0xC0FFEE",
+        .seed = 0xC0FFEE,
         .probability = "15:25",
     });
 
@@ -631,6 +675,36 @@ test "conf bridge emits randconfig tunables when present" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_PROBABILITY\":\"15:25\"") != null);
+}
+
+test "conf bridge canonicalizes randconfig seed like conf.c" {
+    var capture = try TestCapture.init(std.testing.allocator, 224);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .randconfig,
+        .kconfig = "Kconfig",
+        .config = "rand/.config",
+        .arch = "x86_64",
+        .seed = parseRandconfigSeed("052").?,
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0x2A\"") != null);
+}
+
+test "conf bridge omits invalid randconfig seed like conf.c fallback" {
+    var capture = try TestCapture.init(std.testing.allocator, 224);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .randconfig,
+        .kconfig = "Kconfig",
+        .config = "rand/.config",
+        .arch = "x86_64",
+        .seed = parseRandconfigSeed("nope"),
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\"") == null);
 }
 
 test "conf bridge emits explicit randconfig allconfig override when present" {
@@ -643,7 +717,7 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
         .config = "rand/.config",
         .arch = "x86_64",
         .allconfig = "allrandom.config",
-        .seed = "0xC0FFEE",
+        .seed = 0xC0FFEE,
     });
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"allrandom.config\"") != null);
@@ -750,6 +824,17 @@ test "bridge options parser keeps empty syncconfig nosilentupdate unset" {
     try std.testing.expect(options.nosilentupdate == null);
 }
 
+test "bridge options parser canonicalizes randconfig seed with base-0 parsing" {
+    const options = try parseBridgeOptions(.randconfig, &.{"seed=052"});
+    try std.testing.expect(options.seed != null);
+    try std.testing.expectEqual(@as(u32, 42), options.seed.?);
+}
+
+test "bridge options parser drops invalid randconfig seed for conf.c fallback" {
+    const options = try parseBridgeOptions(.randconfig, &.{"seed=bogus"});
+    try std.testing.expect(options.seed == null);
+}
+
 test "bridge options parser accepts generic silent flag" {
     const options = try parseBridgeOptions(.helpnewconfig, &.{"silent"});
     try std.testing.expect(options.silent);
@@ -765,7 +850,7 @@ test "bridge options parser accepts silent alongside randconfig options" {
     });
     try std.testing.expect(options.silent);
     try std.testing.expectEqualStrings("allrandom.config", options.allconfig.?);
-    try std.testing.expectEqualStrings("0xC0FFEE", options.seed.?);
+    try std.testing.expectEqual(@as(u32, 0xC0FFEE), options.seed.?);
     try std.testing.expectEqualStrings("10:20", options.probability.?);
 }
 
