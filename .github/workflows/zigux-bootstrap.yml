@@ -359,6 +359,9 @@ jobs:
       - name: Run Phase 6 base64 C parity packet
         run: python3 scripts/zigux/check-phase6-base64-c-parity.py
 
+      - name: Self-test Phase 6 checksum C parity checker
+        run: python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test
+
       - name: Run Phase 6 bsearch focused packet
         run: zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig --summary all
 
