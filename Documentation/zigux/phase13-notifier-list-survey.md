@@ -19,7 +19,8 @@ truthfulness work without promoting it into a separate shared replay count.
 
 ## Survey Snapshot
 
-- lane key: `P13-L13`
+- owner posture: adjacent notifier evidence rather than helper-lane ownership
+- owner-map reminder: `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` keeps `P13-L13` reserved for the `landlock/syscalls` survey-companion follow-through, so this note stays adjacent release-surface evidence instead of claiming that lane id
 - surveyed state: `current master` readback refreshed on `2026-05-13`
 - roadmap-adjacent reviewability evidence only
 - shared Phase 13 packet keeps this notifier evidence outside the validator-first shared-helper release handle as a counted helper path while still keeping it inside the broader release-facing packet as adjacent evidence rather than a fifth helper anchor or an extra shared replay count
