@@ -4,54 +4,56 @@ This note records the bounded Phase 12 reviewability intent around `tools/lib/bp
 
 ## Status
 
-- `PHASE12_STATUS=parked`
+- `PHASE12_STATUS=verify-shard-present-not-shipped`
 - `PHASE12_SLICE=libbpf-verify-shard`
 - lane scope: keep the dedicated `zigux_segments/verify.zig` shard reviewable without widening into direct helper behavior changes, bridge implementation, queue routing, skeleton population, object loading, or verifier-facing relocation work
-- current repo reality on `master`: the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`; the older `tools/lib/bpf/zigux_segments/manifest.json` catalog is still readable on current `master`, but it remains a snapshot-backed legacy helper signal rather than shipped smoke-first evidence, and the shared `scripts/zigux/check-build-only-phase12-surface.py` checker still stays intentionally narrower than that parked shard instead of treating those reviewability paths as shipped required paths
+- current branch reality: `tools/lib/bpf/zigux_segments/verify.zig` is now materialized as a reviewability-only shard, while the direct `phase12_libbpf_*` replay files and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` still stay recorded only through shared survey, parked, or anti-overlap notes until they land on current `master`; the older `tools/lib/bpf/zigux_segments/manifest.json` catalog remains a snapshot-backed helper signal rather than shipped smoke-first evidence, and the shared `zigux/tests/phase12_build.zig` plus `zigux/Makefile` replay order still stays intentionally narrower than that parked packet
 - paired review packet:
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
   - `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
-  - `scripts/zigux/check-build-only-phase12-surface.py`
+  - `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
   - `zigux/tests/phase12_build.zig`
   - `zigux/Makefile`
 
 ## Why this note exists
 
-Earlier Phase 12 wording treated the libbpf packet as if it still shipped a dedicated `verify.zig` shard, and that made it too easy for nearby runs to blur three different packets together:
+Earlier Phase 12 wording treated the libbpf packet as if it had either no dedicated verify shard at all or a broader shipped replay packet than the repo could actually support.
+
+This note keeps three packets separate:
 
 - the deterministic helper snapshot
-- the shared compile-together and reviewability shard
+- the compile-together reviewability shard
 - the heavier bridge-local, queue-routing, object-model, and loader-risk buckets
 
-This note now keeps that split explicit while also recording the current narrower shipped replay reality.
+Landing `tools/lib/bpf/zigux_segments/verify.zig` is useful because it gives the existing helper-first segment family a real Phase 12 reviewability foothold without pretending that the still-absent direct `phase12_libbpf_*` replay files or the shared smoke-first packet have already caught up.
 
 ## Current Ownership
 
-The intended `verify.zig` shard is a reviewability-only packet, and the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` still remain absent on current `master` even though the shared replay packet already keeps the broader libbpf boundary visible through the survey, parked, and anti-overlap notes.
+The verify shard is now a bounded reviewability-only foothold on this branch.
 
-- the earlier note shape assumed imports from `logging.zig`, `pin_path.zig`, `cpu_mask.zig`, `type_names.zig`, `file_path_handle_bridge.zig`, and `perf_buffer_poll.zig`
-- the earlier note shape also assumed a focused `std.testing.refAllDecls` compile-reachability shard plus the directly coupled `zigux/tests/phase12_libbpf_reviewability.zig` gate
-- today, the honest repo-reality signal stays split: the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through the survey, verify-shard, and anti-overlap notes until they land again on current `master`, while the older `tools/lib/bpf/zigux_segments/manifest.json` catalog remains readable only as a legacy helper signal and the shared Phase 12 checker still only enforces the shipped docs, workflow, Makefile, and `virtio_scsi` plus starter-present `virtio_net` smoke-first build packet
-- that means this note must stay a parked owner map until the shared replay packet explicitly adopts the verify shard, not until the older helper catalog merely remains readable on `master`
+- `tools/lib/bpf/zigux_segments/verify.zig` imports the existing `logging.zig`, `cpu_mask.zig`, `type_names.zig`, `online_cpu_routing.zig`, and `perf_buffer_poll.zig` helpers and keeps one narrow compile-and-test surface around them
+- the direct `phase12_libbpf_*` replay files and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` still remain absent on current `master`, so this shard must stay explicitly smaller than the broader parked reviewability packet
+- the older `tools/lib/bpf/zigux_segments/manifest.json` catalog remains readable historical helper evidence, but it is still not the same thing as the shipped Phase 12 smoke-first replay order
+- the shared build packet still belongs to `zigux/tests/phase12_build.zig` and `zigux/Makefile`; this note does not claim that the verify shard has been adopted there yet
 
 ## Review Rules
 
-- treat this note as a bounded owner map for the verify shard, not as proof that the shard is part of the shipped replay order on `master`, and not as proof of direct procfs reads, bpffs opens, token creation, online-CPU routing, skeleton population, object loading, or verifier-facing relocation work
-- keep the verify-shard wording aligned with the same shared build-only checker packet, while staying clear that the checker does not yet treat the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, or `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` as shipped required paths
-- the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` should stay described as note-owned or snapshot-backed boundaries while they remain absent from current `master`, while `tools/lib/bpf/zigux_segments/manifest.json` should stay described as a legacy snapshot-backed helper catalog rather than as shipped replay evidence
-- the snapshot anchor remains the truthful bounded signal here while those direct replay files stay absent from the shipped checkout
-- when rechecking this parked packet, reread `zigux/tests/fixtures/phase12_libbpf_snapshot.json` first and treat its `surveyed_commit` plus the legacy `tools/lib/bpf/zigux_segments/manifest.json` catalog as historical reproducibility evidence rather than as proof that the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, or `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` are already present on current `master`
+- treat this note as the owner map for a bounded verify shard, not as proof that the shard is part of the shipped replay order on `master`
+- keep the verify-shard wording aligned with `zigux/tests/fixtures/phase12_libbpf_snapshot.json` so the snapshot no longer reports `tools/lib/bpf/zigux_segments/verify.zig` as absent
+- keep the direct `phase12_libbpf_*` replay files and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` explicit as still-parked boundaries until those files land for real
 - preserve the split between the deterministic helper packet, the compile-together verify shard, the bridge-local helper destination, and the later object-model and loader-risk buckets instead of collapsing them back into one vague `libbpf` bucket
+- do not use this shard to imply direct procfs reads, bpffs opens, pinned-object reopen flow, online-CPU setup-side delivery, object loading, or verifier-facing relocation behavior
 
 ## Non-goals
 
 This note does not claim:
 
-- that `tools/lib/bpf/zigux_segments/verify.zig` is part of the shipped shared replay order on `master`
-- that `tools/lib/bpf/zigux_segments/verify.zig` is already materialized on current `master`
+- that the direct `phase12_libbpf_*` replay files are now present on `master`
+- that `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` is already materialized on current `master`
+- that `zigux/tests/phase12_build.zig` or `zigux/Makefile` already run the verify shard
 - direct procfs or bpffs interaction
 - pinned-object reopen flow or descriptor ownership side effects
-- online-CPU routing or callback delivery
+- online-CPU routing setup or callback delivery
 - `bpf_object`, `bpf_map`, or `bpf_program` model parity
 - skeleton population
 - ELF collection, object loading, or load-time verifier interaction
@@ -59,10 +61,19 @@ This note does not claim:
 
 ## Gates
 
-1. `python3 scripts/zigux/check-build-only-phase12-surface.py`
-2. reread `zigux/tests/fixtures/phase12_libbpf_snapshot.json` first and treat its `surveyed_commit` plus the survey, verify-shard, and anti-overlap notes as the truthful bounded signal here while the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` remain absent from current `master` and `tools/lib/bpf/zigux_segments/manifest.json` stays only a legacy snapshot-backed helper catalog
-3. treat `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` as shared Phase 12 smoke-first anchors only; they keep the published `virtio_scsi` plus starter-present `virtio_net` packet reviewable today but do not by themselves prove that the parked libbpf verify shard has joined the shipped replay order
+1. keep the snapshot aligned with the new shard foothold
+   - reread `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
+2. keep the shard itself parse-valid and testable as a bounded helper packet
+   - `zig fmt --check tools/lib/bpf/zigux_segments/verify.zig`
+   - `zig test tools/lib/bpf/zigux_segments/verify.zig`
+3. treat `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` as shared Phase 12 smoke-first anchors only; they keep the published `virtio_scsi` plus starter-present `virtio_net` packet reviewable today but do not by themselves prove that the libbpf verify shard has joined the shipped replay order
 
 ## Next Bounded Step
 
-If this lane reopens, reread `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` against the current parked verify-shard packet. Prefer the next one-file survey, verify-shard, sequencing, release-matrix, or snapshot truthfulness update that keeps absent Phase 12 libbpf verify-shard files from being described as present or shipped, while keeping the readable legacy `tools/lib/bpf/zigux_segments/manifest.json` catalog distinct from those still-absent files and leaving shared scripts-root, tests-root, and checker follow-through to their separate Phase 12 lanes.
+If this lane reopens, align `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` with the same narrower truth:
+
+- `tools/lib/bpf/zigux_segments/verify.zig` is now present as a bounded reviewability foothold
+- the direct `phase12_libbpf_*` replay files and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` still remain parked
+- the shared smoke-first Phase 12 replay packet still has not adopted the libbpf verify shard
+
+That follow-up should stay a truthfulness repair, not a claim that the broader libbpf replay packet is already shipped.
