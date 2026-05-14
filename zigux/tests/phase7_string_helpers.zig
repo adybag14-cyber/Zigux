@@ -114,6 +114,63 @@ test "phase 7 string helpers starter unescapes supported escape families and pre
     try std.testing.expectEqualSlices(u8, &[_]u8{ '\\', 0 }, truncated_dst[0 .. truncated_written + 1]);
 }
 
+test "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes" {
+    var escaped = [_]u8{ 0, '\n', '\\', '"', 0x7f };
+    var dst = [_]u8{0} ** 24;
+    const written = string_helpers.stringEscapeMem(
+        &escaped,
+        &dst,
+        0,
+        string_helpers.ESCAPE_SPACE | string_helpers.ESCAPE_SPECIAL | string_helpers.ESCAPE_NULL | string_helpers.ESCAPE_HEX,
+        null,
+    );
+    try std.testing.expectEqual(@as(usize, 12), written);
+    try std.testing.expectEqualSlices(u8, "\\0\\n\\\\\\\"\\x7F", dst[0..written]);
+
+    var alias_dst = [_]u8{0} ** 16;
+    const alias_written = string_helpers.string_escape_mem_any_np(&[_]u8{ '\n', 0x7f }, &alias_dst, 0, null);
+    try std.testing.expectEqual(@as(usize, 6), alias_written);
+    try std.testing.expectEqualSlices(u8, "\\n\\177", alias_dst[0..alias_written]);
+
+    var limited_dst = [_]u8{0} ** 8;
+    const limited_written = string_helpers.stringEscapeMem("AZ", &limited_dst, 0, string_helpers.ESCAPE_HEX, "Z");
+    try std.testing.expectEqual(@as(usize, 5), limited_written);
+    try std.testing.expectEqualSlices(u8, "A\\x5A", limited_dst[0..limited_written]);
+
+    var appended_dst = [_]u8{0} ** 8;
+    const appended_written = string_helpers.stringEscapeMem(
+        "AZ",
+        &appended_dst,
+        0,
+        string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_NA | string_helpers.ESCAPE_APPEND,
+        "Z",
+    );
+    try std.testing.expectEqual(@as(usize, 5), appended_written);
+    try std.testing.expectEqualSlices(u8, "A\\x5A", appended_dst[0..appended_written]);
+
+    const terminated = [_]u8{ 'A', 0, '\n' };
+    var string_dst = [_]u8{0} ** 8;
+    const string_written = string_helpers.stringEscapeStr(
+        &terminated,
+        &string_dst,
+        0,
+        string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_NA,
+        null,
+    );
+    try std.testing.expectEqual(@as(usize, 1), string_written);
+    try std.testing.expectEqualSlices(u8, "A", string_dst[0..string_written]);
+
+    var any_np_dst = [_]u8{0} ** 8;
+    const any_np_written = string_helpers.string_escape_str_any_np(&[_]u8{ '\n', 0 }, &any_np_dst, 0, null);
+    try std.testing.expectEqual(@as(usize, 2), any_np_written);
+    try std.testing.expectEqualSlices(u8, "\\n", any_np_dst[0..any_np_written]);
+
+    var truncated = [_]u8{ '#', '#', '#' };
+    const truncated_written = string_helpers.stringEscapeMem(&[_]u8{0}, &truncated, truncated.len, string_helpers.ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 4), truncated_written);
+    try std.testing.expectEqualSlices(u8, "\\x0", &truncated);
+}
+
 test "phase 7 string helpers starter pads bounded copies without reading past the provided source slice" {
     var padded = [_]u8{ '#', '#', '#', '#', '#', '#' };
     string_helpers.memcpyAndPad(&padded, "zig", 3, '.');
