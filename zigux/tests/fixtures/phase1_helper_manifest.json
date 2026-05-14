@@ -292,7 +292,8 @@
         "replace_char_cstr_bytes",
         "memchr_inv_index",
         "memchr_inv_none"
-      ]
+      ],
+      "next_safe_step_note": "If this helper lane reopens, the smallest note-only follow-through is to make the helper-local sysfsStreq/sysfsMatchString newline-aware equality and lookup-order anchors explicit in the string review packet, because the shared Phase 1 replay still carries no dedicated sysfs fixture keys."
     }
   }
 }
