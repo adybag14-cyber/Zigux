@@ -6,6 +6,30 @@
   "roadmap_destinations": [
     "lib/rbtree.zig"
   ],
+  "review_surfaces": [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase7-rbtree-slice.md",
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    "samples/zigux/README.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/check-phase7-make-wrapper.py",
+    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+    "scripts/zigux/check-phase7-build-wiring.py",
+    "scripts/zigux/check-phase7-rbtree-parity.py",
+    "zigux/tests/README.md",
+    "zigux/tests/phase7_build.zig",
+    "zigux/tests/phase7_rbtree.zig",
+    "zigux/tests/phase7_rbtree_survey.zig",
+    "zigux/tests/phase7_rbtree_manifest.json",
+    "zigux/tests/fixtures/phase7_rbtree.json",
+    "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
+    "lib/rbtree.zig",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml"
+  ],
   "ownership_focus": [
     "duplicate-key range helpers keep ordered match ownership explicit through findFirst() and nextMatch() instead of hidden cursors",
     "detached-node ownership stays explicit through clearNode(), eraseInit(), and eraseInitCached() after erase paths",
