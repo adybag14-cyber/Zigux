@@ -314,6 +314,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     if not isinstance(gaps, list):
         missing.append("manifest:gaps")
     else:
+        if len(gaps) != len(REQUIRED_INPUT_GAPS):
+            missing.append(f"manifest:gap_count={len(gaps)}")
         for gap_id, expected in REQUIRED_INPUT_GAPS.items():
             gap = find_gap(manifest, gap_id)
             if gap is None:
@@ -568,6 +570,16 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["gaps"] = manifest["gaps"][:-1]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            f"manifest:gap_count={len(REQUIRED_INPUT_GAPS) - 1}",
+            "phase10-self-test:gap_count_drift",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         for gap in manifest["gaps"]:
             if gap["id"] == "phase10-virtio-input-survey-gate":
                 gap["zigux_destination"] = "Documentation/zigux/phase10-virtio-input-survey.md"
@@ -665,12 +677,12 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_VALIDATION_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_VALIDATION_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
 def required_marker_count() -> int:
-    specific_input_field_count = 5 + 1 + len(EXPECTED_INPUT_SUMMARY_TRUE_FIELDS) + (2 * len(REQUIRED_INPUT_GAPS))
+    specific_input_field_count = 5 + 1 + len(EXPECTED_INPUT_SUMMARY_TRUE_FIELDS) + 1 + (2 * len(REQUIRED_INPUT_GAPS))
     shared_transport_field_count = 8 * len(TRANSPORT_MANIFEST_FILES)
     return (
         len(MAKE_MARKERS)
