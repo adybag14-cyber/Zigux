@@ -108,15 +108,21 @@ REQUIRED_MARKERS = {
     "tests_root": [
         "keep the shared Phase 11 simple-driver packet explicit in the tests root too",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
+        "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
         "`zigux/tests/phase11_hvc_cleanup.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
+        "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "`make -C zigux phase11-hvc-survey`",
     ],
     "tests_companion": [
         "## Phase 11 tests-root packet",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
         "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
         "`zigux/tests/phase11_hvc_cleanup.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
+        "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "`make -C zigux phase11-hvc-survey`",
     ],
 }
 
@@ -245,8 +251,13 @@ def run_self_test() -> None:
             (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][11]),
             (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][2]),
             (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][3]),
+            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][5]),
+            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][6]),
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][0]),
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][2]),
+            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][3]),
+            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][6]),
+            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][7]),
         ]
 
         for idx, (relative_path, marker) in enumerate(required_cases, start=1):
