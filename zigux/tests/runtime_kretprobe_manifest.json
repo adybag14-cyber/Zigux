@@ -60,5 +60,6 @@
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
       "why_now": "The roadmap's loadable runtime pilot module step still depends on shared runtime-loader support before any honest claim of real register_kretprobe parity."
     }
-  ]
+  ],
+  "surveyed_commit": "dc9121502a99ed8c88d79081c6d83a8eada20a00"
 }
