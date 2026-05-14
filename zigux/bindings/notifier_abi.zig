@@ -47,3 +47,15 @@ test "notifier abi accepts empty and singleton priority samples" {
     try std.testing.expect(prioritiesNonincreasing(&.{}));
     try std.testing.expect(prioritiesNonincreasing(&single));
 }
+
+test "notifier abi keeps result codes and block layout explicit" {
+    try std.testing.expectEqual(@as(u32, 0), @intFromEnum(NotifierResult.done));
+    try std.testing.expectEqual(@as(u32, 1), @intFromEnum(NotifierResult.ok));
+    try std.testing.expectEqual(@as(u32, 2), @intFromEnum(NotifierResult.stop));
+
+    try std.testing.expectEqual(@as(usize, 24), @sizeOf(NotifierBlock));
+    try std.testing.expectEqual(@as(usize, 8), @alignOf(NotifierBlock));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
+    try std.testing.expectEqual(@as(usize, 8), @offsetOf(NotifierBlock, "next"));
+    try std.testing.expectEqual(@as(usize, 16), @offsetOf(NotifierBlock, "priority"));
+}
