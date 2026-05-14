@@ -51,6 +51,19 @@ CLOSURE_VALIDATOR_MARKERS = (
     "16-case` conf bridge plus `13-case` confdata fixture replay",
 )
 
+KCONFIG_BRIDGE_MARKERS = (
+    'if "silent" in case and case["silent"] is not True:',
+    'issues.append(("INVALID_CONF_CASE_SILENT_FIELDS", f"{name}:silent"))',
+    'if case.get("silent"):',
+    'cmd.append("silent")',
+)
+KCONFIG_BRIDGE_EXACT_COUNTS = {
+    'if "silent" in case and case["silent"] is not True:': 1,
+    'issues.append(("INVALID_CONF_CASE_SILENT_FIELDS", f"{name}:silent"))': 1,
+    'if case.get("silent"):': 1,
+    'cmd.append("silent")': 1,
+}
+
 WORKFLOW_LINES = (
     "run: python3 scripts/zigux/validate-phase2.py",
     "run: python3 scripts/zigux/validate-phase2-closure.py",
@@ -123,7 +136,7 @@ PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
 EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 21
 EXPECTED_CONF_CASE_COUNT = 16
 EXPECTED_CONFDATA_CASE_COUNT = 13
-EXPECTED_SELF_TEST_CASE_COUNT = 40
+EXPECTED_SELF_TEST_CASE_COUNT = 43
 
 
 def read_text(path: Path) -> str:
@@ -299,6 +312,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     validator_text = read_text(resolve_path(root, PHASE2_VALIDATOR))
     closure_validator_text = read_text(resolve_path(root, PHASE2_CLOSURE_VALIDATOR))
+    kconfig_bridge_text = read_text(resolve_path(root, KCONFIG_BRIDGE_CHECKER))
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     makefile_text = read_text(resolve_path(root, MAKEFILE))
     scripts_readme_text = read_text(resolve_path(root, SCRIPTS_README))
@@ -319,6 +333,15 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             closure_validator_text, CLOSURE_VALIDATOR_MARKERS, "MISSING_CLOSURE_VALIDATOR_MARKERS"
         )
     )
+    issues.extend(
+        collect_missing_markers(
+            kconfig_bridge_text, KCONFIG_BRIDGE_MARKERS, "MISSING_KCONFIG_BRIDGE_MARKERS"
+        )
+    )
+    for marker, expected_count in KCONFIG_BRIDGE_EXACT_COUNTS.items():
+        count = count_exact_substrings(kconfig_bridge_text, marker)
+        if count != expected_count:
+            issues.append(("DUPLICATE_KCONFIG_BRIDGE_MARKERS", f"{marker}:count={count}:expected={expected_count}"))
 
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -427,6 +450,14 @@ def build_self_test_root(root: Path) -> None:
             '    "duplicate_malformed_quoted_assignment",',
             "]",
             f"EXPECTED_SELF_TEST_CASE_COUNT = {EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT}",
+            "issues = []",
+            "cmd = []",
+            "name = \"helpnewconfig\"",
+            "case = {\"silent\": True}",
+            KCONFIG_BRIDGE_MARKERS[0],
+            f"    {KCONFIG_BRIDGE_MARKERS[1]}",
+            KCONFIG_BRIDGE_MARKERS[2],
+            f"    {KCONFIG_BRIDGE_MARKERS[3]}",
             "",
         ]
     )
@@ -498,7 +529,10 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert ("MISSING_VALIDATOR_MARKERS", "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 25") in issues
+        assert (
+            "MISSING_VALIDATOR_MARKERS",
+            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 25",
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -512,12 +546,18 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert ("DUPLICATE_VALIDATOR_MARKERS", f'{VALIDATOR_MARKERS[2]}:count=2:expected=1') in issues
+        assert (
+            "DUPLICATE_VALIDATOR_MARKERS",
+            f'{VALIDATOR_MARKERS[2]}:count=2:expected=1',
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, PHASE2_VALIDATOR)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), VALIDATOR_MARKERS[4], ""), encoding="utf-8")
+        path.write_text(
+            replace_once(path.read_text(encoding="utf-8"), VALIDATOR_MARKERS[4], ""),
+            encoding="utf-8",
+        )
         issues = collect_issues(root)
         assert ("MISSING_VALIDATOR_MARKERS", VALIDATOR_MARKERS[4]) in issues
         checks_run += 1
@@ -530,6 +570,36 @@ def run_self_test() -> int:
         )
         issues = collect_issues(root)
         assert ("MISSING_CLOSURE_VALIDATOR_MARKERS", CLOSURE_VALIDATOR_MARKERS[1]) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
+        path.write_text(
+            replace_once(path.read_text(encoding="utf-8"), KCONFIG_BRIDGE_MARKERS[3], "pass"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_KCONFIG_BRIDGE_MARKERS", KCONFIG_BRIDGE_MARKERS[3]) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
+        path.write_text(
+            replace_once(path.read_text(encoding="utf-8"), KCONFIG_BRIDGE_MARKERS[1], "pass"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_KCONFIG_BRIDGE_MARKERS", KCONFIG_BRIDGE_MARKERS[1]) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), KCONFIG_BRIDGE_MARKERS[3]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert (
+            "DUPLICATE_KCONFIG_BRIDGE_MARKERS",
+            f"{KCONFIG_BRIDGE_MARKERS[3]}:count=2:expected=1",
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -673,7 +743,10 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert ("FORBIDDEN_CONFDATA_SURVEY_MARKERS", PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS[0]) in issues
+        assert (
+            "FORBIDDEN_CONFDATA_SURVEY_MARKERS",
+            PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS[0],
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -763,7 +836,6 @@ def run_self_test() -> int:
                 collect_issues(root)
             except SystemExit as exc:
                 assert "required file missing" in str(exc)
-                checks_run += 1
             else:
                 raise AssertionError(f"missing file did not abort: {rel_path}")
 
