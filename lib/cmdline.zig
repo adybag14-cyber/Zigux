@@ -523,6 +523,20 @@ test "nextArg splits parameter-value pairs and trims quoted values" {
     try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
 }
 
+test "nextArg keeps quoted values without a trailing token bounded to empty rest" {
+    var buffer = [_]u8{ 'm', 'o', 'd', 'e', '=', '"', 'f', 'a', 's', 't', ' ', 'b', 'o', 'o', 't', '"', 0 };
+    const parsed = nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("mode", parsed.param);
+    try std.testing.expectEqualStrings("fast boot", parsed.value.?);
+    try std.testing.expectEqualStrings("", cStringPrefix(parsed.rest));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[0])), @as(usize, @intFromPtr(parsed.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[6])), @as(usize, @intFromPtr(parsed.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[16])), @as(usize, @intFromPtr(parsed.rest.ptr)));
+    try std.testing.expectEqual(@as(u8, 0), buffer[4]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[15]);
+}
+
 test "nextArg keeps embedded equals inside quoted values" {
     var buffer = [_]u8{ 'm', 'o', 'd', 'e', '=', '"', 'f', 'a', 's', 't', '=', 'b', 'o', 'o', 't', '"', ' ', 'n', 'e', 'x', 't', 0 };
     const parsed = nextArg(&buffer);
