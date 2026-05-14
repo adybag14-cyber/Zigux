@@ -71,7 +71,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff_survey);
-    try std.testing.expectEqualStrings("f0d0d083c536871351f475659c2309c891227fec", manifest.live_gate_blob_sha);
+    try std.testing.expectEqualStrings("58dee27613f48d2cab0e29f649fd2a7d9fc5d279", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("24418ad890696a59b95276fe8dec7eaeecf25172", manifest.helper_replay_blob_sha);
     try std.testing.expectEqualStrings("94f7fd83af03857b1f18375d249feb964192c592", manifest.gate_evidence_blob_sha);
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
@@ -156,6 +156,7 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
 test "phase 4 bitmap survey keeps current exact-fill divergence explicit" {
     try expectContains(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 35-bit prefix");
     try expectContains(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 115-bit prefix");
+    try expectContains(bitmap_diff_source, "try expectNthCase(&starter_bits, 123, starter_bits[0..7]);");
     try expectContains(bitmap_live_helper_replay_source, "phase4 bitmap live helper replay keeps fill exact and zero rounded");
     try expectContains(bitmap_live_helper_replay_source, "try std.testing.expectEqual(@as(usize, 35), bitmap.firstZero());");
     try expectContains(bitmap_live_helper_replay_source, "try std.testing.expectEqual(@as(usize, 115), bitmap.firstZero());");
