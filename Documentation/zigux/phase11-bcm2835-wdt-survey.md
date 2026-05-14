@@ -27,8 +27,9 @@ The current driver file plus the dedicated replay now keep this bounded starter 
 
 * heartbeat bounds and tick conversions through `maxTimeoutSeconds()`, `maxHeartbeatMilliseconds()`, `validateHeartbeatSeconds()`, `secondsToWatchdogTicks()`, `watchdogTicksToSeconds()`, and `watchdogTicksToMilliseconds()`
 * probe-state and callback-ownership summary through `summarizeProbe()`
+* platform-registration and PM-base prerequisite summary through `summarizePlatformHandoff()`
 * a bounded runtime model through `Bcm2835WdtLab.init()`, `importBootloaderRunning()`, `getTimeleftSeconds()`, `start()`, `stop()`, `restart()`, and `poweroff()`
-* dedicated replay coverage in `zigux/tests/phase11_bcm2835_wdt.zig` for timeout helpers, probe ownership versus handler conflicts, and the start-stop-restart-poweroff lifecycle path
+* dedicated replay coverage in `zigux/tests/phase11_bcm2835_wdt.zig` for timeout helpers, probe ownership versus handler conflicts, platform-handoff prerequisites, and the start-stop-restart-poweroff lifecycle path
 * embedded driver-local tests that still mirror the same starter packet from inside `drivers/watchdog/bcm2835_wdt.zig`
 
 At the same time, this run's direct GitHub readback still does not materialize the rest of the archival replay-backed packet that some older reminder notes still imply:
