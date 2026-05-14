@@ -65,8 +65,8 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge ignores empty CONFIG symbol names",
     "confdata bridge ignores malformed unset comments with extra tokens",
     "confdata bridge keeps trailing escaped backslashes in quoted strings",
-    "confdata bridge emits escaped quoted payloads before trailing suffix bytes",
-    "confdata bridge ignores malformed quoted values when first seen",
+    "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata",
+    "confdata bridge ignores malformed quoted values like upstream confdata",
     "confdata bridge emits no entries for empty CONFIG symbol names",
     "confdata bridge keeps only the last assignment for duplicate symbols",
     "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
@@ -696,7 +696,7 @@ def run_self_test() -> int:
         assert ("MISSING_CONF_MODE_ARG_FIELDS", "defconfig:defconfig") in issues
         checks_run += 1
 
-        build_self_test_root(root)
+        build_self_test_ROOT(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
         payload["conf_cases"][0]["seed"] = "0xBAD"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
