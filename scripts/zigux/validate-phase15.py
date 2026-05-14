@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 FILES = [
     "scripts/zigux/validate-phase15.py",
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py",
@@ -181,6 +182,7 @@ READINESS_SURVEY_MARKERS = [
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase15.py",
+    "python3 scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/README.md",
@@ -199,7 +201,7 @@ LANE_SEQUENCING_MARKERS = [
     "- `freeze-map-governance`: owns `Documentation/zigux/freeze-map.md`",
     "- `review-process`: owns `Documentation/zigux/phase15-architecture-council-review-process.md`",
     "- `parity-scorecard-survey`: owns `Documentation/zigux/phase15-parity-scorecard-survey.md`",
-    "- `parity-scorecard`: owns `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/tests/phase15_parity_scorecard.json`, and `zigux/tests/phase15_parity_scorecard.zig`",
+    "- `parity-scorecard`: owns `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/tests/phase15_parity_scorecard.json`, and `zigux/tests/phase15_parity_SCORECARD.zig`",
     "- `indefinite-c-policy`: owns `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
     "- `readiness-gate`: owns `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_readiness_gate.zig`, and `scripts/zigux/validate-phase15.py`",
     "- `handoff-next-steps`: owns `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig`",
@@ -222,6 +224,7 @@ READINESS_CHECKERS = [
 ]
 READINESS_BOOL_FIELDS = [
     "phase15_validator_script_present",
+    "phase15_docs_readme_checker_present",
     "phase15_validate_target_present",
     "phase15_test_target_present",
     "shared_ci_phase15_present",
@@ -534,6 +537,7 @@ def _baseline_lane_sequencing() -> str:
 
 def _seed_fixture_tree(root: Path) -> None:
     _write(root, "scripts/zigux/validate-phase15.py", "# stub\n")
+    _write(root, "scripts/zigux/check-phase15-docs-readme-alignment.py", "# stub\n")
     _write(root, "scripts/zigux/check-phase15-scripts-readme-alignment.py", "# stub\n")
     _write(root, "scripts/zigux/check-phase15-review-process-handoff.py", "# stub\n")
     _write(root, "scripts/zigux/check-phase15-shared-summary-gap.py", "# stub\n")
@@ -579,6 +583,7 @@ def _seed_fixture_tree(root: Path) -> None:
             {
                 "repo_evidence": {
                     "phase15_validator_script_present": True,
+                    "phase15_docs_readme_checker_present": True,
                     "phase15_validate_target_present": True,
                     "phase15_test_target_present": True,
                     "shared_ci_phase15_present": True,
@@ -696,6 +701,13 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
+        readiness_text = _read(root, readiness_rel)
+        marker = "python3 scripts/zigux/check-phase15-docs-readme-alignment.py"
+        _write(root, readiness_rel, readiness_text.replace(marker, "", 1))
+        _assert_result(*validate(root), [], [f"readiness_survey:{marker}"], "readiness_docs_checker")
+        _seed_fixture_tree(root)
+        case_count += 1
+
         lane_rel = "Documentation/zigux/phase15-governance-lane-sequencing.md"
         lane_text = _read(root, lane_rel)
         marker = "- `parity-scorecard-survey`: owns `Documentation/zigux/phase15-parity-scorecard-survey.md`"
@@ -794,6 +806,18 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
+        manifest_text = json.loads(_read(root, READINESS_MANIFEST_REL))
+        manifest_text["repo_evidence"]["phase15_docs_readme_checker_present"] = False
+        _write(root, READINESS_MANIFEST_REL, json.dumps(manifest_text, indent=2) + "\n")
+        _assert_result(
+            *validate(root),
+            [],
+            ["readiness_manifest:phase15_docs_readme_checker_present"],
+            "readiness_docs_readme_checker_present",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
         freeze_manifest = _phase15_freeze_map_manifest_fixture()
         freeze_manifest["freeze_in_c_targets"] = EXPECTED_FREEZE_IN_C_TARGETS[:-1]
         _write(root, FREEZE_MAP_MANIFEST_REL, json.dumps(freeze_manifest, indent=2) + "\n")
@@ -831,7 +855,7 @@ def run_self_test() -> int:
         _assert_result(
             *validate(root),
             [],
-            ["phase15_parity_scorecard:metrics.anchors_still_blocked_on_prior_phase_bridge_evidence"],
+            ["phase15_parity_SCORECARD:metrics.anchors_still_blocked_on_prior_phase_bridge_evidence"],
             "parity_scorecard_prior_phase_bridge_count",
         )
         _seed_fixture_tree(root)
@@ -858,6 +882,12 @@ def run_self_test() -> int:
             ["phase15_parity_scorecard:metrics.architecture_council_status_change_approval_count"],
             "parity_scorecard_approval_count",
         )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        missing_file = "scripts/zigux/check-phase15-docs-readme-alignment.py"
+        (root / missing_file).unlink()
+        _assert_result(*validate(root), [missing_file], [], "missing_docs_readme_alignment_checker_file")
         _seed_fixture_tree(root)
         case_count += 1
 
