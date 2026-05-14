@@ -167,12 +167,12 @@ REQUIRED_SNIPPETS = {
         "- current review posture: blocked; the checksum roadmap anchor still belongs in the bounded Phase 6 helper packet, but current `master` only keeps the direct C parity scaffolding, and it cannot honestly claim the broader helper-local replay or slowdown gate until the missing checksum helper and fixture packet return",
     ],
     HEXDUMP_SLICE_PATH.as_posix(): [
-        "- `PHASE6_STATUS=parked`",
+        "- `PHASE6_STATUS=parked_reviewable`",
         "- `zigux/tests/phase6_hexdump_perf.zig`",
         "- `zigux/tests/phase6_hexdump_perf_matrix.zig`",
         "- `scripts/zigux/check-phase6-hexdump-packet.py`",
-        "- current review posture: focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable without widening helper semantics or folding the helper-local perf route into the shared `phase6` bundle, but the serialized `length_cases` fixture is still one row short of the helper's empty-input contract",
-        "- the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still keeps the empty plain zero-length row aligned with the focused replay and the helper's landed empty-input contract, but the empty ASCII zero-length row has not been serialized into that helper-local fixture packet yet",
+        "- the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both the empty plain and empty ASCII zero-length rows aligned with the focused replay and the helper's landed empty-input contract",
+        "- focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable",
     ],
     PHASE6_BUILD_PATH.as_posix(): [
         'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
@@ -449,6 +449,12 @@ def run_self_test() -> None:
             BASE64_SLICE_PATH,
             "zigux/tests/phase6_base64_perf.zig`",
             "zigux/tests/phase6_checksum_perf.zig`",
+        )
+        assert_failure(
+            root,
+            HEXDUMP_SLICE_PATH,
+            "both the empty plain and empty ASCII zero-length rows aligned",
+            "only the empty plain zero-length row aligned",
         )
         assert_failure(
             root,
