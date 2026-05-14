@@ -113,6 +113,9 @@ REQUIRED_ATOMIC_SNIPPETS = (
     'test "phase3 atomic wrappers keep non-seq-cst orderings reviewable"',
     'test "phase3 atomic wrappers keep bit wrappers reviewable"',
     'bitTest(u8, &flags, 2, .acquire)',
+    'bitSet(u8, &flags, 1, .monotonic)',
+    'bitReset(u8, &flags, 4, .acquire)',
+    'bitToggle(u64, &high_bit_flags, high_bit_index, .seq_cst)',
     'bitTest(u64, &high_bit_flags, high_bit_index, .acquire)',
 )
 
@@ -479,6 +482,25 @@ def run_self_test() -> int:
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing atomic bit-test helper failure")
+            return 1
+
+        _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
+        _write(
+            root,
+            ATOMIC_REL,
+            (root / ATOMIC_REL).read_text(encoding="utf-8").replace(
+                'bitToggle(u64, &high_bit_flags, high_bit_index, .seq_cst)',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_atomic_snippet:bitToggle(u64, &high_bit_flags, high_bit_index, .seq_cst)'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing atomic bit-toggle replay failure")
             return 1
 
         _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
