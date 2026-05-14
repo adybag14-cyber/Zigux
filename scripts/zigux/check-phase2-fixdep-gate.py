@@ -40,9 +40,9 @@ CLOSURE_MARKERS = [
 ]
 
 PHASE2_FIXDEP_NEXT_STEP_MARKERS = [
-    "`scripts/zigux/check-phase2-fixdep-gate.py` validates the live eleven-case packet, including `sample_comment_continuation`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full`.",
-    "`zigux/tests/fixtures/fixdep/cases.json` names that same eleven-case packet and uses `stdout_mode: \"dev_full\"` on the three bounded `/dev/full` write-failure replays.",
-    "The dedicated shared `fixdep` gate no longer trails the live docs-and-fixtures packet: `scripts/zigux/check-phase2-fixdep-gate.py`, `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase2-closure.md`, and `zigux/tests/fixtures/fixdep/cases.json` now agree on the same eleven-case packet.",
+    "`scripts/zigux/check-phase2-fixdep-gate.py` validates the live twelve-case packet, including `sample_dependency_continuation`, `sample_comment_continuation`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full`.",
+    "`zigux/tests/fixtures/fixdep/cases.json` names that same twelve-case packet and uses `stdout_mode: \"dev_full\"` on the three bounded `/dev/full` write-failure replays.",
+    "The direct fixdep artifact packet now carries the additional plain escaped-newline dependency continuation case through `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `zigux/tests/fixtures/fixdep/cases.json`, while the broader shared reminder surfaces can be retold separately if they need to mention the new case count.",
     "When a writable checkout with Zig is available, re-run `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`, `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py --self-test`, `python3 scripts/zigux/check-fixdep-diff.py`, and `zig test scripts/zigux/fixdep.zig` so the dedicated gate and the direct replay stay aligned as one packet.",
 ]
 
@@ -93,6 +93,7 @@ EXPECTED_CASE_NAMES = [
     "sample_escaped_space",
     "sample_escaped_colon",
     "sample_concatenated",
+    "sample_dependency_continuation",
     "sample_comment_continuation",
     "sample_comment_only",
     "sample_comment_only_stdout_full",
@@ -135,6 +136,13 @@ EXPECTED_CASES = {
         "target": "sample_concatenated.o",
         "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_concatenated_source.c -o sample_concatenated.o",
         "expected": "sample_concatenated_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_dependency_continuation": {
+        "depfile": "sample_dependency_continuation.d",
+        "target": "sample_dependency_continuation.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_dependency_continuation_source.c -o sample_dependency_continuation.o",
+        "expected": "sample_dependency_continuation_expected.txt",
         "expected_exit_code": 0,
     },
     "sample_comment_continuation": {
@@ -311,6 +319,8 @@ def build_self_test_root(root: Path) -> None:
         "sample_multi_target_expected.txt",
         "sample_concatenated.d",
         "sample_concatenated_expected.txt",
+        "sample_dependency_continuation.d",
+        "sample_dependency_continuation_expected.txt",
         "sample_comment_continuation.d",
         "sample_comment_continuation_expected.txt",
         "sample_comment_only.d",
@@ -422,11 +432,11 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         cases = json.loads((root / "zigux/tests/fixtures/fixdep/cases.json").read_text(encoding="utf-8"))
-        cases[7]["stdout_mode"] = "pipe_full"
+        cases[8]["stdout_mode"] = "pipe_full"
         write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
         issues = validate_root(root)
         assert (
-            "zigux/tests/fixtures/fixdep/cases.json:cases[7]:stdout_mode:expected='dev_full':got='pipe_full'"
+            "zigux/tests/fixtures/fixdep/cases.json:cases[8]:stdout_mode:expected='dev_full':got='pipe_full'"
             in issues
         )
         case_count += 1
