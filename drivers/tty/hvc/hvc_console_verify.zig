@@ -165,6 +165,22 @@ test "hvc_console verify keeps cleanup prerequisite failures explicit" {
     try std.testing.expect(summary.hangup_or_final_close_seen);
 }
 
+test "hvc_console verify keeps hangup-only cleanup prerequisites explicit" {
+    const summary = try summarizeCleanupPrerequisites(.{
+        .final_close_seen = false,
+        .hangup_seen = true,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expect(summary.cleanup.tty_port_release_handoff);
+    try std.testing.expect(summary.cleanup.cleanup_time_tty_port_ownership);
+    try std.testing.expect(summary.cleanup.port_reference_drop_timing);
+    try std.testing.expect(summary.drops_tty_port_reference);
+    try std.testing.expect(summary.hangup_or_final_close_seen);
+}
+
 test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces" {
     const never_registered = summarizeNotifierUnregisterTiming(.{
         .target_present = false,
