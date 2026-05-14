@@ -20,6 +20,10 @@ PHASE3_POLICY_UNSAFE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
 )
+PHASE3_HEADER_GOVERNANCE_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
+)
 PHASE3_INTEROP_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig",
@@ -120,6 +124,7 @@ REQUIRED_REPO_FILES = (
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
@@ -171,7 +176,7 @@ def _extract_make_target_commands(text: str, target: str) -> list[str] | None:
             continue
         commands: list[str] = []
         for body_line in lines[index + 1 :]:
-            if not body_line.startswith("\t"):
+            if not body_line.startswith("	"):
                 break
             commands.append(body_line.strip())
         return commands
@@ -201,6 +206,16 @@ def validate_makefile(repo_root: Path) -> list[str]:
         )
         if ordered_phase3_policy_unsafe_commands != PHASE3_POLICY_UNSAFE_COMMANDS:
             issues.append(f"makefile_command_order_drift:{PHASE3_VALIDATE_TARGET}:policy_unsafe_support")
+        issues.extend(
+            f"missing_makefile_command:{PHASE3_VALIDATE_TARGET}:{command}"
+            for command in PHASE3_HEADER_GOVERNANCE_COMMANDS
+            if command not in phase3_commands
+        )
+        ordered_phase3_header_governance_commands = tuple(
+            command for command in phase3_commands if command in PHASE3_HEADER_GOVERNANCE_COMMANDS
+        )
+        if ordered_phase3_header_governance_commands != PHASE3_HEADER_GOVERNANCE_COMMANDS:
+            issues.append(f"makefile_command_order_drift:{PHASE3_VALIDATE_TARGET}:linux_zigux_header_governance")
 
     phase3_interop_commands = _extract_make_target_commands(
         makefile_text,
@@ -257,7 +272,10 @@ def _populate_repo_files(root: Path) -> None:
 
 
 def _baseline_makefile() -> str:
-    phase3_body = "\n".join(f"\t{command}" for command in PHASE3_POLICY_UNSAFE_COMMANDS)
+    phase3_body = "\n".join(
+        f"\t{command}"
+        for command in PHASE3_POLICY_UNSAFE_COMMANDS + PHASE3_HEADER_GOVERNANCE_COMMANDS
+    )
     phase3_interop_body = "\n".join(
         f"\t{command}" for command in PHASE3_INTEROP_COMMANDS
     )
@@ -446,6 +464,16 @@ def run_self_test() -> int:
             return 1
         _write(root / missing_phase3_path, "# stub\n")
 
+        missing_linux_zigux_header_governance_path = Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")
+        (root / missing_linux_zigux_header_governance_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_linux_zigux_header_governance_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 3 linux-zigux-header-governance repo file was not reported")
+            return 1
+        _write(root / missing_linux_zigux_header_governance_path, "# stub\n")
+
         missing_validator_support_path = Path("scripts/zigux/validate-phase3-validator-support-surface.py")
         (root / missing_validator_support_path).unlink()
         broken = validate_repo_files(root)
@@ -595,8 +623,29 @@ def run_self_test() -> int:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
             print("expected Phase 3 policy-unsafe makefile command order drift was not reported")
             return 1
-        _write(root / MAKEFILE_REL, _baseline_makefile())
 
+        _write(root / MAKEFILE_REL, _baseline_makefile())
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test\n",
+            "",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        broken = validate_makefile(root)
+        expected = (
+            "missing_makefile_command:phase3-validate:"
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test"
+        )
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 3 linux-zigux-header-governance self-test makefile command was not reported")
+            return 1
+        if f"makefile_command_order_drift:{PHASE3_VALIDATE_TARGET}:linux_zigux_header_governance" not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected Phase 3 linux-zigux-header-governance makefile command order drift was not reported")
+            return 1
+
+        _write(root / MAKEFILE_REL, _baseline_makefile())
         makefile = _baseline_makefile().replace(
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test\n",
             "",
