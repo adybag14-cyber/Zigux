@@ -32,7 +32,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(shared_note, "shared docs-root and scripts-root");
     try expectContains(shared_note, "ownership-focus packet explicit");
     try expectContains(shared_note, "first-NUL trimming and prefix skipping stop at the exported C-string boundary");
-    try expectContains(shared_note, "exact-fit and zero-capacity unescape destinations stay caller-owned");
+    try expectContains(shared_note, "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned");
     try expectContains(shared_note, "append-limited escape accounting stays inside caller storage");
     try expectContains(shared_note, "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations");
 
