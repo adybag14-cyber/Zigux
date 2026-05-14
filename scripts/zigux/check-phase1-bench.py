@@ -134,9 +134,16 @@ REQUIRED_RBTREE_SOURCE_MARKERS = [
     'rbtree.replaceNode(&duplicate_mutation_entries[4].node, &replacement_duplicate.node, &duplicate_mutation_root);',
     'duplicate_checksum +%= entry.serial + 107;',
     'rbtree.addCached(&entry.node, &cached_root, less);',
+    'const initial_leftmost_entry: *const RbEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);',
+    'cached_checksum +%= @intCast(initial_leftmost_entry.key);',
+    'cached_checksum +%= @as(u64, @intFromBool(rbtree.eraseCached(&cached_entries[2].node, &cached_root) == null));',
+    'const still_leftmost_entry: *const RbEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);',
+    'cached_checksum +%= @intCast(still_leftmost_entry.key);',
     'const promoted_leftmost = rbtree.eraseCached(&cached_entries[1].node, &cached_root) orelse unreachable;',
     'cached_checksum +%= @intCast(promoted_leftmost_entry.key);',
     'rbtree.replaceNodeCached(&cached_entries[0].node, &cached_replacement.node, &cached_root)',
+    'const replacement_leftmost_entry: *const RbEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);',
+    'cached_checksum +%= @intCast(replacement_leftmost_entry.key);',
     'rbtree.addCached(&new_leftmost.node, &cached_root, less);',
     'cached_checksum +%= @intCast(new_leftmost_entry.key);',
     'rbtree.first(&cached_root.root) == rbtree.firstCached(&cached_root)',
@@ -454,6 +461,16 @@ def run_self_test() -> None:
     ]))
     assert kind == 'missing_rbtree_source_markers'
     assert payload == ['duplicate_checksum +%= entry.serial + 107;']
+    cases += 1
+
+    kind, payload = validate_bench_source('\n'.join([
+        *REQUIRED_BITMAP_SOURCE_MARKERS,
+        *REQUIRED_FIND_BIT_SOURCE_MARKERS,
+        *REQUIRED_STRING_SOURCE_MARKERS,
+        *[marker for marker in REQUIRED_RBTREE_SOURCE_MARKERS if marker != 'cached_checksum +%= @intCast(replacement_leftmost_entry.key);'],
+    ]))
+    assert kind == 'missing_rbtree_source_markers'
+    assert payload == ['cached_checksum +%= @intCast(replacement_leftmost_entry.key);']
     cases += 1
 
     kind, payload = validate_output(full_expectations, ok_output + '\nPHASE1_BENCH_FAKE_CHECKSUM=1')
