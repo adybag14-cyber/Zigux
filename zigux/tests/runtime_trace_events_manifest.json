@@ -28,7 +28,7 @@
     "landed_pilot_state": "family_local_trace_events_review_packet_plus_shared_loader_handoff",
     "missing_capability": "the broader shared runtime substrate that would turn the current reviewable trace-events sample, loader, loader-substrate-drift replay, diff, module, and survey packet into live runtime tracepoint-registration lifecycle parity",
     "blocked_deliverable": "completed live Phase 9 runtime tracepoint registration lifecycle parity beyond the current review packet",
-    "next_gate": "keep the trace-events survey note, module-slice note, manifest, and loader-substrate-drift replay aligned with the visible family-local packet while leaving the shared runtime-substrate blocker explicit"
+    "next_gate": "keep the trace-events survey note, module-slice note, manifest, the shipped `prepareSharedRequest`, `requestSharedRuntimeLoad`, and `releaseSharedWithoutSubstrate` bridge helpers, and the loader-substrate-drift replay aligned with the visible family-local packet while leaving the shared runtime-substrate blocker explicit"
   },
   "delivery_evidence_catalog": [
     {
@@ -41,7 +41,7 @@
       "id": "trace-events-loader-scaffold",
       "kind": "runtime_loader_scaffold",
       "path": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "The sample-side loader scaffold is visible on current master and keeps the shared runtime-loader handoff explicit through prepared-snapshot stability across later selftest or exit activity, shared-release failure, shared-request drift rejection around allocator/init-flow and selftest-hook evidence, registration-snapshot drift, rejection of non-idle registration state at the metadata-only handoff boundary, and outstanding-registration drain proofs without clearing the broader substrate blocker."
+      "why_now": "The sample-side loader scaffold is visible on current master and keeps the shared runtime-loader handoff explicit through the shipped `prepareSharedRequest`, `requestSharedRuntimeLoad`, and `releaseSharedWithoutSubstrate` bridge helpers plus prepared-snapshot stability across later selftest or exit activity, shared-release failure, shared-request drift rejection around allocator/init-flow and selftest-hook evidence, registration-snapshot drift, rejection of non-idle registration state at the metadata-only handoff boundary, and outstanding-registration drain proofs without clearing the broader substrate blocker."
     },
     {
       "id": "trace-events-loader-substrate-drift",
