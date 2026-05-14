@@ -24,7 +24,7 @@ It records the shared smoke-first order for the starter-present `virtio_net` pac
 2. `make -C zigux phase12-smoke`
 3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 4. `make -C zigux phase12`
-5. If `zig` is unavailable on `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing `phase12-validate`, a focused libbpf-only route, or another unshipped Phase 12 replay surface.
+5. If `zig` is unavailable on `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only route, a cross-build route, or another unshipped Phase 12 replay surface beyond the shipped degraded-workflow `phase12-validate` guard.
 
 Keep the degraded-workflow checker pair explicit beside that same order too:
 - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
@@ -36,7 +36,7 @@ Keep the degraded-workflow checker pair explicit beside that same order too:
 - The shipped full replay then adds `zigux/tests/phase12_virtio_net.zig` and `zigux/tests/phase12_virtio_scsi.zig` on top of that smoke shard set, while the broader `nvme_pci` and libbpf Phase 12 notes remain planning, fallback, or parked reviewability surfaces until new build wiring and direct replay files actually land on `master`.
 - Current `master` now also carries `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` as machine-checkable driver-local rollback-lab companions for the same bounded `virtio_scsi` packet; those survey surfaces now keep command-buffer ownership, control-path governance, request-submit sequencing, completion-handback ordering, io-map recovery, event-buffer ownership, and host-scan restore ordering explicit as lab-only reversible-delivery evidence, but they are not extra shared smoke-step or full-replay build outputs on their own.
 - Current `master` still does not expose the earlier `phase12_nvme_pci*` direct replay files or the parked libbpf replay files as shipped build outputs, so this sequencing note must not describe them as part of the wired release packet.
-- There is still no shipped shared `make -C zigux phase12-validate` route, wired validator-first replay packet, focused libbpf-only replay, or cross-build replay on current `master`; `scripts/zigux/validate-phase12.py` exists as an unwired helper and must not be treated as shipped release evidence by itself.
+- Current `master` now does ship the degraded-workflow `make -C zigux phase12-validate` route together with `scripts/zigux/validate-phase12.py` and `scripts/zigux/check-phase12-release-readiness-packet.py`, but there is still no focused libbpf-only replay or cross-build replay on current `master`, so this sequencing note must keep that validator-first support packet separate from the smoke-first direct replay order instead of treating it as broader driver delivery evidence by itself.
 
 ## Fallback Split
 - `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the only commit-pinned direct replay fallback artifact.
