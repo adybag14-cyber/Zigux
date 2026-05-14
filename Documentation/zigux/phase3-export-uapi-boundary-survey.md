@@ -6,7 +6,7 @@ This note records the current export shim and starter UAPI boundary evidence tha
 
 - `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-readback-from-public-github-fallback`
 - `PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-shared-review-surface-refresh`
-- `PHASE3_BUILD_ROUTE_OWNERSHIP=export-uapi-packet-owns-current-shared-build-route-wording-for-the-starter-surface`
+- `PHASE3_BUILD_ROUTE_OWNERSHIP=export-uapi-packet-owns-current-shared-phase3-build-route-wording-for-the-starter-surface`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_BLOB_SHA=1e51196e063f0d1c8acb082ef226c32f804fcd34`
 - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
