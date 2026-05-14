@@ -197,6 +197,23 @@ test "phase11 dw_wdt verify keeps inactive and missing-drvdata teardown paths di
     try std.testing.expectEqual(TeardownState.blocked_missing_drvdata, blocked.state);
 }
 
+test "phase11 dw_wdt verify keeps unregistered teardown hooks distinct from watchdog unregister" {
+    const summary = summarizeStopTeardown(.{
+        .drvdata_ready = true,
+        .watchdog_registered = false,
+        .hardware_running = true,
+        .restart_priority_registered = true,
+        .stop_on_reboot_registered = true,
+    });
+
+    try std.testing.expect(!summary.unregister_device_requested);
+    try std.testing.expect(summary.unregister_stop_on_reboot_requested);
+    try std.testing.expect(summary.clear_restart_priority_requested);
+    try std.testing.expect(summary.stop_requested);
+    try std.testing.expect(!summary.keeps_missing_drvdata_explicit);
+    try std.testing.expectEqual(TeardownState.running_teardown, summary.state);
+}
+
 test "phase11 dw_wdt verify keeps restart failure modes explicit" {
     const blocked_timeout = summarizeRestartFailureMode(.{
         .drvdata_ready = true,
