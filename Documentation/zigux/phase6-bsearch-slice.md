@@ -3,7 +3,7 @@
 ## Status
 - `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=bsearch-leaf-helper`
-- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, or packet-alignment drift appears
+- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, direct equal-range wrapper-review drift, or packet-alignment drift appears
 
 ## API Surface
 - `searchIndex`
@@ -13,12 +13,16 @@
 - `upperBoundIndex`
 - `IndexRange`
 - `equalRangeIndex`
+- `equalRange`
+- `equalRangeMutable`
 - `bsearchIndex`
 - `bsearch`
 - `bsearchMutable`
 - `bsearchLowerBoundIndex`
 - `bsearchUpperBoundIndex`
 - `bsearchEqualRangeIndex`
+- `bsearchEqualRange`
+- `bsearchEqualRangeMutable`
 
 ## Review Surface
 - `lib/bsearch.zig`
@@ -38,7 +42,7 @@ The current packet intentionally keeps the direct equality probes, duplicate-spa
 
 Reviewers should treat that fixture as compact shared packet support rather than as a separate standalone timing-style route.
 
-Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable` without widening Phase 6 into a separate wrapper family.
+Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable`, while the direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` wrappers hand those typed slice and raw byte views back without forcing callers to peel `IndexRange` apart by hand or widening Phase 6 into a separate fixture or routing packet.
 
 ## Current Bounded Next Step
-If this helper reopens, first rerun `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py` plus `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`, then keep the next repair inside one helper-local surface only. Current `master` still shows `zigux/tests/phase6_bsearch.zig` importing `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, so if the reopen comes from note-or-checker drift rather than helper behavior, the first safe repair is aligning that helper-local checker wording to the compact shared seed companion posture before widening into helper semantics, shared Phase 6 routing, a separate fixture module, or a standalone timing-style perf target unless the current bsearch packet itself actually drifts.
+If this helper reopens, first rerun `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py` plus `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`, then keep the next repair inside one helper-local surface only. Current `master` still shows `zigux/tests/phase6_bsearch.zig` importing `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, and `lib/bsearch.zig` now also exports direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` companions on top of `IndexRange`, so if the reopen comes from note-or-checker drift rather than helper behavior, the first safe repair is aligning that helper-local checker wording to the compact shared seed companion posture and the direct wrapper surface before widening into helper semantics, shared Phase 6 routing, a separate fixture module, or a standalone timing-style perf target unless the current bsearch packet itself actually drifts.
