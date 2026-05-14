@@ -1,7 +1,7 @@
 # Phase 12 nvme_pci Slice
 
 - `PHASE12_SLICE=nvme-pci-roadmap-gap-support`
-- reread against live `master` and the current `P12-L05` survey packet on `2026-05-14`
+- reread against live `master` and the current `P12-L08` survey packet on `2026-05-14`
 - lane: `complex-drivers-infra`
 - anchor: `drivers/nvme/host/pci.c`
 
@@ -22,6 +22,6 @@
 ## Why this packet exists
 
 - The roadmap's complex-driver lane still wants a bounded `drivers/nvme/host/pci.c` packet before any honest live-storage claim
-- `master` already ships a real NVMe PCI starter, verifier shard, direct replay, survey note, manifest anchor, survey gate, degraded-read fallback note, and reopen-governance companion, so the highest-value same-lane move is to add the missing driver-local slice narrative rather than widen into transport-heavy runtime work
+- `master` already ships a real NVMe PCI starter, verifier shard, direct replay, survey note, manifest anchor, and survey gate for the existing NVMe starter packet, so the highest-value same-lane move is to add the missing driver-local slice narrative rather than widen into transport-heavy runtime work
 - this slice keeps queue sizing, host-DMA budgeting, PRP span pressure, dropped-backlog retirement review, and frozen queue-restore budgeting grouped as one reviewable support packet while shared build wiring and throughput or recovery parity stay explicitly blocked elsewhere
 - This note intentionally stays scoped to the current NVMe PCI support packet and does not claim a live DMA-backed queue path, interrupt flow, or broader Phase 12 closure
