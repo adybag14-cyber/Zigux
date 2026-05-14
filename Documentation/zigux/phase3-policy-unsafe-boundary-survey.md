@@ -24,7 +24,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=2cf2e2993bc36beedc6fa5c6e15aa88981b5b66b`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=66fccfddf6c47a9723143628b6c462d824be81d3`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=4e89dbeab701a8011ece9d3b63de5a170885ee12`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=5674249946ddeaca5890915d06cbfa33d0b47396`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
