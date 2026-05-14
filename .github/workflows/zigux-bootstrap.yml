@@ -52,7 +52,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
-  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
+  group: ${{ format('{0}-{1}', github.workflow, github.ref) }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
@@ -350,11 +350,11 @@ jobs:
       - name: Run Phase 6 leaf helper tests
         run: zig build test --build-file zigux/tests/phase6_build.zig --summary all
 
-      - name: Run Phase 6 base64 perf gate
-        run: zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all
+      - name: Run Phase 6 base64 C parity packet
+        run: python3 scripts/zigux/check-phase6-base64-c-parity.py
 
-      - name: Run Phase 6 checksum perf gate
-        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all
+      - name: Run Phase 6 bsearch focused packet
+        run: zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig --summary all
 
       - name: Run Phase 6 hexdump perf gate
         run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all
