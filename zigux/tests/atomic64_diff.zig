@@ -358,6 +358,33 @@ test "atomic64 diff wrapper keeps the paired survey contract explicit" {
     );
 }
 
+test "atomic64 diff wrapper keeps the paired survey gate-evidence self-test markers exact" {
+    try expectMarker(
+        phase4_runtime_atomic64_diff_survey_source,
+        "const phase4_gate_evidence_self_test_cases_line =",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_diff_survey_source,
+        "shared_validator_expected_self_test_case_count_drift,runtime_atomic64_survey_packet_presence_drift,",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_diff_survey_source,
+        "perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift,",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_diff_survey_source,
+        "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_diff_survey_source,
+        "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_diff_survey_source,
+        "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19",
+    );
+}
+
 test "atomic64 diff wrapper keeps the current roadmap gap summary reviewable" {
     try expectOrderedMarkersInSection(
         phase4_runtime_atomic64_manifest_source,
