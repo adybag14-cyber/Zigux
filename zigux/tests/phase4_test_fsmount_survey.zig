@@ -53,6 +53,28 @@ test "phase4 test_fsmount survey keeps bootstrap CI posture explicit" {
     );
 }
 
+test "phase4 test_fsmount survey keeps shared lab-and-ci matrix anchor explicit" {
+    try requireMarker(
+        "\"shared_lab_and_ci_matrix_anchor\": \"Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix\"",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "## Lab And CI Matrix",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "`scripts/zigux/check-phase4-remaining-gap-matrix.py` dedicated remaining-gap matrix replay for the parked `samples/zigux/kprobe_example.zig` and parked `samples/zigux/test_fsmount.zig` starter rows plus the local-only perf-threshold decision row",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-gate-evidence.md",
+        "`scripts/zigux/check-phase4-remaining-gap-matrix.py` remains the dedicated lab-matrix checker for the parked `kprobe_example`, parked `test_fsmount`, and local-only perf-threshold rows",
+    );
+}
+
 test "phase4 test_fsmount survey keeps reversible-delivery evidence explicit" {
     try requireMarker(
         "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit bootstrap-CI posture, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface\"",
