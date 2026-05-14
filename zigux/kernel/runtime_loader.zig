@@ -25,6 +25,9 @@ pub const PreparedRequest = struct {
 
     pub fn releaseWithoutSubstrate(self: *PreparedRequest) !void {
         if (self.state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
+        if (!keepsLoadPlanExplicit(self.plan, self.prepared_plan)) {
+            return error.PreparedPlanDrift;
+        }
         self.state = .released_without_substrate;
     }
 };
@@ -205,4 +208,36 @@ test "PreparedRequest.requestRuntimeLoad preserves the prepared snapshot on drif
     try std.testing.expectEqual(RequestState.prepared, request.state);
     try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
     try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+}
+
+test "PreparedRequest.releaseWithoutSubstrate preserves the pending snapshot on drift" {
+    const stable = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+
+    var request = try prepareRequest(stable);
+    const pending = try request.requestRuntimeLoad();
+    request.plan.exit_symbol = "zigux_runtime_bitmap_exit_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+
+    request.plan = stable;
+    try request.releaseWithoutSubstrate();
+    try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .released_without_substrate, stable));
 }
