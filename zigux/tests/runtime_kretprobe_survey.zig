@@ -277,6 +277,18 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(survey_note, "`make -C zigux phase9-runtime-kretprobe-test`");
     try expectContains(survey_note, "`make -C zigux phase9`");
+    try expectContains(
+        survey_note,
+        "runtime task ownership, polling and event-loop substrate, polling-backed wake or dispatch behavior",
+    );
+    try expectContains(
+        survey_note,
+        "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and `depmod` script or manifest state",
+    );
+    try expectContains(
+        survey_note,
+        "review-only metadata rather than shipped kretprobe-family evidence",
+    );
 
     try expectContains(
         module_slice_note,
