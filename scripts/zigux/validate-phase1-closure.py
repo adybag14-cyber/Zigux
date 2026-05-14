@@ -132,6 +132,8 @@ CLOSURE_MARKERS = [
     "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points remain behaviorally locked to the primary Zig helpers",
     "PHASE1_FIND_BIT_TAIL_CLAMP_REVIEW=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, tail_and_clamped_next, tail_clamped_last, and tail_clamped_empty_last stay explicit through the shared Phase 1 parity fixture and replay so last-word scans cannot silently leak masked tail bits beyond nbits",
     "PHASE1_FIND_BIT_BENCH_REVIEW=the shared Phase 1 benchmark packet keeps the exact next-bit and edge-loop iteration and checksum contract explicit so the steady-state and edge-case find_bit smoke paths remain live and review-visible",
+    "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS",
+    "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS",
     "PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring",
     "PHASE1_BITMAP_PREDICATE_TAIL_MASK_REVIEW=helper-local bitmap predicate tail-mask proof stays explicit through the direct bitmap test anchor so equal, intersects, and subset ignore out-of-range tail bits instead of treating tail noise as live data",
     "PHASE1_BITMAP_EMPTY_BUFFER_REVIEW=helper-local bitmap.scnprintf empty-bitmap caller-buffer preservation stays explicit through the direct bitmap test anchor so a non-empty caller buffer remains untouched when no bits are set instead of being silently zeroed or NUL-terminated",
@@ -517,7 +519,6 @@ def expected_string_memparse_review_anchors(test_names: list[str]) -> list[str]:
 def expected_string_prefix_suffix_review_anchors(test_names: list[str]) -> list[str]:
     return [name for name in test_names if name.startswith(STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES)]
 
-
 def expected_string_sysfs_review_anchors(test_names: list[str]) -> list[str]:
     return [name for name in test_names if name.startswith(STRING_SYSFS_ANCHOR_PREFIXES)]
 
@@ -679,6 +680,18 @@ def run_self_test() -> None:
                 encoding="utf-8",
             )
             assert any(item == f"closure:{CLOSURE_MARKERS[marker_index]}" for item in collect_missing_markers(root))
+            case_count += 1
+            make_fixture_root(root)
+
+        for marker in [
+            "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS",
+            "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS",
+        ]:
+            closure_path.write_text(
+                closure_path.read_text(encoding="utf-8").replace(marker, "", 1),
+                encoding="utf-8",
+            )
+            assert any(item == f"closure:{marker}" for item in collect_missing_markers(root))
             case_count += 1
             make_fixture_root(root)
 
