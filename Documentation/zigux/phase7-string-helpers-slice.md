@@ -15,7 +15,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 is where Zigux starts moving from earlier standalone helper ports into reusable in-kernel runtime helper families.
 
-The current `string_helpers` state on `master` is no longer the older missing-helper gap. Instead, the lane now carries a restored starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded copy-and-pad, and bounded unescape helpers reviewable while the broader family stays deliberately out of scope.
+The current `string_helpers` state on `master` is no longer the older missing-helper gap. Instead, the lane now carries a restored starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, and bounded unescape helpers reviewable while the broader family stays deliberately out of scope.
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample, so the dedicated boundary replay should keep that separation explicit while the restored starter packet advances through helper-local review surfaces only.
 
@@ -55,6 +55,7 @@ The restored starter packet on current `master` covers:
 - `sysfsStreq()` and `sysfs_streq()`
 - `matchString()` and `match_string()`
 - `sysfsMatchString()` and `__sysfs_match_string()`
+- `stringGetSize()` and `string_get_size()`
 - `stringUnescape()` and `string_unescape()`
 - `stringUnescapeInplace()` and `string_unescape_inplace()`
 - `stringUnescapeAny()` and `string_unescape_any()`
@@ -68,6 +69,7 @@ The current starter replay keeps these proofs explicit:
 - in-place leading and trailing trimming that preserves bytes beyond the first exported C-string prefix
 - newline-aware sysfs equality
 - bounded null-sentinel table matching through the first NULL entry
+- bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting
 - bounded string unescaping across space, octal, hex, and special escape families, including in-place replays and unsupported-escape preservation
 - bounded memcpy-and-pad behavior that truncates long copies, pads short ones, and stays inside the provided source slice
 - in-place replacement behavior that stops at the first NUL
@@ -78,7 +80,7 @@ The current starter replay keeps these proofs explicit:
 This restored starter slice does not yet claim:
 
 - the older parked missing-helper gap
-- the broader full-family packet that previously named `string_get_size()`, `parse_int_array()`, `string_unescape()`, `string_escape_mem()`, `kasprintf_strarray()`, `kfree_strarray()`, or the allocator-backed duplication follow-ons as landed on current `master`
+- the broader full-family packet that previously named `parse_int_array()`, `string_escape_mem()`, `kasprintf_strarray()`, `kfree_strarray()`, or the allocator-backed duplication follow-ons as landed on current `master`
 - a new `samples/zigux/` string-helper reference sample
 
 ## Next Bounded Step
