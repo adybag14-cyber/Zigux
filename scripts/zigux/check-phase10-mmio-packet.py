@@ -502,6 +502,30 @@ def run_self_test() -> int:
                 'phase10_virtio_input_probe_preflight.zig:test "phase10 virtio input probe preflight keeps identity visible before queue setup" {',
             ),
             (
+                "drivers/virtio/virtio_mmio.zig",
+                'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
+                'test "phase10 virtio mmio config-generation drift" {',
+                'virtio_mmio.zig:test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
+            ),
+            (
+                "drivers/virtio/virtio_mmio_verify.zig",
+                "try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());",
+                "try std.testing.expectError(error.ConfigWritePlanStillAvailable, device.configWriteDispositionSummary());",
+                "virtio_mmio_verify.zig:try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());",
+            ),
+            (
+                "zigux/tests/phase10_virtio_mmio.zig",
+                'test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {',
+                'test "phase10 virtio mmio queue handoff drift" {',
+                'phase10_virtio_mmio.zig:test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {',
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                "run_phase10_virtio_mmio_verify_tests.step",
+                "run_phase10_virtio_mmio_verify_gate.step",
+                "phase10_build.zig:run_phase10_virtio_mmio_verify_tests.step",
+            ),
+            (
                 "Documentation/zigux/phase10-virtio-mmio-survey.md",
                 "generation-scoped config-review posture",
                 "generation-scoped config drift posture",
