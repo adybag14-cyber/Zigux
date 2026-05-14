@@ -46,6 +46,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase8_perf_buffer_poll.zig",
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
         "zigux/tests/phase8_build.zig",
+        "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
         "make -C zigux phase8-validate",
         "python3 scripts/zigux/validate-phase8.py --self-test",
         "python3 scripts/zigux/validate-phase8.py",
@@ -86,6 +87,7 @@ REQUIRED_MARKERS = {
     ),
     PACKET_TEST_PATH: (
         "test \"phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit\" {",
+        "test \"phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit\" {",
         "test \"phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity\" {",
         "test \"resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries\" {",
     ),
@@ -178,6 +180,7 @@ def run_self_test() -> int:
             (TESTS_README_PATH, "`make -C zigux phase8-perf-buffer-poll-test`"),
             (REVIEW_CHECKLIST_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
             (SEQUENCING_PATH, "make -C zigux phase8-perf-buffer-poll-test"),
+            (SLICE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
             (SLICE_PATH, "python3 scripts/zigux/validate-phase8.py --self-test"),
             (SLICE_PATH, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all"),
             (SLICE_PATH, "make -C zigux phase8-test"),
@@ -188,6 +191,7 @@ def run_self_test() -> int:
             (PACKET_HELPER_PATH, "test \"summarizePollExecution rejects processing more ready buffers than the helper counted as ready\" {"),
             (PACKET_HELPER_PATH, "test \"summarizePoll rejects impossible buffer state for timeout interrupt and failed wait results\" {"),
             (PACKET_TEST_PATH, "test \"phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit\" {"),
+            (PACKET_TEST_PATH, "test \"phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit\" {"),
             (PACKET_ONLY_BUILD_PATH, "phase8-perf-buffer-poll-tests"),
         )
         for rel_path, marker in mutations:
