@@ -100,10 +100,14 @@ DOC_README_MARKERS = [
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "`zigux/tests/phase10_virtio_ring_manifest.json`",
     "`drivers/virtio/virtio_input_probe_preflight.zig`",
+    "`Documentation/zigux/phase10-virtio-core-slice.md`",
+    "`Documentation/zigux/phase10-virtio-ring-slice.md`",
+    "`Documentation/zigux/phase10-virtio-input-slice.md`",
+    "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
+    "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
     "`make -C zigux phase10-validate`",
     "`make -C zigux phase10-test`",
     "`make -C zigux phase10`",
-    "the remaining missing slice-note paths `Documentation/zigux/phase10-virtio-core-slice.md` and `Documentation/zigux/phase10-virtio-mmio-slice.md` remain repo-reality gaps rather than shipped docs-root evidence on current `master`, and the directly re-readable `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md` stay part of the current shared review packet.",
 ]
 
 TESTS_README_MARKERS = [
@@ -131,8 +135,8 @@ CLOSURE_NOTE_MARKERS = [
     "`Documentation/zigux/phase10-virtio-input-slice.md`",
     "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
     "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
-    "`scripts/zigux/README.md` still presents",
-    "repo-reality gaps",
+    "`Documentation/zigux/README.md` now matches that same narrower posture, and fresh public raw rereads show that `scripts/zigux/README.md` does too.",
+    "The remaining honest repo-reality gap in this lane is now only the packet-local slice companion `Documentation/zigux/phase10-virtio-mmio-slice.md`.",
 ]
 
 COMPANION_MARKERS = [
@@ -181,8 +185,9 @@ FIXTURE_CONTENT = {
             "- the ring drained-reset reuse replay stays visible beside the shared closure packet",
             "- the live `zigux/Makefile` `phase10-test` route reruns the shared packet",
             "- `make -C zigux phase10-test` and `make -C zigux phase10` remain the local replay wrappers",
-            "- repo-reality gaps stay explicit through `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md`",
-            "- `scripts/zigux/README.md` still presents those missing slice-note paths as live evidence, so the next same-lane repair stays in the scripts-root summary",
+            "- direct rereads still keep `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` explicit in the closure packet",
+            "- `Documentation/zigux/README.md` now matches that same narrower posture, and fresh public raw rereads show that `scripts/zigux/README.md` does too.",
+            "- The remaining honest repo-reality gap in this lane is now only the packet-local slice companion `Documentation/zigux/phase10-virtio-mmio-slice.md`.",
             "",
         ]
     ),
@@ -341,16 +346,31 @@ def run_self_test() -> int:
 
         doc_readme_path.write_text(
             original_doc_readme.replace(
-                "the remaining missing slice-note paths `Documentation/zigux/phase10-virtio-core-slice.md` and `Documentation/zigux/phase10-virtio-mmio-slice.md` remain repo-reality gaps rather than shipped docs-root evidence on current `master`, and the directly re-readable `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md` stay part of the current shared review packet.",
-                "the scripts root now treats every Phase 10 slice note as shipped docs-root evidence.",
+                "`Documentation/zigux/phase10-virtio-core-slice.md`",
+                "`Documentation/zigux/phase10-virtio-core-slice-missing.md`",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "doc_readme_slice_gap_phrase",
+            "doc_readme_core_slice_marker",
             root,
-            "doc_readme:the remaining missing slice-note paths `Documentation/zigux/phase10-virtio-core-slice.md` and `Documentation/zigux/phase10-virtio-mmio-slice.md` remain repo-reality gaps rather than shipped docs-root evidence on current `master`, and the directly re-readable `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md` stay part of the current shared review packet.",
+            "doc_readme:`Documentation/zigux/phase10-virtio-core-slice.md`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
+                "`Documentation/zigux/phase10-virtio-mmio-slice-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_mmio_slice_marker",
+            root,
+            "doc_readme:`Documentation/zigux/phase10-virtio-mmio-slice.md`",
         )
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
@@ -408,7 +428,7 @@ def run_self_test() -> int:
         expect_missing_file("checker_file", root, "scripts/zigux/check-phase10-tests-readme-core-surfaces.py")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
