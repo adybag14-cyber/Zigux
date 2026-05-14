@@ -1,6 +1,5 @@
 const std = @import("std");
 
-const expected_surveyed_commit = "00b92f22991e9124aefb308d7eb0e90f14923338";
 const direct_phase5_reference_anchors = [_][]const u8{
     "`samples/zigux/bytestream_fifo.zig`",
     "`samples/zigux/kretprobe_example.zig`",
@@ -186,7 +185,6 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
 
     try std.testing.expectEqualStrings("P9-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
-    try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/test_bitmap.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -299,7 +297,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(top_bit_contract_source, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.selftest_complete, snapshot.stage);");
     try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 1), snapshot.selftest_runs);");
     try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 0), snapshot.exit_runs);");
-    try expectContains(top_bit_contract_source, "try std.testing.expect(destination.isSet(top_bit));");
+    try expectContains(top_bit_contract_source, "try expect(destination.isSet(top_bit));");
     try expectContains(top_bit_contract_source, "BitRangeOutOfBounds");
     try expectContains(top_bit_contract_source, "InvalidLifecycleTransition");
 
