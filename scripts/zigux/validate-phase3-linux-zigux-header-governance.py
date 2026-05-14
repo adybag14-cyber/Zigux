@@ -17,6 +17,7 @@ REQUIRED_SCOPE_MARKERS = {
     "PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md": 1,
     "PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json": 1,
     "PHASE3_ZIGUX_H_VALIDATOR_PATH=scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 1,
+    "PHASE3_ZIGUX_H_ROLE=linux-facing relay and aggregation header for already-landed helper views, summaries, and narrow boundary adapters only": 1,
 }
 REQUIRED_GROWTH_RULE = (
     "PHASE3_ZIGUX_H_GROWTH_RULE=new top-level helper families may land in include/linux/zigux.h, "
@@ -145,6 +146,7 @@ PHASE3_ZIGUX_H_PACKET=shared Phase 3 ABI substrate packet only
 PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md
 PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json
 PHASE3_ZIGUX_H_VALIDATOR_PATH=scripts/zigux/validate-phase3-linux-zigux-header-governance.py
+PHASE3_ZIGUX_H_ROLE=linux-facing relay and aggregation header for already-landed helper views, summaries, and narrow boundary adapters only
 
 PHASE3_ZIGUX_H_GROWTH_RULE=new top-level helper families may land in include/linux/zigux.h, and already-landed top-level review surfaces may be rehomed there, only when the same bounded change also lands packet-local proof and updates this note.
 
@@ -167,6 +169,24 @@ aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` o
     if issues:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("\n".join(issues))
+        return 1
+
+    broken = validate_text(
+        sample_note.replace(
+            "PHASE3_ZIGUX_H_ROLE=linux-facing relay and aggregation header for already-landed helper views, summaries, and narrow boundary adapters only\n",
+            "",
+            1,
+        ),
+        sample_header,
+    )
+    expected = (
+        "scope marker count drift: "
+        "PHASE3_ZIGUX_H_ROLE=linux-facing relay and aggregation header for already-landed helper views, summaries, and narrow boundary adapters only "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected role-marker drift was not reported")
         return 1
 
     broken = validate_text(sample_note.replace("zigux/uapi/version.zig\n", "", 1), sample_header)
