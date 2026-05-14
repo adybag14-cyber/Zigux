@@ -1,6 +1,6 @@
 {
   "surveyed_commit_mode": "dated_master_readback",
-  "surveyed_commit": "current-master-readback-2026-05-13",
+  "surveyed_commit": "current-master-readback-2026-05-14",
   "repo_evidence": {
     "phase15_validator_script_present": true,
     "phase15_validate_target_present": true,
@@ -10,6 +10,7 @@
   },
   "phase15_validate_checkers": [
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py"
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py"
   ]
 }
