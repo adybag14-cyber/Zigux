@@ -29,7 +29,7 @@ The live `kernel/workqueue_bridge.zig` packet is already beyond the older eight-
 - the landed `phase14-workqueue-rescuer-mayday-governance`
 - the explicit `hotplug-topology-rebinding` and `scheduler-visible-worker-state-refinement` checkpoints that keep CPU-hotplug pool rebinding and scheduler-facing runnable-state transitions visibly in the review-only stay-in-C packet
 
-The bridge and its direct Zig test now describe a blocked maintenance packet with eight boundary areas, fifteen review-only audit checkpoints, and seven blocked live behaviors. That means the lane is no longer waiting on the pending-bit audit itself. The remaining work is to keep the survey, manifest, slice note, and shared Phase 14 reminder surfaces truthful about the bridge that is already landed.
+The bridge and its direct Zig test now describe a blocked maintenance packet with eight boundary areas, fifteen review-only audit checkpoints, and seven blocked live behaviors. That means the lane is no longer waiting on the pending-bit audit itself. The remaining work is to keep the survey, manifest, slice note, reviewability gate, and shared Phase 14 reminder surfaces truthful about the bridge that is already landed.
 
 ## Recorded gaps
 
@@ -83,6 +83,19 @@ This survey slice does not claim:
 
 2. run the convenience target
 - `make -C zigux phase14`
+
+## Maintenance-Mode Handoff
+
+- current lane posture: `blocked_maintenance`
+- replay before trusting this parked packet:
+  - `zig test zigux/tests/phase14_workqueue_reviewability.zig`
+  - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+  - `make -C zigux phase14`
+- reopen only when one of the packet-local conditions below becomes true:
+  - the dedicated workqueue survey, slice note, manifest, or reviewability test drifts on surveyed commit, blocked gap, blocked-maintenance posture, or blocked live-execution wording
+  - the directly coupled shared smoke or core traceability packet reintroduces a stale lane key, ready-next record, or blocked-gap record for the workqueue anchor
+  - genuinely narrower stay-in-C evidence appears around delayed-work timer expiry, delayed-work requeue governance, flush-drain ownership, hotplug topology rebinding, or scheduler-visible worker-state transitions without implying live execution ownership
+- next future target: stay in blocked maintenance unless one of those packet-local reopen conditions fires; if a future truthfulness drift is workqueue-local, reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, and `Documentation/zigux/phase14-workqueue-bridge-survey.md` together before touching the shared Phase 14 smoke packet
 
 ## Next bounded step
 
