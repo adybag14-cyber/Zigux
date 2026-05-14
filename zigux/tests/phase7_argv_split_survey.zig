@@ -194,6 +194,22 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
         manifest.ownership_focus,
         "owned-storage reuse keeps token pointers inside caller-managed storage",
     );
+    try expectStringSliceContains(
+        manifest.ownership_focus,
+        "non-blank results keep storage, argv slices, and C-argv views distinct across callers",
+    );
+    try expectStringSliceContains(
+        manifest.ownership_focus,
+        "argvFree on one live non-blank result does not disturb another caller-owned split result",
+    );
+    try expectStringSliceContains(
+        manifest.ownership_focus,
+        "deinit on one live non-blank result does not disturb another caller-owned split result",
+    );
+    try expectStringSliceContains(
+        manifest.ownership_focus,
+        "blank-input sentinel reuse stays stable across argvFree and deinit, including shared empty-sentinel teardown beside another blank caller",
+    );
     try expectContains(slice_note, "first-NUL C-string bounds on both counting and splitting");
     try expectContains(slice_note, "strict non-goal behavior where quote characters stay inside the returned tokens");
     try expectContains(slice_note, "keep copied-buffer ownership so later source mutation does not affect split results");
