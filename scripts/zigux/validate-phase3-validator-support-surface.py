@@ -79,7 +79,7 @@ CURRENT_PACKET_MARKERS = {
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
     "zigux/tests/phase3_low_level_wrappers.zig": 1,
-    "zigux/tests/phase3_low_level_wrappers_build.zig": 1,
+    "zigux/tests/phase3_low_level_wrappers_build.zig": 2,
     "zigux/Makefile": 1,
     "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py": 1,
@@ -108,17 +108,20 @@ SHARED_REMINDER_MARKERS = {
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 1,
     "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
     "Documentation/zigux/phase3-bindings-governance.md": 1,
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md": 1,
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "Documentation/zigux/review-checklist.md": 1,
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md": 1,
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py": 1,
+    "scripts/zigux/check-phase3-policy-byte-guards.py": 1,
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py": 1,
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py": 1,
     "zigux/tests/phase3_low_level_wrappers.zig": 1,
-    "zigux/tests/phase3_low_level_wrappers_build.zig": 1,
+    "zigux/tests/phase3_low_level_wrappers_build.zig": 2,
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig": 1,
-    "include/zigux/dev_t.h": 1,
-    "zigux/uapi/version.zig": 1,
+    "include/zigux/dev_t.h": 2,
+    "zigux/uapi/version.zig": 2,
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
     "make -C zigux phase3-selftest": 1,
@@ -278,11 +281,15 @@ def write_text(path: Path, text: str) -> None:
 
 
 def sample_note_text() -> str:
+    current_packet_lines = expand_marker_counts(CURRENT_PACKET_MARKERS)
+    current_packet_lines.remove("zigux/tests/phase3_low_level_wrappers_build.zig")
+    shared_reminder_lines = expand_marker_counts(SHARED_REMINDER_MARKERS)
+    shared_reminder_lines.remove("zigux/tests/phase3_low_level_wrappers_build.zig")
     sample = "\n".join(REQUIRED_MARKERS)
-    sample += "\n## Current packet\n" + "\n".join(expand_marker_counts(CURRENT_PACKET_MARKERS))
+    sample += "\n## Current packet\n" + "\n".join(current_packet_lines)
     sample += "\n## Review boundary\n" + "\n".join(expand_marker_counts(REVIEW_BOUNDARY_MARKERS))
     sample += "\n## Non-goals\n- stub\n"
-    sample += "\n## Shared reminder\n" + "\n".join(expand_marker_counts(SHARED_REMINDER_MARKERS))
+    sample += "\n## Shared reminder\n" + "\n".join(shared_reminder_lines)
     return sample
 
 
@@ -292,11 +299,11 @@ def sample_boundary_note_text() -> str:
         "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
         "export/UAPI packet actually grows",
         "include/zigux/dev_t.h",
-        "include/zigux/dev_t.h",
-        "zigux/uapi/version.zig",
         "scripts/zigux/check-phase3-abi.py",
         "scripts/zigux/validate-phase3-abi-header-family-survey.py",
         "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+        "`scripts/zigux/README.md` now keeps the canonical `include/zigux/dev_t.h`,",
+        "`zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` split explicit",
     ]
     sample = "## Current landed surface\n" + "\n".join(
         expand_marker_counts(BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS)
@@ -429,6 +436,54 @@ def run_self_test() -> int:
             note_sample,
             "## Shared reminder",
             None,
+            "Documentation/zigux/phase3-kernel-export-shim-governance.md",
+        )
+    )
+    if not any(
+        "Documentation/zigux/phase3-kernel-export-shim-governance.md" in issue
+        for issue in issues
+    ):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared-reminder kernel-export governance drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Shared reminder",
+            None,
+            "Documentation/zigux/phase3-bindings-governance.md",
+        )
+    )
+    if not any(
+        "Documentation/zigux/phase3-bindings-governance.md" in issue
+        for issue in issues
+    ):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared-reminder bindings governance drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Shared reminder",
+            None,
+            "scripts/zigux/check-phase3-policy-byte-guards.py",
+        )
+    )
+    if not any(
+        "scripts/zigux/check-phase3-policy-byte-guards.py" in issue
+        for issue in issues
+    ):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared-reminder policy-byte-guard drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Shared reminder",
+            None,
             "zigux/tests/phase3_low_level_wrappers.zig",
         )
     )
@@ -498,9 +553,9 @@ def run_self_test() -> int:
             boundary_sample,
             "## Next bounded step",
             "## Non-goals",
-            "zigux/uapi/version.zig\n",
+            "`zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` split explicit\n",
         )
-        + "zigux/uapi/version.zig\n"
+        + "`zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` split explicit\n"
     )
     expected = (
         "boundary note next-step marker count drift: zigux/uapi/version.zig "
