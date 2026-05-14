@@ -314,6 +314,13 @@ def run_self_test() -> None:
             "zigux/tests/phase7_build.zig: string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step);",
         ),
         (
+            "build_string_helpers_sample_boundary_source",
+            "zigux/tests/phase7_build.zig",
+            "\"phase7_string_helpers_sample_boundary.zig\"",
+            "\"phase7_string_helpers_sample_boundary_drift.zig\"",
+            "zigux/tests/phase7_build.zig: \"phase7_string_helpers_sample_boundary.zig\"",
+        ),
+        (
             "build_cmdline_root_source_path",
             "zigux/tests/phase7_build.zig",
             ".root_source_file = b.path(\"../../lib/cmdline.zig\"),",
