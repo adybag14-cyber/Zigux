@@ -111,6 +111,33 @@ test "offset readdir planning keeps emit-dots gating and eod handoff explicit" {
     try std.testing.expectEqual(@as(?libfs.OffsetReaddirMode, null), invalid.mode);
 }
 
+test "offset add planning keeps busy-remap and managed-offset boundaries explicit" {
+    const ok_plan = libfs.LibfsHelperLab.planSimpleOffsetAdd(0, .{ .allocated = libfs.dir_offset_min + 3 });
+    const busy_plan = libfs.LibfsHelperLab.planSimpleOffsetAdd(0, .busy);
+    const already_set = libfs.LibfsHelperLab.planSimpleOffsetAdd(libfs.dir_offset_min + 1, .{ .allocated = libfs.dir_offset_min + 4 });
+    const out_of_range = libfs.LibfsHelperLab.planSimpleOffsetAdd(0, .{ .allocated = libfs.dir_offset_first });
+
+    try std.testing.expectEqualStrings("fs/libfs.c", ok_plan.anchor);
+    try std.testing.expectEqual(libfs.OffsetAddStatus.ok, ok_plan.status);
+    try std.testing.expectEqual(@as(?i64, libfs.dir_offset_min + 3), ok_plan.allocated_offset);
+    try std.testing.expect(ok_plan.records_offset_in_dentry);
+    try std.testing.expect(ok_plan.stores_dentry_in_map);
+    try std.testing.expect(!ok_plan.remaps_allocator_busy_to_no_space);
+
+    try std.testing.expectEqual(libfs.OffsetAddStatus.no_space, busy_plan.status);
+    try std.testing.expectEqual(@as(?i64, null), busy_plan.allocated_offset);
+    try std.testing.expect(busy_plan.remaps_allocator_busy_to_no_space);
+
+    try std.testing.expectEqual(libfs.OffsetAddStatus.dentry_already_has_offset, already_set.status);
+    try std.testing.expectEqual(@as(?i64, null), already_set.allocated_offset);
+    try std.testing.expect(!already_set.records_offset_in_dentry);
+    try std.testing.expect(!already_set.stores_dentry_in_map);
+
+    try std.testing.expectEqual(libfs.OffsetAddStatus.allocated_offset_out_of_range, out_of_range.status);
+    try std.testing.expectEqual(@as(?i64, null), out_of_range.allocated_offset);
+    try std.testing.expect(!out_of_range.records_offset_in_dentry);
+}
+
 test "transaction release planning frees staged private data when present" {
     const plan = libfs.LibfsHelperLab.simpleTransactionReleasePlan(true);
 
@@ -189,11 +216,12 @@ test "offset rename exchange planning keeps managed-slot swap and rollback expec
 
 test "phase13 libfs manifest records the current helper-first filesystem packet" {
     try expectContains(manifest_text, "\"lane_key\": \"P13-Y01\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-13\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-14\"");
     try expectContains(manifest_text, "\"current_libfs_zig_present\": true");
     try expectContains(manifest_text, "\"current_phase13_libfs_test_present\": true");
     try expectContains(manifest_text, "\"current_phase13_libfs_reviewability_present\": true");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-helper-starter\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-offset-add-planner\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-offset-rename-planner\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-acquire-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-release-helper\"");
@@ -210,7 +238,8 @@ test "phase13 libfs manifest records the current helper-first filesystem packet"
     try expectContains(manifest_text, "simple_transaction_release()");
     try expectContains(manifest_text, "transaction publish planning");
     try expectContains(manifest_text, "generic_check_addressable()");
-    try expectContains(manifest_text, "addressability helper");
+    try expectContains(manifest_text, "simple_offset_add()");
+    try expectContains(manifest_text, "offset-add planning");
     try expectContains(manifest_text, "simple_transaction_get()");
     try expectContains(manifest_text, "offset-based rename planning");
     try expectContains(manifest_text, "live dcache entry insertion");
