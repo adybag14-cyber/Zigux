@@ -93,10 +93,16 @@ REQUIRED_MARKERS = {
     "scripts_root": [
         "Phase 11 flow -",
         "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`scripts/zigux/check-phase11-build-inventory.py`",
+        "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
+        "`zigux/tests/fixtures/phase11_build_inventory.json`",
+        "`zigux/tests/phase11_hvc_console.zig`",
+        "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
         "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
         "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "`make -C zigux phase11-contract`",
         "`make -C zigux phase11-hvc-survey`",
     ],
     "tests_root": [
@@ -124,6 +130,11 @@ FORBIDDEN_MARKERS = {
     "lane_note": [
         "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
         "`Documentation/zigux/phase11-dw-wdt-survey.md`",
+    ],
+    "scripts_root": [
+        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+        "`Documentation/zigux/phase11-dw-wdt-survey.md`",
+        "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
     ],
 }
 
@@ -226,6 +237,12 @@ def run_self_test() -> None:
             (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][10]),
             (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][2]),
             (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][3]),
+            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][2]),
+            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][3]),
+            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][4]),
+            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][5]),
+            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][6]),
+            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][11]),
             (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][2]),
             (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][3]),
             (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][0]),
@@ -249,6 +266,9 @@ def run_self_test() -> None:
             ("contract_note", FORBIDDEN_MARKERS["contract_note"][3]),
             ("lane_note", FORBIDDEN_MARKERS["lane_note"][0]),
             ("lane_note", FORBIDDEN_MARKERS["lane_note"][1]),
+            ("scripts_root", FORBIDDEN_MARKERS["scripts_root"][0]),
+            ("scripts_root", FORBIDDEN_MARKERS["scripts_root"][1]),
+            ("scripts_root", FORBIDDEN_MARKERS["scripts_root"][2]),
         ]
 
         for idx, (label, marker) in enumerate(forbidden_cases, start=1):
