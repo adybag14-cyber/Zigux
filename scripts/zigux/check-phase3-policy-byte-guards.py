@@ -10,6 +10,7 @@ SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
 PANIC_REL = "zigux/helpers/panic_policy.zig"
 ALLOCATOR_REL = "zigux/helpers/allocator_policy.zig"
 NARROW_REL = "zigux/unsafe/narrow.zig"
+LOW_LEVEL_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 FOCUSED_REPLAY_REL = "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
 MMIO_CONSUMER_REL = "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"
 
@@ -119,6 +120,27 @@ REQUIRED_NARROW_SNIPPETS = (
     'try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(reserved_policy));',
 )
 
+REQUIRED_LOW_LEVEL_POLICY_BYTE_SNIPPETS = (
+    'try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), allocator_policy.modeFromByte(0));',
+    'try std.testing.expectEqual(@as(?abi.AllocatorMode, null), allocator_policy.modeFromByte(9));',
+    'try std.testing.expect(allocator_policy.recognizesByte(0));',
+    'try std.testing.expect(!allocator_policy.recognizesByte(9));',
+    'try std.testing.expect(allocator_policy.requiresExplicitCallerByte(0));',
+    'try std.testing.expect(!allocator_policy.requiresExplicitCallerByte(1));',
+    'try std.testing.expect(!allocator_policy.permitsGlobalFallbackByte(0));',
+    'try std.testing.expect(allocator_policy.permitsGlobalFallbackByte(1));',
+    'try std.testing.expectEqual(@as(?abi.PanicMode, .abort), panic_policy.modeFromByte(0));',
+    'try std.testing.expectEqual(@as(?abi.PanicMode, null), panic_policy.modeFromByte(9));',
+    'try std.testing.expect(panic_policy.recognizesByte(2));',
+    'try std.testing.expect(!panic_policy.recognizesByte(9));',
+    'try std.testing.expectEqual(@as(?panic_policy.Action, .warn_and_return), panic_policy.actionForByte(2));',
+    'try std.testing.expectEqual(@as(?panic_policy.Action, null), panic_policy.actionForByte(9));',
+    'try std.testing.expect(panic_policy.mustAbortByte(0));',
+    'try std.testing.expect(panic_policy.mustBugCheckByte(1));',
+    'try std.testing.expect(panic_policy.canReturnByte(2));',
+    'try std.testing.expect(!panic_policy.canReturnByte(9));',
+)
+
 REQUIRED_FOCUSED_REPLAY_SNIPPETS = (
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
@@ -165,6 +187,7 @@ def validate(root: Path) -> list[str]:
     panic = _read_text(root, PANIC_REL, issues)
     allocator = _read_text(root, ALLOCATOR_REL, issues)
     narrow = _read_text(root, NARROW_REL, issues)
+    low_level_test = _read_text(root, LOW_LEVEL_TEST_REL, issues)
     focused_replay = _read_text(root, FOCUSED_REPLAY_REL, issues)
     mmio_consumer = _read_text(root, MMIO_CONSUMER_REL, issues)
 
@@ -178,10 +201,27 @@ def validate(root: Path) -> list[str]:
         _check_snippets(allocator, REQUIRED_ALLOCATOR_SNIPPETS, "missing_allocator_snippet", issues)
     if narrow:
         _check_snippets(narrow, REQUIRED_NARROW_SNIPPETS, "missing_narrow_snippet", issues)
+    if low_level_test:
+        _check_snippets(
+            low_level_test,
+            REQUIRED_LOW_LEVEL_POLICY_BYTE_SNIPPETS,
+            "missing_low_level_policy_byte_snippet",
+            issues,
+        )
     if focused_replay:
-        _check_snippets(focused_replay, REQUIRED_FOCUSED_REPLAY_SNIPPETS, "missing_focused_replay_snippet", issues)
+        _check_snippets(
+            focused_replay,
+            REQUIRED_FOCUSED_REPLAY_SNIPPETS,
+            "missing_focused_replay_snippet",
+            issues,
+        )
     if mmio_consumer:
-        _check_snippets(mmio_consumer, REQUIRED_MMIO_CONSUMER_SNIPPETS, "missing_mmio_consumer_snippet", issues)
+        _check_snippets(
+            mmio_consumer,
+            REQUIRED_MMIO_CONSUMER_SNIPPETS,
+            "missing_mmio_consumer_snippet",
+            issues,
+        )
     return issues
 
 
@@ -198,6 +238,7 @@ def run_self_test() -> int:
         _write(root, PANIC_REL, "\n".join(REQUIRED_PANIC_SNIPPETS) + "\n")
         _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS) + "\n")
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
+        _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_POLICY_BYTE_SNIPPETS) + "\n")
         _write(root, FOCUSED_REPLAY_REL, "\n".join(REQUIRED_FOCUSED_REPLAY_SNIPPETS) + "\n")
         _write(root, MMIO_CONSUMER_REL, "\n".join(REQUIRED_MMIO_CONSUMER_SNIPPETS) + "\n")
         assert validate(root) == []
@@ -237,10 +278,7 @@ def run_self_test() -> int:
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS) + "\n")
         _write(root, NARROW_REL, "\n".join(snippet for snippet in REQUIRED_NARROW_SNIPPETS if snippet != "pub fn constPointerAtInteropPolicy(") + "\n")
         issues = validate(root)
-        assert (
-            "missing_narrow_snippet:pub fn constPointerAtInteropPolicy("
-            in issues
-        )
+        assert "missing_narrow_snippet:pub fn constPointerAtInteropPolicy(" in issues
 
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
         _write(root, NARROW_REL, (root / NARROW_REL).read_text(encoding="utf-8").replace(REQUIRED_NARROW_SNIPPETS[13] + "\n", "", 1))
@@ -248,7 +286,16 @@ def run_self_test() -> int:
         assert f"missing_narrow_snippet:{REQUIRED_NARROW_SNIPPETS[13]}" in issues
 
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
-        _write(root, PANIC_REL, "\n".join(snippet for snippet in REQUIRED_PANIC_SNIPPETS if snippet != 'try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));') + "\n")
+        _write(
+            root,
+            PANIC_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_PANIC_SNIPPETS
+                if snippet != 'try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));'
+            )
+            + "\n",
+        )
         issues = validate(root)
         assert (
             "missing_panic_snippet:try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));"
@@ -256,15 +303,30 @@ def run_self_test() -> int:
         )
 
         _write(root, PANIC_REL, "\n".join(REQUIRED_PANIC_SNIPPETS) + "\n")
-        _write(root, ALLOCATOR_REL, "\n".join(snippet for snippet in REQUIRED_ALLOCATOR_SNIPPETS if snippet != "pub fn permitsGlobalFallbackByte(mode: u8) bool {") + "\n")
-        issues = validate(root)
-        assert (
-            "missing_allocator_snippet:pub fn permitsGlobalFallbackByte(mode: u8) bool {"
-            in issues
+        _write(
+            root,
+            ALLOCATOR_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_ALLOCATOR_SNIPPETS
+                if snippet != "pub fn permitsGlobalFallbackByte(mode: u8) bool {"
+            )
+            + "\n",
         )
+        issues = validate(root)
+        assert "missing_allocator_snippet:pub fn permitsGlobalFallbackByte(mode: u8) bool {" in issues
 
         _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS) + "\n")
-        _write(root, ALLOCATOR_REL, "\n".join(snippet for snippet in REQUIRED_ALLOCATOR_SNIPPETS if snippet != 'try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));') + "\n")
+        _write(
+            root,
+            ALLOCATOR_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_ALLOCATOR_SNIPPETS
+                if snippet != 'try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));'
+            )
+            + "\n",
+        )
         issues = validate(root)
         assert (
             "missing_allocator_snippet:try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));"
@@ -272,6 +334,28 @@ def run_self_test() -> int:
         )
 
         _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS) + "\n")
+        _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_POLICY_BYTE_SNIPPETS[1:]) + "\n")
+        issues = validate(root)
+        assert (
+            "missing_low_level_policy_byte_snippet:try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), allocator_policy.modeFromByte(0));"
+            in issues
+        )
+
+        _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_POLICY_BYTE_SNIPPETS) + "\n")
+        _write(
+            root,
+            LOW_LEVEL_TEST_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_LOW_LEVEL_POLICY_BYTE_SNIPPETS
+                if snippet != 'try std.testing.expect(panic_policy.mustBugCheckByte(1));'
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert "missing_low_level_policy_byte_snippet:try std.testing.expect(panic_policy.mustBugCheckByte(1));" in issues
+
+        _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_POLICY_BYTE_SNIPPETS) + "\n")
         _write(root, FOCUSED_REPLAY_REL, "\n".join(REQUIRED_FOCUSED_REPLAY_SNIPPETS[:-1]) + "\n")
         issues = validate(root)
         assert f"missing_focused_replay_snippet:{REQUIRED_FOCUSED_REPLAY_SNIPPETS[-1]}" in issues
@@ -282,7 +366,7 @@ def run_self_test() -> int:
         assert f"missing_mmio_consumer_snippet:{REQUIRED_MMIO_CONSUMER_SNIPPETS[-1]}" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=13")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
