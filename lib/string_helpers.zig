@@ -1,11 +1,20 @@
 const std = @import("std");
 
+pub const STRING_UNITS_10: u32 = 0;
+pub const STRING_UNITS_2: u32 = 1;
+pub const STRING_UNITS_MASK: u32 = @as(u32, 1) << 0;
+pub const STRING_UNITS_NO_SPACE: u32 = @as(u32, 1) << 30;
+pub const STRING_UNITS_NO_BYTES: u32 = @as(u32, 1) << 31;
+
 pub const UNESCAPE_SPACE: u32 = @as(u32, 1) << 0;
 pub const UNESCAPE_OCTAL: u32 = @as(u32, 1) << 1;
 pub const UNESCAPE_HEX: u32 = @as(u32, 1) << 2;
 pub const UNESCAPE_SPECIAL: u32 = @as(u32, 1) << 3;
 pub const UNESCAPE_ANY: u32 = UNESCAPE_SPACE | UNESCAPE_OCTAL | UNESCAPE_HEX | UNESCAPE_SPECIAL;
 pub const UNESCAPE_ALL_MASK: u32 = UNESCAPE_ANY;
+
+const string_units_10 = [_][]const u8{ "", "k", "M", "G", "T", "P", "E", "Z", "Y" };
+const string_units_2 = [_][]const u8{ "", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi" };
 
 const UnescapeMatch = struct {
     value: u8,
@@ -35,6 +44,29 @@ fn hexNibble(ch: u8) ?u8 {
         'a'...'f' => ch - 'a' + 10,
         'A'...'F' => ch - 'A' + 10,
         else => null,
+    };
+}
+
+fn stringUnitsDivisor(units_base: u32) u128 {
+    return if (units_base == STRING_UNITS_2) 1024 else 1000;
+}
+
+fn stringUnitsLabel(units_base: u32, index: usize) []const u8 {
+    if (index >= string_units_2.len) return "UNK";
+    return if (units_base == STRING_UNITS_2) string_units_2[index] else string_units_10[index];
+}
+
+fn stringGetSizeFractionDigits(value: u128) usize {
+    if (value >= 100) return 0;
+    if (value >= 10) return 1;
+    return 2;
+}
+
+fn stringGetSizeFractionFactor(decimals: usize) u128 {
+    return switch (decimals) {
+        0 => 1,
+        1 => 10,
+        else => 100,
     };
 }
 
@@ -166,6 +198,61 @@ pub fn sysfsMatchString(haystack: []const ?[]const u8, needle: []const u8) ?usiz
 
 pub fn __sysfs_match_string(haystack: []const ?[]const u8, needle: []const u8) ?usize {
     return sysfsMatchString(haystack, needle);
+}
+
+pub fn stringGetSize(size: u64, blk_size: u64, units: u32, buf: []u8, len: usize) usize {
+    var scaled: u128 = if (blk_size == 0) 0 else @as(u128, size) * @as(u128, blk_size);
+    const units_base = units & STRING_UNITS_MASK;
+    const divisor = stringUnitsDivisor(units_base);
+    var unit_index: usize = 0;
+    var remainder: u128 = 0;
+
+    while (scaled >= divisor and unit_index + 1 < string_units_2.len) {
+        remainder = scaled % divisor;
+        scaled /= divisor;
+        unit_index += 1;
+    }
+
+    var decimals = if (scaled == 0) @as(usize, 0) else stringGetSizeFractionDigits(scaled);
+    const fraction_factor = stringGetSizeFractionFactor(decimals);
+    var fraction: u128 = 0;
+
+    if (decimals > 0 and scaled > 0) {
+        fraction = (remainder * fraction_factor + (divisor / 2)) / divisor;
+        if (fraction == fraction_factor) {
+            scaled += 1;
+            fraction = 0;
+            if (scaled >= divisor and unit_index + 1 < string_units_2.len) {
+                scaled = 1;
+                unit_index += 1;
+            }
+            decimals = if (scaled == 0) 0 else stringGetSizeFractionDigits(scaled);
+        }
+    }
+
+    const separator = if ((units & STRING_UNITS_NO_SPACE) != 0) "" else " ";
+    const bytes_suffix = if ((units & STRING_UNITS_NO_BYTES) != 0) "" else "B";
+    const unit = stringUnitsLabel(units_base, unit_index);
+
+    var formatted = [_]u8{0} ** 32;
+    const rendered = switch (decimals) {
+        0 => std.fmt.bufPrint(&formatted, "{d}{s}{s}{s}", .{ scaled, separator, unit, bytes_suffix }) catch unreachable,
+        1 => std.fmt.bufPrint(&formatted, "{d}.{d:0>1}{s}{s}{s}", .{ scaled, fraction, separator, unit, bytes_suffix }) catch unreachable,
+        else => std.fmt.bufPrint(&formatted, "{d}.{d:0>2}{s}{s}{s}", .{ scaled, fraction, separator, unit, bytes_suffix }) catch unreachable,
+    };
+
+    const limit = if (len == 0) buf.len else @min(len, buf.len);
+    if (limit > 0) {
+        const copy_len = @min(rendered.len, limit - 1);
+        @memcpy(buf[0..copy_len], rendered[0..copy_len]);
+        buf[copy_len] = 0;
+    }
+
+    return rendered.len;
+}
+
+pub fn string_get_size(size: u64, blk_size: u64, units: u32, buf: []u8, len: usize) usize {
+    return stringGetSize(size, blk_size, units, buf, len);
 }
 
 pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize {
