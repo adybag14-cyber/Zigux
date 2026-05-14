@@ -15,20 +15,20 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 - `scripts/zigux/genksyms.zig` is present on `master` and already ships a bounded CLI bridge around `parseArgs()`, `renderGenksymsBridge()`, and `main()`.
 - `zigux/tests/fixtures/genksyms_bridge/manifest.json` is present, marks the tool `closed`, records `mode: "wrapper-first bridge"`, and names the current 23-case external bridge packet.
 - `scripts/zigux/check-genksyms-bridge.py` now matches that 23-case packet, including the committed `missing_dump_types_argument` process case and the external `version` bridge case that proves the same `-V` side effect before later argument parsing that `scripts/zigux/genksyms.zig` already anchors locally.
-- `scripts/zigux/validate-phase2.py`, `.github/workflows/zigux-bootstrap.yml`, and `Documentation/zigux/phase2-closure.md` now all keep `zig test scripts/zigux/genksyms.zig` explicit as the bounded direct replay, while `scripts/zigux/README.md` and `zigux/tests/README.md` still frame the broader reminder packet around the committed bridge fixtures instead of inventing a separate tests-root replay command.
+- `scripts/zigux/validate-phase2.py`, `.github/workflows/zigux-bootstrap.yml`, and `Documentation/zigux/phase2-closure.md` keep `zig test scripts/zigux/genksyms.zig` explicit as the bounded direct replay, while `scripts/zigux/README.md` and `zigux/tests/README.md` intentionally keep the broader reminder packet centered on the committed bridge fixtures and checker surfaces instead of duplicating that direct replay command in every shared note.
 - `Documentation/zigux/phase2-closure.md` keeps the same live `23-case` genksyms bridge packet explicit, so the earlier closure-note undercount that motivated the first follow-through is no longer present on current `master`.
 - The external `version_expected.json` packet now proves the same version-side-effect behavior as the helper-local anchor `genksyms bridge keeps version as a side effect while parsing later options`, so the helper-local and external bridge packets are aligned on that behavior.
 
 ## Survey result
 
 - Current `master` does not have a remaining roadmap gap at the level of genksyms wrapper scaffolding, version-side-effect proof, closure-note count, or bounded direct-replay ownership. The bridge entrypoint, committed 23-case fixture packet, manifest, checker, helper-local anchors, direct `zig test scripts/zigux/genksyms.zig` route, and checked reminder surfaces are all present.
-- The honest remaining follow-through is now validation-only: rerun the bounded checker and direct Zig replay from a writable checkout with Zig so the already-landed dual-implementation packet stays replay-backed instead of reopening older fixture or reminder-surface work that current `master` has already closed.
-- Future reopening in this file family should therefore stay inside bridge-local proof, checker, manifest, or tightly coupled reminder-surface alignment work only when a fresh reread shows a new mismatch, not shared Phase 2 closure churn or revived parser or CRC ambitions.
+- The next safe same-lane step is now parked-by-default maintenance only: reopen this lane only if a fresh reread finds new drift between the helper-local bridge, the committed fixture packet, the dedicated checker, and the directly coupled reminder surfaces.
+- If a future reopen is wording-only, prefer one directly coupled genksyms note or closure correction before touching bridge code, fixtures, or broader Phase 2 reminder surfaces.
 
 ## Next bounded step
 
-1. When a writable checkout with Zig is available, rerun `python3 scripts/zigux/check-genksyms-bridge.py --self-test`, `python3 scripts/zigux/check-genksyms-bridge.py`, and `zig test scripts/zigux/genksyms.zig` so the bounded external packet and the helper-local packet stay aligned.
-2. If a future same-family reread finds fresh drift, keep the follow-through to one directly coupled genksyms survey, closure, checker, manifest, or fixture truthfulness repair rather than widening into broader Phase 2 reminder churn.
+1. Leave this lane parked unless a fresh reread finds genksyms-local drift in `scripts/zigux/genksyms.zig`, `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/genksyms_bridge/manifest.json`, `Documentation/zigux/phase2-closure.md`, or this survey note.
+2. If the lane reopens on wording alone, land one directly coupled genksyms note or closure correction before reopening fixtures, checker logic, or shared Phase 2 reminder surfaces.
 
 ## Boundary
 
