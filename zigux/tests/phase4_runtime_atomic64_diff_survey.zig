@@ -377,6 +377,19 @@ test "phase 4 atomic64 survey keeps the gate-evidence runtime, manifest, survey,
     );
     defer std.testing.allocator.free(gate_evidence_checker_marker);
 
+    const workflow_route_checker_source = try readRepoFile(
+        std.testing.allocator,
+        "scripts/zigux/check-phase4-workflow-route-counts.py",
+    );
+    defer std.testing.allocator.free(workflow_route_checker_source);
+    const workflow_route_checker_blob_sha = try gitBlobShaHex(workflow_route_checker_source);
+    const workflow_route_checker_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA={s}",
+        .{workflow_route_checker_blob_sha},
+    );
+    defer std.testing.allocator.free(workflow_route_checker_marker);
+
     const review_checklist_source = try readRepoFile(
         std.testing.allocator,
         "Documentation/zigux/review-checklist.md",
@@ -395,6 +408,7 @@ test "phase 4 atomic64 survey keeps the gate-evidence runtime, manifest, survey,
     try expectMarker(gate_evidence_source, runtime_atomic64_survey_marker);
     try expectMarker(gate_evidence_source, validate_phase4_marker);
     try expectMarker(gate_evidence_source, gate_evidence_checker_marker);
+    try expectMarker(gate_evidence_source, workflow_route_checker_marker);
     try expectMarker(gate_evidence_source, review_checklist_marker);
     try expectMarker(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16");
     try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33");
@@ -417,6 +431,7 @@ test "phase 4 atomic64 survey keeps the gate-evidence exact-count markers aligne
     try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=");
     try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=");
     try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=");
+    try expectMarker(gate_evidence_source, "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=");
     try expectMarker(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16");
     try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16");
@@ -425,6 +440,7 @@ test "phase 4 atomic64 survey keeps the gate-evidence exact-count markers aligne
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA="));
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="));
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT="));
