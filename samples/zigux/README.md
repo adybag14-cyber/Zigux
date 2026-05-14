@@ -4,7 +4,7 @@ This directory is the sample-root boundary for Zigux.
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-13 directly recovered these approved non-runtime Phase 5 sample-root files from current `master`:
+Fresh repo-first inspection on 2026-05-14 directly recovered these approved non-runtime Phase 5 sample-root files from current `master`:
 
 * `samples/zigux/bytestream_fifo.zig`
 * `samples/zigux/kobject_example.zig`
@@ -21,7 +21,16 @@ The roadmap-approved kobject anchor stays directly reviewable through this narro
 
 Keep shared sample-root wording aligned with that directly readable kobject packet. Do not restate `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig` as direct readback evidence until those paths return.
 
-The bytestream FIFO anchor is still directly readable at the sample root through `samples/zigux/bytestream_fifo.zig`, and current public-tree readback still exposes the broader bytestream packet through `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig`. Keep contributor guidance here aligned with `Documentation/zigux/phase5-kfifo-sample-survey.md` plus the sample-root idiom, including the direct `occupancySummary()` and `writableSpanSummary()` helper cues now visible in the sample file, and describe that wider packet as public-tree-backed evidence with an authenticated-contents-readback gap instead of calling it missing or fully direct connector proof.
+The bytestream FIFO anchor is still directly readable at the sample root through `samples/zigux/bytestream_fifo.zig`, and the current directly readable bytestream packet remains `Documentation/zigux/phase5-kfifo-sample-survey.md` plus that sample-root idiom.
+
+Fresh direct readback in this run still did not recover these older bytestream companion paths:
+
+* `zigux/tests/phase5_bytestream_fifo.zig`
+* `zigux/tests/phase5_bytestream_fifo_manifest.json`
+* `zigux/tests/phase5_bytestream_fifo_survey.zig`
+* `zigux/tests/phase5_build.zig`
+
+Keep contributor guidance here aligned with `Documentation/zigux/phase5-kfifo-sample-survey.md` plus the sample-root idiom, including the direct `occupancySummary()` and `writableSpanSummary()` helper cues now visible in the sample file, and do not describe those older tests-root or shared-build paths as current public-tree-backed evidence until a fresh reread proves they returned.
 
 The trace-events anchor is also directly reviewable again through this bounded packet:
 
@@ -60,7 +69,7 @@ The roadmap-backed Phase 5 sample anchors are still limited to these four Linux 
 
 Those anchors remain the approved Phase 5 target set.
 
-On current `master`, shared contributor guidance from this directory should keep the three directly readable sample-root files `samples/zigux/bytestream_fifo.zig`, `samples/zigux/kobject_example.zig`, and `samples/zigux/trace_events_sample.zig` explicit, keep the bytestream anchor aligned with `Documentation/zigux/phase5-kfifo-sample-survey.md` plus `samples/zigux/bytestream_fifo.zig` while describing the broader `zigux/tests/phase5_bytestream_fifo*` plus `zigux/tests/phase5_build.zig` packet as public-tree-backed current evidence with an authenticated-contents-readback gap, keep the kobject anchor aligned with `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`, keep the trace-events anchor aligned with `Documentation/zigux/phase5-trace-events-sample-survey.md`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`, and keep the kretprobe anchor routed through its survey note until a fresh reread proves the missing sample-root, focused tests-root companions, manifest-backed review surfaces, survey replay, and shared-build path returned.
+On current `master`, shared contributor guidance from this directory should keep the three directly readable sample-root files `samples/zigux/bytestream_fifo.zig`, `samples/zigux/kobject_example.zig`, and `samples/zigux/trace_events_sample.zig` explicit, keep the bytestream anchor aligned with `Documentation/zigux/phase5-kfifo-sample-survey.md` plus `samples/zigux/bytestream_fifo.zig` while keeping `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig` explicit as current readback gaps, keep the kobject anchor aligned with `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`, keep the trace-events anchor aligned with `Documentation/zigux/phase5-trace-events-sample-survey.md`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`, and keep the kretprobe anchor routed through its survey note until a fresh reread proves the missing sample-root, focused tests-root companions, manifest-backed review surfaces, survey replay, and shared-build path returned.
 
 ## Contributor guidance
 
@@ -69,7 +78,7 @@ When touching Phase 5 contributor guidance:
 * keep roadmap scope narrow to the four approved anchors above
 * treat `samples/zigux/bytestream_fifo.zig`, `samples/zigux/kobject_example.zig`, and `samples/zigux/trace_events_sample.zig` as the current directly readable sample-root evidence from this directory
 * keep the kobject anchor aligned with `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`, and do not claim `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig` as direct evidence until a fresh reread proves they returned
-* keep the bytestream anchor aligned with `Documentation/zigux/phase5-kfifo-sample-survey.md` plus `samples/zigux/bytestream_fifo.zig`, keep `StorageBacking.embedded_fixed_buffer`, `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, the short-drain `"hel"` plus queued `"lo"` helper boundary, the direct empty/full and queue-window helpers `available()`, `occupancySummary()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle explicit, and describe the broader `zigux/tests/phase5_bytestream_fifo*` plus `zigux/tests/phase5_build.zig` packet as public-tree-backed current evidence with an authenticated-contents-readback gap instead of calling it missing or fully direct evidence
+* keep the bytestream anchor aligned with `Documentation/zigux/phase5-kfifo-sample-survey.md` plus `samples/zigux/bytestream_fifo.zig`, keep `StorageBacking.embedded_fixed_buffer`, `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, the short-drain `"hel"` plus queued `"lo"` helper boundary, the direct empty/full and queue-window helpers `available()`, `occupancySummary()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle explicit, and keep `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig` framed as current readback gaps instead of describing them as current public-tree-backed evidence or fully direct evidence
 * keep the trace-events anchor aligned with `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`, keep the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` explicit, and do not claim `zigux/tests/phase5_build.zig` as direct evidence until a fresh reread proves it returned
 * keep kretprobe contributor wording aligned with `Documentation/zigux/phase5-kretprobe-sample-survey.md` until the missing sample-root, focused tests-root companions, manifest-backed review surfaces, survey replay, and shared-build path are directly readable again
 * do not treat review notes by themselves as proof of additional current sample files beyond the direct readback recovered in this run
