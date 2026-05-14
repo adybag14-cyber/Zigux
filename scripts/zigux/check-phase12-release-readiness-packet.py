@@ -268,6 +268,21 @@ def run_self_test() -> int:
         write(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
+                "- shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
+            "self-test expected build-only-guard failure",
+        )
+
+        write(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
+        write(
+            tmp_root / RELEASE_READINESS_PATH,
+            good_release_readiness_text().replace(
                 "- Repo-first inspection against current `adybag14-cyber/Zigux` `master` shows that the shared Phase 12 packet is validator-backed but still smoke-first on replay:\n",
                 "",
                 1,
@@ -451,7 +466,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=14")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
