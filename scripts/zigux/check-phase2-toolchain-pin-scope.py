@@ -91,7 +91,7 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",',
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",',
     "PHASE2_MAKEFILE_RUN_COUNTS = {",
-    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig \"$(ZIG)\"": 1,',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig \\"$(ZIG)\\"": 1,',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,',
     'issues.extend(validate_exact_lines(PHASE2_MAKEFILE.read_text(encoding="utf-8"), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"))',
@@ -302,8 +302,8 @@ def validate_exact_workflow_runs(text: str, *, payload: dict[str, object]) -> li
     lines = [line.strip() for line in text.splitlines()]
     expected_install = f"python3 scripts/zigux/install-zig.py --channel {channel} --dest .zig-toolchain"
     install_count = sum(1 for line in lines if line == f"run: {expected_install}")
-    if install_count != 2:
-        issues.append(f"workflow_exact_run:{expected_install}:count={install_count}:expected=2")
+    if install_count != 1:
+        issues.append(f"workflow_exact_run:{expected_install}:count={install_count}:expected=1")
 
     for command, expected_count in EXACT_WORKFLOW_RUN_COUNTS.items():
         count = sum(1 for line in lines if line == f"run: {command}")
@@ -425,7 +425,6 @@ def run_self_test() -> int:
 
     workflow_text = "\n".join(
         [
-            f"run: python3 scripts/zigux/install-zig.py --channel {SELF_TEST_CHANNEL} --dest .zig-toolchain",
             f"run: python3 scripts/zigux/install-zig.py --channel {SELF_TEST_CHANNEL} --dest .zig-toolchain",
             "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
             "run: python3 scripts/zigux/check-zig-toolchain.py",
