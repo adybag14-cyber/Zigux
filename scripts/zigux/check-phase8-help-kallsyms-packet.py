@@ -90,17 +90,20 @@ REQUIRED_MARKERS = {
         "shared Phase 8 reminder surfaces still group the symbol shard with the same parked build-and-validator packet",
         "Keep shared wording out of this lane unless a concrete symbol-lane packet drift appears on current `master`.",
     ),
-    HELP_SLICE_PATH: (
-        "`tools/lib/subcmd/help.zig`",
-        "output-stable tooling behavior",
-        "output-stable pretty-print emission",
-        "`make -C zigux phase8-help-test`",
-    ),
     KALLSYMS_SLICE_PATH: (
         "`tools/lib/symbol/kallsyms.zig`",
         "output-stable tooling behavior",
         "helper-first parser-and-wrapper packet",
+        "`make -C zigux phase8-help-kallsyms-test`",
         "`make -C zigux phase8-kallsyms-test`",
+        "oversized symbol names now truncate to `KSYM_NAME_LEN`",
+        "weak-object `V` and `v` classes still follow the current C header contract",
+    ),
+    KALLSYMS_TEST_PATH: (
+        'test "phase 8 kallsyms direct parser truncates oversized names"',
+        'test "phase 8 kallsyms chunked parser also truncates oversized names"',
+        'test "phase 8 kallsyms segmented reader bubbles callback failures unchanged"',
+        'test "phase 8 kallsyms wrappers preserve the parked callback contract"',
     ),
 }
 
@@ -179,14 +182,42 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{details}")
 
         mutations = (
-            (DOCS_ROOT_PATH, "`Documentation/zigux/phase8-kallsyms-slice.md`"),
-            (REVIEW_CHECKLIST_PATH, "if the change touches the parked Phase 8 `help` packet"),
-            (REVIEW_CHECKLIST_PATH, "bounded `kallsyms__parse()` callback-wrapper contract"),
-            (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-help-kallsyms-packet.py`"),
-            (TESTS_README_PATH, "`zigux/tests/phase8_help_kallsyms_only_build.zig`"),
-            (SEQUENCING_PATH, "the current Phase 8 test packet includes `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`"),
-            (HELP_SLICE_PATH, "output-stable pretty-print emission"),
-            (KALLSYMS_SLICE_PATH, "helper-first parser-and-wrapper packet"),
+            (
+                DOCS_ROOT_PATH,
+                "`Documentation/zigux/phase8-kallsyms-slice.md`",
+            ),
+            (
+                REVIEW_CHECKLIST_PATH,
+                "if the change touches the parked Phase 8 `help` packet",
+            ),
+            (
+                REVIEW_CHECKLIST_PATH,
+                "bounded `kallsyms__parse()` callback-wrapper contract",
+            ),
+            (
+                SCRIPTS_README_PATH,
+                "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
+            ),
+            (
+                TESTS_README_PATH,
+                "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+            ),
+            (
+                SEQUENCING_PATH,
+                "the current Phase 8 test packet includes `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`",
+            ),
+            (
+                KALLSYMS_SLICE_PATH,
+                "helper-first parser-and-wrapper packet",
+            ),
+            (
+                KALLSYMS_SLICE_PATH,
+                "oversized symbol names now truncate to `KSYM_NAME_LEN`",
+            ),
+            (
+                KALLSYMS_TEST_PATH,
+                'test "phase 8 kallsyms direct parser truncates oversized names"',
+            ),
         )
         for rel_path, marker in mutations:
             case_root = Path(tmp) / f"case_{cases}"
