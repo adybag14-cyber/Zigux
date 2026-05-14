@@ -1,9 +1,9 @@
 {
   "lane_key": "P7-L04",
-  "lane_key_note": "P7-L04 is the live helper-local lane for the restored string-helpers starter packet. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with the separate Phase 7 shared-control lanes.",
+  "lane_key_note": "P7-L04 remains the packet-local helper-slice marker for the expanded string-helpers starter packet. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with the separate Phase 7 shared-control lanes.",
   "phase": "Phase 7",
   "anchor": "lib/string_helpers.c",
-  "current_master_state": "restored_starter_packet",
+  "current_master_state": "expanded_starter_packet",
   "review_surfaces": [
     "Documentation/zigux/phase7-string-helpers-slice.md",
     "lib/string_helpers.zig",
@@ -11,22 +11,6 @@
     "zigux/tests/phase7_string_helpers_survey.zig",
     "zigux/tests/phase7_string_helpers_sample_boundary.zig",
     "zigux/tests/phase7_string_helpers_manifest.json"
-  ],
-  "adjacent_shared_surfaces": [
-    "Documentation/zigux/phase7-helper-lane-sequencing.md",
-    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-    "Documentation/zigux/README.md",
-    "Documentation/zigux/review-checklist.md",
-    "samples/zigux/README.md",
-    "scripts/zigux/README.md",
-    "scripts/zigux/validate-phase7.py",
-    "scripts/zigux/check-phase7-make-wrapper.py",
-    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-    "scripts/zigux/check-phase7-build-wiring.py",
-    "zigux/tests/README.md",
-    "zigux/tests/phase7_build.zig",
-    "zigux/Makefile",
-    ".github/workflows/zigux-bootstrap.yml"
   ],
   "covered_helpers": [
     "skipSpaces",
@@ -49,17 +33,26 @@
     "string_unescape_any",
     "stringUnescapeAnyInplace",
     "string_unescape_any_inplace",
+    "stringEscapeMem",
+    "string_escape_mem",
+    "stringEscapeMemAnyNp",
+    "string_escape_mem_any_np",
+    "stringEscapeStr",
+    "string_escape_str",
+    "stringEscapeStrAnyNp",
+    "string_escape_str_any_np",
     "memcpyAndPad",
     "memcpy_and_pad",
     "strreplace"
   ],
-  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` is back on current master as a restored starter packet. The helper-local `P7-L04` packet covers the slice note, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, and this manifest, while the shared docs-root, scripts-root, tests-root, validator, Makefile, workflow, and build-route reminders stay adjacent under the separate Phase 7 shared-control lanes.",
+  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` now ships an expanded starter packet on current master. The helper-local packet keeps the slice note, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, and this manifest aligned on the newly landed bounded string-escape family without overstating the broader task-owned, file-owned, or device-managed follow-ons as landed.",
   "starter_packet_focus": [
     "first-NUL-bounded whitespace trimming and prefix skipping",
     "newline-aware sysfs string equality",
     "null-sentinel table matching through the first NULL entry",
     "bounded size rendering with explicit units and truncation-safe output accounting",
     "bounded string unescaping across space, octal, hex, and special escape families",
+    "bounded string escaping across space, special, null, octal, hex, and append-limited dictionary modes",
     "bounded memcpy-and-pad copy semantics",
     "in-place replacement inside the exported C-string prefix",
     "shared no-sample boundary and validator-backed reviewability"
