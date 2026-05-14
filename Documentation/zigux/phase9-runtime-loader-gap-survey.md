@@ -73,7 +73,28 @@ packet too:
 Those surfaces remain Phase 2 config-surface bridge references and Phase 3
 symbol-export boundary references rather than Phase 9 runtime evidence.
 
-## Next Bounded Step
+## Current Shared Reminder State
+
+Fresh repo-first inspection now shows `Documentation/zigux/README.md`,
+`scripts/zigux/README.md`, and `zigux/tests/README.md` all keep
+`Documentation/zigux/phase9-runtime-loader-gap-survey.md`,
+`zigux/tests/runtime_loader_gap_manifest.json`, and
+`zigux/tests/runtime_loader_gap_survey.zig` explicit beside
+`zigux/tests/runtime_loader_allocator_init_flow.zig`,
+`zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`,
+the shared `zigux/tests/phase9_build.zig` replay, and the focused
+`make -C zigux phase9-runtime-loader-shared-tests` route, while still deferring
+the exact shared owner map and blocked publication boundary back to
+`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`.
+
+That means the earlier docs-root undercount is cleared on current `master`; the
+remaining same-lane follow-through is to keep later shared reminder edits from
+reintroducing that drift.
+
+## Historical Reminder Wording
+
+The last narrower shared reminder pass recorded the older docs-root drift like
+this before the docs-root summary caught up:
 
 Fresh repo-first inspection now shows `scripts/zigux/README.md` and
 `zigux/tests/README.md` already keep
@@ -87,6 +108,20 @@ omitting the loader-gap survey note plus the manifest-backed survey trio from
 its Phase 9 summary.
 
 Repair `Documentation/zigux/README.md` first, then re-read
+`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and
+`zigux/tests/README.md` before reopening any broader shared reminder pass.
+
+Keep that historical wording visible until the dedicated
+`zigux/tests/runtime_loader_gap_survey.zig` guard is refreshed too, so future
+runs can still see exactly which packet-local drift the previous follow-through
+closed.
+
+## Next Bounded Step
+
+Keep future follow-through inside the smallest shared reminder or survey surface
+that regresses after the docs-root sync. Start with
+`zigux/tests/runtime_loader_gap_survey.zig` if its expectations still depend on
+the older docs-root undercount wording; otherwise re-read
 `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and
 `zigux/tests/README.md` before reopening any broader shared reminder pass.
 
