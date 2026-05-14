@@ -79,7 +79,7 @@ test "phase12 nvme pci survey manifest keeps the bounded queue-and-recovery pack
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P12-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("aadaa43e686ef355a946793cd83ce9899309deef", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("2026-05-14", manifest.verified_on);
@@ -182,7 +182,7 @@ test "phase12 nvme pci survey note stays aligned with the bounded queue-and-reco
 
     try std.testing.expectEqualStrings("2026-05-14", manifest.verified_on);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-slice-note-survey-packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L05") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "inspected head: `aadaa43e686ef355a946793cd83ce9899309deef`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `drivers/nvme/host/pci.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "planAdminQueue()") != null);
