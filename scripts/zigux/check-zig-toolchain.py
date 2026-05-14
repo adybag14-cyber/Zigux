@@ -70,6 +70,24 @@ def load_pinned_channel(policy_path: Path = TOOLCHAIN_POLICY) -> str | None:
     return channel.strip()
 
 
+def read_zig_version(zig: str, *, runner=subprocess.run) -> str:
+    try:
+        completed = runner([zig, "version"], capture_output=True, text=True, check=False)
+    except FileNotFoundError as exc:
+        raise ValueError(f"zig executable not found: {zig}") from exc
+    except OSError as exc:
+        raise ValueError(f"failed to execute zig at {zig}: {exc}") from exc
+
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or completed.stdout.strip() or f"exit code {completed.returncode}"
+        raise ValueError(f"zig version command failed: {detail}")
+
+    version = completed.stdout.strip()
+    if not version:
+        raise ValueError("zig version command returned empty output")
+    return version
+
+
 def evaluate_toolchain_version(
     version: str,
     min_version_raw: str,
@@ -173,6 +191,50 @@ def run_self_test() -> int:
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid toolchain policy JSON")
         expect_raises(lambda: parse_zig_version("master"))
 
+    expect_equal(
+        read_zig_version(
+            "/tmp/zig",
+            runner=lambda *args, **kwargs: subprocess.CompletedProcess(
+                args[0],
+                0,
+                stdout="0.17.0-dev.87+9b177a7d2\n",
+                stderr="",
+            ),
+        ),
+        "0.17.0-dev.87+9b177a7d2",
+    )
+    expect_raises(
+        lambda: read_zig_version(
+            "/tmp/missing-zig",
+            runner=lambda *args, **kwargs: (_ for _ in ()).throw(FileNotFoundError("missing")),
+        ),
+        "zig executable not found",
+    )
+    expect_raises(
+        lambda: read_zig_version(
+            "/tmp/zig",
+            runner=lambda *args, **kwargs: subprocess.CompletedProcess(
+                args[0],
+                1,
+                stdout="",
+                stderr="permission denied\n",
+            ),
+        ),
+        "zig version command failed: permission denied",
+    )
+    expect_raises(
+        lambda: read_zig_version(
+            "/tmp/zig",
+            runner=lambda *args, **kwargs: subprocess.CompletedProcess(
+                args[0],
+                0,
+                stdout="\n",
+                stderr="",
+            ),
+        ),
+        "zig version command returned empty output",
+    )
+
     print("ZIG_TOOLCHAIN_SELF_TEST=pass")
     print(f"ZIG_TOOLCHAIN_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -189,10 +251,10 @@ def main() -> int:
     parser.add_argument("--self-test", action="store_true", help="Run built-in parser and ordering checks.")
     args = parser.parse_args()
 
+    zig = args.zig or shutil.which("zig")
     if args.self_test:
         return run_self_test()
 
-    zig = args.zig or shutil.which("zig")
     if zig is None:
         message = "zig not found on PATH"
         if args.allow_missing:
@@ -202,28 +264,28 @@ def main() -> int:
         print(message, file=sys.stderr)
         return 1
 
+    version: str | None = None
     try:
         min_version_raw = args.min_version or load_min_version()
         expected_channel_raw = None if args.min_version else load_pinned_channel()
         parse_zig_version(min_version_raw)
         if expected_channel_raw is not None:
             parse_zig_version(expected_channel_raw)
-    except ValueError as exc:
-        print(str(exc), file=sys.stderr)
-        return 1
-
-    result = subprocess.run([zig, "version"], capture_output=True, text=True, check=True)
-    version = result.stdout.strip()
-    try:
+        version = read_zig_version(zig)
         status, note = evaluate_toolchain_version(version, min_version_raw, expected_channel_raw)
     except ValueError as exc:
         print("ZIG_TOOLCHAIN_STATUS=invalid")
         print(f"ZIG_TOOLCHAIN_PATH={zig}")
-        print(f"ZIG_TOOLCHAIN_VERSION={version}")
-        print(f"ZIG_TOOLCHAIN_MIN_SUPPORTED={min_version_raw}")
-        if expected_channel_raw is not None:
-            print(f"ZIG_TOOLCHAIN_PINNED_CHANNEL={expected_channel_raw}")
-            print("ZIG_TOOLCHAIN_PIN_POLICY=exact")
+        if version is not None:
+            print(f"ZIG_TOOLCHAIN_VERSION={version}")
+        print(f"ZIG_TOOLCHAIN_MIN_SUPPORTED={args.min_version or load_min_version()}")
+        if args.min_version is None:
+            expected_channel_raw = load_pinned_channel()
+            if expected_channel_raw is not None:
+                print(f"ZIG_TOOLCHAIN_PINNED_CHANNEL={expected_channel_raw}")
+                print("ZIG_TOOLCHAIN_PIN_POLICY=exact")
+            else:
+                print("ZIG_TOOLCHAIN_PIN_POLICY=minimum_only")
         else:
             print("ZIG_TOOLCHAIN_PIN_POLICY=minimum_only")
         print(f"ZIG_TOOLCHAIN_NOTE={exc}")
