@@ -68,9 +68,9 @@ Broad summaries should also keep the compact PMO coordination companion explicit
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `scripts/zigux/validate-phase13-release.py`
 
-Broad summaries should use that compact coordination companion to keep the active-not-closed packet, the shared validator-first replay handle, and the current repo-reality gaps explicit without inventing a broader shared build route.
+Broad summaries should use that compact coordination companion to keep the active-not-closed packet, the shared validator-first replay handle, and the current repo-reality gaps explicit without inventing a broader shared build route. Current `master` now keeps the docs-root, scripts-root, tests-root, and compact PMO coordination packet aligned around the shipped libfs foothold, the shipped devres and Landlock packets, and adjacent notifier evidence, so the next same-lane shared-summary follow-up should start from whichever broader Phase 13 reminder drifts next instead of replaying the older scripts-root omission.
 
-If `scripts/zigux/README.md` still frames shipped `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, or `zigux/helpers/notifier_chain_view.zig` as missing, broad summaries should treat that scripts-root wording as release-surface drift to repair rather than as current repo evidence.
+Current `master` no longer frames shipped `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, or `zigux/helpers/notifier_chain_view.zig` as missing in `scripts/zigux/README.md`. Broad summaries should preserve that aligned scripts-root wording and treat any future regression there as release-surface drift rather than as current repo evidence.
 
 Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
