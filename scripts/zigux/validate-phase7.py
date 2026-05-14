@@ -284,6 +284,39 @@ def run_self_test() -> None:
 
         remove_once(
             tmp_root,
+            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+            "scripts/zigux/check-phase7-make-wrapper.py",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-make-wrapper.py",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+            "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+            "scripts/zigux/check-phase7-build-wiring.py",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-build-wiring.py",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
             "zigux/tests/phase7_build.zig",
             "\"phase7-string-helpers-survey-tests\"",
         )
@@ -359,7 +392,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=11")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=14")
 
 
 def main() -> int:
