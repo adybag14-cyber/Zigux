@@ -243,6 +243,17 @@ test "PreparedRequest.releaseWithoutSubstrate preserves the pending snapshot on 
     try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
 
     request.plan = stable;
+    request.plan.allocator_handoff = .caller_provided;
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .waiting_on_runtime_substrate, request.plan));
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+    try std.testing.expectEqual(AllocatorHandoff.arena, request.prepared_plan.allocator_handoff);
+    try std.testing.expectEqual(AllocatorHandoff.caller_provided, request.plan.allocator_handoff);
+
+    request.plan = stable;
     try request.releaseWithoutSubstrate();
     try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
     try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .released_without_substrate, stable));
