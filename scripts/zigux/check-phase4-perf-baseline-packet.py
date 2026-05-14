@@ -108,6 +108,7 @@ GATE_EVIDENCE_MARKERS = [
     "shared CI perf coverage out of scope",
     "Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion",
     "while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.",
+    "its manifest, survey, and dedicated local checker exact-pin the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.",
     "atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
 ]
 
@@ -165,6 +166,7 @@ SELF_TEST_CASES = [
     "gate_evidence_promotion_owner_drift",
     "gate_evidence_limit_summary_drift",
     "gate_evidence_coordination_owner_drift",
+    "gate_evidence_dedicated_local_checker_marker_drift",
     "review_checklist_coordination_owner_drift",
     "tests_readme_wrapper_drift",
     "makefile_wrapper_drift",
@@ -428,6 +430,7 @@ def build_fixture_tree(root: Path) -> None:
                 "shared CI perf coverage out of scope",
                 "Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion",
                 "while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.",
+                "its manifest, survey, and dedicated local checker exact-pin the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.",
                 "atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
             ]
         )
@@ -764,6 +767,21 @@ def run_self_test() -> int:
         if not expect_failure(root, "gate_evidence_marker:while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call."):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("gate evidence coordination-owner drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / GATE_EVIDENCE_REL,
+            replace_once(
+                read_text(root / GATE_EVIDENCE_REL),
+                "its manifest, survey, and dedicated local checker exact-pin the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.",
+                "its manifest and survey exact-pin the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.",
+            ),
+        )
+        if not expect_failure(root, "gate_evidence_marker:its manifest, survey, and dedicated local checker exact-pin the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope."):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("gate evidence dedicated local checker marker drift case did not fail closed")
             return 1
         case_count += 1
         build_fixture_tree(root)
