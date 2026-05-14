@@ -68,6 +68,7 @@ REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
     'test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {',
     "try std.testing.expect(mmio.allowsInteropPolicy(mmio_policy));",
     "try std.testing.expect(mmio.allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0));",
+    "try std.testing.expect(!mmio.allowsInteropPolicy(reserved_policy));",
     "const scoped_desc = try mmio.rangeInteropPolicy(base, 16, 4, mmio_policy);",
     "const byte_scoped_desc = try mmio.rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.volatile_mmio));",
     "const bytes_scoped_desc = try mmio.rangeInteropPolicyBytes(",
