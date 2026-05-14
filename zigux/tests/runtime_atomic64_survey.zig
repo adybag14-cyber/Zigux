@@ -187,6 +187,9 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(survey_note, "not a completed loadable runtime-module path");
     try expectContains(survey_note, "`phase9-runtime-loader-shared-tests`");
     try expectContains(survey_note, "`zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig`");
+    try expectContains(survey_note, "prepared `RuntimeAtomic64LoadSummary` snapshot");
+    try expectContains(survey_note, "anchor, checked operation families, counter snapshot, and selftest-run count reviewable");
+    try expectContains(survey_note, "later counter mutation, later selftest activity, or later exit activity changes the live sample");
 
     try expectContains(module_slice, "`PHASE9_LANE_KEY=P9-L04`");
     try expectSurveyedCommitMarker(module_slice, manifest.surveyed_commit);
