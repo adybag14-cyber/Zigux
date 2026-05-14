@@ -98,6 +98,10 @@ FORBIDDEN_MARKERS = (
     "`check-genksyms-crc-diff.py`",
 )
 
+EXACT_MARKER_COUNTS = {
+    "`check-kconfig-bridge.py`": 2,
+}
+
 
 def read_text(path: Path) -> str:
     try:
@@ -118,6 +122,11 @@ def collect_issues(readme_text: str) -> list[tuple[str, str]]:
         count = readme_text.count(marker)
         if count != 0:
             issues.append(("FORBIDDEN_MARKER_PRESENT", f"{marker}:actual={count}:expected=0"))
+
+    for marker, expected_count in EXACT_MARKER_COUNTS.items():
+        count = readme_text.count(marker)
+        if count != expected_count:
+            issues.append(("EXACT_MARKER_COUNT_MISMATCH", f"{marker}:actual={count}:expected={expected_count}"))
 
     return issues
 
@@ -150,7 +159,10 @@ def run_self_test() -> int:
     checks_run += 1
 
     issues = collect_issues(current_text + "\n`check-kconfig-bridge.py`\n")
-    assert issues == []
+    assert (
+        "EXACT_MARKER_COUNT_MISMATCH",
+        "`check-kconfig-bridge.py`:actual=3:expected=2",
+    ) in issues
     checks_run += 1
 
     for snippet in REQUIRED_SNIPPETS:
