@@ -57,7 +57,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
 
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P4-L07", manifest.lane_key);
+    try std.testing.expectEqualStrings("P4-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.roadmap_target_path);
     try std.testing.expect(manifest.roadmap_bitmap_diff_present);
@@ -71,9 +71,9 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff_survey);
-    try std.testing.expectEqualStrings("6e5afb37c30d2e6a8358f345ffbaa42fac4bbc5a", manifest.live_gate_blob_sha);
+    try std.testing.expectEqualStrings("f0d0d083c536871351f475659c2309c891227fec", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("24418ad890696a59b95276fe8dec7eaeecf25172", manifest.helper_replay_blob_sha);
-    try std.testing.expectEqualStrings("2649ff7be98a6455538a5ef53b16e1917628ba42", manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("94f7fd83af03857b1f18375d249feb964192c592", manifest.gate_evidence_blob_sha);
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_diff_source), manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_live_helper_replay_source), manifest.helper_replay_blob_sha);
