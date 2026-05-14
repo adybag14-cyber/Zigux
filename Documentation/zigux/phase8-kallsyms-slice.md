@@ -6,58 +6,61 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=kallsyms-parse-wrapper-parked`
-- scope: helper-first expansion, output-stable tooling behavior, direct parser-and-wrapper truthfulness, and one future helper-local reopen cue only
+- scope: helper-first expansion, output-stable tooling behavior, parser-and-wrapper truthfulness, and one future helper-local reopen cue only
 - roadmap anchor:
   - `tools/lib/symbol/kallsyms.c`
 - current directly readable same-packet surface from this environment:
   - `Documentation/zigux/phase8-kallsyms-slice.md`
-  - `tools/lib/symbol/kallsyms.zig`
-  - `zigux/tests/phase8_kallsyms.zig`
-  - `zigux/tests/phase8_kallsyms_only_build.zig`
-- current read-path caution from this environment:
-  - authenticated contents reads for the same helper-and-test packet still remain intermittent, so truthful Phase 8 wording should prefer the successful public raw readback over older contents-route `404` snapshots
+- current read-path state from this environment on 2026-05-14:
+  - authenticated GitHub contents reads return `404` for `tools/lib/symbol/kallsyms.zig`
+  - authenticated GitHub contents reads return `404` for `zigux/tests/phase8_kallsyms.zig`
+  - authenticated GitHub contents reads return `404` for `zigux/tests/phase8_kallsyms_only_build.zig`
+  - raw GitHub URL readback for `tools/lib/symbol/kallsyms.zig` also returns `404`
+  - repository file search for `kallsyms` and `phase8_kallsyms` returns no current indexed file hits in `adybag14-cyber/Zigux`
 
 ## Why this slice exists
 
 The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche.
 
-That keeps `kallsyms` in scope as a valid helper-first tooling lane, and current public raw readback now serves the helper and focused build packet again. The honest same-lane follow-through is therefore to keep the note aligned with the visible parser-and-wrapper packet rather than to keep repeating the older unreadable-file warning.
+That keeps `kallsyms` in scope as a valid helper-first tooling lane, but the current repo-read truth for this run is a parked reminder packet rather than a directly readable helper-and-test packet. The honest same-lane follow-through is therefore to keep the note, validator, and directly coupled reminder surfaces aligned with the currently missing helper and focused tests instead of repeating the older public-readback recovery claim.
 
 ## Current repo-read surface
 
-The current lane should be treated as a parked parser-and-wrapper packet with directly readable helper and focused-test evidence from one consistent public source.
+The current lane should be treated as a parked parser-and-wrapper packet whose helper-local implementation and focused replay files are not directly readable from this environment on current `master`.
 
 What this run could verify directly:
 
-- public raw readback on 2026-05-13 serves `tools/lib/symbol/kallsyms.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig` again
-- the helper-first packet keeps one direct `kallsymsParse()` wrapper alongside the bounded `parseLine()`, `forEachParsedChunked()`, `forEachParsedReader()`, `forEachParsedFile()`, and `kallsymsParseFile()` parser helpers
-- oversized symbol names now truncate to `KSYM_NAME_LEN`
-- weak-object `V` and `v` classes still follow the current C header contract
-- helper-local reader, path, and callback replays still preserve a raw trailing carriage return before newline, so the parked packet should treat broader CRLF normalization as a future same-packet parser-and-test decision rather than as already-landed wrapper behavior
-- `make -C zigux phase8-help-kallsyms-test` and `make -C zigux phase8-kallsyms-test` remain the focused replay routes that keep the parked symbol packet reviewable beside the shared Phase 8 validator lane
+- `Documentation/zigux/phase8-kallsyms-slice.md` still exists on current `master`
+- `tools/lib/symbol/kallsyms.zig` is not directly readable through authenticated contents reads or raw GitHub URL readback in this environment
+- `zigux/tests/phase8_kallsyms.zig` is not directly readable through authenticated contents reads in this environment
+- `zigux/tests/phase8_kallsyms_only_build.zig` is not directly readable through authenticated contents reads in this environment
+- repository file search did not surface current indexed `kallsyms` helper or focused test files in `adybag14-cyber/Zigux`
+- the next truthful same-lane work therefore lives in reminder-surface, validator, or exact helper-restoration follow-through, not in claiming live parser-local truncation, weak-object classification, carriage-return preservation, or focused replay behavior without a readable current packet
 
 Because of that read surface, this note should now describe the following as current parked evidence:
 
-- the directly readable `tools/lib/symbol/kallsyms.zig` helper packet
-- the focused `zigux/tests/phase8_kallsyms.zig` replay packet
-- the focused `zigux/tests/phase8_kallsyms_only_build.zig` build route
-- the current parser-local truncation and weak-object classification contract
-- the current wrapper-local carriage-return preservation cue for reader, path, and direct callback flows
+- the roadmap anchor at `tools/lib/symbol/kallsyms.c`
+- this slice note as the directly readable same-lane reminder surface
+- the current absence of directly readable `tools/lib/symbol/kallsyms.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig` from this environment on current `master`
+- the need to keep shared Phase 8 reminder and validator wording honest until those helper-local files return or the checker packet is narrowed to the missing-file reality
 
 ## Non-goals
 
 This slice does not currently claim:
 
+- directly readable parser-local truncation behavior on current `master`
+- directly readable weak-object `V` or `v` classification behavior on current `master`
+- directly readable carriage-return preservation cues for reader, path, or callback flows on current `master`
+- focused `make -C zigux phase8-help-kallsyms-test` or `make -C zigux phase8-kallsyms-test` replay evidence on current `master`
 - broader ELF emission or downstream symbol-tooling integration
-- procfs, module-loading, or loader-facing ownership beyond the current helper-first parser-and-wrapper packet
-- behavior beyond the current bounded parse, truncation, callback, and focused replay surface
+- procfs, module-loading, or loader-facing ownership beyond the parked helper-first parser-and-wrapper scope
 
 ## Next bounded step
 
 Leave the `kallsyms` lane parked unless one of the following happens:
 
-- a same-packet reminder surface drifts and starts understating the currently readable helper-and-test packet again
-- a consistent reread from one source shows a new helper-local parser contract drift that still fits inside the parked packet
-- the chunked parser, focused Phase 8 replay, and helper-local wrapper tests need one bounded same-packet CRLF contract alignment
+- the helper, focused test, or focused build route becomes directly readable again on current `master`
+- one directly coupled checker, validator, or reminder surface still treats the missing helper-and-test packet as live evidence and needs one bounded truthfulness repair
+- a same-lane helper restoration lands and can be verified through readable current-tree evidence
 
-If the lane reopens, keep it to one helper-local or note-local truthfulness pass at a time and avoid widening into unrelated Phase 8 tooling work.
+If the lane reopens, keep it to one helper-local, validator-local, or note-local truthfulness pass at a time and avoid widening into unrelated Phase 8 tooling work.
