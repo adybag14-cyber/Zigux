@@ -295,6 +295,7 @@ test "phase 9 runtime trace-events loader keeps selftest-complete shared-request
     try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), exited_summary.registration_depth);
     try std.testing.expectEqual(selftested_summary.main_thread_events, exited_summary.main_thread_events);
     try std.testing.expectEqual(selftested_summary.fn_thread_events, exited_summary.fn_thread_events);
     try std.testing.expectEqual(selftested_summary.total_events, exited_summary.total_events);
