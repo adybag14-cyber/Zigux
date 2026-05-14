@@ -18,7 +18,7 @@ The bounded job for this note is now to record the current public-tree gap hones
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-14 still found these kretprobe-adjacent surfaces directly readable today:
+Fresh repo-first inspection on 2026-05-14 still found these kretprobe-adjacent reminder surfaces directly readable today:
 
 - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
@@ -27,8 +27,6 @@ Fresh repo-first inspection on 2026-05-14 still found these kretprobe-adjacent s
 - `samples/zigux/README.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
-- `zigux/Makefile`
-- `.github/workflows/zigux-bootstrap.yml`
 
 That same direct readback still did not recover the older restored kretprobe packet paths:
 
@@ -40,7 +38,7 @@ That same direct readback still did not recover the older restored kretprobe pac
 
 Treat those paths as the current public-tree gap for this lane until a fresh reread proves they returned.
 
-The same readback also narrowed the shared-route diagnosis:
+The same readback also narrowed the retired shared-route diagnosis:
 
 - `zigux/Makefile` no longer exposes `phase5-test` or `phase5` wrappers on current `master`
 - `.github/workflows/zigux-bootstrap.yml` no longer carries a dedicated Phase 5 replay step on current `master`
