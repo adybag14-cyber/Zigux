@@ -70,6 +70,7 @@ SURVEY_EXACT = (
     f"`PHASE3_UAPI_VERSION_PATH={UAPI_VERSION.as_posix()}`",
     f"`PHASE3_UAPI_DEV_T_PATH={UAPI_DEV_T.as_posix()}`",
     f"`PHASE3_DEV_T_HEADER_PATH={DEV_T_HEADER.as_posix()}`",
+    f"`PHASE3_LINUX_ZIGUX_H_PATH={LINUX_HEADER.as_posix()}`",
     f"`PHASE3_SHARED_MANIFEST_PATH={ABI_MANIFEST.as_posix()}`",
     f"`PHASE3_SHARED_BUILD_PATH={BUILD_FILE.as_posix()}`",
     f"`PHASE3_SHARED_DUMP_PATH={ABI_DUMP.as_posix()}`",
@@ -222,6 +223,7 @@ def validate(root: Path) -> list[str]:
         ("PHASE3_UAPI_VERSION_BLOB_SHA", UAPI_VERSION),
         ("PHASE3_UAPI_DEV_T_BLOB_SHA", UAPI_DEV_T),
         ("PHASE3_DEV_T_HEADER_BLOB_SHA", DEV_T_HEADER),
+        ("PHASE3_LINUX_ZIGUX_H_BLOB_SHA", LINUX_HEADER),
         ("PHASE3_SHARED_MANIFEST_BLOB_SHA", ABI_MANIFEST),
     ):
         values = backtick_value(survey_text, key)
@@ -391,6 +393,7 @@ def build_valid_workspace(root: Path) -> None:
                 f"- `PHASE3_UAPI_VERSION_BLOB_SHA={blob_sha(root / UAPI_VERSION)}`",
                 f"- `PHASE3_UAPI_DEV_T_BLOB_SHA={blob_sha(root / UAPI_DEV_T)}`",
                 f"- `PHASE3_DEV_T_HEADER_BLOB_SHA={blob_sha(root / DEV_T_HEADER)}`",
+                f"- `PHASE3_LINUX_ZIGUX_H_BLOB_SHA={blob_sha(root / LINUX_HEADER)}`",
                 f"- `PHASE3_SHARED_MANIFEST_BLOB_SHA={blob_sha(root / ABI_MANIFEST)}`",
                 "",
                 "## Review Ownership",
@@ -436,9 +439,20 @@ def run_self_test() -> int:
         build_valid_workspace(root)
         case_count += 1
 
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_LINUX_ZIGUX_H_PATH={LINUX_HEADER.as_posix()}`\n", "", 1))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_LINUX_ZIGUX_H_PATH={LINUX_HEADER.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
         write(root / DEV_T_HEADER, (root / DEV_T_HEADER).read_text(encoding="utf-8") + "/* drift */\n")
         issues = validate(root)
         assert len(issues) == 1 and issues[0].startswith("stale_survey_blob:PHASE3_DEV_T_HEADER_BLOB_SHA:"), issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / LINUX_HEADER, (root / LINUX_HEADER).read_text(encoding="utf-8") + "/* drift */\n")
+        issues = validate(root)
+        assert len(issues) == 1 and issues[0].startswith("stale_survey_blob:PHASE3_LINUX_ZIGUX_H_BLOB_SHA:"), issues
         build_valid_workspace(root)
         case_count += 1
 
