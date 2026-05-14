@@ -475,6 +475,24 @@ def run_self_test() -> int:
         print("expected boundary-note current-surface drift was not reported")
         return 1
 
+    issues = validate_boundary_note_text(
+        replace_in_section(
+            boundary_sample,
+            "## Next bounded step",
+            "## Non-goals",
+            "zigux/uapi/version.zig\n",
+        )
+        + "zigux/uapi/version.zig\n"
+    )
+    expected = (
+        "boundary note next-step marker count drift: zigux/uapi/version.zig "
+        "(expected 2, found 1)"
+    )
+    if expected not in issues:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected boundary-note next-step version companion drift was not reported")
+        return 1
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_support_") as temp_dir:
         root = Path(temp_dir)
         write_text(root / NOTE_PATH, note_sample)
