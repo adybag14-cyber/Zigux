@@ -36,13 +36,13 @@ test "phase 15 readiness manifest preserves the parked validator-first route" {
     const manifest = parsed.value;
 
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-13", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-14", manifest.surveyed_commit);
     try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(manifest.repo_evidence.phase15_test_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
-    try std.testing.expectEqual(@as(usize, 2), manifest.phase15_validate_checkers.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.phase15_validate_checkers.len);
     try std.testing.expectEqualStrings(
         "scripts/zigux/check-phase15-scripts-readme-alignment.py",
         manifest.phase15_validate_checkers[0],
@@ -50,6 +50,10 @@ test "phase 15 readiness manifest preserves the parked validator-first route" {
     try std.testing.expectEqualStrings(
         "scripts/zigux/check-phase15-review-process-handoff.py",
         manifest.phase15_validate_checkers[1],
+    );
+    try std.testing.expectEqualStrings(
+        "scripts/zigux/check-phase15-shared-summary-gap.py",
+        manifest.phase15_validate_checkers[2],
     );
 }
 
@@ -71,7 +75,7 @@ test "phase 15 readiness note and replay routes stay aligned" {
 
     try expectContains(readiness_note, "PHASE15_LANE_KEY=P15-L01");
     try expectContains(readiness_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(readiness_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-13");
+    try expectContains(readiness_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-14");
     try expectContains(readiness_note, "The packet remains parked.");
     try expectContains(readiness_note, "no Architecture Council approval is currently recorded");
     try expectContains(readiness_note, "python3 scripts/zigux/validate-phase15.py");
@@ -98,6 +102,8 @@ test "phase 15 readiness note and replay routes stay aligned" {
     try expectContains(makefile, "PHONY += phase15-validate phase15-test phase15");
     try expectContains(makefile, "scripts/zigux/validate-phase15.py");
     try expectContains(makefile, "scripts/zigux/check-phase15-review-process-handoff.py --self-test");
+    try expectContains(makefile, "scripts/zigux/check-phase15-shared-summary-gap.py --self-test");
+    try expectContains(makefile, "scripts/zigux/check-phase15-shared-summary-gap.py");
     try expectContains(makefile, "$(ZIG) build test --build-file zigux/tests/phase15_build.zig");
     try expectContains(workflow, "Validate Phase 15 governance packet");
     try expectContains(workflow, "Run Phase 15 governance tests");
