@@ -117,8 +117,8 @@ DOCS_ROOT_MARKERS = [
     "`scripts/zigux/validate-phase12.py`",
     "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet reviewable from the docs root through the shipped build-only contract",
     "while broader `nvme_pci` and direct libbpf replay files stay recorded only through the shared fallback, survey, verify-shard, or anti-overlap notes until they actually land on `master`",
-    "`make -C zigux phase12-smoke` plus `make -C zigux phase12` keep the shared smoke-first release order visible",
-    "`scripts/zigux/validate-phase12.py` exists only as an unwired helper",
+    "`make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12` keep the shipped validator-first then smoke-first release order visible from the docs root beside `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+    "`scripts/zigux/check-phase12-release-readiness-packet.py`",
     "only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` keeps the parked libbpf reviewability packet visible without promoting the direct `phase12_libbpf_*` replay files or `tools/lib/bpf/zigux_segments/manifest.json` into shipped current-`master` evidence.",
 ]
 
@@ -142,7 +142,7 @@ REVIEW_CHECKLIST_MARKERS = [
 SCRIPTS_README_MARKERS = [
     "`check-build-only-phase12-surface.py`",
     "`Documentation/zigux/phase12-release-sequencing.md`",
-    "`Documentation/zigux/phase12-release-closure-checklist.md`",
+    "`scripts/zigux/check-phase12-release-readiness-packet.py`",
     "`Documentation/zigux/phase12-release-readiness-survey.md`",
     "`Documentation/zigux/phase12-release-coordination-matrix.md`",
     "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
@@ -163,7 +163,7 @@ TESTS_README_MARKERS = [
     "`Documentation/zigux/phase12-release-closure-checklist.md`",
     "`Documentation/zigux/phase12-release-readiness-survey.md`",
     "`Documentation/zigux/phase12-release-coordination-matrix.md`",
-    "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
+    "`make -C zigux phase12-validate`",
     "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
     "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
     "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
@@ -172,7 +172,7 @@ TESTS_README_MARKERS = [
     "`Documentation/zigux/phase12-virtio-net-survey.md`",
     "`Documentation/zigux/phase12-libbpf-segment-survey.md`",
     "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
-    "`scripts/zigux/validate-phase12.py`",
+    "`scripts/zigux/check-phase12-release-readiness-packet.py`",
     "while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`",
     "the still-absent direct `phase12_nvme_pci` and `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
     "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
@@ -184,12 +184,12 @@ TESTS_README_MARKERS = [
 RELEASE_READINESS_SURVEY_MARKERS = [
     "`PHASE12_STATUS=active`",
     "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
-    "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+    "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
     "the parked verify-shard note still governs the shared libbpf packet",
     "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
-    "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
-    "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
-    "the next honest same-lane follow-through is to leave this note parked unless the shared Phase 12 packet itself changes",
+    "`make -C zigux phase12-validate`",
+    "`python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`",
+    "while `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `scripts/zigux/check-build-only-phase12-surface.py` still lag behind that same support-checker-plus-validate-route reminder.",
 ]
 
 RELEASE_SEQUENCING_MARKERS = [
@@ -201,7 +201,7 @@ RELEASE_SEQUENCING_MARKERS = [
     "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
     "`make -C zigux phase12`",
     "starter-present `virtio_net` packet plus the shipped `virtio_scsi` build-only packet",
-    "`make -C zigux phase12-validate` route, wired validator-first replay packet, focused libbpf-only replay, or cross-build replay on current `master`; `scripts/zigux/validate-phase12.py` exists as an unwired helper",
+    "Current `master` now also ships the degraded-workflow `make -C zigux phase12-validate` route together with `scripts/zigux/validate-phase12.py` and `scripts/zigux/check-phase12-release-readiness-packet.py`, but there is still no focused libbpf-only replay or cross-build replay on current `master`",
 ]
 
 RELEASE_COORDINATION_MATRIX_MARKERS = [
@@ -211,7 +211,7 @@ RELEASE_COORDINATION_MATRIX_MARKERS = [
     "shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`",
     "starter-present `virtio_net` packet while that family still lacks a separate slice note",
     "the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` stay recorded only through the parked verify-shard packet until those files land again on current `master`.",
-    "rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening PMO wording",
+    "Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`, but there is still no broader shared `check-phase12-*.py` family, focused-libbpf-only replay, or cross-build replay",
 ]
 
 RELEASE_CLOSURE_CHECKLIST_MARKERS = [
@@ -221,7 +221,7 @@ RELEASE_CLOSURE_CHECKLIST_MARKERS = [
     "the shared build-and-make replay path",
     "the active shipped build packet on current `master` is the starter-present `virtio_net` plus smoke-first `virtio_scsi` replay",
     "The current driver-local doc split must stay explicit too: `virtio_scsi` still ships the dedicated `Documentation/zigux/phase12-virtio-scsi-slice.md` plus `Documentation/zigux/phase12-virtio-scsi-survey.md` pair, while `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the truthful `nvme_pci` boundary until live `master` actually lands dedicated `Documentation/zigux/phase12-nvme-pci-slice.md` and `Documentation/zigux/phase12-nvme-pci-survey.md` surfaces, and `Documentation/zigux/phase12-virtio-net-survey.md` plus the direct `virtio_net` replay files now form a starter-present packet even though a separate `Documentation/zigux/phase12-virtio-net-slice.md` surface still does not exist on current `master`.",
-    "There is still no shipped shared `make -C zigux phase12-validate` route, even though `scripts/zigux/validate-phase12.py` now exists as an unwired helper on current `master`.",
+    "The shipped validator-first support bundle is `make -C zigux phase12-validate`, which reruns `scripts/zigux/check-build-only-phase12-surface.py --self-test`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`; it must stay explicit without being mistaken for a second direct replay route.",
 ]
 
 COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS = [
@@ -241,7 +241,7 @@ LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS = [
     "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
     "only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts",
     "treat the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` as parked note-owned boundaries until they land again on current `master`.",
-    "Current `master` does ship `scripts/zigux/validate-phase12.py` as an unwired helper, but there is still no shipped shared `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route.",
+    "Current `master` now ships the validator-first support bundle through `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`, but there is still no focused-libbpf-only replay or cross-build replay, so this note must keep that support bundle distinct from the smoke-first shared replay order.",
 ]
 
 LIBBPF_VERIFY_SHARD_NOTE_MARKERS = [
@@ -264,8 +264,8 @@ RAW_GITHUB_COVERAGE_SURVEY_MARKERS = [
     "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
     "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
     "`make -C zigux phase12 ZIG=<attached-zig-path>`",
-    "current `master` ships `scripts/zigux/validate-phase12.py`",
-    "there is still no shipped `make -C zigux phase12-validate` route",
+    "the bounded degraded-workflow support route is now shipped as `make -C zigux phase12-validate`",
+    "`scripts/zigux/validate-phase12.py` plus `scripts/zigux/check-phase12-release-readiness-packet.py` now stay inside the shipped `phase12-validate` support bundle rather than acting as standalone direct replay routes",
 ]
 
 WORKFLOW_MARKERS = [
@@ -273,20 +273,30 @@ WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
     "Check Phase 12 build-only surface",
     "python3 scripts/zigux/check-build-only-phase12-surface.py",
+    "Self-test Phase 12 release-readiness packet checker",
+    "python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+    "Validate Phase 12 degraded-workflow bundle",
+    "make -C zigux phase12-validate",
+    "Check Phase 12 release-readiness packet",
+    "python3 scripts/zigux/check-phase12-release-readiness-packet.py",
     "Run focused Phase 12 smoke shard",
     "make -C zigux phase12-smoke",
-    "Run Phase 12 complex driver and libbpf tests",
+    "Run Phase 12 complex driver tests",
     "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
 ]
 
 MAKEFILE_MARKERS = [
-    "phase12-smoke:",
+    "phase12-validate:",
     "$(PYTHON) scripts/zigux/check-build-only-phase12-surface.py --self-test",
     "$(PYTHON) scripts/zigux/check-build-only-phase12-surface.py",
+    "$(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+    "$(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py",
+    "$(PYTHON) scripts/zigux/validate-phase12.py",
+    "phase12-smoke:",
     "$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12-test:",
     "$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all",
-    "phase12: phase12-smoke phase12-test",
+    "phase12: phase12-validate phase12-smoke phase12-test",
 ]
 
 PHASE12_BUILD_MARKERS = [
