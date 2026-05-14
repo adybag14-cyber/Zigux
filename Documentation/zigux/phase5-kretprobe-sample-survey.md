@@ -23,6 +23,7 @@ The older shared `zigux/tests/phase5_build.zig` route remains missing and should
 
 The remaining shared reminder work is narrower than the missing packet that was blocking this lane before this run:
 
+- `Documentation/zigux/README.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
@@ -54,5 +55,5 @@ This note does not claim `register_kretprobe()` parity, `unregister_kretprobe()`
 
 Keep the next move inside one shared review-surface repair only:
 
-- update the shared Phase 5 guide, checklist, and root reminders so they acknowledge the restored direct packet while still keeping the missing shared `phase5_build.zig` route explicit
+- update the docs-root summary, shared Phase 5 guide, checklist, and root reminders so they acknowledge the restored direct packet while still keeping the missing shared `phase5_build.zig` route explicit
 - do not widen that follow-up into Phase 9 runtime work or a new shared build wrapper unless a future reread proves the broader replay route should actually return
