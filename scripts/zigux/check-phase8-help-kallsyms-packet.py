@@ -49,6 +49,8 @@ REQUIRED_MARKERS = {
     ),
     REVIEW_CHECKLIST_PATH: (
         "if the change touches the shared Phase 8 help-and-kallsyms packet",
+        "if the change touches the parked Phase 8 `help` packet",
+        "if the change touches the parked Phase 8 `kallsyms` parser packet",
         "`Documentation/zigux/phase8-help-slice.md`",
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
@@ -57,6 +59,8 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_kallsyms_only_build.zig`",
         "`make -C zigux phase8-help-kallsyms-test`",
         "`make -C zigux phase8-kallsyms-test`",
+        "output-stable tooling behavior",
+        "bounded `kallsyms__parse()` callback-wrapper contract",
     ),
     SCRIPTS_README_PATH: (
         "Phase 8 flow - the current shared Phase 8 review surface on `master` is",
@@ -85,6 +89,18 @@ REQUIRED_MARKERS = {
         "the current Phase 8 test packet includes `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`",
         "shared Phase 8 reminder surfaces still group the symbol shard with the same parked build-and-validator packet",
         "Keep shared wording out of this lane unless a concrete symbol-lane packet drift appears on current `master`.",
+    ),
+    HELP_SLICE_PATH: (
+        "`tools/lib/subcmd/help.zig`",
+        "output-stable tooling behavior",
+        "output-stable pretty-print emission",
+        "`make -C zigux phase8-help-test`",
+    ),
+    KALLSYMS_SLICE_PATH: (
+        "`tools/lib/symbol/kallsyms.zig`",
+        "output-stable tooling behavior",
+        "helper-first parser-and-wrapper packet",
+        "`make -C zigux phase8-kallsyms-test`",
     ),
 }
 
@@ -163,26 +179,14 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{details}")
 
         mutations = (
-            (
-                DOCS_ROOT_PATH,
-                "`Documentation/zigux/phase8-kallsyms-slice.md`",
-            ),
-            (
-                REVIEW_CHECKLIST_PATH,
-                "if the change touches the shared Phase 8 help-and-kallsyms packet",
-            ),
-            (
-                SCRIPTS_README_PATH,
-                "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
-            ),
-            (
-                TESTS_README_PATH,
-                "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
-            ),
-            (
-                SEQUENCING_PATH,
-                "the current Phase 8 test packet includes `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`",
-            ),
+            (DOCS_ROOT_PATH, "`Documentation/zigux/phase8-kallsyms-slice.md`"),
+            (REVIEW_CHECKLIST_PATH, "if the change touches the parked Phase 8 `help` packet"),
+            (REVIEW_CHECKLIST_PATH, "bounded `kallsyms__parse()` callback-wrapper contract"),
+            (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-help-kallsyms-packet.py`"),
+            (TESTS_README_PATH, "`zigux/tests/phase8_help_kallsyms_only_build.zig`"),
+            (SEQUENCING_PATH, "the current Phase 8 test packet includes `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`"),
+            (HELP_SLICE_PATH, "output-stable pretty-print emission"),
+            (KALLSYMS_SLICE_PATH, "helper-first parser-and-wrapper packet"),
         )
         for rel_path, marker in mutations:
             case_root = Path(tmp) / f"case_{cases}"
