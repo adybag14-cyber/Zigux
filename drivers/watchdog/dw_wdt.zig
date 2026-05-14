@@ -525,3 +525,81 @@ test "phase11 dw_wdt platform handoff keeps missing timer-clock acquisition expl
     try std.testing.expect(summary.blocked_on_live_platform_registration);
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
+
+test "phase11 dw_wdt platform registration scaffold keeps shared-clock fallback and reset release explicit" {
+    const ready = platformRegistrationScaffoldSummary(.{
+        .has_named_tclk = false,
+        .has_shared_clock = true,
+        .has_pclk = false,
+        .has_reset_control = true,
+        .has_pretimeout_irq = true,
+        .drvdata_published = true,
+        .timeout_programmed = true,
+        .imported_running = false,
+    });
+
+    try std.testing.expectEqualStrings(anchor_path, ready.anchor);
+    try std.testing.expectEqual(RegistrationScaffoldState.ready_to_register, ready.state);
+    try std.testing.expectEqual(TimerClockPath.unnamed_shared_fallback, ready.timer_clock_path);
+    try std.testing.expectEqual(ProbeTimeoutOrigin.programmed_top_window, ready.probe_timeout_origin);
+    try std.testing.expect(ready.registration_requested);
+    try std.testing.expect(ready.stop_on_reboot_requested);
+    try std.testing.expectEqual(default_restart_priority, ready.restart_priority_value);
+    try std.testing.expect(ready.reset_release_ready);
+    try std.testing.expectEqualStrings("reset_control_deassert", ready.reset_release_call);
+    try std.testing.expect(ready.reset_release_requested);
+    try std.testing.expect(ready.pretimeout_irq_optional);
+    try std.testing.expect(ready.blocked_on_live_platform_registration);
+    try std.testing.expect(!ready.blocked_on_live_mmio);
+
+    const blocked = platformRegistrationScaffoldSummary(.{
+        .has_named_tclk = false,
+        .has_shared_clock = false,
+        .has_pclk = true,
+        .has_reset_control = true,
+        .has_pretimeout_irq = true,
+        .drvdata_published = true,
+        .timeout_programmed = true,
+        .imported_running = false,
+    });
+
+    try std.testing.expectEqual(RegistrationScaffoldState.blocked_missing_timer_clock, blocked.state);
+    try std.testing.expectEqual(TimerClockPath.blocked_no_timer_clock, blocked.timer_clock_path);
+    try std.testing.expectEqual(ProbeTimeoutOrigin.blocked_missing_timer_clock, blocked.probe_timeout_origin);
+    try std.testing.expect(!blocked.registration_requested);
+    try std.testing.expect(!blocked.stop_on_reboot_requested);
+    try std.testing.expect(!blocked.reset_release_requested);
+    try std.testing.expect(blocked.blocked_on_live_platform_registration);
+    try std.testing.expect(!blocked.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt remove summary clears interrupts while distinguishing reset-backed shutdown" {
+    var unstoppable = try DwWdtLab.initFixedTops(7, false);
+    _ = try unstoppable.start();
+    try unstoppable.setInterruptPending(true);
+    const unstoppable_summary = unstoppable.removeSummary();
+
+    try std.testing.expectEqualStrings(anchor_path, unstoppable_summary.anchor);
+    try std.testing.expect(unstoppable_summary.debugfs_clear_requested);
+    try std.testing.expect(unstoppable_summary.unregister_device_requested);
+    try std.testing.expect(!unstoppable_summary.reset_control_available);
+    try std.testing.expect(!unstoppable_summary.reset_assert_requested);
+    try std.testing.expect(unstoppable_summary.hardware_running_before_remove);
+    try std.testing.expect(unstoppable_summary.hardware_running_after_remove);
+    try std.testing.expect(unstoppable_summary.running_after_remove);
+    try std.testing.expect(!unstoppable_summary.interrupt_pending_after_remove);
+    try std.testing.expect(unstoppable_summary.remove_leaves_hardware_running);
+
+    var stoppable = try DwWdtLab.initFixedTops(7, true);
+    _ = try stoppable.start();
+    try stoppable.setInterruptPending(true);
+    const stoppable_summary = stoppable.removeSummary();
+
+    try std.testing.expect(stoppable_summary.reset_control_available);
+    try std.testing.expect(stoppable_summary.reset_assert_requested);
+    try std.testing.expect(stoppable_summary.hardware_running_before_remove);
+    try std.testing.expect(!stoppable_summary.hardware_running_after_remove);
+    try std.testing.expect(!stoppable_summary.running_after_remove);
+    try std.testing.expect(!stoppable_summary.interrupt_pending_after_remove);
+    try std.testing.expect(!stoppable_summary.remove_leaves_hardware_running);
+}
