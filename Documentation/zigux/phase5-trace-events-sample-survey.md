@@ -53,9 +53,9 @@ Aligned reminder surfaces in this run:
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-Those surfaces already keep the landed trace-events packet explicit, keep the missing shared `zigux/tests/phase5_build.zig` route explicit, keep the selected-string plus `iter=%d` replay positioned as the approved formatting idiom cue instead of a standalone Phase 5 formatting sample, keep the public `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, and `runLifecycleBoundaryReplay()` helpers plus `lifecycleSummary()` route visible in the tests-root reminder, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
+Those surfaces already keep the landed trace-events packet explicit, keep the missing shared `zigux/tests/phase5_build.zig` route explicit, keep the selected-string plus `iter=%d` replay positioned as the approved formatting idiom cue instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
 
-No additional readable shared-surface drift remains inside this exact trace-events packet today. The current same-lane gap is the still-missing shared `zigux/tests/phase5_build.zig` route rather than a helper-name mismatch in the shared reminder set.
+The tests-root shared reminder now keeps the current landed helper vocabulary aligned too: `zigux/tests/README.md` names `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, the selected-string plus `iter=%d` cue, and the public `lifecycleSummary()` route instead of falling back to the older helper labels.
 
 ## Landed sample and exact checks
 
@@ -77,9 +77,9 @@ The precise current gap is no longer "Zigux lacks a trace-events reference sampl
 
 - the roadmap-backed trace-events anchor already has a directly readable non-runtime sample plus focused tests-root evidence
 - current `master` still does not directly expose the older shared `zigux/tests/phase5_build.zig` route
-- the readable shared reminder packet for this sample is presently aligned around the landed helper vocabulary and the separate Phase 9 runtime boundary
+- broader shared-surface cleanup should stay limited to one reminder surface at a time if another wording drift appears
 
-So the honest same-lane follow-through is to keep this survey note anchored to the directly readable trace-events packet, leave the shared reminder packet parked while it remains aligned, and wait for either a new one-file reminder drift or the shared build route to return.
+So the honest same-lane follow-through is to keep this survey note anchored to the directly readable trace-events packet and to leave broader shared-surface cleanup for separate one-file repairs.
 
 ## Non-goals
 
@@ -92,9 +92,6 @@ This survey does not claim:
 
 ## Next bounded step
 
-Leave this lane parked unless a fresh same-lane reread finds one bounded change to make:
+Leave this lane parked unless a fresh same-lane reread finds one more exact shared-surface truthfulness repair to make for the landed Phase 5 sample packet.
 
-- `zigux/tests/phase5_build.zig` returns and the survey note can narrow its missing-route wording honestly
-- a new one-file shared reminder drift appears across the current trace-events packet, its sample-backed survey, or the Phase 5-versus-Phase 9 boundary
-
-Do not widen that follow-up into runtime work or broader sample semantics.
+The best next bounded follow-up remains one shared-surface repair only if it is visible from current master readback rather than inferred from older lane notes.
