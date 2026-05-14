@@ -250,6 +250,8 @@ def run_self_test() -> None:
             (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][10]),
             (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][2]),
             (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][3]),
+            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][0]),
+            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][1]),
             (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][2]),
             (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][3]),
             (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][4]),
