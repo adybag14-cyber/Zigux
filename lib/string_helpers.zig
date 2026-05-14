@@ -94,7 +94,7 @@ pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
     const copy_len = @min(dest.len, bounded_count);
     @memcpy(dest[0..copy_len], src[0..copy_len]);
 
-    if (dest.len > copy_len and count < dest.len) {
+    if (dest.len > copy_len) {
         @memset(dest[copy_len..], pad);
     }
 }
