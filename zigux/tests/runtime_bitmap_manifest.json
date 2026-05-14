@@ -79,7 +79,7 @@
       "id": "runtime-bitmap-shared-build-boundary",
       "kind": "validation",
       "path": "zigux/tests/phase9_build.zig",
-      "why_now": "The shared Phase 9 build bundle enumerates the bitmap-local sample, module, diff, top-bit, survey, and shared loader replay surfaces that this manifest now catalogs explicitly."
+      "why_now": "The shared Phase 9 build bundle enumerates the bitmap-local sample, module, diff, loader, top-bit, survey, and shared loader replay surfaces that this manifest now catalogs explicitly."
     },
     {
       "id": "runtime-bitmap-survey-note",
