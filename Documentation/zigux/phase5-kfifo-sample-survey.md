@@ -30,7 +30,7 @@ Fresh repo-first inspection on 2026-05-14 confirmed these same-lane facts:
 
 - `samples/kfifo/bytestream-example.c` remains the Linux anchor for this slice.
 - `samples/zigux/bytestream_fifo.zig` is directly readable on current `master`.
-- that sample file still makes the non-runtime idiom explicit through `BytestreamFifoSample.descriptor()`, `StorageBacking.embedded_fixed_buffer`, `reviewContract().focus`, `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle.
+- that sample file still makes the non-runtime idiom explicit through `BytestreamFifoSample.descriptor()`, `StorageBacking.embedded_fixed_buffer`, `reviewContract().focus`, `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle.
 - the shared Phase 5 guide in `Documentation/zigux/phase5-sample-review-guide.md` and the sample-root summary in `samples/zigux/README.md` already keep this anchor routed through the survey note and the broader bytestream packet wording instead of pretending the sample stands alone.
 - authenticated GitHub contents reads in this environment still did not recover these companion paths:
   - `zigux/tests/phase5_bytestream_fifo.zig`
@@ -127,6 +127,7 @@ Keep these legacy packet markers visible until `zigux/tests/phase5_bytestream_fi
 - `runtime_atomic64_loader.zig`
 - `runtime_bitmap.zig`
 - `runtime_bitmap_loader.zig`
+- `runtime_bitmap_top_bit_contract.zig`
 - `runtime_kretprobe.zig`
 - `runtime_kretprobe_loader.zig`
 - `runtime_trace_events.zig`
