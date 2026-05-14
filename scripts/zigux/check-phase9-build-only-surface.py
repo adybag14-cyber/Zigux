@@ -47,6 +47,11 @@ PREPARED_STATE_EXPLICIT_ASSERTION_MARKER = """request.plan.module_name = \"runti
     try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
     try std.testing.expectEqualStrings(stable_plan.module_name, request.prepared_plan.module_name);"""
+PREPARED_STATE_ALLOCATOR_HANDOFF_EXPLICIT_ASSERTION_MARKER = """request.plan.allocator_handoff = .arena;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectEqual(runtime_loader.AllocatorHandoff.caller_provided, request.prepared_plan.allocator_handoff);"""
 GAP_SURVEY_DRIFT_MARKER = (
     "direct readback now also shows `scripts/zigux/README.md` and `zigux/tests/README.md` both keep `zigux/tests/runtime_loader_gap_survey.zig` explicit beside the shared loader-facing packet, so the remaining shared reminder follow-through has narrowed back to reviewer-facing truthfulness around the still-blocked module-metadata and depmod-publication boundary instead of loader-gap inventory sync"
 )
@@ -214,6 +219,7 @@ REQUIRED_MARKERS = {
         "runtime_loader.keepsAllocatorInitFlowConsistent(",
         "request.plan.allocator_handoff = .arena;",
         PREPARED_STATE_EXPLICIT_ASSERTION_MARKER,
+        PREPARED_STATE_ALLOCATOR_HANDOFF_EXPLICIT_ASSERTION_MARKER,
     ],
     LOADER_GAP_MANIFEST_PATH: [
         '"lane_key": "P9-L18"',
@@ -607,6 +613,18 @@ def run_self_test() -> int:
         expect_failure(
             base,
             f"missing_marker:{ALLOCATOR_INIT_FLOW_PATH}:{PREPARED_STATE_EXPLICIT_ASSERTION_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        allocator_init_flow_path = base / ALLOCATOR_INIT_FLOW_PATH
+        allocator_init_flow = allocator_init_flow_path.read_text(encoding="utf-8")
+        allocator_init_flow_path.write_text(
+            allocator_init_flow.replace(PREPARED_STATE_ALLOCATOR_HANDOFF_EXPLICIT_ASSERTION_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{ALLOCATOR_INIT_FLOW_PATH}:{PREPARED_STATE_ALLOCATOR_HANDOFF_EXPLICIT_ASSERTION_MARKER}",
         )
 
         write_fixture_tree(base)
