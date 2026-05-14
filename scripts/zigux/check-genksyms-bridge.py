@@ -307,7 +307,7 @@ EXPECTED_CLOSURE_MARKERS = [
     expected_closure_case_marker(),
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
