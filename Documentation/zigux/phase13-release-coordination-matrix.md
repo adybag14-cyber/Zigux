@@ -35,6 +35,7 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_libfs_addressability.zig`
 - `zigux/tests/phase13_devres_boundary_evidence.zig`
+- `scripts/zigux/check-phase13-devres-packet.py`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `scripts/zigux/check-phase13-notifier-packet.py`
