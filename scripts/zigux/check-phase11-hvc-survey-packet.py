@@ -60,6 +60,13 @@ BUILD_INVENTORY_MARKERS = [
     "phase11_hvc_console_survey.zig",
 ]
 
+BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS = [
+    "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+    " try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);",
+    "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+    " try std.testing.expect(dispatch.invokes_sysrq_handler);",
+]
+
 SURVEY_NOTE_MARKERS = [
     "* `PHASE11_HVC_CONSOLE_SURVEY_STATUS=starter_packet_archived`",
     "drivers/tty/hvc/hvc_console.zig",
@@ -311,6 +318,7 @@ def run_check(root: Path) -> None:
     slice_note = read_text(root, REQUIRED_FILES["slice_note"])
     teardown_note = read_text(root, REQUIRED_FILES["teardown_note"])
     validation_matrix = read_text(root, REQUIRED_FILES["validation_matrix"])
+    build_inventory = read_text(root, REQUIRED_FILES["build_inventory"])
 
     if surveyed_commit not in survey_note:
         raise CheckError(
@@ -321,7 +329,12 @@ def run_check(root: Path) -> None:
             f"missing surveyed_commit provenance in {REQUIRED_FILES['validation_matrix']}: {surveyed_commit}"
         )
 
-    expect_markers(REQUIRED_FILES["build_inventory"], read_text(root, REQUIRED_FILES["build_inventory"]), BUILD_INVENTORY_MARKERS)
+    expect_markers(REQUIRED_FILES["build_inventory"], build_inventory, BUILD_INVENTORY_MARKERS)
+    expect_markers(
+        REQUIRED_FILES["build_inventory"],
+        build_inventory,
+        BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS,
+    )
     expect_markers(REQUIRED_FILES["driver_starter"], read_text(root, REQUIRED_FILES["driver_starter"]), DRIVER_STARTER_MARKERS)
     expect_markers(REQUIRED_FILES["verify_helper"], read_text(root, REQUIRED_FILES["verify_helper"]), VERIFY_HELPER_MARKERS)
     expect_markers(REQUIRED_FILES["survey_gate"], read_text(root, REQUIRED_FILES["survey_gate"]), SURVEY_GATE_MARKERS)
@@ -363,7 +376,10 @@ def build_manifest_text(surveyed_commit: str) -> str:
 
 def build_fixture(root: Path, surveyed_commit: str) -> None:
     write(root / REQUIRED_FILES["manifest"], build_manifest_text(surveyed_commit))
-    write(root / REQUIRED_FILES["build_inventory"], "\n".join(BUILD_INVENTORY_MARKERS) + "\n")
+    write(
+        root / REQUIRED_FILES["build_inventory"],
+        "\n".join(BUILD_INVENTORY_MARKERS + BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS) + "\n",
+    )
     write(root / REQUIRED_FILES["driver_starter"], "\n".join(DRIVER_STARTER_MARKERS) + "\n")
     write(root / REQUIRED_FILES["verify_helper"], "\n".join(VERIFY_HELPER_MARKERS) + "\n")
     write(root / REQUIRED_FILES["survey_gate"], "\n".join(SURVEY_GATE_MARKERS) + "\n")
@@ -418,6 +434,10 @@ def run_self_test() -> None:
         missing_marker_cases = [
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[3]),
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[-1]),
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[0]),
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[1]),
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[2]),
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[3]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[1]),
             (REQUIRED_FILES["survey_note"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["survey_note"], "khvcd sleep-and-reschedule handoff summary"),
