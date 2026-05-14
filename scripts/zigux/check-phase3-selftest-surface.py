@@ -340,7 +340,7 @@ def validate_repo(repo_root: Path) -> list[str]:
         )
     )
 
-    issues.extend(_check_note_next_step(repo_root / NOTE_PATH))
+    issues.extend(_check_note_nextStep(repo_root / NOTE_PATH))
     issues.extend(_check_header_family_survey_current_packet(repo_root / SURVEY_PATH))
     issues.extend(_check_header_family_survey_shared_reminder(repo_root / SURVEY_PATH))
     issues.extend(_check_validator_support_shared_reminder(repo_root / VALIDATOR_SUPPORT_PATH))
@@ -560,7 +560,7 @@ def run_self_test() -> int:
             print("expected docs README Phase 3 section-scoped validator drift was not reported")
             return 1
 
-        _populate_repo(root)
+        _populateRepo(root)
         tests_path = root / TESTS_README_PATH
         tests_text = _read(tests_path)
         before, marker_prefix, after = tests_text.partition(TESTS_README_PHASE3_REMINDER_PREFIX)
@@ -613,7 +613,6 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         survey_path = root / SURVEY_PATH
-        survey_path.writeText = None
         survey_path.write_text(
             _read(survey_path).replace("include/zigux/dev_t.h", "", 1),
             encoding="utf-8",
