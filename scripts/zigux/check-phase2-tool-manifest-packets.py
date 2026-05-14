@@ -481,6 +481,8 @@ PHASE2_REVIEW_NOTES_EXACT_COUNTS = {
     PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS[0]: 1,
 }
 
+EXPECTED_SELF_TEST_CASE_COUNT = 12
+
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
     try:
@@ -715,6 +717,17 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        payload = json.loads((root / "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json").read_text(encoding="utf-8"))
+        payload["helper_local_anchors"] = payload["helper_local_anchors"][:-1]
+        write_text(
+            root / "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
+            json.dumps(payload, indent=2) + "\n",
+        )
+        issues = validate_root(root)
+        assert any(issue.startswith("confdata_manifest:helper_local_anchors:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
         scripts_readme = root / "scripts/zigux/README.md"
         scripts_readme.write_text(
             scripts_readme.read_text(encoding="utf-8") + SCRIPTS_PHASE2_STALE_NARROW_HELPER_SUMMARY_MARKER + "\n",
@@ -830,6 +843,7 @@ def run_self_test() -> int:
         assert any(issue.startswith("phase2_artifact_tools_manifest:artifact_tools:") for issue in issues)
         case_count += 1
 
+    assert case_count == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
     print(f"PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT={case_count}")
     return 0
