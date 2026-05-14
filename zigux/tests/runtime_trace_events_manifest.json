@@ -53,7 +53,7 @@
       "id": "trace-events-module-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_trace_events_module.zig",
-      "why_now": "The direct module gate is visible on current master and keeps the bounded lifecycle, selftest-ready failed-exit rollback, and registration-drain packet machine-checkable."
+      "why_now": "The direct module gate is visible on current master and keeps the bounded lifecycle, selftest-ready failed-exit rollback, rejected re-selftest rollback, and registration-drain packet machine-checkable."
     },
     {
       "id": "trace-events-diff-gate",
@@ -77,13 +77,13 @@
       "id": "trace-events-survey-note",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
-      "why_now": "The survey note records the current reviewable family-local packet, including the selftest-ready failed-exit rollback cue and the landed loader-substrate-drift replay, while keeping the shared runtime-substrate blocker explicit."
+      "why_now": "The survey note records the current reviewable family-local packet, including the selftest-ready failed-exit rollback cue, the rejected re-selftest rollback cue, and the landed loader-substrate-drift replay, while keeping the shared runtime-substrate blocker explicit."
     },
     {
       "id": "trace-events-module-slice-note",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
-      "why_now": "The module-slice note keeps the same packet-local proof, including the selftest-ready failed-exit rollback note, the loader-substrate-drift replay, and shared-loader boundary visible for reviewers."
+      "why_now": "The module-slice note keeps the same packet-local proof, including the selftest-ready failed-exit rollback note, the rejected re-selftest rollback note, the loader-substrate-drift replay, and shared-loader boundary visible for reviewers."
     },
     {
       "id": "trace-events-shared-owner-map",
