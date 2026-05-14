@@ -338,6 +338,7 @@ def validate(root: Path) -> list[str]:
             "pub fn lastDeviceNumberInRange(",
         ),
         UAPI_VERSION: (
+            "pub const abi_version: u16 = abi.ABI_VERSION;",
             "pub const HeaderEvaluation = struct {",
             "pub fn requestedExtraBytes(self: @This()) ?u32 {",
         ),
@@ -384,7 +385,13 @@ def build_valid_workspace(root: Path) -> None:
         "pub fn encodeDeviceNumber() void {}\n"
         "pub fn lastDeviceNumberInRange() void {}\n",
     )
-    write(root / UAPI_VERSION, "pub const HeaderEvaluation = struct {\n    pub fn requestedExtraBytes(self: @This()) ?u32 { _ = self; return null; }\n};\n")
+    write(
+        root / UAPI_VERSION,
+        "pub const abi_version: u16 = abi.ABI_VERSION;\n"
+        "pub const HeaderEvaluation = struct {\n"
+        "    pub fn requestedExtraBytes(self: @This()) ?u32 { _ = self; return null; }\n"
+        "};\n",
+    )
     write(root / UAPI_DEV_T, "pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 { _ = major_id; _ = minor_id; return 0; }\npub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 { _ = major_id; _ = first_minor; _ = count; return 0; }\n")
     write(root / DEV_T_HEADER, "#define ZIGUX_DEV_MINOR_BITS 20U\nstatic inline uint32_t zigux_mkdev(uint32_t major_id, uint32_t minor_id) { return major_id + minor_id; }\nstatic inline uint32_t zigux_minor(uint32_t dev) { return dev; }\n")
     write(root / ABI_MANIFEST, manifest_payload(MANIFEST_REQUIRED_ENTRIES))
@@ -496,6 +503,21 @@ def run_self_test() -> int:
 
         write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_LINUX_ZIGUX_H_PATH={LINUX_HEADER.as_posix()}`\n", "", 1))
         assert validate(root) == [f"missing_survey_marker:`PHASE3_LINUX_ZIGUX_H_PATH={LINUX_HEADER.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(
+            root / UAPI_VERSION,
+            (root / UAPI_VERSION).read_text(encoding="utf-8").replace(
+                "pub const abi_version: u16 = abi.ABI_VERSION;\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert (
+            f"missing_marker:{UAPI_VERSION.as_posix()}:pub const abi_version: u16 = abi.ABI_VERSION;" in issues
+        ), issues
         build_valid_workspace(root)
         case_count += 1
 
