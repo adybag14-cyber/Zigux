@@ -55,7 +55,8 @@ REQUIRED_MARKERS = {
         "pub fn argvSplitWithArgc",
         "pub fn argvFree",
         "pub fn cArgv",
-        "if (!hasAnyArg(current))",
+        "const argc = countArgc(current);",
+        "if (argc == 0) {",
         "self.* = .{",
     ],
     "zigux/tests/phase7_argv_split.zig": [
@@ -492,8 +493,22 @@ def run_self_test() -> None:
             tmp_root,
             "lib/argv_split.zig: pub fn cArgv",
         )
+        write_fixture_root(tmp_root)
 
-    case_count = 23
+        mutate_file(
+            tmp_root,
+            "lib/argv_split.zig",
+            "if (argc == 0) {",
+            "",
+            "helper_blank_path_marker",
+        )
+        expect_missing_marker(
+            "helper_blank_path_marker",
+            tmp_root,
+            "lib/argv_split.zig: if (argc == 0) {",
+        )
+
+    case_count = 24
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
