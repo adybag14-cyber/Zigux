@@ -70,6 +70,47 @@ def load_pinned_channel(policy_path: Path = TOOLCHAIN_POLICY) -> str | None:
     return channel.strip()
 
 
+def iter_repo_local_zig_candidates(
+    *,
+    root: Path = ROOT,
+    pinned_channel: str | None = None,
+) -> list[Path]:
+    toolchain_root = root / ".zig-toolchain"
+    candidates: list[Path] = []
+
+    def add_candidate(path: Path) -> None:
+        if path not in candidates:
+            candidates.append(path)
+
+    if pinned_channel is not None:
+        pinned_root = toolchain_root / f"zig-x86_64-linux-{pinned_channel}"
+        add_candidate(pinned_root / "zig")
+        add_candidate(pinned_root / "bin" / "zig")
+
+    if toolchain_root.exists():
+        for child in sorted(toolchain_root.iterdir()):
+            add_candidate(child / "zig")
+            add_candidate(child / "bin" / "zig")
+    return candidates
+
+
+def resolve_zig_executable(
+    explicit_zig: str | None = None,
+    *,
+    root: Path = ROOT,
+    policy_path: Path = TOOLCHAIN_POLICY,
+    which=shutil.which,
+) -> str | None:
+    if explicit_zig is not None:
+        return explicit_zig
+
+    pinned_channel = load_pinned_channel(policy_path)
+    for candidate in iter_repo_local_zig_candidates(root=root, pinned_channel=pinned_channel):
+        if candidate.is_file():
+            return str(candidate)
+    return which("zig")
+
+
 def read_zig_version(zig: str, *, runner=subprocess.run) -> str:
     try:
         completed = runner([zig, "version"], capture_output=True, text=True, check=False)
@@ -174,7 +215,8 @@ def run_self_test() -> int:
     )
 
     with tempfile.TemporaryDirectory(prefix="zigux_toolchain_policy_") as tmp_dir:
-        policy_path = Path(tmp_dir) / "zig-toolchain-policy.json"
+        root = Path(tmp_dir)
+        policy_path = root / "zig-toolchain-policy.json"
         expect_equal(load_min_version(policy_path, "0.15.0"), "0.15.0")
         expect_equal(load_pinned_channel(policy_path), None)
         policy_path.write_text(
@@ -183,13 +225,40 @@ def run_self_test() -> int:
         )
         expect_equal(load_min_version(policy_path, "0.15.0"), "0.17.0-dev.87+9b177a7d2")
         expect_equal(load_pinned_channel(policy_path), "0.17.0-dev.87+9b177a7d2")
+        toolchain_dir = root / ".zig-toolchain" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
+        toolchain_dir.mkdir(parents=True)
+        pinned_zig = toolchain_dir / "zig"
+        pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(pinned_zig))
+        alt_toolchain = root / ".zig-toolchain" / "fallback" / "bin"
+        alt_toolchain.mkdir(parents=True)
+        alt_zig = alt_toolchain / "zig"
+        alt_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        pinned_zig.unlink()
+        expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(alt_zig))
+        expect_equal(resolve_zig_executable("/custom/zig", root=root, policy_path=policy_path, which=lambda _: None), "/custom/zig")
+        pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        expect_equal(
+            iter_repo_local_zig_candidates(root=root, pinned_channel="0.17.0-dev.87+9b177a7d2")[:2],
+            [pinned_zig, toolchain_dir / "bin" / "zig"],
+        )
         policy_path.write_text('{"minimum_version":7,"channel":"0.17.0-dev.87+9b177a7d2"}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid minimum_version")
         policy_path.write_text('{"minimum_version":"0.17.0-dev.87+9b177a7d2","channel":7}\n', encoding="utf-8")
         expect_raises(lambda: load_pinned_channel(policy_path), "invalid channel")
+        expect_raises(lambda: resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: None), "invalid channel")
         policy_path.write_text("{not-json}\n", encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid toolchain policy JSON")
         expect_raises(lambda: parse_zig_version("master"))
+
+    with tempfile.TemporaryDirectory(prefix="zigux_toolchain_resolution_") as tmp_dir:
+        root = Path(tmp_dir)
+        policy_path = root / "zig-toolchain-policy.json"
+        policy_path.write_text(
+            '{"channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2"}\n',
+            encoding="utf-8",
+        )
+        expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), "/usr/bin/zig")
 
     expect_equal(
         read_zig_version(
@@ -251,12 +320,36 @@ def main() -> int:
     parser.add_argument("--self-test", action="store_true", help="Run built-in parser and ordering checks.")
     args = parser.parse_args()
 
-    zig = args.zig or shutil.which("zig")
     if args.self_test:
         return run_self_test()
 
+    zig: str | None = None
+    min_version_raw: str | None = args.min_version
+    expected_channel_raw: str | None = None
+    version: str | None = None
+    try:
+        zig = resolve_zig_executable(args.zig)
+        min_version_raw = args.min_version or load_min_version()
+        expected_channel_raw = None if args.min_version else load_pinned_channel()
+        parse_zig_version(min_version_raw)
+        if expected_channel_raw is not None:
+            parse_zig_version(expected_channel_raw)
+    except ValueError as exc:
+        print("ZIG_TOOLCHAIN_STATUS=invalid")
+        print(f"ZIG_TOOLCHAIN_PATH={zig or 'unresolved'}")
+        print(f"ZIG_TOOLCHAIN_MIN_SUPPORTED={min_version_raw or 'unresolved'}")
+        if expected_channel_raw is not None:
+            print(f"ZIG_TOOLCHAIN_PINNED_CHANNEL={expected_channel_raw}")
+            print("ZIG_TOOLCHAIN_PIN_POLICY=exact")
+        elif args.min_version is not None:
+            print("ZIG_TOOLCHAIN_PIN_POLICY=minimum_only")
+        else:
+            print("ZIG_TOOLCHAIN_PIN_POLICY=unresolved")
+        print(f"ZIG_TOOLCHAIN_NOTE={exc}")
+        return 1
+
     if zig is None:
-        message = "zig not found on PATH"
+        message = "zig not found on PATH or in repo-local .zig-toolchain"
         if args.allow_missing:
             print("ZIG_TOOLCHAIN_STATUS=missing")
             print(f"ZIG_TOOLCHAIN_NOTE={message}")
@@ -264,15 +357,7 @@ def main() -> int:
         print(message, file=sys.stderr)
         return 1
 
-    min_version_raw: str | None = args.min_version
-    expected_channel_raw: str | None = None
-    version: str | None = None
     try:
-        min_version_raw = args.min_version or load_min_version()
-        expected_channel_raw = None if args.min_version else load_pinned_channel()
-        parse_zig_version(min_version_raw)
-        if expected_channel_raw is not None:
-            parse_zig_version(expected_channel_raw)
         version = read_zig_version(zig)
         status, note = evaluate_toolchain_version(version, min_version_raw, expected_channel_raw)
     except ValueError as exc:
