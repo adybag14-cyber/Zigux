@@ -72,6 +72,17 @@ fn expectCurrentBoundedStepHandoff(scorecard_doc: []const u8) !void {
     try expectContains(scorecard_doc, "Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the shared Phase 15 validator-first packet drifts enough that the aggregate metrics or anchor records need another truthfulness refresh.");
 }
 
+fn expectMaintenanceModeHandoff(scorecard_doc: []const u8) !void {
+    try expectContains(scorecard_doc, "## Maintenance-Mode Handoff");
+    try expectContains(scorecard_doc, "current lane posture: `maintenance_mode`");
+    try expectContains(scorecard_doc, "python3 scripts/zigux/validate-phase15.py");
+    try expectContains(scorecard_doc, "make -C zigux phase15-validate");
+    try expectContains(scorecard_doc, "zig build test --build-file zigux/tests/phase15_build.zig");
+    try expectContains(scorecard_doc, "the Architecture Council approval count changes from zero");
+    try expectContains(scorecard_doc, "the paired freeze-map governance packet records a newer dated readback that changes the scorecard's blocker accounting");
+    try expectContains(scorecard_doc, "then keep any repair inside the scorecard packet instead of reopening the broader review-process or indefinite-C policy lanes");
+}
+
 fn expectAnchorPacketAlignment(scorecard_doc: []const u8, governance_note: []const u8, anchor: Anchor) !void {
     try std.testing.expectEqualStrings("Phase 15", anchor.phase);
     try std.testing.expectEqualStrings("freeze_in_c", anchor.current_status_bucket);
@@ -153,7 +164,7 @@ test "phase 15 parity scorecard manifest keeps the blocked posture explicit" {
     try std.testing.expectEqualStrings("P15-Y03", manifest.lane_key);
     try std.testing.expectEqualStrings("parity-scorecard-baseline", manifest.slice);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.provenance_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-13", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-14", manifest.surveyed_commit);
     try std.testing.expect(!manifest.posture.architecture_council_status_change_approval_recorded);
     try std.testing.expectEqualStrings("blocked_posture_accounting_not_port_readiness", manifest.posture.scorecard_role);
     try std.testing.expectEqual(@as(usize, 4), manifest.metrics.active_freeze_in_c_anchor_count);
@@ -250,7 +261,8 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectContains(scorecard_doc, "P15-Y03");
     try expectContains(scorecard_doc, "parity-scorecard-baseline");
     try expectContains(scorecard_doc, "blocked_posture_accounting_not_port_readiness");
-    try expectContains(scorecard_doc, "current-master-readback-2026-05-13");
+    try expectContains(scorecard_doc, "current-master-readback-2026-05-14");
+    try expectContains(scorecard_doc, "the scorecard now matches the freeze-map governance packet's current 2026-05-14 dated readback marker");
     try expectMetricLine(scorecard_doc, "active freeze-in-C anchor count", parsed.value.metrics.active_freeze_in_c_anchor_count);
     try expectMetricLine(scorecard_doc, "blocked status-change anchor count", parsed.value.metrics.blocked_status_change_anchor_count);
     try expectMetricLine(scorecard_doc, "anchors blocked entirely within Phase 15 governance evidence", parsed.value.metrics.phase15_governance_only_blocker_anchor_count);
@@ -259,6 +271,7 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectMetricLine(scorecard_doc, "study-only anchors tracked outside this scorecard", parsed.value.metrics.study_only_anchors_tracked_outside_scorecard);
     try expectMetricLine(scorecard_doc, "Architecture Council approvals recorded for status change", parsed.value.metrics.architecture_council_status_change_approval_count);
     try expectCurrentBoundedStepHandoff(scorecard_doc);
+    try expectMaintenanceModeHandoff(scorecard_doc);
 
     try std.testing.expectEqual(
         freeze_map_manifest.value.study_only_targets.len,
