@@ -155,7 +155,7 @@ PHASE2_VALIDATOR_MARKERS = (
     '"zigux/tests/fixtures/phase2_tool_manifest.json",',
     '"zigux/tests/fixtures/phase2_artifact_tools_manifest.json",',
     "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 26",
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 34",
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 36",
 )
 
 EXPECTED_FIXDEP_CASES = (
@@ -679,8 +679,8 @@ def run_self_test_checks() -> list[str]:
         ),
         (
             "validator_markers_missing_required_count",
-            validate_required_markers(" ".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 34"), PHASE2_VALIDATOR_MARKERS, "phase2_validator"),
-            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 34"],
+            validate_required_markers(" ".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 36"), PHASE2_VALIDATOR_MARKERS, "phase2_validator"),
+            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 36"],
         ),
         ("command_count_ok", [] if len(build_validation_commands()) == len(PHASE2_VALIDATION_COMMAND_SPECS) else ["command_count_mismatch"], []),
     ]
