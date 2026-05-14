@@ -150,7 +150,7 @@ test "phase 15 parity scorecard manifest keeps the blocked posture explicit" {
     const manifest = parsed.value;
 
     try std.testing.expectEqualStrings("parity_scorecard_slice_landed", manifest.status);
-    try std.testing.expectEqualStrings("P15-Y03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("parity-scorecard-baseline", manifest.slice);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.provenance_mode);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-14", manifest.surveyed_commit);
@@ -247,7 +247,7 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     );
     defer freeze_map_manifest.deinit();
 
-    try expectContains(scorecard_doc, "P15-Y03");
+    try expectContains(scorecard_doc, "P15-L03");
     try expectContains(scorecard_doc, "parity-scorecard-baseline");
     try expectContains(scorecard_doc, "blocked_posture_accounting_not_port_readiness");
     try expectContains(scorecard_doc, "current-master-readback-2026-05-14");
