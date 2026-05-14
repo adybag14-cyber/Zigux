@@ -103,7 +103,7 @@ REQUIRED_MARKERS = {
         "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
         "The deferred `perf-buffer-online-cpu-routing` segment also stays explicitly larger than the helper-local `online_cpu_routing.zig` evidence",
         "The real current gap is now survey truthfulness about the already-landed checker packet and helper-local routing evidence, not a missing checker rule or docs-root summary.",
-        "That same checker packet should also keep the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit",
+        "That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit",
         "standalone timer or clockevent helper behavior",
         "broader timeout-sensitive routing behavior",
         "Keep the libbpf survey packet parked after this survey-and-checker sync unless a fresh shared reminder-surface drift reappears against the current readable helper-plus-build evidence.",
