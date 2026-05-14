@@ -1,0 +1,66 @@
+{
+  "lane_key": "P5-L18",
+  "phase": "Phase 5",
+  "surveyed_commit": "fcf670977ef02f9fa7e5d1950d67ba0589baa230",
+  "anchor": "samples/kprobes/kretprobe_example.c",
+  "sample_path": "samples/zigux/kretprobe_example.zig",
+  "validation_entrypoint": "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
+  "review_prompts": [
+    "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
+    "the restored survey note, samples root, tests root, docs root, scripts root, and review checklist all point at the same non-runtime kretprobe packet instead of the older survey-note-only gap wording",
+    "the sample and focused test still keep the default symbol kernel_clone explicit together with pre-init retargeting to do_sys_openat2 and post-init retarget rejection",
+    "the anchor replay still keeps skipped kernel-thread handling, private_data_size_bytes = 8, return_value = 42, duration_ns = 75, nmissed = 1, and maxactive = 20 explicit",
+    "the lifecycle guard replay still proves pre-init anchor rejection, pre-init exit rejection, double-init rejection, and post-init retarget rejection",
+    "the ownership replay still keeps cold, initialized, armed, replay_complete, and exited snapshots explicit with active_instances = 1 and entry_timestamp_armed = true only in the armed state",
+    "the recovery replay still keeps outstanding-instance exit rejection, invalid timestamp-order rejection, recovered duration 60, and post-exit entry or ret-handler rejection explicit",
+    "the shared reminder packet still keeps the separate Phase 9 runtime_kretprobe family and the still-missing shared phase5_build route explicit"
+  ],
+  "exact_checks": [
+    {
+      "id": "descriptor-anchor",
+      "kind": "anchor_shape",
+      "expected": "KretprobeExampleSample.descriptor() names samples/kprobes/kretprobe_example.c and stays in the non-runtime reference-sample lane"
+    },
+    {
+      "id": "default-symbol",
+      "kind": "bounded_payload",
+      "expected": "the sample defaults symbol_name to kernel_clone"
+    },
+    {
+      "id": "retarget-replay",
+      "kind": "bounded_payload",
+      "expected": "runRetargetReplay(do_sys_openat2) rejects empty-symbol retargeting, keeps pre-init retargeting explicit, and rejects post-init retargeting"
+    },
+    {
+      "id": "anchor-replay",
+      "kind": "bounded_payload",
+      "expected": "runAnchorReplay() checks skipped kernel-thread handling plus private_data_size_bytes = 8, return_value = 42, duration_ns = 75, nmissed = 1, and maxactive = 20"
+    },
+    {
+      "id": "lifecycle-guards",
+      "kind": "ownership_lifetime",
+      "expected": "runLifecycleGuardReplay() keeps pre-init anchor rejection, pre-init exit rejection, double-init rejection, and post-init retarget rejection explicit"
+    },
+    {
+      "id": "ownership-replay",
+      "kind": "ownership_lifetime",
+      "expected": "runOwnershipReplay() keeps cold, initialized, armed, replay_complete, and exited snapshots explicit, with active_instances = 1 and entry_timestamp_armed = true only in the armed state"
+    },
+    {
+      "id": "recovery-replay",
+      "kind": "ownership_lifetime",
+      "expected": "runRecoveryReplay() keeps outstanding-instance exit rejection, invalid timestamp-order rejection, recovered duration 60, and post-exit handler rejection explicit"
+    },
+    {
+      "id": "phase9-boundary",
+      "kind": "review_surface",
+      "expected": "the shared reminder packet keeps the separate runtime_kretprobe Phase 9 family and the missing phase5_build route explicit"
+    }
+  ],
+  "non_goals": [
+    "register_kretprobe parity",
+    "unregister_kretprobe parity",
+    "pt_regs or regs_return_value parity",
+    "runtime module wiring"
+  ]
+}
