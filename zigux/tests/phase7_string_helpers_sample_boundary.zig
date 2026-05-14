@@ -186,6 +186,9 @@ test "phase 7 string helper boundary keeps the expanded helper packet and curren
 
     const make_wrapper_note = try readRepoFile(allocator, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
     defer allocator.free(make_wrapper_note);
+    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
+    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(make_wrapper_note, "make -C zigux phase7-string-helpers-sample-boundary");
     try expectContains(make_wrapper_note, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
 
