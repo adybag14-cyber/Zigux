@@ -480,6 +480,24 @@ def run_self_test() -> int:
             boundary_sample,
             "## Next bounded step",
             "## Non-goals",
+            "include/zigux/dev_t.h\n",
+        )
+        + "include/zigux/dev_t.h\n"
+    )
+    expected = (
+        "boundary note next-step marker count drift: include/zigux/dev_t.h "
+        "(expected 2, found 1)"
+    )
+    if expected not in issues:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected boundary-note next-step dev_t header drift was not reported")
+        return 1
+
+    issues = validate_boundary_note_text(
+        replace_in_section(
+            boundary_sample,
+            "## Next bounded step",
+            "## Non-goals",
             "zigux/uapi/version.zig\n",
         )
         + "zigux/uapi/version.zig\n"
