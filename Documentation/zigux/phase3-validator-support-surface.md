@@ -11,6 +11,7 @@ Phase 3 ABI and runtime tranche.
 - `scripts/zigux/check-phase3-readme-tooling-inventory.py`
 - `scripts/zigux/check-phase3-catalog-selftest.py`
 - `scripts/zigux/check-phase3-abi-dump-gate.py`
+- `scripts/zigux/check-phase3-abi.py`
 - `scripts/zigux/validate-phase3-policy-unsafe-survey.py`
 - `scripts/zigux/check-phase3-policy-byte-guards.py`
 - `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`
@@ -88,7 +89,7 @@ Phase 3 ABI and runtime tranche.
 
 Broad Phase 3 summaries that name the validator-support packet should keep this
 note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
-`scripts/zigux/validate_phase3_selftest.py`,
+`scripts/zigux/validate_phase3_selftest.py`, `scripts/zigux/check-phase3-abi.py`,
 `scripts/zigux/validate-phase3-validator-support-surface.py`,
 `scripts/zigux/validate-phase3-linux-zigux-header-governance.py`,
 `Documentation/zigux/phase3-abi-bindings-survey.md`,
@@ -106,7 +107,7 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`,
 `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/abi.zig`,
 `make -C zigux phase3-selftest`, and
-`make -C zigux phase3-low-level-wrappers-test`; keep the dedicated
+`make -C zigux phase3-low-level-wrappers-test`; keep the dedicated ABI gate,
 policy-survey validator, policy-byte guard, focused low-level wrapper replay,
 and dedicated build-anchor route explicit beside the validator-support packet,
 keep `scripts/zigux/validate-phase3-linux-zigux-header-governance.py`
