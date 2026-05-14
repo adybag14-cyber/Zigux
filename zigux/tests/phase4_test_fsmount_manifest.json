@@ -6,6 +6,7 @@
   "dedicated_local_survey_wrapper": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
   "dedicated_linux_style_survey_wrapper": "make -C zigux phase4-test-fsmount-survey",
   "bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
+  "shared_lab_and_ci_matrix_anchor": "Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
   "validation_entrypoint": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
   "owner": "Validation and Perf Team",
   "rollback_owner": "Validation and Perf Team",
