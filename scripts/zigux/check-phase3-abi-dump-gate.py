@@ -144,7 +144,7 @@ REQUIRED_EXPECTED_CONSTANT_VALUES = {
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped": 1,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": 1,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied": 1,
-    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped": 1,
+    "chrdev_notify_ack_window_policy_budget_WINDOW_delivery_window_budget_window_status_skipped": 1,
     "notifier_done": 0,
     "notifier_ok": 1,
     "notifier_stop": 2,
@@ -170,7 +170,7 @@ REQUIRED_REPLAY_STRUCT_MARKERS = (
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_view",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_summary",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view",
-    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_summary",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary",
     "notifier_block",
 )
 
@@ -731,6 +731,7 @@ def run_self_test() -> int:
             "expected wrong expected-fixture constant was not reported",
         ):
             return 1
+        case_count += 1
 
         _populate_repo(root)
         broken = root / EXPECTED_PATH
