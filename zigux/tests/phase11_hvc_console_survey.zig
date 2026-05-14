@@ -128,7 +128,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(manifest.survey_summary.hvc_console_header_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_zig_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_sysrq_present);
-    try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_modem_control_split_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_poll_retry_split_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_gate_present);
@@ -420,7 +420,7 @@ test "phase11 hvc_console survey keeps the dedicated archival packet explicit" {
 
     try expectSurveyedCommitProvenance(survey_note, manifest.surveyed_commit);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase11_build_present);
-    try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_zig_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_sysrq_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_modem_control_split_present);
@@ -489,7 +489,7 @@ test "phase11 hvc_console survey keeps the shared replay separate but exposes an
     defer std.testing.allocator.free(workflow);
 
     try std.testing.expect(!manifest.survey_summary.preexisting_phase11_build_present);
-    try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "the dedicated archival replay remains separate through `make -C zigux phase11-hvc-survey`") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`make -C zigux phase11-hvc-survey` archival route fail-closed") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "PHONY += phase11-contract phase11-test phase11-hvc-survey phase11") != null);
