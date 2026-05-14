@@ -27,6 +27,22 @@ pub fn fieldType(comptime T: type, comptime field_name: []const u8, comptime Exp
     }
 }
 
+pub fn assertSize(comptime T: type, expected: usize) !void {
+    try size(T, expected);
+}
+
+pub fn assertAlign(comptime T: type, expected: usize) !void {
+    try alignment(T, expected);
+}
+
+pub fn assertOffset(comptime T: type, comptime field_name: []const u8, expected: usize) !void {
+    try offset(T, field_name, expected);
+}
+
+pub fn assertFieldType(comptime T: type, comptime field_name: []const u8, comptime Expected: type) void {
+    fieldType(T, field_name, Expected);
+}
+
 pub fn byteValue(comptime label: []const u8, comptime actual: u8, comptime expected: u8) void {
     comptime {
         if (actual != expected) {
@@ -147,6 +163,20 @@ pub fn assertInteropPolicyModeValues() void {
         @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
         abi.UNSAFE_RAW_POINTER_BRIDGE,
     );
+}
+
+const CompatibilityAliasLayout = extern struct {
+    first: u32,
+    second: u16,
+};
+
+test "phase3 layout_assert compatibility aliases stay available" {
+    try assertSize(CompatibilityAliasLayout, 8);
+    try assertAlign(CompatibilityAliasLayout, 4);
+    assertFieldType(CompatibilityAliasLayout, "first", u32);
+    assertFieldType(CompatibilityAliasLayout, "second", u16);
+    try assertOffset(CompatibilityAliasLayout, "first", 0);
+    try assertOffset(CompatibilityAliasLayout, "second", 4);
 }
 
 test "phase3 layout assertions cover canonical bindings" {
