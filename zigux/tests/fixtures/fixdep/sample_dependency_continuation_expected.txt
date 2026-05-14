@@ -1,3 +1,5 @@
+savedcmd_sample_dependency_continuation.o := clang -c zigux/tests/fixtures/fixdep/sample_dependency_continuation_source.c -o sample_dependency_continuation.o
+
 source_sample_dependency_continuation.o := sample_dependency_continuation_source.rmeta
 
 deps_sample_dependency_continuation.o := \
