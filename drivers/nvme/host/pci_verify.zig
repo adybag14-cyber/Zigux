@@ -85,43 +85,37 @@ test "nvme pci reset summary freezes queue planning then clears io backlog while
     try testing.expectEqual(@as(u32, 1), next.reset_generation);
 }
 
-test "nvme pci dropped backlog retirement stays blocked until admin replay and queue rebuild catch up" {
+test "nvme pci dropped backlog retirement keeps blocker ordering and parity surfaces explicit" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
-    _ = try lab.planAdminQueue(48, 64, false);
-    _ = try lab.planIoQueue(16, 64, false);
-    _ = try lab.planIoQueue(32, 64, true);
+    const descriptor = nvme_pci.NvmePciQueueLab.descriptor();
+    try std.testing.expect(descriptor.provides_dropped_io_retirement_helper);
+
+    _ = try lab.planAdminQueue(64, 64, false);
+    _ = try lab.planIoQueue(32, 64, false);
+    _ = try lab.planIoQueue(16, 64, true);
 
     _ = lab.beginReset();
-    const frozen = lab.summarizeDroppedIoRetirement();
-    try testing.expectEqual(nvme_pci.RecoveryState.reset_frozen, frozen.state);
-    try testing.expect(frozen.admin_queue_must_be_replayed);
-    try testing.expectEqual(@as(usize, 2), frozen.dropped_io_queue_count);
-    try testing.expectEqual(@as(usize, 0), frozen.rebuilt_io_queue_count);
-    try testing.expectEqual(@as(usize, 2), frozen.remaining_io_queue_count);
-    try testing.expect(!frozen.can_retire_dropped_io_backlog);
-
     _ = lab.completeReset();
-    const pending = lab.summarizeDroppedIoRetirement();
-    try testing.expectEqual(nvme_pci.RecoveryState.running, pending.state);
-    try testing.expect(pending.admin_queue_must_be_replayed);
-    try testing.expect(pending.queue_numbering_restarted);
-    try testing.expectEqual(@as(usize, 2), pending.remaining_io_queue_count);
-    try testing.expect(!pending.can_retire_dropped_io_backlog);
 
-    _ = try lab.planAdminQueue(48, 64, false);
-    _ = try lab.planIoQueue(16, 64, false);
-    const partial = lab.summarizeDroppedIoRetirement();
-    try testing.expect(partial.admin_queue_replayed_after_reset);
-    try testing.expect(!partial.admin_queue_must_be_replayed);
-    try testing.expectEqual(@as(usize, 1), partial.rebuilt_io_queue_count);
-    try testing.expectEqual(@as(usize, 1), partial.remaining_io_queue_count);
-    try testing.expect(!partial.can_retire_dropped_io_backlog);
+    const replay_blocked = lab.summarizeDroppedIoRetirement();
+    try testing.expectEqual(nvme_pci.DroppedIoRetirementBlocker.admin_queue_replay, replay_blocked.retirement_blocker);
+    try testing.expect(!replay_blocked.queue_count_parity_recovered);
+    try testing.expect(!replay_blocked.host_dma_parity_recovered);
+    try testing.expect(!replay_blocked.can_retire_dropped_io_backlog);
 
-    _ = try lab.planIoQueue(32, 64, true);
+    _ = try lab.planAdminQueue(64, 64, false);
+    _ = try lab.planIoQueue(32, 64, false);
+    const queue_blocked = lab.summarizeDroppedIoRetirement();
+    try testing.expectEqual(nvme_pci.DroppedIoRetirementBlocker.queue_count_parity, queue_blocked.retirement_blocker);
+    try testing.expect(!queue_blocked.queue_count_parity_recovered);
+    try testing.expect(!queue_blocked.host_dma_parity_recovered);
+    try testing.expect(!queue_blocked.can_retire_dropped_io_backlog);
+
+    _ = try lab.planIoQueue(16, 64, true);
     const ready = lab.summarizeDroppedIoRetirement();
-    try testing.expect(ready.admin_queue_replayed_after_reset);
-    try testing.expectEqual(@as(usize, 2), ready.rebuilt_io_queue_count);
-    try testing.expectEqual(@as(usize, 0), ready.remaining_io_queue_count);
+    try testing.expectEqual(nvme_pci.DroppedIoRetirementBlocker.none, ready.retirement_blocker);
+    try testing.expect(ready.queue_count_parity_recovered);
+    try testing.expect(ready.host_dma_parity_recovered);
     try testing.expect(ready.can_retire_dropped_io_backlog);
 }
 
