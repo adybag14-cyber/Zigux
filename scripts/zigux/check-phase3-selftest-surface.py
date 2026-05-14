@@ -141,6 +141,7 @@ SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS = {
 SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
+    'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
     "PHASE3_VALIDATE_SELFTEST=pass",
 )
 MAKEFILE_MARKERS = (
@@ -740,6 +741,18 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected selftest driver drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        driver_path.write_text(
+            _read(driver_path).replace(SELFTEST_DRIVER_MARKERS[2], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = f"missing selftest driver marker: {SELFTEST_DRIVER_MARKERS[2]}"
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-governance selftest driver drift was not reported")
             return 1
 
         _populate_repo(root)
