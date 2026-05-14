@@ -63,8 +63,12 @@ ARTIFACT_DIFF_MARKERS = [
 
 VALIDATE_PHASE2_MARKERS = [
     'FIXDEP_GATE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"',
+    'FIXDEP_DIFF_CHECKER = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"',
     '(FIXDEP_GATE_CHECKER, "--self-test"),',
-    "(FIXDEP_GATE_CHECKER,),",
+    '(FIXDEP_GATE_CHECKER,),',
+    '(FIXDEP_DIFF_CHECKER, "--self-test"),',
+    '(FIXDEP_DIFF_CHECKER,),',
+    '("zig", "test", ROOT / "scripts" / "zigux" / "fixdep.zig"),',
 ]
 
 MAKEFILE_MARKERS = [
@@ -362,6 +366,36 @@ def run_self_test() -> int:
         path.write_text(path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[0], "", 1), encoding="utf-8")
         issues = validate_root(root)
         assert f"Documentation/zigux/phase2-closure.md:{CLOSURE_MARKERS[0]}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / "scripts/zigux/validate-phase2.py"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(VALIDATE_PHASE2_MARKERS[1], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"scripts/zigux/validate-phase2.py:{VALIDATE_PHASE2_MARKERS[1]}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / "scripts/zigux/validate-phase2.py"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(VALIDATE_PHASE2_MARKERS[5], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"scripts/zigux/validate-phase2.py:{VALIDATE_PHASE2_MARKERS[5]}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / "scripts/zigux/validate-phase2.py"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(VALIDATE_PHASE2_MARKERS[6], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"scripts/zigux/validate-phase2.py:{VALIDATE_PHASE2_MARKERS[6]}" in issues
         case_count += 1
 
         build_self_test_root(root)
