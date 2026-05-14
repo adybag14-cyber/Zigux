@@ -46,6 +46,12 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   `zigux/tests/fixtures/phase3_abi/expected.json`; keep extending that
   header-family survey one bounded sibling family at a time instead of
   widening into another packet
+- the direct ABI replay packet now proves the linked notifier-chain helper
+  truth table across `include/zigux/abi.h`, `zigux/bindings/notifier_abi.zig`,
+  `zigux/tests/phase3_abi_dump.zig`,
+  `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and
+  `zigux/tests/fixtures/phase3_abi/expected.json`; if this header-family
+  packet reopens, keep the next parity extension equally small and sibling-local
 - the shared review checklist now carries an explicit Phase 3 header-family
   prompt; keep `Documentation/zigux/review-checklist.md`,
   `Documentation/zigux/phase3-abi-header-family-survey.md`,
