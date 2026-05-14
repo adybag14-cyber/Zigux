@@ -44,7 +44,10 @@ SCRIPTS_README_MARKERS = [
     "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
 ]
 REQUIRED_SHARED_SMOKE_SURFACES = [
+    "zigux/tests/README.md",
+    "zigux/tests/phase14_build.zig",
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+    "zigux/tests/phase14_end_to_end_smoke_survey.zig",
     "zigux/tests/phase14_workqueue_reviewability.zig",
 ]
 REQUIRED_ANCHOR_MANIFESTS = [
@@ -655,6 +658,51 @@ def run_self_test() -> int:
         write_text(
             root / SMOKE_MANIFEST_PATH,
             good_smoke_manifest_text().replace(
+                '"zigux/tests/README.md"',
+                '"zigux/tests/README_drift.md"',
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "missing shared smoke surface zigux/tests/README.md",
+            "self-test expected missing manifest tests-readme shared surface failure",
+        )
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
+
+        write_text(
+            root / SMOKE_MANIFEST_PATH,
+            good_smoke_manifest_text().replace(
+                '"zigux/tests/phase14_build.zig"',
+                '"zigux/tests/phase14_build_drift.zig"',
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "missing shared smoke surface zigux/tests/phase14_build.zig",
+            "self-test expected missing manifest build shared surface failure",
+        )
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
+
+        write_text(
+            root / SMOKE_MANIFEST_PATH,
+            good_smoke_manifest_text().replace(
+                '"zigux/tests/phase14_end_to_end_smoke_survey.zig"',
+                '"zigux/tests/phase14_end_to_end_smoke_survey_drift.zig"',
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "missing shared smoke surface zigux/tests/phase14_end_to_end_smoke_survey.zig",
+            "self-test expected missing manifest smoke-survey shared surface failure",
+        )
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
+
+        write_text(
+            root / SMOKE_MANIFEST_PATH,
+            good_smoke_manifest_text().replace(
                 '"zigux/tests/phase14_workqueue_reviewability.zig"',
                 '"zigux/tests/phase14_workqueue_reviewability_drift.zig"',
                 1,
@@ -712,7 +760,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=26")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=29")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
