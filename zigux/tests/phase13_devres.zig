@@ -12,6 +12,7 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expectEqualStrings("devres_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
+    try std.testing.expect(descriptor.provides_ioremap_uc_wrapper_planning);
     try std.testing.expect(descriptor.provides_ioremap_wc_wrapper_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_iounmap_call_planning);
@@ -668,6 +669,8 @@ test "phase13 devres manifest records the current helper-local mmio survey packe
     try expectContains(manifest_text, "\"status\": \"blocked_on_live_arch_memtype_state\"");
     try expectContains(manifest_text, "stable shared Phase 13 replay handle");
     try expectContains(manifest_text, "devm_iounmap()");
+    try expectContains(manifest_text, "devm_ioremap_uc()");
+    try expectContains(manifest_text, "devm_ioremap_wc()");
     try expectContains(manifest_text, "devm_of_iomap()");
     try expectContains(manifest_text, "devm_arch_phys_wc_add()");
     try expectContains(manifest_text, "actual region acquisition side effects");
