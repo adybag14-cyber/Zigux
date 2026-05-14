@@ -253,6 +253,10 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     );
     try expectContains(
         helper_impl,
+        "test \"nextArg keeps leading quoted param, value, and rest borrowed from the caller buffer\"",
+    );
+    try expectContains(
+        helper_impl,
         "test \"nextArg trims mixed trailing whitespace from rest and leaves whitespace-only tails empty\"",
     );
     try expectContains(
