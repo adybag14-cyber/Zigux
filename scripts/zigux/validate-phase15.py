@@ -54,6 +54,8 @@ MAKE_MARKERS = [
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py --self-test",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py --self-test",
+    "scripts/zigux/check-phase15-shared-summary-gap.py",
     "scripts/zigux/validate-phase15.py",
     "phase15-test:",
     "$(ZIG) build test --build-file zigux/tests/phase15_build.zig",
@@ -216,6 +218,7 @@ PARITY_SCORECARD_REL = "zigux/tests/phase15_parity_scorecard.json"
 READINESS_CHECKERS = [
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py",
 ]
 READINESS_BOOL_FIELDS = [
     "phase15_validator_script_present",
@@ -702,7 +705,7 @@ def run_self_test() -> int:
         case_count += 1
 
         lane_text = _read(root, lane_rel)
-        marker = "- `indefinite-c-policy`: owns `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`"
+        marker = "- `indefinite-c-policy`: owns `Documentation/zigux/phase15-indefinite_c_policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`"
         _write(root, lane_rel, lane_text.replace(marker, "", 1))
         _assert_result(*validate(root), [], [f"lane_sequencing:{marker}"], "lane_indefinite_c_policy_owner_map")
         _seed_fixture_tree(root)
