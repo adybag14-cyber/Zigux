@@ -441,6 +441,19 @@ test "commandNameFromEntry strips the perf prefix and optional exe suffix" {
     try std.testing.expectEqual(@as(?[]const u8, null), commandNameFromEntry("record", "perf-"));
 }
 
+test "addCmdName keeps an owned clipped copy" {
+    var cmds = CmdNames.init(std.testing.allocator);
+    defer cmds.deinit();
+
+    var source = [_]u8{ 'r', 'e', 'p', 'o', 'r', 't', '!' };
+    try cmds.addCmdName(source[0..], 6);
+    source[0] = 'x';
+
+    try std.testing.expectEqual(@as(usize, 1), cmds.count());
+    try std.testing.expectEqualStrings("report", cmds.names.items[0].name);
+    try std.testing.expect(@intFromPtr(cmds.names.items[0].name.ptr) != @intFromPtr(source[0..].ptr));
+}
+
 test "splitPathEntries preserves empty segments" {
     var entries = try splitPathEntries(std.testing.allocator, ":/opt/perf/bin::/usr/bin:");
     defer entries.deinit();
