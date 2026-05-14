@@ -164,10 +164,13 @@ REQUIRED_SNIPPETS = {
         "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
     ],
     WORKFLOW_PATH.as_posix(): [
+        "- name: Self-test Phase 6 shared-surface checker",
+        "- name: Check Phase 6 shared surface",
         "- name: Self-test Phase 6 perf-threshold checker",
         "- name: Check Phase 6 perf threshold markers",
-        "- name: Run Phase 6 base64 perf gate",
-        "- name: Run Phase 6 checksum perf gate",
+        "- name: Run Phase 6 leaf helper tests",
+        "- name: Run Phase 6 base64 C parity packet",
+        "- name: Run Phase 6 bsearch focused packet",
         "- name: Run Phase 6 hexdump perf gate",
     ],
 }
