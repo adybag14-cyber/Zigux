@@ -109,6 +109,8 @@ CLOSURE_MARKERS = [
     "PHASE1_BITMAP_PARTIAL_XOR_REVIEW=partial_xor_nbits and partial_xor_masked_values stay explicit through the shared Phase 1 parity fixture and replay so caller-selected bit windows cannot silently leak tail bits beyond nbits",
     "PHASE1_BITMAP_FIRST_WORD_BOUNDARY_REVIEW=helper-local bitmap first-word boundary proof stays explicit through the direct bitmap test anchor so setRange and clearRange preserve exact first-word masks when a range ends on the first-word boundary",
     "PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW=helper-local bitmap final partial-word proof stays explicit through the direct bitmap test anchor so setRange and clearRange clamp trailing partial-word masks to the requested tail window instead of spilling work beyond it",
+    "PHASE1_BITMAP_FILL_TAIL_CLAMP_REVIEW=helper-local bitmap fill tail-clamp proof stays explicit through the direct bitmap test anchor so fill and bitmap_fill clamp the final partial word to the live tail window instead of setting out-of-range tail bits",
+    "PHASE1_BITMAP_SCNPRINTF_CROSS_WORD_REVIEW=helper-local bitmap.scnprintf cross-word range-collapse proof stays explicit through the direct bitmap test anchor so one contiguous live range still renders as one collapsed interval across backing-word boundaries while later disjoint bits stay visible as separate suffix ranges",
     "PHASE1_BITMAP_SCNPRINTF_TRUNCATION_REVIEW=helper-local bitmap.scnprintf truncation proof stays explicit through the direct bitmap test anchor because the shared Phase 1 parity fixture only locks the full rendered range string",
     "PHASE1_BITMAP_SCNPRINTF_TINY_BUFFER_REVIEW=helper-local bitmap.scnprintf tiny-buffer proof stays explicit through the direct bitmap test anchor plus the shared Phase 1 parity fixture and replay so terminator-only caller buffers stay NUL-terminated and zero-length caller views return without writing hidden bytes",
     "PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics",
@@ -116,8 +118,10 @@ CLOSURE_MARKERS = [
     "PHASE1_BITMAP_ZERO_BIT_NOOP_REVIEW=helper-local bitmap zero-bit no-op proof stays explicit through the direct bitmap test anchor so zero-bit windows keep mutating helpers, boolean queries, and the rendered empty-window path from touching caller-visible storage or writing hidden bytes",
     "PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases remain behaviorally locked to the primary helper surface",
     "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while match-iterator coverage plus cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior keep direct review anchors without implying a broader shared iterator or cached-root fixture packet than current master ships",
+    "PHASE1_RBTREE_CACHED_LEFTMOST_RETURN_REVIEW=helper-local cached-root leftmost-return proof stays explicit through the direct rbtree test anchor so addCached and insertColorCached only report the inserted node when cached insertion actually becomes the new leftmost node",
     "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation",
     "PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors, committed C-string replacement bytes, and parity fixture keys",
+    "PHASE1_STRING_LOOKUP_AND_STRNCHR_REVIEW=helper-local string C-string list lookup and counted-search anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string or strnchr fixture keys",
     "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior",
     "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start",
     "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_OWNER=the shared Phase 1 replay now consumes the committed inclusive_boundary_* fixture fields directly, while the direct helper-local inclusive-boundary test remains a review-visible same-word anchor for that path",
@@ -191,7 +195,7 @@ EXPECTED_BITMAP_MANIFEST = {
         "truncated_scnprintf",
         "terminator_only_scnprintf_len",
         "terminator_only_nul",
-        "zero_length_scnprintf_len"
+        "zero_length_scnprintf_len",
     ],
     "partial_xor_review_fields": [
         "partial_xor_nbits",
@@ -654,35 +658,14 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
-        closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[19], "", 1), encoding="utf-8")
-        assert any(item == f"closure:{CLOSURE_MARKERS[19]}" for item in collect_missing_markers(root))
-        case_count += 1
-        make_fixture_root(root)
-
-        closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[9], "", 1), encoding="utf-8")
-        assert any(item == f"closure:{CLOSURE_MARKERS[9]}" for item in collect_missing_markers(root))
-        case_count += 1
-        make_fixture_root(root)
-
-        closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[15], "", 1), encoding="utf-8")
-        assert any(item == f"closure:{CLOSURE_MARKERS[15]}" for item in collect_missing_markers(root))
-        case_count += 1
-        make_fixture_root(root)
-
-        closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[31], "", 1), encoding="utf-8")
-        assert any(item == f"closure:{CLOSURE_MARKERS[31]}" for item in collect_missing_markers(root))
-        case_count += 1
-        make_fixture_root(root)
-
-        closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[32], "", 1), encoding="utf-8")
-        assert any(item == f"closure:{CLOSURE_MARKERS[32]}" for item in collect_missing_markers(root))
-        case_count += 1
-        make_fixture_root(root)
-
-        closure_path.write_text(closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[-1], "", 1), encoding="utf-8")
-        assert any(item == f"closure:{CLOSURE_MARKERS[-1]}" for item in collect_missing_markers(root))
-        case_count += 1
-        make_fixture_root(root)
+        for marker_index in (21, 9, 17, 33, 34, -1, 10, 11, 18, 22):
+            closure_path.write_text(
+                closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[marker_index], "", 1),
+                encoding="utf-8",
+            )
+            assert any(item == f"closure:{CLOSURE_MARKERS[marker_index]}" for item in collect_missing_markers(root))
+            case_count += 1
+            make_fixture_root(root)
 
         manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -793,14 +776,14 @@ def run_self_test() -> None:
         closure_path = root / "Documentation/zigux/phase1-closure.md"
         closure_text = closure_path.read_text(encoding="utf-8")
         for marker in [
-            CLOSURE_MARKERS[12],
-            CLOSURE_MARKERS[13],
             CLOSURE_MARKERS[14],
-            CLOSURE_MARKERS[17],
+            CLOSURE_MARKERS[15],
+            CLOSURE_MARKERS[16],
             CLOSURE_MARKERS[19],
-            CLOSURE_MARKERS[20],
-            CLOSURE_MARKERS[24],
-            CLOSURE_MARKERS[26],
+            CLOSURE_MARKERS[21],
+            CLOSURE_MARKERS[22],
+            CLOSURE_MARKERS[30],
+            CLOSURE_MARKERS[32],
         ]:
             closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
             assert any(item == f"closure:{marker}" for item in collect_missing_markers(root))
