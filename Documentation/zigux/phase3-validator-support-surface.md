@@ -112,8 +112,14 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `make -C zigux phase3-low-level-wrappers-test`; keep the dedicated ABI gate,
 policy-survey validator, policy-byte guard, focused low-level wrapper replay,
 and dedicated build-anchor route explicit beside the validator-support packet,
-keep `scripts/zigux/validate-phase3-linux-zigux-header-governance.py`
-explicit in the validator-support packet even though the current broad
+keep `scripts/zigux/check-phase3-abi.py` explicit in this note even though the
+current broad `scripts/zigux/README.md` and `zigux/tests/README.md` summaries
+still route that focused ABI gate through
+`python3 scripts/zigux/run-phase3-checks.py --slug abi`,
+`make -C zigux phase3`, and `Documentation/zigux/phase3-abi-slice.md` instead
+of naming the checker directly, keep
+`scripts/zigux/validate-phase3-linux-zigux-header-governance.py` explicit in
+the validator-support packet even though the current broad
 `scripts/zigux/README.md` and `zigux/tests/README.md` reminders still route
 header-governance context through the paired survey and next-step notes instead
 of naming that validator directly, keep the canonical `include/zigux/dev_t.h`
