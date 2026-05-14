@@ -41,6 +41,9 @@ test "phase 15 governance lane sequencing note keeps the lane family split expli
     try expectContains(note, "zigux/tests/phase15_readiness_gate_manifest.json");
     try expectContains(note, "zigux/tests/phase15_governance_lane_sequencing.zig");
     try expectContains(note, "zigux/tests/phase15_readiness_gate.zig");
+    try expectContains(note, "scripts/zigux/check-phase15-docs-readme-alignment.py");
+    try expectContains(note, "scripts/zigux/check-phase15-scripts-readme-alignment.py");
+    try expectContains(note, "scripts/zigux/check-phase15-shared-summary-gap.py");
     try expectContains(note, "make -C zigux phase15-validate");
     try expectContains(note, "make -C zigux phase15-test");
     try expectContains(note, "make -C zigux phase15");
