@@ -106,7 +106,7 @@ ALLCONFIG_SENTINEL_MODES = {
     "alldefconfig",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 21
+EXPECTED_SELF_TEST_CASE_COUNT = 22
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -333,6 +333,8 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     for case in conf_cases:
         mode = str(case["mode"])
         name = str(case["name"])
+        if name != mode:
+            issues.append(("NONCANONICAL_CONF_CASE_NAMES", f"{name}:{mode}"))
         mode_arg = case.get("mode_arg")
         if mode in ("defconfig", "savedefconfig"):
             if not isinstance(mode_arg, str) or not mode_arg:
@@ -668,6 +670,14 @@ def run_self_test() -> int:
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONF_CASE_MODE_ORDER_ACTUAL" for issue in issues)
         assert any(issue[0] == "CONF_CASE_MODE_ORDER_EXPECTED" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][0]["name"] = "askconfig_alias"
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert ("NONCANONICAL_CONF_CASE_NAMES", "askconfig_alias:oldaskconfig") in issues
         checks_run += 1
 
         build_self_test_root(root)
