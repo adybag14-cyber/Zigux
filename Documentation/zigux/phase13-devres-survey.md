@@ -24,7 +24,7 @@ The Phase 13 roadmap explicitly names `lib/devres.c` as a shared subsystem-helpe
 
 That matters because `lib/devres.c` spans managed allocation, resource lifetime tracking, region reservation, device-tree resource translation, arch memtype cleanup, and neighboring helper families that can quickly drift into live MMIO, live device-tree, or live arch memtype claims if the lane overstates parity.
 
-Current `master` still carries a real helper-first `lib/devres.zig` foothold for managed ioremap lifetime, pure `devm_of_iomap()` translation handoff, and WC token bookkeeping. The highest-value bounded work in this lane is therefore to keep that MMIO-facing packet explicit about what has landed and what live MMIO, live device-tree, live region, and live arch memtype state is still blocked, while DMA or scatterlist ownership stays outside this helper-local packet.
+Current `master` still carries a real helper-first `lib/devres.zig` foothold for managed ioremap lifetime, pure `devm_of_iomap()` translation handoff, and WC token bookkeeping. The highest-value bounded work in this lane is therefore to keep that MMIO-facing packet explicit about what has landed and what live MMIO, device-tree, live region, and arch memtype state is still blocked, while DMA or scatterlist ownership stays outside this helper-local packet.
 
 ## Survey findings
 
@@ -41,12 +41,13 @@ Current `master` still carries a real helper-first `lib/devres.zig` foothold for
 ## Exact Live Readback
 
 - live helper readback on current `master` still shows `.provides_iounmap_call_planning = true`, `pub const ManagedIounmapPlan`, `pub fn planManagedIounmap(`, and `.warns_on_release_miss = !release_matches` in `lib/devres.zig`, so the `devm_iounmap()` planner remains present as shipped evidence rather than as survey-only prose.
+- the same helper readback still shows `.provides_arch_io_wc_memtype_planning = true`, `pub const ManagedMemtypeReserveInput`, `pub const ManagedMemtypeReservePlan`, and `pub fn planArchIoReserveMemtypeWc(` in `lib/devres.zig`, so the `devm_arch_io_reserve_memtype_wc()` detach-cleanup planner remains part of the current helper-first packet.
 - the same helper readback also still shows `pub fn planManagedIoremapResource(`, `.requests_region = true`, and `.releases_region_on_remap_failure = true` in `lib/devres.zig`, so the `__devm_ioremap_resource()` packet still records request-region intent and remap-unwind planning without claiming live region side effects.
 - the same helper readback also still shows `.provides_arch_phys_wc_token_planning = true`, `pub const ManagedPhysWcAddInput`, `pub const ManagedPhysWcAddPlan`, and `pub fn planArchPhysWcAdd(` in `lib/devres.zig`, so the token-style `devm_arch_phys_wc_add()` planner remains part of the current helper-first packet.
-- `Documentation/zigux/phase13-devres-slice.md` still names `devm_iounmap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, `devm_of_iomap()`, and `devm_arch_phys_wc_add()` as shipped helper-first evidence.
-- `zigux/tests/phase13_devres.zig` is still present on current `master` and still replays the exact-match and release-miss `planManagedIounmap()` cases, the managed `devm_ioremap_uc()` and `devm_ioremap_wc()` wrapper paths, the pure `devm_of_iomap()` bridge, and the token-style phys-WC helper.
+- `Documentation/zigux/phase13-devres-slice.md` still names `devm_iounmap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, `devm_of_iomap()`, `devm_arch_io_reserve_memtype_wc()`, and `devm_arch_phys_wc_add()` as shipped helper-first evidence.
+- `zigux/tests/phase13_devres.zig` is still present on current `master` and still replays the exact-match and release-miss `planManagedIounmap()` cases, the managed `devm_ioremap_uc()` and `devm_ioremap_wc()` wrapper paths, the pure `devm_of_iomap()` bridge, the detach-time WC memtype reservation helper, and the token-style phys-WC helper.
 - `zigux/tests/phase13_devres_reviewability.zig` and `zigux/tests/phase13_devres_dma_coherent.zig` are both present on current `master`, while `zigux/tests/phase13_build.zig` is absent on current `master`.
-- `zigux/tests/phase13_devres_manifest.json` now records the same `P13-L01` helper packet and the same live `master-readback-2026-05-14` marker as the survey note, direct replay, and reviewability gate, while also keeping the helper-only DMA/scatterlist boundary explicit beside the blocked live MMIO, live region, device-tree, arch-memtype, and scatterlist-ownership state gaps.
+- `zigux/tests/phase13_devres_manifest.json` now records the same `P13-L01` helper packet and the same live `master-readback-2026-05-14` marker as the survey note, direct replay, and reviewability gate, while also keeping the detach-time WC memtype reservation helper, the helper-only DMA/scatterlist boundary, and the blocked MMIO, live-region, device-tree, arch-memtype, and scatterlist-ownership state gaps explicit beside the coherent-DMA shard.
 - older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift rather than as the current checker label for this helper-first packet.
 
 ## Recorded gaps
@@ -61,6 +62,7 @@ The current lane state is:
 - landed `phase13-devres-reviewability-gate`
 - landed `phase13-devres-iounmap-planner`
 - landed `phase13-devres-of-iomap-planner`
+- landed `phase13-devres-arch-io-wc-memtype-planner`
 - landed `phase13-devres-arch-phys-wc-token-planner`
 - blocked `phase13-devres-live-mmio-mappings`
 - blocked `phase13-devres-live-region-reservation`
@@ -69,7 +71,7 @@ The current lane state is:
 - blocked `phase13-devres-live-arch-memtype-state`
 - blocked `phase13-devres-live-scatterlist-ownership`
 
-This keeps the lane explicit without overstating progress: Zigux has a real helper-first MMIO safety foothold for managed ioremap lifetime planning, exact `devm_iounmap()` matching, pure translated-resource `devm_of_iomap()` handoff, detach-time WC memtype bookkeeping, and direct replay plus reviewability guards, but it still does not claim live MMIO mappings, live region reservation, live release-region mutation, live device-tree walking, live arch memtype state transitions, live scatterlist ownership, or `sg_table` lifecycle control, and it still keeps DMA-backed helper ownership outside this helper-local packet.
+This keeps the lane explicit without overstating progress: Zigux has a real helper-first MMIO safety foothold for managed ioremap lifetime planning, exact `devm_iounmap()` matching, pure translated-resource `devm_of_iomap()` handoff, detach-time WC memtype bookkeeping, detach-time WC token bookkeeping, and direct replay plus reviewability guards, but it still does not claim live MMIO mappings, live region reservation, live release-region mutation, live device-tree walking, live arch memtype state transitions, live scatterlist ownership, or `sg_table` lifecycle control, and it still keeps DMA-backed helper ownership outside this helper-local packet.
 
 ## Non-goals
 
