@@ -8,7 +8,7 @@ This note records the current export shim and starter UAPI boundary evidence tha
 - `PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-shared-review-surface-refresh`
 - `PHASE3_BUILD_ROUTE_OWNERSHIP=export-uapi-packet-owns-current-shared-phase3-build-route-wording-for-the-starter-surface`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
-- `PHASE3_EXPORT_SHIM_BLOB_SHA=1e51196e063f0d1c8acb082ef226c32f804fcd34`
+- `PHASE3_EXPORT_SHIM_BLOB_SHA=87fce1eb48ab80d58282d011a9819ab1e11169bd`
 - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
 - `PHASE3_UAPI_VERSION_BLOB_SHA=393694bf5d3ab3eaf1e8ea81f2cec073b40a50eb`
 - `PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig`
@@ -33,7 +33,7 @@ This note records the current export shim and starter UAPI boundary evidence tha
 
 The blob markers above, together with the shared Phase 3 manifest marker, are the packet-local evidence for the currently shipped starter export shim plus starter UAPI companions on the latest inspected `master` head. On current `master`, this packet stays narrow and routes through the shared Phase 3 build and review surfaces rather than through a dedicated export/UAPI-only replay pair.
 
-- `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared header and compatibility types from `zigux/uapi/version.zig`, by exposing the explicit `compatibilityStatus()` and `requestedExtraBytes()` relays for status-based callers, by adding status-tagged `dev_t` encode and range relays over the shipped starter `zigux/uapi/dev_t.zig` companion, and by keeping success-versus-errno export status normalization reviewable.
+- `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared header and compatibility types from `zigux/uapi/version.zig`, by exposing the explicit `compatibilityStatus()` and `requestedExtraBytes()` relays for status-based callers, by adding status-tagged `dev_t` encode and range relays plus the pure `decodeDeviceNumber()` view over the shipped starter `zigux/uapi/dev_t.zig` companion, and by keeping success-versus-errno export status normalization reviewable.
 - `zigux/uapi/version.zig` keeps the starter boundary-header contract explicit through canonical-versus-future-compatible helpers, accepted-header classification, explicit requested-extra-byte accounting for accepted headers, and canonicalization logic without widening into a deeper runtime-owned ABI claim.
 - `include/linux/zigux.h` keeps the C-facing relay aligned with that starter contract through the named `zigux_boundary_header_make()` canonical constructor, `zigux_boundary_header_make_compatible()` forward-compatible constructor, and the thin `zigux_boundary_header_is_current_abi_version()`, `zigux_boundary_header_is_compatible_size()`, and `zigux_boundary_header_is_canonical_size()` predicates, without turning the Linux-facing header into a second ABI home.
 - `zigux/uapi/dev_t.zig` is now part of the shipped starter UAPI packet on current `master`, keeping the bounded chrdev encode, decode, and range checks readable beside the shared `include/zigux/dev_t.h` contract and `zigux/bindings/dev_t.zig` mirror.
