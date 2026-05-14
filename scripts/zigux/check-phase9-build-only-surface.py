@@ -41,6 +41,11 @@ FREEZE_MAP_TRACE_BOUNDARY_MARKER = (
 PREPARED_STATE_LANDED_MARKER = (
     "direct readback now also shows `zigux/tests/runtime_loader_allocator_init_flow.zig` already keeps the prepared-plan drift replay explicit across rejected `requestRuntimeLoad()` calls"
 )
+PREPARED_STATE_EXPLICIT_ASSERTION_MARKER = """request.plan.module_name = \"runtime_trace_events_drift\";
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectEqualStrings(stable_plan.module_name, request.prepared_plan.module_name);"""
 GAP_SURVEY_DRIFT_MARKER = (
     "direct readback now also shows `scripts/zigux/README.md` and `zigux/tests/README.md` both keep `zigux/tests/runtime_loader_gap_survey.zig` explicit beside the shared loader-facing packet, so the remaining shared reminder follow-through has narrowed back to reviewer-facing truthfulness around the still-blocked module-metadata and depmod-publication boundary instead of loader-gap inventory sync"
 )
@@ -191,7 +196,8 @@ REQUIRED_MARKERS = {
         "phase 9 runtime loader allocator/init-flow replay rejects missing-init, premature-selftest, exited, duplicate-init, duplicate-selftest, or incomplete handoffs",
         "phase 9 runtime loader allocator/init-flow replay keeps prepared snapshots pinned when requestRuntimeLoad sees prepared-plan drift",
         "runtime_loader.keepsAllocatorInitFlowConsistent(",
-        "try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());",
+        "request.plan.allocator_handoff = .arena;",
+        PREPARED_STATE_EXPLICIT_ASSERTION_MARKER,
     ],
     LOADER_GAP_MANIFEST_PATH: [
         '"lane_key": "P9-L18"',
@@ -521,7 +527,7 @@ def run_self_test() -> int:
         allocator_init_flow = allocator_init_flow_path.read_text(encoding="utf-8")
         allocator_init_flow_path.write_text(
             allocator_init_flow.replace(
-                "try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());",
+                "request.plan.allocator_handoff = .arena;",
                 "",
                 1,
             ),
@@ -529,7 +535,19 @@ def run_self_test() -> int:
         )
         expect_failure(
             base,
-            "missing_marker:zigux/tests/runtime_loader_allocator_init_flow.zig:try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());",
+            "missing_marker:zigux/tests/runtime_loader_allocator_init_flow.zig:request.plan.allocator_handoff = .arena;",
+        )
+
+        write_fixture_tree(base)
+        allocator_init_flow_path = base / ALLOCATOR_INIT_FLOW_PATH
+        allocator_init_flow = allocator_init_flow_path.read_text(encoding="utf-8")
+        allocator_init_flow_path.write_text(
+            allocator_init_flow.replace(PREPARED_STATE_EXPLICIT_ASSERTION_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{ALLOCATOR_INIT_FLOW_PATH}:{PREPARED_STATE_EXPLICIT_ASSERTION_MARKER}",
         )
 
         write_fixture_tree(base)
