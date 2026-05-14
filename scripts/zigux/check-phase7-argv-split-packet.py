@@ -50,7 +50,7 @@ REQUIRED_MARKERS = {
         "self.* = .{",
     ],
     "zigux/tests/phase7_argv_split.zig": [
-        'const phase7_vectors = @import("fixtures/phase7_argv_split_vectors.zig");',
+        "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");",
         "phase 7 argvSplit matches focused parity fixtures",
         "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
         "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
@@ -63,7 +63,7 @@ REQUIRED_MARKERS = {
         "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
-        'const active_lane_key = "P7-L09";',
+        "const active_lane_key = \"P7-L09\";",
         "try std.testing.expectEqualStrings(active_lane_key, manifest.lane_key);",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "zigux/tests/phase7_argv_split_manifest.json",
@@ -79,27 +79,28 @@ REQUIRED_MARKERS = {
         "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
-        '"lane_key": "P7-L09"',
-        '"anchor": "lib/argv_split.c"',
-        '"argv_split_pair_compile": {',
-        '"status": "confirmed"',
-        '"lib/argv_split.zig"',
-        '"zigux/tests/phase7_argv_split.zig"',
-        '"countArgc"',
-        '"argvSplit"',
-        '"argvSplitWithArgc"',
-        '"cArgv"',
-        '"argvFree"',
-        '"deinit"',
+        "\"lane_key\": \"P7-L09\"",
+        "\"anchor\": \"lib/argv_split.c\"",
+        "\"argv_split_pair_compile\": {",
+        "\"status\": \"confirmed\"",
+        "\"lib/argv_split.zig\"",
+        "\"zigux/tests/phase7_argv_split.zig\"",
+        "\"countArgc\"",
+        "\"argvSplit\"",
+        "\"argvSplitWithArgc\"",
+        "\"cArgv\"",
+        "\"argvFree\"",
+        "\"deinit\"",
         "copied token-buffer ownership and later source-mutation isolation",
+        "owned-storage reuse keeps token pointers inside caller-managed storage",
         "non-blank results keep storage, argv slices, and C-argv views distinct across callers",
         "blank-input sentinel reuse stays stable across argvFree and deinit, including shared empty-sentinel teardown beside another blank caller",
     ],
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": [
-        '.name = "repeated whitespace collapses into separators"',
-        '.name = "whitespace before first NUL stays blank"',
-        '.name = "leading NUL truncates to zero argv entries"',
-        '.name = "quote characters stay inside returned tokens"',
+        ".name = \"repeated whitespace collapses into separators\"",
+        ".name = \"whitespace before first NUL stays blank\"",
+        ".name = \"leading NUL truncates to zero argv entries\"",
+        ".name = \"quote characters stay inside returned tokens\"",
     ],
 }
 
@@ -253,15 +254,29 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json",
+            "owned-storage reuse keeps token pointers inside caller-managed storage",
+            "",
+            "manifest_storage_pointer_marker",
+        )
+        expect_missing_marker(
+            "manifest_storage_pointer_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json: owned-storage reuse keeps token pointers inside caller-managed storage",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig",
-            'const active_lane_key = "P7-L09";',
+            "const active_lane_key = \"P7-L09\";",
             "",
             "survey_lane_key_marker",
         )
         expect_missing_marker(
             "survey_lane_key_marker",
             tmp_root,
-            'zigux/tests/phase7_argv_split_survey.zig: const active_lane_key = "P7-L09";',
+            "zigux/tests/phase7_argv_split_survey.zig: const active_lane_key = \"P7-L09\";",
         )
         write_fixture_root(tmp_root)
 
@@ -296,14 +311,14 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-            '.name = "quote characters stay inside returned tokens"',
+            ".name = \"quote characters stay inside returned tokens\"",
             "",
             "fixture_quote_marker",
         )
         expect_missing_marker(
             "fixture_quote_marker",
             tmp_root,
-            'zigux/tests/fixtures/phase7_argv_split_vectors.zig: .name = "quote characters stay inside returned tokens"',
+            "zigux/tests/fixtures/phase7_argv_split_vectors.zig: .name = \"quote characters stay inside returned tokens\"",
         )
         write_fixture_root(tmp_root)
 
@@ -320,7 +335,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: pub fn cArgv",
         )
 
-    case_count = 12
+    case_count = 13
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
