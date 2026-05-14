@@ -74,7 +74,7 @@ The directly readable sample still keeps these cues visible on current `master`:
 
 ## Exact checks verified on 2026-05-14
 
-A focused `zig test samples/zigux/bytestream_fifo.zig` replay against the current `master` sample file passed all six in-file checks. The exact verified checks were:
+Fresh direct readback of `samples/zigux/bytestream_fifo.zig` on 2026-05-14 shows eight in-file `test` blocks on current `master`. Those directly readable checks cover:
 
 - descriptor, Linux anchor, and review packet markers stay aligned: `bytestream_fifo`, `samples/kfifo/bytestream-example.c`, `requires_runtime_substrate = false`, `provides_selfcheck = true`, `StorageBacking.embedded_fixed_buffer`, the ten-item `reviewContract().focus` order, and the four non-goals all match the current sample packet
 - `runAnchorReplay()` still proves the bounded FIFO replay body exactly: `"hello"` drains first, `{ 0, 1 }` is requeued, `skipByte()` removes `2`, `peekByte()` then sees `3`, `previewInto()` reports `copied = 8`, `total_visible = 32`, and `truncated = true`, `snapshotInto()` captures the full 32-byte queue, the fill range remains `20` through `42`, and the final drained sequence is `[3, 4, 5, 6, 7, 8, 9, 0, 1, 20..42]`
@@ -90,11 +90,11 @@ A focused `zig test samples/zigux/bytestream_fifo.zig` replay against the curren
 
 ## Latest verification snapshot
 
-The latest full-packet replay snapshot still preserved in the coupled survey gate remains useful as a compatibility record even though the current direct sample-local replay above now covers six in-file checks.
+The latest full-packet replay snapshot still preserved in the coupled survey gate remains useful as a compatibility record even though fresh direct sample-file readback above now shows eight in-file `test` blocks on current `master`.
 
 - `0.17.0-dev.87+9b177a7d2`
 - `zig test samples/zigux/bytestream_fifo.zig`
-- passed `5/5` sample self-checks
+- the preserved sample-local replay snapshot predates the current eight-test sample file and recorded `5/5` sample self-checks at that time
 - shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route for the bytestream packet without relying on a brittle aggregate build-step or test count
 - passed `5/5` build steps and `8/8` tests
 - `len_after_initial_fill = 15`
