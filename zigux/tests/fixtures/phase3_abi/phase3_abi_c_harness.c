@@ -58,7 +58,7 @@ int main(void)
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped\":%u,"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied\":%u,"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied\":%u,"
-        "\"chrdev_notify_ack_window_policy_budget_WINDOW_delivery_window_budget_window_status_skipped\":%u,"
+        "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped\":%u,"
         "\"notifier_done\":%u,"
         "\"notifier_ok\":%u,"
         "\"notifier_stop\":%u"
@@ -155,7 +155,7 @@ int main(void)
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, applied),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, skipped),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, delivered),
-        sizeof(struct zigux_chrdev_notify_ack_WINDOW_policy_budget_window_delivery_window_budget_view),
+        sizeof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view),
         _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view, budget),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view, window),
