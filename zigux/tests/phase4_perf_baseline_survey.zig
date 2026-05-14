@@ -231,6 +231,13 @@ test "phase4 perf baseline survey keeps the shared gate-evidence perf-governance
     );
 }
 
+test "phase4 perf baseline survey keeps the dedicated local checker mention in the shared gate-evidence note explicit" {
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-gate-evidence.md",
+        "its manifest, survey, and dedicated local checker exact-pin the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.",
+    );
+}
+
 test "phase4 perf baseline survey keeps the reversible-delivery perf-governance packet aligned" {
     try requireRepoMarker(
         "Documentation/zigux/phase4-reversible-delivery-evidence.md",
