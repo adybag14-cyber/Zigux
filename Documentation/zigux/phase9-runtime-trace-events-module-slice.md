@@ -54,7 +54,7 @@ This module-slice note owns the narrow trace-events family statement that sits b
 
 The honest current review posture is:
 
-- the family-local trace-events sample, loader, module, diff, survey, and manifest packet is visible on current `master`
+- the family-local trace-events sample, loader, loader-substrate-drift replay, module, diff, survey, and manifest packet is visible on current `master`
 - the family-local module gate already proves the bounded pilot-module contract and the selftest-ready failed exit that preserves the current replay summary until registration drain completes
 - the shared Phase 9 loader-facing packet is also shipped and reviewable
 - the packet still remains review-first because runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior still depend on the missing live runtime substrate
