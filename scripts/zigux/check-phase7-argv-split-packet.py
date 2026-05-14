@@ -56,10 +56,12 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_argv_split.zig": [
         "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");",
         "phase 7 argvSplit matches focused parity fixtures",
+        "phase 7 argvSplit token buffer does not alias the source text",
         "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
         "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on a non-blank result restores the canonical blank sentinels",
+        "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
@@ -333,6 +335,34 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "zigux/tests/phase7_argv_split.zig",
+            "phase 7 argvSplit token buffer does not alias the source text",
+            "",
+            "tests_source_isolation_marker",
+        )
+        expect_missing_marker(
+            "tests_source_isolation_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit token buffer does not alias the source text",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig",
+            "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
+            "",
+            "tests_shared_blank_deinit_marker",
+        )
+        expect_missing_marker(
+            "tests_shared_blank_deinit_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig",
             "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
             "",
             "tests_argv_free_marker",
@@ -385,7 +415,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: pub fn cArgv",
         )
 
-    case_count = 16
+    case_count = 18
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
