@@ -199,6 +199,17 @@ REQUIRED_CONTRACT_MARKERS = [
     "The dedicated archival HVC evidence still stays explicit beside that shared route:",
 ]
 
+REQUIRED_CLOSURE_NOTE_MARKERS = [
+    "PHASE11_CLOSURE_STATUS=shared_packet_truthful",
+    "scope: keep the shared Phase 11 closure story honest while the driver-local bcm2835, gpio, DesignWare, HVC, and header-boundary lanes stay parked on their own reminder notes and dedicated checkers",
+    "bcm2835, gpio, DesignWare, HVC, and header-boundary continuity still live in their dedicated docs-root notes and `scripts/zigux/check-phase11-*.py` packet checkers",
+]
+
+REQUIRED_LANE_SEQUENCING_MARKERS = [
+    "shared header-boundary evidence stays split: deterministic checker drift belongs to `P11-L11` through `scripts/zigux/check-phase11-header-boundary-packet.py`, while the public header-boundary reminder note stays adjacent shared evidence rather than HVC or contributor-note ownership",
+    "Treat the shared header-boundary packet as adjacent public-surface evidence, not as a fifth driver port; keep deterministic checker drift with `P11-L11` and contributor-note wording with `P11-L18` instead of folding either surface into the HVC lane.",
+]
+
 REQUIRED_HVC_HEADER_MARKERS = [
     "struct hv_ops {",
     "int (*get_chars)(uint32_t vtermno, char *buf, int count);",
@@ -304,12 +315,16 @@ def check_repo(root: Path) -> None:
     survey = read_text(root, "zigux/tests/phase11_uapi_header_parity_survey.zig")
     build = read_text(root, "zigux/tests/phase11_build.zig")
     contract = read_text(root, "Documentation/zigux/phase11-shared-replay-contract.md")
+    closure_note = read_text(root, "Documentation/zigux/phase11-closure-note.md")
+    lane_sequencing = read_text(root, "Documentation/zigux/phase11-driver-lane-sequencing.md")
     hvc_header = read_text(root, "drivers/tty/hvc/hvc_console.h")
 
     require_markers(note, REQUIRED_NOTE_MARKERS + [manifest["surveyed_commit"]], "note")
     require_markers(survey, REQUIRED_SURVEY_MARKERS, "survey")
     require_markers(build, REQUIRED_BUILD_MARKERS, "build")
     require_markers(contract, REQUIRED_CONTRACT_MARKERS, "contract")
+    require_markers(closure_note, REQUIRED_CLOSURE_NOTE_MARKERS, "closure_note")
+    require_markers(lane_sequencing, REQUIRED_LANE_SEQUENCING_MARKERS, "lane_sequencing")
     require_markers(hvc_header, REQUIRED_HVC_HEADER_MARKERS, "hvc_header")
 
 
@@ -369,6 +384,16 @@ def build_fixture_repo(root: Path) -> None:
         root,
         "Documentation/zigux/phase11-shared-replay-contract.md",
         "\n".join(REQUIRED_CONTRACT_MARKERS) + "\n",
+    )
+    write_text(
+        root,
+        "Documentation/zigux/phase11-closure-note.md",
+        "\n".join(REQUIRED_CLOSURE_NOTE_MARKERS) + "\n",
+    )
+    write_text(
+        root,
+        "Documentation/zigux/phase11-driver-lane-sequencing.md",
+        "\n".join(REQUIRED_LANE_SEQUENCING_MARKERS) + "\n",
     )
     write_text(
         root,
@@ -471,6 +496,20 @@ def run_self_test() -> int:
         )
         expect_failure(
             root,
+            "Documentation/zigux/phase11-closure-note.md",
+            "PHASE11_CLOSURE_STATUS=shared_packet_truthful",
+            "PHASE11_CLOSURE_STATUS=starter_packet_reviewable",
+            "closure_note missing markers",
+        )
+        expect_failure(
+            root,
+            "Documentation/zigux/phase11-driver-lane-sequencing.md",
+            "shared header-boundary evidence stays split: deterministic checker drift belongs to `P11-L11` through `scripts/zigux/check-phase11-header-boundary-packet.py`, while the public header-boundary reminder note stays adjacent shared evidence rather than HVC or contributor-note ownership",
+            "shared header-boundary evidence stays split: deterministic checker drift belongs to `P11-L18` through `scripts/zigux/check-phase11-header-boundary-packet.py`, while the public header-boundary reminder note stays adjacent shared evidence rather than HVC or contributor-note ownership",
+            "lane_sequencing missing markers",
+        )
+        expect_failure(
+            root,
             "drivers/tty/hvc/hvc_console.h",
             "MAX_NR_HVC_CONSOLES",
             "HVC_CONSOLE_LIMIT_MARKER_MISSING",
@@ -554,7 +593,7 @@ def run_self_test() -> int:
             "build inventory shared_split_replays mismatch",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=22")
+    print("phase11-header-boundary-packet: self-test cases=24")
     return 0
 
 
