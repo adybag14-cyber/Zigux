@@ -36,6 +36,14 @@
     "match_string",
     "sysfsMatchString",
     "__sysfs_match_string",
+    "stringUnescape",
+    "string_unescape",
+    "stringUnescapeInplace",
+    "string_unescape_inplace",
+    "stringUnescapeAny",
+    "string_unescape_any",
+    "stringUnescapeAnyInplace",
+    "string_unescape_any_inplace",
     "memcpyAndPad",
     "memcpy_and_pad",
     "strreplace"
@@ -45,6 +53,7 @@
     "first-NUL-bounded whitespace trimming and prefix skipping",
     "newline-aware sysfs string equality",
     "null-sentinel table matching through the first NULL entry",
+    "bounded string unescaping across space, octal, hex, and special escape families",
     "bounded memcpy-and-pad copy semantics",
     "in-place replacement inside the exported C-string prefix",
     "shared no-sample boundary and validator-backed reviewability"
