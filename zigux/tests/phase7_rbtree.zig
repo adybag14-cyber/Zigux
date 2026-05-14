@@ -237,6 +237,47 @@ test "phase 7 rbtree cached helpers return leftmost handoff state" {
     try std.testing.expectEqual(@as(?*rbtree.Node, &entries[0].node), rbtree.first(&root.root));
 }
 
+test "phase 7 rbtree eraseInitCached clears detached cached nodes and keeps cached roots reusable" {
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var reseed = Entry{ .key = 6 };
+    var root = rbtree.RootCached.init();
+
+    for (&entries) |*entry| {
+        _ = rbtree.addCached(&entry.node, &root, less);
+    }
+
+    rbtree.eraseInitCached(&entries[1].node, &root);
+    try std.testing.expect(rbtree.emptyNode(&entries[1].node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[0].node), rbtree.firstCached(&root));
+    try std.testing.expectEqual(rbtree.first(&root.root), rbtree.firstCached(&root));
+
+    rbtree.eraseInitCached(&entries[0].node, &root);
+    try std.testing.expect(rbtree.emptyNode(&entries[0].node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[2].node), rbtree.firstCached(&root));
+    try std.testing.expectEqual(rbtree.first(&root.root), rbtree.firstCached(&root));
+
+    rbtree.eraseInitCached(&entries[2].node, &root);
+    try std.testing.expect(rbtree.emptyNode(&entries[2].node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.firstCached(&root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), root.root.node);
+
+    try std.testing.expectEqual(@as(?*rbtree.Node, &reseed.node), rbtree.addCached(&reseed.node, &root, less));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &reseed.node), rbtree.firstCached(&root));
+    try std.testing.expectEqual(rbtree.first(&root.root), rbtree.firstCached(&root));
+}
+
 test "phase 7 rbtree eraseCached clears final cached-leftmost handoff state" {
     const less = struct {
         fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
