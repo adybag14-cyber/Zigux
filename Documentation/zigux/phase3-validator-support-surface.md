@@ -51,6 +51,7 @@ Phase 3 ABI and runtime tranche.
 - `python3 scripts/zigux/generate-phase3-check-wrappers.py --check`
 - `python3 scripts/zigux/run-phase3-checks.py --self-test`
 - `python3 scripts/zigux/run-phase3-checks.py --slug abi`
+- `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `make -C zigux phase3-validate`
 - `make -C zigux phase3-selftest`
 - `make -C zigux phase3-low-level-wrappers-test`
@@ -101,8 +102,9 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`,
 `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`,
 `zigux/tests/phase3_low_level_wrappers.zig`,
-`zigux/tests/phase3_low_level_wrappers_build.zig`, `include/zigux/dev_t.h`,
-`zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/abi.zig`,
+`zigux/tests/phase3_low_level_wrappers_build.zig`,
+`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`,
+`include/zigux/dev_t.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/abi.zig`,
 `make -C zigux phase3-selftest`, and
 `make -C zigux phase3-low-level-wrappers-test`; keep the dedicated
 policy-survey validator, policy-byte guard, focused low-level wrapper replay,
