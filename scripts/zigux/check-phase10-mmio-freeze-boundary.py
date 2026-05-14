@@ -74,6 +74,8 @@ TEXT_MARKERS = {
     ],
     "Documentation/zigux/phase10-closure-evidence.md": [
         "`Documentation/zigux/freeze-map.md`",
+        "`drivers/virtio/virtio_mmio.zig`",
+        "`drivers/virtio/virtio_mmio_verify.zig`",
         "risky transport work is still blocked",
         "dual-implementation requirement remains parked",
         "Architecture Council reopen remains unattached",
@@ -291,6 +293,12 @@ def run_self_test() -> int:
                 "freeze-map.md:`kernel/workqueue.c`",
             ),
             (
+                "Documentation/zigux/phase10-closure-evidence.md",
+                "`drivers/virtio/virtio_mmio_verify.zig`",
+                "`drivers/virtio/virtio_mmio_verify_missing.zig`",
+                "phase10-closure-evidence.md:`drivers/virtio/virtio_mmio_verify.zig`",
+            ),
+            (
                 "Documentation/zigux/phase10-virtio-mmio-survey.md",
                 "Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.",
                 "Allowed evidence for this lane remains limited to direct transport execution.",
@@ -352,7 +360,7 @@ def run_self_test() -> int:
         run_manifest_case(root)
 
     print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
