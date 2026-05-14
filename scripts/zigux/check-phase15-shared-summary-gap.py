@@ -30,6 +30,14 @@ SEQUENCING_MARKER = "Documentation/zigux/phase15-governance-lane-sequencing.md"
 CHECKER_MARKER = "scripts/zigux/check-phase15-shared-summary-gap.py"
 ALIGNMENT_CHECKER_MARKER = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
 LANE_OWNER_ALIGNMENT_MARKER = "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
+VALIDATE_MARKER = "scripts/zigux/validate-phase15.py"
+HANDOFF_CHECKER_MARKER = "scripts/zigux/check-phase15-review-process-handoff.py"
+HANDOFF_MANIFEST_MARKER = "zigux/tests/phase15_handoff_next_steps_manifest.json"
+READINESS_MANIFEST_MARKER = "zigux/tests/phase15_readiness_gate_manifest.json"
+PHASE15_VALIDATE_ROUTE = "make -C zigux phase15-validate"
+PHASE15_TEST_ROUTE = "make -C zigux phase15-test"
+PHASE15_ROUTE = "make -C zigux phase15"
+NO_APPROVAL_MARKER = "no-approval-yet posture"
 
 FILE_MARKERS = {
     DOCS_README_REL: (
@@ -40,24 +48,47 @@ FILE_MARKERS = {
         SEQUENCING_MARKER,
         ALIGNMENT_CHECKER_MARKER,
         LANE_OWNER_ALIGNMENT_MARKER,
-        "make -C zigux phase15-validate",
-        "make -C zigux phase15-test",
-        "make -C zigux phase15",
+        PHASE15_VALIDATE_ROUTE,
+        PHASE15_TEST_ROUTE,
+        PHASE15_ROUTE,
     ),
     REVIEW_CHECKLIST_REL: (
-        SURVEY_MARKER,
         "shared Phase 15 governance packet",
+        SURVEY_MARKER,
+        READINESS_MARKER,
+        HANDOFF_MARKER,
+        SEQUENCING_MARKER,
+        VALIDATE_MARKER,
+        ALIGNMENT_CHECKER_MARKER,
+        HANDOFF_CHECKER_MARKER,
+        HANDOFF_MANIFEST_MARKER,
+        READINESS_MANIFEST_MARKER,
+        PHASE15_VALIDATE_ROUTE,
+        PHASE15_TEST_ROUTE,
+        PHASE15_ROUTE,
+        NO_APPROVAL_MARKER,
     ),
     SCRIPTS_README_REL: (
-        SURVEY_MARKER,
         "Phase 15 flow",
+        SURVEY_MARKER,
+        READINESS_MARKER,
+        HANDOFF_MARKER,
+        SEQUENCING_MARKER,
+        VALIDATE_MARKER,
+        ALIGNMENT_CHECKER_MARKER,
+        HANDOFF_CHECKER_MARKER,
+        HANDOFF_MANIFEST_MARKER,
+        READINESS_MANIFEST_MARKER,
+        PHASE15_VALIDATE_ROUTE,
+        PHASE15_TEST_ROUTE,
+        PHASE15_ROUTE,
     ),
     TESTS_README_REL: (
         SEQUENCING_MARKER,
         "zigux/tests/phase15_governance_lane_sequencing.zig",
-        "make -C zigux phase15-validate",
-        "make -C zigux phase15-test",
-        "make -C zigux phase15",
+        PHASE15_VALIDATE_ROUTE,
+        PHASE15_TEST_ROUTE,
+        PHASE15_ROUTE,
     ),
     LANE_NOTE_REL: (
         SURVEY_MARKER,
@@ -106,21 +137,58 @@ def _seed(root: Path) -> None:
                 SEQUENCING_MARKER,
                 ALIGNMENT_CHECKER_MARKER,
                 LANE_OWNER_ALIGNMENT_MARKER,
-                "make -C zigux phase15-validate",
-                "make -C zigux phase15-test",
-                "make -C zigux phase15",
+                PHASE15_VALIDATE_ROUTE,
+                PHASE15_TEST_ROUTE,
+                PHASE15_ROUTE,
                 "",
             )
         ),
     )
     _write(
         root / REVIEW_CHECKLIST_REL,
-        "# review\nshared Phase 15 governance packet\nDocumentation/zigux/phase15-parity-scorecard-survey.md\n",
+        "\n".join(
+            (
+                "# review",
+                "shared Phase 15 governance packet",
+                SURVEY_MARKER,
+                READINESS_MARKER,
+                HANDOFF_MARKER,
+                SEQUENCING_MARKER,
+                VALIDATE_MARKER,
+                ALIGNMENT_CHECKER_MARKER,
+                HANDOFF_CHECKER_MARKER,
+                HANDOFF_MANIFEST_MARKER,
+                READINESS_MANIFEST_MARKER,
+                PHASE15_VALIDATE_ROUTE,
+                PHASE15_TEST_ROUTE,
+                PHASE15_ROUTE,
+                NO_APPROVAL_MARKER,
+                "",
+            )
+        ),
     )
     _write(root / "Documentation/zigux/phase15-parity-scorecard-survey.md", "# survey\n")
     _write(
         root / SCRIPTS_README_REL,
-        "# scripts\nPhase 15 flow\nDocumentation/zigux/phase15-parity-scorecard-survey.md\n",
+        "\n".join(
+            (
+                "# scripts",
+                "Phase 15 flow",
+                SURVEY_MARKER,
+                READINESS_MARKER,
+                HANDOFF_MARKER,
+                SEQUENCING_MARKER,
+                VALIDATE_MARKER,
+                ALIGNMENT_CHECKER_MARKER,
+                HANDOFF_CHECKER_MARKER,
+                HANDOFF_MANIFEST_MARKER,
+                READINESS_MANIFEST_MARKER,
+                PHASE15_VALIDATE_ROUTE,
+                PHASE15_TEST_ROUTE,
+                PHASE15_ROUTE,
+                "",
+            )
+        ),
     )
     _write(
         root / TESTS_README_REL,
@@ -129,9 +197,9 @@ def _seed(root: Path) -> None:
                 "# tests",
                 SEQUENCING_MARKER,
                 "zigux/tests/phase15_governance_lane_sequencing.zig",
-                "make -C zigux phase15-validate",
-                "make -C zigux phase15-test",
-                "make -C zigux phase15",
+                PHASE15_VALIDATE_ROUTE,
+                PHASE15_TEST_ROUTE,
+                PHASE15_ROUTE,
                 "",
             )
         ),
@@ -227,12 +295,72 @@ def run_self_test() -> int:
         _seed(root)
         case_count += 1
 
+        path = root / REVIEW_CHECKLIST_REL
+        _write(path, _read(path).replace(READINESS_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{REVIEW_CHECKLIST_REL}:missing:{READINESS_MARKER}"],
+            "review_checklist_missing_readiness",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / REVIEW_CHECKLIST_REL
+        _write(path, _read(path).replace(VALIDATE_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{REVIEW_CHECKLIST_REL}:missing:{VALIDATE_MARKER}"],
+            "review_checklist_missing_validate_route",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / REVIEW_CHECKLIST_REL
+        _write(path, _read(path).replace(HANDOFF_MANIFEST_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{REVIEW_CHECKLIST_REL}:missing:{HANDOFF_MANIFEST_MARKER}"],
+            "review_checklist_missing_handoff_manifest",
+        )
+        _seed(root)
+        case_count += 1
+
         path = root / SCRIPTS_README_REL
         _write(path, _read(path).replace(SURVEY_MARKER + "\n", "", 1))
         _assert_only(
             validate(root),
             [f"{SCRIPTS_README_REL}:missing:{SURVEY_MARKER}"],
             "scripts_readme_missing_survey",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / SCRIPTS_README_REL
+        _write(path, _read(path).replace(READINESS_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{SCRIPTS_README_REL}:missing:{READINESS_MARKER}"],
+            "scripts_readme_missing_readiness",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / SCRIPTS_README_REL
+        _write(path, _read(path).replace(VALIDATE_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{SCRIPTS_README_REL}:missing:{VALIDATE_MARKER}"],
+            "scripts_readme_missing_validate_route",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / SCRIPTS_README_REL
+        _write(path, _read(path).replace(READINESS_MANIFEST_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{SCRIPTS_README_REL}:missing:{READINESS_MANIFEST_MARKER}"],
+            "scripts_readme_missing_readiness_manifest",
         )
         _seed(root)
         case_count += 1
@@ -273,8 +401,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the current Phase 15 shared summaries keep the parity-scorecard survey, "
-            "readiness and handoff reminders, lane-sequencing note, docs-root alignment checker, "
-            "lane-owner alignment surface, and replay-route packet explicit."
+            "readiness and handoff reminders, lane-sequencing note, validator-route packet, "
+            "scripts-root alignment checker, manifest reminders, lane-owner alignment surface, "
+            "and replay-route packet explicit."
         )
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
