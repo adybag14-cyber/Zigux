@@ -265,6 +265,14 @@
       "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py",
       "perf_corpus_boundary": "keep the committed std and urlsafe slowdown baselines in phase6_base64_vectors.zig and gate IMAP slowdown coverage behind a later explicit perfReferenceSupportedVariant() baseline change"
     },
+    "hexdump": {
+      "focused_replay": "zigux/tests/phase6_hexdump.zig",
+      "focused_replay_fixture": "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
+      "perf_replay": "zigux/tests/phase6_hexdump_perf.zig",
+      "perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf_matrix.zig",
+      "perf_refresh_note": "Documentation/zigux/phase6-hexdump-perf-refresh.md",
+      "fixture_scope": "keep the committed empty plain and empty ASCII zero-length rows plus the four hexdump slowdown cases in phase6_hexdump_vectors.zig aligned with the focused helper replay, the dedicated perf replay, and the perf-matrix preflight instead of widening into generated fixture churn"
+    },
     "inline_corpus_governance": {
       "bsearch": {
         "focused_replay": "zigux/tests/phase6_bsearch.zig",
