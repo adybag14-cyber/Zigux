@@ -14,6 +14,7 @@ SCRIPT_PREFIX = "check-phase3-"
 
 ABI_COMMAND_PLAN = (
     (sys.executable, "scripts/zigux/check-phase3-abi.py"),
+    (sys.executable, "scripts/zigux/check-phase3-abi-dump-gate.py"),
     (sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"),
     (sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
     (sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
@@ -147,6 +148,7 @@ def run_self_test() -> int:
     assert run_command_plan(abi_plan, ROOT, runner=fake_runner_ok) == 0
     assert observed_calls == [
         ((sys.executable, "scripts/zigux/check-phase3-abi.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/check-phase3-abi-dump-gate.py"), ROOT, False),
         ((sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"), ROOT, False),
         ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"), ROOT, False),
         ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),
@@ -165,7 +167,7 @@ def run_self_test() -> int:
     assert run_command_plan(abi_plan, ROOT, runner=fake_runner_fail_second) == 7
     assert observed_calls == [
         ((sys.executable, "scripts/zigux/check-phase3-abi.py"), ROOT, False),
-        ((sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/check-phase3-abi-dump-gate.py"), ROOT, False),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_check_lib_") as tmp_dir_str:
