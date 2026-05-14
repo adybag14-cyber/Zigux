@@ -344,9 +344,12 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         manifest.gaps[0].why_now,
     );
 
+    const loader_scaffold_why_now = deliveryEvidenceWhyNowForId(manifest, "trace-events-loader-scaffold") orelse return error.ExpectedLoaderScaffoldDeliveryEvidence;
     const loader_substrate_drift_why_now = deliveryEvidenceWhyNowForId(manifest, "trace-events-loader-substrate-drift") orelse return error.ExpectedLoaderSubstrateDriftDeliveryEvidence;
     const survey_note_why_now = deliveryEvidenceWhyNowForId(manifest, "trace-events-survey-note") orelse return error.ExpectedSurveyNoteDeliveryEvidence;
     const module_slice_note_why_now = deliveryEvidenceWhyNowForId(manifest, "trace-events-module-slice-note") orelse return error.ExpectedModuleSliceDeliveryEvidence;
+    try expectContains(loader_scaffold_why_now, "rejects non-idle registration state at the metadata-only handoff boundary");
+    try expectContains(loader_scaffold_why_now, "keeps shared release failures from desynchronizing loader state");
     try expectContains(loader_substrate_drift_why_now, "dedicated loader-substrate-drift replay");
     try expectContains(loader_substrate_drift_why_now, "selftest-complete and initialized-stage handoffs");
     try expectContains(survey_note_why_now, "selftest-ready failed-exit rollback cue");
@@ -373,6 +376,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     try expectContains(
         survey_note,
+        "rejects non-idle registration state at the metadata-only handoff boundary, and keeps shared release failures from desynchronizing loader state",
+    );
+    try expectContains(
+        survey_note,
         "keep this survey note and `zigux/tests/runtime_trace_events_survey.zig` aligned with the already-landed `zigux/tests/runtime_trace_events_loader_substrate_drift.zig` replay and the focused `phase9-runtime-trace-events-tests` route",
     );
     try expectContains(survey_note, "The remaining blocker is the broader Phase 9 runtime substrate.");
@@ -394,6 +401,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(
         module_slice_note,
         "the family-local module gate owns the selftest-ready failed-exit rollback path that preserves lifecycle state until registration drain finishes, while still leaving the broader runtime-substrate handoff as a separate blocked step.",
+    );
+    try expectContains(
+        module_slice_note,
+        "rejects non-idle registration state at the metadata-only handoff boundary, and keeps shared release failures from desynchronizing loader state",
     );
     try expectContains(
         module_slice_note,
@@ -439,7 +450,15 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     try expectContains(
         runtime_trace_events_loader,
+        "test \"runtime trace-events loader rejects non-idle registration state at the metadata-only handoff boundary\" {",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
         "test \"runtime trace-events loader keeps selftest-ready single registration drain explicit before shared handoff\" {",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "test \"runtime trace-events loader keeps shared release failures from desynchronizing loader state\" {",
     );
     try expectContains(
         runtime_trace_events_loader,
