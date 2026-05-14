@@ -69,6 +69,17 @@ pub const PreRegistrationBoundaryReplay = struct {
     rejected_store: bool,
 };
 
+pub const SingleInitBoundaryReplay = struct {
+    anchor: []const u8,
+    stage_before_second_init: SampleStage,
+    stage_after_second_init: SampleStage,
+    active_attr_count: usize,
+    init_runs: usize,
+    register_runs: usize,
+    exit_runs: usize,
+    rejected_second_init: bool,
+};
+
 pub const InputValidationReplay = struct {
     anchor: []const u8,
     stage_before_validation_checks: SampleStage,
@@ -291,6 +302,30 @@ pub const KobjectExampleSample = struct {
             .active_attr_count = self.active_attr_count,
             .rejected_show = rejected_show,
             .rejected_store = rejected_store,
+        };
+    }
+
+    pub fn runSingleInitBoundaryReplay(self: *Self) !SingleInitBoundaryReplay {
+        self.requireColdReplayStart();
+        try self.init();
+
+        const rejected_second_init = blk: {
+            self.init() catch |err| {
+                if (err == error.InvalidLifecycleTransition) break :blk true;
+                return err;
+            };
+            break :blk false;
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .stage_before_second_init = .initialized,
+            .stage_after_second_init = self.stage_value,
+            .active_attr_count = self.active_attr_count,
+            .init_runs = self.init_runs,
+            .register_runs = self.register_runs,
+            .exit_runs = self.exit_runs,
+            .rejected_second_init = rejected_second_init,
         };
     }
 
@@ -558,6 +593,21 @@ test "kobject example sample keeps the anchor replay self-check local to the sam
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
     try std.testing.expectEqual(SampleStage.registered, sample.stage());
+}
+
+test "kobject example sample keeps the single-init boundary self-check local to the sample file" {
+    var sample = KobjectExampleSample{};
+    const replay = try sample.runSingleInitBoundaryReplay();
+
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_second_init);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_after_second_init);
+    try std.testing.expectEqual(@as(usize, 0), replay.active_attr_count);
+    try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.exit_runs);
+    try std.testing.expect(replay.rejected_second_init);
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
 }
 
 test "kobject example sample keeps the ownership replay self-check local to the sample file" {
