@@ -28,7 +28,7 @@ MARKERS = {
         "`drivers/watchdog/dw_wdt_verify.zig` for direct teardown ownership and restart failure-mode parity that stays compile-local and host-free beside the bounded driver packet",
         "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig` for the bounded acquisition-facing scaffold that keeps timer-clock, APB-clock, reset-release, optional pretimeout-IRQ acquisition, imported-running handoff, and the missing timer-clock failure path reviewable without widening into live platform behavior",
         "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` for the surviving owner-lane continuity packet, pinned to `P11-L10`",
-        "That means the honest next step is to keep the surviving `P11-L10` platform-registration follow-through aligned with the still-shipped direct DesignWare reminder packet pinned to `P11-L05` through `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, `Documentation/zigux/phase11-dw-wdt-survey.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` instead of describing those reminder surfaces as removed.",
+        "That means the honest next step is to keep the surviving `P11-L10` platform-registration follow-through aligned with the current directly readable DesignWare packet through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` instead of reintroducing absent DesignWare survey, manifest, or validation-matrix surfaces as still-shipped evidence.",
         "The next bounded follow-up is still to keep `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` aligned with one acquisition-facing platform-registration scaffold without widening into live platform behavior.",
         "- keep missing timer-clock acquisition blocked as a distinct scaffold state so the bounded packet does not imply registration is ready before timer-clock acquisition succeeds",
         "- update this plan note, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` together when the DesignWare packet meaning changes",
@@ -36,8 +36,8 @@ MARKERS = {
         "If clock acquisition lands first, leave reset wiring for the next bounded step. If reset acquisition lands first, leave clock-path execution for the next bounded step. Keep the missing timer-clock failure path explicit until live acquisition exists.",
     ],
     "lane_sequencing": [
-        "* DesignWare lane `P11-L10` owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` as the surviving bounded platform-registration follow-through packet; keep that scaffold packet explicit beside the still-shipped direct DesignWare reminder packet pinned to `P11-L05` through `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, `Documentation/zigux/phase11-dw-wdt-survey.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, without recasting those reminder surfaces as removed or treating them as the active scaffold anchor",
-        "8. Keep the DesignWare lane honest: on current `master` the surviving `P11-L10` platform-registration follow-through still lives in `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, but the still-shipped direct DesignWare reminder packet also remains pinned to `P11-L05` through `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, `Documentation/zigux/phase11-dw-wdt-survey.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`; keep those reminder surfaces explicit without recasting them as removed, without treating them as the active scaffold anchor, and without widening the compile-local teardown or restart proofs into hardware-backed closure or treating a missing timer clock as registration-ready.",
+        "* DesignWare lane `P11-L10` owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` as the surviving bounded platform-registration follow-through packet; keep that scaffold packet explicit beside `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` and the shared reminder packet without reintroducing absent DesignWare survey, manifest, or validation-matrix surfaces as still-shipped evidence and without treating the compile-local teardown or restart proofs as hardware-backed closure",
+        "8. Keep the DesignWare lane honest: on current `master` the surviving `P11-L10` platform-registration follow-through still lives in `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; keep that surviving packet explicit beside `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` and the shared Phase 11 reminder stack without reintroducing absent DesignWare survey, manifest, or validation-matrix surfaces as still-shipped evidence, without treating the scaffold as the shared packet anchor, and without widening the compile-local teardown or restart proofs into hardware-backed closure or treating a missing timer clock as registration-ready.",
     ],
     "tests_companion": [
         "## Phase 11 tests-root packet",
@@ -48,7 +48,6 @@ MARKERS = {
         "- `drivers/watchdog/dw_wdt_verify.zig`",
         "surviving DesignWare platform-registration continuity packet through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
         "- `zigux/tests/phase11_dw_wdt.zig`",
-        "- `zigux/tests/phase11_dw_wdt_survey.zig`",
     ],
     "driver_file": [
         "pub const RegistrationScaffoldState",
@@ -178,7 +177,6 @@ def run_self_test() -> None:
             ("tests_companion", 5),
             ("tests_companion", 6),
             ("tests_companion", 7),
-            ("tests_companion", 8),
             ("driver_file", 0),
             ("driver_file", 8),
             ("driver_file", 9),
