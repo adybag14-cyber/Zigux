@@ -49,17 +49,18 @@ It keeps these host-free cues reviewable without claiming live tty-driver regist
 * `hvc_cleanup()` tty-port release handoff summary
 * `hvc_kick()` wakeup cue
 * notifier-IRQ helper surface through `notifier_add_irq()` and `notifier_hangup_irq()`
+* targetless notifier no-unregister edge through `summarizeTargetlessNotifierEdge()`
 
 The shipped `drivers/tty/hvc/hvc_console_sysrq.zig` helper is a bounded supporting helper for the current HVC packet.
 It keeps sysrq toggle handoff, pending-dispatch separation, literal-byte fallback on non-kernel `^O`, and post-teardown unavailability explicit without claiming live sysrq execution.
 
 The current archival packet also keeps the direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions explicit.
-Those companions keep direct `hvc_console` replay, verify-side helper boundaries, and bounded cleanup-time teardown checks visible beside the archival survey gate without promoting the lane to live tty-driver registration, notifier callback execution, khvcd execution, live sysrq dispatch, or host-backed teardown parity.
+Those companions keep direct `hvc_console` replay, verify-side helper boundaries, bounded cleanup-time teardown checks, and the targetless notifier no-unregister edge visible beside the archival survey gate without promoting the lane to live tty-driver registration, notifier callback execution, khvcd execution, live sysrq dispatch, or host-backed teardown parity.
 
-The paired archival survey gate in `zigux/tests/phase11_hvc_console_survey.zig` keeps the manifest-backed header-layout proof, exported-helper signature proof, modem-control fallback split, poll-retry split, teardown-summary wording, and the direct companion surfaces reviewable beside this survey note, the slice note, the teardown note, and the validation matrix.
+The paired archival survey gate in `zigux/tests/phase11_hvc_console_survey.zig` keeps the manifest-backed header-layout proof, exported-helper signature proof, targetless notifier no-unregister edge, modem-control fallback split, poll-retry split, teardown-summary wording, and the direct companion surfaces reviewable beside this survey note, the slice note, the teardown note, and the validation matrix.
 
 ## Bounded Meaning
 
-This archival note records the landed starter, the direct verify, replay, and cleanup companions, the helper-facing survey, the split tests, the sysrq helper, and the directly coupled governance packet only.
+This archival note records the landed starter, the direct verify, replay, and cleanup companions, the helper-facing survey, the targetless notifier no-unregister edge, the split tests, the sysrq helper, and the directly coupled governance packet only.
 It does not claim tty-driver registration, notifier callback execution, khvcd polling execution, live sysrq dispatch, host-backed cleanup, or hardware-validated teardown parity.
 Those follow-through steps still belong to later same-lane HVC work rather than the already-landed archival packet.
