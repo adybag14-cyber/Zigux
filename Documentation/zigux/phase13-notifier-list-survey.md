@@ -21,13 +21,13 @@ truthfulness work without promoting it into a separate shared replay count.
 
 - owner posture: adjacent notifier evidence rather than helper-lane ownership
 - owner-map reminder: `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` keeps `P13-L13` reserved for the `landlock/syscalls` survey-companion follow-through, so this note stays adjacent release-surface evidence instead of claiming that lane id
-- surveyed state: `current master` readback refreshed on `2026-05-13`
+- surveyed state: `current master` readback refreshed on `2026-05-14`
 - roadmap-adjacent reviewability evidence only
 - shared Phase 13 packet keeps this notifier evidence outside the validator-first shared-helper release handle as a counted helper path while still keeping it inside the broader release-facing packet as adjacent evidence rather than a fifth helper anchor or an extra shared replay count
 
 ## Current Repo Reality
 
-As of `2026-05-13`, current `master` can still materialize these adjacent
+As of `2026-05-14`, current `master` can still materialize these adjacent
 notifier-facing surfaces:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
@@ -41,8 +41,9 @@ notifier-facing surfaces:
 - `make -C zigux phase13`
 
 The shipped `zigux/helpers/notifier_chain_view.zig` helper stays read-only: it
-walks `NotifierBlock` links and checks nonincreasing priority ordering without
-claiming callback execution, registration, SRCU, or blocking-notifier semantics.
+walks `NotifierBlock` links, checks nonincreasing priority ordering, and now
+reports the first priority increase witness without claiming callback execution,
+registration, SRCU, or blocking-notifier semantics.
 
 The shipped adjacent `include/zigux/abi.h` foothold now mirrors that same
 read-only ordering probe through `struct zigux_notifier_block` and
@@ -74,6 +75,7 @@ Keep this packet framed as adjacent Phase 13 evidence:
 - it supports the broader shared-helper release packet without becoming a fifth helper anchor
 - it keeps the shipped notifier priority-signal checker explicit
 - it keeps the shipped `zigux/helpers/notifier_chain_view.zig` traversal and priority-order view explicit while staying read-only
+- it keeps the shipped `zigux/helpers/notifier_chain_view.zig` priority-break witness explicit as a review aid rather than runtime callback behavior
 - it keeps the shipped `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` ABI footholds explicit as adjacent notifier evidence
 - it keeps the Linux-side `drivers/tty/hvc/hvc_console.h` notifier declarations explicit as adjacent evidence without claiming HVC runtime parity
 - it keeps the broader validator-first and Linux-style replay handles explicit
@@ -103,13 +105,15 @@ When the shared Phase 13 contributor packet changes, re-read these surfaces toge
 Those summaries should keep this notifier survey, the shipped
 `check-phase13-notifier-priority-signal.py` helper, the shipped
 `zigux/helpers/notifier_chain_view.zig` read-only traversal helper, the shipped
-`zigux/bindings/notifier_abi.zig` plus `include/zigux/abi.h` ABI footholds, the
-Linux-side `drivers/tty/hvc/hvc_console.h` notifier declarations, the shared
+priority-break witness, the shipped `zigux/bindings/notifier_abi.zig` plus
+`include/zigux/abi.h` ABI footholds, the Linux-side
+`drivers/tty/hvc/hvc_console.h` notifier declarations, the shared
 release-notes, release-coordination-matrix, and roadmap-traceability packet, the
-paired Landlock ownership and syscall-governance notes, and the stable `phase13-validate` or `phase13` make routes
-visible while framing the still-missing direct notifier packet, dedicated header,
-tests-root, `list_head`, and `hlist` helper companions as repo-reality gaps rather
-than shipped current-`master` evidence.
+paired Landlock ownership and syscall-governance notes, and the stable
+`phase13-validate` or `phase13` make routes visible while framing the still-missing
+direct notifier packet, dedicated header, tests-root, `list_head`, and `hlist`
+helper companions as repo-reality gaps rather than shipped current-`master`
+evidence.
 
 ## Non-goals
 
