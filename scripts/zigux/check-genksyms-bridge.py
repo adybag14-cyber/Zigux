@@ -284,6 +284,7 @@ EXPECTED_GENKSYMS_MANIFEST = {
 EXPECTED_WORKFLOW_LINES = [
     "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
+    "run: zig test scripts/zigux/genksyms.zig",
 ]
 
 EXPECTED_MAKEFILE_LINES = [
@@ -313,7 +314,7 @@ EXPECTED_CLOSURE_MARKERS = [
     expected_closure_case_marker(),
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 22
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -672,12 +673,36 @@ def run_self_test() -> int:
         build_self_test_root(root)
         workflow_path = root / WORKFLOW_REL
         workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(EXPECTED_WORKFLOW_LINES[2] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[2]}:count=0:expected=1" in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8") + EXPECTED_WORKFLOW_LINES[1] + "\n",
             encoding="utf-8",
         )
         issues = validate_root(root)
         assert (
             f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8") + EXPECTED_WORKFLOW_LINES[2] + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[2]}:count=2:expected=1" in issues
         )
         case_count += 1
 
