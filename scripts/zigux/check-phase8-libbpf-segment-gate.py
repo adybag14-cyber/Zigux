@@ -62,7 +62,7 @@ SHARED_REQUIRED_MARKERS = {
     ],
     "scripts/zigux/check-phase8-libbpf-shard-routes.py": [
         "### 4. Shared wording lane",
-        "Keep follow-up inside the shared wording lane",
+        "Keep the shared wording lane parked until a fresh one-file reminder-surface drift appears.",
         "scripts/zigux/validate-phase8.py",
     ],
     "zigux/Makefile": [
@@ -276,7 +276,7 @@ zigux/tests/README.md
 """,
     "scripts/zigux/check-phase8-libbpf-shard-routes.py": """# fixture
 ### 4. Shared wording lane
-Keep follow-up inside the shared wording lane
+Keep the shared wording lane parked until a fresh one-file reminder-surface drift appears.
 scripts/zigux/validate-phase8.py
 """,
     "zigux/Makefile": """phase8-validate:
