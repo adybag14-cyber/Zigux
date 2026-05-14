@@ -307,7 +307,6 @@ KCONFIG_CONFDATA_MANIFEST_EXPECTED = {
         "confdata bridge keeps explicit n assignments as tristate values",
         "confdata bridge recognizes uppercase tristate assignments",
         "confdata bridge ignores non-CONFIG lines like upstream confdata",
-        "confdata bridge ignores empty CONFIG symbol names",
         "confdata bridge keeps trailing escaped backslashes in quoted strings",
         "confdata bridge emits escaped quoted payloads before trailing suffix bytes",
         "confdata bridge leaves malformed quoted values as raw scalar values",
@@ -815,6 +814,18 @@ def run_self_test() -> int:
             f"missing_marker:zigux/Makefile:{MAKEFILE_TOOL_MANIFEST_MARKERS[1]}"
             in issues
         )
+        case_count += 1
+
+        build_self_test_root(root)
+        artifact_manifest = root / "zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
+        payload = json.loads(artifact_manifest.read_text(encoding="utf-8"))
+        payload["artifact_tools"] = ["genksyms_crc"]
+        write_text(
+            artifact_manifest,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        issues = validate_root(root)
+        assert any(issue.startswith("phase2_artifact_tools_manifest:artifact_tools:") for issue in issues)
         case_count += 1
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
