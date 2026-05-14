@@ -1,5 +1,5 @@
 {
-  "lane_key": "P12-L05",
+  "lane_key": "P12-L08",
   "phase": "Phase 12",
   "surveyed_commit": "aadaa43e686ef355a946793cd83ce9899309deef",
   "verified_on": "2026-05-14",
@@ -60,7 +60,7 @@
       "status": "landed_on_master",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-reopen-governance.md",
-      "why_now": "The driver-local owner map now keeps lane P12-L05 aligned with the shipped starter, verifier, slice note, direct replay, survey note, survey gate, and manifest anchor without widening into the shared release packet."
+      "why_now": "The driver-local owner map now keeps lane P12-L08 aligned with the shipped starter, verifier, slice note, direct replay, survey note, survey gate, and manifest anchor without widening into the shared release packet."
     },
     {
       "id": "phase12-nvme-direct-replay",
