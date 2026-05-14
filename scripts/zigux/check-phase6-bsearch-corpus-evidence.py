@@ -90,6 +90,10 @@ test "phase 6 bsearch vectors stay deterministic and sorted" {
 
 REQUIRED_SNIPPETS = {
     BSEARCH_PATH.as_posix(): [
+        'pub fn equalRange(',
+        'pub fn equalRangeMutable(',
+        'pub fn bsearchEqualRange(',
+        'pub fn bsearchEqualRangeMutable(',
         'const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };',
         'const values = [_]u32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };',
         'test "phase 6 bsearch keeps representative lookup work inside a binary-search budget"',
@@ -97,6 +101,8 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget"',
         'test "phase 6 bsearch bounded typed and raw equality probes stay inside a binary-search budget"',
         'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers"',
+        'test "equalRange wrappers keep direct duplicate-span views"',
+        'test "bsearchEqualRange wrappers keep raw duplicate-span views"',
     ],
     LOWER_UPPER_PATH.as_posix(): [
         "var ascending_storage: [32]u32 = undefined;",
@@ -119,16 +125,21 @@ REQUIRED_SNIPPETS = {
         "- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a 15-element representative inline corpus, `10` typed and `10` raw lookup budget checks capped at `4` comparator calls, plus lower- and upper-bound as well as direct C ABI equality sweeps across dynamic lengths `0...32` and packed-record `member_size` ranges under the same `std.math.log2_int_ceil(len) + 1` budget",
     ],
     SLICE_PATH.as_posix(): [
-        "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, or packet-alignment drift appears",
+        "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, direct equal-range wrapper-review drift, or packet-alignment drift appears",
         "- `IndexRange`",
         "- `equalRangeIndex`",
+        "- `equalRange`",
+        "- `equalRangeMutable`",
         "- `bsearchEqualRangeIndex`",
+        "- `bsearchEqualRange`",
+        "- `bsearchEqualRangeMutable`",
         "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
         "- direct local corpus evidence checker self-test: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`",
         "Current `master` still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, but only as a parked seed companion that mirrors the representative ascending, descending, hit-or-miss, symbol, and packed-record cases already exercised inline.",
         "Reviewers should treat that file as support evidence outside the executable packet rather than as a separate replay surface or a standalone timing-style perf route.",
-        "Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable` without widening Phase 6 into a separate wrapper family.",
+        "Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable`, while the direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` wrappers hand those typed slice and raw byte views back without forcing callers to peel `IndexRange` apart by hand or widening Phase 6 into a separate fixture or routing packet.",
+        "`lib/bsearch.zig` now also exports direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` companions on top of `IndexRange`",
     ],
     PERF_SURVEY_PATH.as_posix(): [
         "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig`, not a separate wall-clock perf harness",
@@ -486,6 +497,24 @@ def run_self_test() -> None:
         assert_failure(
             root,
             BSEARCH_PATH.as_posix(),
+            'pub fn equalRange(',
+            'pub fn equalRangeDrift(',
+        )
+        assert_failure(
+            root,
+            BSEARCH_PATH.as_posix(),
+            'pub fn bsearchEqualRangeMutable(',
+            'pub fn bsearchEqualRangeMutableDrift(',
+        )
+        assert_failure(
+            root,
+            BSEARCH_PATH.as_posix(),
+            'test "equalRange wrappers keep direct duplicate-span views"',
+            'test "equalRange wrappers drift"',
+        )
+        assert_failure(
+            root,
+            BSEARCH_PATH.as_posix(),
             'const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };',
             'const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42 };',
         )
@@ -522,20 +551,20 @@ def run_self_test() -> None:
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
-            "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, or packet-alignment drift appears",
+            "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, direct equal-range wrapper-review drift, or packet-alignment drift appears",
             "- lane state: helper slice drifted",
         )
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
-            "- `IndexRange`",
-            "- `IndexRangeDrift`",
+            "- `equalRange`",
+            "- `equalRangeDrift`",
         )
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
-            "- `equalRangeIndex`",
-            "- `equalRangeDrift`",
+            "- `bsearchEqualRangeMutable`",
+            "- `bsearchEqualRangeMutableDrift`",
         )
         assert_failure(
             root,
@@ -552,8 +581,14 @@ def run_self_test() -> None:
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
-            "Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable` without widening Phase 6 into a separate wrapper family.",
+            "Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable`, while the direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` wrappers hand those typed slice and raw byte views back without forcing callers to peel `IndexRange` apart by hand or widening Phase 6 into a separate fixture or routing packet.",
             "Within that helper-local surface, the exported `IndexRange` result type drifted.",
+        )
+        assert_failure(
+            root,
+            SLICE_PATH.as_posix(),
+            "`lib/bsearch.zig` now also exports direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` companions on top of `IndexRange`",
+            "`lib/bsearch.zig` drifted away from the direct wrappers`",
         )
         assert_failure(
             root,
