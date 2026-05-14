@@ -27,6 +27,7 @@ Public default-branch exact readback on 2026-05-12 still showed:
 - retained marker for the existing shared checker: "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`"
 - that mixed readback means the pin-path shard should stay framed as a review-surface split rather than a removed helper packet.
 - the live helper packet still keeps `fdinfo-map-info-helpers`, `map-reuse-compatibility`, `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, and `perf-buffer-poll-bookkeeping` explicit in the broader segmented catalog.
+- current `master` also carries helper-local routing evidence in `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, where `advanceOnlineCpuCursor()` and `summarizeOnlineCpuRouting()` keep the online-CPU cursor and routing-summary helper packet explicit below the broader setup-side routing boundary.
 - authenticated contents reads remain inconsistent for some paired Phase 8 docs and helper paths from this environment, so exact readable blob content and public tree evidence should outweigh older absent-file assumptions when choosing the next bounded step.
 
 The manifest currently records twelve bounded segments: seven landed helper or helper-adjacent slices and five deferred or blocked follow-ons.
@@ -39,12 +40,16 @@ The deferred or blocked follow-ons are `file-path-and-handle-bridge`, `perf-buff
 
 Those segments still keep the bounded fdinfo helper packet explicit while the resource-boundary packet still stays deferred.
 
+The deferred `perf-buffer-online-cpu-routing` segment also stays explicitly larger than the helper-local `online_cpu_routing.zig` evidence: the setup-side packet still covers sysfs reads, `perf_event_open()` setup, `mmap()`-backed ring state, per-CPU perf-event-array updates, epoll registration, and timeout-sensitive waits, while the landed helper-local cursor and routing-summary code remains smaller than that broader setup boundary.
+
 ## Current bounded gap
-The real current gap is now survey truthfulness about the already-landed checker packet, not a missing checker rule or docs-root summary.
+The real current gap is now survey truthfulness about the already-landed checker packet and helper-local routing evidence, not a missing checker rule or docs-root summary.
 
 Exact 2026-05-13 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.
 
 Exact 2026-05-13 readback also shows `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with the closed docs-root cue and the shared bridge-boundary note: the checker now requires `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` together with the focused `make -C zigux phase8-file-path-handle-bridge-test`, `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`, `make -C zigux phase8-perf-buffer-poll-test`, and `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all` markers while this packet still keeps `standalone timer or clockevent helper behavior` and broader timeout-sensitive routing behavior out of scope.
+
+That same checker packet should also keep the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit so the deferred routing segment stays framed as broader setup-side parity rather than as if no routing-side helper evidence exists yet.
 
 That leaves the narrower same-lane task as keeping this survey parked and truthful about that already-landed checker coverage instead of reopening the same checker-local step.
 
@@ -64,6 +69,6 @@ Keep the libbpf survey packet parked after this survey-and-checker sync unless a
 Preferred order:
 1. re-read the dedicated Phase 8 libbpf shard files named by `zigux/tests/phase8_build.zig` before calling any helper packet removed
 2. confirm the shared bridge-boundary note and `scripts/zigux/check-phase8-libbpf-shard-routes.py` still agree on the focused bridge and perf-buffer replay markers while the dedicated survey stays aligned with that already-landed checker state
-3. keep follow-up smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, standalone timer or clockevent helper behavior, or broader timeout-sensitive routing behavior
+3. keep the helper-local `online_cpu_routing.zig` evidence explicit while staying smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, standalone timer or clockevent helper behavior, or broader timeout-sensitive routing behavior
 
 especially the explicit `standalone timer or clockevent helper behavior` and broader timeout-sensitive routing behavior boundaries that keep this packet smaller than the deferred interrupt-routing work.
