@@ -143,6 +143,7 @@ test "runtime trace-events diff gate keeps selftest-ready failed-exit rollback e
     try std.testing.expectEqual(@as(usize, 14), before_failed_exit.total_events);
     try std.testing.expectEqual(@as(?usize, 4), before_failed_exit.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), before_failed_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 0), before_failed_exit.last_main_conditional_event_count);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
@@ -178,6 +179,7 @@ test "runtime trace-events diff gate keeps selftest-ready failed-exit rollback e
     try std.testing.expectEqual(before_failed_exit.total_events, after_failed_exit.total_events);
     try std.testing.expectEqual(before_failed_exit.last_main_emitted_events, after_failed_exit.last_main_emitted_events);
     try std.testing.expectEqual(before_failed_exit.last_fn_emitted_events, after_failed_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(before_failed_exit.last_main_conditional_event_count, after_failed_exit.last_main_conditional_event_count);
     try std.testing.expectEqual(before_failed_exit.init_runs, after_failed_exit.init_runs);
     try std.testing.expectEqual(before_failed_exit.selftest_runs, after_failed_exit.selftest_runs);
     try std.testing.expectEqual(before_failed_exit.exit_runs, after_failed_exit.exit_runs);
@@ -209,4 +211,5 @@ test "runtime trace-events diff gate keeps selftest-ready failed-exit rollback e
     const after_exit = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.exited, after_exit.stage);
     try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expectEqual(before_failed_exit.last_main_conditional_event_count, after_exit.last_main_conditional_event_count);
 }
