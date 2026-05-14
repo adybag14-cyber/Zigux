@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-Y01",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-13",
+  "surveyed_commit": "master-readback-2026-05-14",
   "anchor": "fs/libfs.c",
   "roadmap_destinations": [
     "fs/libfs.zig",
@@ -23,6 +23,13 @@
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "Current master ships a bounded libfs helper lab for simple directory emptiness, negative-dentry lookup shaping, and offset-based directory planning."
+    },
+    {
+      "id": "phase13-libfs-offset-add-planner",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models pure simple_offset_add() offset-add planning, keeping the prepopulated-dentry guard, the busy-to-ENOSPC allocator remap, and managed-offset recording explicit without claiming live maple-tree mutation or directory ownership."
     },
     {
       "id": "phase13-libfs-offset-rename-planner",
@@ -64,7 +71,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs_reviewability.zig",
-      "why_now": "A dedicated reviewability replay now keeps the current libfs helper surface explicit, including the landed addressability helper alongside the transaction and offset planners in fs/libfs.zig."
+      "why_now": "A dedicated reviewability replay now keeps the current libfs helper surface explicit, including the landed offset-add planner alongside the transaction, addressability, and offset-rename planners in fs/libfs.zig."
     },
     {
       "id": "phase13-libfs-survey-note",
