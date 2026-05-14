@@ -278,20 +278,34 @@ fn parseUnsignedPrefix(s: []const u8) ?ParsedPrefix {
         start += 1;
     }
 
-    var index = start;
-    while (index < s.len and isDigitForBase(s[index], base)) : (index += 1) {}
+    const base_u64: u64 = base;
+    const saturated = std.math.maxInt(u64);
+    const max_before_mul = saturated / base_u64;
+    const max_digit = saturated % base_u64;
 
-    if (index == start) {
+    var index = start;
+    var value: u64 = 0;
+    var saw_digit = false;
+    while (index < s.len) : (index += 1) {
+        const digit = digitForBase(s[index], base) orelse break;
+        saw_digit = true;
+
+        if (value > max_before_mul or (value == max_before_mul and digit > max_digit)) {
+            value = saturated;
+            continue;
+        }
+
+        value = value * base_u64 + digit;
+    }
+
+    if (!saw_digit) {
         if (start == prefix_len + 1 or (base == 16 and start == prefix_len + 2)) {
             return .{ .value = 0, .len = prefix_len + 1 };
         }
         return null;
     }
 
-    return .{
-        .value = std.fmt.parseUnsigned(u64, s[start..index], base) catch return null,
-        .len = index,
-    };
+    return .{ .value = value, .len = index };
 }
 
 fn parseMemparseZeroPrefix(s: []const u8) ?ParsedPrefix {
@@ -334,14 +348,17 @@ fn parseSignedPrefix(s: []const u8) ?struct { value: i32, len: usize } {
     };
 }
 
-fn isDigitForBase(ch: u8, base: u8) bool {
-    const value = switch (ch) {
+fn digitForBase(ch: u8, base: u8) ?u64 {
+    const value: u8 = switch (ch) {
         '0'...'9' => ch - '0',
         'a'...'z' => ch - 'a' + 10,
         'A'...'Z' => ch - 'A' + 10,
-        else => return false,
+        else => return null,
     };
-    return value < base;
+    if (value >= base) {
+        return null;
+    }
+    return value;
 }
 
 fn memSuffixShift(ch: u8) u6 {
@@ -740,4 +757,82 @@ test "getOptions expands negative ranges and negative upper bounds like Linux ge
     const negative_upper_validate_rest = getOptions("-3--1", 0, &negative_upper_validate);
     try std.testing.expectEqualStrings("", negative_upper_validate_rest);
     try std.testing.expectEqual(@as(i32, 3), negative_upper_validate[0]);
+}
+
+test "getOption and getOptions preserve oversized wrap semantics" {
+    var positive: []const u8 = "2147483648";
+    var positive_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&positive, &positive_value));
+    try std.testing.expectEqual(@as(i32, -2147483648), positive_value);
+    try std.testing.expectEqualStrings("", positive);
+
+    var negative: []const u8 = "-2147483649";
+    var negative_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&negative, &negative_value));
+    try std.testing.expectEqual(@as(i32, 2147483647), negative_value);
+    try std.testing.expectEqualStrings("", negative);
+
+    var positive_full: []const u8 = "18446744073709551615";
+    var positive_full_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&positive_full, &positive_full_value));
+    try std.testing.expectEqual(@as(i32, -1), positive_full_value);
+    try std.testing.expectEqualStrings("", positive_full);
+
+    var positive_overflow: []const u8 = "18446744073709551616";
+    var positive_overflow_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&positive_overflow, &positive_overflow_value));
+    try std.testing.expectEqual(@as(i32, -1), positive_overflow_value);
+    try std.testing.expectEqualStrings("", positive_overflow);
+
+    var negative_full: []const u8 = "-18446744073709551615";
+    var negative_full_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&negative_full, &negative_full_value));
+    try std.testing.expectEqual(@as(i32, 1), negative_full_value);
+    try std.testing.expectEqualStrings("", negative_full);
+
+    var negative_overflow: []const u8 = "-18446744073709551616";
+    var negative_overflow_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&negative_overflow, &negative_overflow_value));
+    try std.testing.expectEqual(@as(i32, 1), negative_overflow_value);
+    try std.testing.expectEqualStrings("", negative_overflow);
+
+    var values = [_]i32{ 0, 0, 0 };
+    const rest = getOptions("2147483648,-2147483649", values.len, &values);
+    try std.testing.expectEqualStrings("", rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, -2147483648, 2147483647 }, &values);
+
+    var validate_only = [_]i32{0};
+    const validate_rest = getOptions("2147483648,-2147483649", 0, &validate_only);
+    try std.testing.expectEqualStrings("", validate_rest);
+    try std.testing.expectEqual(@as(i32, 2), validate_only[0]);
+
+    var full_values = [_]i32{ 0, 0, 0 };
+    const full_rest = getOptions("18446744073709551615,-18446744073709551615", full_values.len, &full_values);
+    try std.testing.expectEqualStrings("", full_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, -1, 1 }, &full_values);
+
+    var overflow_values = [_]i32{ 0, 0, 0 };
+    const overflow_rest = getOptions("18446744073709551616,-18446744073709551616", overflow_values.len, &overflow_values);
+    try std.testing.expectEqualStrings("", overflow_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, -1, 1 }, &overflow_values);
+
+    var full_validate_only = [_]i32{0};
+    const full_validate_rest = getOptions("18446744073709551615,-18446744073709551615", 0, &full_validate_only);
+    try std.testing.expectEqualStrings("", full_validate_rest);
+    try std.testing.expectEqual(@as(i32, 2), full_validate_only[0]);
+
+    var overflow_validate_only = [_]i32{0};
+    const overflow_validate_rest = getOptions("18446744073709551616,-18446744073709551616", 0, &overflow_validate_only);
+    try std.testing.expectEqualStrings("", overflow_validate_rest);
+    try std.testing.expectEqual(@as(i32, 2), overflow_validate_only[0]);
+}
+
+test "memparse saturates oversized unsigned prefixes before applying suffix handling" {
+    var index: usize = 0;
+
+    try std.testing.expectEqual(std.math.maxInt(u64), memparse("18446744073709551616", &index));
+    try std.testing.expectEqual(@as(usize, 20), index);
+
+    try std.testing.expectEqual(std.math.maxInt(u64), memparse("+18446744073709551616", &index));
+    try std.testing.expectEqual(@as(usize, 21), index);
 }
