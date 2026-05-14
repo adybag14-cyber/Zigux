@@ -215,3 +215,16 @@ test "phase12 virtio net survey gate keeps present lane files explicit" {
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));
 }
+
+test "phase12 virtio net syntax lab keeps payload-shaping and recovery markers explicit" {
+    const syntax_lab = try readFileAlloc("zigux/tests/phase12_virtio_net_syntax_lab.zig", 32 * 1024);
+    defer std.testing.allocator.free(syntax_lab);
+
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "phase12 virtio net syntax lab keeps control queue payload shaping separate from runtime commands") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "phase12 virtio net syntax lab keeps rss payload shaping aligned with tunnel-header recovery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "planControlQueuePayloadShape") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "controlQueueRecoveryPlan") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "rss_config_payload_bytes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_hash_report_payload") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_mergeable_buffer_refill") != null);
+}
