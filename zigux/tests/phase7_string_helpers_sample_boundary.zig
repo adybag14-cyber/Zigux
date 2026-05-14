@@ -186,8 +186,11 @@ test "phase 7 string helper boundary keeps the expanded helper packet and curren
 
     const make_wrapper_note = try readRepoFile(allocator, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
     defer allocator.free(make_wrapper_note);
+    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test");
     try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test");
     try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
+    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-build-wiring.py --self-test");
     try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(make_wrapper_note, "make -C zigux phase7-string-helpers-sample-boundary");
     try expectContains(make_wrapper_note, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
@@ -195,6 +198,10 @@ test "phase 7 string helper boundary keeps the expanded helper packet and curren
     const makefile = try readRepoFile(allocator, "zigux/Makefile");
     defer allocator.free(makefile);
     try expectContains(makefile, "phase7-string-helpers-sample-boundary:");
+    try expectContains(makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test");
+    try expectContains(makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test");
+    try expectContains(makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py --self-test");
+    try expectContains(makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(makefile, "build phase7-string-helpers-sample-boundary --build-file zigux/tests/phase7_build.zig --summary all");
 
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
