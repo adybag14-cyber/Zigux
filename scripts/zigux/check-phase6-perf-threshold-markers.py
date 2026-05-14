@@ -118,8 +118,6 @@ REQUIRED_SNIPPETS = {
     WORKFLOW_PATH.as_posix(): [
         "- name: Self-test Phase 6 perf-threshold checker",
         "- name: Check Phase 6 perf threshold markers",
-        "- name: Run Phase 6 base64 perf gate",
-        "- name: Run Phase 6 checksum perf gate",
         "- name: Run Phase 6 hexdump perf gate",
     ],
 }
@@ -319,6 +317,12 @@ def run_self_test() -> None:
             PHASE6_BUILD_PATH,
             'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
             'const base64_perf_step = b.step("phase6-base64-perf-missing", "Run Phase 6 base64 perf gate");',
+        )
+        assert_failure(
+            root,
+            WORKFLOW_PATH,
+            '- name: Run Phase 6 hexdump perf gate',
+            '- name: Run Phase 6 hex perf missing',
         )
         (root / CHECKSUM_PERF_PATH).parent.mkdir(parents=True, exist_ok=True)
         write(root / CHECKSUM_PERF_PATH, "unexpected\n")
