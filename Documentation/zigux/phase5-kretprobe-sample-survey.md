@@ -21,7 +21,7 @@ This restored Phase 5 packet now reads directly through:
 
 The older shared `zigux/tests/phase5_build.zig` route remains missing and should stay explicit as a gap instead of being treated as current proof.
 
-The remaining shared reminder work is narrower than the missing packet that was blocking this lane before this run:
+Fresh Phase 5 readback in this run also confirmed the shared reminder packet is already aligned around that restored direct sample packet:
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
@@ -30,7 +30,7 @@ The remaining shared reminder work is narrower than the missing packet that was 
 - `zigux/tests/README.md`
 - `scripts/zigux/README.md`
 
-Those shared surfaces still need their own bounded follow-through before they should be reused as source text for the restored kretprobe packet.
+Those shared surfaces now keep the restored direct packet explicit while still keeping the missing shared `zigux/tests/phase5_build.zig` route framed as a gap instead of returned evidence.
 
 ## Landed sample and exact checks
 
@@ -53,7 +53,7 @@ This note does not claim `register_kretprobe()` parity, `unregister_kretprobe()`
 
 ## Next bounded step
 
-Keep the next move inside one shared review-surface repair only:
+Keep the next move inside one shared review-surface repair only if a fresh reread shows a new same-lane truthfulness drift:
 
-- update the docs-root summary, shared Phase 5 guide, checklist, and root reminders so they acknowledge the restored direct packet while still keeping the missing shared `phase5_build.zig` route explicit
-- do not widen that follow-up into Phase 9 runtime work or a new shared build wrapper unless a future reread proves the broader replay route should actually return
+- leave the restored direct kretprobe packet parked while those shared reminder surfaces stay aligned
+- if another reminder surface drifts later, repair only that one file while still keeping the missing shared `phase5_build.zig` route explicit and the later Phase 9 runtime family out of scope
