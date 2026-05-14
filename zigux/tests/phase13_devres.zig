@@ -64,6 +64,35 @@ test "phase13 devres rejects ioremap planning when the release record cannot be 
     }));
 }
 
+test "phase13 devres plain ioremap wrapper forces the plain lifetime path" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquirePlain(.{
+        .release_record_allocated = true,
+        .mapped_address = 0x2200,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
+    try std.testing.expectEqual(devres.ManagedIoremapKind.plain, result.kind);
+    try std.testing.expectEqual(@as(?usize, 0x2200), result.mapped_address);
+    try std.testing.expect(result.added_to_devres);
+    try std.testing.expect(result.release_record_retained);
+    try std.testing.expect(!result.release_record_freed);
+    try std.testing.expect(result.should_unmap_on_detach);
+}
+
+test "phase13 devres plain ioremap wrapper frees the release record on map failure" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquirePlain(.{
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(devres.ManagedIoremapKind.plain, result.kind);
+    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
+    try std.testing.expect(!result.added_to_devres);
+    try std.testing.expect(!result.release_record_retained);
+    try std.testing.expect(result.release_record_freed);
+    try std.testing.expect(!result.should_unmap_on_detach);
+}
+
 test "phase13 devres uncached ioremap wrapper forces the UC lifetime path" {
     const result = try devres.DevresHelperLab.planManagedIoremapAcquireUc(.{
         .release_record_allocated = true,
@@ -115,6 +144,35 @@ test "phase13 devres write-combined ioremap wrapper frees the release record on 
     });
 
     try std.testing.expectEqual(devres.ManagedIoremapKind.write_combined, result.kind);
+    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
+    try std.testing.expect(!result.added_to_devres);
+    try std.testing.expect(!result.release_record_retained);
+    try std.testing.expect(result.release_record_freed);
+    try std.testing.expect(!result.should_unmap_on_detach);
+}
+
+test "phase13 devres non-posted ioremap wrapper forces the NP lifetime path" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquireNp(.{
+        .release_record_allocated = true,
+        .mapped_address = 0x2500,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
+    try std.testing.expectEqual(devres.ManagedIoremapKind.non_posted, result.kind);
+    try std.testing.expectEqual(@as(?usize, 0x2500), result.mapped_address);
+    try std.testing.expect(result.added_to_devres);
+    try std.testing.expect(result.release_record_retained);
+    try std.testing.expect(!result.release_record_freed);
+    try std.testing.expect(result.should_unmap_on_detach);
+}
+
+test "phase13 devres non-posted ioremap wrapper frees the release record on map failure" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquireNp(.{
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(devres.ManagedIoremapKind.non_posted, result.kind);
     try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
     try std.testing.expect(!result.added_to_devres);
     try std.testing.expect(!result.release_record_retained);
