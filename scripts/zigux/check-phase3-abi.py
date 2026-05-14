@@ -117,6 +117,42 @@ CHECK_LIB_MARKERS = (
     '("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),',
     "def run_phase3_slice_entry(",
 )
+SOURCE_MARKERS = {
+    Path("include/linux/zigux.h"): (
+        "zigux_boundary_header_make(",
+        "zigux_boundary_header_make_compatible(",
+        "zigux_boundary_header_is_current_abi_version(",
+        "zigux_boundary_header_is_compatible_size(",
+        "zigux_boundary_header_is_canonical_size(",
+    ),
+    Path("zigux/kernel/export_shim.zig"): (
+        "pub fn boundaryHeader(",
+        "pub fn compatibleHeader(",
+        "pub fn headerCompatibility(",
+        "pub fn acceptHeader(",
+        "pub fn isCompatibleHeader(",
+        "pub fn isCanonicalHeader(",
+        "pub fn canonicalizeHeader(",
+        "pub fn extendsBoundary(",
+        "pub fn requestedExtraBytes(",
+        "pub fn encodeDeviceNumber(",
+        "pub fn lastDeviceNumberInRange(",
+    ),
+    Path("zigux/uapi/version.zig"): (
+        "pub const AcceptedHeader = struct {",
+        "pub const HeaderEvaluation = struct {",
+        "pub fn boundaryHeader(",
+        "pub fn compatibleHeader(",
+        "pub fn compatibility(",
+        "pub fn acceptHeader(",
+        "pub fn evaluateHeader(",
+        "pub fn canonicalizeHeader(",
+    ),
+    Path("zigux/uapi/dev_t.zig"): (
+        "pub fn encode(",
+        "pub fn lastInRange(",
+    ),
+}
 
 
 def _read(path: Path) -> str:
@@ -152,6 +188,19 @@ def validate_manifest_entries(repo_root: Path) -> list[str]:
     return issues
 
 
+def validate_source_markers(repo_root: Path) -> list[str]:
+    issues: list[str] = []
+    for rel_path, markers in SOURCE_MARKERS.items():
+        source_path = repo_root / rel_path
+        if not source_path.is_file():
+            continue
+        source_text = _read(source_path)
+        for marker in markers:
+            if marker not in source_text:
+                issues.append(f"missing source marker: {rel_path.as_posix()} :: {marker}")
+    return issues
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     for rel_path in REQUIRED_FILES:
@@ -182,6 +231,7 @@ def validate_repo(repo_root: Path) -> list[str]:
                 issues.append(f"missing shared helper marker: {marker}")
 
     issues.extend(validate_manifest_entries(repo_root))
+    issues.extend(validate_source_markers(repo_root))
     return issues
 
 
@@ -201,6 +251,10 @@ def _manifest_payload(files: list[Path] | tuple[Path, ...]) -> str:
     return json.dumps(payload, indent=2) + "\n"
 
 
+def _source_marker_stub(rel_path: Path) -> str:
+    return "\n".join(SOURCE_MARKERS[rel_path]) + "\n"
+
+
 def _populate_repo(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         _write(root / rel_path)
@@ -208,6 +262,8 @@ def _populate_repo(root: Path) -> None:
     _write(root / MAKEFILE_PATH, "\n".join(MAKE_MARKERS) + "\n")
     _write(root / RUNNER_PATH, "\n".join(RUNNER_MARKERS) + "\n")
     _write(root / CHECK_LIB_PATH, "\n".join(CHECK_LIB_MARKERS) + "\n")
+    for rel_path in SOURCE_MARKERS:
+        _write(root / rel_path, _source_marker_stub(rel_path))
 
 
 def run_self_test() -> int:
@@ -520,6 +576,69 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         _write(root / mmio_consumer_rel)
+
+        linux_header_rel = Path("include/linux/zigux.h")
+        _write(
+            root / linux_header_rel,
+            _read(root / linux_header_rel).replace(
+                "zigux_boundary_header_is_compatible_size(\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_linux_header_marker_missing = (
+            "missing source marker: include/linux/zigux.h :: "
+            "zigux_boundary_header_is_compatible_size("
+        )
+        if expected_linux_header_marker_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing Linux-facing header marker was not reported")
+            return 1
+        case_count += 1
+        _write(root / linux_header_rel, _source_marker_stub(linux_header_rel))
+
+        export_shim_rel = Path("zigux/kernel/export_shim.zig")
+        _write(
+            root / export_shim_rel,
+            _read(root / export_shim_rel).replace(
+                "pub fn canonicalizeHeader(\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_export_shim_marker_missing = (
+            "missing source marker: zigux/kernel/export_shim.zig :: "
+            "pub fn canonicalizeHeader("
+        )
+        if expected_export_shim_marker_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing export_shim relay marker was not reported")
+            return 1
+        case_count += 1
+        _write(root / export_shim_rel, _source_marker_stub(export_shim_rel))
+
+        uapi_version_rel = Path("zigux/uapi/version.zig")
+        _write(
+            root / uapi_version_rel,
+            _read(root / uapi_version_rel).replace(
+                "pub fn evaluateHeader(\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_uapi_version_marker_missing = (
+            "missing source marker: zigux/uapi/version.zig :: "
+            "pub fn evaluateHeader("
+        )
+        if expected_uapi_version_marker_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing uapi version relay marker was not reported")
+            return 1
+        case_count += 1
+        _write(root / uapi_version_rel, _source_marker_stub(uapi_version_rel))
 
         missing_rel = REQUIRED_FILES[0]
         (root / missing_rel).unlink()
