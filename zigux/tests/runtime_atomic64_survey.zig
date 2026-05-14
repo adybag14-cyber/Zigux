@@ -76,6 +76,12 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     const module_slice = try readRepoFileAlloc(std.testing.allocator, "Documentation/zigux/phase9-runtime-atomic64-module-slice.md", 32 * 1024);
     defer std.testing.allocator.free(module_slice);
 
+    const runtime_atomic64_sample = try readRepoFileAlloc(std.testing.allocator, "samples/zigux/runtime_atomic64.zig", 128 * 1024);
+    defer std.testing.allocator.free(runtime_atomic64_sample);
+
+    const runtime_atomic64_module = try readRepoFileAlloc(std.testing.allocator, "zigux/tests/runtime_atomic64_module.zig", 128 * 1024);
+    defer std.testing.allocator.free(runtime_atomic64_module);
+
     const runtime_atomic64_loader = try readRepoFileAlloc(std.testing.allocator, "samples/zigux/runtime_atomic64_loader.zig", 128 * 1024);
     defer std.testing.allocator.free(runtime_atomic64_loader);
 
@@ -149,6 +155,19 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", substrate_gap.zigux_destination);
     try expectContains(substrate_gap.why_now, "broader runtime substrate");
 
+    try expectContains(runtime_atomic64_sample, ".requires_runtime_substrate = true");
+    try expectContains(runtime_atomic64_sample, ".provides_selftest_hook = true");
+    try expectContains(runtime_atomic64_sample, ".operation_families = &.{ .arithmetic, .bitwise, .returning_ops, .swap_ops, .guard_ops }");
+    try expectContains(runtime_atomic64_sample, "pub fn runSelftest(self: *Self) !SelftestSummary");
+
+    try expectContains(runtime_atomic64_module, "test \"runtime atomic64 sample advertises the bounded pilot-module contract\"");
+    try expectContains(runtime_atomic64_module, "descriptor.requires_runtime_substrate");
+    try expectContains(runtime_atomic64_module, "descriptor.provides_selftest_hook");
+    try expectContains(runtime_atomic64_module, "test \"runtime atomic64 sample keeps lifecycle snapshot replay explicit at the module boundary\"");
+    try expectContains(runtime_atomic64_module, "module.lifecycleSnapshot()");
+    try expectContains(runtime_atomic64_module, "sample.ModuleStage.selftest_complete");
+    try expectContains(runtime_atomic64_module, "error.InvalidLifecycleTransition");
+
     try expectContains(survey_note, "`PHASE9_STATUS=active`");
     try expectContains(survey_note, "`PHASE9_SLICE=runtime-atomic64-survey`");
     try expectContains(survey_note, "`PHASE9_LANE_KEY=P9-L04`");
@@ -194,6 +213,8 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(runtime_loader_allocator_init_flow, "phase 9 runtime loader allocator/init-flow replay keeps selftest-complete prepared snapshots stable even if later live state would look exited");
 
     try expectContains(phase9_build, "runtime_atomic64_loader.zig");
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-sample-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-module-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-atomic64-loader-tests\"");
     try expectContains(phase9_build, "runtime_loader_allocator_init_flow.zig");
     try expectContains(phase9_build, "runtime_loader_gap_survey.zig");
