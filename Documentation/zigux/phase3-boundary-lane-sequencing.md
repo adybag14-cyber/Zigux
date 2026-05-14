@@ -87,6 +87,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
   - `scripts/zigux/validate-phase3-validator-support-surface.py`
   - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
+  - `scripts/zigux/validate-phase3-linux-zigux-header-governance.py`
   - `scripts/zigux/survey-phase3-abi-constant-parity.py`
   - `scripts/zigux/phase3_catalog.py`
   - `scripts/zigux/phase3_check_lib.py`
