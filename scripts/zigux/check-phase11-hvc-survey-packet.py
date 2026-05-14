@@ -112,6 +112,7 @@ SLICE_NOTE_MARKERS = [
     "`hvc_hangup()` disconnect summary",
     "`hvc_kick()` wakeup cue",
     "notifier-IRQ helper surface",
+    "targetless notifier no-unregister edge through `summarizeTargetlessNotifierEdge()` and the direct verify companion",
 ]
 
 TEARDOWN_NOTE_MARKERS = [
@@ -447,6 +448,10 @@ def run_self_test() -> None:
             (REQUIRED_FILES["survey_note"], "khvcd sleep-and-reschedule handoff summary"),
             (REQUIRED_FILES["survey_note"], "`__hvc_poll` drain-order summary"),
             (REQUIRED_FILES["slice_note"], PRESENT_DIRECT_COMPANION_MARKER),
+            (
+                REQUIRED_FILES["slice_note"],
+                "targetless notifier no-unregister edge through `summarizeTargetlessNotifierEdge()` and the direct verify companion",
+            ),
             (REQUIRED_FILES["teardown_note"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["teardown_note"], "tty detachment"),
             (REQUIRED_FILES["teardown_note"], "HUPCL-gated modem-line shutdown"),
