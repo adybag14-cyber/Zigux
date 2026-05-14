@@ -21,7 +21,7 @@ test "phase 7 string helpers survey keeps the restored starter packet truthful" 
     try expectContains(slice_note, "current `master` now carries both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
     try expectContains(slice_note, "keep the Phase 7 string-helpers lane limited to the restored starter packet");
     try expectContains(slice_note, "The restored starter packet on current `master` covers:");
-    try expectContains(slice_note, "stringUnescape()");
+    try expectContains(slice_note, "stringGetSize()");
     try expectContains(slice_note, "The next bounded follow-through should keep the expanded starter packet truthful");
     try expectNotContains(slice_note, "current `master` is missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
@@ -34,15 +34,18 @@ test "phase 7 string helpers survey keeps the restored starter packet truthful" 
     try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_sample_boundary.zig\"");
     try expectContains(manifest, "\"memcpyAndPad\"");
     try expectContains(manifest, "\"memcpy_and_pad\"");
-    try expectContains(manifest, "\"stringUnescape\"");
-    try expectContains(manifest, "\"stringUnescapeAnyInplace\"");
+    try expectContains(manifest, "\"stringGetSize\"");
+    try expectContains(manifest, "\"string_get_size\"");
     try expectContains(manifest, "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` is back on current master as a restored starter packet.");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 
     const helper = try readRepoFile(allocator, "lib/string_helpers.zig");
     defer allocator.free(helper);
-    try expectContains(helper, "pub const UNESCAPE_SPACE");
+    try expectContains(helper, "pub const STRING_UNITS_10");
+    try expectContains(helper, "pub const STRING_UNITS_NO_BYTES");
+    try expectContains(helper, "pub fn stringGetSize");
+    try expectContains(helper, "pub fn string_get_size");
     try expectContains(helper, "pub fn stringUnescape");
     try expectContains(helper, "pub fn string_unescape");
     try expectContains(helper, "pub fn stringUnescapeInplace");
@@ -55,6 +58,7 @@ test "phase 7 string helpers survey keeps the restored starter packet truthful" 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
     try expectContains(helper_tests, "phase 7 string helpers starter covers whitespace trimming and prefix skipping");
+    try expectContains(helper_tests, "phase 7 string helpers starter formats bounded sizes with three significant figures");
     try expectContains(helper_tests, "phase 7 string helpers starter keeps sysfs matching newline aware");
     try expectContains(helper_tests, "phase 7 string helpers starter matches tables through the first null entry");
     try expectContains(helper_tests, "phase 7 string helpers starter unescapes supported escape families and preserves unsupported escapes");
