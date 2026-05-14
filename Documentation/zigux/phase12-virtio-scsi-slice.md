@@ -1,19 +1,20 @@
 # Phase 12 virtio_scsi Slice
 
 - `PHASE12_SLICE=virtio-scsi-queue-lab-support`
-- reviewed against live `master` `4b5b0667d4651364ccd4b388d84c3107b64fdd6a`
+- reread against live `master` and the current `P12-L09` survey packet on `2026-05-14`
 - lane: `complex-drivers-infra`
 - anchor: `drivers/scsi/virtio_scsi.c`
 
 ## Shipped packet
 
 - `drivers/scsi/virtio_scsi.zig` is the current complex-driver scaffold on `master`
-- `zigux/tests/phase12_virtio_scsi.zig` keeps the queue planner, host-limit, queue-depth, and recovery summaries explicit
+- `zigux/tests/phase12_virtio_scsi.zig` keeps queue layout, request-queue selection, probe snapshot, host-limit, queue-depth, request-submit sequencing, completion-handback sequencing, command-buffer ownership, io-map, and transport-reset recovery summaries explicit
 - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` keeps the current export surface reachable
 - `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig` keeps the second-cycle recovery boundary explicit
-- `zigux/tests/phase12_virtio_scsi_packet.zig` is the manifest-backed packet replay for this bounded infra-prep slice
+- `zigux/tests/phase12_virtio_scsi_packet.zig` remains the manifest-backed support replay for this bounded infra-prep slice
 - `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json` pins the lane key, surveyed commit, shipped paths, and direct validation commands for the current support packet
-- `zigux/tests/phase12_build.zig` keeps the packet replay wired into the shared `phase12` smoke and test routes beside the syntax-lab and repeated-replan gates
+- `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` now keep the newer roadmap-gap survey machine-checkable beside the earlier support packet
+- `zigux/tests/phase12_build.zig` keeps the direct replay, syntax-lab smoke, repeated-replan gate, survey gate, and support packet wired into the shared `phase12` smoke and test routes
 - `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the manifest, slice note, or build route drifts
 
 ## Repo-reality gaps
@@ -24,6 +25,6 @@
 ## Why this packet exists
 
 - The roadmap's complex-driver lane wants infrastructure prep, not another helper family
-- `master` already has a real `virtio_scsi` scaffold and direct tests, so the highest-value bounded step here is to make that packet easier to audit and keep aligned
-- the manifest-backed replay, shared Phase 12 build wiring, and packet checker keep this support slice reviewable without claiming broader Phase 12 closure or live DMA-backed request flow
+- `master` already has a real `virtio_scsi` scaffold plus a newer bounded survey packet, so the highest-value same-lane move here is to keep the older support note aligned with that shipped review surface instead of pretending the packet stopped at queue-layout-only evidence
+- the manifest-backed support replay, the newer survey gate and survey note, and the shared Phase 12 build wiring keep this slice reviewable without claiming broader Phase 12 closure, `scsi_host` registration, or live DMA-backed request flow
 - This note intentionally stays scoped to the current `virtio_scsi` support packet and does not claim broader Phase 12 closure
