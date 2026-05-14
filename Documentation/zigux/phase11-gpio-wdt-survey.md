@@ -6,10 +6,10 @@ This survey note tracks the current `gpio_wdt` simple-driver gap against the Pha
 
 ## Live Repo State
 
-- Current `master` still exposes the archived gpio watchdog review surfaces `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_gpio_wdt_survey.zig`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-module-slice.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, and the focused replay `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`.
-- Direct current-`master` contents reads still do not expose `drivers/watchdog/gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt.zig`, or `zigux/tests/phase11_build.zig`, so the roadmap destination under `drivers/watchdog/*.zig` is still not visibly landed on `master`.
-- The archived review surfaces plus the restored dedicated survey gate are therefore useful as current review memory and truthfulness checks for the bounded packet. They are still not enough to claim that the simple-driver scaffold, the main gpio watchdog replay, or the shared Phase 11 build route are presently shipped on current `master`.
-- The focused `platform_set_drvdata()` replay that remains visible on `master` is still a bounded proof of one early ordering checkpoint only. The restored survey gate now keeps the surrounding archived packet honest, but without the main driver file and the directly coupled replay beside it, the broader simple-driver gap that Phase 11 still schedules for `gpio_wdt` remains open.
+- Current `master` now exposes the visible starter `drivers/watchdog/gpio_wdt.zig` together with the archived gpio watchdog review surfaces `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_gpio_wdt_survey.zig`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-module-slice.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, and the focused replay `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`.
+- Direct current-`master` contents reads still do not expose `zigux/tests/phase11_gpio_wdt.zig` or `zigux/tests/phase11_build.zig`, so the directly coupled main replay packet and the shared Phase 11 build route are still missing from the current visible repo surface.
+- The visible starter, the archived review notes, the focused platform-drvdata replay, and the dedicated survey gate are therefore useful as current review memory and code-backed checkpoints for the bounded packet. They are still not enough to claim that the main gpio watchdog replay or the shared Phase 11 build route are presently shipped on current `master`.
+- The focused `platform_set_drvdata()` replay that remains visible on `master` is still a bounded proof of one early ordering checkpoint only. The dedicated survey gate now keeps the surrounding archived packet honest, but without the main replay and shared build route beside the visible starter, the broader simple-driver gap that Phase 11 still schedules for `gpio_wdt` remains open.
 
 ## Roadmap Gap
 
@@ -17,15 +17,15 @@ Phase 11 still calls for direct-port or dual-implementation driver templates und
 
 For `gpio_wdt` on current `master`, the remaining honest simple-driver gap is:
 
-- restore or publish the visible `drivers/watchdog/gpio_wdt.zig` starter itself
+- keep the visible `drivers/watchdog/gpio_wdt.zig` starter aligned with the archived manifest, survey note, module-slice note, teardown note, validation matrix, and dedicated survey gate
 - restore or publish the directly coupled main replay at `zigux/tests/phase11_gpio_wdt.zig`
 - restore or publish the shared Phase 11 build route at `zigux/tests/phase11_build.zig`
-- then realign the archived manifest, survey note, module-slice note, teardown note, and validation matrix around the newly visible packet instead of treating the archived notes and survey gate as proof on their own
+- then expand only from that visible packet into later live GPIO, watchdog-core registration, reboot-hook, teardown, failure-mode, or hardware-backed follow-through
 
 ## Boundaries
 
-This survey note does not claim that current `master` already ships live GPIO descriptor lookup, `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution, watchdog core registration, reboot hooks, remove hooks, broader teardown or failure-mode parity, or hardware-backed validation.
+This survey note does not claim that current `master` already ships live GPIO descriptor lookup, `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution, watchdog-core registration, reboot hooks, remove hooks, broader teardown or failure-mode parity, or hardware-backed validation.
 
-It also does not treat the archived review notes, the dedicated survey gate, and the single focused platform-drvdata replay as proof that the main `gpio_wdt` starter packet is already landed on `master`.
+It also does not treat the visible starter, the archived review notes, the dedicated survey gate, and the single focused platform-drvdata replay as proof that the missing main replay or shared Phase 11 build route are already landed on `master`.
 
-The next honest bounded step for this survey lane is one same-family follow-through that keeps the current-master record aligned with the roadmap: restore the missing visible driver packet and its directly coupled replay surfaces, or continue tightening the archived survey gate and notes only when they drift from the packet that current `master` actually exposes.
+The next honest bounded step for this survey lane is one same-family follow-through that keeps the current-master record aligned with the roadmap: restore the missing directly coupled replay surfaces, or continue tightening the archived survey gate and notes only when they drift from the packet that current `master` actually exposes.
