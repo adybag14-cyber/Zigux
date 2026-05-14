@@ -641,7 +641,7 @@ test "phase13 devres rejects phys WC token planning when the release record cann
 
 test "phase13 devres manifest records the current helper-local mmio survey packet" {
     try expectContains(manifest_text, "\"lane_key\": \"P13-L01\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-13\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-14\"");
     try expectContains(manifest_text, "\"preexisting_phase13_build_present\": false");
     try expectContains(manifest_text, "\"preexisting_phase13_make_target_present\": true");
     try expectContains(manifest_text, "\"preexisting_devres_zig_present\": true");
@@ -658,6 +658,8 @@ test "phase13 devres manifest records the current helper-local mmio survey packe
     try expectContains(manifest_text, "\"id\": \"phase13-devres-of-iomap-planner\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-arch-phys-wc-token-planner\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-live-mmio-mappings\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-live-region-reservation\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-live-release-region-mutation\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-live-device-tree-walk\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-live-arch-memtype-state\"");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
@@ -668,6 +670,8 @@ test "phase13 devres manifest records the current helper-local mmio survey packe
     try expectContains(manifest_text, "devm_iounmap()");
     try expectContains(manifest_text, "devm_of_iomap()");
     try expectContains(manifest_text, "devm_arch_phys_wc_add()");
+    try expectContains(manifest_text, "actual region acquisition side effects");
+    try expectContains(manifest_text, "real `release_mem_region()`");
     try expectContains(manifest_text, "real mappings or unmaps");
     try expectContains(manifest_text, "OF node traversal");
     try expectContains(manifest_text, "mutating real memtype state");
