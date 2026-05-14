@@ -83,6 +83,7 @@ Current `master` no longer needs the older docs-root follow-through that earlier
 - the current trace-events follow-through stays trace-events-local in `P9-L10`: the manifest, survey note, module-slice note, and survey gate stay family-local while the shared loader packet remains adjacent only
 - the current kretprobe follow-through is the manifest-backed loader-plan, survey-gate lifecycle, and tracing proof sync tracked in `P9-L13`, and the older family-local `P9-L10` label should not be reused unless repo evidence explicitly moves ownership back
 - the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces
+- direct readback now also shows `zigux/kernel/runtime_loader_contract.zig` keeps `depmod_aliases` outside the shared `LoadPlan` beside `depmod_script` and `depmod_manifest`, so the shared owner-map note should keep depmod alias publication state parked with that same blocked module-metadata boundary instead of implying alias publication has moved into the shipped loader packet
 - `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references
 - `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references
 
