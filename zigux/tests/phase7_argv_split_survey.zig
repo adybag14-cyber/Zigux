@@ -269,6 +269,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty exported argv view");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space");
+    try expectContains(helper_tests, "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space");
     try expectContains(helper_tests, "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable");
     try expectContains(helper_tests, "phase 7 argvSplit deinit clears exported storage and argv views");
     try expectContains(helper_tests, "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result");
@@ -286,6 +287,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(checker, "\"zigux/tests/phase7_argv_split_survey.zig\"");
     try expectContains(checker, "\"zigux/tests/phase7_argv_split_manifest.json\"");
     try expectContains(checker, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"");
+    try expectContains(checker, "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space");
 
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-argv-split-packet.py\","
 );
