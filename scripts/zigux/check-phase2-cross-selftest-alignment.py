@@ -257,7 +257,6 @@ def validate_makefile_target_scope(text: str) -> list[str]:
                 "makefile_target_scope:"
                 f"{PHASE2_CROSS_TARGET_NAME}:actual={commands!r}:expected={PHASE2_CROSS_TARGET_REQUIRED_LINES!r}"
             )
-
     return issues
 
 
@@ -422,6 +421,26 @@ def run_self_test() -> int:
     if bootstrap_forbidden_failure != [expected_forbidden_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:bootstrap_forbidden_failure")
 
+    scripts_readme_issues = validate_required_markers(
+        "\n".join(SCRIPTS_README_MARKERS),
+        label="phase2_scripts_readme",
+        markers=SCRIPTS_README_MARKERS,
+    )
+    if scripts_readme_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:scripts_readme_marker_presence")
+
+    scripts_readme_missing = validate_required_markers(
+        "\n".join(SCRIPTS_README_MARKERS[1:]),
+        label="phase2_scripts_readme",
+        markers=SCRIPTS_README_MARKERS,
+    )
+    expected_scripts_readme_issue = (
+        "phase2_scripts_readme:missing_marker:"
+        "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`"
+    )
+    if scripts_readme_missing != [expected_scripts_readme_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:scripts_readme_marker_failure")
+
     tests_readme_issues = validate_required_markers(
         "\n".join(TESTS_README_MARKERS),
         label="phase2_tests_readme",
@@ -481,7 +500,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_zig_test_files_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=22")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
