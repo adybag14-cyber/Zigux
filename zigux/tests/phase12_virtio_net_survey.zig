@@ -81,8 +81,8 @@ test "phase12 virtio net survey manifest keeps the bounded control-queue payload
 
     try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings("unresolved_on_master", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings("2026-05-13", manifest.verified_on);
+    try std.testing.expectEqualStrings("dc9121502a99ed8c88d79081c6d83a8eada20a00", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2026-05-14", manifest.verified_on);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
@@ -193,7 +193,7 @@ test "phase12 virtio net survey note stays aligned with the bounded control-queu
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("2026-05-13", manifest.verified_on);
+    try std.testing.expectEqualStrings("2026-05-14", manifest.verified_on);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-control-queue-payload-shaping") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `drivers/net/virtio_net.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeQueueTopology()") != null);
@@ -204,6 +204,7 @@ test "phase12 virtio net survey note stays aligned with the bounded control-queu
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `zigux/tests/phase12_virtio_net_syntax_lab.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe receive ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact reviewability refresh") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dc9121502a99ed8c88d79081c6d83a8eada20a00") != null);
 }
 
 test "phase12 virtio net survey gate keeps present lane files explicit" {
