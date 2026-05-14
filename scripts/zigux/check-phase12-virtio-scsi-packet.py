@@ -64,11 +64,14 @@ def validate(root: Path) -> list[str]:
     surveyed_commit = manifest.get("surveyed_commit")
     if not isinstance(surveyed_commit, str) or not surveyed_commit:
         errors.append("manifest:surveyed_commit_missing")
-    else:
-        if not contains_manifest_expectation(replay_text, "surveyed_commit", surveyed_commit):
-            errors.append(f"replay:surveyed_commit_mismatch:{surveyed_commit}")
-        if f"reviewed against live `master` `{surveyed_commit}`" not in slice_text:
-            errors.append(f"slice:surveyed_commit_mismatch:{surveyed_commit}")
+    elif not contains_manifest_expectation(replay_text, "surveyed_commit", surveyed_commit):
+        errors.append(f"replay:surveyed_commit_mismatch:{surveyed_commit}")
+
+    verified_on = manifest.get("verified_on")
+    if not isinstance(verified_on, str) or not verified_on:
+        errors.append("manifest:verified_on_missing")
+    elif f"on `{verified_on}`" not in slice_text:
+        errors.append(f"slice:verified_on_mismatch:{verified_on}")
 
     shipped_paths = manifest.get("shipped_paths")
     if not isinstance(shipped_paths, list) or not shipped_paths:
@@ -119,11 +122,12 @@ def seed_fixture_tree(root: Path) -> None:
         root / MANIFEST_PATH,
         json.dumps(
             {
-                "lane_key": "complex-drivers-infra",
+                "lane_key": "P12-L12",
                 "phase": "Phase 12",
-                "surveyed_commit": "4b5b0667d4651364ccd4b388d84c3107b64fdd6a",
+                "surveyed_commit": "unresolved_on_master",
+                "verified_on": "2026-05-14",
                 "packet": "phase12-virtio-scsi-support",
-                "status": "bounded infra prep",
+                "status": "bounded infra prep metadata cleanup",
                 "anchor": "drivers/scsi/virtio_scsi.c",
                 "shipped_paths": [
                     "drivers/scsi/virtio_scsi.zig",
@@ -156,15 +160,15 @@ def seed_fixture_tree(root: Path) -> None:
                 "# Phase 12 virtio_scsi Slice",
                 "",
                 "- `PHASE12_SLICE=virtio-scsi-queue-lab-support`",
-                "- reviewed against live `master` `4b5b0667d4651364ccd4b388d84c3107b64fdd6a`",
-                "- lane: `complex-drivers-infra`",
+                "- reread against live `master` and the current `P12-L09` survey packet on `2026-05-14`",
+                "- lane: `P12-L12`",
                 "- anchor: `drivers/scsi/virtio_scsi.c`",
                 "",
                 "## Shipped packet",
                 "",
                 "- `drivers/scsi/virtio_scsi.zig` is the current complex-driver scaffold on `master`",
-                "- `zigux/tests/phase12_virtio_scsi_packet.zig` is the manifest-backed packet replay for this bounded infra-prep slice",
-                "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the manifest, slice note, or build route drifts",
+                "- `zigux/tests/phase12_virtio_scsi_packet.zig` remains the manifest-backed support replay for this bounded infra-prep slice",
+                "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the support manifest, support replay, slice note, or build route drifts",
                 "",
                 "## Repo-reality gaps",
                 "",
@@ -179,9 +183,19 @@ def seed_fixture_tree(root: Path) -> None:
         "\n".join(
             [
                 "const std = @import(\"std\");",
-                'test "phase12 packet replay" {',
-                '    try std.testing.expect(std.mem.indexOf(u8, "\\\"lane_key\\\": \\\"complex-drivers-infra\\\"", "\\\"lane_key\\\": \\\"complex-drivers-infra\\\"") != null);',
-                '    try std.testing.expect(std.mem.indexOf(u8, "\\\"surveyed_commit\\\": \\\"4b5b0667d4651364ccd4b388d84c3107b64fdd6a\\\"", "\\\"surveyed_commit\\\": \\\"4b5b0667d4651364ccd4b388d84c3107b64fdd6a\\\"") != null);',
+                "",
+                "const manifest_text = @embedFile(\"fixtures/phase12_virtio_scsi_manifest.json\");",
+                "const build_text = @embedFile(\"phase12_build.zig\");",
+                "",
+                "fn expectContains(haystack: []const u8, needle: []const u8) !void {",
+                "    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);",
+                "}",
+                "",
+                "test \"phase12 virtio scsi manifest records the bounded support packet\" {",
+                "    try expectContains(manifest_text, \"\\\"lane_key\\\": \\\"P12-L12\\\"\");",
+                "    try expectContains(manifest_text, \"\\\"phase\\\": \\\"Phase 12\\\"\");",
+                "    try expectContains(manifest_text, \"\\\"surveyed_commit\\\": \\\"unresolved_on_master\\\"\");",
+                "    try expectContains(manifest_text, \"\\\"verified_on\\\": \\\"2026-05-14\\\"\");",
                 "}",
             ]
         )
@@ -198,20 +212,20 @@ def seed_fixture_tree(root: Path) -> None:
                 "    const optimize = b.standardOptimizeOption(.{});",
                 "",
                 "    const packet_root_module = b.createModule(.{",
-                '        .root_source_file = b.path("phase12_virtio_scsi_packet.zig"),',
+                "        .root_source_file = b.path(\"phase12_virtio_scsi_packet.zig\"),",
                 "        .target = target,",
                 "        .optimize = optimize,",
                 "    });",
                 "",
                 "    const packet_tests = b.addTest(.{",
-                '        .name = "phase12-virtio-scsi-packet-tests",',
+                "        .name = \"phase12-virtio-scsi-packet-tests\",",
                 "        .root_module = packet_root_module,",
                 "    });",
                 "    const run_packet_tests = b.addRunArtifact(packet_tests);",
                 "",
-                '    const smoke_step = b.step("smoke", "Run Phase 12 virtio-scsi syntax smoke");',
+                "    const smoke_step = b.step(\"smoke\", \"Run Phase 12 virtio-scsi packet tests\");",
                 "    smoke_step.dependOn(&run_packet_tests.step);",
-                '    const test_step = b.step("test", "Run Phase 12 virtio-scsi packet tests");',
+                "    const test_step = b.step(\"test\", \"Run Phase 12 virtio-scsi packet tests\");",
                 "    test_step.dependOn(&run_packet_tests.step);",
                 "}",
             ]
@@ -241,8 +255,8 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "slice:lane_key_mismatch:complex-drivers-infra",
-                "slice:surveyed_commit_mismatch:4b5b0667d4651364ccd4b388d84c3107b64fdd6a",
+                "slice:lane_key_mismatch:P12-L12",
+                "slice:verified_on_mismatch:2026-05-14",
                 "slice:missing_gap_marker:drivers/nvme/host/pci.zig",
                 "slice:missing_gap_marker:Documentation/zigux/phase12-closure.md",
                 "slice:missing_slice_marker",
@@ -254,15 +268,15 @@ def run_self_test() -> int:
         seed_fixture_tree(root)
         write_text(
             root / REPLAY_PATH,
-            'const std = @import("std");\n'
-            'test "phase12 packet replay" {\n'
-            '    try std.testing.expect(std.mem.indexOf(u8, "\\"lane_key\\": \\"wrong-lane\\"", "\\"lane_key\\": \\"wrong-lane\\"") != null);\n'
-            '    try std.testing.expect(std.mem.indexOf(u8, "\\"surveyed_commit\\": \\"4b5b0667d4651364ccd4b388d84c3107b64fdd6a\\"", "\\"surveyed_commit\\": \\"4b5b0667d4651364ccd4b388d84c3107b64fdd6a\\"") != null);\n'
+            "const std = @import(\"std\");\n"
+            "test \"phase12 packet replay\" {\n"
+            "    try std.testing.expect(std.mem.indexOf(u8, \"\\\"lane_key\\\": \\\"wrong-lane\\\"\", \"\\\"lane_key\\\": \\\"wrong-lane\\\"\") != null);\n"
+            "    try std.testing.expect(std.mem.indexOf(u8, \"\\\"surveyed_commit\\\": \\\"unresolved_on_master\\\"\", \"\\\"surveyed_commit\\\": \\\"unresolved_on_master\\\"\") != null);\n"
             "}\n",
         )
         assert_only(
             validate(root),
-            ["replay:lane_key_mismatch:complex-drivers-infra"],
+            ["replay:lane_key_mismatch:P12-L12"],
             "lane_key_drift_failed",
         )
         case_count += 1
