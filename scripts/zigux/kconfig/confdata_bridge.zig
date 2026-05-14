@@ -740,6 +740,7 @@ test "confdata bridge keeps the prior duplicate value when a later quoted assign
         \\CONFIG_ALPHA="unterminated
         \\# CONFIG_DEBUG is not set
         \\CONFIG_DEBUG="broken
+        \\CONFIG_GAMMA="still-broken
         \\CONFIG_BETA=y
         \\
     );
