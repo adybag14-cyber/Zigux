@@ -7,6 +7,7 @@ This note keeps the bounded Phase 6 leaf-helper packet from overlapping itself o
 - `PHASE6_LANE_MAP_STATUS=active`
 - `PHASE6_PACKET=base64-bsearch-checksum-hexdump`
 - shared sequencing lane key: `P6-Y10`
+- tests-root reminder sync lane: `P6-Y11`
 - shared packet status source: `zigux/tests/phase6_helper_parity_manifest.json`
 - shared packet catalog: `Documentation/zigux/phase6-helper-parity-catalog.md`
 - shared perf posture note: `Documentation/zigux/phase6-perf-gate-survey.md`
@@ -25,6 +26,8 @@ Use `P6-Y10` only for packet-wide routing, ownership, or anti-overlap truthfulne
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 - packet-level fields in `zigux/tests/phase6_helper_parity_manifest.json` such as `status`, `tranche`, `roadmap_anchors`, `shared_gates`, `exact_checks`, and shared route summaries
+
+Use `P6-Y11` only for the narrow tests-root reminder sync inside `zigux/tests/README.md` when the Phase 6 key-entrypoint list or the longer tests-root guidance block drifts from the current shared-checker-backed packet, the remaining base64 perf gap, or the still-missing checksum helper-owned replay and fixture files.
 
 ## Helper-Owned Lanes
 
@@ -100,6 +103,7 @@ Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6
 - If a shared route changes, update the shared note first, then let the owning helper lane repair only the helper-local evidence it actually owns.
 - If the checksum helper packet is absent on current `master`, split the follow-up cleanly: checksum lanes restore `lib/checksum.zig` plus the checksum-owned tests and fixtures, while `P6-Y10` owns any repo-wide route, checklist, checker, or summary retelling that stops advertising those missing files as a bundled replay.
 - If a helper packet has separate parked-survey, fixture-governance, and helper-drift lanes, route the smallest truthful follow-up to the narrowest owner instead of reopening the whole helper family.
+- If a shared summary drift is isolated to `zigux/tests/README.md`, keep that reminder repair under `P6-Y11` instead of reopening `P6-Y10` or a helper-owned restoration lane.
 
 ## Current Bounded Next Step
 
