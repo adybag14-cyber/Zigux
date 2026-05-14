@@ -32,24 +32,23 @@ HELPER_SOURCE_MARKERS = [
     "pub fn bin2Hex(dst: []u8, src: []const u8) []u8 {",
     "pub fn requiredLineLength(len: usize, rowsize: usize, groupsize: usize, ascii: bool) usize {",
     "pub fn hexDumpToBuffer(buf: []const u8, rowsize: usize, groupsize: usize, linebuf: []u8, ascii: bool) usize {",
-    'test "hex_to_bin accepts numeric, lower, and upper digits" {',
-    'test "hex2bin decodes mixed-case input" {',
-    'test "bin2hex emits lowercase output and returns the written slice" {',
-    'test "hex dump truncation still reports the full logical length" {',
 ]
 
 SLICE_NOTE_MARKERS = [
+    "`PHASE6_STATUS=parked_reviewable`",
     "`PHASE6_SLICE=hexdump-leaf-helper`",
+    "`zigux/tests/phase6_hexdump.zig`",
+    "`zigux/tests/phase6_hexdump_perf.zig`",
     "`zigux/tests/phase6_hexdump_perf_matrix.zig`",
-    "`Documentation/zigux/phase6-hexdump-perf-refresh.md`",
+    "`zigux/tests/fixtures/phase6_hexdump_vectors.zig`",
     "`scripts/zigux/check-phase6-hexdump-packet.py`",
     "`make -C zigux phase6-hexdump-test`",
     "`make -C zigux phase6-hexdump-perf`",
     "`make -C zigux phase6-hexdump-review`",
     "lib/hexdump.zig` now also carries direct same-file coverage for the landed `hexToBin`/`hex_to_bin`, `hex2Bin`/`hex2bin`, and `bin2Hex`/`bin2hex` helper parity surface",
-    "the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still keeps the empty plain zero-length row aligned with the focused replay and the helper's landed empty-input contract, but the empty ASCII zero-length row has not been serialized into that helper-local fixture packet yet",
-    "The current bounded next safe step is one helper-local empty-ASCII length-packet follow-through: add the missing zero-length ASCII row to `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, rerun `python3 scripts/zigux/check-phase6-hexdump-packet.py` and `make -C zigux phase6-hexdump-test`, and keep the repair to that directly coupled fixture-plus-replay packet only.",
+    "the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both the empty plain and empty ASCII zero-length rows aligned with the focused replay and the helper's landed empty-input contract",
     "focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable",
+    "Keep this slice parked unless a concrete new helper-local parity, fixture, or perf-threshold gap appears in the hexdump packet.",
 ]
 
 LANE_SEQUENCING_MARKERS = [
@@ -178,8 +177,6 @@ def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["perf_matrix_test"], read_text(root, REQUIRED_FILES["perf_matrix_test"]), PERF_MATRIX_MARKERS)
     expect_markers(REQUIRED_FILES["fixtures"], read_text(root, REQUIRED_FILES["fixtures"]), FIXTURE_MARKERS)
 
-    # These files are still part of the live hexdump packet even when this checker
-    # only needs their continued presence rather than a large literal inventory.
     for key in ("focused_test", "perf_test"):
         read_text(root, REQUIRED_FILES[key])
 
@@ -237,12 +234,12 @@ def run_self_test() -> None:
         helper_source = tmpdir / REQUIRED_FILES["helper_source"]
         helper_source.write_text(
             helper_source.read_text(encoding="utf-8").replace(
-                'test "hex2bin decodes mixed-case input" {\n',
+                "pub fn hex2Bin(dst: []u8, src: []const u8) Hex2BinError!void {\n",
                 "",
             ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, 'test "hex2bin decodes mixed-case input" {')
+        expect_failure(tmpdir, "pub fn hex2Bin")
 
         build_self_test_fixture(tmpdir)
         perf_survey = tmpdir / REQUIRED_FILES["perf_survey"]
@@ -319,11 +316,7 @@ def run_self_test() -> None:
         build_self_test_fixture(tmpdir)
         fixtures = tmpdir / REQUIRED_FILES["fixtures"]
         fixtures.write_text(
-            fixtures.read_text(encoding="utf-8").replace(
-                "max_slowdown_pct = 600",
-                "max_slowdown_pct = 601",
-                1,
-            ),
+            fixtures.read_text(encoding="utf-8").replace("max_slowdown_pct = 600", "max_slowdown_pct = 601", 1),
             encoding="utf-8",
         )
         expect_failure(tmpdir, "max_slowdown_pct = 600")
@@ -340,7 +333,7 @@ def run_self_test() -> None:
         slice_note = tmpdir / REQUIRED_FILES["slice_note"]
         slice_note.write_text(
             slice_note.read_text(encoding="utf-8").replace(
-                "length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still keeps the empty plain zero-length row aligned with the focused replay and the helper's landed empty-input contract, but the empty ASCII zero-length row has not been serialized into that helper-local fixture packet yet",
+                "length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both the empty plain and empty ASCII zero-length rows aligned with the focused replay and the helper's landed empty-input contract",
                 "length_cases packet drifted",
                 1,
             ),
