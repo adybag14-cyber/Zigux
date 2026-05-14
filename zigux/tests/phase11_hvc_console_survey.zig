@@ -448,7 +448,7 @@ test "phase11 hvc_console survey keeps the dedicated archival packet explicit" {
     try std.testing.expect(std.mem.indexOf(u8, poll_retry_split, "phase11 hvc console keeps sysrq handoff unavailable after teardown") != null);
 }
 
-test "phase11 hvc_console survey keeps the shared replay separate but exposes an explicit survey step" {
+test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -597,6 +597,26 @@ test "phase11 hvc console survey keeps bounded hv_ops callback signature proofs"
         assertExactType(@FieldType(HvOpsLayout, "tiocmget"), ?*const fn (*HvcStruct) callconv(.c) c_int);
         assertExactType(@FieldType(HvOpsLayout, "tiocmset"), ?*const fn (*HvcStruct, c_uint, c_uint) callconv(.c) c_int);
         assertExactType(@FieldType(HvOpsLayout, "dtr_rts"), ?*const fn (*HvcStruct, bool) callconv(.c) void);
+    }
+}
+
+test "phase11 hvc console survey keeps bounded header constant proofs" {
+    comptime {
+        assertExactType(@TypeOf(MAX_NR_HVC_CONSOLES), u32);
+        assertExactType(@TypeOf(HVC_ALLOC_TTY_ADAPTERS), u32);
+
+        if (MAX_NR_HVC_CONSOLES != 16) {
+            @compileError(std.fmt.comptimePrint(
+                "MAX_NR_HVC_CONSOLES drifted: expected 16, found {}",
+                .{MAX_NR_HVC_CONSOLES},
+            ));
+        }
+        if (HVC_ALLOC_TTY_ADAPTERS != 1) {
+            @compileError(std.fmt.comptimePrint(
+                "HVC_ALLOC_TTY_ADAPTERS drifted: expected 1, found {}",
+                .{HVC_ALLOC_TTY_ADAPTERS},
+            ));
+        }
     }
 }
 
