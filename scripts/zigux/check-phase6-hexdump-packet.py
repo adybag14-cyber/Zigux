@@ -47,12 +47,13 @@ SLICE_NOTE_MARKERS = [
     "`make -C zigux phase6-hexdump-perf`",
     "`make -C zigux phase6-hexdump-review`",
     "lib/hexdump.zig` now also carries direct same-file coverage for the landed `hexToBin`/`hex_to_bin`, `hex2Bin`/`hex2bin`, and `bin2Hex`/`bin2hex` helper parity surface",
-    "the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both empty plain and empty ASCII zero-length rows aligned",
+    "the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still keeps the empty plain zero-length row aligned with the focused replay and the helper's landed empty-input contract, but the empty ASCII zero-length row has not been serialized into that helper-local fixture packet yet",
+    "The current bounded next safe step is one helper-local empty-ASCII length-packet follow-through: add the missing zero-length ASCII row to `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, rerun `python3 scripts/zigux/check-phase6-hexdump-packet.py` and `make -C zigux phase6-hexdump-test`, and keep the repair to that directly coupled fixture-plus-replay packet only.",
     "focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable",
 ]
 
 LANE_SEQUENCING_MARKERS = [
-    "### `P6-L19`, `P6-Y07`, and `P6-Y08` hexdump packet",
+    "### `P6-L19`, `P6-Y07`, `P6-Y08`, and `P6-Y09` hexdump packet",
     "Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane",
     "Treat `P6-Y07` as the hexdump fixture-governance lane",
     "Treat `P6-Y08` as the hexdump serialized empty-ASCII length-packet closure lane",
@@ -135,9 +136,7 @@ PERF_MATRIX_MARKERS = [
 FIXTURE_MARKERS = [
     "pub const length_cases = [_]LengthCase{",
     '.name = "empty plain line reports zero length"',
-    '.name = "empty ascii line reports zero length"',
     '.{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },',
-    '.{ .name = "empty ascii line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 0 },',
     'test "phase 6 hexdump curated length packet stays bounded to the documented matrix" {',
     "try std.testing.expectEqual(expected.len, length_cases.len);",
 ]
@@ -293,13 +292,13 @@ def run_self_test() -> None:
         fixtures = tmpdir / REQUIRED_FILES["fixtures"]
         fixtures.write_text(
             fixtures.read_text(encoding="utf-8").replace(
-                '.{ .name = "empty ascii line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 0 },\n',
+                '.{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },\n',
                 "",
                 1,
             ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, '.{ .name = "empty ascii line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 0 },')
+        expect_failure(tmpdir, '.{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },')
 
         build_self_test_fixture(tmpdir)
         slice_note = tmpdir / REQUIRED_FILES["slice_note"]
@@ -313,7 +312,7 @@ def run_self_test() -> None:
         slice_note = tmpdir / REQUIRED_FILES["slice_note"]
         slice_note.write_text(
             slice_note.read_text(encoding="utf-8").replace(
-                "length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both empty plain and empty ASCII zero-length rows aligned",
+                "length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still keeps the empty plain zero-length row aligned with the focused replay and the helper's landed empty-input contract, but the empty ASCII zero-length row has not been serialized into that helper-local fixture packet yet",
                 "length_cases packet drifted",
                 1,
             ),
@@ -325,7 +324,7 @@ def run_self_test() -> None:
         lane_sequencing = tmpdir / REQUIRED_FILES["lane_sequencing"]
         lane_sequencing.write_text(
             lane_sequencing.read_text(encoding="utf-8").replace(
-                "### `P6-L19`, `P6-Y07`, and `P6-Y08` hexdump packet\n",
+                "### `P6-L19`, `P6-Y07`, `P6-Y08`, and `P6-Y09` hexdump packet\n",
                 "",
                 1,
             ),
