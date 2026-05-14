@@ -105,7 +105,7 @@ REQUIRED_SCRIPTS_README_MARKERS = (
 )
 
 REQUIRED_TESTS_README_MARKERS = (
-    "keep the shared Phase 13 contributor-workflow packet explicit in the tests root too:",
+    "Phase 13 contributor packet explicit in the tests root too:",
     "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
     "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
     "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
