@@ -14,6 +14,9 @@ SURVEYED_COMMIT = "c11221dc7a68d7511ae1c69d64b3f08528287ed8"
 
 FILES = [
     "scripts/zigux/check-phase10-core-packet.py",
+    "drivers/virtio/virtio.zig",
+    "drivers/virtio/virtio_driver_id.zig",
+    "drivers/virtio/virtio_verify.zig",
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/phase10_build.zig",
@@ -86,6 +89,8 @@ EXPECTED_SURVEY_MARKERS = [
     "phase10-core-probe-remove-lifecycle",
     "phase10_virtio_core_manifest.json",
     "phase10_virtio_core_survey.zig",
+    "drivers/virtio/virtio.zig",
+    "drivers/virtio/virtio_driver_id.zig",
     "drivers/virtio/virtio_verify.zig",
     "drivers/virtio/*.zig",
     "zigux/kernel/",
@@ -279,6 +284,9 @@ def build_fixture_files() -> dict[str, str]:
     build_markers = "\n".join(EXPECTED_BUILD_MARKERS)
     return {
         "scripts/zigux/check-phase10-core-packet.py": "# fixture copy\n",
+        "drivers/virtio/virtio.zig": "pub const fixture_core = true;\n",
+        "drivers/virtio/virtio_driver_id.zig": "pub const fixture_driver_id = true;\n",
+        "drivers/virtio/virtio_verify.zig": "pub const fixture_verify = true;\n",
         "zigux/Makefile": "\n".join(EXPECTED_MAKEFILE_MARKERS) + "\n",
         "zigux/tests/README.md": "\n".join(EXPECTED_TESTS_README_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": build_markers + "\n",
@@ -306,6 +314,20 @@ def run_self_test() -> int:
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
+
+        core_helper_path = root / "drivers/virtio/virtio.zig"
+        core_helper_path.unlink()
+        missing_files, _ = validate(root)
+        if "drivers/virtio/virtio.zig" not in missing_files:
+            raise SystemExit("phase10-core-self-test:expected_core_helper_file_missing")
+        write_fixture(root, "drivers/virtio/virtio.zig", fixture["drivers/virtio/virtio.zig"])
+
+        verify_path = root / "drivers/virtio/virtio_verify.zig"
+        verify_path.unlink()
+        missing_files, _ = validate(root)
+        if "drivers/virtio/virtio_verify.zig" not in missing_files:
+            raise SystemExit("phase10-core-self-test:expected_verify_replay_file_missing")
+        write_fixture(root, "drivers/virtio/virtio_verify.zig", fixture["drivers/virtio/virtio_verify.zig"])
 
         manifest_path = root / "zigux/tests/phase10_virtio_core_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
@@ -412,7 +434,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_tests_readme_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
