@@ -1,6 +1,7 @@
 const std = @import("std");
 const Io = std.Io;
 const abi = @import("abi_bindings");
+const notifier_abi = @import("notifier_abi");
 
 fn writeQuoted(writer: anytype, text: []const u8) !void {
     try writer.writeByte('"');
@@ -70,7 +71,7 @@ pub fn main(init: std.process.Init) !void {
 
     try writer.writeAll(",\"constants\":{");
     try writer.print(
-        "\"facility_kernel\":{d},\"facility_helpers\":{d},\"facility_drivers\":{d},\"status_flag_error\":{d},\"panic_abort\":{d},\"panic_bug\":{d},\"panic_warn\":{d},\"allocator_caller_provided\":{d},\"allocator_kernel_heap\":{d},\"allocator_arena\":{d},\"unsafe_scope_none\":{d},\"unsafe_scope_volatile_mmio\":{d},\"unsafe_scope_raw_pointer_bridge\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped\":{d}",
+        "\"facility_kernel\":{d},\"facility_helpers\":{d},\"facility_drivers\":{d},\"status_flag_error\":{d},\"panic_abort\":{d},\"panic_bug\":{d},\"panic_warn\":{d},\"allocator_caller_provided\":{d},\"allocator_kernel_heap\":{d},\"allocator_arena\":{d},\"unsafe_scope_none\":{d},\"unsafe_scope_volatile_mmio\":{d},\"unsafe_scope_raw_pointer_bridge\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied\":{d},\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped\":{d},\"notifier_done\":{d},\"notifier_ok\":{d},\"notifier_stop\":{d}",
         .{
             abi.FACILITY_KERNEL,
             abi.FACILITY_HELPERS,
@@ -89,6 +90,9 @@ pub fn main(init: std.process.Init) !void {
             abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED,
             abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
             abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
+            @intFromEnum(notifier_abi.NotifierResult.done),
+            @intFromEnum(notifier_abi.NotifierResult.ok),
+            @intFromEnum(notifier_abi.NotifierResult.stop),
         },
     );
 
@@ -124,6 +128,8 @@ pub fn main(init: std.process.Init) !void {
         "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary",
         abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary,
     );
+    try writer.writeByte(',');
+    try writeStruct(writer, "notifier_block", notifier_abi.NotifierBlock);
     try writer.writeAll("}}\n");
     try stdout_writer.interface.flush();
 }
