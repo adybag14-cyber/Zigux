@@ -4,22 +4,18 @@
 - `PHASE6_STATUS=blocked`
 - `PHASE6_SLICE=checksum-leaf-helper`
 - roadmap anchor: `lib/checksum.c`
-- helper anchor: `lib/checksum.zig`
+- helper expected by the shared packet: `lib/checksum.zig`
 - shared packet note: `Documentation/zigux/phase6-helper-parity-catalog.md`
 - shared perf note: `Documentation/zigux/phase6-perf-gate-survey.md`
-- current public `master` now keeps `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`
-- current public `master` also keeps `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
+- current `master` still lacks `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`
+- current `master` still keeps `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
 - current routed build packet still omits checksum wiring from `zigux/tests/phase6_build.zig`, and `zigux/Makefile` still advertises `phase6-checksum-c-parity` and `phase6-checksum-perf` phony routes without corresponding target bodies
 
 ## Review Surface
-- helper surface: `lib/checksum.zig`
-- focused helper replay: `zigux/tests/phase6_checksum.zig`
-- perf gate runner: `zigux/tests/phase6_checksum_perf.zig`
-- compact fixture companion: `zigux/tests/fixtures/phase6_checksum_vectors.zig`
-- direct C parity scaffolding: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
-- blocked route note: the helper, focused replay, perf runner, and fixture companion are present on current public `master`, but the routed Phase 6 build packet still does not add the checksum module or checksum test/perf steps in `zigux/tests/phase6_build.zig`, so the helper packet is not yet wired into the same direct `zig build ... --build-file zigux/tests/phase6_build.zig` route shape used by the other Phase 6 leaf helpers
-- make/workflow drift note: `zigux/Makefile` still names `phase6-checksum-c-parity` and `phase6-checksum-perf` as phony routes without target bodies, while `.github/workflows/zigux-bootstrap.yml` only self-tests `scripts/zigux/check-phase6-checksum-c-parity.py` instead of running the current checksum helper packet itself
-- current review posture: blocked; the checksum helper packet has returned to the tree, but current `master` still needs the routed checksum build/perf packet brought back into alignment before it can claim the same runnable review posture as the other landed Phase 6 helpers
+- still-present direct C parity scaffolding: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
+- blocked route note: the checked-in direct C parity scaffolding is not currently runnable as a complete packet because `zigux/tests/phase6_checksum_c_parity.zig` still imports the absent `lib/checksum.zig` helper and the absent `zigux/tests/fixtures/phase6_checksum_vectors.zig` fixture module
+- make/workflow drift note: `zigux/Makefile` still names `phase6-checksum-c-parity` and `phase6-checksum-perf` as phony routes without target bodies, while `.github/workflows/zigux-bootstrap.yml` only self-tests `scripts/zigux/check-phase6-checksum-c-parity.py` instead of running a restored checksum helper packet
+- current review posture: blocked; the checksum roadmap anchor still belongs in the bounded Phase 6 helper packet, but current `master` only keeps the direct C parity scaffolding, and it cannot honestly claim the broader helper-local replay or slowdown gate until the missing checksum helper and fixture packet return
 
 ## Next Step
-Keep this lane parked unless a future checksum follow-up closes one checksum-only route truthfulness gap. The next bounded reopen should wire `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` through `zigux/tests/phase6_build.zig`, add concrete `phase6-checksum-c-parity` and `phase6-checksum-perf` target bodies in `zigux/Makefile`, and then upgrade `.github/workflows/zigux-bootstrap.yml` from checker self-test only to an actual checksum packet run.
+Keep this lane parked unless a future checksum follow-up closes one checksum-only route truthfulness gap. The next bounded reopen should restore `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` on `master`, then wire any returned helper packet through `zigux/tests/phase6_build.zig`, add concrete `phase6-checksum-c-parity` and `phase6-checksum-perf` target bodies in `zigux/Makefile`, and upgrade `.github/workflows/zigux-bootstrap.yml` from checker self-test only to an actual checksum packet run.
