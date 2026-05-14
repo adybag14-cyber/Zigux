@@ -1,7 +1,7 @@
 {
-  "lane_key": "P12-L08",
+  "lane_key": "P12-L05",
   "phase": "Phase 12",
-  "surveyed_commit": "unresolved_on_master",
+  "surveyed_commit": "aadaa43e686ef355a946793cd83ce9899309deef",
   "verified_on": "2026-05-14",
   "anchor": "drivers/nvme/host/pci.c",
   "roadmap_destinations": [
@@ -17,7 +17,7 @@
     "preexisting_phase12_make_targets_present": true,
     "preexisting_phase12_fallback_note_present": true,
     "preexisting_phase12_reopen_governance_present": true,
-    "preexisting_phase12_slice_note_present": false,
+    "preexisting_phase12_slice_note_present": true,
     "preexisting_phase12_survey_note_present": true,
     "preexisting_phase12_survey_gate_present": true
   },
@@ -42,9 +42,9 @@
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
-      "status": "driver_local_manifest_survey_note_and_survey_gate_present_slice_note_incomplete",
-      "current_surface": "The fallback map, reopen-governance note, survey note, dedicated survey gate, direct replay, verifier shard, and manifest keep the current NVMe packet explicit as a bounded driver-local starter below the shared Phase 12 build route.",
-      "blocked_by": "A later bounded reland still needs the dedicated slice note before this family can claim a fuller direct review packet."
+      "status": "driver_local_slice_note_manifest_survey_note_and_survey_gate_present_shared_build_unwired",
+      "current_surface": "The slice note, fallback map, reopen-governance note, survey note, dedicated survey gate, direct replay, verifier shard, and manifest keep the current NVMe packet explicit as a bounded driver-local starter below the shared Phase 12 build route.",
+      "blocked_by": "The shared Phase 12 build route still does not wire the NVMe direct replay into the smoke-first packet."
     }
   },
   "gaps": [
@@ -53,14 +53,14 @@
       "status": "landed_on_master",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
-      "why_now": "The fallback note keeps the current starter, verifier, direct replay, survey note, survey gate, and manifest anchor distinct from the still-missing slice surface during degraded read workflows."
+      "why_now": "The fallback note keeps the current starter, verifier, slice note, direct replay, survey note, survey gate, and manifest anchor distinct from the still-blocked shared-build route during degraded read workflows."
     },
     {
       "id": "phase12-nvme-reopen-governance",
       "status": "landed_on_master",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-reopen-governance.md",
-      "why_now": "The driver-local owner map now keeps lane P12-L08 aligned with the shipped starter, verifier, direct replay, survey note, survey gate, and manifest anchor without widening into the shared release packet."
+      "why_now": "The driver-local owner map now keeps lane P12-L05 aligned with the shipped starter, verifier, slice note, direct replay, survey note, survey gate, and manifest anchor without widening into the shared release packet."
     },
     {
       "id": "phase12-nvme-direct-replay",
@@ -74,7 +74,7 @@
       "status": "landed_on_master",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_manifest.json",
-      "why_now": "The manifest now records lane ownership and the still-blocked slice and shared-build surfaces while the new survey gate keeps the survey packet machine-checkable."
+      "why_now": "The manifest now records lane ownership, the landed slice note, and the still-blocked shared-build surface while the survey gate keeps the support packet machine-checkable."
     },
     {
       "id": "phase12-nvme-shared-build-route",
@@ -85,24 +85,24 @@
     },
     {
       "id": "phase12-nvme-slice-note",
-      "status": "absent_on_master",
+      "status": "landed_on_master",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-slice.md",
-      "why_now": "The dedicated slice note is still missing, so the broader NVMe packet cannot yet be reviewed through a dedicated driver-local narrative."
+      "why_now": "The dedicated slice note now pairs the shipped starter, verifier shard, direct replay, survey note, survey gate, and manifest anchor into one driver-local roadmap-gap narrative without claiming shared build wiring."
     },
     {
       "id": "phase12-nvme-survey-note",
       "status": "survey_present",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "why_now": "The survey note now records the bounded starter, verifier shard, direct replay, dedicated survey gate, manifest anchor, and still-blocked shared-build plus runtime boundaries without pretending the broader packet is already wired."
+      "why_now": "The survey note now records the bounded starter, verifier shard, slice note, direct replay, dedicated survey gate, manifest anchor, and still-blocked shared-build plus runtime boundaries without pretending the broader packet is already wired."
     },
     {
       "id": "phase12-nvme-survey-gate",
       "status": "survey_present",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_survey.zig",
-      "why_now": "A dedicated survey gate now keeps the survey note, manifest, and present-file boundary machine-checkable even while the slice note and shared build wiring remain missing."
+      "why_now": "A dedicated survey gate now keeps the survey note, slice note, manifest, and present-file boundary machine-checkable while the shared build wiring remains missing."
     }
   ]
 }
