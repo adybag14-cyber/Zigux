@@ -27,7 +27,7 @@
       "status": "visible_review_only_packet",
       "kind": "shared_build_route",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The shared Phase 9 build route is visible on current master beside `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and `zigux/tests/runtime_loader_gap_survey.zig`, but it remains review-only evidence until the broader runtime substrate exists."
+      "why_now": "The shared Phase 9 build route is visible on current master beside `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and `zigux/tests/runtime_loader_gap_survey.zig`, and it now keeps both `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` explicit as the landed atomic64 shared-build evidence while the broader runtime substrate remains blocked."
     },
     {
       "id": "runtime-atomic64-survey-gate",
@@ -41,7 +41,7 @@
       "status": "starter_landed",
       "kind": "family_local_make_route",
       "zigux_destination": "zigux/Makefile",
-      "why_now": "The dedicated `make -C zigux phase9-runtime-atomic64-test` route keeps the direct atomic64 pilot-module packet replayable on current master beside the visible shared loader-facing reminder packet."
+      "why_now": "The dedicated `make -C zigux phase9-runtime-atomic64-test` route keeps the direct atomic64 pilot-module packet replayable on current master beside the direct sample leg, the direct loader leg, and the visible shared loader-facing reminder packet."
     },
     {
       "id": "runtime-atomic64-sample-module",
