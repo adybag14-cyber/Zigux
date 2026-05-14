@@ -36,6 +36,13 @@ VALIDATOR = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
 DUMP_GATE = "zig build phase3-dump --build-file zigux/tests/build.zig"
 INTEROP_ROUTE = "python3 scripts/zigux/run-phase3-checks.py --slug abi"
 INTEROP_MAKE = "make -C zigux phase3-interop"
+LOW_LEVEL_WRAPPERS_GATE = (
+    "$(ZIG) build phase3-low-level-wrappers-test --build-file "
+    "zigux/tests/phase3_low_level_wrappers_build.zig"
+)
+PHASE3_AGGREGATE_ROUTE = (
+    "phase3: phase3-validate phase3-abi phase3-low-level-wrappers-test phase3-interop"
+)
 
 REQUIRED_FILES = (
     SURVEY,
@@ -264,8 +271,10 @@ def validate(root: Path) -> list[str]:
             "$(PYTHON) scripts/zigux/run-phase3-checks.py",
             "phase3-abi:",
             "$(ZIG) build phase3-test --build-file zigux/tests/build.zig",
+            "phase3-low-level-wrappers-test:",
+            LOW_LEVEL_WRAPPERS_GATE,
             DUMP_GATE,
-            "phase3: phase3-validate phase3-abi phase3-interop",
+            PHASE3_AGGREGATE_ROUTE,
         ),
     }
     for rel, markers in exact_lists.items():
@@ -288,6 +297,9 @@ def validate(root: Path) -> list[str]:
             "zigux_export_status_ok",
             "zigux_boundary_header_make(",
             "zigux_boundary_header_make_compatible(",
+            "zigux_boundary_header_is_current_abi_version(",
+            "zigux_boundary_header_is_compatible_size(",
+            "zigux_boundary_header_is_canonical_size(",
         ),
         ABI_HEADER: (
             "#define ZIGUX_ABI_VERSION",
@@ -362,7 +374,10 @@ def build_valid_workspace(root: Path) -> None:
         '#include "../zigux/dev_t.h"\n'
         "static inline int zigux_export_status_ok(void) { return 1; }\n"
         "static inline struct zigux_boundary_header zigux_boundary_header_make(uint16_t flags) { return zigux_default_header(flags); }\n"
-        "static inline struct zigux_boundary_header zigux_boundary_header_make_compatible(uint32_t size, uint16_t flags) { struct zigux_boundary_header header = zigux_default_header(flags); header.size = size; return header; }\n",
+        "static inline struct zigux_boundary_header zigux_boundary_header_make_compatible(uint32_t size, uint16_t flags) { struct zigux_boundary_header header = zigux_default_header(flags); header.size = size; return header; }\n"
+        "static inline int zigux_boundary_header_is_current_abi_version(uint16_t abi_version) { return abi_version == (uint16_t)ZIGUX_ABI_VERSION; }\n"
+        "static inline int zigux_boundary_header_is_compatible_size(uint32_t size) { return size >= (uint32_t)sizeof(struct zigux_boundary_header); }\n"
+        "static inline int zigux_boundary_header_is_canonical_size(uint32_t size) { return size == (uint32_t)sizeof(struct zigux_boundary_header); }\n",
     )
     write(root / ABI_HEADER, "#define ZIGUX_ABI_VERSION 1\nstruct zigux_export_status { int code; };\n")
     write(root / BUILD_FILE, "// build\n")
@@ -375,7 +390,20 @@ def build_valid_workspace(root: Path) -> None:
     write(root / SCRIPTS_README, f"- `validate-phase3-export-uapi-survey.py`\n- `Documentation/zigux/phase3-linux-zigux-header-governance.md`\n- `include/linux/zigux.h`\n- `include/zigux/abi.h`\n- `{DUMP_GATE}`\n")
     write(root / ABI_SLICE, "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n- `Documentation/zigux/phase3-abi-h-boundary-next-step.md`\n- `zigux/kernel/export_shim.zig`\n- `zigux/uapi/version.zig`\n- `zigux/uapi/dev_t.zig`\n- `zigux/tests/phase3_abi_dump.zig`\n")
     write(root / ABI_NEXT_STEP, "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n- `zigux/kernel/export_shim.zig`\n- `zigux/uapi/version.zig`\n- `zigux/uapi/dev_t.zig`\n- `zigux/tests/phase3_abi_dump.zig`\n- `scripts/zigux/validate-phase3-export-uapi-survey.py`\n")
-    write(root / MAKEFILE, f"phase3-validate:\n\t$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n\t$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py\nphase3-interop:\n\t$(PYTHON) scripts/zigux/run-phase3-checks.py\nphase3-abi:\n\t$(ZIG) build phase3-test --build-file zigux/tests/build.zig\n\t{DUMP_GATE}\nphase3: phase3-validate phase3-abi phase3-interop\n")
+    write(
+        root / MAKEFILE,
+        f"phase3-validate:\n"
+        "\t$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n"
+        "\t$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py\n"
+        "phase3-abi:\n"
+        "\t$(ZIG) build phase3-test --build-file zigux/tests/build.zig\n"
+        "phase3-low-level-wrappers-test:\n"
+        f"\t{LOW_LEVEL_WRAPPERS_GATE}\n"
+        "phase3-interop:\n"
+        "\t$(PYTHON) scripts/zigux/run-phase3-checks.py\n"
+        f"\t{DUMP_GATE}\n"
+        f"{PHASE3_AGGREGATE_ROUTE}\n",
+    )
     write(root / WORKFLOW, "- name: Validate Phase 3 export/UAPI survey\n  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py\n- name: Self-test Phase 3 export/UAPI survey\n  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n- name: Check discovered Phase 3 parity\n  run: python3 scripts/zigux/run-phase3-checks.py\n- name: Run Phase 3 ABI/interp substrate tests\n  run: zig build phase3-test --build-file zigux/tests/build.zig\n")
     write(root / VALIDATOR, "# placeholder\n")
 
@@ -513,6 +541,21 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         write(
+            root / LINUX_HEADER,
+            (root / LINUX_HEADER).read_text(encoding="utf-8").replace(
+                "zigux_boundary_header_is_current_abi_version(",
+                "zigux_boundary_header_matches_current_abi_version(",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert (
+            f"missing_marker:{LINUX_HEADER.as_posix()}:zigux_boundary_header_is_current_abi_version(" in issues
+        ), issues
+        case_count += 1
+
+        build_valid_workspace(root)
+        write(
             root / EXPORT_SHIM,
             (root / EXPORT_SHIM).read_text(encoding="utf-8").replace(
                 "pub fn encodeDeviceNumber(",
@@ -538,6 +581,21 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             f"missing_marker:{EXPORT_SHIM.as_posix()}:pub fn lastDeviceNumberInRange(" in issues
+        ), issues
+        case_count += 1
+
+        build_valid_workspace(root)
+        write(
+            root / MAKEFILE,
+            (root / MAKEFILE).read_text(encoding="utf-8").replace(
+                f"{PHASE3_AGGREGATE_ROUTE}\n",
+                "phase3: phase3-validate phase3-abi phase3-interop\n",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert (
+            f"missing_Makefile:{PHASE3_AGGREGATE_ROUTE}" in issues
         ), issues
         case_count += 1
 
