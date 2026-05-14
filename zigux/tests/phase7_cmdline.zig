@@ -234,4 +234,13 @@ test "phase 7 nextArg keeps empty-input and leading-whitespace ownership explici
     try std.testing.expectEqual(@as(usize, @intFromPtr(&leading_whitespace[0])), @as(usize, @intFromPtr(parsed_leading_whitespace.param.ptr)));
     try std.testing.expectEqual(@as(usize, @intFromPtr(&leading_whitespace[2])), @as(usize, @intFromPtr(parsed_leading_whitespace.rest.ptr)));
     try std.testing.expectEqual(@as(u8, 0), leading_whitespace[0]);
+
+    var whitespace_only = [_]u8{ ' ', '\t', '\n', 0 };
+    const parsed_whitespace_only = cmdline.nextArg(&whitespace_only);
+    try std.testing.expectEqualStrings("", parsed_whitespace_only.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), parsed_whitespace_only.value);
+    try std.testing.expectEqualStrings("", cStringPrefix(parsed_whitespace_only.rest));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&whitespace_only[0])), @as(usize, @intFromPtr(parsed_whitespace_only.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&whitespace_only[3])), @as(usize, @intFromPtr(parsed_whitespace_only.rest.ptr)));
+    try std.testing.expectEqual(@as(u8, 0), whitespace_only[0]);
 }
