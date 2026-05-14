@@ -59,6 +59,7 @@ REQUIRED_MARKERS = (
     "python3 scripts/zigux/generate-phase3-check-wrappers.py --check",
     "python3 scripts/zigux/run-phase3-checks.py --self-test",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
+    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-validate",
     "make -C zigux phase3-selftest",
     "make -C zigux phase3-low-level-wrappers-test",
@@ -84,6 +85,7 @@ CURRENT_PACKET_MARKERS = {
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py": 1,
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py": 1,
     "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test": 1,
+    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig": 1,
     "make -C zigux phase3-low-level-wrappers-test": 1,
 }
 
@@ -114,6 +116,7 @@ SHARED_REMINDER_MARKERS = {
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py": 1,
     "zigux/tests/phase3_low_level_wrappers.zig": 1,
     "zigux/tests/phase3_low_level_wrappers_build.zig": 1,
+    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig": 1,
     "include/zigux/dev_t.h": 1,
     "zigux/uapi/version.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
@@ -375,6 +378,23 @@ def run_self_test() -> int:
     issues = validate_text(
         replace_in_section(
             note_sample,
+            "## Current packet",
+            "## Review boundary",
+            "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+        )
+    )
+    if not any(
+        "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
+        in issue
+        for issue in issues
+    ):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected current-packet low-level-wrapper direct build route drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
             "## Review boundary",
             "## Non-goals",
             "Documentation/zigux/phase3-abi-bindings-survey.md",
@@ -415,6 +435,23 @@ def run_self_test() -> int:
     if not any("zigux/tests/phase3_low_level_wrappers.zig" in issue for issue in issues):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected shared-reminder low-level-wrapper replay drift was not reported")
+        return 1
+
+    issues = validate_text(
+        replace_in_section(
+            note_sample,
+            "## Shared reminder",
+            None,
+            "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+        )
+    )
+    if not any(
+        "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
+        in issue
+        for issue in issues
+    ):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected shared-reminder low-level-wrapper direct build route drift was not reported")
         return 1
 
     issues = validate_text(
