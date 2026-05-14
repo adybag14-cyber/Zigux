@@ -52,7 +52,10 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/README.md": [
         "Phase 13 notes -",
         "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+        "`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`",
+        "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
         "`Documentation/zigux/phase13-release-notes-survey.md`",
+        "`Documentation/zigux/phase13-release-coordination-matrix.md`",
         "`Documentation/zigux/phase13-roadmap-traceability.md`",
         "`Documentation/zigux/phase13-landlock-ruleset-slice.md`",
         "`Documentation/zigux/phase13-landlock-ruleset-survey.md`",
@@ -228,6 +231,7 @@ REQUIRED_MARKERS = {
         "keep the shared Phase 13 contributor packet explicit in the tests root too:",
         "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
         "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
+        "`Documentation/zigux/phase13-release-coordination-matrix.md`",
         "`Documentation/zigux/phase13-release-notes-survey.md`",
         "`Documentation/zigux/phase13-roadmap-traceability.md`",
         "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
@@ -400,6 +404,48 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS["Documentation/zigux/README.md"]
+                if marker != "`Documentation/zigux/phase13-release-coordination-matrix.md`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/README.md:"
+                "`Documentation/zigux/phase13-release-coordination-matrix.md`"
+            ],
+            "missing_docs_root_release_coordination_matrix_marker_failed",
+        )
+        write_text(root, "Documentation/zigux/README.md", "\n".join(REQUIRED_MARKERS["Documentation/zigux/README.md"]) + "\n")
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/README.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/README.md"]
+                if marker != "`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/README.md:"
+                "`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`"
+            ],
+            "missing_docs_root_contributor_surface_sync_marker_failed",
+        )
+        write_text(root, "Documentation/zigux/README.md", "\n".join(REQUIRED_MARKERS["Documentation/zigux/README.md"]) + "\n")
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/README.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/README.md"]
                 if marker
                 != "`Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`"
             )
@@ -447,8 +493,7 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
-                if marker
-                != "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`"
+                if marker != "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`"
             )
             + "\n",
         )
@@ -473,8 +518,7 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
-                if marker
-                != "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:"
+                if marker != "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:"
             )
             + "\n",
         )
@@ -549,8 +593,7 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"]
-                if marker
-                != "keep the shipped broader Phase 13 tests-root guide in `zigux/tests/README.md` explicit as shared packet evidence"
+                if marker != "keep the shipped broader Phase 13 tests-root guide in `zigux/tests/README.md` explicit as shared packet evidence"
             )
             + "\n",
         )
@@ -635,6 +678,26 @@ def run_self_test() -> int:
                 "missing_marker:zigux/tests/README.md:`zigux/helpers/notifier_chain_view.zig`"
             ],
             "missing_tests_readme_notifier_chain_view_failed",
+        )
+        write_text(root, "zigux/tests/README.md", "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n")
+        case_count += 1
+
+        write_text(
+            root,
+            "zigux/tests/README.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["zigux/tests/README.md"]
+                if marker != "`Documentation/zigux/phase13-release-coordination-matrix.md`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:zigux/tests/README.md:`Documentation/zigux/phase13-release-coordination-matrix.md`"
+            ],
+            "missing_tests_readme_release_coordination_matrix_marker_failed",
         )
         write_text(root, "zigux/tests/README.md", "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n")
         case_count += 1
