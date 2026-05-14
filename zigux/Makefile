@@ -17,7 +17,7 @@ PHONY += phase15-validate phase15-test phase15
 PYTHON ?= python3
 ZIGUX_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))
-ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)
+ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig,zig)
 
 phase1-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py
@@ -174,6 +174,17 @@ phase4: phase4-validate phase4-test
 
 phase6-bsearch-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig
+
+phase6-hexdump-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig
+
+phase6-hexdump-perf:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig
+
+phase6-hexdump-review:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-hexdump-packet.py
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig
 
 phase7-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test
