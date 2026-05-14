@@ -28,10 +28,38 @@ pub const ESCAPE_ALL_MASK: u32 = (@as(u32, 1) << 9) - 1;
 
 const string_units_10 = [_][]const u8{ "", "k", "M", "G", "T", "P", "E", "Z", "Y" };
 const string_units_2 = [_][]const u8{ "", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi" };
+const empty_kasprintf_strarray_null_terminated: []const ?[*:0]const u8 = &.{null};
 
 const UnescapeMatch = struct {
     value: u8,
     consumed: usize,
+};
+
+pub const KasprintfStrarrayResult = struct {
+    names: [][:0]u8,
+    names_null_terminated: []const ?[*:0]const u8,
+
+    pub fn deinit(self: *KasprintfStrarrayResult, allocator: std.mem.Allocator) void {
+        for (self.names) |name| {
+            allocator.free(name);
+        }
+        if (self.names_null_terminated.ptr != empty_kasprintf_strarray_null_terminated.ptr) {
+            allocator.free(self.names_null_terminated);
+        }
+        if (self.names.len != 0) {
+            allocator.free(self.names);
+        }
+        self.* = .{
+            .names = &.{},
+            .names_null_terminated = empty_kasprintf_strarray_null_terminated,
+        };
+    }
+
+    pub fn cArray(self: *const KasprintfStrarrayResult) [*:null]const ?[*:0]const u8 {
+        std.debug.assert(self.names_null_terminated.len == self.names.len + 1);
+        std.debug.assert(self.names_null_terminated[self.names.len] == null);
+        return self.names_null_terminated[0..self.names.len :null].ptr;
+    }
 };
 
 fn cStringLen(buf: []const u8) usize {
@@ -97,6 +125,35 @@ fn stringGetSizeFractionFactor(decimals: usize) u128 {
         1 => 10,
         else => 100,
     };
+}
+
+fn allocPrintCString(
+    allocator: std.mem.Allocator,
+    comptime fmt: []const u8,
+    args: anytype,
+) ![:0]u8 {
+    const len = std.fmt.count(fmt, args);
+    const rendered = try allocator.alloc(u8, len + 1);
+    errdefer allocator.free(rendered);
+    _ = try std.fmt.bufPrint(rendered[0..len], fmt, args);
+    rendered[len] = 0;
+    return rendered[0..len :0];
+}
+
+fn allocKasprintfStrarrayNullTerminated(
+    allocator: std.mem.Allocator,
+    n: usize,
+) ![]?[*:0]const u8 {
+    const len = try std.math.add(usize, n, 1);
+    return allocator.alloc(?[*:0]const u8, len);
+}
+
+fn allocKasprintfStrarrayNames(
+    allocator: std.mem.Allocator,
+    n: usize,
+) ![][:0]u8 {
+    _ = try std.math.mul(usize, @sizeOf([:0]u8), n);
+    return allocator.alloc([:0]u8, n);
 }
 
 fn matchUnescapeSpace(src: []const u8) ?UnescapeMatch {
@@ -508,6 +565,60 @@ pub fn stringEscapeStrAnyNp(src: []const u8, dst: []u8, size: usize, only: ?[]co
 
 pub fn string_escape_str_any_np(src: []const u8, dst: []u8, size: usize, only: ?[]const u8) usize {
     return stringEscapeStrAnyNp(src, dst, size, only);
+}
+
+pub fn kasprintfStrarray(
+    allocator: std.mem.Allocator,
+    prefix: []const u8,
+    n: usize,
+) !KasprintfStrarrayResult {
+    const current = prefix[0..cStringLen(prefix)];
+    if (n == 0) {
+        return .{
+            .names = &.{},
+            .names_null_terminated = empty_kasprintf_strarray_null_terminated,
+        };
+    }
+
+    var names = try allocKasprintfStrarrayNames(allocator, n);
+    errdefer allocator.free(names);
+
+    var names_null_terminated = try allocKasprintfStrarrayNullTerminated(allocator, n);
+    errdefer allocator.free(names_null_terminated);
+
+    var allocated: usize = 0;
+    errdefer {
+        for (names[0..allocated]) |name| {
+            allocator.free(name);
+        }
+    }
+
+    while (allocated < n) : (allocated += 1) {
+        names[allocated] = try allocPrintCString(allocator, "{s}-{d}", .{ current, allocated });
+        names_null_terminated[allocated] = names[allocated].ptr;
+    }
+    names_null_terminated[n] = null;
+
+    return .{
+        .names = names,
+        .names_null_terminated = names_null_terminated,
+    };
+}
+
+pub fn kasprintf_strarray(
+    allocator: std.mem.Allocator,
+    prefix: []const u8,
+    n: usize,
+) !KasprintfStrarrayResult {
+    return kasprintfStrarray(allocator, prefix, n);
+}
+
+pub fn kfreeStrarray(allocator: std.mem.Allocator, result: *KasprintfStrarrayResult) void {
+    result.deinit(allocator);
+}
+
+pub fn kfree_strarray(allocator: std.mem.Allocator, result: *KasprintfStrarrayResult) void {
+    kfreeStrarray(allocator, result);
 }
 
 pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
