@@ -200,8 +200,14 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(module_slice, "`zigux/kernel/runtime_loader_contract.zig`");
     try expectContains(module_slice, "visible review-only evidence");
     try expectContains(module_slice, "not a completed loadable runtime-module path");
+    try expectContains(module_slice, "prepared `RuntimeAtomic64LoadSummary` snapshot reviewable");
+    try expectContains(module_slice, "anchor, checked operation families, counter snapshot, and selftest-run count");
+    try expectContains(module_slice, "later counter mutation, later selftest activity, or later exit activity do not rewrite the shared request");
     try expectContains(module_slice, "`zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig`");
 
+    try expectContains(runtime_atomic64_loader, "pub const RuntimeAtomic64LoadSummary = struct");
+    try expectContains(runtime_atomic64_loader, "counter_snapshot: i64");
+    try expectContains(runtime_atomic64_loader, "selftest_runs: usize");
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps initialized shared-request snapshots stable across later selftest activity");
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps selftest-complete shared-request snapshots stable across later exit activity");
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader rejects prepared shared allocator and init-flow drift before any local runtime handoff");
