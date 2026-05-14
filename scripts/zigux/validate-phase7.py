@@ -177,6 +177,7 @@ REQUIRED_MARKERS = {
         "phase7-argv-split-survey:",
         "phase7-rbtree-survey:",
         "phase7-test:",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
         "\"current_master_state\": \"restored_starter_packet\"",
@@ -418,6 +419,7 @@ def run_self_test() -> None:
             tmp_root,
             "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
         )
+
         write_fixture_tree(tmp_root)
 
         remove_once(
@@ -541,6 +543,21 @@ def run_self_test() -> None:
         )
         write_fixture_tree(tmp_root)
 
+        makefile_path = tmp_root / "zigux/Makefile"
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        updated_makefile = original_makefile.replace(
+            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig",
+            1,
+        )
+        assert updated_makefile != original_makefile
+        makefile_path.write_text(updated_makefile, encoding="utf-8")
+        expect_missing_marker(
+            tmp_root,
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
+        )
+        write_fixture_tree(tmp_root)
+
         remove_once(
             tmp_root,
             "Documentation/zigux/phase7-rbtree-slice.md",
@@ -552,7 +569,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=26")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=27")
 
 
 def main() -> int:
