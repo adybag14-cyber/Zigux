@@ -24,6 +24,7 @@ HEXDUMP_SLICE_PATH = Path("Documentation/zigux/phase6-hexdump-slice.md")
 PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
+HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
 CHECKSUM_HELPER_PATH = Path("lib/checksum.zig")
 CHECKSUM_REPLAY_PATH = Path("zigux/tests/phase6_checksum.zig")
@@ -182,6 +183,15 @@ REQUIRED_SNIPPETS = {
         "- name: Run Phase 6 bsearch focused packet",
         "- name: Run Phase 6 hexdump perf gate",
     ],
+    HEXDUMP_VECTORS_PATH.as_posix(): [
+        '"16B-plain-g1"',
+        '"32B-ascii-g2"',
+        '"16B-ascii-g4"',
+        '"16B-ascii-g8"',
+        "max_slowdown_pct = 175",
+        "max_slowdown_pct = 550",
+        "max_slowdown_pct = 600",
+    ],
 }
 
 ABSENT_BUILD_SNIPPETS = [
@@ -330,6 +340,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / PHASE6_BUILD_PATH, "\n".join(REQUIRED_SNIPPETS[PHASE6_BUILD_PATH.as_posix()] + [""]))
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_SNIPPETS[MAKEFILE_PATH.as_posix()] + [""]))
     write(root / WORKFLOW_PATH, "\n".join(REQUIRED_SNIPPETS[WORKFLOW_PATH.as_posix()] + [""]))
+    write(root / HEXDUMP_VECTORS_PATH, "\n".join(REQUIRED_SNIPPETS[HEXDUMP_VECTORS_PATH.as_posix()] + [""]))
 
     for rel_path in EXPECTED_SHARED_GATES + EXPECTED_PRESENT_ENTRYPOINTS:
         path = root / rel_path
@@ -430,6 +441,12 @@ def run_self_test() -> None:
             BASE64_SLICE_PATH,
             "zigux/tests/phase6_base64_perf.zig`",
             "zigux/tests/phase6_checksum_perf.zig`",
+        )
+        assert_failure(
+            root,
+            HEXDUMP_VECTORS_PATH,
+            "max_slowdown_pct = 600",
+            "max_slowdown_pct = 601",
         )
         (root / CHECKSUM_HELPER_PATH).parent.mkdir(parents=True, exist_ok=True)
         write(root / CHECKSUM_HELPER_PATH, "unexpected\n")
