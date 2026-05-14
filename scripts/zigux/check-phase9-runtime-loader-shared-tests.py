@@ -130,7 +130,7 @@ def run_self_test() -> None:
         else:
             raise SystemExit("self-test expected missing shared runtime-loader gap survey dependency failure")
 
-        (root / "zigux/tests/phase9_build.zig").writeText(
+        (root / "zigux/tests/phase9_build.zig").write_text(
             "\n".join(BUILD_EXPECTATIONS) + "\n",
             encoding="utf-8",
         )
