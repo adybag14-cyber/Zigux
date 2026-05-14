@@ -47,10 +47,15 @@ test "phase13 devres coherent-dma helper surface exposes no dma or scatterlist o
     const helper = @embedFile("../../lib/devres.zig");
 
     try requireAbsent(helper, "dmam_alloc_");
+    try requireAbsent(helper, "dmam_free_");
+    try requireAbsent(helper, "dma_alloc_");
     try requireAbsent(helper, "dma_map_");
     try requireAbsent(helper, "dma_unmap_");
+    try requireAbsent(helper, "dma_sync_");
+    try requireAbsent(helper, "dma_mmap_");
     try requireAbsent(helper, "dma_map_sgtable(");
     try requireAbsent(helper, "struct scatterlist");
+    try requireAbsent(helper, "scatterlist");
     try requireAbsent(helper, "sg_table");
     try requireAbsent(helper, "sg_");
 }
