@@ -15,6 +15,7 @@ SURVEYED_COMMIT = "c11221dc7a68d7511ae1c69d64b3f08528287ed8"
 FILES = [
     "scripts/zigux/check-phase10-core-packet.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "Documentation/zigux/README.md",
     "drivers/virtio/virtio.zig",
     "drivers/virtio/virtio_driver_id.zig",
     "drivers/virtio/virtio_verify.zig",
@@ -60,6 +61,23 @@ EXPECTED_TESTS_README_MARKERS = [
     "phase10_virtio_core_reset_queue.zig",
     "phase10_virtio_core_survey.zig",
     "phase10_virtio_driver_id.zig",
+]
+
+EXPECTED_DOCS_README_MARKERS = [
+    "Documentation/zigux/phase10-virtio-core-survey.md",
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "scripts/zigux/check-phase10-core-packet.py",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "drivers/virtio/virtio.zig",
+    "drivers/virtio/virtio_driver_id.zig",
+    "drivers/virtio/virtio_verify.zig",
+    "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "Documentation/zigux/phase10-virtio-core-slice.md",
+    "make -C zigux phase10-validate",
+    "make -C zigux phase10-test",
+    "make -C zigux phase10",
 ]
 
 EXPECTED_CORE_TEST_MARKERS = [
@@ -171,6 +189,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_TESTS_README_MARKERS:
         if marker not in tests_readme_text:
             missing_markers.append(f"tests_readme:{marker}")
+
+    docs_readme_text = read_text(root, "Documentation/zigux/README.md")
+    for marker in EXPECTED_DOCS_README_MARKERS:
+        if marker not in docs_readme_text:
+            missing_markers.append(f"docs_readme:{marker}")
 
     core_test_text = read_text(root, "zigux/tests/phase10_virtio_core.zig")
     for marker in EXPECTED_CORE_TEST_MARKERS:
@@ -287,6 +310,7 @@ def build_fixture_files() -> dict[str, str]:
     return {
         "scripts/zigux/check-phase10-core-packet.py": "# fixture copy\n",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "# fixture copy\n",
+        "Documentation/zigux/README.md": "\n".join(EXPECTED_DOCS_README_MARKERS) + "\n",
         "drivers/virtio/virtio.zig": "pub const fixture_core = true;\n",
         "drivers/virtio/virtio_driver_id.zig": "pub const fixture_driver_id = true;\n",
         "drivers/virtio/virtio_verify.zig": "pub const fixture_verify = true;\n",
@@ -343,6 +367,21 @@ def run_self_test() -> int:
             fixture["scripts/zigux/check-phase10-tests-readme-core-surfaces.py"],
         )
 
+        docs_readme_path = root / "Documentation/zigux/README.md"
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "Documentation/zigux/phase10-virtio-core-slice.md",
+                "Documentation/zigux/phase10-virtio-core-slice-drift.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(root)
+        if "docs_readme:Documentation/zigux/phase10-virtio-core-slice.md" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_docs_readme_slice_marker_missing")
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
         manifest_path = root / "zigux/tests/phase10_virtio_core_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(original_manifest.replace(SURVEYED_COMMIT, "deadbeef", 1), encoding="utf-8")
@@ -378,7 +417,7 @@ def run_self_test() -> int:
 
         survey_path = root / "Documentation/zigux/phase10-virtio-core-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
-        survey_path.write_text(
+        survey_path.writeText(
             original_survey.replace("phase10-core-slice-note", "phase10-core-slice-drift", 1),
             encoding="utf-8",
         )
@@ -461,7 +500,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_tests_readme_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
