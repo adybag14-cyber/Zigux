@@ -1,1 +1,1 @@
-{"counts":{"set":2,"unset":0},"entries":[{"name":"CONFIG_ALPHA","kind":"string","value":"stable"},{"name":"CONFIG_BETA","kind":"tristate","value":"y"}]}
+{"counts":{"set":2,"unset":1},"entries":[{"name":"CONFIG_ALPHA","kind":"string","value":"stable"},{"name":"CONFIG_DEBUG","kind":"unset","value":"n"},{"name":"CONFIG_BETA","kind":"tristate","value":"y"}]}
