@@ -6,7 +6,7 @@ This note records the current-master verification result for the bounded Phase 1
 
 - `PHASE12_STATUS=starter-present-slice-note-survey-packet`
 - `PHASE12_SLICE=nvme-pci-roadmap-gap-survey`
-- `PHASE12_LANE=P12-L05`
+- `PHASE12_LANE=P12-L08`
 - scope: verify the bounded `nvme_pci` Zig starter around queue-pair planning, PRP buffer-shape accounting, reset summaries, dropped-backlog retirement review, verifier-backed starter checks, frozen queue-restore budgeting, and the new driver-local slice packet without widening into live DMA mapping, PRP or SGL construction, blk-mq submission, interrupt routing, or transport-backed reset recovery
 - verified on: `2026-05-14`
 - inspected head: `aadaa43e686ef355a946793cd83ce9899309deef`
