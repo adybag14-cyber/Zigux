@@ -117,7 +117,7 @@ REQUIRED_REPLAY_CONSTANT_KEYS = (
     "unsafe_scope_raw_pointer_bridge",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied",
-    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_window_flag_window_applied",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped",
 )
 
@@ -139,7 +139,7 @@ REQUIRED_EXPECTED_CONSTANT_VALUES = {
     "unsafe_scope_raw_pointer_bridge": 2,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped": 1,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": 1,
-    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_window_flag_window_applied": 1,
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied": 1,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped": 1,
 }
 
