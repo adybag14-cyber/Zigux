@@ -27,7 +27,10 @@ int main(void)
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped\":%u,"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied\":%u,"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied\":%u,"
-        "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped\":%u"
+        "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped\":%u,"
+        "\"notifier_done\":%u,"
+        "\"notifier_ok\":%u,"
+        "\"notifier_stop\":%u"
         "},"
         "\"dev_t\":{"
         "\"minor_bits\":%u,"
@@ -48,7 +51,8 @@ int main(void)
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_view\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"ack_window\":%zu,\"delivery_window\":%zu,\"status\":%zu}},"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_summary\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"applied\":%zu,\"skipped\":%zu,\"delivered\":%zu}},"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"budget\":%zu,\"window\":%zu,\"flags\":%zu}},"
-        "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"attempted\":%zu,\"applied\":%zu,\"skipped\":%zu}}"
+        "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"attempted\":%zu,\"applied\":%zu,\"skipped\":%zu}},"
+        "\"notifier_block\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"notifier_call\":%zu,\"next\":%zu,\"priority\":%zu}}"
         "}"
         "}\n",
         ZIGUX_ABI_VERSION,
@@ -69,6 +73,9 @@ int main(void)
         ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED,
         ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
         ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
+        ZIGUX_NOTIFIER_DONE,
+        ZIGUX_NOTIFIER_OK,
+        ZIGUX_NOTIFIER_STOP,
         ZIGUX_DEV_MINOR_BITS,
         ZIGUX_DEV_MINOR_MASK,
         ZIGUX_DEV_MAJOR_MAX,
@@ -108,7 +115,7 @@ int main(void)
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, skipped),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, delivered),
         sizeof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view),
-        _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view),
+        _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_view),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view, budget),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view, window),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view, flags),
@@ -116,6 +123,11 @@ int main(void)
         _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary, attempted),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary, applied),
-        offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary, skipped));
+        offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary, skipped),
+        sizeof(struct zigux_notifier_block),
+        _Alignof(struct zigux_notifier_block),
+        offsetof(struct zigux_notifier_block, notifier_call),
+        offsetof(struct zigux_notifier_block, next),
+        offsetof(struct zigux_notifier_block, priority));
     return 0;
 }
