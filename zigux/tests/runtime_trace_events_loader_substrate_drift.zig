@@ -3,6 +3,17 @@ const runtime_loader = @import("runtime_loader");
 const runtime_trace_events_loader = @import("runtime_trace_events_loader");
 const runtime_trace_events_sample = @import("runtime_trace_events_sample");
 
+fn expectPreparedRuntimeSubstrateDriftKeepsPreparedState(
+    shared_request: runtime_loader.PreparedRequest,
+    stable_plan: runtime_loader.LoadPlan,
+) !void {
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(shared_request.prepared_plan.requires_runtime_substrate);
+    try std.testing.expect(!shared_request.plan.requires_runtime_substrate);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(shared_request.prepared_plan, stable_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(shared_request.plan, stable_plan));
+}
+
 test "phase 9 runtime trace-events loader rejects prepared shared runtime-substrate drift before any local runtime handoff" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
@@ -10,6 +21,7 @@ test "phase 9 runtime trace-events loader rejects prepared shared runtime-substr
 
     var loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
     var shared_request = try loader.prepareSharedRequest(&module);
+    const prepared_plan = shared_request.plan;
     try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.prepared, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
@@ -21,7 +33,7 @@ test "phase 9 runtime trace-events loader rejects prepared shared runtime-substr
 
     try std.testing.expectError(error.LoaderNotRequired, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.prepared, loader.stage());
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try expectPreparedRuntimeSubstrateDriftKeepsPreparedState(shared_request, prepared_plan);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
         shared_request,
         .prepared,
@@ -35,6 +47,7 @@ test "phase 9 runtime trace-events loader rejects initialized-stage prepared sha
 
     var loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
     var shared_request = try loader.prepareSharedRequest(&module);
+    const prepared_plan = shared_request.plan;
     try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.prepared, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
@@ -48,7 +61,7 @@ test "phase 9 runtime trace-events loader rejects initialized-stage prepared sha
 
     try std.testing.expectError(error.LoaderNotRequired, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.prepared, loader.stage());
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try expectPreparedRuntimeSubstrateDriftKeepsPreparedState(shared_request, prepared_plan);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
         shared_request,
         .prepared,
