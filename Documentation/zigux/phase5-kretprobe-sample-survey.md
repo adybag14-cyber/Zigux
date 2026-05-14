@@ -21,17 +21,16 @@ This restored Phase 5 packet now reads directly through:
 
 The older shared `zigux/tests/phase5_build.zig` route remains missing and should stay explicit as a gap instead of being treated as current proof.
 
-Fresh Phase 5 readback in this run also confirmed that most of the shared reminder packet is already aligned around that restored direct sample packet:
+Fresh Phase 5 readback in this run also confirmed that the shared reminder packet is aligned around that restored direct sample packet:
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
 - `scripts/zigux/README.md`
+- `zigux/tests/README.md`
 
 Those aligned shared surfaces keep the restored direct packet explicit while still keeping the missing shared `zigux/tests/phase5_build.zig` route framed as a gap instead of returned evidence.
-
-The remaining shared-surface drift in this reread is `zigux/tests/README.md`: it still describes the kretprobe anchor as survey-note-only and still treats `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` as missing current direct evidence even though current `master` now exposes that restored direct packet.
 
 ## Landed sample and exact checks
 
@@ -64,7 +63,7 @@ This note does not claim `register_kretprobe()` parity, `unregister_kretprobe()`
 
 ## Next bounded step
 
-Keep the next move inside one shared review-surface repair only if a fresh reread still shows the remaining tests-root drift:
+Leave the restored direct kretprobe packet parked unless a future reread finds a new one-file same-lane shared reminder drift:
 
-- if `zigux/tests/README.md` still presents the kretprobe anchor as survey-note-only, repair only that one file while still keeping the missing shared `phase5_build.zig` route explicit and the later Phase 9 runtime family out of scope
-- otherwise leave the restored direct kretprobe packet parked while those shared reminder surfaces stay aligned
+- if a shared README, guide, or checklist later stops naming the restored direct packet while still keeping the missing shared `phase5_build.zig` route explicit, repair only that one file
+- otherwise leave the restored direct kretprobe packet parked while the shared reminder surfaces stay aligned
