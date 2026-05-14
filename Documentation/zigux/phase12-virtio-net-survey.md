@@ -7,7 +7,8 @@ This note records the current-master verification result for the bounded Phase 1
 - `PHASE12_STATUS=starter-present-control-queue-payload-shaping`
 - `PHASE12_SLICE=virtio-net-control-queue-payload-shaping-followup`
 - scope: verify the bounded `virtio_net` Zig starter around probe fallback, queue-topology summary, mergeable receive-buffer planning, receive-refill summary, control-queue recovery sequencing, control-queue payload shaping, and queue-reset recovery planning without widening into live DMA, NAPI, XDP, XSK, control-virtqueue runtime commands, RSS table programming, or full `net_device` lifecycle work
-- verified on: `2026-05-13`
+- verified on: `2026-05-14`
+- inspected head: `dc9121502a99ed8c88d79081c6d83a8eada20a00`
 - repo-truth boundary:
   - `drivers/net/virtio_net.zig`
   - `zigux/tests/phase12_virtio_net.zig`
