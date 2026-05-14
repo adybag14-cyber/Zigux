@@ -163,7 +163,7 @@ def validate_makefile(repo_root: Path) -> list[str]:
     try:
         makefile_text = makefile_path.read_text(encoding="utf-8")
     except FileNotFoundError:
-        return [f"missing repo file: {MAKEFILE_PATH.as_posix()}]
+        return [f"missing repo file: {MAKEFILE_PATH.as_posix()}"]
 
     issues: list[str] = []
     issues.extend(
