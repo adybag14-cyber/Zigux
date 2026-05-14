@@ -283,6 +283,23 @@ test "phase 4 atomic64 survey keeps reversible delivery and next-step evidence e
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_perf_baseline_survey.zig") != null,
     );
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            manifest.reversible_delivery_evidence,
+            "ABI and Runtime Team owner plus rollback owner",
+        ) != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            manifest.reversible_delivery_evidence,
+            "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+        ) != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "rollback-owner matrix") != null,
+    );
 
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "benchmark command") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "acceptable limit") != null);
