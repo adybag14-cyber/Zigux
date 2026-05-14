@@ -103,6 +103,8 @@ REQUIRED_MARKERS = {
         "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers",
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` stays the dedicated roadmap-gap survey for this file family while the direct exec-cmd shard remains helper-first and deferred-exec only.",
         "Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the live C helper anchors, checklist hook, and validator route stay aligned around one reviewable packet.",
+        "zig test tools/lib/subcmd/exec-cmd.zig",
+        "python3 scripts/zigux/check-phase8-exec-cmd-packet.py",
         "make -C zigux phase8-validate",
         "zigux/tests/phase8_exec_cmd_only_build.zig",
     ),
@@ -146,6 +148,24 @@ REQUIRED_MARKERS = {
     ),
 }
 
+ORDERED_MARKER_SEQUENCES = {
+    EXEC_CMD_SLICE_PATH: (
+        "zig test tools/lib/subcmd/exec-cmd.zig",
+        "python3 scripts/zigux/check-phase8-exec-cmd-packet.py",
+        "make -C zigux phase8-validate",
+        "zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
+        "make -C zigux phase8-exec-cmd-test",
+        "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
+    ),
+    WORKFLOW_PATH: (
+        " - name: Validate Phase 8 tooling packet",
+        " - name: Run focused Phase 8 exec-cmd tests",
+        " - name: Run focused Phase 8 help tests",
+        " - name: Run focused Phase 8 kallsyms tests",
+        " - name: Run focused Phase 8 help and kallsyms tests",
+    ),
+}
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -164,6 +184,25 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 problems.append(f"missing-marker:{rel_path}:{marker}")
+
+    for rel_path, ordered_markers in ORDERED_MARKER_SEQUENCES.items():
+        text = read_text(root, rel_path)
+        marker_indexes: list[tuple[str, int]] = []
+        for marker in ordered_markers:
+            marker_index = text.find(marker)
+            if marker_index == -1:
+                continue
+            marker_indexes.append((marker, marker_index))
+
+        for (earlier_marker, earlier_index), (later_marker, later_index) in zip(
+            marker_indexes,
+            marker_indexes[1:],
+        ):
+            if earlier_index >= later_index:
+                problems.append(
+                    f"marker-order:{rel_path}:{earlier_marker}:{later_marker}"
+                )
+
     return problems
 
 
@@ -189,7 +228,10 @@ def make_fixture_root(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         if rel_path == SCRIPT_PATH:
             continue
-        markers = REQUIRED_MARKERS.get(rel_path)
+        markers = list(REQUIRED_MARKERS.get(rel_path, ()))
+        for ordered_marker in ORDERED_MARKER_SEQUENCES.get(rel_path, ()):
+            if ordered_marker not in markers:
+                markers.append(ordered_marker)
         content = "\n".join(markers) + "\n" if markers else "# fixture\n"
         write_text(root, rel_path, content)
 
@@ -208,6 +250,33 @@ def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
         raise SystemExit(f"self-test-mismatch:{expected}:{output}")
 
 
+def assert_order_case(root: Path, rel_path: str, earlier_marker: str, later_marker: str) -> None:
+    text = read_text(root, rel_path)
+    earlier_index = text.find(earlier_marker)
+    later_index = text.find(later_marker)
+    if earlier_index == -1 or later_index == -1:
+        raise SystemExit(f"self-test-fixture-missing-order:{rel_path}")
+    if earlier_index >= later_index:
+        raise SystemExit(f"self-test-fixture-order-already-broken:{rel_path}")
+
+    swapped = (
+        text[:earlier_index]
+        + later_marker
+        + text[earlier_index + len(earlier_marker) : later_index]
+        + earlier_marker
+        + text[later_index + len(later_marker) :]
+    )
+    (root / rel_path).write_text(swapped, encoding="utf-8")
+
+    result = run_validator(root)
+    expected = f"marker-order:{rel_path}:{earlier_marker}:{later_marker}"
+    output = result.stdout.strip() or result.stderr.strip() or "no_output"
+    if result.returncode == 0:
+        raise SystemExit(f"self-test-order-unexpected-pass:{rel_path}")
+    if expected not in output:
+        raise SystemExit(f"self-test-order-mismatch:{expected}:{output}")
+
+
 def run_self_test() -> int:
     cases = 1
     with tempfile.TemporaryDirectory(prefix="zigux_phase8_exec_cmd_packet_") as tmp:
@@ -223,7 +292,6 @@ def run_self_test() -> int:
             (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-exec-cmd-packet.py`"),
             (SCRIPTS_README_PATH, "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`"),
             (DOCS_ROOT_PATH, "`make -C zigux phase8-exec-cmd-test`"),
-            (WORKFLOW_PATH, "Run focused Phase 8 exec-cmd tests"),
             (MAKEFILE_PATH, "phase8-exec-cmd-test:"),
             (BOUNDARY_SURVEY_PATH, "PHASE8_USERSPACE_KERNEL_BRIDGE_LANE_KEY=P8-L01"),
             (BOUNDARY_SURVEY_PATH, "`Documentation/zigux/phase8-exec-cmd-slice.md`"),
@@ -234,6 +302,8 @@ def run_self_test() -> int:
             (EXEC_CMD_SLICE_PATH, "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers"),
             (EXEC_CMD_SLICE_PATH, "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` stays the dedicated roadmap-gap survey for this file family while the direct exec-cmd shard remains helper-first and deferred-exec only."),
             (EXEC_CMD_SLICE_PATH, "Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the live C helper anchors, checklist hook, and validator route stay aligned around one reviewable packet."),
+            (EXEC_CMD_SLICE_PATH, "zig test tools/lib/subcmd/exec-cmd.zig"),
+            (EXEC_CMD_SLICE_PATH, "python3 scripts/zigux/check-phase8-exec-cmd-packet.py"),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
@@ -244,6 +314,8 @@ def run_self_test() -> int:
             (EXEC_CMD_ONLY_BUILD_PATH, '.root_source_file = b.path("phase8_exec_cmd.zig")'),
             (EXEC_CMD_ONLY_BUILD_PATH, 'exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);'),
             (EXEC_CMD_ONLY_BUILD_PATH, '.name = "phase8-exec-cmd-tests"'),
+            (EXEC_CMD_ONLY_BUILD_PATH, 'b.step("test", "Run focused Phase 8 exec-cmd tests")'),
+            (PHASE8_BUILD_PATH, '.name = "phase8-exec-cmd-tests"'),
             (PHASE8_BUILD_PATH, '.root_source_file = b.path("phase8_exec_cmd.zig")'),
             (PHASE8_BUILD_PATH, 'exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);'),
             (PHASE8_BUILD_PATH, 'test_step.dependOn(&run_exec_cmd_tests.step);'),
@@ -256,6 +328,24 @@ def run_self_test() -> int:
             case_root = Path(tmp) / f"case_{cases}"
             shutil.copytree(baseline_root, case_root)
             assert_missing_case(case_root, rel_path, marker)
+            cases += 1
+
+        ordered_cases = (
+            (
+                EXEC_CMD_SLICE_PATH,
+                "zig test tools/lib/subcmd/exec-cmd.zig",
+                "python3 scripts/zigux/check-phase8-exec-cmd-packet.py",
+            ),
+            (
+                WORKFLOW_PATH,
+                " - name: Run focused Phase 8 exec-cmd tests",
+                " - name: Run focused Phase 8 help tests",
+            ),
+        )
+        for rel_path, earlier_marker, later_marker in ordered_cases:
+            case_root = Path(tmp) / f"case_{cases}"
+            shutil.copytree(baseline_root, case_root)
+            assert_order_case(case_root, rel_path, earlier_marker, later_marker)
             cases += 1
 
         boundary_missing_root = Path(tmp) / f"case_{cases}"
