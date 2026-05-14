@@ -207,6 +207,8 @@ EXPECTED_CASES = {
     },
 }
 
+EXPECTED_SELF_TEST_CASE_COUNT = 17
+
 FILE_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": WORKFLOW_MARKERS,
     "Documentation/zigux/artifact-diff.md": ARTIFACT_DIFF_MARKERS,
@@ -533,6 +535,12 @@ def run_self_test() -> int:
             in issues
         )
         case_count += 1
+
+    if case_count != EXPECTED_SELF_TEST_CASE_COUNT:
+        print("PHASE2_FIXDEP_GATE_SELF_TEST=fail")
+        print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT_ACTUAL={case_count}")
+        print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT_EXPECTED={EXPECTED_SELF_TEST_CASE_COUNT}")
+        return 1
 
     print("PHASE2_FIXDEP_GATE_SELF_TEST=pass")
     print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT={case_count}")
