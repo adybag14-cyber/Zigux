@@ -30,6 +30,7 @@ Current `master` already carries the active shared-versus-adjacent Phase 4 packe
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
 - dedicated local-only perf packet:
+  - `scripts/zigux/check-phase4-perf-baseline-packet.py`
   - `zigux/tests/phase4_perf_baseline_manifest.json`
   - `zigux/tests/phase4_perf_baseline_survey.zig`
   - `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig`
@@ -63,11 +64,12 @@ This shared lane does not own the approved local perf commands and acceptable li
 
 The dedicated perf lane owns only the landed packet for:
 
+- `scripts/zigux/check-phase4-perf-baseline-packet.py`
 - `zigux/tests/phase4_perf_baseline_manifest.json`
 - `zigux/tests/phase4_perf_baseline_survey.zig`
 - the paired local replay routes `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`
 
-Keep perf-local follow-through inside the approved local-only packet: the benchmark commands, the acceptable limits, the local-only posture, the decision-owner wording for any future wider promotion, and the manifest-backed survey truthfulness.
+Keep perf-local follow-through inside the approved local-only packet: the dedicated local checker, the benchmark commands, the acceptable limits, the local-only posture, the decision-owner wording for any future wider promotion, and the manifest-backed survey truthfulness.
 
 Do not use the perf lane to rewrite shared exact-readback blob pins, shared rollback-owner wording, or parked starter-gap packet wording unless a broader shared packet change has already landed and the perf note is only catching up to that directly readable state.
 
@@ -91,7 +93,7 @@ Do not use a parked starter-gap lane to reopen shared exact-readback inventory, 
 When a Phase 4 validation change is proposed, choose the narrowest owner first.
 
 - If a change only repairs one starter-gap survey note, one starter-gap manifest, one starter-gap survey gate, one direct validation entrypoint reminder, or one parked next-step handoff, keep it inside that single parked starter packet.
-- If a change only refreshes approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.
+- If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.
 - If a change only refreshes how the shipped rollback-readiness packet, rollback-owner map, validator-first route, and adjacent parked packets are described together, keep it in the shared exact-readback lane.
 - If a shared reminder surface needs one perf-local or starter-gap cue, point to that exact packet instead of restating packet-local behavior from memory.
 - Do not use the shared exact-readback lane to change local-only perf limits or starter-gap packet-local replay wording.
@@ -103,7 +105,7 @@ When a Phase 4 validation change is proposed, choose the narrowest owner first.
 Use this note to keep future Phase 4 follow-through bounded:
 
 - reopen the shared exact-readback lane only for one rollback-owner, current-head readback, workflow-route, or cross-packet sequencing repair across the already landed shared Phase 4 packet
-- reopen the dedicated perf lane only for one manifest, survey, benchmark-command, acceptable-limit, or local-only policy truthfulness repair
+- reopen the dedicated perf lane only for one checker, manifest, survey, benchmark-command, acceptable-limit, or local-only policy truthfulness repair
 - reopen a parked starter-gap lane only for one packet-local note, manifest, survey gate, wrapper, entrypoint, owner-map, or next-step truthfulness repair
 - update the directly coupled packet first when packet-local behavior changes, then refresh shared exact-readback wording only after that packet-local state is directly readable on current `master`
 
