@@ -28,6 +28,7 @@ MARKERS = {
         "* no shared `validate-phase11.py`",
         "* no shared `make -C zigux phase11-validate` target on `master`",
         "* the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts together with the materialized build-backed replay files and the landed inventory fixture rather than a broader validator stack",
+        "* the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `drivers/tty/hvc/hvc_console.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep those landed bounded replay surfaces explicit in shared summaries without widening them into notifier, khvcd, or host-backed execution closure",
     ],
     "closure_note": [
         "# Phase 11 Closure Note",
@@ -125,6 +126,8 @@ def run_self_test() -> None:
             (FILES["note"], MARKERS["note"][5]),
             (FILES["note"], MARKERS["note"][6]),
             (FILES["note"], MARKERS["note"][7]),
+            (FILES["note"], "`Documentation/zigux/phase11-hvc-console-slice.md`"),
+            (FILES["note"], "`drivers/tty/hvc/hvc_console.zig`"),
             (FILES["closure_note"], MARKERS["closure_note"][2]),
             (FILES["closure_note"], MARKERS["closure_note"][4]),
             (FILES["closure_note"], MARKERS["closure_note"][5]),
@@ -139,7 +142,7 @@ def run_self_test() -> None:
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / relative_path
             path.write_text(
-                path.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
+                path.read_text(encoding="utf-8").replace(marker + "\n", "", 1).replace(marker, "", 1),
                 encoding="utf-8",
             )
             expect_failure(case_root, marker)
