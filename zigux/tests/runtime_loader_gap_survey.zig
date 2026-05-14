@@ -223,7 +223,7 @@ test "phase 9 runtime loader gap survey keeps rollback, metadata-only trace-even
 
     try expectContains(trace_loader_substrate_drift, "phase 9 runtime trace-events loader rejects prepared shared runtime-substrate drift before any local runtime handoff");
     try expectContains(trace_loader_substrate_drift, "shared_request.plan.requires_runtime_substrate = false;");
-    try expectContains(trace_loader_substrate_drift, "try std.testing.expectError(error.LoaderNotRequired, loader.requestSharedRuntimeLoad(&shared_request));");
+    try expectContains(trace_loader_substrate_drift, "try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));");
     try expectContains(trace_loader_substrate_drift, "try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.prepared, loader.stage());");
     try expectContains(trace_loader_substrate_drift, "try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);");
 }
