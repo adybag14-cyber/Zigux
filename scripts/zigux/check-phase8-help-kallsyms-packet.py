@@ -55,8 +55,10 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
         "`tools/lib/symbol/kallsyms.zig`",
+        "`zigux/tests/phase8_help_only_build.zig`",
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
         "`zigux/tests/phase8_kallsyms_only_build.zig`",
+        "`make -C zigux phase8-help-test`",
         "`make -C zigux phase8-help-kallsyms-test`",
         "`make -C zigux phase8-kallsyms-test`",
         "output-stable tooling behavior",
@@ -80,6 +82,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
         "`zigux/tests/phase8_kallsyms.zig`",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
+        "`make -C zigux phase8-help-test`",
         "`make -C zigux phase8-help-kallsyms-test`",
         "`make -C zigux phase8-kallsyms-test`",
     ),
@@ -192,11 +195,19 @@ def run_self_test() -> int:
             ),
             (
                 REVIEW_CHECKLIST_PATH,
+                "`make -C zigux phase8-help-test`",
+            ),
+            (
+                REVIEW_CHECKLIST_PATH,
                 "bounded `kallsyms__parse()` callback-wrapper contract",
             ),
             (
                 SCRIPTS_README_PATH,
                 "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
+            ),
+            (
+                TESTS_README_PATH,
+                "`make -C zigux phase8-help-test`",
             ),
             (
                 TESTS_README_PATH,
