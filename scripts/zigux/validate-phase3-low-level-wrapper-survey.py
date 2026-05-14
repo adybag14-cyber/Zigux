@@ -123,6 +123,7 @@ REQUIRED_BARRIER_SNIPPETS = (
     'pub fn compiler() void {',
     'pub fn acquireRelease() void {',
     'test "phase3 barrier wrappers compile"',
+    'test "phase3 barrier wrappers keep compiler fences reviewable"',
     'test "phase3 barrier wrappers keep barrier locality reviewable"',
     'test "phase3 barrier wrappers keep barrier handoff reviewable"',
 )
@@ -145,7 +146,12 @@ REQUIRED_MMIO_SNIPPETS = (
     'pub fn read8InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u8 {',
     'pub fn write8InteropPolicyByte(base_addr: usize, offset: usize, value: u8, unsafe_scope: u8) MmioError!void {',
     'test "phase3 mmio wrappers keep direct reads and writes reviewable" {',
+    'test "phase3 mmio ranges keep byte and stride boundaries explicit" {',
     'test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {',
+    'test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {',
+    'try std.testing.expectEqual(@as(?usize, 24), typedOffsetForIndex(desc, u64, 3));',
+    'try requireInteropPolicyByte(@intFromEnum(abi.UnsafeScope.volatile_mmio));',
+    'try std.testing.expect(!allowsInteropPolicyByte(@intFromEnum(abi.UnsafeScope.none)));',
 )
 
 REFERENCE_MARKERS = (
@@ -520,6 +526,63 @@ def run_self_test() -> int:
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing compiler barrier helper failure")
+            return 1
+
+        _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
+        _write(
+            root,
+            BARRIER_REL,
+            (root / BARRIER_REL).read_text(encoding="utf-8").replace(
+                'test "phase3 barrier wrappers keep compiler fences reviewable"',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_barrier_snippet:test "phase3 barrier wrappers keep compiler fences reviewable"'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing compiler-fence barrier replay failure")
+            return 1
+
+        _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            (root / MMIO_REL).read_text(encoding="utf-8").replace(
+                'test "phase3 mmio ranges keep byte and stride boundaries explicit" {',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_mmio_snippet:test "phase3 mmio ranges keep byte and stride boundaries explicit" {'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing mmio range-boundary replay failure")
+            return 1
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            (root / MMIO_REL).read_text(encoding="utf-8").replace(
+                'test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_mmio_snippet:test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing volatile-mmio policy-gate replay failure")
             return 1
 
         _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
