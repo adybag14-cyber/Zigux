@@ -20,7 +20,7 @@
   "files": [
     {
       "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-      "blob_sha": "0fcead12c8b5d6dc02898f2ea63f9b9bcf5a5034"
+      "blob_sha": "3185d3a44e128bb16bc56339a87c04ffb2fd35f4"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
