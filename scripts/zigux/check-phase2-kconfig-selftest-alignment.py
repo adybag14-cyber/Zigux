@@ -136,7 +136,7 @@ PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
 EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 22
 EXPECTED_CONF_CASE_COUNT = 16
 EXPECTED_CONFDATA_CASE_COUNT = 13
-EXPECTED_SELF_TEST_CASE_COUNT = 29
+EXPECTED_SELF_TEST_CASE_COUNT = 33
 
 
 def read_text(path: Path) -> str:
@@ -189,6 +189,24 @@ def parse_python_assignments(text: str, names: tuple[str, ...]) -> dict[str, obj
             continue
         values[target] = ast.literal_eval(node.value)
     return values
+
+
+def extract_case_names(
+    cases: list[object], *, packet_name: str, issues: list[tuple[str, str]]
+) -> list[str]:
+    names: list[str] = []
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            issues.append(("KCONFIG_CASE_PACKET_INVALID", f"{packet_name}[{index}]:expected_object"))
+            continue
+        name = case.get("name")
+        if not isinstance(name, str):
+            issues.append(
+                ("KCONFIG_CASE_PACKET_INVALID", f"{packet_name}[{index}].name:expected_string")
+            )
+            continue
+        names.append(name)
+    return names
 
 
 def collect_kconfig_checker_issues(root: Path) -> list[tuple[str, str]]:
@@ -272,11 +290,31 @@ def collect_kconfig_checker_issues(root: Path) -> list[tuple[str, str]]:
                 f"checker_conf_modes={len(conf_modes)}:packet_conf_cases={len(live_conf_cases)}",
             )
         )
+    live_conf_case_names = extract_case_names(
+        live_conf_cases, packet_name="conf_cases", issues=issues
+    )
+    if conf_modes and live_conf_case_names != conf_modes:
+        issues.append(
+            (
+                "KCONFIG_CASE_PACKET_NAME_MISMATCH",
+                f"conf_cases:actual={live_conf_case_names!r}:expected={conf_modes!r}",
+            )
+        )
     if len(confdata_cases) != len(live_confdata_cases):
         issues.append(
             (
                 "KCONFIG_CASE_PACKET_COUNT_MISMATCH",
                 f"checker_confdata_cases={len(confdata_cases)}:packet_confdata_cases={len(live_confdata_cases)}",
+            )
+        )
+    live_confdata_case_names = extract_case_names(
+        live_confdata_cases, packet_name="confdata_cases", issues=issues
+    )
+    if confdata_cases and live_confdata_case_names != confdata_cases:
+        issues.append(
+            (
+                "KCONFIG_CASE_PACKET_NAME_MISMATCH",
+                f"confdata_cases:actual={live_confdata_case_names!r}:expected={confdata_cases!r}",
             )
         )
 
@@ -292,6 +330,14 @@ def collect_kconfig_checker_issues(root: Path) -> list[tuple[str, str]]:
                     f"conf_manifest:actual={case_count!r}:expected={EXPECTED_CONF_CASE_COUNT}",
                 )
             )
+        manifest_cases = conf_manifest.get("cases")
+        if manifest_cases != conf_modes:
+            issues.append(
+                (
+                    "KCONFIG_MANIFEST_CASE_NAME_MISMATCH",
+                    f"conf_manifest:actual={manifest_cases!r}:expected={conf_modes!r}",
+                )
+            )
 
     confdata_manifest = read_json(resolve_path(root, KCONFIG_BRIDGE_CONFDATA_MANIFEST))
     if not isinstance(confdata_manifest, dict):
@@ -303,6 +349,14 @@ def collect_kconfig_checker_issues(root: Path) -> list[tuple[str, str]]:
                 (
                     "KCONFIG_MANIFEST_CASE_COUNT_MISMATCH",
                     f"confdata_manifest:actual={case_count!r}:expected={EXPECTED_CONFDATA_CASE_COUNT}",
+                )
+            )
+        manifest_cases = confdata_manifest.get("cases")
+        if manifest_cases != confdata_cases:
+            issues.append(
+                (
+                    "KCONFIG_MANIFEST_CASE_NAME_MISMATCH",
+                    f"confdata_manifest:actual={manifest_cases!r}:expected={confdata_cases!r}",
                 )
             )
     return issues
@@ -462,8 +516,45 @@ def build_self_test_root(root: Path) -> None:
         ]
     )
     cases_payload = {
-        "conf_cases": [{"name": f"case{i}"} for i in range(EXPECTED_CONF_CASE_COUNT)],
-        "confdata_cases": [{"name": f"confdata{i}"} for i in range(EXPECTED_CONFDATA_CASE_COUNT)],
+        "conf_cases": [
+            {"name": name}
+            for name in (
+                "oldaskconfig",
+                "syncconfig",
+                "oldconfig",
+                "allnoconfig",
+                "allyesconfig",
+                "allmodconfig",
+                "alldefconfig",
+                "randconfig",
+                "defconfig",
+                "savedefconfig",
+                "listnewconfig",
+                "helpnewconfig",
+                "olddefconfig",
+                "yes2modconfig",
+                "mod2yesconfig",
+                "mod2noconfig",
+            )
+        ],
+        "confdata_cases": [
+            {"name": name}
+            for name in (
+                "sample",
+                "escaped_strings",
+                "escaped_control_sequences",
+                "trailing_escaped_backslash",
+                "sample_crlf",
+                "explicit_n_tristate",
+                "final_trailing_carriage_return",
+                "final_unterminated_unset_comment",
+                "uppercase_tristate",
+                "non_config_lines",
+                "empty_config_symbol_names",
+                "last_state_transitions",
+                "duplicate_malformed_quoted_assignment",
+            )
+        ],
     }
     write_text(resolve_path(root, PHASE2_VALIDATOR), "\n".join(validator_lines) + "\n")
     write_text(resolve_path(root, PHASE2_CLOSURE_VALIDATOR), "\n".join(CLOSURE_VALIDATOR_MARKERS) + "\n")
@@ -479,11 +570,25 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, KCONFIG_BRIDGE_CASES), json.dumps(cases_payload, indent=2) + "\n")
     write_text(
         resolve_path(root, KCONFIG_BRIDGE_CONF_MANIFEST),
-        json.dumps({"case_count": EXPECTED_CONF_CASE_COUNT}, indent=2) + "\n",
+        json.dumps(
+            {
+                "case_count": EXPECTED_CONF_CASE_COUNT,
+                "cases": [case["name"] for case in cases_payload["conf_cases"]],
+            },
+            indent=2,
+        )
+        + "\n",
     )
     write_text(
         resolve_path(root, KCONFIG_BRIDGE_CONFDATA_MANIFEST),
-        json.dumps({"case_count": EXPECTED_CONFDATA_CASE_COUNT}, indent=2) + "\n",
+        json.dumps(
+            {
+                "case_count": EXPECTED_CONFDATA_CASE_COUNT,
+                "cases": [case["name"] for case in cases_payload["confdata_cases"]],
+            },
+            indent=2,
+        )
+        + "\n",
     )
 
 
@@ -791,6 +896,30 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["conf_cases"][0], payload["conf_cases"][1] = payload["conf_cases"][1], payload["conf_cases"][0]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(
+            code == "KCONFIG_CASE_PACKET_NAME_MISMATCH" and detail.startswith("conf_cases:")
+            for code, detail in issues
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["confdata_cases"][-1]["name"] = "renamed_confdata_case"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(
+            code == "KCONFIG_CASE_PACKET_NAME_MISMATCH" and detail.startswith("confdata_cases:")
+            for code, detail in issues
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
         path = resolve_path(root, KCONFIG_BRIDGE_CONF_MANIFEST)
         payload = json.loads(path.read_text(encoding="utf-8"))
         payload["case_count"] = 15
@@ -812,6 +941,30 @@ def run_self_test() -> int:
             "KCONFIG_MANIFEST_CASE_COUNT_MISMATCH",
             "confdata_manifest:actual=12:expected=13",
         ) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CONF_MANIFEST)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cases"][0], payload["cases"][1] = payload["cases"][1], payload["cases"][0]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(
+            code == "KCONFIG_MANIFEST_CASE_NAME_MISMATCH" and detail.startswith("conf_manifest:")
+            for code, detail in issues
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CONFDATA_MANIFEST)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cases"][-1] = "renamed_confdata_case"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(
+            code == "KCONFIG_MANIFEST_CASE_NAME_MISMATCH" and detail.startswith("confdata_manifest:")
+            for code, detail in issues
+        )
         checks_run += 1
 
         for rel_path in (
