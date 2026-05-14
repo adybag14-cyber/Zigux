@@ -30,6 +30,10 @@ EXPECTED_TARGETS = [
     "riscv64-linux-musl",
 ]
 
+EXPECTED_ZIG_TEST_FILES = [
+    "scripts/zigux/fixdep.zig",
+]
+
 EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-cross.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
@@ -67,6 +71,7 @@ WORKFLOW_SCOPE_REQUIRED_FRAGMENTS = [
 PHASE2_CROSS_CHECKER_MARKERS = [
     "EXPECTED_TARGETS = [",
     "EXPECTED_ZIG_TEST_FILES = [",
+    '    "scripts/zigux/fixdep.zig",',
     'print("PHASE2_CROSS_SELF_TEST=pass")',
     'print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")',
     'print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")',
@@ -152,6 +157,9 @@ def validate_targets_manifest(payload: dict[str, object]) -> list[str]:
         return issues
     if targets != EXPECTED_TARGETS:
         issues.append("targets:targets=expected_exact_list")
+    zig_test_files = payload.get("zig_test_files")
+    if zig_test_files != EXPECTED_ZIG_TEST_FILES:
+        issues.append("targets:zig_test_files=expected_exact_list")
     return issues
 
 
@@ -259,6 +267,7 @@ def run_self_test() -> int:
         "status": "closed",
         "target_count": 3,
         "targets": list(EXPECTED_TARGETS),
+        "zig_test_files": list(EXPECTED_ZIG_TEST_FILES),
     }
     if validate_targets_manifest(valid_targets):
         raise SystemExit("phase2-cross-alignment:self-test:valid_targets_manifest")
@@ -274,6 +283,12 @@ def run_self_test() -> int:
     issues = validate_targets_manifest(bad_targets)
     if "targets:targets=expected_exact_list" not in issues:
         raise SystemExit("phase2-cross-alignment:self-test:target_list_mismatch")
+
+    bad_zig_test_files = dict(valid_targets)
+    bad_zig_test_files["zig_test_files"] = ["scripts/zigux/genksyms.zig"]
+    issues = validate_targets_manifest(bad_zig_test_files)
+    if "targets:zig_test_files=expected_exact_list" not in issues:
+        raise SystemExit("phase2-cross-alignment:self-test:zig_test_file_list_mismatch")
 
     workflow_text = "\n".join(
         [
@@ -462,9 +477,11 @@ def run_self_test() -> int:
         round_trip = load_json_object(manifest_path, label="targets")
         if round_trip["targets"] != EXPECTED_TARGETS:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
+        if round_trip["zig_test_files"] != EXPECTED_ZIG_TEST_FILES:
+            raise SystemExit("phase2-cross-alignment:self-test:json_zig_test_files_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=21")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
