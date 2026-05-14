@@ -408,6 +408,18 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_marker:{PHASE9_GAP_SURVEY_NOTE_PATH}:{PHASE9_GAP_SURVEY_NOTE_ROUTE_MARKER}")
 
         write_fixture_tree(base)
+        gap_survey_note_path = base / PHASE9_GAP_SURVEY_NOTE_PATH
+        gap_survey_note = gap_survey_note_path.read_text(encoding="utf-8")
+        gap_survey_note_path.write_text(
+            gap_survey_note.replace(PHASE9_GAP_SURVEY_NOTE_BOUNDARY_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{PHASE9_GAP_SURVEY_NOTE_PATH}:{PHASE9_GAP_SURVEY_NOTE_BOUNDARY_MARKER}",
+        )
+
+        write_fixture_tree(base)
         gap_manifest_path = base / LOADER_GAP_MANIFEST_PATH
         gap_manifest = gap_manifest_path.read_text(encoding="utf-8")
         gap_manifest_path.write_text(
@@ -415,6 +427,18 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, f"missing_marker:{LOADER_GAP_MANIFEST_PATH}:{LOADER_GAP_MANIFEST_ROUTE_MARKER}")
+
+        write_fixture_tree(base)
+        gap_manifest_path = base / LOADER_GAP_MANIFEST_PATH
+        gap_manifest = gap_manifest_path.read_text(encoding="utf-8")
+        gap_manifest_path.write_text(
+            gap_manifest.replace(LOADER_GAP_MANIFEST_BOUNDARY_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{LOADER_GAP_MANIFEST_PATH}:{LOADER_GAP_MANIFEST_BOUNDARY_MARKER}",
+        )
 
         write_fixture_tree(base)
         checklist_path = base / REVIEW_CHECKLIST_PATH
