@@ -11,6 +11,7 @@ SURVEY_REL = Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")
 ABI_SLICE_REL = Path("Documentation/zigux/phase3-abi-slice.md")
 ABI_MANIFEST_REL = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 LOW_LEVEL_TEST_REL = Path("zigux/tests/phase3_low_level_wrappers.zig")
+LOW_LEVEL_BUILD_REL = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
 
 SURVEY_REQUIRED = (
     "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
@@ -27,12 +28,14 @@ ABI_SLICE_REQUIRED = (
     "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
+    "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "scripts/zigux/check-phase3-policy-byte-guards.py",
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
 )
 
 ABI_SLICE_FORBIDDEN = (
@@ -51,6 +54,7 @@ MANIFEST_REQUIRED = (
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "zigux/tests/phase3_low_level_wrappers.zig",
+    "zigux/tests/phase3_low_level_wrappers_build.zig",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
 )
 
@@ -63,6 +67,15 @@ LOW_LEVEL_TEST_REQUIRED = (
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtInteropPolicy(u32, base, values.len, no_unsafe_policy));",
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtInteropPolicyBytes(u32, base, values.len, 2, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtByte(u32, base, values.len, 1));",
+)
+
+LOW_LEVEL_BUILD_REQUIRED = (
+    "../unsafe/narrow.zig",
+    "../helpers/mmio.zig",
+    "../helpers/allocator_policy.zig",
+    "../helpers/panic_policy.zig",
+    "phase3_low_level_wrappers.zig",
+    "phase3-low-level-wrappers-test",
 )
 
 
@@ -98,6 +111,7 @@ def check_repo_root(repo_root: Path) -> None:
     require_markers(repo_root / ABI_MANIFEST_REL, MANIFEST_REQUIRED)
     forbid_markers(repo_root / ABI_MANIFEST_REL, MANIFEST_FORBIDDEN)
     require_markers(repo_root / LOW_LEVEL_TEST_REL, LOW_LEVEL_TEST_REQUIRED)
+    require_markers(repo_root / LOW_LEVEL_BUILD_REL, LOW_LEVEL_BUILD_REQUIRED)
 
 
 def write_fixture(root: Path) -> None:
@@ -109,6 +123,7 @@ def write_fixture(root: Path) -> None:
     (root / ABI_SLICE_REL).write_text("\n".join(ABI_SLICE_REQUIRED) + "\n", encoding="utf-8")
     (root / ABI_MANIFEST_REL).write_text("\n".join(MANIFEST_REQUIRED) + "\n", encoding="utf-8")
     (root / LOW_LEVEL_TEST_REL).write_text("\n".join(LOW_LEVEL_TEST_REQUIRED) + "\n", encoding="utf-8")
+    (root / LOW_LEVEL_BUILD_REL).write_text("\n".join(LOW_LEVEL_BUILD_REQUIRED) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
@@ -175,8 +190,22 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected missing low-level raw-pointer bridge marker failure")
 
+        write_fixture(tmpdir)
+        low_level_build_path = tmpdir / LOW_LEVEL_BUILD_REL
+        low_level_build_path.write_text(
+            low_level_build_path.read_text(encoding="utf-8").replace(LOW_LEVEL_BUILD_REQUIRED[-1] + "\n", ""),
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert LOW_LEVEL_BUILD_REL.as_posix() in str(exc)
+            assert LOW_LEVEL_BUILD_REQUIRED[-1] in str(exc)
+        else:
+            raise AssertionError("expected missing low-level build anchor failure")
+
         print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST=pass")
-        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=6")
+        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=7")
     finally:
         shutil.rmtree(tmpdir)
 
