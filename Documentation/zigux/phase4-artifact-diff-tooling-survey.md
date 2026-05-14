@@ -41,6 +41,12 @@ Current `master` already closes the deterministic-check slice of that requiremen
 
 The live Phase 4 artifact-diff tooling gap is not a missing deterministic checker anymore. The current same-lane follow-through is a fail-closed reminder surface: this survey now records the live helper, contract, and determinism packet counts plus the exact base-case and full-case contract catalogs, and the determinism checker now also exact-checks this survey's published direct replay packet so the shared `artifact_diff.py`, contract, determinism, and `phase4-validate` entrypoints stay visible as part of the reviewed tooling surface rather than only as prose outside the checked catalog packet.
 
+## Next Safe Step
+- current `master` already closes the helper, contract, deterministic checker, and validator-first route for this tooling packet, so the next same-lane move is not another helper feature and not another count-only survey refresh
+- the remaining same-lane closure correction is to widen `scripts/zigux/validate-phase4.py` so `REQUIRED_ARTIFACT_DOC_MARKERS` and the synthetic `Documentation/zigux/artifact-diff.md` self-test fixture also require the published `ARTIFACT_DIFF_RESULT_LINES`, the malformed-JSON marker `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID`, and the helper, contract, and determinism catalog markers that `Documentation/zigux/artifact-diff.md` now treats as reviewable contract
+- until that validator-only follow-through lands, stale review-note catalog drift can still slip past the shared Phase 4 validator even though the dedicated artifact-diff note already publishes those markers
+- keep the follow-through scoped to `scripts/zigux/validate-phase4.py` only; do not widen into helper behavior, bitmap, atomic64, perf-baseline, workflow-route, kprobe, or `test_fsmount` work
+
 ## Owner And Rollback Reminder
 - `Documentation/zigux/artifact-diff.md` remains the dedicated owner and rollback note for the shared host-side helper packet; the broader Phase 4 Zig rollback-gate ownership still stays in `Documentation/zigux/phase4-validation-matrix.md`.
 - if `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, or `scripts/zigux/check-phase4-artifact-diff-determinism.py` changes any published helper, contract, or determinism catalog lines, refresh this survey and `Documentation/zigux/artifact-diff.md` in the same change before treating the tooling slice as closed again.
