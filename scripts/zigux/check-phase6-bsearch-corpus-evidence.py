@@ -126,10 +126,20 @@ REQUIRED_SNIPPETS = {
     ],
     SLICE_PATH.as_posix(): [
         "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, direct equal-range wrapper-review drift, or packet-alignment drift appears",
+        "- `searchIndex`",
+        "- `search`",
+        "- `searchMutable`",
+        "- `lowerBoundIndex`",
+        "- `upperBoundIndex`",
         "- `IndexRange`",
         "- `equalRangeIndex`",
         "- `equalRange`",
         "- `equalRangeMutable`",
+        "- `bsearchIndex`",
+        "- `bsearch`",
+        "- `bsearchMutable`",
+        "- `bsearchLowerBoundIndex`",
+        "- `bsearchUpperBoundIndex`",
         "- `bsearchEqualRangeIndex`",
         "- `bsearchEqualRange`",
         "- `bsearchEqualRangeMutable`",
@@ -557,8 +567,20 @@ def run_self_test() -> None:
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
+            "- `searchMutable`",
+            "- `searchMutableDrift`",
+        )
+        assert_failure(
+            root,
+            SLICE_PATH.as_posix(),
             "- `equalRange`",
             "- `equalRangeDrift`",
+        )
+        assert_failure(
+            root,
+            SLICE_PATH.as_posix(),
+            "- `bsearchUpperBoundIndex`",
+            "- `bsearchUpperBoundIndexDrift`",
         )
         assert_failure(
             root,
