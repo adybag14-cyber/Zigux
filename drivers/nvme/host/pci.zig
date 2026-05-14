@@ -90,6 +90,9 @@ pub const DroppedIoRetirementSummary = struct {
     dropped_io_queue_count: usize,
     rebuilt_io_queue_count: usize,
     remaining_io_queue_count: usize,
+    dropped_io_host_dma_pages: u32,
+    rebuilt_io_host_dma_pages: u32,
+    remaining_io_host_dma_pages: u32,
     queue_numbering_restarted: bool,
     can_retire_dropped_io_backlog: bool,
 };
@@ -108,6 +111,7 @@ pub const NvmePciQueueLab = struct {
     last_admin_host_dma_pages: u16 = 0,
     planned_io_host_dma_pages: u32 = 0,
     last_reset_io_queue_count: usize = 0,
+    last_reset_io_host_dma_pages: u32 = 0,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -203,6 +207,7 @@ pub const NvmePciQueueLab = struct {
 
     pub fn beginReset(self: *Self) RecoverySummary {
         self.last_reset_io_queue_count = self.planned_io_queues;
+        self.last_reset_io_host_dma_pages = self.planned_io_host_dma_pages;
         self.recovery_state = .reset_frozen;
         self.reset_generation += 1;
         return self.recoverySummary();
@@ -261,6 +266,18 @@ pub const NvmePciQueueLab = struct {
             0
         else
             dropped_io_queue_count - rebuilt_io_queue_count;
+        const dropped_io_host_dma_pages = if (self.recovery_state == .reset_frozen)
+            self.planned_io_host_dma_pages
+        else
+            self.last_reset_io_host_dma_pages;
+        const rebuilt_io_host_dma_pages = if (self.recovery_state == .running)
+            self.planned_io_host_dma_pages
+        else
+            0;
+        const remaining_io_host_dma_pages = if (rebuilt_io_host_dma_pages >= dropped_io_host_dma_pages)
+            0
+        else
+            dropped_io_host_dma_pages - rebuilt_io_host_dma_pages;
         const admin_queue_must_be_replayed = self.reset_generation != 0 and !admin_queue_replayed_after_reset;
         const queue_numbering_restarted = self.reset_generation != 0 and
             self.recovery_state == .running and
@@ -275,11 +292,15 @@ pub const NvmePciQueueLab = struct {
             .dropped_io_queue_count = dropped_io_queue_count,
             .rebuilt_io_queue_count = rebuilt_io_queue_count,
             .remaining_io_queue_count = remaining_io_queue_count,
+            .dropped_io_host_dma_pages = dropped_io_host_dma_pages,
+            .rebuilt_io_host_dma_pages = rebuilt_io_host_dma_pages,
+            .remaining_io_host_dma_pages = remaining_io_host_dma_pages,
             .queue_numbering_restarted = queue_numbering_restarted,
             .can_retire_dropped_io_backlog = self.recovery_state == .running and
                 dropped_io_queue_count != 0 and
                 !admin_queue_must_be_replayed and
-                remaining_io_queue_count == 0,
+                remaining_io_queue_count == 0 and
+                remaining_io_host_dma_pages == 0,
         };
     }
 
@@ -436,6 +457,9 @@ test "nvme pci dropped backlog retirement waits for admin replay and rebuilt que
     try std.testing.expectEqual(@as(usize, 2), frozen.dropped_io_queue_count);
     try std.testing.expectEqual(@as(usize, 0), frozen.rebuilt_io_queue_count);
     try std.testing.expectEqual(@as(usize, 2), frozen.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u32, 2), frozen.dropped_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 0), frozen.rebuilt_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 2), frozen.remaining_io_host_dma_pages);
     try std.testing.expect(!frozen.queue_numbering_restarted);
     try std.testing.expect(!frozen.can_retire_dropped_io_backlog);
 
@@ -447,6 +471,9 @@ test "nvme pci dropped backlog retirement waits for admin replay and rebuilt que
     try std.testing.expectEqual(@as(usize, 2), pending.dropped_io_queue_count);
     try std.testing.expectEqual(@as(usize, 0), pending.rebuilt_io_queue_count);
     try std.testing.expectEqual(@as(usize, 2), pending.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u32, 2), pending.dropped_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 0), pending.rebuilt_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 2), pending.remaining_io_host_dma_pages);
     try std.testing.expect(pending.queue_numbering_restarted);
     try std.testing.expect(!pending.can_retire_dropped_io_backlog);
 
@@ -457,6 +484,9 @@ test "nvme pci dropped backlog retirement waits for admin replay and rebuilt que
     try std.testing.expect(!partial.admin_queue_must_be_replayed);
     try std.testing.expectEqual(@as(usize, 1), partial.rebuilt_io_queue_count);
     try std.testing.expectEqual(@as(usize, 1), partial.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u32, 2), partial.dropped_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 1), partial.rebuilt_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 1), partial.remaining_io_host_dma_pages);
     try std.testing.expect(partial.queue_numbering_restarted);
     try std.testing.expect(!partial.can_retire_dropped_io_backlog);
 
@@ -466,8 +496,36 @@ test "nvme pci dropped backlog retirement waits for admin replay and rebuilt que
     try std.testing.expectEqual(@as(usize, 2), ready.dropped_io_queue_count);
     try std.testing.expectEqual(@as(usize, 2), ready.rebuilt_io_queue_count);
     try std.testing.expectEqual(@as(usize, 0), ready.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u32, 2), ready.dropped_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 2), ready.rebuilt_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 0), ready.remaining_io_host_dma_pages);
     try std.testing.expect(ready.queue_numbering_restarted);
     try std.testing.expect(ready.can_retire_dropped_io_backlog);
+}
+
+test "nvme pci dropped backlog retirement keeps dma debt visible after queue counts recover" {
+    var lab = try NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(64, 64, false);
+    _ = try lab.planIoQueue(128, 64, false);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, true);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    const summary = lab.summarizeDroppedIoRetirement();
+    try std.testing.expect(summary.admin_queue_replayed_after_reset);
+    try std.testing.expectEqual(@as(usize, 2), summary.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u32, 5), summary.dropped_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 2), summary.rebuilt_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 3), summary.remaining_io_host_dma_pages);
+    try std.testing.expect(summary.queue_numbering_restarted);
+    try std.testing.expect(!summary.can_retire_dropped_io_backlog);
 }
 
 test "nvme pci dropped backlog retirement stays idle before any reset backlog exists" {
@@ -483,6 +541,9 @@ test "nvme pci dropped backlog retirement stays idle before any reset backlog ex
     try std.testing.expectEqual(@as(usize, 0), summary.dropped_io_queue_count);
     try std.testing.expectEqual(@as(usize, 1), summary.rebuilt_io_queue_count);
     try std.testing.expectEqual(@as(usize, 0), summary.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u32, 0), summary.dropped_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 1), summary.rebuilt_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 0), summary.remaining_io_host_dma_pages);
     try std.testing.expect(!summary.queue_numbering_restarted);
     try std.testing.expect(!summary.can_retire_dropped_io_backlog);
 }
