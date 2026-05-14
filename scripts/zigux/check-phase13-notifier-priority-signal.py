@@ -77,7 +77,7 @@ REQUIRED_NOTIFIER_SURVEY_MARKERS = (
 )
 
 REQUIRED_RELEASE_NOTES_MARKERS = (
-    "Broad summaries should also keep the adjacent notifier evidence packet visible through the current materialized review surfaces:",
+    "Broad summaries should also keep the shipped adjacent notifier release surface visible through:",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
     "`zigux/bindings/notifier_abi.zig`",
@@ -117,7 +117,7 @@ REQUIRED_LANE_NOTE_MARKERS = (
     "`zigux/helpers/notifier_chain_view.zig`",
     "`include/zigux/abi.h`",
     "`drivers/tty/hvc/hvc_console.h`",
-    "keep them recorded as adjacent repo-reality gaps instead of shipped evidence.",
+    "keep them recorded as adjacent repo-reality gaps instead of listing them here as independently shipped review evidence.",
 )
 
 REQUIRED_CONTRIBUTOR_SYNC_MARKERS = (
