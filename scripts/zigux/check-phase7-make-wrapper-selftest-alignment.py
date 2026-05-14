@@ -125,6 +125,8 @@ REQUIRED_MARKERS = {
 EXACT_COUNT_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": {
         "make -C zigux phase7-validate": 1,
+        "make -C zigux phase7-test": 1,
+        "zig build test --build-file zigux/tests/phase7_build.zig --summary all": 0,
         "python3 scripts/zigux/check-phase7-make-wrapper.py": 0,
         "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py": 0,
         "python3 scripts/zigux/check-phase7-build-wiring.py": 0,
@@ -136,6 +138,8 @@ EXACT_COUNT_MARKERS = {
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py": 1,
         "scripts/zigux/check-phase7-build-wiring.py --self-test": 1,
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py": 1,
+        "phase7-test:": 1,
+        "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all": 1,
     },
 }
 
@@ -180,7 +184,10 @@ def write_fixture_root(tmp_root: Path) -> None:
         path.write_text(fixture_text.get(rel, "# fixture\n"), encoding="utf-8")
 
     workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
-    workflow_path.write_text("make -C zigux phase7-validate\n", encoding="utf-8")
+    workflow_path.write_text(
+        "make -C zigux phase7-validate\nmake -C zigux phase7-test\n",
+        encoding="utf-8",
+    )
 
 
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
@@ -343,6 +350,18 @@ def run_self_test() -> None:
 
         workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
         workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8") + "make -C zigux phase7-test\n",
+            encoding="utf-8",
+        )
+        expect_count_mismatch(
+            "duplicate_workflow_phase7_test",
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: expected 1 occurrence(s) of 'make -C zigux phase7-test', found 2",
+        )
+        write_fixture_root(tmp_root)
+
+        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8") + "python3 scripts/zigux/check-phase7-build-wiring.py\n",
             encoding="utf-8",
         )
@@ -351,9 +370,47 @@ def run_self_test() -> None:
             tmp_root,
             ".github/workflows/zigux-bootstrap.yml: expected 0 occurrence(s) of 'python3 scripts/zigux/check-phase7-build-wiring.py', found 1",
         )
+        write_fixture_root(tmp_root)
+
+        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8")
+            + "zig build test --build-file zigux/tests/phase7_build.zig --summary all\n",
+            encoding="utf-8",
+        )
+        expect_count_mismatch(
+            "direct_workflow_phase7_build_replay",
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: expected 0 occurrence(s) of 'zig build test --build-file zigux/tests/phase7_build.zig --summary all', found 1",
+        )
+        write_fixture_root(tmp_root)
+
+        makefile_path = tmp_root / "zigux/Makefile"
+        makefile_path.write_text(
+            makefile_path.read_text(encoding="utf-8") + "phase7-test:\n",
+            encoding="utf-8",
+        )
+        expect_count_mismatch(
+            "duplicate_makefile_phase7_test_target",
+            tmp_root,
+            "zigux/Makefile: expected 1 occurrence(s) of 'phase7-test:', found 2",
+        )
+        write_fixture_root(tmp_root)
+
+        makefile_path = tmp_root / "zigux/Makefile"
+        makefile_path.write_text(
+            makefile_path.read_text(encoding="utf-8")
+            + "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all\n",
+            encoding="utf-8",
+        )
+        expect_count_mismatch(
+            "duplicate_makefile_phase7_build_replay",
+            tmp_root,
+            "zigux/Makefile: expected 1 occurrence(s) of 'cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all', found 2",
+        )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=10")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=14")
 
 
 def main() -> int:
