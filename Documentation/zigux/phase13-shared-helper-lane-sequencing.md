@@ -47,6 +47,10 @@ When a real Phase 13 change lands, keep these shared surfaces aligned:
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-release-coordination-matrix.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
