@@ -117,6 +117,7 @@ VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS = {
     "zigux/uapi/version.zig": 2,
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 2,
+    "zigux/bindings/dev_t.zig": 2,
     "zigux/kernel/export_shim.zig": 1,
     "keep the canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`": 1,
     "starter-companion split explicit here whenever this validator-support packet": 1,
@@ -464,6 +465,7 @@ def _populate_repo(root: Path) -> None:
                 "zigux/uapi/version.zig",
                 "zigux/uapi/dev_t.zig",
                 "zigux/bindings/abi.zig",
+                "zigux/bindings/dev_t.zig",
                 "zigux/kernel/export_shim.zig",
                 "keep the canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`",
                 "starter-companion split explicit here whenever this validator-support packet",
@@ -734,6 +736,26 @@ def run_self_test() -> int:
                 _read(validator_support_path),
                 VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
                 None,
+                "zigux/bindings/dev_t.zig",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "zigux/bindings/dev_t.zig (expected 2, found 1)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support dev_t binding drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
                 "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
             ),
             encoding="utf-8",
@@ -881,7 +903,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        driver_path.write_text(_read(driver_path).replace(SELFTEST_DRIVER_MARKERS[2], "", 1), encoding="utf-8")
+        driver_path.writeText(_read(driver_path).replace(SELFTEST_DRIVER_MARKERS[2], "", 1), encoding="utf-8")
         issues = validate_repo(root)
         expected = f"missing selftest driver marker: {SELFTEST_DRIVER_MARKERS[2]}"
         if not _expect_issue(issues, expected):
