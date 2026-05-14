@@ -129,6 +129,19 @@ test "phase14 workqueue anchor packet keeps the delayed-work governance follow-t
     try expectContains(workqueue_survey_source, "runtime `max_active` retuning ownership");
 }
 
+test "phase14 workqueue manifest records a blocked-maintenance handoff" {
+    const workqueue_manifest_source = try readWorkqueueManifestSource();
+    defer std.testing.allocator.free(workqueue_manifest_source);
+
+    try expectContains(workqueue_manifest_source, "\"maintenance_handoff\": {");
+    try expectContains(workqueue_manifest_source, "\"current_lane_posture\": \"blocked_maintenance\"");
+    try expectContains(workqueue_manifest_source, "\"zig test zigux/tests/phase14_workqueue_reviewability.zig\"");
+    try expectContains(workqueue_manifest_source, "\"zig build test --build-file zigux/tests/phase14_build.zig --summary all\"");
+    try expectContains(workqueue_manifest_source, "\"make -C zigux phase14\"");
+    try expectContains(workqueue_manifest_source, "blocked-maintenance posture");
+    try expectContains(workqueue_manifest_source, "workqueue-local");
+}
+
 test "phase14 workqueue survey keeps hotplug and scheduler-visible checkpoints explicit" {
     const workqueue_manifest_source = try readWorkqueueManifestSource();
     defer std.testing.allocator.free(workqueue_manifest_source);
@@ -153,6 +166,7 @@ test "phase14 workqueue slice note keeps the bridge packet reviewable" {
     try expectContains(workqueue_slice_source, "`kernel/workqueue_bridge.zig`");
     try expectContains(workqueue_slice_source, "`zigux/tests/phase14_workqueue_bridge.zig`");
     try expectContains(workqueue_slice_source, "`zigux/tests/phase14_workqueue_reviewability.zig`");
+    try expectContains(workqueue_slice_source, "explicit blocked-maintenance handoff");
     try expectContains(workqueue_slice_source, "eight boundary areas");
     try expectContains(workqueue_slice_source, "fifteen review-only audit checkpoints");
     try expectContains(workqueue_slice_source, "seven blocked live behaviors");
@@ -185,6 +199,18 @@ test "phase14 workqueue survey keeps blocked-maintenance boundaries explicit" {
     try expectContains(workqueue_survey_source, "delayed-work requeue ownership");
     try expectContains(workqueue_survey_source, "runtime `max_active` retuning boundary");
     try expectContains(workqueue_survey_source, "live execution in C");
+}
+
+test "phase14 workqueue survey keeps an explicit maintenance-mode handoff" {
+    const workqueue_survey_source = try readWorkqueueSurveySource();
+    defer std.testing.allocator.free(workqueue_survey_source);
+
+    try expectContains(workqueue_survey_source, "## Maintenance-Mode Handoff");
+    try expectContains(workqueue_survey_source, "current lane posture: `blocked_maintenance`");
+    try expectContains(workqueue_survey_source, "`zig test zigux/tests/phase14_workqueue_reviewability.zig`");
+    try expectContains(workqueue_survey_source, "`zig build test --build-file zigux/tests/phase14_build.zig --summary all`");
+    try expectContains(workqueue_survey_source, "blocked live-execution wording");
+    try expectContains(workqueue_survey_source, "workqueue-local");
 }
 
 test "phase14 workqueue survey keeps reviewer guardrails explicit" {
