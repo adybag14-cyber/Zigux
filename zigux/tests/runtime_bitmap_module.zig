@@ -97,3 +97,47 @@ test "runtime bitmap module gate replays current lifecycle and selftest behavior
     try source.initWithSetBits(&.{ 2, 9 });
     try std.testing.expectError(error.InvalidLifecycleTransition, module.copyFrom(&source));
 }
+
+test "runtime bitmap module gate keeps a post-selftest mirror proof explicit" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    const second_word_base = runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits / 2;
+
+    try module.initWithSetBits(&.{ 0, 5, second_word_base, second_word_base + 6 });
+    _ = try module.runSelftest();
+
+    try module.clearRange(5, 1);
+    try module.setRange(1, 2);
+
+    const summary_after_post_selftest_replay = module.summary();
+    try std.testing.expectEqual(@as(u32, 0), summary_after_post_selftest_replay.first_set);
+    try std.testing.expectEqual(@as(u32, 3), summary_after_post_selftest_replay.first_zero);
+    try std.testing.expectEqual(@as(u32, 5), summary_after_post_selftest_replay.weight);
+    try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, summary_after_post_selftest_replay.nbits);
+    try std.testing.expect(module.isSet(1));
+    try std.testing.expect(module.isSet(2));
+    try std.testing.expect(module.isSet(second_word_base));
+    try std.testing.expect(module.isSet(second_word_base + 6));
+    try std.testing.expect(!module.isSet(5));
+
+    var post_selftest_mirror = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try post_selftest_mirror.initWithSetBits(&.{});
+    try post_selftest_mirror.copyFrom(&module);
+
+    const mirrored_post_selftest_summary = post_selftest_mirror.summary();
+    const mirrored_post_selftest_state = post_selftest_mirror.lifecycleSnapshot();
+    try std.testing.expectEqual(summary_after_post_selftest_replay.first_set, mirrored_post_selftest_summary.first_set);
+    try std.testing.expectEqual(summary_after_post_selftest_replay.first_zero, mirrored_post_selftest_summary.first_zero);
+    try std.testing.expectEqual(summary_after_post_selftest_replay.weight, mirrored_post_selftest_summary.weight);
+    try std.testing.expectEqual(summary_after_post_selftest_replay.nbits, mirrored_post_selftest_summary.nbits);
+    try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.initialized, mirrored_post_selftest_state.stage);
+    try std.testing.expectEqual(@as(usize, 1), mirrored_post_selftest_state.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), mirrored_post_selftest_state.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), mirrored_post_selftest_state.exit_runs);
+    try std.testing.expect(mirrored_post_selftest_state.allows_mutation);
+    try std.testing.expect(post_selftest_mirror.isSet(0));
+    try std.testing.expect(post_selftest_mirror.isSet(1));
+    try std.testing.expect(post_selftest_mirror.isSet(2));
+    try std.testing.expect(post_selftest_mirror.isSet(second_word_base));
+    try std.testing.expect(post_selftest_mirror.isSet(second_word_base + 6));
+    try std.testing.expect(!post_selftest_mirror.isSet(5));
+}
