@@ -16,7 +16,7 @@ test "phase13 devres coherent-dma shard stays visible beside the current mmio su
     const manifest = @embedFile("phase13_devres_manifest.json");
 
     try requireContains(manifest, "\"lane_key\": \"P13-L01\"");
-    try requireContains(manifest, "\"surveyed_commit\": \"master-readback-2026-05-13\"");
+    try requireContains(manifest, "\"surveyed_commit\": \"master-readback-2026-05-14\"");
     try requireContains(manifest, "\"preexisting_phase13_build_present\": false");
     try requireContains(manifest, "\"preexisting_phase13_make_target_present\": true");
     try requireContains(manifest, "\"preexisting_phase13_devres_test_present\": true");
@@ -26,6 +26,8 @@ test "phase13 devres coherent-dma shard stays visible beside the current mmio su
     try requireContains(manifest, "\"id\": \"phase13-devres-test-gate\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-reviewability-gate\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-mmio-mappings\"");
+    try requireContains(manifest, "\"id\": \"phase13-devres-live-region-reservation\"");
+    try requireContains(manifest, "\"id\": \"phase13-devres-live-release-region-mutation\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-device-tree-walk\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-arch-memtype-state\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
@@ -35,6 +37,9 @@ test "phase13 devres coherent-dma shard stays visible beside the current mmio su
     try requireContains(manifest, "\"status\": \"blocked_on_live_arch_memtype_state\"");
     try requireContains(manifest, "\"status\": \"blocked_on_live_scatterlist_state\"");
     try requireContains(manifest, "stable shared Phase 13 replay handle");
+    try requireContains(manifest, "actual region acquisition side effects");
+    try requireContains(manifest, "real `release_mem_region()`");
+    try requireContains(manifest, "helper-only DMA/scatterlist boundary");
     try requireContains(manifest, "devm_arch_phys_wc_add()");
 }
 
