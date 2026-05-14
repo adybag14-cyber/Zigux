@@ -142,6 +142,11 @@ pub fn build(b: *std.Build) void {
         .root_module = string_helpers_root_module,
     });
     const run_string_helpers_tests = b.addRunArtifact(string_helpers_tests);
+    const string_helpers_step = b.step(
+        "phase7-string-helpers-test",
+        "Run the Phase 7 string helpers tests",
+    );
+    string_helpers_step.dependOn(&run_string_helpers_tests.step);
 
     const cmdline_tests = b.addTest(.{
         .name = "phase7-cmdline-tests",
