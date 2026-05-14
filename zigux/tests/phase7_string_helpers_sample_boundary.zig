@@ -106,7 +106,7 @@ test "phase 7 string helper boundary keeps the exact current sample inventory an
     for (runtime_seen) |seen| try std.testing.expect(seen);
 }
 
-test "phase 7 string helper boundary keeps the restored starter packet and no-sample note aligned" {
+test "phase 7 string helper boundary keeps the expanded helper packet and current shared reminders aligned" {
     const allocator = std.testing.allocator;
 
     const io = std.testing.io;
@@ -116,13 +116,15 @@ test "phase 7 string helper boundary keeps the restored starter packet and no-sa
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-string-helpers-slice.md");
     defer allocator.free(slice_note);
     try expectContains(slice_note, "PHASE7_STATUS=starter_landed");
-    try expectContains(slice_note, "restored starter packet");
+    try expectContains(slice_note, "expanded starter packet");
     try expectContains(slice_note, "Current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample");
+    try expectNotContains(slice_note, "restored starter packet");
     try expectNotContains(slice_note, "missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
 
     const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
     defer allocator.free(docs_root);
     try expectContains(docs_root, "restored starter packet");
+    try expectNotContains(docs_root, "expanded starter packet");
     try expectContains(docs_root, "lib/string_helpers.zig");
     try expectContains(docs_root, "zigux/tests/phase7_string_helpers.zig");
 
@@ -159,6 +161,7 @@ test "phase 7 string helper boundary keeps the restored starter packet and no-sa
     defer allocator.free(scripts_root);
     try expectContains(scripts_root, "current `master` still ships no standalone `samples/zigux/*string*` Phase 5 reference sample");
     try expectContains(scripts_root, "restored starter packet");
+    try expectNotContains(scripts_root, "expanded starter packet");
     try expectContains(scripts_root, "Documentation/zigux/phase7-string-helpers-slice.md");
     try expectContains(scripts_root, "Documentation/zigux/review-checklist.md");
     try expectContains(scripts_root, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
@@ -200,13 +203,15 @@ test "phase 7 string helper boundary keeps the restored starter packet and no-sa
 
     const survey = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_survey.zig");
     defer allocator.free(survey);
-    try expectContains(survey, "restored starter packet");
+    try expectContains(survey, "expanded starter packet");
+    try expectNotContains(survey, "restored starter packet");
     try expectContains(survey, "lib/string_helpers.zig");
     try expectContains(survey, "zigux/tests/phase7_string_helpers.zig");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
-    try expectContains(manifest, "\"current_master_state\": \"restored_starter_packet\"");
+    try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
+    try expectNotContains(manifest, "\"current_master_state\": \"restored_starter_packet\"");
     try expectContains(manifest, "\"lib/string_helpers.zig\"");
     try expectContains(manifest, "\"zigux/tests/phase7_string_helpers.zig\"");
 
