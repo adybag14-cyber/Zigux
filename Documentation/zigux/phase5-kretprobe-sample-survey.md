@@ -17,6 +17,7 @@ This restored Phase 5 packet now reads directly through:
 - `samples/zigux/kretprobe_example.zig`
 - `zigux/tests/phase5_kretprobe_example.zig`
 - `zigux/tests/phase5_kretprobe_example_manifest.json`
+- `zigux/tests/phase5_kretprobe_example_survey.zig`
 
 The older shared `zigux/tests/phase5_build.zig` route remains missing and should stay explicit as a gap instead of being treated as current proof.
 
