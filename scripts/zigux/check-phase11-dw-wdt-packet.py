@@ -162,45 +162,9 @@ def run_self_test() -> None:
         run_check(fixture_root)
 
         cases = [
-            ("plan_note", 1),
-            ("plan_note", 3),
-            ("plan_note", 5),
-            ("plan_note", 7),
-            ("plan_note", 8),
-            ("plan_note", 9),
-            ("plan_note", 11),
-            ("lane_sequencing", 0),
-            ("lane_sequencing", 1),
-            ("tests_companion", 1),
-            ("tests_companion", 3),
-            ("tests_companion", 4),
-            ("tests_companion", 5),
-            ("tests_companion", 6),
-            ("tests_companion", 7),
-            ("driver_file", 0),
-            ("driver_file", 8),
-            ("driver_file", 9),
-            ("driver_file", 12),
-            ("driver_file", 13),
-            ("driver_file", 14),
-            ("driver_file", 15),
-            ("driver_file", 16),
-            ("driver_file", 17),
-            ("verify_file", 0),
-            ("verify_file", 4),
-            ("verify_file", 5),
-            ("verify_file", 11),
-            ("verify_file", 12),
-            ("verify_file", 13),
-            ("registration_scaffold", 0),
-            ("registration_scaffold", 2),
-            ("registration_scaffold", 3),
-            ("registration_scaffold", 5),
-            ("registration_scaffold", 12),
-            ("registration_scaffold", 13),
-            ("registration_scaffold", 15),
-            ("registration_scaffold", 16),
-            ("registration_scaffold", 17),
+            (label, marker_index)
+            for label, markers in MARKERS.items()
+            for marker_index in range(len(markers))
         ]
 
         for idx, (label, marker_index) in enumerate(cases, start=1):
@@ -210,7 +174,7 @@ def run_self_test() -> None:
             marker = MARKERS[label][marker_index]
             path = case_root / relative_path
             path.write_text(
-                path.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
+                path.read_text(encoding="utf-8").replace(marker, "__mutated__"),
                 encoding="utf-8",
             )
             expect_failure(case_root, marker)
