@@ -125,6 +125,11 @@ pub fn encodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool,
     return out[0..written];
 }
 
+pub fn encodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) EncodeError![]u8 {
+    const written = try encode(dst, src, padding, variant);
+    return dst[0..written];
+}
+
 pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
     const exact_len = try bytes(src, padding, variant);
     if (dst.len < exact_len) {
@@ -195,6 +200,11 @@ pub fn decodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool,
 
     const written = try decode(out, src, padding, variant);
     return out[0..written];
+}
+
+pub fn decodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError![]u8 {
+    const written = try decode(dst, src, padding, variant);
+    return dst[0..written];
 }
 
 fn alphabetFor(variant: Variant) []const u8 {
@@ -558,6 +568,28 @@ test "base64 allocator wrappers allocate exact encoded and decoded lengths" {
     const decoded = try decodeAlloc(std.testing.allocator, "-___", false, .urlsafe);
     defer std.testing.allocator.free(decoded);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xfb, 0xff, 0xff }, decoded);
+}
+
+test "base64 exact-buffer slice wrappers return the written view" {
+    var encoded_buf: [8]u8 = [_]u8{0xaa} ** 8;
+    const encoded = try encodeSlice(encoded_buf[0..], "hi", true, .std);
+    try std.testing.expectEqualStrings("aGk=", encoded);
+    try std.testing.expectEqual(@as(u8, 0xaa), encoded_buf[encoded.len]);
+
+    var decoded_buf: [8]u8 = [_]u8{0xdd} ** 8;
+    const decoded = try decodeSlice(decoded_buf[0..], "-___", false, .urlsafe);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xfb, 0xff, 0xff }, decoded);
+    try std.testing.expectEqual(@as(u8, 0xdd), decoded_buf[decoded.len]);
+}
+
+test "base64 slice wrappers preserve destination-too-small errors" {
+    var encoded: [3]u8 = [_]u8{0xaa} ** 3;
+    try std.testing.expectError(error.DestinationTooSmall, encodeSlice(encoded[0..], "hi", true, .std));
+    try std.testing.expectEqual(@as(u8, 0xaa), encoded[0]);
+
+    var decoded: [1]u8 = [_]u8{0xdd} ** 1;
+    try std.testing.expectError(error.DestinationTooSmall, decodeSlice(decoded[0..], "aGk=", true, .std));
+    try std.testing.expectEqual(@as(u8, 0xdd), decoded[0]);
 }
 
 test "base64 reports exact destination-too-small errors" {
