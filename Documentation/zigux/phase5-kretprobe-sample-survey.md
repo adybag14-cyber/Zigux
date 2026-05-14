@@ -76,6 +76,15 @@ The precise current gap is now packet-local only:
 
 So the honest same-lane posture is to keep the missing-path caveat active, leave the lane parked, and wait either for the missing kretprobe packet to return or for a genuinely new same-lane reminder-surface drift to appear.
 
+## Contributor refresh prompts
+
+When this anchor reopens only for reminder-surface maintenance, keep these cues explicit together:
+
+- `Documentation/zigux/phase5-kretprobe-sample-survey.md` remains the anchor-local owner for the current missing-path statement
+- `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` should keep the same survey-note-only posture for the non-runtime kretprobe anchor
+- do not promote `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, or `zigux/tests/phase5_build.zig` back to direct-readback evidence until a fresh reread actually returns them
+- keep `samples/zigux/runtime_kretprobe.zig` and `samples/zigux/runtime_kretprobe_loader.zig` framed only as the separate Phase 9 runtime family, not as replacement Phase 5 proof
+
 ## Non-goals
 
 This note still does not claim:
