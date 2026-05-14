@@ -21,6 +21,20 @@
     "preexisting_phase14_workqueue_slice_note_present": true,
     "preexisting_phase14_workqueue_survey_note_present": true
   },
+  "maintenance_handoff": {
+    "current_lane_posture": "blocked_maintenance",
+    "replay_before_trusting": [
+      "zig test zigux/tests/phase14_workqueue_reviewability.zig",
+      "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+      "make -C zigux phase14"
+    ],
+    "reopen_conditions": [
+      "the dedicated workqueue survey, slice note, manifest, or reviewability test drifts on surveyed commit, blocked gap, blocked-maintenance posture, or blocked live-execution wording",
+      "the directly coupled shared smoke or core traceability packet reintroduces a stale lane key, ready-next record, or blocked-gap record for the workqueue anchor",
+      "genuinely narrower stay-in-C evidence appears around delayed-work timer expiry, delayed-work requeue governance, flush-drain ownership, hotplug topology rebinding, or scheduler-visible worker-state transitions without implying live execution ownership"
+    ],
+    "next_future_target": "stay in blocked maintenance unless one of those packet-local reopen conditions fires; if a future truthfulness drift is workqueue-local, reread kernel/workqueue_bridge.zig, zigux/tests/phase14_workqueue_bridge.zig, zigux/tests/phase14_workqueue_reviewability.zig, zigux/tests/phase14_workqueue_bridge_manifest.json, Documentation/zigux/phase14-workqueue-bridge-slice.md, and Documentation/zigux/phase14-workqueue-bridge-survey.md together before touching the shared Phase 14 smoke packet"
+  },
   "gaps": [
     {"id": "phase14-build-gate", "status": "starter_landed", "kind": "validation", "zigux_destination": "zigux/tests/phase14_build.zig", "why_now": "A dedicated build gate keeps the workqueue bridge reviewable without pretending Zigux owns live async execution."},
     {"id": "phase14-make-target", "status": "starter_landed", "kind": "validation", "zigux_destination": "zigux/Makefile", "why_now": "A dedicated make target keeps the Phase 14 workqueue packet runnable with the same bounded discipline as the rest of the tranche."},
