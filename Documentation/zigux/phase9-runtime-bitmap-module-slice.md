@@ -45,6 +45,7 @@ The live runtime substrate is still missing, so this slice must stay review-only
 5. `make -C zigux phase9-runtime-bitmap-top-bit-test`
 6. `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig`
 7. `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+8. `make -C zigux phase9`
 
 ## Next Bounded Step
 
