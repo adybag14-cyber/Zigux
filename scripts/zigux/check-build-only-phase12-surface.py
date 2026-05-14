@@ -657,6 +657,18 @@ def run_self_test() -> int:
         coordination_path = base / RELEASE_COORDINATION_MATRIX_PATH
         coordination_path.write_text(
             coordination_path.read_text(encoding="utf-8").replace(
+                RELEASE_COORDINATION_MATRIX_MARKERS[2],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"release_coordination_matrix:{RELEASE_COORDINATION_MATRIX_MARKERS[2]}")
+
+        write_fixture_tree(base)
+        coordination_path = base / RELEASE_COORDINATION_MATRIX_PATH
+        coordination_path.write_text(
+            coordination_path.read_text(encoding="utf-8").replace(
                 RELEASE_COORDINATION_MATRIX_MARKERS[7],
                 "",
                 1,
@@ -690,7 +702,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=7:actual=6")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=8")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=9")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
