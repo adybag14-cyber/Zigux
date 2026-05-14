@@ -17,7 +17,7 @@ PHONY += phase15-validate phase15-test phase15
 PYTHON ?= python3
 ZIGUX_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))
-ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)
+ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIGUX_ROOT),zig)
 
 phase1-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py
@@ -223,6 +223,7 @@ phase9-runtime-kretprobe-test:
 
 phase9-runtime-loader-shared-tests:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-loader-substrate-drift-tests --build-file zigux/tests/phase9_build.zig --summary all
 
 phase9-test:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-build-only-surface.py
