@@ -60,6 +60,50 @@ fn writeDevT(writer: anytype) !void {
     try writer.writeByte('}');
 }
 
+fn writeNotifierChain(writer: anytype) !void {
+    const single = notifier_abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 7,
+    };
+    const descending_third = notifier_abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = -4,
+    };
+    const descending_second = notifier_abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&descending_third),
+        .priority = 8,
+    };
+    const descending_first = notifier_abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&descending_second),
+        .priority = 8,
+    };
+    const rising_second = notifier_abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 5,
+    };
+    const rising_first = notifier_abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&rising_second),
+        .priority = 3,
+    };
+
+    try writeQuoted(writer, "notifier_chain");
+    try writer.writeAll(":{\"empty_ok\":");
+    try writer.print("{d}", .{@intFromBool(notifier_abi.chainHasNonincreasingPriority(null))});
+    try writer.writeAll(",\"single_ok\":");
+    try writer.print("{d}", .{@intFromBool(notifier_abi.chainHasNonincreasingPriority(&single))});
+    try writer.writeAll(",\"descending_ok\":");
+    try writer.print("{d}", .{@intFromBool(notifier_abi.chainHasNonincreasingPriority(&descending_first))});
+    try writer.writeAll(",\"rising_ok\":");
+    try writer.print("{d}", .{@intFromBool(notifier_abi.chainHasNonincreasingPriority(&rising_first))});
+    try writer.writeByte('}');
+}
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     var stdout_buffer: [4096]u8 = undefined;
@@ -98,6 +142,8 @@ pub fn main(init: std.process.Init) !void {
 
     try writer.writeAll("},");
     try writeDevT(writer);
+    try writer.writeByte(',');
+    try writeNotifierChain(writer);
     try writer.writeAll(",\"structs\":{");
     try writeStruct(writer, "boundary_header", abi.BoundaryHeader);
     try writer.writeByte(',');
