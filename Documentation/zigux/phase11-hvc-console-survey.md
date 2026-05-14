@@ -2,11 +2,13 @@
 
 This note keeps the bounded Phase 11 `hvc_console` packet truthful on current `master`.
 It stays inside the simple-driver lane and records the shipped starter, the bounded supporting helper, the direct replay companions, the split replay surfaces, and the coupled survey route without claiming live tty or hypervisor execution.
+The original archival landing happened on `P11-L13`, while the currently coupled manifest, slice, and validation surfaces continue through `P11-L16`.
 
 ## Status
 
 * `PHASE11_HVC_CONSOLE_SURVEY_STATUS=starter_packet_archived`
-* lane: `P11-L13`
+* archival landing lane: `P11-L13`
+* current coupled packet continuity: `P11-L16`
 * archival landing checkpoint: `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
 * Phase 11 simple-production-driver gap has been closed by the bounded starter.
 * the roadmap destination family `drivers/tty/hvc/*.zig` now materializes on current `master` through `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, and `drivers/tty/hvc/hvc_console_sysrq.zig`
