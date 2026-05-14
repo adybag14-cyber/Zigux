@@ -75,8 +75,8 @@ symbol-export boundary references rather than Phase 9 runtime evidence.
 
 ## Current Shared Reminder State
 
-Fresh repo-first inspection now shows `Documentation/zigux/README.md`,
-`scripts/zigux/README.md`, and `zigux/tests/README.md` all keep
+Fresh repo-first inspection now shows `Documentation/zigux/README.md` and
+`scripts/zigux/README.md` both keep
 `Documentation/zigux/phase9-runtime-loader-gap-survey.md`,
 `zigux/tests/runtime_loader_gap_manifest.json`, and
 `zigux/tests/runtime_loader_gap_survey.zig` explicit beside
@@ -87,9 +87,16 @@ the shared `zigux/tests/phase9_build.zig` replay, and the focused
 the exact shared owner map and blocked publication boundary back to
 `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`.
 
+Fresh repo-first inspection also shows `zigux/tests/README.md` still keeps the
+shared Phase 9 build and survey files visible, but its key entrypoint list
+still blurs that packet into the tail of the Phase 8 flow and does not yet call
+out `Documentation/zigux/phase9-runtime-loader-gap-survey.md` or
+`zigux/tests/runtime_loader_gap_manifest.json` beside the shared loader-facing
+packet.
+
 That means the earlier docs-root undercount is cleared on current `master`; the
-remaining same-lane follow-through is to keep later shared reminder edits from
-reintroducing that drift.
+remaining same-lane follow-through is now tests-root reminder cleanup rather
+than docs-root inventory sync.
 
 ## Historical Reminder Wording
 
@@ -119,11 +126,12 @@ closed.
 ## Next Bounded Step
 
 Keep future follow-through inside the smallest shared reminder or survey surface
-that regresses after the docs-root sync. Start with
-`zigux/tests/runtime_loader_gap_survey.zig` if its expectations still depend on
-the older docs-root undercount wording; otherwise re-read
-`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and
-`zigux/tests/README.md` before reopening any broader shared reminder pass.
+that regresses after the docs-root sync. Start with `zigux/tests/README.md` so
+its shared Phase 9 packet listing names
+`Documentation/zigux/phase9-runtime-loader-gap-survey.md` and
+`zigux/tests/runtime_loader_gap_manifest.json` beside the shared loader-facing
+surfaces; then re-read `Documentation/zigux/review-checklist.md` and
+`scripts/zigux/README.md` before reopening any broader shared reminder pass.
 
 Keep future follow-through inside the smallest regressed shared surface instead
 of reopening pilot-family behavior, loader implementation, or new checker
