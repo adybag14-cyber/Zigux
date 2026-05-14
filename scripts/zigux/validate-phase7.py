@@ -108,14 +108,18 @@ REQUIRED_MARKERS = {
         "PHASE7_HELPER_SEQUENCING_LANE=P7-Y06",
         "PHASE7_SHARED_DOCS_ROOT_LANE=P7-Y08",
         "PHASE7_ANTI_OVERLAP_RULE=P7-Y06 owns only the shared helper-lane owner map, P7-Y08 owns only the docs-root tranche summary, and helper-local slices keep their own lane keys without reusing either shared note lane.",
+        "- `Documentation/zigux/phase7-rbtree-slice.md`",
         "PHASE7_STRING_HELPERS_LANE=P7-L04",
         "PHASE7_CMDLINE_LANE=P7-L05",
         "PHASE7_ARGV_SPLIT_LANE=P7-L09",
         "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
+        "PHASE7_RBTREE_LANE=P7-L13",
         "`P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift;",
         "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
         "`argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
         "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
+        "`rbtree` is parked as a landed helper-local packet because `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `scripts/zigux/check-phase7-rbtree-parity.py` remain directly readable on current `master`, and the shared `zigux/tests/phase7_build.zig` route is directly readable again as a shared bundle reminder rather than a missing-sibling blocker.",
+        "`P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift; the dedicated replay, survey, manifest, and parity packet are already visible on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.",
     ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;",
@@ -419,7 +423,50 @@ def run_self_test() -> None:
             tmp_root,
             "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
         )
+        write_fixture_tree(tmp_root)
 
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "- `Documentation/zigux/phase7-rbtree-slice.md`",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: - `Documentation/zigux/phase7-rbtree-slice.md`",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_RBTREE_LANE=P7-L13",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_RBTREE_LANE=P7-L13",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "`rbtree` is parked as a landed helper-local packet because `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `scripts/zigux/check-phase7-rbtree-parity.py` remain directly readable on current `master`, and the shared `zigux/tests/phase7_build.zig` route is directly readable again as a shared bundle reminder rather than a missing-sibling blocker.",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: `rbtree` is parked as a landed helper-local packet because `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `scripts/zigux/check-phase7-rbtree-parity.py` remain directly readable on current `master`, and the shared `zigux/tests/phase7_build.zig` route is directly readable again as a shared bundle reminder rather than a missing-sibling blocker.",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "`P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift; the dedicated replay, survey, manifest, and parity packet are already visible on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift; the dedicated replay, survey, manifest, and parity packet are already visible on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.",
+        )
         write_fixture_tree(tmp_root)
 
         remove_once(
@@ -569,7 +616,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=27")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=31")
 
 
 def main() -> int:
