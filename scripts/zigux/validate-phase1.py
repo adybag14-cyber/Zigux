@@ -67,6 +67,31 @@ EXPECTED_FIXTURE = json.loads(
 EXPECTED_FIXTURE_TOP_LEVEL_KEYS = sorted(EXPECTED_FIXTURE.keys())
 EXPECTED_HELPERS = EXPECTED_MANIFEST["helpers"]
 DIRECT_ANCHOR_HELPERS = set(EXPECTED_MANIFEST["lane_sequencing"]["direct_anchor_followup_helpers"])
+MANIFEST_TOP_LEVEL_KEYS = ("phase", "status", "helper_count", "helpers", "lane_sequencing")
+BITMAP_MANIFEST_VALUE_MARKERS = (
+    "phase1_helper_replay_anchor",
+    "review_packet_summary",
+)
+FIND_BIT_MANIFEST_VALUE_MARKERS = (
+    "tail_word_inclusive_boundary_anchor",
+    "tail_word_inclusive_boundary_contract",
+    "review_packet_summary",
+)
+RBTREE_MANIFEST_VALUE_MARKERS = (
+    "review_packet_summary",
+    "next_safe_step_note",
+)
+STRING_MANIFEST_VALUE_MARKERS = (
+    "prefix_suffix_review_summary",
+    "memparse_review_summary",
+    "shared_replace_char_cstr_review_summary",
+)
+BENCH_EXPECTATION_MARKER_KEYS = (
+    "status",
+    "iterations",
+    "checksums",
+    "exact_checksums",
+)
 EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR = 'test "phase 1 helper ports match committed parity fixture"'
 EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
     "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, "
@@ -307,12 +332,30 @@ def source_path_for_helper(helper: str) -> str:
     return helper
 
 
+def required_marker_count() -> int:
+    return (
+        sum(len(v) for v in DOC_MARKERS.values())
+        + len(PHASE1_LANE_NOTE_MARKERS)
+        + len(PHASE1_IMPORT_MARKERS)
+        + len(HELPER_FOLLOWUP_TESTS)
+        + len(PHASE1_REPLAY_MARKERS)
+        + len(MANIFEST_TOP_LEVEL_KEYS)
+        + len(BITMAP_MANIFEST_VALUE_MARKERS)
+        + len(FIND_BIT_MANIFEST_VALUE_MARKERS)
+        + len(RBTREE_MANIFEST_VALUE_MARKERS)
+        + len(STRING_MANIFEST_VALUE_MARKERS)
+        + 1
+        + len(EXPECTED_FIXTURE)
+        + len(BENCH_EXPECTATION_MARKER_KEYS)
+    )
+
+
 def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[str]:
     if not isinstance(manifest, dict):
         return ["phase1_manifest:json_object"]
 
     missing: list[str] = []
-    for key in ("phase", "status", "helper_count", "helpers", "lane_sequencing"):
+    for key in MANIFEST_TOP_LEVEL_KEYS:
         if manifest.get(key) != EXPECTED_MANIFEST[key]:
             missing.append(f"phase1_manifest:{key}")
 
@@ -794,10 +837,7 @@ def main() -> int:
 
     print("PHASE1_VALIDATION=pass")
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE1_REQUIRED_MARKER_COUNT="
-        f'{sum(len(v) for v in DOC_MARKERS.values()) + len(PHASE1_LANE_NOTE_MARKERS) + len(PHASE1_IMPORT_MARKERS) + len(HELPER_FOLLOWUP_TESTS) + len(PHASE1_REPLAY_MARKERS) + 7}'
-    )
+    print(f"PHASE1_REQUIRED_MARKER_COUNT={required_marker_count()}")
     return 0
 
 
