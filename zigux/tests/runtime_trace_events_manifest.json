@@ -9,7 +9,7 @@
   ],
   "survey_summary": {
     "trace_events_sample_c_lines": 153,
-    "preexisting_runtime_trace_events_test_files": 3,
+    "preexisting_runtime_trace_events_test_files": 4,
     "preexisting_runtime_trace_events_sample_present": true,
     "preexisting_runtime_trace_events_loader_present": true,
     "preexisting_phase9_build_present": true,
@@ -26,9 +26,9 @@
   "roadmap_gap_summary": {
     "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
     "landed_pilot_state": "family_local_trace_events_review_packet_plus_shared_loader_handoff",
-    "missing_capability": "the broader shared runtime substrate that would turn the current reviewable trace-events sample, loader, diff, module, and survey packet into live runtime tracepoint-registration lifecycle parity",
+    "missing_capability": "the broader shared runtime substrate that would turn the current reviewable trace-events sample, loader, loader-substrate-drift replay, diff, module, and survey packet into live runtime tracepoint-registration lifecycle parity",
     "blocked_deliverable": "completed live Phase 9 runtime tracepoint registration lifecycle parity beyond the current review packet",
-    "next_gate": "keep the trace-events survey note, module-slice note, and manifest aligned with the visible family-local packet while leaving the shared runtime-substrate blocker explicit"
+    "next_gate": "keep the trace-events survey note, module-slice note, manifest, and loader-substrate-drift replay aligned with the visible family-local packet while leaving the shared runtime-substrate blocker explicit"
   },
   "delivery_evidence_catalog": [
     {
@@ -42,6 +42,12 @@
       "kind": "runtime_loader_scaffold",
       "path": "samples/zigux/runtime_trace_events_loader.zig",
       "why_now": "The sample-side loader scaffold is visible on current master and keeps the shared runtime-loader handoff explicit through prepared-snapshot stability across later selftest or exit activity, shared-release failure, shared-request drift rejection around allocator/init-flow and selftest-hook evidence, registration-snapshot drift, rejection of non-idle registration state at the metadata-only handoff boundary, and outstanding-registration drain proofs without clearing the broader substrate blocker."
+    },
+    {
+      "id": "trace-events-loader-substrate-drift",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_trace_events_loader_substrate_drift.zig",
+      "why_now": "The dedicated loader-substrate-drift replay is visible on current master and keeps the prepared shared runtime-substrate rejection explicit for both selftest-complete and initialized-stage handoffs without widening into live runtime substrate behavior."
     },
     {
       "id": "trace-events-module-gate",
@@ -71,13 +77,13 @@
       "id": "trace-events-survey-note",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
-      "why_now": "The survey note records the current reviewable family-local packet, including the selftest-ready failed-exit rollback cue, while keeping the shared runtime-substrate blocker explicit."
+      "why_now": "The survey note records the current reviewable family-local packet, including the selftest-ready failed-exit rollback cue and the landed loader-substrate-drift replay, while keeping the shared runtime-substrate blocker explicit."
     },
     {
       "id": "trace-events-module-slice-note",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
-      "why_now": "The module-slice note keeps the same packet-local proof, including the selftest-ready failed-exit rollback note, and shared-loader boundary visible for reviewers."
+      "why_now": "The module-slice note keeps the same packet-local proof, including the selftest-ready failed-exit rollback note, the loader-substrate-drift replay, and shared-loader boundary visible for reviewers."
     },
     {
       "id": "trace-events-shared-owner-map",
@@ -89,7 +95,7 @@
       "id": "trace-events-shared-build-boundary",
       "kind": "validation",
       "path": "zigux/tests/phase9_build.zig",
-      "why_now": "The shared Phase 9 build file is still readable on current master and now directly enumerates the family-local trace-events sample, loader, module, diff, and survey packet."
+      "why_now": "The shared Phase 9 build file is still readable on current master and now directly enumerates the family-local trace-events sample, loader, loader-substrate-drift, module, diff, and survey packet."
     }
   ],
   "ownership_map": [
