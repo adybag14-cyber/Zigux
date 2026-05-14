@@ -504,7 +504,6 @@ def make_fixture_root(root: Path) -> None:
         path.write_text("{}\n" if path.suffix == ".json" else "\n", encoding="utf-8")
 
     (root / "Documentation/zigux/README.md").write_text("\n".join(DOC_MARKERS["docs_root_phase1_packet"]) + "\n", encoding="utf-8")
-    (root / "zigux/tests/README.md").writeText = None
     (root / "zigux/tests/README.md").write_text(DOC_MARKERS["tests_root_phase1_packet"][0] + "\n", encoding="utf-8")
     (root / "Documentation/zigux/review-checklist.md").write_text("\n".join(DOC_MARKERS["review_checklist_phase1_packet"]) + "\n", encoding="utf-8")
     (root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md").write_text("\n".join(PHASE1_LANE_NOTE_MARKERS) + "\n", encoding="utf-8")
