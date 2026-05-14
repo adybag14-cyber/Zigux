@@ -99,7 +99,7 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("master-readback-2026-05-13", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("master-readback-2026-05-14", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/devres.zig", manifest.roadmap_destinations[0]);
@@ -113,7 +113,7 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -137,14 +137,20 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try std.testing.expect(std.mem.indexOf(u8, devres_source, ".warns_on_release_miss = !release_matches") != null);
     try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planManagedIoremapAcquireUc(") != null);
     try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planManagedIoremapAcquireWc(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, devres_source, ".provides_arch_io_wc_memtype_planning = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub const ManagedMemtypeReserveInput") != null);
+    try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub const ManagedMemtypeReservePlan") != null);
+    try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planArchIoReserveMemtypeWc(") != null);
     try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planArchPhysWcAdd(") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_iounmap()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_arch_io_reserve_memtype_wc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_arch_phys_wc_add()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "master-readback-2026-05-13") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "master-readback-2026-05-14") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P13-L01`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_iounmap()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_ioremap_uc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_ioremap_wc()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_io_reserve_memtype_wc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_phys_wc_add()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase13_devres_dma_coherent.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "helper-only DMA/scatterlist boundary") != null);
@@ -197,7 +203,7 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
         "phase13-devres-test-gate",
         "starter_landed",
         "zigux/tests/phase13_devres.zig",
-        "token-style phys-WC helper",
+        "detach-time WC memtype reservation helper",
     );
     try expectGap(
         manifest,
@@ -222,6 +228,13 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     );
     try expectGap(
         manifest,
+        "phase13-devres-arch-io-wc-memtype-planner",
+        "starter_landed",
+        "lib/devres.zig",
+        "negative reserve results",
+    );
+    try expectGap(
+        manifest,
         "phase13-devres-arch-phys-wc-token-planner",
         "starter_landed",
         "lib/devres.zig",
@@ -233,6 +246,20 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
         "blocked_on_live_mmio_state",
         "lib/devres.zig",
         "real mappings or unmaps",
+    );
+    try expectGap(
+        manifest,
+        "phase13-devres-live-region-reservation",
+        "blocked_on_live_mmio_state",
+        "lib/devres.zig",
+        "region acquisition side effects",
+    );
+    try expectGap(
+        manifest,
+        "phase13-devres-live-release-region-mutation",
+        "blocked_on_live_mmio_state",
+        "lib/devres.zig",
+        "release_mem_region()",
     );
     try expectGap(
         manifest,
@@ -256,6 +283,6 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
         "DMA/scatterlist boundary",
     );
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 4), blocked_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 6), blocked_count);
 }
