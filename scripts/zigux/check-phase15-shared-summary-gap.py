@@ -13,6 +13,7 @@ TESTS_README_REL = "zigux/tests/README.md"
 REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_REL = "scripts/zigux/README.md"
 LANE_NOTE_REL = "Documentation/zigux/phase15-governance-lane-sequencing.md"
+DOCS_ALIGNMENT_CHECKER_REL = "scripts/zigux/check-phase15-docs-readme-alignment.py"
 
 REQUIRED_FILES = (
     DOCS_README_REL,
@@ -23,6 +24,7 @@ REQUIRED_FILES = (
     SCRIPTS_README_REL,
     TESTS_README_REL,
     LANE_NOTE_REL,
+    DOCS_ALIGNMENT_CHECKER_REL,
 )
 
 SURVEY_MARKER = "Documentation/zigux/phase15-parity-scorecard-survey.md"
@@ -32,6 +34,7 @@ READINESS_MARKER = "Documentation/zigux/phase15-readiness-gate-survey.md"
 HANDOFF_MARKER = "Documentation/zigux/phase15-handoff-next-steps-survey.md"
 SEQUENCING_MARKER = "Documentation/zigux/phase15-governance-lane-sequencing.md"
 CHECKER_MARKER = "scripts/zigux/check-phase15-shared-summary-gap.py"
+DOCS_ALIGNMENT_CHECKER_MARKER = "scripts/zigux/check-phase15-docs-readme-alignment.py"
 ALIGNMENT_CHECKER_MARKER = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
 LANE_OWNER_ALIGNMENT_MARKER = "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
 VALIDATE_MARKER = "scripts/zigux/validate-phase15.py"
@@ -101,6 +104,7 @@ FILE_MARKERS = {
     LANE_NOTE_REL: (
         SURVEY_MARKER,
         CHECKER_MARKER,
+        DOCS_ALIGNMENT_CHECKER_MARKER,
         "`shared-summaries`",
     ),
 }
@@ -220,8 +224,18 @@ def _seed(root: Path) -> None:
     )
     _write(
         root / LANE_NOTE_REL,
-        "# lane\n`shared-summaries`\nscripts/zigux/check-phase15-shared-summary-gap.py\nDocumentation/zigux/phase15-parity-scorecard-survey.md\n",
+        "\n".join(
+            (
+                "# lane",
+                "`shared-summaries`",
+                CHECKER_MARKER,
+                DOCS_ALIGNMENT_CHECKER_MARKER,
+                SURVEY_MARKER,
+                "",
+            )
+        ),
     )
+    _write(root / DOCS_ALIGNMENT_CHECKER_REL, "# docs checker\n")
 
 
 def _assert_only(actual: list[str], expected: list[str], label: str) -> None:
@@ -429,6 +443,16 @@ def run_self_test() -> int:
         _seed(root)
         case_count += 1
 
+        path = root / LANE_NOTE_REL
+        _write(path, _read(path).replace(DOCS_ALIGNMENT_CHECKER_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{LANE_NOTE_REL}:missing:{DOCS_ALIGNMENT_CHECKER_MARKER}"],
+            "lane_note_missing_docs_alignment_checker",
+        )
+        _seed(root)
+        case_count += 1
+
         (root / "Documentation/zigux/phase15-parity-scorecard-survey.md").unlink()
         _assert_only(
             validate(root),
@@ -464,6 +488,15 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+        _seed(root)
+        (root / DOCS_ALIGNMENT_CHECKER_REL).unlink()
+        _assert_only(
+            validate(root),
+            [f"missing_file:{DOCS_ALIGNMENT_CHECKER_REL}"],
+            "missing_docs_alignment_checker_file",
+        )
+        case_count += 1
+
     print("PHASE15_SHARED_SUMMARY_GAP_SELF_TEST=pass")
     print(f"PHASE15_SHARED_SUMMARY_GAP_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -474,9 +507,9 @@ def main() -> int:
         description=(
             "Check that the current Phase 15 shared summaries keep the parity-scorecard survey, "
             "the dedicated parity-scorecard and indefinite-C policy surfaces, readiness and handoff "
-            "reminders, the lane-sequencing note, the validator-route packet, the scripts-root "
-            "alignment checker, the manifest reminders, the lane-owner alignment surface, and the "
-            "replay-route packet explicit."
+            "reminders, the lane-sequencing note, the docs-root and scripts-root alignment checkers, "
+            "the validator-route packet, the manifest reminders, the lane-owner alignment surface, and "
+            "the replay-route packet explicit."
         )
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
