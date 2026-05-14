@@ -40,7 +40,7 @@ pub fn strtobool(s: ?[]const u8) ParseBoolError!bool {
 }
 
 pub fn strlcpy(dest: []u8, src: []const u8) usize {
-    const ret = src.len;
+    const ret = cStringLen(src);
     if (dest.len == 0) {
         return ret;
     }
@@ -451,6 +451,15 @@ test "strlcpy copies and returns the source length" {
     try std.testing.expectEqual(@as(usize, 5), strlcpy(&dst, "hello"));
     try std.testing.expectEqualSlices(u8, "hel", dst[0..3]);
     try std.testing.expectEqual(@as(u8, 0), dst[3]);
+
+    const src_cstr = [_]u8{ 'o', 'k', 0, 'x', 'y' };
+    var cstr_dst = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    try std.testing.expectEqual(@as(usize, 2), strlcpy(&cstr_dst, &src_cstr));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 'k', 0, 0xaa }, &cstr_dst);
+
+    var tiny_cstr_dst = [_]u8{ 0xaa, 0xaa };
+    try std.testing.expectEqual(@as(usize, 2), strlcpy(&tiny_cstr_dst, &src_cstr));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 0 }, &tiny_cstr_dst);
 }
 
 test "strscpy keeps NUL termination and reports truncation with -E2BIG" {
