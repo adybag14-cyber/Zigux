@@ -213,6 +213,7 @@
       "helper_test_anchors": [
         "test \"strtobool accepts common Linux forms\"",
         "test \"strlcpy copies and returns the source length\"",
+        "test \"strscpy keeps NUL termination and reports truncation with -E2BIG\"",
         "test \"streq matches C-string equality semantics\"",
         "test \"skip trim remove and replace spaces work in place\"",
         "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"",
