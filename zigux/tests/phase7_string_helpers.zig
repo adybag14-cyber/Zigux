@@ -86,10 +86,20 @@ test "phase 7 string helpers starter unescapes supported escape families and pre
     try std.testing.expectEqual(@as(usize, 6), written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '\n', 'A', 'A', '\x1b', '\\', 'q', 0 }, decoded[0 .. written + 1]);
 
+    var alias_decoded = [_]u8{0} ** 16;
+    const alias_written = string_helpers.string_unescape_any(&escaped, &alias_decoded, 0);
+    try std.testing.expectEqual(@as(usize, 6), alias_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '\n', 'A', 'A', '\x1b', '\\', 'q', 0 }, alias_decoded[0 .. alias_written + 1]);
+
     var selective = [_]u8{ '\\', 'x', '4', '1', '\\', 'n', 0, '#' };
     const selective_written = string_helpers.stringUnescapeInplace(&selective, string_helpers.UNESCAPE_HEX);
     try std.testing.expectEqual(@as(usize, 3), selective_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'A', '\\', 'n', 0 }, selective[0 .. selective_written + 1]);
+
+    var alias_inplace = [_]u8{ '\\', 'n', '\\', 'x', '4', '1', 0, '#' };
+    const alias_inplace_written = string_helpers.string_unescape_any_inplace(&alias_inplace);
+    try std.testing.expectEqual(@as(usize, 2), alias_inplace_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '\n', 'A', 0 }, alias_inplace[0 .. alias_inplace_written + 1]);
 
     var supported_truncated_src = [_]u8{ '\\', 'n', 0, '!' };
     var supported_truncated_dst = [_]u8{ '#', '#', '#' };
