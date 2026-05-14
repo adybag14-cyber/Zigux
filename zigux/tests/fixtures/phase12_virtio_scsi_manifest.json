@@ -1,9 +1,10 @@
 {
-  "lane_key": "complex-drivers-infra",
+  "lane_key": "P12-L12",
   "phase": "Phase 12",
-  "surveyed_commit": "4b5b0667d4651364ccd4b388d84c3107b64fdd6a",
+  "surveyed_commit": "unresolved_on_master",
+  "verified_on": "2026-05-14",
   "packet": "phase12-virtio-scsi-support",
-  "status": "bounded infra prep",
+  "status": "bounded infra prep metadata cleanup",
   "anchor": "drivers/scsi/virtio_scsi.c",
   "shipped_paths": [
     "drivers/scsi/virtio_scsi.zig",
