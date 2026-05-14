@@ -16,7 +16,7 @@ test "phase 15 governance lane sequencing note keeps the lane family split expli
 
     try expectContains(note, "PHASE15_STATUS=lane_sequencing_note_landed");
     try expectContains(note, "PHASE15_LANE_KEY=P15-Y06");
-    try expectContains(note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-13");
+    try expectContains(note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-14");
     try expectContains(note, "freeze-map-governance");
     try expectContains(note, "review-process");
     try expectContains(note, "parity-scorecard-survey");
