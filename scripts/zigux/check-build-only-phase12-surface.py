@@ -136,7 +136,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "`make -C zigux phase12`",
     "while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`",
     "and the still-absent direct `phase12_nvme_pci` and `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
-    "avoid implying a shared `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route that current `master` does not ship",
+    "while keeping the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` checker plus the shipped `make -C zigux phase12-validate` route explicit as support-bundle evidence rather than as a second direct replay route?",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -152,9 +152,9 @@ SCRIPTS_README_MARKERS = [
     "`Documentation/zigux/phase12-virtio-net-survey.md`",
     "`Documentation/zigux/phase12-libbpf-segment-survey.md`",
     "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet and the parked verify-shard-backed libbpf survey packet reviewable from the scripts root",
-    "`Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, and the direct `phase12_nvme_pci` plus `phase12_libbpf_*` replay files stay recorded only through the shared fallback, survey, verify-shard, or anti-overlap notes until they actually land on `master`",
-    "without implying removed `validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`.",
-    "only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned artifacts, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors, `Documentation/zigux/phase12-libbpf-verify-shard-note.md` keeps the parked libbpf snapshot boundary explicit, and `scripts/zigux/validate-phase12.py` stays an unwired helper rather than a shipped `phase12-validate` route.",
+    "the bounded NVMe starter-plus-verifier-plus-direct-test-plus-manifest packet before the shared validator-first then smoke-first routes run.",
+    "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit in this scripts-root summary so the shipped validator-first route stays visible as support-bundle evidence rather than as a second direct replay route.",
+    "If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12`, instead of inventing an unshipped fallback route.",
 ]
 
 TESTS_README_MARKERS = [
@@ -189,7 +189,7 @@ RELEASE_READINESS_SURVEY_MARKERS = [
     "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
     "`make -C zigux phase12-validate`",
     "`python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`",
-    "while `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `scripts/zigux/check-build-only-phase12-surface.py` still lag behind that same support-checker-plus-validate-route reminder.",
+    "`scripts/zigux/check-build-only-phase12-surface.py` still needs the matching reminder-marker sync, but `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now match the shipped support-checker-plus-validate-route reminder, so this readiness note stays truthful without reopening driver-local, fallback-catalog, or verify-shard surfaces.",
 ]
 
 RELEASE_SEQUENCING_MARKERS = [
