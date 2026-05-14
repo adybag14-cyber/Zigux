@@ -238,7 +238,7 @@ test "phase 9 runtime loader gap survey keeps kretprobe prepared-snapshot owners
     try expectContains(kretprobe_loader, "runtime kretprobe loader keeps selftest-complete shared-request snapshots stable across later exit activity");
     try expectContains(
         kretprobe_loader,
-        "try std.testing.expectError(error.InvalidSelftestHookEvidence, loader.requestSharedRuntimeLoad(&shared_request));",
+        "try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));",
     );
     try expectContains(
         kretprobe_loader,
