@@ -18,6 +18,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase13-contributor-workflow-guide.md",
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
     "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
+    "Documentation/zigux/phase13-landlock-ruleset-slice.md",
     "Documentation/zigux/phase13-landlock-ruleset-survey.md",
     "Documentation/zigux/phase13-landlock-syscalls-governance.md",
     "Documentation/zigux/phase13-landlock-syscalls-slice.md",
@@ -341,6 +342,15 @@ def run_self_test() -> int:
         write_text(root, "drivers/tty/hvc/hvc_console.h", "/* stub */\n")
         case_count += 1
 
+        (root / "Documentation/zigux/phase13-landlock-ruleset-slice.md").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase13-landlock-ruleset-slice.md"],
+            "missing_ruleset_slice_failed",
+        )
+        write_text(root, "Documentation/zigux/phase13-landlock-ruleset-slice.md", "# stub\n")
+        case_count += 1
+
         (root / "Documentation/zigux/phase13-landlock-ruleset-survey.md").unlink()
         assert_only(
             validate(root),
@@ -555,7 +565,8 @@ def run_self_test() -> int:
         write_text(
             root,
             "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
-            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"]) + "\n",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"])
+            + "\n",
         )
         case_count += 1
 
@@ -581,7 +592,8 @@ def run_self_test() -> int:
         write_text(
             root,
             "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]) + "\n",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"])
+            + "\n",
         )
         case_count += 1
 
