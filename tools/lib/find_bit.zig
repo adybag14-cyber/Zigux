@@ -690,10 +690,13 @@ test "head-word boundary scans keep the last in-range bit reachable from an incl
     const set_map = [_]Word{ (@as(Word, 1) << @intCast(boundary)), 0 };
     const and_lhs = [_]Word{ (@as(Word, 1) << @intCast(boundary)), 0 };
     const and_rhs = [_]Word{ (@as(Word, 1) << @intCast(boundary)), 0 };
+    const andnot_lhs = [_]Word{ (@as(Word, 1) << 5) | (@as(Word, 1) << @intCast(boundary)), 0 };
+    const andnot_rhs = [_]Word{ @as(Word, 1) << 5, 0 };
     const zero_map = [_]Word{ ~(@as(Word, 1) << @intCast(boundary)), ~@as(Word, 0) };
 
     try std.testing.expectEqual(@as(usize, boundary), findNextBit(&set_map, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
 }
 
@@ -704,10 +707,13 @@ test "tail-word boundary scans keep the last in-range bit reachable from an incl
     const set_map = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
     const and_lhs = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
     const and_rhs = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
+    const andnot_lhs = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
+    const andnot_rhs = [_]Word{ 0, @as(Word, 1) << @intCast(tail_bits + 2) };
     const zero_map = [_]Word{ ~@as(Word, 0), lastWordMask(nbits) & ~(@as(Word, 1) << @intCast(tail_bits - 1)) };
 
     try std.testing.expectEqual(@as(usize, boundary), findNextBit(&set_map, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
 }
 
