@@ -43,14 +43,14 @@ The shared reminder surfaces presently present on `master` are:
 
 The directly readable sample-local evidence recovered in this run is:
 
-* the bytestream packet through `Documentation/zigux/phase5-kfifo-sample-survey.md` plus `samples/zigux/bytestream_fifo.zig`
+* the bytestream sample-root packet through `Documentation/zigux/phase5-kfifo-sample-survey.md` plus `samples/zigux/bytestream_fifo.zig`, with that survey note also carrying the current public-tree-backed companion packet through `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig` while authenticated contents readback for those broader bytestream paths still fails in this environment
 * the kobject packet through `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`
 * the restored kretprobe packet through `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`
 * the trace-events packet through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-The kretprobe-specific survey note and the shared Phase 5 lane-sequencing note now both keep that restored kretprobe packet explicit while the older shared `zigux/tests/phase5_build.zig` route remains missing. Broader shared reminder surfaces should be re-read one file at a time before they are reused as proof text for the restored kretprobe packet.
+The kretprobe-specific survey note and the shared Phase 5 lane-sequencing note now both keep that restored kretprobe packet explicit while the older shared `zigux/tests/phase5_build.zig` route remains missing from authenticated GitHub-app readback in this environment. Broader shared reminder surfaces should be re-read one file at a time before they are reused as proof text for the restored kretprobe packet.
 
-Direct readback in this run still did not recover these older Phase 5 packet paths:
+Authenticated GitHub-app readback in this run still did not recover these older Phase 5 packet paths directly:
 
 * `zigux/tests/phase5_build.zig`
 * `zigux/tests/phase5_bytestream_fifo.zig`
@@ -58,7 +58,7 @@ Direct readback in this run still did not recover these older Phase 5 packet pat
 * `zigux/tests/phase5_bytestream_fifo_survey.zig`
 * `zigux/tests/phase5_kobject_example_survey.zig`
 
-Keep shared contributor wording aligned with that mixed packet instead of flattening every anchor into the same restored or gap-only posture.
+For the bytestream anchor, keep the split explicit: `Documentation/zigux/phase5-kfifo-sample-survey.md` now preserves current public-tree blob readback for those same bytestream companion files even though authenticated contents readback still fails. Keep shared contributor wording aligned with that mixed packet instead of flattening every anchor into the same restored or gap-only posture.
 
 That same inspection also confirmed that later runtime-facing sample families are still present on `master`. Keep them under the separate Phase 9 lane instead of counting them as extra Phase 5 evidence:
 
@@ -127,7 +127,7 @@ Before landing a Phase 5 change, confirm:
 * the change says clearly whether it touches shared contributor guidance or one specific landed sample packet
 * if a shared Phase 5 guide, README, checklist, survey note, manifest, test entrypoint, or make wrapper mentions a sample or replay route, that surface is directly readable on current `master`
 * if a shared doc claims a sample-local replay route or build route, do not infer it from older wording alone; confirm the exact path is directly readable first
-* keep `scripts/zigux/README.md` aligned with the same mixed packet recorded here: bytestream survey-note-plus-sample, kobject note-plus-sample-plus-focused-test-plus-manifest, restored kretprobe note-plus-sample-plus-focused-test-plus-manifest-plus-survey, and directly readable trace-events note-plus-sample-plus-focused-test-plus-manifest-plus-survey, all while keeping the shared `phase5_build.zig` route missing unless a fresh reread proves it returned
+* keep `scripts/zigux/README.md` aligned with the same mixed packet recorded here: bytestream survey-note-plus-sample with the broader bytestream companion packet recorded through current public-tree blob readback despite the still-live authenticated-contents gap, kobject note-plus-sample-plus-focused-test-plus-manifest, restored kretprobe note-plus-sample-plus-focused-test-plus-manifest-plus-survey, and directly readable trace-events note-plus-sample-plus-focused-test-plus-manifest-plus-survey, while keeping the shared `phase5_build.zig` route treated as split-readback evidence instead of fully direct evidence unless a fresh reread proves the authenticated path returned
 * keep the bytestream packet aligned with `Documentation/zigux/phase5-kfifo-sample-survey.md` plus `samples/zigux/bytestream_fifo.zig` until the older tests-root and shared-build companion paths are directly readable again, and when the sample adds or renames reviewability helpers make the shared bytestream cues here move with surfaces such as `runRemainingCapacityReplay()`, `occupancySummary()`, and `writableSpanSummary()` instead of leaving the guide pinned to an older narrower subset
 * keep the kobject packet aligned with `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`, and do not restate `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig` as current direct evidence unless a fresh reread proves they returned
 * keep the trace-events packet aligned with `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`, and do not restate `zigux/tests/phase5_build.zig` as current direct evidence unless a fresh reread proves it returned
