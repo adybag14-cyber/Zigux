@@ -41,6 +41,9 @@ EXPECTED_BUILD_INVENTORY_DEDICATED_SURVEY_REPLAYS = [
 ]
 EXPECTED_BUILD_INVENTORY_SHARED_SPLIT_REPLAYS: list[str] = []
 EXPECTED_BUILD_INVENTORY_SHARED_ADJUNCT_REPLAYS: list[str] = []
+EXPECTED_BUILD_INVENTORY_FORBIDDEN_MARKERS = [
+    "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
+]
 EXPECTED_BUILD_INVENTORY_SHARED_REPLAY_MARKERS = [
     {
         "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
@@ -310,6 +313,8 @@ def check_build_inventory(build_inventory: dict[str, object]) -> None:
         raise SystemExit("build inventory shared_split_replays mismatch")
     if build_inventory.get("shared_adjunct_replays") != EXPECTED_BUILD_INVENTORY_SHARED_ADJUNCT_REPLAYS:
         raise SystemExit("build inventory shared_adjunct_replays mismatch")
+    if build_inventory.get("forbidden_markers") != EXPECTED_BUILD_INVENTORY_FORBIDDEN_MARKERS:
+        raise SystemExit("build inventory forbidden_markers mismatch")
     if build_inventory.get("shared_replay_markers") != EXPECTED_BUILD_INVENTORY_SHARED_REPLAY_MARKERS:
         raise SystemExit("build inventory shared_replay_markers mismatch")
 
@@ -362,6 +367,7 @@ def build_fixture_repo(root: Path) -> None:
         "dedicated_survey_replays": EXPECTED_BUILD_INVENTORY_DEDICATED_SURVEY_REPLAYS,
         "shared_split_replays": EXPECTED_BUILD_INVENTORY_SHARED_SPLIT_REPLAYS,
         "shared_adjunct_replays": EXPECTED_BUILD_INVENTORY_SHARED_ADJUNCT_REPLAYS,
+        "forbidden_markers": EXPECTED_BUILD_INVENTORY_FORBIDDEN_MARKERS,
         "shared_replay_markers": EXPECTED_BUILD_INVENTORY_SHARED_REPLAY_MARKERS,
     }
     write_text(
@@ -597,6 +603,13 @@ def run_self_test() -> int:
         expect_failure(
             root,
             "zigux/tests/fixtures/phase11_build_inventory.json",
+            '"test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);"',
+            '"test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);"',
+            "build inventory forbidden_markers mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/fixtures/phase11_build_inventory.json",
             '"path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig"',
             '"path": "zigux/tests/phase11_hvc_console_poll_retry_missing.zig"',
             "build inventory shared_replay_markers mismatch",
@@ -609,7 +622,7 @@ def run_self_test() -> int:
             "build inventory shared_split_replays mismatch",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=25")
+    print("phase11-header-boundary-packet: self-test cases=26")
     return 0
 
 
