@@ -45,7 +45,9 @@ The current handoff surface on `master` is still the shared governance packet ar
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
+- `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
@@ -61,7 +63,7 @@ The current handoff surface on `master` is still the shared governance packet ar
 - `zigux/tests/phase15_readiness_gate.zig`
 - `zigux/tests/phase15_build.zig`
 
-The dedicated handoff packet should treat the shipped docs-root review-process, parity-scorecard-survey, parity-scorecard, indefinite-C, readiness, and freeze-map notes together with the tests-root Phase 15 guards as the authoritative companion surfaces for blocker-evidence, lane-sequencing, machine-checked handoff state, the live machine-readable parity-scorecard packet, and the shipped direct Zig replay surface for the dedicated scorecard packet. This lane should not imply a broader docs packet than the current tree really ships, but it should also not understate the docs-root governance notes that are already landed on `master`.
+The dedicated handoff packet should treat the shipped docs-root review-process, parity-scorecard-survey, parity-scorecard, indefinite-C, readiness, and freeze-map notes together with the review-checklist-backed and checker-backed shared-summary packet plus the tests-root Phase 15 guards as the authoritative companion surfaces for blocker-evidence, lane-sequencing, machine-checked handoff state, the live machine-readable parity-scorecard packet, and the shipped direct Zig replay surface for the dedicated scorecard packet. This lane should not imply a broader docs packet than the current tree really ships, but it should also not understate the docs-root governance notes that are already landed on `master`.
 
 This packet now treats the stable `handoff-next-steps` lane family recorded in the sequencing note as its continuity anchor, so future maintenance can refresh provenance without rebinding the packet to a different scheduled lane key.
 
