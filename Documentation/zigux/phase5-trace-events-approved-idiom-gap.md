@@ -6,7 +6,7 @@ This note records the bounded roadmap-backed approved-idiom state for the Phase 
 
 - `PHASE5_STATUS=verified-direct-packet-aligned`
 - `PHASE5_SLICE=trace-events-approved-idiom-gap`
-- `PHASE5_LANE_KEY=P5-L20`
+- `PHASE5_LANE_KEY=P5-L23`
 - scope: roadmap-backed approved-idiom reminder for the directly readable non-runtime trace-events packet only, kept truthful against the current sample-backed review surface
 
 ## Why this note exists
