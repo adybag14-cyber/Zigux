@@ -34,8 +34,9 @@ RELEASE_READINESS_MARKERS = [
     "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, and `zigux/tests/README.md` now does the same in its Phase 12 inventory, so the docs-root, review-checklist, and tests-root reminders are no longer part of the live PMO drift.",
     "The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
     "Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
-    "`scripts/zigux/README.md` still lacks any dedicated Phase 12 scripts-root summary and `scripts/zigux/check-build-only-phase12-surface.py` still carries older marker expectations around the shipped `phase12-validate` route.",
-    "`scripts/zigux/README.md` still lacks a dedicated Phase 12 flow block and `scripts/zigux/check-build-only-phase12-surface.py` still needs a later reminder-marker sync before that broader reminder stack is fully current.",
+    "The broader shared-summary packet is now aligned on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, `zigux/tests/README.md` does the same in its Phase 12 inventory, and `scripts/zigux/README.md` now carries a dedicated Phase 12 flow block naming `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and the shipped validator-first then smoke-first routes.",
+    "`scripts/zigux/check-build-only-phase12-surface.py` still needs the matching reminder-marker sync, but this readiness note now stays truthful to the already-landed scripts-root Phase 12 flow block without reopening driver-local, fallback-catalog, or verify-shard surfaces.",
+    "Current `master` keeps the release-order, readiness, coordination, closure, workflow, Makefile, docs-root, review-checklist, scripts-root, and tests-root companions aligned around the starter-present `virtio_net` plus smoke-first `virtio_scsi` packet, including the parked `zigux/tests/fixtures/phase12_libbpf_snapshot.json` anchor and the shipped `phase12-validate` support bundle. Leave this same-lane packet parked unless one of those shared reminder surfaces drifts again; if it reopens, refresh only the smallest reminder that moved before widening into any new driver claims.",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -44,7 +45,8 @@ REVIEW_CHECKLIST_MARKERS = [
 ]
 
 SCRIPTS_README_MARKERS = [
-    "`scripts/zigux/check-phase12-release-readiness-packet.py`",
+    "Phase 12 flow - `validate-phase12.py` checks that the current complex-driver packet stays aligned across `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `zigux/tests/phase12_build.zig`, the starter-present `virtio_net` packet, the shipped `virtio_scsi` packet, and the bounded NVMe starter-plus-verifier-plus-direct-test-plus-manifest packet before the shared validator-first then smoke-first routes run.",
+    "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit in this scripts-root summary so the shipped validator-first route stays visible as support-bundle evidence rather than as a second direct replay route.",
 ]
 
 MAKEFILE_MARKERS = [
@@ -167,9 +169,7 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
 
     anchors = extract_phase12_anchor_bullets(read_text(root / ROADMAP_PATH))
     if anchors != ROADMAP_ANCHORS:
-        errors.append(
-            "roadmap Phase 12 anchor list drifted from the expected four-entry set"
-        )
+        errors.append("roadmap Phase 12 anchor list drifted from the expected four-entry set")
 
     return errors
 
@@ -187,10 +187,11 @@ def good_release_readiness_text() -> str:
             "- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, and `zigux/tests/README.md` now does the same in its Phase 12 inventory, so the docs-root, review-checklist, and tests-root reminders are no longer part of the live PMO drift.",
             "- The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
             "- Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
-            "- `scripts/zigux/README.md` still lacks any dedicated Phase 12 scripts-root summary and `scripts/zigux/check-build-only-phase12-surface.py` still carries older marker expectations around the shipped `phase12-validate` route.",
+            "- The broader shared-summary packet is now aligned on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, `zigux/tests/README.md` does the same in its Phase 12 inventory, and `scripts/zigux/README.md` now carries a dedicated Phase 12 flow block naming `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and the shipped validator-first then smoke-first routes.",
+            "- `scripts/zigux/check-build-only-phase12-surface.py` still needs the matching reminder-marker sync, but this readiness note now stays truthful to the already-landed scripts-root Phase 12 flow block without reopening driver-local, fallback-catalog, or verify-shard surfaces.",
             "",
             "## Next Bounded Step",
-            "- `scripts/zigux/README.md` still lacks a dedicated Phase 12 flow block and `scripts/zigux/check-build-only-phase12-surface.py` still needs a later reminder-marker sync before that broader reminder stack is fully current.",
+            "- Current `master` keeps the release-order, readiness, coordination, closure, workflow, Makefile, docs-root, review-checklist, scripts-root, and tests-root companions aligned around the starter-present `virtio_net` plus smoke-first `virtio_scsi` packet, including the parked `zigux/tests/fixtures/phase12_libbpf_snapshot.json` anchor and the shipped `phase12-validate` support bundle. Leave this same-lane packet parked unless one of those shared reminder surfaces drifts again; if it reopens, refresh only the smallest reminder that moved before widening into any new driver claims.",
             "",
         ]
     )
@@ -213,7 +214,8 @@ def good_scripts_readme_text() -> str:
         [
             "# scripts/zigux",
             "",
-            "- `scripts/zigux/check-phase12-release-readiness-packet.py`",
+            "Phase 12 flow - `validate-phase12.py` checks that the current complex-driver packet stays aligned across `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `zigux/tests/phase12_build.zig`, the starter-present `virtio_net` packet, the shipped `virtio_scsi` packet, and the bounded NVMe starter-plus-verifier-plus-direct-test-plus-manifest packet before the shared validator-first then smoke-first routes run.",
+            "- `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit in this scripts-root summary so the shipped validator-first route stays visible as support-bundle evidence rather than as a second direct replay route.",
             "",
         ]
     )
@@ -298,7 +300,7 @@ def run_self_test() -> int:
         write_text(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
-                "- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, and `zigux/tests/README.md` now does the same in its Phase 12 inventory, so the docs-root, review-checklist, and tests-root reminders are no longer part of the live PMO drift.\n",
+                RELEASE_READINESS_MARKERS[2],
                 "",
                 1,
             ),
@@ -313,22 +315,52 @@ def run_self_test() -> int:
         write_text(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
-                "`scripts/zigux/README.md` still lacks any dedicated Phase 12 scripts-root summary and `scripts/zigux/check-build-only-phase12-surface.py` still carries older marker expectations around the shipped `phase12-validate` route.",
+                RELEASE_READINESS_MARKERS[5],
                 "",
                 1,
             ),
         )
         expect_contains(
             check(tmp_root, source_text=MARKER),
-            "still lacks any dedicated Phase 12 scripts-root summary and `scripts/zigux/check-build-only-phase12-surface.py` still carries older marker expectations around the shipped `phase12-validate` route",
-            "missing current-gap marker",
+            "scripts/zigux/README.md` now carries a dedicated Phase 12 flow block",
+            "missing scripts-root alignment marker",
         )
 
         write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
         write_text(
+            tmp_root / RELEASE_READINESS_PATH,
+            good_release_readiness_text().replace(
+                RELEASE_READINESS_MARKERS[7],
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "Leave this same-lane packet parked unless one of those shared reminder surfaces drifts again",
+            "missing parked-next-step marker",
+        )
+
+        write_text(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
+        write_text(
+            tmp_root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                SCRIPTS_README_MARKERS[0],
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            SCRIPTS_README_MARKERS[0],
+            "missing scripts-readme phase12-flow marker",
+        )
+
+        write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
+        write_text(
             tmp_root / REVIEW_CHECKLIST_PATH,
             good_review_checklist_text().replace(
-                "avoid implying a broader shared `check-phase12-*.py` family, focused-libbpf-only replay, or cross-build replay, while keeping the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` checker plus the shipped `make -C zigux phase12-validate` route explicit as support-bundle evidence rather than as a second direct replay route?",
+                REVIEW_CHECKLIST_MARKERS[0],
                 "",
                 1,
             ),
@@ -339,22 +371,7 @@ def run_self_test() -> int:
             "missing review-checklist marker",
         )
 
-        write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
-        write_text(
-            tmp_root / SCRIPTS_README_PATH,
-            good_scripts_readme_text().replace(
-                "- `scripts/zigux/check-phase12-release-readiness-packet.py`\n",
-                "",
-                1,
-            ),
-        )
-        expect_contains(
-            check(tmp_root, source_text=MARKER),
-            "marker count drift in scripts/zigux/README.md: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-            "missing scripts-readme marker",
-        )
-
-        write_text(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
+        write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
         write_text(
             tmp_root / MAKEFILE_PATH,
             good_makefile_text().replace(
@@ -369,7 +386,7 @@ def run_self_test() -> int:
             "missing makefile route",
         )
 
-        write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
+        write_text(tmp_root / WORKFLOW_PATH, good_workflow_text())
         write_text(
             tmp_root / WORKFLOW_PATH,
             good_workflow_text().replace(
@@ -384,7 +401,7 @@ def run_self_test() -> int:
             "missing workflow route",
         )
 
-        write_text(tmp_root / WORKFLOW_PATH, good_workflow_text())
+        write_text(tmp_root / ROADMAP_PATH, good_roadmap_text())
         write_text(
             tmp_root / ROADMAP_PATH,
             good_roadmap_text().replace("- `drivers/scsi/virtio_scsi.c`\n", "", 1),
@@ -395,7 +412,6 @@ def run_self_test() -> int:
             "roadmap anchor drift not detected",
         )
 
-        write_text(tmp_root / ROADMAP_PATH, good_roadmap_text())
         expect_contains(
             check(tmp_root, source_text="PHASE12_CHECK_PACKET=broken"),
             "checker marker missing from checker source",
