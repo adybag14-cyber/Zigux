@@ -9,7 +9,7 @@ This document records the bounded Phase 15 governance lane around surveying the 
 - `PHASE15_SLICE=parity-tracking-gap-vs-roadmap-refresh`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one survey-grade note that compares the roadmap's parity-scorecard requirement against the live scorecard note, machine-readable JSON, and dedicated Zig guard without widening into new deep-core implementation or shared-summary follow-through
-- survey rechecked against current `master` on 2026-05-14; the dedicated parity-scorecard packet now carries dated readback marker `current-master-readback-2026-05-13`
+- survey rechecked against current `master` on 2026-05-14; the dedicated parity-scorecard packet now carries dated readback marker `current-master-readback-2026-05-14`
 - product boundary:
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `zigux/tests/phase15_parity_scorecard.json`
@@ -35,7 +35,7 @@ Those three surfaces still agree on the dedicated parity-scorecard packet shape:
 - lane key: `P15-Y03`
 - slice: `parity-scorecard-baseline`
 - provenance mode: `dated_master_readback`
-- surveyed commit marker: `current-master-readback-2026-05-13`
+- surveyed commit marker: `current-master-readback-2026-05-14`
 - posture: `blocked_posture_accounting_not_port_readiness`
 
 The live machine-readable metrics now cover:
@@ -66,7 +66,7 @@ The dedicated scorecard note, machine-readable JSON companion, and dedicated Zig
 The previously open same-lane gap was survey truthfulness only:
 
 - this survey note had still been filed under older verification metadata
-- it had still reported a 2026-05-11 reread after the dedicated scorecard packet moved to the 2026-05-13 dated-readback posture
+- it had still reported a 2026-05-11 reread after the dedicated scorecard packet moved to the 2026-05-14 dated-readback posture
 - it had still claimed `zigux/tests/phase15_parity_scorecard.zig` was not present on `master`
 - it had still claimed the broader reporting packet was mispointing at a nonexistent Zig replay surface even though the dedicated Zig guard now exists beside the JSON companion
 - it had underreported the current scorecard metrics by omitting the governance-only blocker aggregate that now splits the blocked anchors between pure Phase 15 governance evidence and Phase 14-coupled bridge evidence
