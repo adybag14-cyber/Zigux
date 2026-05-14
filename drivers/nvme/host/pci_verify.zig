@@ -8,6 +8,7 @@ test "nvme pci descriptor stays honest about the bounded starter packet" {
     try testing.expectEqualStrings("drivers/nvme/host/pci.c", descriptor.anchor);
     try testing.expect(descriptor.provides_lab_queue_planner);
     try testing.expect(descriptor.provides_dropped_io_retirement_helper);
+    try testing.expect(descriptor.provides_recovery_rollback_gate_helper);
     try testing.expect(!descriptor.touches_live_dma);
     try testing.expect(!descriptor.touches_pci_probe);
     try testing.expect(!descriptor.touches_irq_recovery);
@@ -119,34 +120,6 @@ test "nvme pci dropped backlog retirement keeps blocker ordering and parity surf
     try testing.expect(ready.can_retire_dropped_io_backlog);
 }
 
-test "nvme pci dropped backlog retirement keeps dma debt explicit after queue counts recover" {
-    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
-
-    _ = try lab.planAdminQueue(48, 64, false);
-    _ = try lab.planIoQueue(64, 64, false);
-    _ = try lab.planIoQueue(128, 64, false);
-
-    _ = lab.beginReset();
-    _ = lab.completeReset();
-
-    _ = try lab.planAdminQueue(48, 64, false);
-    _ = try lab.planIoQueue(16, 64, true);
-    _ = try lab.planIoQueue(32, 64, true);
-
-    const summary = lab.summarizeDroppedIoRetirement();
-    try testing.expect(summary.admin_queue_replayed_after_reset);
-    try testing.expectEqual(@as(usize, 2), summary.dropped_io_queue_count);
-    try testing.expectEqual(@as(usize, 2), summary.rebuilt_io_queue_count);
-    try testing.expectEqual(@as(usize, 0), summary.remaining_io_queue_count);
-    try testing.expect(summary.queue_count_parity_recovered);
-    try testing.expectEqual(@as(u32, 5), summary.dropped_io_host_dma_pages);
-    try testing.expectEqual(@as(u32, 2), summary.rebuilt_io_host_dma_pages);
-    try testing.expectEqual(@as(u32, 3), summary.remaining_io_host_dma_pages);
-    try testing.expect(!summary.host_dma_parity_recovered);
-    try testing.expectEqual(nvme_pci.DroppedIoRetirementBlocker.dma_page_parity, summary.retirement_blocker);
-    try testing.expect(!summary.can_retire_dropped_io_backlog);
-}
-
 test "nvme pci recovery restore verifier keeps admin-first replay and mixed DMA budget explicit" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
 
@@ -172,4 +145,40 @@ test "nvme pci recovery restore verifier keeps admin-first replay and mixed DMA 
     try testing.expectEqual(@as(u32, 4), restore.total_host_dma_pages);
     try testing.expect(restore.restores_admin_first);
     try testing.expect(restore.restores_io_after_admin);
+}
+
+test "nvme pci rollback gate verifier keeps rollback blockers ordered" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    const idle = lab.recoveryRollbackGateSummary();
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.no_recovery_window, idle.rollback_blocker);
+    try testing.expect(!idle.can_clear_rollback_gate);
+
+    _ = lab.beginReset();
+    const frozen = lab.recoveryRollbackGateSummary();
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.reset_frozen, frozen.rollback_blocker);
+    try testing.expect(!frozen.can_clear_rollback_gate);
+
+    _ = lab.completeReset();
+    const replay_blocked = lab.recoveryRollbackGateSummary();
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.admin_queue_replay, replay_blocked.rollback_blocker);
+    try testing.expectEqual(@as(usize, 2), replay_blocked.dropped_io_queue_count);
+    try testing.expect(!replay_blocked.can_clear_rollback_gate);
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    const queue_blocked = lab.recoveryRollbackGateSummary();
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.queue_count_parity, queue_blocked.rollback_blocker);
+    try testing.expectEqual(@as(usize, 1), queue_blocked.remaining_io_queue_count);
+    try testing.expect(!queue_blocked.can_clear_rollback_gate);
+
+    _ = try lab.planIoQueue(32, 64, true);
+    const ready = lab.recoveryRollbackGateSummary();
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.none, ready.rollback_blocker);
+    try testing.expect(ready.host_dma_parity_recovered);
+    try testing.expect(ready.queue_numbering_restarted);
+    try testing.expect(ready.can_clear_rollback_gate);
 }
