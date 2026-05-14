@@ -51,7 +51,7 @@ Current mixed 2026-05-14 readback keeps that cue closed on public-tree evidence,
 
 Exact 2026-05-13 readback also shows `scripts/zigux/check-phase8-libbpf-shard-routes.py` aligned with the closed docs-root cue and the shared bridge-boundary note: the checker now requires `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` together with the focused `make -C zigux phase8-file-path-handle-bridge-test`, `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`, `make -C zigux phase8-perf-buffer-poll-test`, and `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all` markers while this packet still keeps `standalone timer or clockevent helper behavior` and broader timeout-sensitive routing behavior out of scope.
 
-That same checker packet should also keep the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit so the deferred routing segment stays framed as broader setup-side parity rather than as if no routing-side helper evidence exists yet.
+That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit so the deferred routing segment stays framed as broader setup-side parity rather than as if no routing-side helper evidence exists yet.
 
 That leaves the narrower same-lane task as keeping this survey parked and truthful about that already-landed checker coverage instead of reopening the same checker-local step.
 
