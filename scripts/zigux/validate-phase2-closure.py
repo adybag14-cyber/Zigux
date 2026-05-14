@@ -11,7 +11,9 @@ ROOT = Path(__file__).resolve().parents[2]
 
 VALIDATE_PHASE2 = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
-CHECK_PHASE2_TESTS_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
+CHECK_PHASE2_TESTS_README_ALIGNMENT = (
+    ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
+)
 CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT = (
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"
 )
@@ -109,6 +111,10 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py": 1,
 }
 
 PHASE2_WORKFLOW_RUN_COUNTS = {
@@ -124,6 +130,11 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "run: python3 scripts/zigux/check-kconfig-bridge.py": 1,
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py": 1,
+    "run: python3 scripts/zigux/check-fixdep-diff.py --self-test": 1,
+    "run: python3 scripts/zigux/check-fixdep-diff.py": 1,
+    "run: zig test scripts/zigux/fixdep.zig": 1,
     "run: python3 scripts/zigux/check-phase2-cross.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
@@ -437,7 +448,7 @@ EXPECTED_CONFDATA_MANIFEST = {
     ],
 }
 
-SELF_TEST_CHECK_COUNT = 17
+SELF_TEST_CHECK_COUNT = 20
 
 
 def require_files(paths: list[Path]) -> list[str]:
@@ -583,6 +594,15 @@ def run_self_test_checks() -> list[str]:
             ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test:count=0:expected=1"],
         ),
         (
+            "makefile_exact_counts_missing_fixdep_gate",
+            validate_exact_lines(
+                "\n".join(key for key in PHASE2_MAKEFILE_RUN_COUNTS if key != "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py"),
+                PHASE2_MAKEFILE_RUN_COUNTS,
+                "makefile",
+            ),
+            ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py:count=0:expected=1"],
+        ),
+        (
             "workflow_exact_counts_missing_install_self_test",
             validate_exact_lines(
                 "\n".join(key for key in PHASE2_WORKFLOW_RUN_COUNTS if key != "run: python3 scripts/zigux/install-zig.py --self-test"),
@@ -599,6 +619,24 @@ def run_self_test_checks() -> list[str]:
                 "workflow",
             ),
             ["workflow:exact_count:run: python3 scripts/zigux/check-zig-toolchain.py --self-test:count=0:expected=1"],
+        ),
+        (
+            "workflow_exact_counts_missing_fixdep_diff_self_test",
+            validate_exact_lines(
+                "\n".join(key for key in PHASE2_WORKFLOW_RUN_COUNTS if key != "run: python3 scripts/zigux/check-fixdep-diff.py --self-test"),
+                PHASE2_WORKFLOW_RUN_COUNTS,
+                "workflow",
+            ),
+            ["workflow:exact_count:run: python3 scripts/zigux/check-fixdep-diff.py --self-test:count=0:expected=1"],
+        ),
+        (
+            "workflow_exact_counts_missing_fixdep_replay",
+            validate_exact_lines(
+                "\n".join(key for key in PHASE2_WORKFLOW_RUN_COUNTS if key != "run: zig test scripts/zigux/fixdep.zig"),
+                PHASE2_WORKFLOW_RUN_COUNTS,
+                "workflow",
+            ),
+            ["workflow:exact_count:run: zig test scripts/zigux/fixdep.zig:count=0:expected=1"],
         ),
         (
             "workflow_exact_counts_missing_cross_self_test",
