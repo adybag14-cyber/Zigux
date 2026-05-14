@@ -5,12 +5,24 @@ test "phase 7 string helpers starter covers whitespace trimming and prefix skipp
     try std.testing.expectEqualStrings("hello", string_helpers.skipSpaces("   hello"));
     try std.testing.expectEqualStrings("world", string_helpers.skip_spaces("\t\nworld"));
 
+    const nul_prefixed = [_]u8{ ' ', '\t', 0, 'x' };
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, 'x' }, string_helpers.skipSpaces(&nul_prefixed));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, 'x' }, string_helpers.skip_spaces(&nul_prefixed));
+
     var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
     try std.testing.expectEqualStrings("hi", string_helpers.trimSpaces(&trim_buf));
 
     var strim_buf = [_]u8{ ' ', 'h', 'i', ' ', '\n', 0, 'x', 'y' };
     try std.testing.expectEqualStrings("hi", string_helpers.strim(&strim_buf));
     try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'h', 'i', 0, '\n', 0, 'x', 'y' }, &strim_buf);
+
+    var trim_whitespace_only = [_]u8{ ' ', '\t', '\n', 0, 'x' };
+    try std.testing.expectEqualStrings("", string_helpers.trimSpaces(&trim_whitespace_only));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, '\t', '\n', 0, 'x' }, &trim_whitespace_only);
+
+    var strim_whitespace_only = [_]u8{ ' ', '\t', '\n', 0, 'x' };
+    try std.testing.expectEqualStrings("", string_helpers.strim(&strim_whitespace_only));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, '\t', '\n', 0, 'x' }, &strim_whitespace_only);
 }
 
 test "phase 7 string helpers starter keeps sysfs matching newline aware" {
