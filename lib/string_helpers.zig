@@ -356,7 +356,7 @@ pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize
 
     while (src_index < src.len and src[src_index] != 0 and out_index + 1 < limit) {
         const remaining = limit - out_index - 1;
-        if (src[src_index] == '\\' and src_index + 1 < src.len and src[src_index + 1] != 0 and remaining > 1) {
+        if (src[src_index] == '\\' and src_index + 1 < src.len and src[src_index + 1] != 0 and remaining > 0) {
             src_index += 1;
 
             if ((flags & UNESCAPE_SPACE) != 0) {
@@ -397,6 +397,8 @@ pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize
 
             dst[out_index] = '\\';
             out_index += 1;
+
+            if (remaining == 1) break;
         }
 
         dst[out_index] = src[src_index];
