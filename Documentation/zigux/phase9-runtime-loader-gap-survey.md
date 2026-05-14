@@ -75,21 +75,20 @@ symbol-export boundary references rather than Phase 9 runtime evidence.
 
 ## Next Bounded Step
 
-Fresh repo-first inspection now shows `Documentation/zigux/README.md` and
-`zigux/tests/README.md` already defer the exact shared owner map back to
-`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and keep the
-blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`,
-`modules.builtin`, module install-root state, and `depmod` script or manifest
-state boundary explicit, but `scripts/zigux/README.md` still undercounts the
-live shared loader packet by omitting
+Fresh repo-first inspection now shows `scripts/zigux/README.md` and
+`zigux/tests/README.md` already keep
 `Documentation/zigux/phase9-runtime-loader-gap-survey.md`,
 `zigux/tests/runtime_loader_gap_manifest.json`, and
-`zigux/tests/runtime_loader_gap_survey.zig` from its Phase 9 summary.
+`zigux/tests/runtime_loader_gap_survey.zig` explicit inside the shared loader
+packet while still deferring the exact shared owner map back to
+`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, but
+`Documentation/zigux/README.md` still undercounts that same live packet by
+omitting the loader-gap survey note plus the manifest-backed survey trio from
+its Phase 9 summary.
 
-Repair `scripts/zigux/README.md` first, then tighten
-`scripts/zigux/check-phase9-build-only-surface.py` so the scripts-root
-summary fails closed on that loader-gap survey trio before reopening any
-broader shared reminder pass.
+Repair `Documentation/zigux/README.md` first, then re-read
+`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and
+`zigux/tests/README.md` before reopening any broader shared reminder pass.
 
 Keep future follow-through inside the smallest regressed shared surface instead
 of reopening pilot-family behavior, loader implementation, or new checker
