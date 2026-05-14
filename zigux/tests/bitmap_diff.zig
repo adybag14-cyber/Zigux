@@ -619,6 +619,7 @@ test "bitmap diff gate records exact bounded find_nth_bit checks" {
     const starter_bits = [_]u32{ 10, 20, 30, 40, 50, 60, 80, 123 };
     try expectNthCase(&starter_bits, 64 * 3, &starter_bits);
     try expectNthCase(&starter_bits, 64 * 3 - 1, &starter_bits);
+    try expectNthCase(&starter_bits, 123, starter_bits[0..7]);
 }
 
 test "bitmap diff gate replays exact bounded exp1 find_nth_bit enumeration" {
@@ -998,6 +999,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.setRange(BitmapHarness.bitmap_nbits, 1));");
     try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.zeroPrefix(BitmapHarness.bitmap_nbits + 1));");
     try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.copyFrom(&other, BitmapHarness.bitmap_nbits + 1));");
+    try expectMarker(bitmap_diff_source, "try expectNthCase(&starter_bits, 123, starter_bits[0..7]);");
     const replay_start = std.mem.indexOf(
         u8,
         bitmap_diff_source,
