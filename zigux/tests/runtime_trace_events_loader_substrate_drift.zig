@@ -31,7 +31,7 @@ test "phase 9 runtime trace-events loader rejects prepared shared runtime-substr
     ));
     shared_request.plan.requires_runtime_substrate = false;
 
-    try std.testing.expectError(error.LoaderNotRequired, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.prepared, loader.stage());
     try expectPreparedRuntimeSubstrateDriftKeepsPreparedState(shared_request, prepared_plan);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
@@ -59,7 +59,7 @@ test "phase 9 runtime trace-events loader rejects initialized-stage prepared sha
     try std.testing.expectEqual(@as(usize, 0), shared_request.plan.init_flow.selftest_runs);
     shared_request.plan.requires_runtime_substrate = false;
 
-    try std.testing.expectError(error.LoaderNotRequired, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.prepared, loader.stage());
     try expectPreparedRuntimeSubstrateDriftKeepsPreparedState(shared_request, prepared_plan);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
@@ -83,7 +83,7 @@ test "phase 9 runtime trace-events loader rejects prepared shared selftest-hook 
     shared_request.plan.provides_selftest_hook = false;
 
     try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(shared_request.plan));
-    try std.testing.expectError(error.InvalidSelftestHookEvidence, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.prepared, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
@@ -108,7 +108,7 @@ test "phase 9 runtime trace-events loader rejects initialized-stage prepared sha
     shared_request.plan.provides_selftest_hook = false;
 
     try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(shared_request.plan));
-    try std.testing.expectError(error.InvalidSelftestHookEvidence, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.prepared, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
