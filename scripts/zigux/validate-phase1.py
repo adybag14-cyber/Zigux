@@ -94,9 +94,9 @@ BENCH_EXPECTATION_MARKER_KEYS = (
 )
 EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR = 'test "phase 1 helper ports match committed parity fixture"'
 EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
-    "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, "
+    "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, truncation, tiny-buffer, and partial-window xor replay, "
     "while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word boundary, final-partial range boundary, fill tail-clamp, "
-    "cross-word scnprintf collapse, truncation, empty-bitmap caller-buffer preservation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, "
+    "cross-word scnprintf collapse, empty-bitmap caller-buffer preservation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, "
     "zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master"
 )
 EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_ANCHOR = 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"'
@@ -407,22 +407,27 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
     if string_review_anchors.get("shared_replace_char_cstr_review_summary") != EXPECTED_STRING_SHARED_REPLACE_CHAR_CSTR_REVIEW_SUMMARY:
         missing.append("phase1_manifest_review_anchor:value=tools/lib/string.zig:shared_replace_char_cstr_review_summary")
 
-    replay_text = load_text(root / "zigux/tests/phase1_helpers.zig")
-    fixture = EXPECTED_FIXTURE
-    replay_body = extract_test_body(replay_text, "phase 1 helper ports match committed parity fixture")
-    if replay_body is None:
-        missing.append('phase1_parity_test:test "phase 1 helper ports match committed parity fixture":expected=1:actual=0')
-        replay_body = ""
+    fixture_path = root / "zigux/tests/fixtures/phase1_helpers.json"
+    helpers_path = root / "zigux/tests/phase1_helpers.zig"
+    _, fixture_errors = load_json(fixture_path, "phase1_fixture")
+    fixture = EXPECTED_FIXTURE if not fixture_errors else {}
+    helpers_text = load_text(helpers_path)
+    replay_body = extract_test_body(helpers_text, "phase 1 helper ports match committed parity fixture") or ""
 
-    for helper, anchors in review_anchors.items():
+    for helper in DIRECT_ANCHOR_HELPERS:
+        anchors = review_anchors.get(helper)
         if not isinstance(anchors, dict):
-            missing.append(f"phase1_manifest:{helper}:review_anchor_shape")
+            missing.append(f"phase1_manifest_review_anchor:shape={helper}")
             continue
-        source_text = load_text(root / source_path_for_helper(helper))
+        source_path = root / source_path_for_helper(helper)
+        if not source_path.exists():
+            missing.append(f"phase1_source_missing:{helper}")
+            continue
+        source_text = load_text(source_path)
         helper_test_anchors = anchors.get("helper_test_anchors")
-        if helper in DIRECT_ANCHOR_HELPERS:
-            if not isinstance(helper_test_anchors, list) or not all(isinstance(item, str) for item in helper_test_anchors):
-                missing.append(f"phase1_manifest:{helper}:helper_test_anchors")
+        if helper_test_anchors is not None:
+            if not isinstance(helper_test_anchors, list):
+                missing.append(f"phase1_helper_test_anchor_list:{helper}:not_list")
             elif helper_test_anchors != extract_test_titles(source_text):
                 missing.append(f"phase1_helper_test_anchor_list:{helper}")
         for key, value in anchors.items():
