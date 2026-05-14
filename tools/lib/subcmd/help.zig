@@ -369,9 +369,9 @@ fn writeRule(writer: anytype, width: usize) !void {
     try writer.writeByte('\n');
 }
 
-fn writeSection(
+fn writeSectionBody(
     writer: anytype,
-    heading: []const u8,
+    heading_len: usize,
     cmds: CmdNames,
     longest_name_len: usize,
     lines_text: ?[]const u8,
@@ -380,9 +380,8 @@ fn writeSection(
 ) !void {
     if (cmds.count() == 0) return;
 
-    try writer.writeAll(heading);
     try writer.writeByte('\n');
-    try writeRule(writer, heading.len);
+    try writeRule(writer, heading_len);
     try writePrettyPrintStringListForTerminal(
         writer,
         cmds,
@@ -398,6 +397,21 @@ fn longestSectionNameLen(main_cmds: CmdNames, other_cmds: CmdNames) usize {
     return @max(main_cmds.longestNameLen(), other_cmds.longestNameLen());
 }
 
+fn writeAvailableHeading(writer: anytype, exec_name: []const u8, exec_path_display: []const u8) !usize {
+    try writer.writeAll("available ");
+    try writer.writeAll(exec_name);
+    try writer.writeAll(" in '");
+    try writer.writeAll(exec_path_display);
+    try writer.writeByte('\'');
+    return "available ".len + exec_name.len + " in '".len + exec_path_display.len + 1;
+}
+
+fn writeElsewhereHeading(writer: anytype, exec_name: []const u8) !usize {
+    try writer.writeAll(exec_name);
+    try writer.writeAll(" available from elsewhere on your $PATH");
+    return exec_name.len + " available from elsewhere on your $PATH".len;
+}
+
 pub fn writeCommandSectionsForTerminal(
     writer: anytype,
     exec_name: []const u8,
@@ -411,23 +425,13 @@ pub fn writeCommandSectionsForTerminal(
     const longest_name_len = longestSectionNameLen(main_cmds, other_cmds);
 
     if (main_cmds.count() != 0) {
-        var header_buffer: [256]u8 = undefined;
-        const heading = try std.fmt.bufPrint(
-            &header_buffer,
-            "available {s} in '{s}'",
-            .{ exec_name, exec_path_display },
-        );
-        try writeSection(writer, heading, main_cmds, longest_name_len, lines_text, columns_text, fallback);
+        const heading_len = try writeAvailableHeading(writer, exec_name, exec_path_display);
+        try writeSectionBody(writer, heading_len, main_cmds, longest_name_len, lines_text, columns_text, fallback);
     }
 
     if (other_cmds.count() != 0) {
-        var header_buffer: [256]u8 = undefined;
-        const heading = try std.fmt.bufPrint(
-            &header_buffer,
-            "{s} available from elsewhere on your $PATH",
-            .{exec_name},
-        );
-        try writeSection(writer, heading, other_cmds, longest_name_len, lines_text, columns_text, fallback);
+        const heading_len = try writeElsewhereHeading(writer, exec_name);
+        try writeSectionBody(writer, heading_len, other_cmds, longest_name_len, lines_text, columns_text, fallback);
     }
 }
 
@@ -602,4 +606,48 @@ test "writeCommandSectionsForTerminal keeps the shared longest-name layout stabl
             "\n",
         rendered.writer.buffered(),
     );
+}
+
+test "writeCommandSectionsForTerminal keeps long section headings output-stable" {
+    const exec_name = [_]u8{'t'} ** 180;
+    const exec_path_display = [_]u8{'p'} ** 180;
+    const available_heading_len = "available ".len + exec_name.len + " in '".len + exec_path_display.len + 1;
+    const other_heading_len = exec_name.len + " available from elsewhere on your $PATH".len;
+    const available_rule = [_]u8{'-'} ** available_heading_len;
+    const other_rule = [_]u8{'-'} ** other_heading_len;
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.addCmdName("stat", 4);
+
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.addCmdName("trace", 5);
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try writeCommandSectionsForTerminal(
+        &rendered.writer,
+        exec_name[0..],
+        exec_path_display[0..],
+        main_cmds,
+        other_cmds,
+        "25",
+        "120",
+        null,
+    );
+
+    const expected = std.fmt.comptimePrint(
+        "available {s} in '{s}'\n{s}\n stat\n\n{s} available from elsewhere on your $PATH\n{s}\n trace\n\n",
+        .{
+            exec_name[0..],
+            exec_path_display[0..],
+            available_rule[0..],
+            exec_name[0..],
+            other_rule[0..],
+        },
+    );
+
+    try std.testing.expectEqualStrings(expected, rendered.writer.buffered());
 }
