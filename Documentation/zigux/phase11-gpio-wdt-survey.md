@@ -2,21 +2,31 @@
 
 `PHASE11_LANE_KEY=P11-L04`
 
-This survey note tracks the landed Phase 11 `gpio_wdt` starter anchored to `drivers/watchdog/gpio_wdt.c` on current `master`.
+This survey note tracks the current `gpio_wdt` simple-driver gap against the Phase 11 roadmap anchor `drivers/watchdog/gpio_wdt.c` on current `master`.
 
 ## Live Repo State
 
-- `drivers/watchdog/gpio_wdt.zig` models `hw_algo` parsing, heartbeat-margin validation, the narrow start, ping, stop, and disable transitions from the Linux GPIO watchdog driver, a small probe-time summary for startup and registration-facing bookkeeping, a tiny `descriptorPreflightSummary()` helper for the `devm_gpiod_get()` flag choice and probe ordering, a tiny `timeoutPropertyCheckpointSummary()` helper for the `hw_margin_ms` boundary and its fail-closed ordering before later handoffs, a tiny `platformDrvdataCheckpointSummary()` helper for the early `platform_set_drvdata()` ordering boundary before later GPIO and watchdog handoffs, a tiny `drvdataCheckpointSummary()` helper for the `watchdog_set_drvdata()` ordering boundary between timeout validation, registration handoff, and the first register-device request surface, a tiny nowayout-aware stop helper that separates watchdog-core policy blocking from hardware `always-running` behavior, a registration handoff summary, a tiny `rebootGlueCheckpointSummary()` helper for the bounded `watchdog_stop_on_reboot()` ordering between `nowayout`, any pre-registration start, and the later register-device request surface, a tiny `registerDeviceCallSummary()` helper for the first bounded `devm_watchdog_register_device()` request surface, and a bounded `teardownSummary()` surface that keeps teardown-facing stop outcomes explicit without claiming remove hooks or live shutdown glue.
-- `zigux/tests/phase11_gpio_wdt.zig` keeps the toggle and level algorithms reviewable without claiming GPIO registration or hardware-backed execution, and checks always-running startup, descriptor preflight ordering, timeout-property checkpoint ordering, `platform_set_drvdata()` ordering, `watchdog_set_drvdata()` checkpoint ordering, pre-registration bookkeeping, reboot-glue checkpoint ordering, stop-request outcomes, teardown outcomes, registration handoff reporting, and the first bounded register-device request bookkeeping.
-- The dedicated focused `platform_set_drvdata()` replay now lives in `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`, where it keeps the early platform-drvdata ordering boundary explicit beside the landed checkpoint summary without widening into live platform probing, `watchdog_set_drvdata()` execution, or the shared Phase 11 route.
-- `Documentation/zigux/phase11-gpio-wdt-teardown-note.md` keeps the bounded teardown story explicit by separating stop-policy ownership, reboot-glue checkpoint ownership, stop-transition ownership, and teardown handoff ownership without overclaiming live GPIO, remove hooks, or reboot-backed teardown.
-- `zigux/tests/phase11_build.zig` still runs the starter and survey paths together so lane-local freshness drift shows up in one place, while the dedicated focused `platform_set_drvdata()` replay stays intentionally not wired into `zigux/tests/phase11_build.zig`.
-- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` records the bounded validation posture for the landed starter, the dedicated focused platform-drvdata replay, the drvdata checkpoint, the reboot-glue checkpoint, the register-device request surface, the bounded teardown note, and the still-deferred kernel-facing follow-up.
+- Current `master` still exposes the archived gpio watchdog review surfaces `zigux/tests/phase11_gpio_wdt_manifest.json`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-module-slice.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, and the focused replay `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`.
+- Direct current-`master` contents reads no longer expose `drivers/watchdog/gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_survey.zig`, or `zigux/tests/phase11_build.zig`, so the roadmap destination under `drivers/watchdog/*.zig` is still not visibly landed on `master`.
+- The archived review surfaces therefore remain useful only as review memory for the earlier gpio watchdog packet. They are not enough to claim that the simple-driver scaffold, the main gpio watchdog replay, the dedicated survey gate, or the shared Phase 11 build route are presently shipped on current `master`.
+- The focused `platform_set_drvdata()` replay that remains visible on `master` is still a bounded proof of one early ordering checkpoint only. Without the driver file and the directly coupled main replay beside it, it does not close the broader simple-driver gap that Phase 11 still schedules for `gpio_wdt`.
 
-This review packet now carries lane identity `P11-L04` so the live manifest and survey note point at the same gpio watchdog record.
+## Roadmap Gap
+
+Phase 11 still calls for direct-port or dual-implementation driver templates under `drivers/watchdog/*.zig` together with hardware validation discipline and teardown or failure-mode parity.
+
+For `gpio_wdt` on current `master`, the remaining honest simple-driver gap is:
+
+- restore or publish the visible `drivers/watchdog/gpio_wdt.zig` starter itself
+- restore or publish the directly coupled main replay at `zigux/tests/phase11_gpio_wdt.zig`
+- restore or publish the dedicated survey gate at `zigux/tests/phase11_gpio_wdt_survey.zig`
+- restore or publish the shared Phase 11 build route at `zigux/tests/phase11_build.zig`
+- then realign the archived manifest, survey note, module-slice note, teardown note, and validation matrix around the newly visible packet instead of treating the archived notes as proof on their own
 
 ## Boundaries
 
-This remains intentionally small. The lane still does not claim platform-driver registration, live GPIO descriptor lookup, `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution, watchdog core registration, reboot hooks, module parameters beyond summary bookkeeping, live GPIO execution, teardown and failure-mode parity beyond the landed bounded starter checks, reboot-glue checkpoint, and teardown note, or hardware-backed validation beyond the landed matrix.
+This survey note does not claim that current `master` already ships live GPIO descriptor lookup, `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution, watchdog core registration, reboot hooks, remove hooks, broader teardown or failure-mode parity, or hardware-backed validation.
 
-The next honest bounded step for this archived review packet is to keep the landed descriptor, timeout-property, platform-drvdata, drvdata, reboot-glue, teardown, handoff, and register-device request surfaces traceable while later same-family lanes decide whether failure-mode parity or broader hardware-backed validation can move forward without claiming live GPIO or wider platform glue.
+It also no longer treats the archived review notes and the single focused platform-drvdata replay as proof that the main `gpio_wdt` starter packet is already landed on `master`.
+
+The next honest bounded step for this survey lane is one truthfulness follow-through that keeps the current-master record aligned with the roadmap: either restore the missing visible driver packet onto `master` or continue trimming gpio watchdog review surfaces so they stop overstating what current `master` actually ships.
