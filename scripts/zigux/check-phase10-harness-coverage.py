@@ -77,7 +77,7 @@ SCRIPTS_README_MARKERS = [
     "`drivers/virtio/virtio_mmio.zig`",
     "`drivers/virtio/virtio_mmio_verify.zig`",
     "`make -C zigux phase10-validate`",
-    "current `master` does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, or `Documentation/zigux/phase10-virtio-mmio-slice.md`, so the scripts-root reminder should keep those five slice-note companions framed as repo-reality gaps rather than shipped shared review surfaces.",
+    "`make -C zigux phase10-test`",
 ]
 
 DOC_README_MARKERS = [
@@ -368,16 +368,16 @@ def run_self_test() -> int:
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
             original_scripts_readme.replace(
-                "current `master` does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, or `Documentation/zigux/phase10-virtio-mmio-slice.md`, so the scripts-root reminder should keep those five slice-note companions framed as repo-reality gaps rather than shipped shared review surfaces.",
-                "the scripts-root reminder now treats every Phase 10 slice note as shipped current-master evidence.",
+                "`make -C zigux phase10-test`",
+                "`make -C zigux phase10-shared-test`",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "scripts_readme_slice_gap_phrase",
+            "scripts_readme_phase10_test_route",
             root,
-            "scripts_readme:current `master` does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, or `Documentation/zigux/phase10-virtio-mmio-slice.md`, so the scripts-root reminder should keep those five slice-note companions framed as repo-reality gaps rather than shipped shared review surfaces.",
+            "scripts_readme:`make -C zigux phase10-test`",
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
