@@ -10,6 +10,10 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectMissing(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+}
+
 fn expectCount(haystack: []const u8, needle: []const u8, expected_count: usize) !void {
     var count: usize = 0;
     var remaining = haystack;
@@ -46,11 +50,15 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     try expectContains(note, "`make -C zigux phase9-test`");
     try expectContains(note, "`make -C zigux phase9`");
     try expectContains(note, "There is no dedicated shared `validate-phase9.py`");
-    try expectContains(note, "`Documentation/zigux/README.md` still undercounts that same live packet by\nomitting the loader-gap survey note plus the manifest-backed survey trio from\nits Phase 9 summary.");
+    try expectContains(note, "Fresh repo-first inspection now shows `Documentation/zigux/README.md` and\n`scripts/zigux/README.md` both keep");
+    try expectContains(note, "Fresh repo-first inspection now also shows `zigux/tests/README.md` keeps that\nsame shared Phase 9 loader-gap packet explicit through a dedicated Phase 9 flow");
+    try expectContains(note, "That means the earlier docs-root undercount and the later tests-root undercount\nare both cleared on current `master`; the remaining same-lane follow-through is\nnow future reminder drift around the blocked module-metadata and\ndepmod-publication boundary rather than shared packet inventory sync.");
     try expectContains(note, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md`");
     try expectContains(note, "`zigux/tests/runtime_loader_gap_manifest.json`");
     try expectContains(note, "`zigux/tests/runtime_loader_gap_survey.zig`");
-    try expectContains(note, "Repair `Documentation/zigux/README.md` first, then re-read");
+    try expectMissing(note, "## Historical Reminder Wording");
+    try expectMissing(note, "`Documentation/zigux/README.md` still undercounts that same live packet by");
+    try expectMissing(note, "Repair `Documentation/zigux/README.md` first, then re-read");
     try expectContains(note, "`scripts/zigux/check-phase9-build-only-surface.py`");
     try expectContains(note, "`.modinfo`");
     try expectContains(note, "`MODULE_ALIAS()`");
