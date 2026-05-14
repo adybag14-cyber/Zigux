@@ -138,6 +138,10 @@ REQUIRED_INPUT_GAPS = {
         "status": "starter_landed",
         "zigux_destination": "Documentation/zigux/phase10-virtio-input-slice.md",
     },
+    "phase10-virtio-input-module-note": {
+        "status": "starter_landed",
+        "zigux_destination": "Documentation/zigux/phase10-virtio-input-module-slice.md",
+    },
     "phase10-virtio-input-survey-gate": {
         "status": "starter_landed",
         "zigux_destination": "zigux/tests/phase10_virtio_input_survey.zig",
@@ -539,6 +543,19 @@ def run_self_test() -> int:
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         for gap in manifest["gaps"]:
+            if gap["id"] == "phase10-virtio-input-module-note":
+                gap["zigux_destination"] = "Documentation/zigux/phase10-virtio-input-survey.md"
+                break
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            "manifest:gap_destination:phase10-virtio-input-module-note=Documentation/zigux/phase10-virtio-input-survey.md",
+            "phase10-self-test:module_note_gap_destination",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for gap in manifest["gaps"]:
             if gap["id"] == "phase10-virtio-input-teardown-observation-helper":
                 gap["status"] = "repo_reality_gap"
                 break
@@ -648,7 +665,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_VALIDATION_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_VALIDATION_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
