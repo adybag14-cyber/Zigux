@@ -4,18 +4,24 @@ This bounded Phase 11 module slice keeps the archived `P11-L04` gpio watchdog re
 
 ## Review Packet
 
-The `gpio_wdt_lab` starter remains intentionally narrow and review-first:
-- `descriptorPreflightSummary()` records the `devm_gpiod_get()` flag choice and the probe ordering boundary without claiming live descriptor acquisition.
-- `timeoutPropertyCheckpointSummary()` keeps the required `hw_margin_ms` boundary explicit before later watchdog handoffs.
-- `platformDrvdataCheckpointSummary()` keeps the early `platform_set_drvdata()` ordering explicit before GPIO lookup and later watchdog bookkeeping.
-- `drvdataCheckpointSummary()` keeps the `watchdog_set_drvdata()` ordering explicit between timeout validation, descriptor-backed preflight, and the later registration-facing handoff.
-- `registerDeviceCallSummary()` keeps the first bounded `devm_watchdog_register_device()` request surface visible without claiming live watchdog-core registration.
-- `rebootGlueCheckpointSummary()` keeps the `watchdog_stop_on_reboot()` ordering explicit between `nowayout`, pre-registration start, and the later register-device request without claiming live reboot-hook registration.
+Current direct contents reads now show the visible starter at `drivers/watchdog/gpio_wdt.zig`, but this lane still stays review-first because the directly coupled main replay and shared Phase 11 build route are not visible yet.
 
-The same review packet also keeps teardown and failure-mode parity explicit in bounded form. The current starter records teardown-facing stop outcomes, the split between watchdog-core policy and hardware `always-running` behavior, the bounded reboot-glue checkpoint around `watchdog_stop_on_reboot()`, and the still-blocked live GPIO, remove-hook, reboot-backed teardown execution, and hardware-backed validation work.
+The visible `gpio_wdt_lab` starter currently exports these code-backed review surfaces:
+
+- `descriptorRequestSummary()`
+- `platformDrvdataCheckpointSummary()`
+- `nowayoutPolicySummary()`
+- `probeSummary()`
+- `registrationHandoffSummary()`
+- `registrationPlanSummary()`
+- `registerDeviceCallSummary()`
+- `registerDeviceFailureSummary()`
+- `summarizeTeardown()`
+
+The same archived packet keeps bounded start, ping, stop, failure-mode, and teardown posture explicit without claiming live GPIO descriptor acquisition, live watchdog-core registration, live reboot hooks, or hardware-backed validation.
 
 ## Boundaries
 
-This module slice does not claim live GPIO descriptor acquisition, live `watchdog_set_drvdata()` execution, live `devm_watchdog_register_device()` execution, platform-driver registration, live reboot-hook registration, or hardware-backed validation yet.
+This module slice does not claim live GPIO descriptor acquisition, live `platform_set_drvdata()` execution, live `watchdog_set_drvdata()` execution, live `devm_watchdog_register_device()` execution, platform-driver registration, live reboot-hook registration, remove hooks, the missing main replay at `zigux/tests/phase11_gpio_wdt.zig`, the missing shared Phase 11 build route at `zigux/tests/phase11_build.zig`, or hardware-backed validation yet.
 
-The next honest bounded step remains one equally small gpio watchdog review-surface or validation-truthfulness repair inside the same packet rather than new runtime behavior.
+The next honest bounded step remains either restoring those directly coupled replay surfaces beside the visible starter or keeping this archived note packet trimmed to what current `master` actually exports.
