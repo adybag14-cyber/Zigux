@@ -208,6 +208,8 @@ SELFTEST_CASES = [
     "missing_make_route_counts_command",
     "missing_make_remaining_gap_command",
     "missing_workflow_validate_route",
+    "missing_workflow_artifact_diff_contract_self_test_route",
+    "missing_workflow_artifact_diff_contract_route",
     "missing_workflow_artifact_diff_determinism_self_test_route",
     "missing_workflow_artifact_diff_determinism_route",
     "missing_workflow_remaining_gap_self_test_route",
@@ -743,6 +745,54 @@ def run_selftest() -> None:
             ),
         )
         covered_cases.append("missing_workflow_validate_route")
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "missing workflow artifact-diff contract self-test route",
+            lambda: check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            ),
+        )
+        covered_cases.append("missing_workflow_artifact_diff_contract_self_test_route")
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "        run: python3 scripts/zigux/check-artifact-diff-contract.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "missing workflow artifact-diff contract route",
+            lambda: check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            ),
+        )
+        covered_cases.append("missing_workflow_artifact_diff_contract_route")
 
         write_baseline()
         workflow.write_text(
