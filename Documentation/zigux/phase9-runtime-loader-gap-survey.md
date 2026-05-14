@@ -87,16 +87,23 @@ the shared `zigux/tests/phase9_build.zig` replay, and the focused
 the exact shared owner map and blocked publication boundary back to
 `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`.
 
-Fresh repo-first inspection also shows `zigux/tests/README.md` still keeps the
-shared Phase 9 build and survey files visible, but its key entrypoint list
-still blurs that packet into the tail of the Phase 8 flow and does not yet call
-out `Documentation/zigux/phase9-runtime-loader-gap-survey.md` or
-`zigux/tests/runtime_loader_gap_manifest.json` beside the shared loader-facing
-packet.
+Fresh repo-first inspection now also shows `zigux/tests/README.md` keeps that
+same shared Phase 9 loader-gap packet explicit through a dedicated Phase 9 flow
+section that names `Documentation/zigux/phase9-runtime-loader-gap-survey.md`,
+`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`,
+`scripts/zigux/check-phase9-build-only-surface.py`,
+`zigux/tests/runtime_loader_gap_manifest.json`,
+`zigux/tests/runtime_loader_gap_survey.zig`,
+`zigux/tests/runtime_loader_allocator_init_flow.zig`,
+`zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`,
+and the focused `make -C zigux phase9-runtime-loader-shared-tests`,
+`make -C zigux phase9-test`, and `make -C zigux phase9` replay routes instead
+of leaving that packet blurred into the tail of the Phase 8 flow.
 
-That means the earlier docs-root undercount is cleared on current `master`; the
-remaining same-lane follow-through is now tests-root reminder cleanup rather
-than docs-root inventory sync.
+That means the earlier docs-root undercount and the later tests-root undercount
+are both cleared on current `master`; the remaining same-lane follow-through is
+now future reminder drift around the blocked module-metadata and
+depmod-publication boundary rather than shared packet inventory sync.
 
 ## Historical Reminder Wording
 
@@ -118,6 +125,16 @@ Repair `Documentation/zigux/README.md` first, then re-read
 `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and
 `zigux/tests/README.md` before reopening any broader shared reminder pass.
 
+The tests-root follow-through that just closed read like this before
+`zigux/tests/README.md` caught up:
+
+Fresh repo-first inspection also shows `zigux/tests/README.md` still keeps the
+shared Phase 9 build and survey files visible, but its key entrypoint list
+still blurs that packet into the tail of the Phase 8 flow and does not yet call
+out `Documentation/zigux/phase9-runtime-loader-gap-survey.md` or
+`zigux/tests/runtime_loader_gap_manifest.json` beside the shared loader-facing
+packet.
+
 Keep that historical wording visible until the dedicated
 `zigux/tests/runtime_loader_gap_survey.zig` guard is refreshed too, so future
 runs can still see exactly which packet-local drift the previous follow-through
@@ -125,14 +142,14 @@ closed.
 
 ## Next Bounded Step
 
-Keep future follow-through inside the smallest shared reminder or survey surface
-that regresses after the docs-root sync. Start with `zigux/tests/README.md` so
-its shared Phase 9 packet listing names
-`Documentation/zigux/phase9-runtime-loader-gap-survey.md` and
-`zigux/tests/runtime_loader_gap_manifest.json` beside the shared loader-facing
-surfaces; then re-read `Documentation/zigux/review-checklist.md` and
-`scripts/zigux/README.md` before reopening any broader shared reminder pass.
+Leave this note parked unless `Documentation/zigux/README.md`,
+`scripts/zigux/README.md`, `zigux/tests/README.md`, or
+`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` drifts again
+around the shared loader-gap packet or the blocked module-metadata and
+depmod-publication boundary.
 
-Keep future follow-through inside the smallest regressed shared surface instead
-of reopening pilot-family behavior, loader implementation, or new checker
-growth.
+When that happens, start with the smallest shared reminder surface that
+regresses, keep the exact owner map and blocked publication boundary deferred
+back to `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, and keep
+future follow-through inside shared reminder truthfulness instead of reopening
+pilot-family behavior, loader implementation, or new checker growth.
