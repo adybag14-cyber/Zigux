@@ -281,6 +281,16 @@ test "phase 9 runtime loader allocator/init-flow replay keeps bitmap and kretpro
     try kretprobe_request.releaseWithoutSubstrate();
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, bitmap_request.state);
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, kretprobe_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        bitmap_request,
+        .released_without_substrate,
+        bitmap_pending,
+    ));
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        kretprobe_request,
+        .released_without_substrate,
+        kretprobe_pending,
+    ));
 }
 
 test "phase 9 runtime loader allocator/init-flow replay keeps initialized prepared snapshots stable even if later live state would look exited" {
