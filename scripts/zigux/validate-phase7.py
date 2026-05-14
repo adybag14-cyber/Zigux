@@ -82,6 +82,8 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+        "make -C zigux phase7-string-helpers-survey",
+        "make -C zigux phase7-string-helpers-sample-boundary",
         "make -C zigux phase7-cmdline-survey",
         "make -C zigux phase7-argv-split-survey",
         "make -C zigux phase7-rbtree-survey",
@@ -131,30 +133,38 @@ REQUIRED_MARKERS = {
         "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
     ],
     "zigux/tests/phase7_build.zig": [
-        '"phase7_cmdline.zig"',
-        '"phase7-cmdline-survey-tests"',
-        '"phase7_argv_split.zig"',
-        '"phase7-argv-split-survey-tests"',
-        '"phase7_rbtree.zig"',
-        '"phase7-rbtree-survey-tests"',
+        "\"phase7_string_helpers.zig\"",
+        "\"phase7-string-helpers-tests\"",
+        "\"phase7_string_helpers_survey.zig\"",
+        "\"phase7-string-helpers-survey-tests\"",
+        "\"phase7_string_helpers_sample_boundary.zig\"",
+        "\"phase7-string-helpers-sample-boundary-tests\"",
+        "\"phase7_cmdline.zig\"",
+        "\"phase7-cmdline-survey-tests\"",
+        "\"phase7_argv_split.zig\"",
+        "\"phase7-argv-split-survey-tests\"",
+        "\"phase7_rbtree.zig\"",
+        "\"phase7-rbtree-survey-tests\"",
     ],
     "zigux/Makefile": [
         "phase7-validate:",
-        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test',
-        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py',
-        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py --self-test',
-        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py',
-        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py --self-test',
-        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py',
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py",
+        "phase7-string-helpers-survey:",
+        "phase7-string-helpers-sample-boundary:",
         "phase7-cmdline-survey:",
         "phase7-argv-split-survey:",
         "phase7-rbtree-survey:",
         "phase7-test:",
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
-        '"current_master_state": "restored_starter_packet"',
-        '"lib/string_helpers.zig"',
-        '"zigux/tests/phase7_string_helpers.zig"',
+        "\"current_master_state\": \"restored_starter_packet\"",
+        "\"lib/string_helpers.zig\"",
+        "\"zigux/tests/phase7_string_helpers.zig\"",
     ],
     "zigux/tests/phase7_string_helpers_survey.zig": [
         "restored starter packet",
@@ -275,7 +285,51 @@ def run_self_test() -> None:
         remove_once(
             tmp_root,
             "zigux/tests/phase7_build.zig",
-            '"phase7-argv-split-survey-tests"',
+            "\"phase7-string-helpers-survey-tests\"",
+        )
+        expect_missing_marker(
+            tmp_root,
+            'zigux/tests/phase7_build.zig: "phase7-string-helpers-survey-tests"',
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/tests/phase7_build.zig",
+            "\"phase7-string-helpers-sample-boundary-tests\"",
+        )
+        expect_missing_marker(
+            tmp_root,
+            'zigux/tests/phase7_build.zig: "phase7-string-helpers-sample-boundary-tests"',
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/Makefile",
+            "phase7-string-helpers-survey:",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/Makefile: phase7-string-helpers-survey:",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/Makefile",
+            "phase7-string-helpers-sample-boundary:",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/Makefile: phase7-string-helpers-sample-boundary:",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/tests/phase7_build.zig",
+            "\"phase7-argv-split-survey-tests\"",
         )
         expect_missing_marker(
             tmp_root,
@@ -305,7 +359,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=11")
 
 
 def main() -> int:
