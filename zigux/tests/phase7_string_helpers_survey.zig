@@ -67,6 +67,10 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "string_helpers.string_escape_mem_any_np");
     try expectContains(helper_tests, "string_helpers.stringEscapeStr(");
     try expectContains(helper_tests, "string_helpers.string_escape_str_any_np");
+    try expectContains(helper_tests, "phase 7 string helpers starter keeps exact-fit, terminator-only, and zero-capacity unescape destinations reviewable");
+    try expectContains(helper_tests, "const exact_fit_len = string_helpers.stringUnescape(\"\\n\\r\", &exact_fit, exact_fit.len, string_helpers.UNESCAPE_SPACE);");
+    try expectContains(helper_tests, "const terminator_only_len = string_helpers.stringUnescape(\"\\n\\r\", &terminator_only, 1, string_helpers.UNESCAPE_SPACE);");
+    try expectContains(helper_tests, "const zero_capacity_len = string_helpers.stringUnescape(\"\\n\", &zero_capacity, 0, string_helpers.UNESCAPE_SPACE);");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "string_helpers.memcpyAndPad(&requested_beyond_source, \"go\", 8, '!');");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
