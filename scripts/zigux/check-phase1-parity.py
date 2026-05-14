@@ -197,7 +197,6 @@ REQUIRED_PARITY_KEYS = {
     ),
 }
 
-
 def fixture_path(root: Path) -> Path:
     return root / FIXTURE_REL
 
