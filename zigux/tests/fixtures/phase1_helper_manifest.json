@@ -264,6 +264,13 @@
         "test \"match_string mirrors matchString for empty and matched lists\""
       ],
       "lookup_review_summary": "helper-local string lookup anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string fixture keys, so C-string list lookup order and the Linux-style alias remain review-visible at the helper surface",
+      "sysfs_review_anchors": [
+        "test \"sysfsStreq treats trailing newline and NUL as equivalent\"",
+        "test \"sysfs_streq mirrors sysfsStreq newline and NUL equivalence\"",
+        "test \"sysfsMatchString finds newline-aware matches and preserves first-match order\"",
+        "test \"sysfs_match_string mirrors sysfsMatchString for empty and matched lists\""
+      ],
+      "sysfs_review_summary": "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit through the direct string tests because the shared Phase 1 replay still carries no dedicated sysfs fixture keys, so sysfsStreq and sysfs_streq plus sysfsMatchString and sysfs_match_string remain review-visible at the helper surface",
       "strnchr_review_anchor": "test \"strnchr honors count and C-string boundaries\"",
       "strnchr_review_summary": "the direct strnchr follow-up stays explicit because the shared Phase 1 replay still does not carry a dedicated counted-search fixture key, so count-limited scanning and embedded-NUL stop behavior remain owned by the helper-local anchor",
       "trim_nul_review_anchor": "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"",
@@ -293,7 +300,7 @@
         "memchr_inv_index",
         "memchr_inv_none"
       ],
-      "next_safe_step_note": "If this helper lane reopens, the smallest note-only follow-through is to make the helper-local sysfsStreq/sysfsMatchString newline-aware equality and lookup-order anchors explicit in the string review packet, because the shared Phase 1 replay still carries no dedicated sysfs fixture keys."
+      "next_safe_step_note": "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the string review packet and closure note unless current master later adds dedicated shared sysfs fixture keys; until then, newline-aware equality and lookup order remain owned by the direct string tests."
     }
   }
 }
