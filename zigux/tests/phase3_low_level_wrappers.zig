@@ -113,6 +113,35 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), mmio.read64(base, 5));
 }
 
+test "phase3 low-level wrappers keep mmio range boundaries reviewable" {
+    const desc = mmio.range(0x1000, 32, 8);
+    const empty = mmio.range(0x2000, 0, 4);
+
+    try std.testing.expect(mmio.containsOffset(desc, 0));
+    try std.testing.expect(mmio.containsOffset(desc, 31));
+    try std.testing.expect(!mmio.containsOffset(desc, 32));
+
+    try std.testing.expect(mmio.containsAccess(desc, 0, 1));
+    try std.testing.expect(mmio.containsAccess(desc, 24, @sizeOf(u64)));
+    try std.testing.expect(!mmio.containsAccess(desc, 25, @sizeOf(u64)));
+    try std.testing.expect(!mmio.containsAccess(desc, 32, 1));
+    try std.testing.expect(!mmio.containsAccess(desc, 0, 33));
+    try std.testing.expect(!mmio.containsAccess(desc, 0, 0));
+
+    try std.testing.expectEqual(@as(?usize, 0), mmio.offsetForIndex(desc, 0));
+    try std.testing.expectEqual(@as(?usize, 8), mmio.offsetForIndex(desc, 1));
+    try std.testing.expectEqual(@as(?usize, 24), mmio.offsetForIndex(desc, 3));
+    try std.testing.expectEqual(@as(?usize, null), mmio.offsetForIndex(desc, 4));
+    try std.testing.expectEqual(@as(?usize, null), mmio.offsetForIndex(empty, 0));
+
+    try std.testing.expectEqual(@as(?usize, 0), mmio.typedOffsetForIndex(desc, u32, 0));
+    try std.testing.expectEqual(@as(?usize, 8), mmio.typedOffsetForIndex(desc, u32, 1));
+    try std.testing.expectEqual(@as(?usize, 24), mmio.typedOffsetForIndex(desc, u64, 3));
+    try std.testing.expectEqual(@as(?usize, null), mmio.typedOffsetForIndex(desc, u16, 4));
+    try std.testing.expectEqual(@as(?usize, null), mmio.typedOffsetForIndex(desc, u64, std.math.maxInt(usize)));
+    try std.testing.expectEqual(@as(?usize, null), mmio.typedOffsetForIndex(empty, u8, 0));
+}
+
 test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {
     var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     const base = narrow.addressOf(&bytes[0]);
