@@ -641,6 +641,26 @@ def run_self_test() -> int:
 
         write_text(
             root,
+            "zigux/tests/README.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["zigux/tests/README.md"]
+                if marker != "`zigux/tests/phase13_build.zig`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:zigux/tests/README.md:`zigux/tests/phase13_build.zig`"
+            ],
+            "missing_tests_readme_phase13_build_gap_marker_failed",
+        )
+        write_text(root, "zigux/tests/README.md", "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n")
+        case_count += 1
+
+        write_text(
+            root,
             ".github/workflows/zigux-bootstrap.yml",
             "\n".join(
                 marker
