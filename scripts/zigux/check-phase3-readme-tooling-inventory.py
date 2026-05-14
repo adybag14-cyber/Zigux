@@ -472,6 +472,26 @@ def run_self_test() -> int:
             return 1
         _write(root / missing_phase3_path, "# stub\n")
 
+        missing_phase3_check_lib_path = Path("scripts/zigux/phase3_check_lib.py")
+        (root / missing_phase3_check_lib_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase3_check_lib_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 3 shared check-lib repo file was not reported")
+            return 1
+        _write(root / missing_phase3_check_lib_path, "# stub\n")
+
+        missing_phase3_generate_wrappers_path = Path("scripts/zigux/generate-phase3-check-wrappers.py")
+        (root / missing_phase3_generate_wrappers_path).unlink()
+        broken = validate_repo_files(root)
+        expected = f"missing repo file: {missing_phase3_generate_wrappers_path.as_posix()}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 3 wrapper-generator repo file was not reported")
+            return 1
+        _write(root / missing_phase3_generate_wrappers_path, "# stub\n")
+
         missing_linux_zigux_header_governance_path = Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")
         (root / missing_linux_zigux_header_governance_path).unlink()
         broken = validate_repo_files(root)
