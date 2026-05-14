@@ -25,6 +25,7 @@ REQUIRED_GROWTH_RULE = (
     "change also lands packet-local proof and updates this note."
 )
 REQUIRED_PACKET_MARKERS = {
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md": 1,
     "zigux/bindings/abi.zig": 2,
     "zigux/bindings/dev_t.zig": 2,
     "zigux/bindings/notifier_abi.zig": 2,
@@ -156,6 +157,7 @@ PHASE3_ZIGUX_H_ROLE=linux-facing relay and aggregation header for already-landed
 
 PHASE3_ZIGUX_H_GROWTH_RULE=new top-level helper families may land in include/linux/zigux.h, and already-landed top-level review surfaces may be rehomed there, only when the same bounded change also lands packet-local proof and updates this note.
 
+Documentation/zigux/phase3-export-uapi-boundary-survey.md
 zigux/bindings/abi.zig
 zigux/bindings/dev_t.zig
 zigux/bindings/notifier_abi.zig
@@ -196,6 +198,23 @@ aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` o
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected role-marker drift was not reported")
+        return 1
+
+    broken = validate_text(
+        sample_note.replace(
+            "Documentation/zigux/phase3-export-uapi-boundary-survey.md\n",
+            "",
+            1,
+        ),
+        sample_header,
+    )
+    expected = (
+        "packet marker count drift: Documentation/zigux/phase3-export-uapi-boundary-survey.md "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected export-uapi survey marker drift was not reported")
         return 1
 
     broken = validate_text(sample_note.replace("zigux/uapi/version.zig\n", "", 1), sample_header)
