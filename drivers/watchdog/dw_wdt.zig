@@ -100,6 +100,8 @@ pub const PlatformHandoffSummary = struct {
     timer_clock_available: bool,
     apb_clock_present: bool,
     reset_control_available: bool,
+    reset_release_call: []const u8,
+    reset_release_requested: bool,
     drvdata_published: bool,
     timeout_programming_requested: bool,
     imported_running_state: bool,
@@ -119,6 +121,10 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
         .has_pretimeout_irq = request.has_pretimeout_irq,
     });
 
+    const reset_release_requested = request.drvdata_published and
+        preflight.timer_clock_available and
+        preflight.reset_control_available;
+
     if (!request.drvdata_published) {
         return .{
             .anchor = anchor_path,
@@ -128,6 +134,8 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .timer_clock_available = preflight.timer_clock_available,
             .apb_clock_present = preflight.apb_clock_present,
             .reset_control_available = preflight.reset_control_available,
+            .reset_release_call = "reset_control_deassert",
+            .reset_release_requested = false,
             .drvdata_published = false,
             .timeout_programming_requested = false,
             .imported_running_state = request.imported_running,
@@ -148,6 +156,8 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .timer_clock_available = false,
             .apb_clock_present = preflight.apb_clock_present,
             .reset_control_available = preflight.reset_control_available,
+            .reset_release_call = "reset_control_deassert",
+            .reset_release_requested = false,
             .drvdata_published = true,
             .timeout_programming_requested = false,
             .imported_running_state = false,
@@ -168,6 +178,8 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .timer_clock_available = true,
             .apb_clock_present = preflight.apb_clock_present,
             .reset_control_available = preflight.reset_control_available,
+            .reset_release_call = "reset_control_deassert",
+            .reset_release_requested = reset_release_requested,
             .drvdata_published = true,
             .timeout_programming_requested = false,
             .imported_running_state = true,
@@ -188,6 +200,8 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .timer_clock_available = true,
             .apb_clock_present = preflight.apb_clock_present,
             .reset_control_available = preflight.reset_control_available,
+            .reset_release_call = "reset_control_deassert",
+            .reset_release_requested = reset_release_requested,
             .drvdata_published = true,
             .timeout_programming_requested = true,
             .imported_running_state = false,
@@ -195,7 +209,7 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .restart_priority_value = default_restart_priority,
             .registration_ready = false,
             .blocked_on_live_platform_registration = true,
-            .blocked_on_live_mmio = true,
+            .blocked_onLive_mmio = true,
         };
     }
 
@@ -207,6 +221,8 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
         .timer_clock_available = true,
         .apb_clock_present = preflight.apb_clock_present,
         .reset_control_available = preflight.reset_control_available,
+        .reset_release_call = "reset_control_deassert",
+        .reset_release_requested = reset_release_requested,
         .drvdata_published = true,
         .timeout_programming_requested = true,
         .imported_running_state = false,
@@ -299,6 +315,8 @@ pub const PlatformRegistrationScaffoldSummary = struct {
     stop_on_reboot_requested: bool,
     restart_priority_value: i32,
     reset_release_ready: bool,
+    reset_release_call: []const u8,
+    reset_release_requested: bool,
     pretimeout_irq_optional: bool,
     blocked_on_live_platform_registration: bool,
     blocked_on_live_mmio: bool,
@@ -332,6 +350,8 @@ pub fn platformRegistrationScaffoldSummary(
         .stop_on_reboot_requested = handoff.stop_on_reboot_requested,
         .restart_priority_value = handoff.restart_priority_value,
         .reset_release_ready = request.has_reset_control,
+        .reset_release_call = handoff.reset_release_call,
+        .reset_release_requested = handoff.reset_release_requested,
         .pretimeout_irq_optional = true,
         .blocked_on_live_platform_registration = handoff.blocked_on_live_platform_registration,
         .blocked_on_live_mmio = handoff.blocked_on_live_mmio,
@@ -444,4 +464,33 @@ test "phase11 dw_wdt registration order summary keeps blocked registration expli
     try std.testing.expect(!blocked.registration_requested);
     try std.testing.expect(blocked.blocked_on_live_platform_registration);
     try std.testing.expect(!blocked.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt platform handoff keeps reset-release intent explicit" {
+    const blocked = platformHandoffSummary(.{
+        .has_named_tclk = true,
+        .has_shared_clock = false,
+        .has_pclk = true,
+        .has_reset_control = true,
+        .has_pretimeout_irq = false,
+        .drvdata_published = false,
+        .timeout_programmed = false,
+        .imported_running = false,
+    });
+    try std.testing.expectEqualStrings("reset_control_deassert", blocked.reset_release_call);
+    try std.testing.expect(!blocked.reset_release_requested);
+
+    const ready = platformHandoffSummary(.{
+        .has_named_tclk = true,
+        .has_shared_clock = false,
+        .has_pclk = true,
+        .has_reset_control = true,
+        .has_pretimeout_irq = false,
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = false,
+    });
+    try std.testing.expectEqualStrings("reset_control_deassert", ready.reset_release_call);
+    try std.testing.expect(ready.reset_release_requested);
+    try std.testing.expect(ready.blocked_on_live_mmio);
 }
