@@ -179,6 +179,13 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     );
     defer std.testing.allocator.free(phase9_build);
 
+    const makefile = try readRepoFileAlloc(
+        std.testing.allocator,
+        "zigux/Makefile",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(makefile);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
     const manifest = parsed.value;
@@ -351,4 +358,10 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
+
+    try expectContains(makefile, "phase9-runtime-bitmap-top-bit-test:");
+    try expectContains(makefile, "$(ZIG) build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig --summary all");
+    try expectContains(makefile, "phase9-runtime-loader-shared-tests:");
+    try expectContains(makefile, "$(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all");
+    try expectContains(makefile, "phase9: phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test");
 }
