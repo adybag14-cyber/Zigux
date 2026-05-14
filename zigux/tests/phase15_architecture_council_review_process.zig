@@ -299,6 +299,7 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`scripts/zigux/README.md` already keeps `Documentation/zigux/phase15-parity-scorecard-survey.md` explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/tests/README.md` remains intentionally scoped by `Documentation/zigux/phase15-governance-lane-sequencing.md` plus `scripts/zigux/check-phase15-shared-summary-gap.py` to the sequencing-marker plus replay-route packet instead of a duplicate parity-scorecard-survey reminder") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "scripts/zigux/check-phase15-shared-summary-gap.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "- `Documentation/zigux/phase15-indefinite-c-policy.md`") != null);
 }
 
 test "phase 15 review checklist stays aligned with the council review-process hook" {
