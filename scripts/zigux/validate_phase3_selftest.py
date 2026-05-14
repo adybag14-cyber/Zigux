@@ -93,6 +93,7 @@ PHASE3_SELFTEST_DRIVER_COMMAND = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py"
 )
 PHASE3_VALIDATE_SUPPORT_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check",
 )
@@ -476,7 +477,7 @@ def run_self_test() -> int:
         expected = f"missing phase3-validate command: {PHASE3_VALIDATE_SUPPORT_COMMANDS[0]}"
         if expected not in missing:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected missing audit-doc-sync makefile command was not reported")
+            print("expected missing live ABI dump gate makefile command was not reported")
             return 1
 
         (root / MAKEFILE_PATH).write_text(
@@ -491,6 +492,23 @@ def run_self_test() -> int:
         (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
         missing = validate_makefile(root)
         expected = f"missing phase3-validate command: {PHASE3_VALIDATE_SUPPORT_COMMANDS[1]}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing audit-doc-sync makefile command was not reported")
+            return 1
+
+        (root / MAKEFILE_PATH).write_text(
+            _synthetic_makefile_text(),
+            encoding="utf-8",
+        )
+        makefile = (root / MAKEFILE_PATH).read_text(encoding="utf-8").replace(
+            "\t" + PHASE3_VALIDATE_SUPPORT_COMMANDS[2] + "\n",
+            "",
+            1,
+        )
+        (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
+        missing = validate_makefile(root)
+        expected = f"missing phase3-validate command: {PHASE3_VALIDATE_SUPPORT_COMMANDS[2]}"
         if expected not in missing:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing wrapper-check makefile command was not reported")
