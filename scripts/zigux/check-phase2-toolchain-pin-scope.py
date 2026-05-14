@@ -23,6 +23,10 @@ PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure
 MAKEFILE = ROOT / "zigux" / "Makefile"
 
 EXPECTED_PIN_TARGETS = ["x86_64-linux"]
+EXPECTED_UPGRADE_POLICY_REQUIRED_MAKE_ROUTES = [
+    "phase2-toolchain",
+    "phase2-validate",
+]
 ARCHIVE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 NOTE_STATIC_MARKERS = [
@@ -30,6 +34,11 @@ NOTE_STATIC_MARKERS = [
     "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
     "the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the docs-root summary, the shared validators, the closure note, and the shared review checklist",
     "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
+]
+UPGRADE_POLICY_NOTE_MARKERS = [
+    "the Phase 2 toolchain policy keeps `channel` and `minimum_version` in lockstep so the pinned bootstrap archive and the minimum accepted Zig version do not drift apart",
+    "the Phase 2 toolchain policy requires refreshing the pinned `x86_64-linux` archive sha256 whenever the pinned channel changes",
+    "the Phase 2 toolchain policy requires rerunning `make -C zigux phase2-toolchain` and `make -C zigux phase2-validate` before landing any pinned Zig change",
 ]
 PHASE2_ROUTE_COUNT_MARKER = "PHASE2_LINUX_STYLE_ROUTE_COUNT=6"
 PHASE2_ROUTE_LIST_MARKER = (
@@ -236,6 +245,28 @@ def validate_policy(payload: dict[str, object]) -> list[str]:
     for target_key, digest in archive_sha256.items():
         if not isinstance(digest, str) or not ARCHIVE_SHA256_RE.fullmatch(digest.lower()):
             issues.append(f"policy:archive_sha256:{target_key}:expected_sha256_hex")
+
+    upgrade_policy = payload.get("upgrade_policy")
+    if not isinstance(upgrade_policy, dict):
+        issues.append("policy:upgrade_policy:expected_object")
+        return issues
+
+    if upgrade_policy.get("channel_minimum_lockstep") is not True:
+        issues.append("policy:upgrade_policy:channel_minimum_lockstep:expected_true")
+
+    archive_target_scope = upgrade_policy.get("archive_target_scope")
+    if archive_target_scope != EXPECTED_PIN_TARGETS:
+        issues.append(
+            "policy:upgrade_policy:archive_target_scope="
+            f"{archive_target_scope!r}:expected={EXPECTED_PIN_TARGETS!r}"
+        )
+
+    required_make_routes = upgrade_policy.get("required_make_routes")
+    if required_make_routes != EXPECTED_UPGRADE_POLICY_REQUIRED_MAKE_ROUTES:
+        issues.append(
+            "policy:upgrade_policy:required_make_routes="
+            f"{required_make_routes!r}:expected={EXPECTED_UPGRADE_POLICY_REQUIRED_MAKE_ROUTES!r}"
+        )
     return issues
 
 
@@ -271,6 +302,9 @@ def validate_phase2_notes(text: str, *, payload: dict[str, object]) -> list[str]
                 issues.append(f"phase2_toolchain_notes:missing_marker:{digest_marker}")
 
     for marker in NOTE_STATIC_MARKERS:
+        if marker not in text:
+            issues.append(f"phase2_toolchain_notes:missing_marker:{marker}")
+    for marker in UPGRADE_POLICY_NOTE_MARKERS:
         if marker not in text:
             issues.append(f"phase2_toolchain_notes:missing_marker:{marker}")
     for marker in (PHASE2_ROUTE_COUNT_MARKER, PHASE2_ROUTE_LIST_MARKER):
@@ -343,7 +377,7 @@ def extract_makefile_target_lines(text: str, target_name: str) -> list[str] | No
         if line.startswith(target_header):
             target_lines: list[str] = []
             for following in lines[index + 1 :]:
-                if following.startswith("\t"):
+                if following.startswith("	"):
                     target_lines.append(following.strip())
                     continue
                 if not following.strip():
@@ -385,6 +419,11 @@ def run_self_test() -> int:
         "archive_sha256": {
             "x86_64-linux": SELF_TEST_ARCHIVE_SHA256,
         },
+        "upgrade_policy": {
+            "channel_minimum_lockstep": True,
+            "archive_target_scope": EXPECTED_PIN_TARGETS,
+            "required_make_routes": EXPECTED_UPGRADE_POLICY_REQUIRED_MAKE_ROUTES,
+        },
     }
     assert validate_policy(valid_policy) == []
 
@@ -398,6 +437,7 @@ def run_self_test() -> int:
             f"- `{PHASE2_ROUTE_COUNT_MARKER}`",
             f"- `{PHASE2_ROUTE_LIST_MARKER}`",
             *[f"- {marker}" if not marker.startswith("the ") else f"- {marker}" for marker in NOTE_STATIC_MARKERS],
+            *[f"- {marker}" for marker in UPGRADE_POLICY_NOTE_MARKERS],
         ]
     )
     assert validate_phase2_notes(valid_notes, payload=valid_policy) == []
@@ -411,9 +451,9 @@ def run_self_test() -> int:
             "ZIG_LOCAL_TOOLCHAIN := $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),$(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig)))",
             "ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)",
             "phase2-toolchain:",
-            '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+            '	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
+            "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+            "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "phase2-validate: phase2-tools phase2-kconfig",
             "phase2: phase2-validate phase2-cross",
         ]
@@ -475,6 +515,29 @@ def run_self_test() -> int:
     assert closure_validator_issues == [expected_closure_validator_issue]
 
     assert "policy:phase='Phase 3':expected='Phase 2'" in validate_policy({**valid_policy, "phase": "Phase 3"})
+    assert "policy:upgrade_policy:channel_minimum_lockstep:expected_true" in validate_policy(
+        {
+            **valid_policy,
+            "upgrade_policy": {
+                "channel_minimum_lockstep": False,
+                "archive_target_scope": EXPECTED_PIN_TARGETS,
+                "required_make_routes": EXPECTED_UPGRADE_POLICY_REQUIRED_MAKE_ROUTES,
+            },
+        }
+    )
+    assert (
+        "policy:upgrade_policy:required_make_routes=['phase2-toolchain']:expected=['phase2-toolchain', 'phase2-validate']"
+        in validate_policy(
+            {
+                **valid_policy,
+                "upgrade_policy": {
+                    "channel_minimum_lockstep": True,
+                    "archive_target_scope": EXPECTED_PIN_TARGETS,
+                    "required_make_routes": ["phase2-toolchain"],
+                },
+            }
+        )
+    )
     assert any(issue.startswith("workflow_forbidden_fragment:") for issue in validate_exact_workflow_runs("run: python3 scripts/zigux/check-zig-toolchain.py --arch x86_64", payload=valid_policy))
     assert 'makefile_exact_run:scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)":count=2:expected=1' in validate_exact_makefile_runs(
         valid_makefile + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"'
@@ -500,10 +563,10 @@ def run_self_test() -> int:
     leaked_scope = "\n".join(
         [
             "phase2-toolchain:",
-            '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
+            '	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
             "phase2-validate: phase2-tools phase2-kconfig",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+            "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+            "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "phase2: phase2-validate phase2-cross",
         ]
     )
@@ -518,7 +581,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=28")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
