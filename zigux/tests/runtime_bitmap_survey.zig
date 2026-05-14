@@ -159,6 +159,20 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     );
     defer std.testing.allocator.free(runtime_bitmap_loader);
 
+    const runtime_bitmap_module = try readRepoFileAlloc(
+        std.testing.allocator,
+        "zigux/tests/runtime_bitmap_module.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_bitmap_module);
+
+    const runtime_bitmap_diff = try readRepoFileAlloc(
+        std.testing.allocator,
+        "zigux/tests/runtime_bitmap_diff.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_bitmap_diff);
+
     const phase9_build = try readRepoFileAlloc(
         std.testing.allocator,
         "zigux/tests/phase9_build.zig",
@@ -294,6 +308,21 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(runtime_bitmap_loader, "try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);");
     try expectContains(runtime_bitmap_loader, "try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_plan.init_flow.handoff_stage);");
     try expectContains(runtime_bitmap_loader, "try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);");
+
+    try expectContains(runtime_bitmap_module, "runtime bitmap module gate replays current lifecycle and selftest behavior directly");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.exited, exited.stage);");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectError(error.InvalidLifecycleTransition, module.clearRange(1, 1));");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectError(error.InvalidLifecycleTransition, module.copyFrom(&source));");
+
+    try expectContains(runtime_bitmap_diff, "runtime bitmap diff gate replays bounded lib/test_bitmap.c expectations");
+    try expectContains(runtime_bitmap_diff, "runtime bitmap diff gate keeps zero-length mutation windows explicit");
+    try expectContains(runtime_bitmap_diff, "runtime bitmap diff gate keeps copy parity and cleared tail semantics explicit");
+    try expectContains(runtime_bitmap_diff, "runtime bitmap diff gate keeps selftest and exit lifecycle guards reviewable");
+    try expectContains(runtime_bitmap_diff, "try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(top_bit + 1, 1));");
+    try expectContains(runtime_bitmap_diff, "try std.testing.expectError(error.InvalidLifecycleTransition, module.clearRange(top_bit + 1, 0));");
+    try expectContains(runtime_bitmap_diff, "try std.testing.expectError(error.InvalidSourceLifecycle, fresh_target.copyFrom(&exited_source));");
 
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(module_slice, "`zigux/tests/runtime_bitmap_diff.zig`");
