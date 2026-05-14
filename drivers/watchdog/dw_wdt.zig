@@ -209,7 +209,7 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .restart_priority_value = default_restart_priority,
             .registration_ready = false,
             .blocked_on_live_platform_registration = true,
-            .blocked_onLive_mmio = true,
+            .blocked_on_live_mmio = true,
         };
     }
 
