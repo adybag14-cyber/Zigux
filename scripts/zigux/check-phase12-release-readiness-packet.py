@@ -33,8 +33,8 @@ RELEASE_READINESS_MARKERS = [
     "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
     "The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
     "Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
-    "`scripts/zigux/README.md` and `scripts/zigux/check-build-only-phase12-surface.py` still carry older wording that treats `scripts/zigux/validate-phase12.py` as support material or denies the shipped route.",
-    "while `scripts/zigux/README.md` and `scripts/zigux/check-build-only-phase12-surface.py` still lag behind that same support-checker-plus-validate-route reminder.",
+    "`scripts/zigux/README.md` still lacks any dedicated Phase 12 scripts-root summary and `scripts/zigux/check-build-only-phase12-surface.py` still carries older marker expectations around the shipped `phase12-validate` route.",
+    "while `scripts/zigux/README.md` still lacks a dedicated Phase 12 flow block and `scripts/zigux/check-build-only-phase12-surface.py` still needs a later scripts-root marker sync before that broader reminder stack is fully current.",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -185,10 +185,10 @@ def good_release_readiness_text() -> str:
             "## Current Release Reading",
             "- The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
             "- Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
-            "- `scripts/zigux/README.md` and `scripts/zigux/check-build-only-phase12-surface.py` still carry older wording that treats `scripts/zigux/validate-phase12.py` as support material or denies the shipped route.",
+            "- `scripts/zigux/README.md` still lacks any dedicated Phase 12 scripts-root summary and `scripts/zigux/check-build-only-phase12-surface.py` still carries older marker expectations around the shipped `phase12-validate` route.",
             "",
             "## Next Bounded Step",
-            "- while `scripts/zigux/README.md` and `scripts/zigux/check-build-only-phase12-surface.py` still lag behind that same support-checker-plus-validate-route reminder.",
+            "- while `scripts/zigux/README.md` still lacks a dedicated Phase 12 flow block and `scripts/zigux/check-build-only-phase12-surface.py` still needs a later scripts-root marker sync before that broader reminder stack is fully current.",
             "",
         ]
     )
@@ -296,14 +296,14 @@ def run_self_test() -> int:
         write_text(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
-                "`scripts/zigux/README.md` and `scripts/zigux/check-build-only-phase12-surface.py` still carry older wording that treats `scripts/zigux/validate-phase12.py` as support material or denies the shipped route.",
+                "`scripts/zigux/README.md` still lacks any dedicated Phase 12 scripts-root summary and `scripts/zigux/check-build-only-phase12-surface.py` still carries older marker expectations around the shipped `phase12-validate` route.",
                 "",
                 1,
             ),
         )
         expect_contains(
             check(tmp_root, source_text=MARKER),
-            "still carry older wording that treats `scripts/zigux/validate-phase12.py` as support material or denies the shipped route",
+            "still lacks any dedicated Phase 12 scripts-root summary and `scripts/zigux/check-build-only-phase12-surface.py` still carries older marker expectations around the shipped `phase12-validate` route",
             "missing current-gap marker",
         )
 
