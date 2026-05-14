@@ -48,8 +48,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
-  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+  group: ${{ format('{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: true
 
 jobs:
   bootstrap:
@@ -67,7 +67,6 @@ jobs:
 
       - name: Self-test Zig installer
         run: python3 scripts/zigux/install-zig.py --self-test
-
       - name: Install Zig
         run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain
 
@@ -387,7 +386,6 @@ jobs:
 
       - name: Run Phase 8 tooling tests
         run: make -C zigux phase8-test
-
       - name: Self-test Phase 9 build-only surface checker
         run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test
 
