@@ -15,7 +15,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 is where Zigux starts moving from earlier standalone helper ports into reusable in-kernel runtime helper families.
 
-The current `string_helpers` state on `master` now carries an expanded starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, bounded unescape, and bounded string-escape helpers reviewable while the broader family stays deliberately out of scope.
+The current `string_helpers` state on `master` now carries an expanded starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, bounded string-array ownership, bounded unescape, and bounded string-escape helpers reviewable while the broader family stays deliberately out of scope.
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample, so the dedicated boundary replay should keep that separation explicit while the expanded starter packet advances through helper-local review surfaces only.
 
@@ -64,6 +64,8 @@ The expanded starter packet on current `master` covers:
 - `stringEscapeMemAnyNp()` and `string_escape_mem_any_np()`
 - `stringEscapeStr()` and `string_escape_str()`
 - `stringEscapeStrAnyNp()` and `string_escape_str_any_np()`
+- `kasprintfStrarray()` and `kasprintf_strarray()`
+- `kfreeStrarray()` and `kfree_strarray()`
 - `memcpyAndPad()` and `memcpy_and_pad()`
 - `strreplace()`
 
@@ -76,6 +78,7 @@ The current starter replay keeps these proofs explicit:
 - bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting
 - bounded string unescaping across space, octal, hex, and special escape families, including in-place replays and unsupported-escape preservation
 - bounded string escaping across space, special, null, octal, hex, append-limited dictionary mode, and string-wrapper mode, including truncation-safe output accounting
+- bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown
 - bounded memcpy-and-pad behavior that truncates long copies, pads short ones, and stays inside the provided source slice
 - in-place replacement behavior that stops at the first NUL
 - the dedicated survey gate, manifest packet, no-sample boundary replay, shared validator route, shared build route, and Linux-style `make -C zigux phase7` replay
@@ -85,6 +88,7 @@ The current starter replay also keeps these ownership-focused boundaries explici
 - `skipSpaces()`, `trimSpaces()`, and `strim()` stop at the exported C-string boundary and keep caller-provided slices visible
 - exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit
 - `stringEscapeMem()` and `stringEscapeStrAnyNp()` keep append-limited and dictionary-mode output accounting inside caller-owned storage
+- `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results
 - `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries
 
 ## Non-goals
@@ -92,10 +96,10 @@ The current starter replay also keeps these ownership-focused boundaries explici
 This expanded starter slice does not yet claim:
 
 - the older parked missing-helper gap
-- the broader full-family packet that still leaves `parse_int_array()`, `kstrdup_quotable()`, `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, `kstrdup_and_replace()`, `kasprintf_strarray()`, `kfree_strarray()`, or `devm_kasprintf_strarray()` outside the current `master` helper packet
+- the broader full-family packet that still leaves `parse_int_array()`, `kstrdup_quotable()`, `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, `kstrdup_and_replace()`, or `devm_kasprintf_strarray()` outside the current `master` helper packet
 - a new `samples/zigux/` string-helper reference sample
 
 ## Next Bounded Step
 
-The next bounded follow-through should stay inside the expanded starter packet.
-The next bounded follow-through should keep the expanded starter packet truthful across the survey, manifest, boundary replay, validator, and slice note, then take one deeper helper-local expansion step only after that packet stays aligned again.
+The next bounded follow-through should stay inside the helper-local packet.
+Keep the expanded starter packet truthful across the survey, manifest, boundary replay, validator, and slice note, then take one deeper helper-local expansion step only after that packet stays aligned again.
