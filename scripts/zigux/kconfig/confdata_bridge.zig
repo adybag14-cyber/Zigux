@@ -183,8 +183,8 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         const raw_value = line[eq_index + 1 ..];
 
         const closing_quote_index = findClosingQuote(raw_value);
-        const malformed_quoted_duplicate = raw_value.len > 0 and raw_value[0] == '"' and closing_quote_index == null and findEntryIndex(entries.items, name) != null;
-        if (malformed_quoted_duplicate) continue;
+        const malformed_quoted_value = raw_value.len > 0 and raw_value[0] == '"' and closing_quote_index == null;
+        if (malformed_quoted_value) continue;
         const kind: EntryKind = if (isTristateValue(raw_value))
             .tristate
         else if (closing_quote_index != null)
@@ -550,7 +550,7 @@ test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
     try std.testing.expectEqualStrings("drivers\\", summary.entries[0].value);
 }
 
-test "confdata bridge emits escaped quoted payloads before trailing suffix bytes" {
+test "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata" {
     const Capture = struct {
         list: std.ArrayList(u8),
         allocator: std.mem.Allocator,
@@ -593,7 +593,7 @@ test "confdata bridge emits escaped quoted payloads before trailing suffix bytes
     );
 }
 
-test "confdata bridge leaves malformed quoted values as raw scalar values" {
+test "confdata bridge ignores malformed quoted values like upstream confdata" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
         allocator,
@@ -601,9 +601,9 @@ test "confdata bridge leaves malformed quoted values as raw scalar values" {
     );
     defer deinitSummary(allocator, &summary);
 
-    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
-    try std.testing.expectEqual(EntryKind.value, summary.entries[0].kind);
-    try std.testing.expectEqualStrings("\"unterminated", summary.entries[0].value);
+    try std.testing.expectEqual(@as(usize, 0), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.entries.len);
 }
 
 test "confdata bridge emits no entries for empty CONFIG symbol names" {
