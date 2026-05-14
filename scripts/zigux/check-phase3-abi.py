@@ -28,6 +28,8 @@ REQUIRED_FILES = (
     Path("zigux/bindings/dev_t.zig"),
     Path("zigux/bindings/notifier_abi.zig"),
     Path("zigux/helpers/layout_assert.zig"),
+    Path("zigux/helpers/panic_policy.zig"),
+    Path("zigux/helpers/allocator_policy.zig"),
     Path("zigux/helpers/atomic.zig"),
     Path("zigux/helpers/barrier.zig"),
     Path("zigux/helpers/mmio.zig"),
@@ -67,6 +69,8 @@ REQUIRED_MANIFEST_ENTRIES = (
     Path("zigux/bindings/dev_t.zig"),
     Path("zigux/bindings/notifier_abi.zig"),
     Path("zigux/helpers/layout_assert.zig"),
+    Path("zigux/helpers/panic_policy.zig"),
+    Path("zigux/helpers/allocator_policy.zig"),
     Path("zigux/helpers/atomic.zig"),
     Path("zigux/helpers/barrier.zig"),
     Path("zigux/helpers/mmio.zig"),
@@ -435,6 +439,32 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         _write(root / layout_assert_rel)
+
+        panic_policy_rel = Path("zigux/helpers/panic_policy.zig")
+        (root / panic_policy_rel).unlink()
+        issues = validate_repo(root)
+        expected_panic_policy_missing = (
+            f"missing repo file: {panic_policy_rel.as_posix()}"
+        )
+        if expected_panic_policy_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing panic-policy helper was not reported")
+            return 1
+        case_count += 1
+        _write(root / panic_policy_rel)
+
+        allocator_policy_rel = Path("zigux/helpers/allocator_policy.zig")
+        (root / allocator_policy_rel).unlink()
+        issues = validate_repo(root)
+        expected_allocator_policy_missing = (
+            f"missing repo file: {allocator_policy_rel.as_posix()}"
+        )
+        if expected_allocator_policy_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing allocator-policy helper was not reported")
+            return 1
+        case_count += 1
+        _write(root / allocator_policy_rel)
 
         atomic_rel = Path("zigux/helpers/atomic.zig")
         (root / atomic_rel).unlink()
