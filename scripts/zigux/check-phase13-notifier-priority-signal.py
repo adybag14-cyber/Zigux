@@ -182,7 +182,7 @@ REQUIRED_NOTIFIER_BINDINGS_MARKERS = (
 REQUIRED_NOTIFIER_HELPER_MARKERS = (
     "pub const ChainView = struct {",
     "pub fn hasNonincreasingPriority(self: ChainView) bool {",
-    "test \"chain view checks nonincreasing notifier priority\" {",
+    'test "chain view checks nonincreasing notifier priority" {',
 )
 
 REQUIRED_ABI_HEADER_MARKERS = (
@@ -311,6 +311,7 @@ def run_self_test() -> int:
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[3]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[4]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[6]),
+            ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[10]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[14]),
             ("notifier-bindings", NOTIFIER_BINDINGS_PATH, REQUIRED_NOTIFIER_BINDINGS_MARKERS[0]),
             ("notifier-helper", NOTIFIER_HELPER_PATH, REQUIRED_NOTIFIER_HELPER_MARKERS[1]),
