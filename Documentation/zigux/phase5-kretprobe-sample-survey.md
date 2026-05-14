@@ -44,12 +44,12 @@ The same readback also narrowed the retired shared-route diagnosis:
 - `.github/workflows/zigux-bootstrap.yml` no longer carries a dedicated Phase 5 replay step on current `master`
 - the older shared-route drift diagnosis is therefore retired for now; the live same-lane drift is concentrated in reminder surfaces rather than in a shipped Phase 5 make or workflow route
 
-The same readback also narrowed which shared reminder surfaces still need attention. On current `master`:
+The same readback now confirms the shared reminder surfaces are aligned to that narrower gap. On current `master`:
 
 - `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` already keep the missing kretprobe sample-root, focused-test, manifest, survey-replay, and shared-build paths explicit as a current gap while also keeping the directly readable bytestream, kobject, and trace-events packet split truthful
 - `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, and `zigux/tests/phase5_kobject_example.zig` plus `zigux/tests/phase5_kobject_example_manifest.json` now make the directly readable sibling kobject packet concrete again, so shared reminder surfaces should treat the current split as missing kretprobe evidence versus returned bytestream, kobject, and trace-events evidence rather than as a blanket Phase 5 sample-root loss
-- `Documentation/zigux/review-checklist.md` keeps the missing kretprobe sample-local paths explicit, but it still groups `.github/workflows/zigux-bootstrap.yml` into the shared Phase 5 reviewer packet even though current `zigux/Makefile` no longer exposes `phase5*` routes and the workflow no longer carries a dedicated Phase 5 replay step
-- `scripts/zigux/README.md` still lists `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_build.zig` as current shared Phase 5 surfaces while also understating the directly readable `samples/zigux/kobject_example.zig` packet that current readback now recovers
+- `Documentation/zigux/review-checklist.md` now keeps the missing kretprobe sample-local paths explicit without treating `.github/workflows/zigux-bootstrap.yml` or retired `phase5*` wrappers as current shared Phase 5 evidence
+- `scripts/zigux/README.md` now keeps the bytestream-only, kobject, trace-events, and survey-note-only kretprobe packet split explicit, and it also says directly that current `master` ships no `validate-phase5.py`, no `check-phase5-*.py` checker packet, and no `phase5-validate` target
 
 ## What still remains true
 
@@ -62,13 +62,13 @@ Even with that missing readback, the roadmap and ledger still keep the intended 
 
 ## Recorded gap vs roadmap
 
-The precise current gap is packet-local again:
+The precise current gap is now packet-local only:
 
 - the roadmap still calls for a reviewable Phase 5 kretprobe reference-pattern anchor
 - current `master` does not directly expose the non-runtime sample root, focused replay, manifest-backed packet, dedicated survey replay, or shared `phase5_build.zig` route for that anchor
-- `Documentation/zigux/review-checklist.md` still treats the retired workflow-backed Phase 5 reviewer route as if it were part of the current shared packet, while `scripts/zigux/README.md` still describes the missing kretprobe packet as if it were part of the current shared Phase 5 surface
+- the shared reminder packet is now aligned around that missing-path caveat instead of reporting a broader workflow-backed or scripts-root drift that current `master` no longer has
 
-So the honest same-lane correction is to keep the missing-path caveat active again, trim stale restored-readback wording, and leave the lane parked until the kretprobe packet either returns or the remaining shared reminder surfaces are fully aligned to the current gap.
+So the honest same-lane posture is to keep the missing-path caveat active, leave the lane parked, and wait either for the missing kretprobe packet to return or for a genuinely new same-lane reminder-surface drift to appear.
 
 ## Non-goals
 
@@ -83,7 +83,7 @@ This note still does not claim:
 
 Keep this lane parked unless a fresh kretprobe-local reread finds one of two bounded changes to make:
 
-- repair `Documentation/zigux/review-checklist.md` or `scripts/zigux/README.md` first, because they are now the two remaining shared Phase 5 reminder surfaces that still overstate the current kretprobe packet or the retired workflow-backed route
 - the missing kretprobe sample packet paths return and the shared reminder surfaces need to be switched back to restored-readback wording
+- a genuinely new one-file Phase 5 reminder-surface drift appears around the same anchor, sample-backed contributor packet, or Phase 5 versus Phase 9 boundary
 
 Do not widen that follow-up into runtime work.
