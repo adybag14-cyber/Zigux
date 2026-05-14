@@ -22,6 +22,11 @@ pub const DeviceEncodingResult = struct {
     status: abi.ExportStatus,
 };
 
+pub const DeviceNumber = struct {
+    major: u32,
+    minor: u32,
+};
+
 pub fn versionedHeader(size: u32, version: u16, flags: u16) Header {
     return uapi_version.versionedHeader(size, version, flags);
 }
@@ -130,6 +135,13 @@ pub fn lastDeviceNumberInRange(
     return .{
         .value = value,
         .status = ok(facility),
+    };
+}
+
+pub fn decodeDeviceNumber(value: u32) DeviceNumber {
+    return .{
+        .major = uapi_dev_t.major(value),
+        .minor = uapi_dev_t.minor(value),
     };
 }
 
@@ -274,9 +286,21 @@ test "phase3 export shim keeps dev_t starter relay status explicit" {
     try std.testing.expect(isOk(encoded.status));
     try std.testing.expectEqual((@as(u32, 42) << uapi_dev_t.minor_bits) | 7, encoded.value);
 
+    const decoded = decodeDeviceNumber(encoded.value);
+    try std.testing.expectEqual(@as(u32, 42), decoded.major);
+    try std.testing.expectEqual(@as(u32, 7), decoded.minor);
+
     const range_last = lastDeviceNumberInRange(42, 7, 4, .helpers);
     try std.testing.expect(isOk(range_last.status));
     try std.testing.expectEqual((@as(u32, 42) << uapi_dev_t.minor_bits) | 10, range_last.value);
+
+    const decoded_range_last = decodeDeviceNumber(range_last.value);
+    try std.testing.expectEqual(@as(u32, 42), decoded_range_last.major);
+    try std.testing.expectEqual(@as(u32, 10), decoded_range_last.minor);
+
+    const masked = decodeDeviceNumber(uapi_dev_t.packMasked(uapi_dev_t.major_max + 7, uapi_dev_t.minor_mask + 9));
+    try std.testing.expectEqual(@as(u32, 6), masked.major);
+    try std.testing.expectEqual(@as(u32, 8), masked.minor);
 
     const bad_major = encodeDeviceNumber(uapi_dev_t.major_max + 1, 0, .kernel);
     try std.testing.expect(!isOk(bad_major.status));
