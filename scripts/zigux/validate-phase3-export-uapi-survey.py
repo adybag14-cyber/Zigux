@@ -270,10 +270,14 @@ def validate(root: Path) -> list[str]:
         ABI_SLICE: (
             "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
             "`Documentation/zigux/phase3-abi-h-boundary-next-step.md`",
+            "`include/zigux/dev_t.h`",
+            "`zigux/bindings/dev_t.zig`",
+            "`zigux/bindings/notifier_abi.zig`",
             "`zigux/kernel/export_shim.zig`",
             "`zigux/uapi/version.zig`",
             "`zigux/uapi/dev_t.zig`",
             "`zigux/tests/phase3_abi_dump.zig`",
+            "`scripts/zigux/validate-phase3.py`",
         ),
         ABI_NEXT_STEP: (
             "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
@@ -419,7 +423,19 @@ def build_valid_workspace(root: Path) -> None:
         'try writeStruct(writer, "boundary_header", abi.BoundaryHeader);\n',
     )
     write(root / SCRIPTS_README, f"- `validate-phase3-export-uapi-survey.py`\n- `Documentation/zigux/phase3-linux-zigux-header-governance.md`\n- `include/linux/zigux.h`\n- `include/zigux/abi.h`\n- `{DUMP_GATE}`\n")
-    write(root / ABI_SLICE, "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n- `Documentation/zigux/phase3-abi-h-boundary-next-step.md`\n- `zigux/kernel/export_shim.zig`\n- `zigux/uapi/version.zig`\n- `zigux/uapi/dev_t.zig`\n- `zigux/tests/phase3_abi_dump.zig`\n")
+    write(
+        root / ABI_SLICE,
+        "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n"
+        "- `Documentation/zigux/phase3-abi-h-boundary-next-step.md`\n"
+        "- `include/zigux/dev_t.h`\n"
+        "- `zigux/bindings/dev_t.zig`\n"
+        "- `zigux/bindings/notifier_abi.zig`\n"
+        "- `zigux/kernel/export_shim.zig`\n"
+        "- `zigux/uapi/version.zig`\n"
+        "- `zigux/uapi/dev_t.zig`\n"
+        "- `zigux/tests/phase3_abi_dump.zig`\n"
+        "- `scripts/zigux/validate-phase3.py`\n",
+    )
     write(root / ABI_NEXT_STEP, "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n- `zigux/kernel/export_shim.zig`\n- `zigux/uapi/version.zig`\n- `zigux/uapi/dev_t.zig`\n- `zigux/tests/phase3_abi_dump.zig`\n- `scripts/zigux/validate-phase3-export-uapi-survey.py`\n")
     write(
         root / MAKEFILE,
@@ -474,6 +490,32 @@ def run_self_test() -> int:
         root = Path(tmp)
         build_valid_workspace(root)
         assert validate(root) == [], validate(root)
+        case_count += 1
+
+        write(
+            root / ABI_SLICE,
+            (root / ABI_SLICE).read_text(encoding="utf-8").replace(
+                "- `include/zigux/dev_t.h`\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert "missing_phase3-abi-slice:`include/zigux/dev_t.h`" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(
+            root / ABI_SLICE,
+            (root / ABI_SLICE).read_text(encoding="utf-8").replace(
+                "- `scripts/zigux/validate-phase3.py`\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert "missing_phase3-abi-slice:`scripts/zigux/validate-phase3.py`" in issues, issues
+        build_valid_workspace(root)
         case_count += 1
 
         write(root / ABI_MANIFEST, manifest_payload(MANIFEST_REQUIRED_ENTRIES + (WORKFLOW,)))
