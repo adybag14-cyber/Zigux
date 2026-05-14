@@ -334,6 +334,32 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_next_step",
+            NEXT_STEP_MARKERS[13],
+            "",
+            0,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_next_step",
+            NEXT_STEP_MARKERS[13],
+            NEXT_STEP_MARKERS[13] + "\n" + NEXT_STEP_MARKERS[13],
+            2,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
         makefile_text = makefile.read_text(encoding="utf-8")
         for marker in MAKEFILE_MARKERS:
             expect_missing_exact_count(
