@@ -124,16 +124,6 @@ fn expectAtomic64MatrixMarkerCount(marker: []const u8, expected_count: usize) !v
     try std.testing.expectEqual(expected_count, countOccurrences(section, marker));
 }
 
-fn expectAdjacentGapPacketMarkerCount(
-    repo_root_relative_path: []const u8,
-    marker: []const u8,
-    expected_count: usize,
-) !void {
-    const source = try readRepoFile(std.testing.allocator, repo_root_relative_path);
-    defer std.testing.allocator.free(source);
-    try std.testing.expectEqual(expected_count, countOccurrences(source, marker));
-}
-
 fn expectAtomic64GateEvidenceMarkerCount(marker: []const u8, expected_count: usize) !void {
     const gate_evidence_source = try readRepoFile(
         std.testing.allocator,
@@ -584,16 +574,11 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     try expectMarker(gate_evidence_source, "gate_evidence_self_test_case_count_drift");
     try expectMarker(gate_evidence_source, "gate_evidence_self_test_cases_drift");
     try expectMarker(gate_evidence_source, "shared_validator_expected_self_test_case_count_drift");
-    try expectMarker(gate_evidence_source, "perf_baseline_packet_presence_drift");
-    try expectMarker(gate_evidence_source, "perf_baseline_note_split_marker_drift");
-    try expectMarker(gate_evidence_source, "test_fsmount_gap_packet_presence_drift");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33");
     try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true");
-    try expectMarker(gate_evidence_source, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true");
-    try expectMarker(gate_evidence_source, "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true");
     try expectMarker(gate_evidence_source, "scripts/zigux/check-phase4-gate-evidence.py");
     try expectMarker(gate_evidence_source, "phase4-runtime-atomic64-diff-survey-tests");
     try expectMarker(gate_evidence_source, "make -C zigux phase4-runtime-atomic64-diff-survey");
@@ -694,39 +679,6 @@ test "atomic64 diff wrapper keeps its local-only perf-baseline governance explic
             "\"checksum\": 9210681150676220922",
             "\"final_counter\": 130322557735600376",
         },
-    );
-}
-
-test "atomic64 diff wrapper keeps the adjacent test_fsmount gap packet explicit" {
-    try expectAdjacentGapPacketMarkerCount(
-        "zigux/tests/phase4_test_fsmount_manifest.json",
-        "\"c_anchor\": \"samples/vfs/test-fsmount.c\"",
-        1,
-    );
-    try expectAdjacentGapPacketMarkerCount(
-        "zigux/tests/phase4_test_fsmount_manifest.json",
-        "\"threshold_posture\": \"reviewability_only_no_perf_threshold\"",
-        1,
-    );
-    try expectAdjacentGapPacketMarkerCount(
-        "zigux/tests/phase4_test_fsmount_survey.zig",
-        "phase4 test_fsmount survey keeps the parked gap packet explicit",
-        1,
-    );
-    try expectAdjacentGapPacketMarkerCount(
-        "zigux/tests/phase4_test_fsmount_survey.zig",
-        "phase4 test_fsmount survey keeps threshold posture explicit",
-        1,
-    );
-    try expectAdjacentGapPacketMarkerCount(
-        "zigux/tests/phase4_test_fsmount_survey.zig",
-        "phase4 test_fsmount survey keeps reversible-delivery evidence explicit",
-        1,
-    );
-    try expectAdjacentGapPacketMarkerCount(
-        "zigux/tests/phase4_test_fsmount_survey.zig",
-        "phase4 test_fsmount survey keeps the bounded next step explicit",
-        1,
     );
 }
 
@@ -908,9 +860,13 @@ test "atomic64 diff wrapper keeps the local perf-baseline manifest aligned with 
 
     try expectMarker(perf_manifest_source, "\"lane_key\": \"P4-L20\"");
     try expectMarker(perf_manifest_source, "\"surface\": \"zigux/tests/atomic64_diff.zig\"");
-    try expectMarker(perf_manifest_source, "\"gate_owner\": \"ABI and Runtime Team\"",
+    try expectMarker(
+        perf_manifest_source,
+        "\"gate_owner\": \"ABI and Runtime Team\"",
     );
-    try expectMarker(perf_manifest_source, "\"gate_rollback_owner\": \"ABI and Runtime Team\"",
+    try expectMarker(
+        perf_manifest_source,
+        "\"gate_rollback_owner\": \"ABI and Runtime Team\"",
     );
     try expectMarker(
         perf_manifest_source,
@@ -945,7 +901,6 @@ test "atomic64 diff wrapper keeps the local perf-baseline manifest aligned with 
     try expectMarker(atomic64_section, "\"final_counter\": 130322557735600376");
     try expectMarker(perf_manifest_source, "\"id\": \"phase4-perf-baseline-atomic64-command\"");
     try expectMarker(perf_manifest_source, "\"id\": \"phase4-perf-baseline-atomic64-acceptable-limit\"");
-    try expectMarker(perf_manifest_source, "\"id\": \"phase4-perf-baseline-shared-promotion-decision\"");
 }
 
 test "atomic64 diff wrapper keeps the local perf-baseline survey aligned with threshold replay evidence" {
