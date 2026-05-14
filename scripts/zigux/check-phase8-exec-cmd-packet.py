@@ -15,6 +15,7 @@ TESTS_README_PATH = "zigux/tests/README.md"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
+SEQUENCING_PATH = "Documentation/zigux/phase8-tooling-lane-sequencing.md"
 EXEC_CMD_SLICE_PATH = "Documentation/zigux/phase8-exec-cmd-slice.md"
 EXEC_CMD_SOURCE_PATH = "tools/lib/subcmd/exec-cmd.zig"
 EXEC_CMD_C_PATH = "tools/lib/subcmd/exec-cmd.c"
@@ -31,6 +32,7 @@ REQUIRED_FILES = (
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     BOUNDARY_SURVEY_PATH,
+    SEQUENCING_PATH,
     EXEC_CMD_SLICE_PATH,
     EXEC_CMD_SOURCE_PATH,
     EXEC_CMD_C_PATH,
@@ -89,6 +91,12 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_exec_cmd_only_build.zig`",
         "`python3 scripts/zigux/validate-phase8.py`",
     ),
+    SEQUENCING_PATH: (
+        "### 1. Exec-cmd lane",
+        "public default-branch tree readback still lists `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig`",
+        "authenticated contents readback for the direct exec-cmd shard remains intermittent from this environment",
+        "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` remains the dedicated boundary note",
+    ),
     EXEC_CMD_SLICE_PATH: (
         "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
         "helper-first, output-stable deferred-exec planning",
@@ -109,12 +117,17 @@ REQUIRED_MARKERS = {
         'test "phase 8 exec-cmd tests root summary keeps the focused replay route explicit" {',
     ),
     EXEC_CMD_ONLY_BUILD_PATH: (
+        '.root_source_file = b.path("../../tools/lib/subcmd/exec-cmd.zig")',
+        '.root_source_file = b.path("phase8_exec_cmd.zig")',
+        'exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);',
         '.name = "phase8-exec-cmd-tests"',
         'b.step("test", "Run focused Phase 8 exec-cmd tests")',
     ),
     PHASE8_BUILD_PATH: (
         '.name = "phase8-exec-cmd-tests"',
         '.root_source_file = b.path("phase8_exec_cmd.zig")',
+        'exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);',
+        'test_step.dependOn(&run_exec_cmd_tests.step);',
         'b.step("test", "Run Phase 8 tooling expansion tests")',
     ),
     EXEC_CMD_SOURCE_PATH: (
@@ -214,6 +227,9 @@ def run_self_test() -> int:
             (MAKEFILE_PATH, "phase8-exec-cmd-test:"),
             (BOUNDARY_SURVEY_PATH, "PHASE8_USERSPACE_KERNEL_BRIDGE_LANE_KEY=P8-L01"),
             (BOUNDARY_SURVEY_PATH, "`Documentation/zigux/phase8-exec-cmd-slice.md`"),
+            (SEQUENCING_PATH, "### 1. Exec-cmd lane"),
+            (SEQUENCING_PATH, "public default-branch tree readback still lists `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig`"),
+            (SEQUENCING_PATH, "authenticated contents readback for the direct exec-cmd shard remains intermittent from this environment"),
             (EXEC_CMD_SLICE_PATH, "PHASE8_SLICE=exec-cmd-deferred-exec-packet"),
             (EXEC_CMD_SLICE_PATH, "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers"),
             (EXEC_CMD_SLICE_PATH, "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` stays the dedicated roadmap-gap survey for this file family while the direct exec-cmd shard remains helper-first and deferred-exec only."),
@@ -224,10 +240,13 @@ def run_self_test() -> int:
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd workflow keeps the focused replay ahead of sibling help shards" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd tests root summary keeps the focused replay route explicit" {'),
+            (EXEC_CMD_ONLY_BUILD_PATH, '.root_source_file = b.path("../../tools/lib/subcmd/exec-cmd.zig")'),
+            (EXEC_CMD_ONLY_BUILD_PATH, '.root_source_file = b.path("phase8_exec_cmd.zig")'),
+            (EXEC_CMD_ONLY_BUILD_PATH, 'exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);'),
             (EXEC_CMD_ONLY_BUILD_PATH, '.name = "phase8-exec-cmd-tests"'),
-            (EXEC_CMD_ONLY_BUILD_PATH, 'b.step("test", "Run focused Phase 8 exec-cmd tests")'),
-            (PHASE8_BUILD_PATH, '.name = "phase8-exec-cmd-tests"'),
             (PHASE8_BUILD_PATH, '.root_source_file = b.path("phase8_exec_cmd.zig")'),
+            (PHASE8_BUILD_PATH, 'exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);'),
+            (PHASE8_BUILD_PATH, 'test_step.dependOn(&run_exec_cmd_tests.step);'),
             (EXEC_CMD_SOURCE_PATH, "pub fn buildDeferredExecvCall("),
             (EXEC_CMD_SOURCE_PATH, "pub fn samePathIdentity("),
             (EXEC_CMD_SOURCE_PATH, "pub fn planDeferredExecvCall("),
