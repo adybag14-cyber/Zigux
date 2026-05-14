@@ -240,6 +240,7 @@ def audit_doc_sync(root: Path = ROOT) -> list[str]:
 
     issues.extend(audit_dump_surface_reality(root))
     issues.extend(audit_build_surface_reality(root))
+    issues.extend(audit_artifact_diff_reality(root))
     return issues
 
 
@@ -320,6 +321,10 @@ def run_self_test() -> int:
         )
         assert audit_build_surface_reality(root) == [expected_build_issue]
         assert audit_doc_sync(root) == [expected_build_issue]
+        (root / "zigux/tests/build.zig").write_text(
+            'const abi_dump = "phase3_abi_dump.zig";\n',
+            encoding="utf-8",
+        )
 
         artifact = root / "Documentation/zigux/artifact-diff.md"
         artifact.write_text(
@@ -327,9 +332,11 @@ def run_self_test() -> int:
             "python3 scripts/zigux/run-phase3-checks.py --slug bitmap-cpumask\n",
             encoding="utf-8",
         )
-        assert audit_artifact_diff_reality(root) == [
+        expected_artifact_issue = (
             "artifact-diff documents unsupported Phase 3 slug: bitmap-cpumask"
-        ]
+        )
+        assert audit_artifact_diff_reality(root) == [expected_artifact_issue]
+        assert audit_doc_sync(root) == [expected_artifact_issue]
 
         artifact.write_text(_shared_runner_marker("abi") + "\n", encoding="utf-8")
         (root / "zigux/tests/build.zig").write_text(
