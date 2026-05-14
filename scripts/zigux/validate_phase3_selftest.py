@@ -35,8 +35,14 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/run-phase3-checks.py"), ("--self-test",)),
 )
 SELFTEST_OUTPUT_MARKERS = {
+    Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"): (
+        "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass",
+    ),
     Path("scripts/zigux/check-phase3-selftest-surface.py"): (
         "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
+    ),
+    Path("scripts/zigux/check-phase3-catalog-selftest.py"): (
+        "PHASE3_CATALOG_SELFTEST_SURFACE_SELF_TEST=pass",
     ),
     Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"): (
         "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",
@@ -66,6 +72,18 @@ SELFTEST_OUTPUT_MARKERS = {
     ),
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"): (
         "PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass",
+    ),
+    Path("scripts/zigux/phase3_catalog.py"): (
+        "PHASE3_CATALOG_SELF_TEST=pass",
+    ),
+    Path("scripts/zigux/phase3_check_lib.py"): (
+        "PHASE3_CHECK_LIB_SELF_TEST=pass",
+    ),
+    Path("scripts/zigux/generate-phase3-check-wrappers.py"): (
+        "PHASE3_WRAPPER_SELF_TEST=pass",
+    ),
+    Path("scripts/zigux/run-phase3-checks.py"): (
+        "PHASE3_RUNNER_SELF_TEST=pass",
     ),
 }
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -477,6 +495,11 @@ def run_self_test() -> int:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing wrapper-check makefile command was not reported")
             return 1
+
+        (root / MAKEFILE_PATH).write_text(
+            _synthetic_makefile_text(),
+            encoding="utf-8",
+        )
 
         governance_command = _selftest_make_command(
             Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
