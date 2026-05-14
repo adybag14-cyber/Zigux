@@ -28,7 +28,7 @@ The current bounded HVC archival packet is reviewed through:
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 
 Current `master` also materializes direct `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, and `zigux/tests/phase11_hvc_cleanup.zig` companions.
-The archival packet keeps those direct replay, verify, and cleanup surfaces explicit instead of presenting them as a repo-reality gap or as proof of broader runtime closure.
+The archival packet keeps those direct replay, verify, and cleanup surfaces explicit, including the targetless notifier no-unregister edge, instead of presenting them as a repo-reality gap or as proof of broader runtime closure.
 
 ## Teardown And Failure-Mode Cues
 
@@ -42,6 +42,7 @@ The parked starter keeps these bounded summaries explicit:
 * `hvc_hangup()` disconnect summary
 * `hvc_kick()` wakeup cue
 * notifier-IRQ helper surface
+* targetless notifier no-unregister edge through `summarizeTargetlessNotifierEdge()` and the direct verify companion
 * the direct verify, replay, and cleanup companion surfaces that current `master` now materializes beside the archival survey gate
 
 Those cues stay limited to the host-free archival packet.
