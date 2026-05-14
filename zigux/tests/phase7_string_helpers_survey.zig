@@ -37,6 +37,21 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(shared_note, "append-limited escape accounting stays inside caller storage");
     try expectContains(shared_note, "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations");
 
+    const review_checklist = try readRepoFile(allocator, "Documentation/zigux/review-checklist.md");
+    defer allocator.free(review_checklist);
+    try expectContains(review_checklist, "there is no standalone `samples/zigux/*string*` reference sample");
+    try expectContains(review_checklist, "Documentation/zigux/phase7-string-helpers-slice.md");
+    try expectContains(review_checklist, "lib/string_helpers.zig");
+    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers.zig");
+    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers_survey.zig");
+    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers_manifest.json");
+    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(review_checklist, "explicit ownership-focus packet visible");
+    try expectContains(review_checklist, "first-NUL trimming and prefix skipping stop at the exported C-string boundary");
+    try expectContains(review_checklist, "exact-fit or zero-capacity unescape destinations stay caller-owned");
+    try expectContains(review_checklist, "append-limited escape accounting stays inside caller storage");
+    try expectContains(review_checklist, "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations");
+
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
