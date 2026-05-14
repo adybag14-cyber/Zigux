@@ -143,7 +143,7 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_PROVENANCE_MODE=dated_master_readback") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-14") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "stable continuity for this parked maintenance surface now follows the shared `handoff-next-steps` lane family") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "current shared-summary packet is now caught up on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "current `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` now keep the parity-scorecard-survey reminder") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Roadmap Versus Ledger") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Current Handoff Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Adjacent Lane Boundaries") != null);
@@ -174,10 +174,10 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_indefinite_c_policy.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "tests-root Phase 15 guards") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared-summary maintenance route for the parity-scorecard-survey reminder now belongs to the checker-backed `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "future shared-summary follow-through should now be read through `scripts/zigux/check-phase15-shared-summary-gap.py`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Current `master` no longer shows active shared-summary drift") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "fresh shared-summary regression or a dedicated handoff drift changes this packet afterward") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared-summary follow-through for the parity-scorecard-survey reminder now belongs to the checker-backed `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "any future shared-summary follow-through should now be read through `scripts/zigux/check-phase15-shared-summary-gap.py`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Current `master` keeps the shared-summary packet parked.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "dedicated packet itself drifts after that repair lands") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_handoff_next_steps_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
 }
