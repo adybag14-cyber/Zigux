@@ -125,6 +125,7 @@ test "phase11 gpio_wdt archived survey note, matrix, and teardown note stay alig
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase11_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "hardware-backed validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the dedicated survey gate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "failure-mode parity") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zigux/tests/phase11_gpio_wdt_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zig test zigux/tests/phase11_gpio_wdt_survey.zig") != null);
@@ -133,10 +134,15 @@ test "phase11 gpio_wdt archived survey note, matrix, and teardown note stay alig
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zigux/tests/phase11_gpio_wdt.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zigux/tests/phase11_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "directly visible on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "nowayout-aware stop outcomes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "failure-mode parity beyond the archived bounded starter notes") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "zigux/tests/phase11_gpio_wdt_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "zigux/tests/phase11_gpio_wdt_platform_drvdata.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "drivers/watchdog/gpio_wdt.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "zigux/tests/phase11_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "hardware-backed validation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "watchdog-core stop policy and hardware `always-running` behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "watchdog_stop_on_reboot()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "failure-mode cues") != null);
 }
