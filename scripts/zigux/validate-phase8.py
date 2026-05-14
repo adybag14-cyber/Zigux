@@ -127,6 +127,8 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-kallsyms-test`",
         "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`make -C zigux phase8-libbpf-segments-test`",
+        "`make -C zigux phase8-test`",
+        "`make -C zigux phase8`",
     ),
     SEQUENCING_PATH: (
         "### 2. Symbol lane",
@@ -157,6 +159,8 @@ REQUIRED_MARKERS = {
         "phase8-help-kallsyms-test",
         "phase8-kallsyms-test",
         "phase8-file-path-handle-bridge-test",
+        "phase8-test:",
+        "phase8: phase8-validate phase8-test",
         "scripts/zigux/validate-phase8.py",
     ),
     LIBBPF_SEGMENT_SURVEY_PATH: (
@@ -377,6 +381,20 @@ def run_self_test() -> None:
             f"{TESTS_README_PATH}: `zigux/tests/phase8_help_kallsyms_only_build.zig`",
         ),
         (
+            "tests_readme_phase8_test_route_marker",
+            TESTS_README_PATH,
+            "`make -C zigux phase8-test`",
+            "`make -C zigux phase8-review`",
+            f"{TESTS_README_PATH}: `make -C zigux phase8-test`",
+        ),
+        (
+            "tests_readme_phase8_aggregate_route_marker",
+            TESTS_README_PATH,
+            "`make -C zigux phase8`",
+            "`make -C zigux phase8-shared`",
+            f"{TESTS_README_PATH}: `make -C zigux phase8`",
+        ),
+        (
             "sequencing_symbol_lane_marker",
             SEQUENCING_PATH,
             "### 2. Symbol lane",
@@ -522,6 +540,20 @@ def run_self_test() -> None:
             "scripts/zigux/check-phase8-libbpf-shard-routes.py",
             "scripts/zigux/check-phase8-libbpf-route-checks.py",
             f"{MAKEFILE_PATH}: scripts/zigux/check-phase8-libbpf-shard-routes.py",
+        ),
+        (
+            "makefile_phase8_test_route_marker",
+            MAKEFILE_PATH,
+            "phase8-test:",
+            "phase8-review:",
+            f"{MAKEFILE_PATH}: phase8-test:",
+        ),
+        (
+            "makefile_phase8_aggregate_route_marker",
+            MAKEFILE_PATH,
+            "phase8: phase8-validate phase8-test",
+            "phase8: phase8-validate phase8-review",
+            f"{MAKEFILE_PATH}: phase8: phase8-validate phase8-test",
         ),
         (
             "workflow_phase8_validate_marker",
