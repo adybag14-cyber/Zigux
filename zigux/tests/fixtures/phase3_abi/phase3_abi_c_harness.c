@@ -115,7 +115,7 @@ int main(void)
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, skipped),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, delivered),
         sizeof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view),
-        _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_view),
+        _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view, budget),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view, window),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view, flags),
