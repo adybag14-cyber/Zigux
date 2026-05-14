@@ -52,7 +52,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres.zig",
-      "why_now": "The direct devres replay is present on current master and replays the shipped `devm_iounmap()` planner, the UC/WC wrapper planners, the pure `devm_of_iomap()` bridge, and the token-style phys-WC helper without pretending the absent shared build bundle is back."
+      "why_now": "The direct devres replay is present on current master and replays the shipped `devm_iounmap()` planner, the UC/WC wrapper planners, the pure `devm_of_iomap()` bridge, the detach-time WC memtype reservation helper, and the token-style phys-WC helper without pretending the absent shared build bundle is back."
     },
     {
       "id": "phase13-devres-reviewability-gate",
@@ -74,6 +74,13 @@
       "kind": "helper_surface",
       "zigux_destination": "lib/devres.zig",
       "why_now": "Current master still exposes a pure `devm_of_iomap()` bridge that selects translated resources by index, optionally reports size, and hands off into the managed-resource planner instead of walking a live device tree."
+    },
+    {
+      "id": "phase13-devres-arch-io-wc-memtype-planner",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Current master still exposes `devm_arch_io_reserve_memtype_wc()` planning that retains the `(start, size)` release record for detach-time cleanup on successful reservation and frees that record on negative reserve results without claiming live arch memtype mutation."
     },
     {
       "id": "phase13-devres-arch-phys-wc-token-planner",
