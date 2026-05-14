@@ -104,6 +104,10 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase7-string-helpers-slice.md",
         "Documentation/zigux/phase7-cmdline-slice.md",
         "Documentation/zigux/phase7-argv-split-slice.md",
+        "PHASE7_SHARED_CONTROL_LANE=P7-Y05",
+        "PHASE7_HELPER_SEQUENCING_LANE=P7-Y06",
+        "PHASE7_SHARED_DOCS_ROOT_LANE=P7-Y08",
+        "PHASE7_ANTI_OVERLAP_RULE=P7-Y06 owns only the shared helper-lane owner map, P7-Y08 owns only the docs-root tranche summary, and helper-local slices keep their own lane keys without reusing either shared note lane.",
         "PHASE7_STRING_HELPERS_LANE=P7-L04",
         "PHASE7_CMDLINE_LANE=P7-L05",
         "PHASE7_ARGV_SPLIT_LANE=P7-L09",
@@ -270,6 +274,50 @@ def run_self_test() -> None:
         expect_missing_marker(
             tmp_root,
             "Documentation/zigux/review-checklist.md: Documentation/zigux/phase7-argv-split-slice.md",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_SHARED_CONTROL_LANE=P7-Y05",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_SHARED_CONTROL_LANE=P7-Y05",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_HELPER_SEQUENCING_LANE=P7-Y06",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_HELPER_SEQUENCING_LANE=P7-Y06",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_SHARED_DOCS_ROOT_LANE=P7-Y08",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_SHARED_DOCS_ROOT_LANE=P7-Y08",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_ANTI_OVERLAP_RULE=P7-Y06 owns only the shared helper-lane owner map, P7-Y08 owns only the docs-root tranche summary, and helper-local slices keep their own lane keys without reusing either shared note lane.",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ANTI_OVERLAP_RULE=P7-Y06 owns only the shared helper-lane owner map, P7-Y08 owns only the docs-root tranche summary, and helper-local slices keep their own lane keys without reusing either shared note lane.",
         )
         write_fixture_tree(tmp_root)
 
@@ -504,7 +552,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=22")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=26")
 
 
 def main() -> int:
