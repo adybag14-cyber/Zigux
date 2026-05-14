@@ -264,6 +264,8 @@ def main() -> int:
         print(message, file=sys.stderr)
         return 1
 
+    min_version_raw: str | None = args.min_version
+    expected_channel_raw: str | None = None
     version: str | None = None
     try:
         min_version_raw = args.min_version or load_min_version()
@@ -278,16 +280,14 @@ def main() -> int:
         print(f"ZIG_TOOLCHAIN_PATH={zig}")
         if version is not None:
             print(f"ZIG_TOOLCHAIN_VERSION={version}")
-        print(f"ZIG_TOOLCHAIN_MIN_SUPPORTED={args.min_version or load_min_version()}")
-        if args.min_version is None:
-            expected_channel_raw = load_pinned_channel()
-            if expected_channel_raw is not None:
-                print(f"ZIG_TOOLCHAIN_PINNED_CHANNEL={expected_channel_raw}")
-                print("ZIG_TOOLCHAIN_PIN_POLICY=exact")
-            else:
-                print("ZIG_TOOLCHAIN_PIN_POLICY=minimum_only")
-        else:
+        print(f"ZIG_TOOLCHAIN_MIN_SUPPORTED={min_version_raw or 'unresolved'}")
+        if expected_channel_raw is not None:
+            print(f"ZIG_TOOLCHAIN_PINNED_CHANNEL={expected_channel_raw}")
+            print("ZIG_TOOLCHAIN_PIN_POLICY=exact")
+        elif args.min_version is not None:
             print("ZIG_TOOLCHAIN_PIN_POLICY=minimum_only")
+        else:
+            print("ZIG_TOOLCHAIN_PIN_POLICY=unresolved")
         print(f"ZIG_TOOLCHAIN_NOTE={exc}")
         return 1
 
