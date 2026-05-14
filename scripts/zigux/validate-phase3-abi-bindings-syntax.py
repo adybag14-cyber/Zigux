@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import tempfile
 
@@ -16,12 +17,65 @@ LINUX_ZIGUX_HEADER_GOVERNANCE_PATH = Path(
 )
 NEXT_STEP_NOTE_PATH = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
 README_PATH = Path("scripts/zigux/README.md")
+MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
+
+MANIFEST_SLICE_FILES = (
+    Path("Documentation/zigux/phase3-bindings-governance.md"),
+    Path("Documentation/zigux/phase3-abi-bindings-survey.md"),
+    Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
+    Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-kernel-export-shim-governance.md"),
+    Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
+    Path("Documentation/zigux/phase3-linux-zigux-header-governance.md"),
+    Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
+    Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-validator-support-surface.md"),
+    Path("include/linux/zigux.h"),
+    Path("include/zigux/abi.h"),
+    Path("include/zigux/dev_t.h"),
+    Path("zigux/bindings/abi.zig"),
+    Path("zigux/bindings/dev_t.zig"),
+    Path("zigux/bindings/notifier_abi.zig"),
+    Path("zigux/helpers/layout_assert.zig"),
+    Path("zigux/helpers/panic_policy.zig"),
+    Path("zigux/helpers/allocator_policy.zig"),
+    Path("zigux/helpers/atomic.zig"),
+    Path("zigux/helpers/barrier.zig"),
+    Path("zigux/helpers/mmio.zig"),
+    Path("zigux/kernel/export_shim.zig"),
+    Path("zigux/unsafe/narrow.zig"),
+    Path("zigux/uapi/version.zig"),
+    Path("zigux/uapi/dev_t.zig"),
+    Path("zigux/tests/phase3_abi.zig"),
+    Path("zigux/tests/phase3_abi_dump.zig"),
+    Path("zigux/tests/phase3_low_level_wrappers.zig"),
+    Path("zigux/tests/phase3_low_level_wrappers_build.zig"),
+    Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
+    Path("zigux/tests/fixtures/phase3_abi/expected.json"),
+    MANIFEST_PATH,
+    Path("scripts/zigux/check-phase3-abi.py"),
+    Path("scripts/zigux/check-phase3-abi-dump-gate.py"),
+    Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
+    Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
+    Path("scripts/zigux/check-phase3-policy-byte-guards.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
+    Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
+    Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
+    Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
+    Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+    Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
+)
 
 REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
     Path("Documentation/zigux/phase3-abi-bindings-survey.md"),
     Path("Documentation/zigux/phase3-bindings-governance.md"),
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
+    Path("Documentation/zigux/phase3-kernel-export-shim-governance.md"),
+    Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
@@ -33,6 +87,11 @@ REQUIRED_FILES = (
     Path("zigux/bindings/dev_t.zig"),
     Path("zigux/bindings/notifier_abi.zig"),
     Path("zigux/helpers/layout_assert.zig"),
+    Path("zigux/helpers/panic_policy.zig"),
+    Path("zigux/helpers/allocator_policy.zig"),
+    Path("zigux/helpers/atomic.zig"),
+    Path("zigux/helpers/barrier.zig"),
+    Path("zigux/helpers/mmio.zig"),
     Path("zigux/kernel/export_shim.zig"),
     Path("zigux/unsafe/narrow.zig"),
     Path("zigux/uapi/version.zig"),
@@ -40,12 +99,19 @@ REQUIRED_FILES = (
     Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_abi_dump.zig"),
     Path("zigux/tests/phase3_low_level_wrappers.zig"),
-    Path("zigux/tests/fixtures/phase3_abi_manifest.json"),
+    Path("zigux/tests/phase3_low_level_wrappers_build.zig"),
+    Path("zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"),
+    Path("zigux/tests/fixtures/phase3_abi/expected.json"),
+    MANIFEST_PATH,
     Path("scripts/zigux/check-phase3-abi.py"),
     Path("scripts/zigux/check-phase3-abi-dump-gate.py"),
     Path("scripts/zigux/run-phase3-checks.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
+    Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
+    Path("scripts/zigux/check-phase3-policy-byte-guards.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),
+    Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
@@ -56,6 +122,9 @@ SLICE_NOTE_MARKERS = (
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-abi-bindings-survey.md",
     "Documentation/zigux/phase3-bindings-governance.md",
+    "Documentation/zigux/phase3-boundary-lane-sequencing.md",
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
@@ -68,6 +137,11 @@ SLICE_NOTE_MARKERS = (
     "zigux/bindings/dev_t.zig",
     "zigux/bindings/notifier_abi.zig",
     "zigux/helpers/layout_assert.zig",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/atomic.zig",
+    "zigux/helpers/barrier.zig",
+    "zigux/helpers/mmio.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/unsafe/narrow.zig",
     "zigux/uapi/version.zig",
@@ -75,13 +149,21 @@ SLICE_NOTE_MARKERS = (
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
+    "zigux/tests/phase3_low_level_wrappers_build.zig",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
+    "zigux/tests/fixtures/phase3_abi/expected.json",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/check-phase3-abi-dump-gate.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
-    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "PHASE3_ABI_MANIFEST_FILE_COUNT=",
@@ -91,6 +173,7 @@ SLICE_NOTE_MARKERS = (
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
+    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-validate",
     "make -C zigux phase3",
 )
@@ -99,16 +182,22 @@ BINDINGS_SURVEY_MARKERS = (
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-bindings-governance.md",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
     "include/zigux/abi.h",
     "include/zigux/dev_t.h",
     "zigux/bindings/abi.zig",
     "zigux/bindings/dev_t.zig",
     "zigux/bindings/notifier_abi.zig",
     "zigux/helpers/layout_assert.zig",
+    "zigux/uapi/dev_t.zig",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
+    "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "scripts/zigux/check-phase3-abi.py",
+    "scripts/zigux/check-phase3-abi-dump-gate.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "PHASE3_CURRENT_INTEROP_GAP=",
@@ -208,6 +297,32 @@ def _check_markers(path: Path, markers: tuple[str, ...], label: str) -> list[str
     return [f"missing {label} marker: {marker}" for marker in markers if marker not in text]
 
 
+def _load_manifest(path: Path) -> tuple[list[str], list[str]]:
+    if not path.is_file():
+        return [], [f"missing repo file: {path.as_posix()}"]
+
+    try:
+        data = json.loads(_read(path))
+    except json.JSONDecodeError as exc:
+        return [], [f"invalid manifest json: {path.as_posix()}: {exc.msg}"]
+
+    issues: list[str] = []
+    files = data.get("files")
+    if not isinstance(files, list) or not all(isinstance(entry, str) for entry in files):
+        issues.append(f"invalid manifest files list: {path.as_posix()}")
+        return [], issues
+
+    file_count = data.get("file_count")
+    if not isinstance(file_count, int):
+        issues.append(f"invalid manifest file_count: {path.as_posix()}")
+    elif file_count != len(files):
+        issues.append(
+            f"manifest file_count mismatch: {path.as_posix()} expected {len(files)} got {file_count}"
+        )
+
+    return files, issues
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     if not (repo_root / SLICE_NOTE_PATH).is_file():
@@ -241,6 +356,14 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in README_MARKERS:
             if marker not in readme_text:
                 issues.append(f"missing scripts README marker: {marker}")
+    manifest_files, manifest_issues = _load_manifest(repo_root / MANIFEST_PATH)
+    issues.extend(manifest_issues)
+    if manifest_files:
+        manifest_set = set(manifest_files)
+        for rel_path in MANIFEST_SLICE_FILES:
+            rel_path_text = rel_path.as_posix()
+            if rel_path_text not in manifest_set:
+                issues.append(f"missing manifest file entry: {rel_path_text}")
     issues.extend(_check_markers(repo_root / BINDINGS_SURVEY_PATH, BINDINGS_SURVEY_MARKERS, "bindings survey"))
     issues.extend(
         _check_markers(
@@ -270,6 +393,17 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def _manifest_text(files: tuple[Path, ...] = MANIFEST_SLICE_FILES) -> str:
+    manifest = {
+        "phase": "Phase 3",
+        "status": "active",
+        "slice": "abi-substrate-skeleton",
+        "file_count": len(files),
+        "files": [path.as_posix() for path in files],
+    }
+    return json.dumps(manifest, indent=2) + "\n"
+
+
 def _populate_repo(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         _write(root / rel_path, "# stub\n")
@@ -279,6 +413,7 @@ def _populate_repo(root: Path) -> None:
         root / Path("zigux/bindings/notifier_abi.zig"),
         "\n".join(NOTIFIER_BINDING_MARKERS) + "\n",
     )
+    _write(root / MANIFEST_PATH, _manifest_text())
     _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
     _write(root / BINDINGS_SURVEY_PATH, "\n".join(BINDINGS_SURVEY_MARKERS) + "\n")
     _write(root / BINDINGS_GOVERNANCE_PATH, "\n".join(BINDINGS_GOVERNANCE_MARKERS) + "\n")
@@ -369,6 +504,24 @@ def run_self_test() -> int:
         if expected_export_uapi_marker not in issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
             print("expected missing export-uapi slice marker was not reported")
+            return 1
+        case_count += 1
+        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
+        _write(
+            root / SLICE_NOTE_PATH,
+            _read(root / SLICE_NOTE_PATH).replace(
+                "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_policy_marker = (
+            "missing slice marker: Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
+        )
+        if expected_policy_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing policy-unsafe slice marker was not reported")
             return 1
         case_count += 1
         _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
@@ -502,6 +655,38 @@ def run_self_test() -> int:
         case_count += 1
         _write(root / BINDINGS_GOVERNANCE_PATH, "\n".join(BINDINGS_GOVERNANCE_MARKERS) + "\n")
         _write(
+            root / BINDINGS_SURVEY_PATH,
+            _read(root / BINDINGS_SURVEY_PATH).replace(
+                "zigux/tests/phase3_low_level_wrappers_build.zig\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_bindings_wrapper_marker = (
+            "missing bindings survey marker: zigux/tests/phase3_low_level_wrappers_build.zig"
+        )
+        if expected_bindings_wrapper_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing low-level-wrapper build marker was not reported")
+            return 1
+        case_count += 1
+        _write(root / BINDINGS_SURVEY_PATH, "\n".join(BINDINGS_SURVEY_MARKERS) + "\n")
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["files"].remove("zigux/tests/phase3_low_level_wrappers_build.zig")
+        manifest["file_count"] -= 1
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected_manifest_marker = (
+            "missing manifest file entry: zigux/tests/phase3_low_level_wrappers_build.zig"
+        )
+        if expected_manifest_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing manifest file entry was not reported")
+            return 1
+        case_count += 1
+        _write(root / MANIFEST_PATH, _manifest_text())
+        _write(
             root / SLICE_NOTE_PATH,
             _read(root / SLICE_NOTE_PATH).replace(
                 "Documentation/zigux/phase3-validator-support-surface.md\n",
@@ -551,7 +736,7 @@ def run_self_test() -> int:
         )
         if expected_validator_support_readme_marker not in issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing validator-support README marker was not reported")
+            print("expected validator-support README marker was not reported")
             return 1
         case_count += 1
         _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
@@ -569,7 +754,7 @@ def run_self_test() -> int:
         )
         if expected_low_level_readme_marker not in issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing low-level README marker was not reported")
+            print("expected low-level README marker was not reported")
             return 1
         case_count += 1
         _populate_repo(root)
