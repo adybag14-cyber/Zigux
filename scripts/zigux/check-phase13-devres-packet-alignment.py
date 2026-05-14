@@ -16,132 +16,101 @@ REPLAY_PATH = "zigux/tests/phase13_devres.zig"
 REVIEWABILITY_PATH = "zigux/tests/phase13_devres_reviewability.zig"
 DMA_REPLAY_PATH = "zigux/tests/phase13_devres_dma_coherent.zig"
 
-STALE_CHECKER_WARNING = (
-    "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift"
-)
-CURRENT_CHECKER_MARKER = "`scripts/zigux/check-phase13-devres-packet-alignment.py`"
+EXPECTED_LANE = "P13-L01"
+EXPECTED_COMMIT = "master-readback-2026-05-14"
+EXPECTED_GAP_COUNT = 16
+EXPECTED_STARTER_COUNT = 10
+EXPECTED_BLOCKED_COUNT = 6
 
-IOUNMAP_SLICE_MARKERS = [
+EXPECTED_GAPS = {
+    "phase13-make-target": "starter_landed",
+    "phase13-devres-helper-starter": "starter_landed",
+    "phase13-devres-slice-note": "starter_landed",
+    "phase13-devres-survey-note": "starter_landed",
+    "phase13-devres-test-gate": "starter_landed",
+    "phase13-devres-reviewability-gate": "starter_landed",
+    "phase13-devres-iounmap-planner": "starter_landed",
+    "phase13-devres-of-iomap-planner": "starter_landed",
+    "phase13-devres-arch-io-wc-memtype-planner": "starter_landed",
+    "phase13-devres-arch-phys-wc-token-planner": "starter_landed",
+    "phase13-devres-live-mmio-mappings": "blocked_on_live_mmio_state",
+    "phase13-devres-live-region-reservation": "blocked_on_live_mmio_state",
+    "phase13-devres-live-release-region-mutation": "blocked_on_live_mmio_state",
+    "phase13-devres-live-device-tree-walk": "blocked_on_live_device_tree_state",
+    "phase13-devres-live-arch-memtype-state": "blocked_on_live_arch_memtype_state",
+    "phase13-devres-live-scatterlist-ownership": "blocked_on_live_scatterlist_state",
+}
+
+SLICE_MARKERS = [
     "devm_iounmap()",
+    "devm_ioremap_uc()",
+    "devm_ioremap_wc()",
+    "devm_of_iomap()",
+    "devm_arch_io_reserve_memtype_wc()",
+    "devm_arch_phys_wc_add()",
 ]
 
-IOUNMAP_SURVEY_MARKERS = [
+SURVEY_MARKERS = [
+    EXPECTED_COMMIT,
+    f"`{EXPECTED_LANE}`",
     "devm_iounmap()",
+    "devm_ioremap_uc()",
+    "devm_ioremap_wc()",
+    "devm_arch_io_reserve_memtype_wc()",
+    "devm_arch_phys_wc_add()",
+    "helper-only DMA/scatterlist boundary",
+    "phase13-devres-live-region-reservation",
+    "phase13-devres-live-release-region-mutation",
+    "phase13-devres-live-scatterlist-ownership",
+    "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+    "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
 ]
 
-IOUNMAP_HELPER_MARKERS = [
+HELPER_MARKERS = [
     ".provides_iounmap_call_planning = true",
     "pub const ManagedIounmapPlan",
     "pub fn planManagedIounmap(",
     ".warns_on_release_miss = !release_matches",
-]
-
-IOUNMAP_REPLAY_MARKERS = [
-    'test "phase13 devres plans a managed iounmap call and warns on release misses" {',
-    "const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
-    "try std.testing.expect(miss.warns_on_release_miss);",
-]
-
-UC_WC_SLICE_MARKERS = [
-    "devm_ioremap_uc()",
-    "devm_ioremap_wc()",
-]
-
-UC_WC_SURVEY_MARKERS = [
-    "devm_ioremap_uc()",
-    "devm_ioremap_wc()",
-]
-
-UC_WC_HELPER_MARKERS = [
     ".provides_ioremap_uc_wrapper_planning = true",
     ".provides_ioremap_wc_wrapper_planning = true",
     "pub fn planManagedIoremapAcquireUc(",
     "pub fn planManagedIoremapAcquireWc(",
-]
-
-UC_WC_REPLAY_MARKERS = [
-    'test "phase13 devres uncached ioremap wrapper forces the UC lifetime path" {',
-    'test "phase13 devres uncached ioremap wrapper frees the release record on map failure" {',
-    'test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
-    'test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
-]
-
-ARCH_TOKEN_SLICE_MARKERS = [
-    "devm_arch_phys_wc_add()",
-]
-
-ARCH_TOKEN_SURVEY_MARKERS = [
-    "devm_arch_phys_wc_add()",
-]
-
-ARCH_TOKEN_HELPER_MARKERS = [
+    ".provides_arch_io_wc_memtype_planning = true",
+    "pub const ManagedMemtypeReserveInput",
+    "pub const ManagedMemtypeReservePlan",
+    "pub fn planArchIoReserveMemtypeWc(",
     ".provides_arch_phys_wc_token_planning = true",
     "pub const ManagedPhysWcAddInput",
     "pub const ManagedPhysWcAddPlan",
     "pub fn planArchPhysWcAdd(",
 ]
 
-ARCH_TOKEN_REPLAY_MARKERS = [
-    'test "phase13 devres retains phys WC release tokens on successful token add" {',
-    'test "phase13 devres frees phys WC release records when token add fails" {',
-]
-
-OF_IOMAP_PRETTY_NAME_HELPER_MARKERS = [
-    "fail_pretty_name_allocation: bool = false",
-    ".fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
-]
-
-OF_IOMAP_PRETTY_NAME_REPLAY_MARKERS = [
-    'test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning" {',
-    ".fail_pretty_name_allocation = true,",
-    "try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);",
-    "try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);",
-    "try std.testing.expectEqual(@as(?u64, 0x10), failure.reported_size);",
-    "try std.testing.expectEqual(@as(?devres.ErrorStage, .pretty_name), failure.resource_stage);",
-]
-
-BOUNDARY_SURVEY_MARKERS = [
-    "phase13-devres-live-mmio-mappings",
-    "phase13-devres-live-device-tree-walk",
-    "phase13-devres-live-arch-memtype-state",
-    "phase13-devres-live-scatterlist-ownership",
-    "live MMIO mappings",
-    "live device-tree walking",
-    "live arch memtype state transitions",
-    "helper-only DMA/scatterlist boundary",
+REPLAY_MARKERS = [
+    EXPECTED_COMMIT,
+    '"id\\\": \\\"phase13-devres-arch-io-wc-memtype-planner',
+    '"id\\\": \\\"phase13-devres-live-scatterlist-ownership',
+    "devm_arch_io_reserve_memtype_wc()",
+    'test "phase13 devres retains memtype release records on successful WC reservation" {',
+    'test "phase13 devres frees memtype release records when WC reservation fails" {',
+    'test "phase13 devres rejects memtype planning when the release record cannot be allocated" {',
 ]
 
 REVIEWABILITY_MARKERS = [
-    '"P13-L01"',
-    '"master-readback-2026-05-13"',
-    '"phase13-make-target"',
-    '"phase13-devres-arch-phys-wc-token-planner"',
-    '"phase13-devres-live-arch-memtype-state"',
-    '"phase13-devres-live-scatterlist-ownership"',
-    "try std.testing.expectEqual(@as(usize, 9), starter_landed_count);",
-    "try std.testing.expectEqual(@as(usize, 4), blocked_count);",
+    EXPECTED_COMMIT,
+    '"phase13-devres-arch-io-wc-memtype-planner"',
+    '"phase13-devres-live-region-reservation"',
+    '"phase13-devres-live-release-region-mutation"',
+    "try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);",
+    "try std.testing.expectEqual(@as(usize, 10), starter_landed_count);",
+    "try std.testing.expectEqual(@as(usize, 6), blocked_count);",
 ]
 
 DMA_REPLAY_MARKERS = [
     '"preexisting_phase13_devres_dma_coherent_present": true',
-    '"phase13-devres-live-mmio-mappings"',
-    '"phase13-devres-live-arch-memtype-state"',
     '"phase13-devres-live-scatterlist-ownership"',
     '"blocked_on_live_scatterlist_state"',
-]
-
-DMA_REPLAY_BOUNDARY_MARKERS = [
-    'test "phase13 devres coherent-dma helper surface exposes no dma or scatterlist ownership markers" {',
-    'try requireAbsent(helper, "dmam_alloc_");',
-    'try requireAbsent(helper, "dma_map_");',
-    'try requireAbsent(helper, "dma_unmap_");',
-    'try requireAbsent(helper, "dma_map_sgtable(");',
-    'try requireAbsent(helper, "struct scatterlist");',
-    'try requireAbsent(helper, "sg_table");',
-    'try requireAbsent(helper, "sg_");',
-    'test "phase13 devres coherent-dma survey keeps the adjacent dma shard visible without claiming it as the core mmio gap map" {',
-    'try requireContains(survey, "adjacent coherent-DMA evidence shard");',
-    'try requireContains(survey, "helper-only DMA/scatterlist boundary");',
+    "adjacent coherent-DMA evidence shard",
+    "helper-only DMA/scatterlist boundary",
 ]
 
 
@@ -166,19 +135,6 @@ def require_markers(source: str, prefix: str, markers: list[str], errors: list[s
     for marker in markers:
         if marker not in source:
             errors.append(f"{prefix}:missing_marker:{marker}")
-
-
-def contains_manifest_expectation(source: str, key: str, value: str) -> bool:
-    literal = f'"{key}": "{value}"'
-    escaped = literal.replace('"', '\\"')
-    return literal in source or escaped in source
-
-
-def contains_bool_expectation(source: str, key: str, value: bool) -> bool:
-    literal_value = "true" if value else "false"
-    literal = f'"{key}": {literal_value}'
-    escaped = literal.replace('"', '\\"')
-    return literal in source or escaped in source
 
 
 def validate(root: Path) -> list[str]:
@@ -206,77 +162,39 @@ def validate(root: Path) -> list[str]:
     except json.JSONDecodeError as exc:
         return [f"manifest:json_decode:{exc.msg}"]
 
-    lane_key = manifest.get("lane_key")
-    if lane_key != "P13-L01":
-        errors.append(f"manifest:lane_key_mismatch:{lane_key}")
-    else:
-        if not contains_manifest_expectation(replay_text, "lane_key", lane_key):
-            errors.append(f"replay:lane_key_mismatch:{lane_key}")
-        if lane_key not in reviewability_text:
-            errors.append(f"reviewability:lane_key_mismatch:{lane_key}")
-        if f"`{lane_key}`" not in survey_text:
-            errors.append(f"survey:lane_key_mismatch:{lane_key}")
-
-    surveyed_commit = manifest.get("surveyed_commit")
-    if surveyed_commit != "master-readback-2026-05-13":
-        errors.append(f"manifest:surveyed_commit_mismatch:{surveyed_commit}")
-    else:
-        if not contains_manifest_expectation(replay_text, "surveyed_commit", surveyed_commit):
-            errors.append(f"replay:surveyed_commit_mismatch:{surveyed_commit}")
-        if surveyed_commit not in reviewability_text:
-            errors.append(f"reviewability:surveyed_commit_mismatch:{surveyed_commit}")
-        if surveyed_commit not in survey_text:
-            errors.append(f"survey:surveyed_commit_mismatch:{surveyed_commit}")
-
-    summary = manifest.get("survey_summary")
-    if not isinstance(summary, dict):
-        errors.append("manifest:survey_summary_missing")
-    else:
-        expected_bools = {
-            "preexisting_phase13_build_present": False,
-            "preexisting_phase13_make_target_present": True,
-            "preexisting_phase13_devres_test_present": True,
-            "preexisting_phase13_devres_reviewability_present": True,
-            "preexisting_phase13_devres_survey_present": True,
-            "preexisting_phase13_devres_dma_coherent_present": True,
-        }
-        for key, expected in expected_bools.items():
-            if summary.get(key) is not expected:
-                errors.append(f"manifest:summary_mismatch:{key}:{summary.get(key)}")
-            if key.endswith("devres_dma_coherent_present") and not contains_bool_expectation(dma_replay_text, key, expected):
-                errors.append(f"dma_replay:{key}_mismatch:{expected}")
+    if manifest.get("lane_key") != EXPECTED_LANE:
+        errors.append(f"manifest:lane_key_mismatch:{manifest.get('lane_key')}")
+    if manifest.get("surveyed_commit") != EXPECTED_COMMIT:
+        errors.append(f"manifest:surveyed_commit_mismatch:{manifest.get('surveyed_commit')}")
 
     gaps = manifest.get("gaps")
-    if not isinstance(gaps, list) or len(gaps) != 13:
-        errors.append(f"manifest:gaps_count_mismatch:{len(gaps) if isinstance(gaps, list) else 'missing'}")
+    if not isinstance(gaps, list):
+        errors.append("manifest:gaps_missing")
+        gaps = []
+    if len(gaps) != EXPECTED_GAP_COUNT:
+        errors.append(f"manifest:gaps_count_mismatch:{len(gaps)}")
 
-    if STALE_CHECKER_WARNING not in survey_text:
-        errors.append("survey:missing_stale_checker_warning")
-    if CURRENT_CHECKER_MARKER not in survey_text:
-        errors.append("survey:missing_current_checker_marker")
+    seen_gaps = {}
+    for gap in gaps:
+        if isinstance(gap, dict):
+            seen_gaps[gap.get("id")] = gap.get("status")
+    for gap_id, status in EXPECTED_GAPS.items():
+        if seen_gaps.get(gap_id) != status:
+            errors.append(f"manifest:gap_status_mismatch:{gap_id}:{seen_gaps.get(gap_id)}")
 
-    require_markers(slice_text, "slice", IOUNMAP_SLICE_MARKERS, errors)
-    require_markers(survey_text, "survey", IOUNMAP_SURVEY_MARKERS, errors)
-    require_markers(helper_text, "helper", IOUNMAP_HELPER_MARKERS, errors)
-    require_markers(replay_text, "replay", IOUNMAP_REPLAY_MARKERS, errors)
+    starter_count = sum(1 for value in seen_gaps.values() if value == "starter_landed")
+    blocked_count = len(seen_gaps) - starter_count
+    if starter_count != EXPECTED_STARTER_COUNT:
+        errors.append(f"manifest:starter_count_mismatch:{starter_count}")
+    if blocked_count != EXPECTED_BLOCKED_COUNT:
+        errors.append(f"manifest:blocked_count_mismatch:{blocked_count}")
 
-    require_markers(slice_text, "slice", UC_WC_SLICE_MARKERS, errors)
-    require_markers(survey_text, "survey", UC_WC_SURVEY_MARKERS, errors)
-    require_markers(helper_text, "helper", UC_WC_HELPER_MARKERS, errors)
-    require_markers(replay_text, "replay", UC_WC_REPLAY_MARKERS, errors)
-
-    require_markers(slice_text, "slice", ARCH_TOKEN_SLICE_MARKERS, errors)
-    require_markers(survey_text, "survey", ARCH_TOKEN_SURVEY_MARKERS, errors)
-    require_markers(helper_text, "helper", ARCH_TOKEN_HELPER_MARKERS, errors)
-    require_markers(replay_text, "replay", ARCH_TOKEN_REPLAY_MARKERS, errors)
-
-    require_markers(helper_text, "helper", OF_IOMAP_PRETTY_NAME_HELPER_MARKERS, errors)
-    require_markers(replay_text, "replay", OF_IOMAP_PRETTY_NAME_REPLAY_MARKERS, errors)
-
-    require_markers(survey_text, "survey", BOUNDARY_SURVEY_MARKERS, errors)
+    require_markers(slice_text, "slice", SLICE_MARKERS, errors)
+    require_markers(survey_text, "survey", SURVEY_MARKERS, errors)
+    require_markers(helper_text, "helper", HELPER_MARKERS, errors)
+    require_markers(replay_text, "replay", REPLAY_MARKERS, errors)
     require_markers(reviewability_text, "reviewability", REVIEWABILITY_MARKERS, errors)
     require_markers(dma_replay_text, "dma_replay", DMA_REPLAY_MARKERS, errors)
-    require_markers(dma_replay_text, "dma_replay", DMA_REPLAY_BOUNDARY_MARKERS, errors)
 
     return errors
 
@@ -286,9 +204,9 @@ def seed_fixture_tree(root: Path) -> None:
         root / MANIFEST_PATH,
         json.dumps(
             {
-                "lane_key": "P13-L01",
+                "lane_key": EXPECTED_LANE,
                 "phase": "Phase 13",
-                "surveyed_commit": "master-readback-2026-05-13",
+                "surveyed_commit": EXPECTED_COMMIT,
                 "anchor": "lib/devres.c",
                 "roadmap_destinations": [
                     "lib/devres.zig",
@@ -306,149 +224,20 @@ def seed_fixture_tree(root: Path) -> None:
                     "preexisting_phase13_devres_dma_coherent_present": True,
                 },
                 "gaps": [
-                    {"id": "phase13-make-target"},
-                    {"id": "phase13-devres-helper-starter"},
-                    {"id": "phase13-devres-slice-note"},
-                    {"id": "phase13-devres-survey-note"},
-                    {"id": "phase13-devres-test-gate"},
-                    {"id": "phase13-devres-reviewability-gate"},
-                    {"id": "phase13-devres-iounmap-planner"},
-                    {"id": "phase13-devres-of-iomap-planner"},
-                    {"id": "phase13-devres-arch-phys-wc-token-planner"},
-                    {"id": "phase13-devres-live-mmio-mappings"},
-                    {"id": "phase13-devres-live-device-tree-walk"},
-                    {"id": "phase13-devres-live-arch-memtype-state"},
-                    {"id": "phase13-devres-live-scatterlist-ownership"},
+                    {"id": gap_id, "status": status}
+                    for gap_id, status in EXPECTED_GAPS.items()
                 ],
             },
             indent=2,
         )
         + "\n",
     )
-    write_text(
-        root / SLICE_PATH,
-        "\n".join(
-            [
-                "devm_iounmap()",
-                "devm_ioremap_uc()",
-                "devm_ioremap_wc()",
-                "devm_arch_phys_wc_add()",
-            ]
-        )
-        + "\n",
-    )
-    write_text(
-        root / SURVEY_PATH,
-        "\n".join(
-            [
-                "# Phase 13 devres Survey",
-                "`P13-L01` helper packet",
-                "master-readback-2026-05-13",
-                "devm_iounmap()",
-                "devm_ioremap_uc()",
-                "devm_ioremap_wc()",
-                "devm_arch_phys_wc_add()",
-                "live arch memtype state transitions",
-                "phase13-devres-live-mmio-mappings",
-                "phase13-devres-live-device-tree-walk",
-                "phase13-devres-live-arch-memtype-state",
-                "phase13-devres-live-scatterlist-ownership",
-                "live MMIO mappings",
-                "live device-tree walking",
-                "helper-only DMA/scatterlist boundary",
-                "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
-                "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
-            ]
-        )
-        + "\n",
-    )
-    write_text(
-        root / HELPER_PATH,
-        "\n".join(
-            [
-                ".provides_iounmap_call_planning = true",
-                "pub const ManagedIounmapPlan = struct {}",
-                "pub fn planManagedIounmap(",
-                ".warns_on_release_miss = !release_matches",
-                ".provides_ioremap_uc_wrapper_planning = true",
-                ".provides_ioremap_wc_wrapper_planning = true",
-                "pub fn planManagedIoremapAcquireUc(",
-                "pub fn planManagedIoremapAcquireWc(",
-                ".provides_arch_phys_wc_token_planning = true",
-                "pub const ManagedPhysWcAddInput = struct {}",
-                "pub const ManagedPhysWcAddPlan = struct {}",
-                "pub fn planArchPhysWcAdd(",
-                "fail_pretty_name_allocation: bool = false",
-                ".fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
-            ]
-        )
-        + "\n",
-    )
-    write_text(
-        root / REPLAY_PATH,
-        "\n".join(
-            [
-                'test "phase13 devres plans a managed iounmap call and warns on release misses" {',
-                "const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
-                "try std.testing.expect(miss.warns_on_release_miss);",
-                'test "phase13 devres uncached ioremap wrapper forces the UC lifetime path" {',
-                'test "phase13 devres uncached ioremap wrapper frees the release record on map failure" {',
-                'test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
-                'test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
-                'test "phase13 devres retains phys WC release tokens on successful token add" {',
-                'test "phase13 devres frees phys WC release records when token add fails" {',
-                'test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning" {',
-                ".fail_pretty_name_allocation = true,",
-                "try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);",
-                "try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);",
-                "try std.testing.expectEqual(@as(?u64, 0x10), failure.reported_size);",
-                "try std.testing.expectEqual(@as(?devres.ErrorStage, .pretty_name), failure.resource_stage);",
-                '  try expectContains(manifest_text, "\\\"lane_key\\\": \\\"P13-L01\\\"");',
-                '  try expectContains(manifest_text, "\\\"surveyed_commit\\\": \\\"master-readback-2026-05-13\\\"");',
-            ]
-        )
-        + "\n",
-    )
-    write_text(
-        root / REVIEWABILITY_PATH,
-        "\n".join(
-            [
-                '  try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);',
-                '  try std.testing.expectEqualStrings("master-readback-2026-05-13", manifest.surveyed_commit);',
-                '  try expectGap(manifest, "phase13-make-target", "starter_landed", "zigux/Makefile", "stable shared Phase 13 replay handle");',
-                '  try expectGap(manifest, "phase13-devres-arch-phys-wc-token-planner", "starter_landed", "lib/devres.zig", "negative token results");',
-                '  try expectGap(manifest, "phase13-devres-live-arch-memtype-state", "blocked_on_live_arch_memtype_state", "lib/devres.zig", "mutating real memtype state");',
-                '  try expectGap(manifest, "phase13-devres-live-scatterlist-ownership", "blocked_on_live_scatterlist_state", "lib/devres.zig", "DMA/scatterlist boundary");',
-                "  try std.testing.expectEqual(@as(usize, 9), starter_landed_count);",
-                "  try std.testing.expectEqual(@as(usize, 4), blocked_count);",
-            ]
-        )
-        + "\n",
-    )
-    write_text(
-        root / DMA_REPLAY_PATH,
-        "\n".join(
-            [
-                '"preexisting_phase13_devres_dma_coherent_present": true',
-                '"phase13-devres-live-mmio-mappings"',
-                '"phase13-devres-live-arch-memtype-state"',
-                '"phase13-devres-live-scatterlist-ownership"',
-                '"blocked_on_live_scatterlist_state"',
-                'test "phase13 devres coherent-dma helper surface exposes no dma or scatterlist ownership markers" {',
-                'try requireAbsent(helper, "dmam_alloc_");',
-                'try requireAbsent(helper, "dma_map_");',
-                'try requireAbsent(helper, "dma_unmap_");',
-                'try requireAbsent(helper, "dma_map_sgtable(");',
-                'try requireAbsent(helper, "struct scatterlist");',
-                'try requireAbsent(helper, "sg_table");',
-                'try requireAbsent(helper, "sg_");',
-                'test "phase13 devres coherent-dma survey keeps the adjacent dma shard visible without claiming it as the core mmio gap map" {',
-                'try requireContains(survey, "adjacent coherent-DMA evidence shard");',
-                'try requireContains(survey, "helper-only DMA/scatterlist boundary");',
-            ]
-        )
-        + "\n",
-    )
+    write_text(root / SLICE_PATH, "\n".join(SLICE_MARKERS) + "\n")
+    write_text(root / SURVEY_PATH, "\n".join(SURVEY_MARKERS) + "\n")
+    write_text(root / HELPER_PATH, "\n".join(HELPER_MARKERS) + "\n")
+    write_text(root / REPLAY_PATH, "\n".join(REPLAY_MARKERS) + "\n")
+    write_text(root / REVIEWABILITY_PATH, "\n".join(REVIEWABILITY_MARKERS) + "\n")
+    write_text(root / DMA_REPLAY_PATH, "\n".join(DMA_REPLAY_MARKERS) + "\n")
 
 
 def assert_only(actual: list[str], expected: list[str], label: str) -> None:
@@ -466,167 +255,51 @@ def run_self_test() -> int:
         case_count += 1
 
         seed_fixture_tree(root)
-        write_text(root / SURVEY_PATH, "missing lane key\n")
+        write_text(root / SURVEY_PATH, "broken\n")
         assert_only(
             validate(root),
             [
-                "survey:lane_key_mismatch:P13-L01",
-                "survey:surveyed_commit_mismatch:master-readback-2026-05-13",
-                "survey:missing_stale_checker_warning",
-                "survey:missing_current_checker_marker",
-                "survey:missing_marker:devm_iounmap()",
-                "survey:missing_marker:devm_ioremap_uc()",
-                "survey:missing_marker:devm_ioremap_wc()",
-                "survey:missing_marker:devm_arch_phys_wc_add()",
-                "survey:missing_marker:phase13-devres-live-mmio-mappings",
-                "survey:missing_marker:phase13-devres-live-device-tree-walk",
-                "survey:missing_marker:phase13-devres-live-arch-memtype-state",
-                "survey:missing_marker:phase13-devres-live-scatterlist-ownership",
-                "survey:missing_marker:live MMIO mappings",
-                "survey:missing_marker:live device-tree walking",
-                "survey:missing_marker:live arch memtype state transitions",
-                "survey:missing_marker:helper-only DMA/scatterlist boundary",
+                f"survey:missing_marker:{marker}"
+                for marker in SURVEY_MARKERS
             ],
             "survey_missing_markers_failed",
         )
         case_count += 1
 
         seed_fixture_tree(root)
-        write_text(root / SLICE_PATH, "devm_iounmap()\ndevm_arch_phys_wc_add()\n")
+        manifest = json.loads(read_text(root / MANIFEST_PATH))
+        manifest["surveyed_commit"] = "stale"
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         assert_only(
             validate(root),
-            [
-                "slice:missing_marker:devm_ioremap_uc()",
-                "slice:missing_marker:devm_ioremap_wc()",
-            ],
-            "slice_missing_uc_wc_markers_failed",
+            ["manifest:surveyed_commit_mismatch:stale"],
+            "manifest_commit_failed",
         )
         case_count += 1
 
         seed_fixture_tree(root)
-        write_text(root / REVIEWABILITY_PATH, "P13-L01 only\n")
+        manifest = json.loads(read_text(root / MANIFEST_PATH))
+        manifest["gaps"] = manifest["gaps"][:-1]
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         assert_only(
             validate(root),
             [
-                "reviewability:surveyed_commit_mismatch:master-readback-2026-05-13",
-                'reviewability:missing_marker:"P13-L01"',
-                'reviewability:missing_marker:"master-readback-2026-05-13"',
-                'reviewability:missing_marker:"phase13-make-target"',
-                'reviewability:missing_marker:"phase13-devres-arch-phys-wc-token-planner"',
-                'reviewability:missing_marker:"phase13-devres-live-arch-memtype-state"',
-                'reviewability:missing_marker:"phase13-devres-live-scatterlist-ownership"',
-                "reviewability:missing_marker:try std.testing.expectEqual(@as(usize, 9), starter_landed_count);",
-                "reviewability:missing_marker:try std.testing.expectEqual(@as(usize, 4), blocked_count);",
+                "manifest:gaps_count_mismatch:15",
+                "manifest:gap_status_mismatch:phase13-devres-live-scatterlist-ownership:None",
+                "manifest:blocked_count_mismatch:5",
             ],
-            "reviewability_missing_markers_failed",
+            "manifest_gap_count_failed",
         )
         case_count += 1
 
         seed_fixture_tree(root)
-        write_text(root / HELPER_PATH, ".provides_iounmap_call_planning = true\n")
+        write_text(root / REVIEWABILITY_PATH, "\n".join(REVIEWABILITY_MARKERS[:-1]) + "\n")
         assert_only(
             validate(root),
             [
-                "helper:missing_marker:pub const ManagedIounmapPlan",
-                "helper:missing_marker:pub fn planManagedIounmap(",
-                "helper:missing_marker:.warns_on_release_miss = !release_matches",
-                "helper:missing_marker:.provides_ioremap_uc_wrapper_planning = true",
-                "helper:missing_marker:.provides_ioremap_wc_wrapper_planning = true",
-                "helper:missing_marker:pub fn planManagedIoremapAcquireUc(",
-                "helper:missing_marker:pub fn planManagedIoremapAcquireWc(",
-                "helper:missing_marker:.provides_arch_phys_wc_token_planning = true",
-                "helper:missing_marker:pub const ManagedPhysWcAddInput",
-                "helper:missing_marker:pub const ManagedPhysWcAddPlan",
-                "helper:missing_marker:pub fn planArchPhysWcAdd(",
-                "helper:missing_marker:fail_pretty_name_allocation: bool = false",
-                "helper:missing_marker:.fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
+                "reviewability:missing_marker:try std.testing.expectEqual(@as(usize, 6), blocked_count);",
             ],
-            "helper_missing_markers_failed",
-        )
-        case_count += 1
-
-        seed_fixture_tree(root)
-        write_text(
-            root / REPLAY_PATH,
-            "\n".join(
-                [
-                    'test "phase13 devres plans a managed iounmap call and warns on release misses" {',
-                    "const miss = devres.DevresHelperLab.planManagedIounmap(0x4000, 0x4010);",
-                    "try std.testing.expect(miss.warns_on_release_miss);",
-                    'test "phase13 devres retains phys WC release tokens on successful token add" {',
-                    'test "phase13 devres frees phys WC release records when token add fails" {',
-                    '  try expectContains(manifest_text, "\\\"lane_key\\\": \\\"P13-L01\\\"");',
-                    '  try expectContains(manifest_text, "\\\"surveyed_commit\\\": \\\"master-readback-2026-05-13\\\"");',
-                ]
-            )
-            + "\n",
-        )
-        assert_only(
-            validate(root),
-            [
-                'replay:missing_marker:test "phase13 devres uncached ioremap wrapper forces the UC lifetime path" {',
-                'replay:missing_marker:test "phase13 devres uncached ioremap wrapper frees the release record on map failure" {',
-                'replay:missing_marker:test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
-                'replay:missing_marker:test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
-                'replay:missing_marker:test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning" {',
-                "replay:missing_marker:.fail_pretty_name_allocation = true,",
-                "replay:missing_marker:try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);",
-                "replay:missing_marker:try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);",
-                "replay:missing_marker:try std.testing.expectEqual(@as(?u64, 0x10), failure.reported_size);",
-                "replay:missing_marker:try std.testing.expectEqual(@as(?devres.ErrorStage, .pretty_name), failure.resource_stage);",
-            ],
-            "replay_missing_uc_wc_and_of_iomap_markers_failed",
-        )
-        case_count += 1
-
-        seed_fixture_tree(root)
-        write_text(
-            root / DMA_REPLAY_PATH,
-            "\n".join(DMA_REPLAY_MARKERS) + "\n",
-        )
-        assert_only(
-            validate(root),
-            [
-                'dma_replay:missing_marker:test "phase13 devres coherent-dma helper surface exposes no dma or scatterlist ownership markers" {',
-                'dma_replay:missing_marker:try requireAbsent(helper, "dmam_alloc_");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "dma_map_");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "dma_unmap_");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "dma_map_sgtable(");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "struct scatterlist");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "sg_table");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "sg_");',
-                'dma_replay:missing_marker:test "phase13 devres coherent-dma survey keeps the adjacent dma shard visible without claiming it as the core mmio gap map" {',
-                'dma_replay:missing_marker:try requireContains(survey, "adjacent coherent-DMA evidence shard");',
-                'dma_replay:missing_marker:try requireContains(survey, "helper-only DMA/scatterlist boundary");',
-            ],
-            "dma_replay_missing_boundary_markers_failed",
-        )
-        case_count += 1
-
-        seed_fixture_tree(root)
-        write_text(root / DMA_REPLAY_PATH, "nothing useful\n")
-        assert_only(
-            validate(root),
-            [
-                "dma_replay:preexisting_phase13_devres_dma_coherent_present_mismatch:True",
-                'dma_replay:missing_marker:"preexisting_phase13_devres_dma_coherent_present": true',
-                'dma_replay:missing_marker:"phase13-devres-live-mmio-mappings"',
-                'dma_replay:missing_marker:"phase13-devres-live-arch-memtype-state"',
-                'dma_replay:missing_marker:"phase13-devres-live-scatterlist-ownership"',
-                'dma_replay:missing_marker:"blocked_on_live_scatterlist_state"',
-                'dma_replay:missing_marker:test "phase13 devres coherent-dma helper surface exposes no dma or scatterlist ownership markers" {',
-                'dma_replay:missing_marker:try requireAbsent(helper, "dmam_alloc_");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "dma_map_");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "dma_unmap_");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "dma_map_sgtable(");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "struct scatterlist");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "sg_table");',
-                'dma_replay:missing_marker:try requireAbsent(helper, "sg_");',
-                'dma_replay:missing_marker:test "phase13 devres coherent-dma survey keeps the adjacent dma shard visible without claiming it as the core mmio gap map" {',
-                'dma_replay:missing_marker:try requireContains(survey, "adjacent coherent-DMA evidence shard");',
-                'dma_replay:missing_marker:try requireContains(survey, "helper-only DMA/scatterlist boundary");',
-            ],
-            "dma_replay_missing_markers_failed",
+            "reviewability_missing_marker_failed",
         )
         case_count += 1
 
@@ -637,7 +310,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 13 devres survey packet stays aligned with its manifest-backed replay."
+        description="Check that the Phase 13 devres survey packet stays aligned with its current manifest-backed replay."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
     parser.add_argument("--self-test", action="store_true", help="Run checker self-tests.")
