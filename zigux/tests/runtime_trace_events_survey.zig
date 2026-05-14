@@ -201,7 +201,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         manifest.roadmap_gap_summary.blocked_deliverable,
     );
     try std.testing.expectEqualStrings(
-        "keep the trace-events survey note, module-slice note, manifest, and loader-substrate-drift replay aligned with the visible family-local packet while leaving the shared runtime-substrate blocker explicit",
+        "keep the trace-events survey note, module-slice note, manifest, the shipped `prepareSharedRequest`, `requestSharedRuntimeLoad`, and `releaseSharedWithoutSubstrate` bridge helpers, and the loader-substrate-drift replay aligned with the visible family-local packet while leaving the shared runtime-substrate blocker explicit",
         manifest.roadmap_gap_summary.next_gate,
     );
 
