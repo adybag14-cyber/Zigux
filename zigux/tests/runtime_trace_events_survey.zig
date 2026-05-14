@@ -140,6 +140,14 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     defer std.testing.allocator.free(runtime_trace_events_loader);
 
+    const runtime_trace_events_loader_substrate_drift = try cwd.readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_trace_events_loader_substrate_drift.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(runtime_trace_events_loader_substrate_drift);
+
     const phase9_build = try cwd.readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase9_build.zig",
@@ -163,7 +171,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try std.testing.expectEqualStrings("samples/zigux/runtime_*", manifest.roadmap_destinations[1]);
 
     try std.testing.expect(manifest.survey_summary.trace_events_sample_c_lines >= 150);
-    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
+    try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_loader_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
@@ -185,7 +193,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         manifest.roadmap_gap_summary.landed_pilot_state,
     );
     try std.testing.expectEqualStrings(
-        "the broader shared runtime substrate that would turn the current reviewable trace-events sample, loader, diff, module, and survey packet into live runtime tracepoint-registration lifecycle parity",
+        "the broader shared runtime substrate that would turn the current reviewable trace-events sample, loader, loader-substrate-drift replay, diff, module, and survey packet into live runtime tracepoint-registration lifecycle parity",
         manifest.roadmap_gap_summary.missing_capability,
     );
     try std.testing.expectEqualStrings(
@@ -193,16 +201,17 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         manifest.roadmap_gap_summary.blocked_deliverable,
     );
     try std.testing.expectEqualStrings(
-        "keep the trace-events survey note, module-slice note, and manifest aligned with the visible family-local packet while leaving the shared runtime-substrate blocker explicit",
+        "keep the trace-events survey note, module-slice note, manifest, and loader-substrate-drift replay aligned with the visible family-local packet while leaving the shared runtime-substrate blocker explicit",
         manifest.roadmap_gap_summary.next_gate,
     );
 
-    try std.testing.expectEqual(@as(usize, 10), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 1), manifest.gaps.len);
 
     var saw_sample = false;
     var saw_loader = false;
+    var saw_loader_substrate_drift = false;
     var saw_module = false;
     var saw_diff = false;
     var saw_survey = false;
@@ -230,6 +239,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
             saw_loader = true;
             try std.testing.expectEqualStrings("runtime_loader_scaffold", entry.kind);
             try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events_loader.zig", entry.path);
+        } else if (std.mem.eql(u8, entry.id, "trace-events-loader-substrate-drift")) {
+            saw_loader_substrate_drift = true;
+            try std.testing.expectEqualStrings("validation", entry.kind);
+            try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_loader_substrate_drift.zig", entry.path);
         } else if (std.mem.eql(u8, entry.id, "trace-events-module-gate")) {
             saw_module = true;
             try std.testing.expectEqualStrings("validation", entry.kind);
@@ -267,6 +280,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
 
     try std.testing.expect(saw_sample);
     try std.testing.expect(saw_loader);
+    try std.testing.expect(saw_loader_substrate_drift);
     try std.testing.expect(saw_module);
     try std.testing.expect(saw_diff);
     try std.testing.expect(saw_survey);
@@ -330,12 +344,21 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         manifest.gaps[0].why_now,
     );
 
+    const loader_substrate_drift_why_now = deliveryEvidenceWhyNowForId(manifest, "trace-events-loader-substrate-drift") orelse return error.ExpectedLoaderSubstrateDriftDeliveryEvidence;
     const survey_note_why_now = deliveryEvidenceWhyNowForId(manifest, "trace-events-survey-note") orelse return error.ExpectedSurveyNoteDeliveryEvidence;
     const module_slice_note_why_now = deliveryEvidenceWhyNowForId(manifest, "trace-events-module-slice-note") orelse return error.ExpectedModuleSliceDeliveryEvidence;
+    try expectContains(loader_substrate_drift_why_now, "dedicated loader-substrate-drift replay");
+    try expectContains(loader_substrate_drift_why_now, "selftest-complete and initialized-stage handoffs");
     try expectContains(survey_note_why_now, "selftest-ready failed-exit rollback cue");
+    try expectContains(survey_note_why_now, "loader-substrate-drift replay");
     try expectContains(module_slice_note_why_now, "selftest-ready failed-exit rollback note");
+    try expectContains(module_slice_note_why_now, "loader-substrate-drift replay");
 
     try expectContains(survey_note, "reviewable family-local starter plus the adjacent shared loader-facing reminder packet");
+    try expectContains(
+        survey_note,
+        "The prepared shared runtime-substrate drift rejection is now explicit through the dedicated `zigux/tests/runtime_trace_events_loader_substrate_drift.zig` replay wired into `zigux/tests/phase9_build.zig`",
+    );
     try expectContains(
         survey_note,
         "The directly coupled module-slice note already keeps `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and `zigux/Makefile` explicit as adjacent reminder surfaces.",
@@ -347,6 +370,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(
         survey_note,
         "the family-local module gate separately keeps the selftest-ready failed-exit rollback path explicit so lifecycle state stays stable until registration drain finishes.",
+    );
+    try expectContains(
+        survey_note,
+        "keep this survey note and `zigux/tests/runtime_trace_events_survey.zig` aligned with the already-landed `zigux/tests/runtime_trace_events_loader_substrate_drift.zig` replay and the focused `phase9-runtime-trace-events-tests` route",
     );
     try expectContains(survey_note, "The remaining blocker is the broader Phase 9 runtime substrate.");
     try expectContains(
@@ -423,6 +450,20 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         "try std.testing.expectError(error.OutstandingRegistrationForLoader, RuntimeTraceEventsLoader.planFor(&module));",
     );
 
+    try expectContains(
+        runtime_trace_events_loader_substrate_drift,
+        "phase 9 runtime trace-events loader rejects prepared shared runtime-substrate drift before any local runtime handoff",
+    );
+    try expectContains(
+        runtime_trace_events_loader_substrate_drift,
+        "phase 9 runtime trace-events loader rejects initialized-stage prepared shared runtime-substrate drift before any local runtime handoff",
+    );
+    try expectContains(runtime_trace_events_loader_substrate_drift, "shared_request.plan.requires_runtime_substrate = false;");
+    try expectContains(
+        runtime_trace_events_loader_substrate_drift,
+        "try std.testing.expectError(error.LoaderNotRequired, loader.requestSharedRuntimeLoad(&shared_request));",
+    );
+
     try expectContains(phase9_build, "runtime_trace_events.zig");
     try expectContains(phase9_build, "phase9-runtime-trace-events-sample-tests");
     try expectContains(phase9_build, "runtime_trace_events_module.zig");
@@ -430,6 +471,8 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(phase9_build, "runtime_trace_events_diff.zig");
     try expectContains(phase9_build, "runtime_trace_events_loader.zig");
     try expectContains(phase9_build, "phase9-runtime-trace-events-loader-tests");
+    try expectContains(phase9_build, "runtime_trace_events_loader_substrate_drift.zig");
+    try expectContains(phase9_build, "phase9-runtime-trace-events-loader-substrate-drift-tests");
     try expectContains(phase9_build, "phase9-runtime-trace-events-tests");
     try expectContains(phase9_build, "runtime_trace_events_survey.zig");
     try expectContains(phase9_build, "phase9-runtime-trace-events-survey-tests");
