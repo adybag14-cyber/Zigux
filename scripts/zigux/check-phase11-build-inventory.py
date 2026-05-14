@@ -57,20 +57,35 @@ REQUIRED_SHARED_DEPEND_STEPS = [
 FORBIDDEN_SHARED_DEPEND_STEP = "run_phase11_hvc_console_survey_tests"
 
 REQUIRED_MODULE_PATHS = {
+    "abi_bindings_module": "../bindings/abi.zig",
+    "layout_assert_module": "../helpers/layout_assert.zig",
     "gpio_wdt_module": "../../drivers/watchdog/gpio_wdt.zig",
+    "phase11_gpio_wdt_module": "phase11_gpio_wdt.zig",
+    "phase11_gpio_wdt_survey_module": "phase11_gpio_wdt_survey.zig",
+    "bcm2835_wdt_module": "../../drivers/watchdog/bcm2835_wdt.zig",
     "bcm2835_wdt_verify_module": "../../drivers/watchdog/bcm2835_wdt_verify.zig",
+    "phase11_bcm2835_wdt_module": "phase11_bcm2835_wdt.zig",
+    "phase11_bcm2835_wdt_survey_module": "phase11_bcm2835_wdt_survey.zig",
+    "dw_wdt_module": "../../drivers/watchdog/dw_wdt.zig",
     "dw_wdt_verify_module": "../../drivers/watchdog/dw_wdt_verify.zig",
+    "phase11_dw_wdt_module": "phase11_dw_wdt.zig",
+    "phase11_dw_wdt_registration_scaffold_module": "phase11_dw_wdt_registration_scaffold.zig",
     "phase11_dw_wdt_survey_module": "phase11_dw_wdt_survey.zig",
     "hvc_console_module": "../../drivers/tty/hvc/hvc_console.zig",
     "hvc_console_verify_module": "../../drivers/tty/hvc/hvc_console_verify.zig",
+    "phase11_hvc_console_module": "phase11_hvc_console.zig",
     "phase11_hvc_cleanup_module": "phase11_hvc_cleanup.zig",
     "phase11_hvc_console_survey_module": "phase11_hvc_console_survey.zig",
     "phase11_uapi_header_parity_survey_module": "phase11_uapi_header_parity_survey.zig",
 }
 
 REQUIRED_IMPORT_TRIPLES = {
+    ("layout_assert_module", "abi_bindings", "abi_bindings_module"),
     ("phase11_gpio_wdt_module", "gpio_wdt", "gpio_wdt_module"),
+    ("phase11_bcm2835_wdt_module", "bcm2835_wdt", "bcm2835_wdt_module"),
+    ("phase11_dw_wdt_module", "dw_wdt", "dw_wdt_module"),
     ("phase11_dw_wdt_registration_scaffold_module", "dw_wdt", "dw_wdt_module"),
+    ("phase11_hvc_console_module", "hvc_console", "hvc_console_module"),
     ("phase11_hvc_cleanup_module", "hvc_console", "hvc_console_module"),
     ("phase11_hvc_console_survey_module", "layout_assert", "layout_assert_module"),
     (
@@ -81,10 +96,16 @@ REQUIRED_IMPORT_TRIPLES = {
 }
 
 REQUIRED_TEST_ROOT_MODULES = {
+    "phase11-gpio-wdt-tests": "phase11_gpio_wdt_module",
+    "phase11-gpio-wdt-survey-tests": "phase11_gpio_wdt_survey_module",
+    "phase11-bcm2835-wdt-tests": "phase11_bcm2835_wdt_module",
     "phase11-bcm2835-wdt-verify-tests": "bcm2835_wdt_verify_module",
+    "phase11-bcm2835-wdt-survey-tests": "phase11_bcm2835_wdt_survey_module",
+    "phase11-dw-wdt-tests": "phase11_dw_wdt_module",
     "phase11-dw-wdt-registration-scaffold-tests": "phase11_dw_wdt_registration_scaffold_module",
     "phase11-dw-wdt-verify-tests": "dw_wdt_verify_module",
     "phase11-dw-wdt-survey-tests": "phase11_dw_wdt_survey_module",
+    "phase11-hvc-console-tests": "phase11_hvc_console_module",
     "phase11-hvc-console-verify-tests": "hvc_console_verify_module",
     "phase11-hvc-cleanup-tests": "phase11_hvc_cleanup_module",
     "phase11-hvc-console-survey-tests": "phase11_hvc_console_survey_module",
@@ -294,21 +315,27 @@ def build_inventory_fixture() -> dict[str, object]:
         "build_test_names": REQUIRED_BUILD_TEST_NAMES,
         "shared_test_depend_steps": REQUIRED_SHARED_DEPEND_STEPS,
         "module_root_source_files": [
+            {"module": "abi_bindings_module", "path": "../bindings/abi.zig"},
             {"module": "layout_assert_module", "path": "../helpers/layout_assert.zig"},
             {"module": "gpio_wdt_module", "path": "../../drivers/watchdog/gpio_wdt.zig"},
+            {"module": "phase11_gpio_wdt_module", "path": "phase11_gpio_wdt.zig"},
+            {"module": "phase11_gpio_wdt_survey_module", "path": "phase11_gpio_wdt_survey.zig"},
+            {"module": "bcm2835_wdt_module", "path": "../../drivers/watchdog/bcm2835_wdt.zig"},
             {
                 "module": "bcm2835_wdt_verify_module",
                 "path": "../../drivers/watchdog/bcm2835_wdt_verify.zig",
+            },
+            {"module": "phase11_bcm2835_wdt_module", "path": "phase11_bcm2835_wdt.zig"},
+            {
+                "module": "phase11_bcm2835_wdt_survey_module",
+                "path": "phase11_bcm2835_wdt_survey.zig",
             },
             {"module": "dw_wdt_module", "path": "../../drivers/watchdog/dw_wdt.zig"},
             {
                 "module": "dw_wdt_verify_module",
                 "path": "../../drivers/watchdog/dw_wdt_verify.zig",
             },
-            {
-                "module": "phase11_gpio_wdt_module",
-                "path": "phase11_gpio_wdt.zig",
-            },
+            {"module": "phase11_dw_wdt_module", "path": "phase11_dw_wdt.zig"},
             {
                 "module": "phase11_dw_wdt_registration_scaffold_module",
                 "path": "phase11_dw_wdt_registration_scaffold.zig",
@@ -325,10 +352,8 @@ def build_inventory_fixture() -> dict[str, object]:
                 "module": "hvc_console_verify_module",
                 "path": "../../drivers/tty/hvc/hvc_console_verify.zig",
             },
-            {
-                "module": "phase11_hvc_cleanup_module",
-                "path": "phase11_hvc_cleanup.zig",
-            },
+            {"module": "phase11_hvc_console_module", "path": "phase11_hvc_console.zig"},
+            {"module": "phase11_hvc_cleanup_module", "path": "phase11_hvc_cleanup.zig"},
             {
                 "module": "phase11_hvc_console_survey_module",
                 "path": "phase11_hvc_console_survey.zig",
@@ -340,14 +365,34 @@ def build_inventory_fixture() -> dict[str, object]:
         ],
         "module_imports": [
             {
+                "module": "layout_assert_module",
+                "import_name": "abi_bindings",
+                "imported_module": "abi_bindings_module",
+            },
+            {
                 "module": "phase11_gpio_wdt_module",
                 "import_name": "gpio_wdt",
                 "imported_module": "gpio_wdt_module",
             },
             {
+                "module": "phase11_bcm2835_wdt_module",
+                "import_name": "bcm2835_wdt",
+                "imported_module": "bcm2835_wdt_module",
+            },
+            {
+                "module": "phase11_dw_wdt_module",
+                "import_name": "dw_wdt",
+                "imported_module": "dw_wdt_module",
+            },
+            {
                 "module": "phase11_dw_wdt_registration_scaffold_module",
                 "import_name": "dw_wdt",
                 "imported_module": "dw_wdt_module",
+            },
+            {
+                "module": "phase11_hvc_console_module",
+                "import_name": "hvc_console",
+                "imported_module": "hvc_console_module",
             },
             {
                 "module": "phase11_hvc_cleanup_module",
@@ -366,10 +411,24 @@ def build_inventory_fixture() -> dict[str, object]:
             },
         ],
         "test_root_modules": [
+            {"test": "phase11-gpio-wdt-tests", "root_module": "phase11_gpio_wdt_module"},
+            {
+                "test": "phase11-gpio-wdt-survey-tests",
+                "root_module": "phase11_gpio_wdt_survey_module",
+            },
+            {
+                "test": "phase11-bcm2835-wdt-tests",
+                "root_module": "phase11_bcm2835_wdt_module",
+            },
             {
                 "test": "phase11-bcm2835-wdt-verify-tests",
                 "root_module": "bcm2835_wdt_verify_module",
             },
+            {
+                "test": "phase11-bcm2835-wdt-survey-tests",
+                "root_module": "phase11_bcm2835_wdt_survey_module",
+            },
+            {"test": "phase11-dw-wdt-tests", "root_module": "phase11_dw_wdt_module"},
             {
                 "test": "phase11-dw-wdt-registration-scaffold-tests",
                 "root_module": "phase11_dw_wdt_registration_scaffold_module",
@@ -381,6 +440,10 @@ def build_inventory_fixture() -> dict[str, object]:
             {
                 "test": "phase11-dw-wdt-survey-tests",
                 "root_module": "phase11_dw_wdt_survey_module",
+            },
+            {
+                "test": "phase11-hvc-console-tests",
+                "root_module": "phase11_hvc_console_module",
             },
             {
                 "test": "phase11-hvc-console-verify-tests",
@@ -475,6 +538,17 @@ def run_self_test() -> None:
         )
         expect_failure(
             rewrite_json(
+                "wrong_gpio_survey_path",
+                lambda data: next(
+                    entry.update({"path": "phase11_gpio_wdt.zig"})
+                    for entry in data["module_root_source_files"]
+                    if entry["module"] == "phase11_gpio_wdt_survey_module"
+                ),
+            ),
+            "module_root_source_files mismatch for phase11_gpio_wdt_survey_module",
+        )
+        expect_failure(
+            rewrite_json(
                 "wrong_dw_wdt_survey_path",
                 lambda data: next(
                     entry.update({"path": "phase11_dw_wdt_registration_scaffold.zig"})
@@ -483,6 +557,28 @@ def run_self_test() -> None:
                 ),
             ),
             "module_root_source_files mismatch for phase11_dw_wdt_survey_module",
+        )
+        expect_failure(
+            rewrite_json(
+                "missing_abi_bindings_import",
+                lambda data: data["module_imports"].remove({
+                    "module": "layout_assert_module",
+                    "import_name": "abi_bindings",
+                    "imported_module": "abi_bindings_module",
+                }),
+            ),
+            "('layout_assert_module', 'abi_bindings', 'abi_bindings_module')",
+        )
+        expect_failure(
+            rewrite_json(
+                "wrong_hvc_console_root_module",
+                lambda data: next(
+                    entry.update({"root_module": "phase11_hvc_cleanup_module"})
+                    for entry in data["test_root_modules"]
+                    if entry["test"] == "phase11-hvc-console-tests"
+                ),
+            ),
+            "test_root_modules mismatch for phase11-hvc-console-tests",
         )
         expect_failure(
             rewrite_json(
@@ -525,7 +621,7 @@ def run_self_test() -> None:
         expect_failure(missing_build_case, FILES["build_file"])
 
         print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-        print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=8")
+        print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=11")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
