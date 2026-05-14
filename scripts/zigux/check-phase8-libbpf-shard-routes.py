@@ -11,6 +11,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
+ONLINE_CPU_ROUTING_HELPER_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing.zig"
 
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
@@ -27,6 +28,7 @@ REQUIRED_FILES = [
     "zigux/Makefile",
     "zigux/tests/README.md",
     MANIFEST_PATH,
+    ONLINE_CPU_ROUTING_HELPER_PATH,
     PHASE8_BUILD_PATH,
 ]
 
@@ -160,6 +162,11 @@ REQUIRED_MARKERS = {
         '"slug": "map-reuse-compatibility", "status": "starter_landed"',
         '"slug": "perf-buffer-online-cpu-routing", "status": "deferred_high_risk"',
         '"slug": "perf-buffer-poll-bookkeeping", "status": "starter_landed"',
+    ],
+    ONLINE_CPU_ROUTING_HELPER_PATH: [
+        "pub fn advanceOnlineCpuCursor(",
+        "pub fn summarizeNextOnlineCpuRoute(",
+        "pub fn summarizeOnlineCpuRouting(",
     ],
     PHASE8_BUILD_PATH: [
         '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),',
