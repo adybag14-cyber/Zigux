@@ -1,16 +1,21 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
+const CComparatorResult = c_int;
 
 pub fn Comparator(comptime Key: type, comptime T: type) type {
     return *const fn (*const Key, *const T) i32;
 }
 
 pub fn CComparator(comptime Key: type, comptime T: type) type {
-    return *const fn (*const Key, *const T) callconv(.c) i32;
+    return *const fn (*const Key, *const T) callconv(.c) CComparatorResult;
 }
 
 pub const RawComparator = *const fn (*const anyopaque, *const anyopaque) i32;
-pub const CRawComparator = *const fn (*const anyopaque, *const anyopaque) callconv(.c) i32;
+pub const CRawComparator = *const fn (*const anyopaque, *const anyopaque) callconv(.c) CComparatorResult;
+
+fn expectedComparatorReturnType(comptime fn_info: std.builtin.Type.Fn) type {
+    return if (fn_info.calling_convention.eql(std.builtin.CallingConvention.c)) CComparatorResult else i32;
+}
 
 fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: type) void {
     const fn_info = switch (@typeInfo(Compare)) {
@@ -31,8 +36,8 @@ fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: ty
     if (fn_info.params[1].type orelse @compileError("bsearch comparator item parameter must be typed") != *const T) {
         @compileError("bsearch comparator second parameter must be *const T");
     }
-    if (fn_info.return_type orelse @compileError("bsearch comparator return type must be explicit") != i32) {
-        @compileError("bsearch comparator return type must be i32");
+    if (fn_info.return_type orelse @compileError("bsearch comparator return type must be explicit") != expectedComparatorReturnType(fn_info)) {
+        @compileError("bsearch comparator return type must be i32 for native callconv or c_int for C ABI callconv");
     }
 }
 
@@ -55,9 +60,13 @@ fn validateRawComparator(comptime Compare: type) void {
     if (fn_info.params[1].type orelse @compileError("bsearch raw comparator item parameter must be typed") != *const anyopaque) {
         @compileError("bsearch raw comparator second parameter must be *const anyopaque");
     }
-    if (fn_info.return_type orelse @compileError("bsearch raw comparator return type must be explicit") != i32) {
-        @compileError("bsearch raw comparator return type must be i32");
+    if (fn_info.return_type orelse @compileError("bsearch raw comparator return type must be explicit") != expectedComparatorReturnType(fn_info)) {
+        @compileError("bsearch raw comparator return type must be i32 for native callconv or c_int for C ABI callconv");
     }
+}
+
+fn normalizeCompareResult(result: anytype) i32 {
+    return if (result < 0) -1 else if (result > 0) 1 else 0;
 }
 
 pub const IndexRange = struct {
@@ -141,7 +150,7 @@ pub fn searchIndex(
     while (count > 0) {
         const pivot_index = start + (count >> 1);
         const pivot: *const T = &items[pivot_index];
-        if (advanceSearchWindow(&start, &count, pivot_index, compare(key, pivot))) {
+        if (advanceSearchWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot)))) {
             return pivot_index;
         }
     }
@@ -185,7 +194,7 @@ pub fn lowerBoundIndex(
     while (count > 0) {
         const pivot_index = start + (count >> 1);
         const pivot: *const T = &items[pivot_index];
-        advanceLowerBoundWindow(&start, &count, pivot_index, compare(key, pivot));
+        advanceLowerBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot)));
     }
 
     return start;
@@ -205,7 +214,7 @@ pub fn upperBoundIndex(
     while (count > 0) {
         const pivot_index = start + (count >> 1);
         const pivot: *const T = &items[pivot_index];
-        advanceUpperBoundWindow(&start, &count, pivot_index, compare(key, pivot));
+        advanceUpperBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot)));
     }
 
     return start;
@@ -238,7 +247,7 @@ pub fn bsearchIndex(
     while (count > 0) {
         const pivot_index = start + (count >> 1);
         const pivot_ptr: *const anyopaque = @ptrCast(base + (pivot_index * size));
-        if (advanceSearchWindow(&start, &count, pivot_index, compare(key, pivot_ptr))) {
+        if (advanceSearchWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot_ptr)))) {
             return pivot_index;
         }
     }
@@ -282,7 +291,7 @@ pub fn bsearchLowerBoundIndex(
     while (count > 0) {
         const pivot_index = start + (count >> 1);
         const pivot_ptr: *const anyopaque = @ptrCast(base + (pivot_index * size));
-        advanceLowerBoundWindow(&start, &count, pivot_index, compare(key, pivot_ptr));
+        advanceLowerBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot_ptr)));
     }
 
     return start;
@@ -302,7 +311,7 @@ pub fn bsearchUpperBoundIndex(
     while (count > 0) {
         const pivot_index = start + (count >> 1);
         const pivot_ptr: *const anyopaque = @ptrCast(base + (pivot_index * size));
-        advanceUpperBoundWindow(&start, &count, pivot_index, compare(key, pivot_ptr));
+        advanceUpperBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot_ptr)));
     }
 
     return start;
@@ -333,12 +342,12 @@ fn compareDescendingInt(key: *const i32, item: *const i32) i32 {
     return compareInt(item, key);
 }
 
-fn compareCInt(key: *const i32, item: *const i32) callconv(.c) i32 {
-    return compareInt(key, item);
+fn compareCInt(key: *const i32, item: *const i32) callconv(.c) CComparatorResult {
+    return @as(CComparatorResult, compareInt(key, item));
 }
 
-fn compareCDescendingInt(key: *const i32, item: *const i32) callconv(.c) i32 {
-    return compareDescendingInt(key, item);
+fn compareCDescendingInt(key: *const i32, item: *const i32) callconv(.c) CComparatorResult {
+    return @as(CComparatorResult, compareDescendingInt(key, item));
 }
 
 fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
@@ -353,12 +362,32 @@ fn compareOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) i32
     return compareDescendingInt(typed_key, typed_item);
 }
 
-fn compareCOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
-    return compareOpaqueInt(key, item);
+fn compareCOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
+    return @as(CComparatorResult, compareOpaqueInt(key, item));
 }
 
-fn compareCOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
-    return compareOpaqueDescendingInt(key, item);
+fn compareCOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
+    return @as(CComparatorResult, compareOpaqueDescendingInt(key, item));
+}
+
+fn comparePortableCInt(key: *const i32, item: *const i32) callconv(.c) CComparatorResult {
+    return if (key.* < item.*) -9 else if (key.* > item.*) 11 else 0;
+}
+
+fn comparePortableCDescendingInt(key: *const i32, item: *const i32) callconv(.c) CComparatorResult {
+    return if (item.* < key.*) -7 else if (item.* > key.*) 13 else 0;
+}
+
+fn comparePortableCOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return comparePortableCInt(typed_key, typed_item);
+}
+
+fn comparePortableCOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return comparePortableCDescendingInt(typed_key, typed_item);
 }
 
 const Entry = struct {
@@ -710,6 +739,26 @@ test "raw comparator aliases accept native and C calling conventions" {
         const typed_found: *const i32 = @ptrCast(@alignCast(found));
         try std.testing.expectEqual(@as(i32, 8), typed_found.*);
     }
+}
+
+test "C ABI comparators accept c_int return types with non-canonical signs" {
+    const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+    const descending_duplicates = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const ascending_target = @as(i32, 23);
+    const descending_target = @as(i32, 11);
+    const duplicate_target = @as(i32, 4);
+
+    try std.testing.expectEqual(@as(?usize, 5), searchIndex(i32, i32, &ascending_target, ascending[0..], comparePortableCInt));
+    try std.testing.expectEqual(@as(?usize, 3), searchIndex(i32, i32, &descending_target, descending[0..], comparePortableCDescendingInt));
+    try std.testing.expectEqual(@as(usize, 2), lowerBoundIndex(i32, i32, &duplicate_target, descending_duplicates[0..], comparePortableCDescendingInt));
+    try std.testing.expectEqual(@as(usize, 5), upperBoundIndex(i32, i32, &duplicate_target, descending_duplicates[0..], comparePortableCDescendingInt));
+
+    const raw_target = @as(i32, 21);
+    const raw_missing = @as(i32, 1);
+    const raw_descending = [_]i32{ 89, 55, 34, 21, 13, 8, 3 };
+    try std.testing.expectEqual(@as(?usize, 3), bsearchIndex(&raw_target, @ptrCast(raw_descending[0..].ptr), raw_descending.len, @sizeOf(i32), comparePortableCOpaqueDescendingInt));
+    try std.testing.expectEqual(@as(?usize, null), bsearchIndex(&raw_missing, @ptrCast(raw_descending[0..].ptr), raw_descending.len, @sizeOf(i32), comparePortableCOpaqueDescendingInt));
 }
 
 test "typed and raw helpers support heterogeneous keys" {
