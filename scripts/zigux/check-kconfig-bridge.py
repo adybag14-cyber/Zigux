@@ -842,7 +842,7 @@ def main() -> int:
     zig = find_zig(args.zig)
     cases = load_cases(FIXTURE_DIR)
 
-    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_\") as tmp_dir_str:
+    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         conf_exe = tmp_dir / ("conf-bridge.exe" if sys.platform == "win32" else "conf-bridge")
         confdata_exe = tmp_dir / ("confdata-bridge.exe" if sys.platform == "win32" else "confdata-bridge")
