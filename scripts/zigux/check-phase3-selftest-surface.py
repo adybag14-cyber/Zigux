@@ -903,7 +903,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        driver_path.writeText(_read(driver_path).replace(SELFTEST_DRIVER_MARKERS[2], "", 1), encoding="utf-8")
+        driver_path.write_text(_read(driver_path).replace(SELFTEST_DRIVER_MARKERS[2], "", 1), encoding="utf-8")
         issues = validate_repo(root)
         expected = f"missing selftest driver marker: {SELFTEST_DRIVER_MARKERS[2]}"
         if not _expect_issue(issues, expected):
