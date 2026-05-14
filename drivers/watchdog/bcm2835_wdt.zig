@@ -68,6 +68,36 @@ pub const PoweroffSummary = struct {
     running_after_poweroff: bool,
 };
 
+pub const PlatformHandoffRequest = struct {
+    heartbeat_sec: u32,
+    nowayout: bool,
+    bootloader_running: bool,
+    system_power_controller: bool,
+    poweroff_handler_present: bool,
+    parent_attached: bool,
+    pm_base_present: bool,
+};
+
+pub const PlatformHandoffSummary = struct {
+    anchor: []const u8,
+    heartbeat_sec: u32,
+    nowayout: bool,
+    bootloader_running: bool,
+    parent_attached: bool,
+    parent_supplies_pm_base: bool,
+    pm_base_required: bool,
+    pm_base_handoff_ready: bool,
+    timeout_init_requested: bool,
+    register_device_requested: bool,
+    stop_on_reboot_requested: bool,
+    restart_priority_value: i32,
+    system_power_controller: bool,
+    poweroff_handler_present: bool,
+    poweroff_handler_claimed: bool,
+    poweroff_handler_conflict: bool,
+    blocked_on_live_platform_registration: bool,
+};
+
 pub fn maxTimeoutSeconds() u32 {
     return watchdogTicksToSeconds(watchdog_time_mask);
 }
@@ -113,6 +143,37 @@ pub fn summarizeProbe(request: ProbeRequest) !ProbeSummary {
         .registration_requested = true,
         .poweroff_handler_claimed = poweroff_handler_claimed,
         .poweroff_handler_conflict = poweroff_handler_conflict,
+        .blocked_on_live_platform_registration = true,
+    };
+}
+
+pub fn summarizePlatformHandoff(request: PlatformHandoffRequest) !PlatformHandoffSummary {
+    const probe = try summarizeProbe(.{
+        .heartbeat_sec = request.heartbeat_sec,
+        .nowayout = request.nowayout,
+        .bootloader_running = request.bootloader_running,
+        .system_power_controller = request.system_power_controller,
+        .poweroff_handler_present = request.poweroff_handler_present,
+    });
+    const pm_base_handoff_ready = request.parent_attached and request.pm_base_present;
+
+    return .{
+        .anchor = anchor_path,
+        .heartbeat_sec = probe.heartbeat_sec,
+        .nowayout = probe.nowayout,
+        .bootloader_running = probe.bootloader_running,
+        .parent_attached = request.parent_attached,
+        .parent_supplies_pm_base = request.pm_base_present,
+        .pm_base_required = true,
+        .pm_base_handoff_ready = pm_base_handoff_ready,
+        .timeout_init_requested = true,
+        .register_device_requested = probe.registration_requested and pm_base_handoff_ready,
+        .stop_on_reboot_requested = probe.stop_on_reboot_requested,
+        .restart_priority_value = probe.restart_priority_value,
+        .system_power_controller = request.system_power_controller,
+        .poweroff_handler_present = request.poweroff_handler_present,
+        .poweroff_handler_claimed = probe.poweroff_handler_claimed and pm_base_handoff_ready,
+        .poweroff_handler_conflict = probe.poweroff_handler_conflict and pm_base_handoff_ready,
         .blocked_on_live_platform_registration = true,
     };
 }
@@ -244,6 +305,59 @@ test "phase11 bcm2835_wdt probe summary keeps preexisting poweroff handlers dist
     try std.testing.expect(!summary.sets_hw_running_bit);
     try std.testing.expect(!summary.poweroff_handler_claimed);
     try std.testing.expect(summary.poweroff_handler_conflict);
+}
+
+test "phase11 bcm2835_wdt platform handoff summary keeps PM-base prerequisites explicit" {
+    const ready = try summarizePlatformHandoff(.{
+        .heartbeat_sec = 9,
+        .nowayout = true,
+        .bootloader_running = true,
+        .system_power_controller = true,
+        .poweroff_handler_present = false,
+        .parent_attached = true,
+        .pm_base_present = true,
+    });
+
+    try std.testing.expectEqualStrings(anchor_path, ready.anchor);
+    try std.testing.expectEqual(@as(u32, 9), ready.heartbeat_sec);
+    try std.testing.expect(ready.nowayout);
+    try std.testing.expect(ready.bootloader_running);
+    try std.testing.expect(ready.parent_attached);
+    try std.testing.expect(ready.parent_supplies_pm_base);
+    try std.testing.expect(ready.pm_base_required);
+    try std.testing.expect(ready.pm_base_handoff_ready);
+    try std.testing.expect(ready.timeout_init_requested);
+    try std.testing.expect(ready.register_device_requested);
+    try std.testing.expect(ready.stop_on_reboot_requested);
+    try std.testing.expectEqual(@as(i32, restart_priority), ready.restart_priority_value);
+    try std.testing.expect(ready.system_power_controller);
+    try std.testing.expect(!ready.poweroff_handler_present);
+    try std.testing.expect(ready.poweroff_handler_claimed);
+    try std.testing.expect(!ready.poweroff_handler_conflict);
+    try std.testing.expect(ready.blocked_on_live_platform_registration);
+
+    const blocked = try summarizePlatformHandoff(.{
+        .heartbeat_sec = 9,
+        .nowayout = false,
+        .bootloader_running = false,
+        .system_power_controller = true,
+        .poweroff_handler_present = true,
+        .parent_attached = true,
+        .pm_base_present = false,
+    });
+
+    try std.testing.expect(blocked.parent_attached);
+    try std.testing.expect(!blocked.parent_supplies_pm_base);
+    try std.testing.expect(blocked.pm_base_required);
+    try std.testing.expect(!blocked.pm_base_handoff_ready);
+    try std.testing.expect(blocked.timeout_init_requested);
+    try std.testing.expect(!blocked.register_device_requested);
+    try std.testing.expect(blocked.stop_on_reboot_requested);
+    try std.testing.expect(blocked.system_power_controller);
+    try std.testing.expect(blocked.poweroff_handler_present);
+    try std.testing.expect(!blocked.poweroff_handler_claimed);
+    try std.testing.expect(!blocked.poweroff_handler_conflict);
+    try std.testing.expect(blocked.blocked_on_live_platform_registration);
 }
 
 test "phase11 bcm2835_wdt lab start stop and timeleft mirror watchdog register intent" {
