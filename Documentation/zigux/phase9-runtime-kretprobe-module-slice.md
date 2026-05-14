@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-module-starter`
 - `PHASE9_LANE_KEY=P9-L13`
-- `PHASE9_SURVEYED_AT=2026-05-12`
+- `PHASE9_SURVEYED_AT=2026-05-14`
 - scope: lifecycle starter, dedicated sample and diff packet, directly readable module and loader packet, adjacent shared-request binding, initialized and selftest-complete shared-request snapshot replays, shared runtime-loader facade plus allocator/init-flow contract replay, selftest summary, failed-exit retention until drain, maxactive-overflow retention until drain, and survey-manifest closure while the shared runtime substrate remains blocked
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
@@ -37,6 +37,7 @@ This slice keeps the smallest honest runtime-facing note in place: a sample-back
 - a selftest-complete shared-request snapshot replay that stays explicit even if later sample exit activity runs before the shared runtime-loader handoff
 - the same shared handoff packet also keeps release ownership on the prepared loader/request pair: idle loaders, non-prepared shared requests, and premature shared releases are rejected before any live registration claim so the local loader stage and shared request state cannot drift apart during release-without-substrate review
 - direct shared selftest-hook evidence rejection in the shared request surface plus prepared selftest-hook drift rejection and prepared shared-plan drift rejection that keep the loader packet truthful about the currently shipped review surface
+- the same loader scaffold and shared request binding keep `zigux_runtime_kretprobe_init`, `zigux_runtime_kretprobe_exit`, `register_kretprobe`, and `unregister_kretprobe` readable as review-only lifecycle metadata, so the starter does not claim live `module_init()`, `module_exit()`, `register_kretprobe()`, or `unregister_kretprobe()` execution or kernel initcall ordering parity
 - the current Phase 9 build packet, sample-root guidance, and dedicated survey gate keep `samples/zigux/runtime_kretprobe.zig` and `zigux/tests/runtime_kretprobe_diff.zig` explicit as the dedicated sample and diff legs for bounded maxactive, missed-instance, overlapping-entry, and duration expectations drawn from `samples/kprobes/kretprobe_example.c`, so that tracing-proof slice is part of the landed starter packet instead of blocked review debt
 - dedicated Phase 9 tests still include direct `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-diff-tests`, `phase9-runtime-kretprobe-loader-tests`, and `phase9-runtime-kretprobe-survey-tests`, the focused `phase9-runtime-kretprobe-tests` step, and the shared `phase9-runtime-loader-shared-tests` shard plus the workflow-backed `make -C zigux phase9` route, while the missing runtime substrate remains the next blocker to honest loadable-module parity
 
@@ -44,7 +45,7 @@ This slice keeps the smallest honest runtime-facing note in place: a sample-back
 
 This slice does not yet claim:
 - a kernel-loadable Zigux module
-- live `register_kretprobe` or `unregister_kretprobe` execution parity
+- live `module_init()`, `module_exit()`, `register_kretprobe()`, or `unregister_kretprobe()` execution parity or kernel initcall ordering parity
 - boot-time or module-load execution
 - parity or ownership for the shared runtime substrate under the freeze map boundary
 - any freeze-map status change without an Architecture Council decision
@@ -58,6 +59,6 @@ This slice does not yet claim:
 
 ## Next Bounded Step
 
-Stay in the Phase 9 runtime kretprobe lane and keep the directly readable sample, diff, module, loader, manifest, and survey packet synchronized while the shared runtime substrate remains the next blocker to loadable-module parity.
+Stay in the Phase 9 runtime kretprobe lane and keep the directly readable sample, diff, module, loader, manifest, and survey packet synchronized around the review-only initcall and registration boundary while the shared runtime substrate remains the next blocker to loadable-module parity.
 
 ## Footer
