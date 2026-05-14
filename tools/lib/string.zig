@@ -70,6 +70,22 @@ pub fn strscpy(dest: []u8, src: []const u8) isize {
     return @intCast(copy_len);
 }
 
+pub fn strscpyPad(dest: []u8, src: []const u8) isize {
+    const copied = strscpy(dest, src);
+    if (copied >= 0) {
+        const copied_len: usize = @intCast(copied);
+        const pad_start = copied_len + 1;
+        if (pad_start < dest.len) {
+            @memset(dest[pad_start..], 0);
+        }
+    }
+    return copied;
+}
+
+pub fn strscpy_pad(dest: []u8, src: []const u8) isize {
+    return strscpyPad(dest, src);
+}
+
 pub fn skipSpaces(str: []const u8) []const u8 {
     var idx: usize = 0;
     while (idx < str.len and std.ascii.isWhitespace(str[idx])) : (idx += 1) {}
@@ -453,6 +469,34 @@ test "strscpy keeps NUL termination and reports truncation with -E2BIG" {
     var cstr_dst = [_]u8{0xaa} ** 6;
     try std.testing.expectEqual(@as(isize, 2), strscpy(&cstr_dst, &src_cstr));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 'k', 0, 0xaa, 0xaa, 0xaa }, &cstr_dst);
+}
+
+test "strscpyPad zero-pads the tail after a short source" {
+    var padded = [_]u8{0xaa} ** 6;
+    try std.testing.expectEqual(@as(isize, 2), strscpyPad(&padded, "hi"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 0, 0, 0, 0 }, &padded);
+}
+
+test "strscpyPad stops at embedded NUL and pads the remaining tail" {
+    const src_cstr = [_]u8{ 'o', 'k', 0, 'x', 'y' };
+    var padded = [_]u8{0xaa} ** 6;
+    try std.testing.expectEqual(@as(isize, 2), strscpyPad(&padded, &src_cstr));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 'k', 0, 0, 0, 0 }, &padded);
+}
+
+test "strscpyPad preserves strscpy truncation semantics" {
+    var truncated = [_]u8{0xaa} ** 4;
+    try std.testing.expectEqual(strscpy_e2big, strscpyPad(&truncated, "hello"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'e', 'l', 0 }, &truncated);
+
+    var zero_sized = [_]u8{};
+    try std.testing.expectEqual(strscpy_e2big, strscpyPad(&zero_sized, "hello"));
+}
+
+test "strscpy_pad mirrors strscpyPad padding semantics" {
+    var padded = [_]u8{0xaa} ** 5;
+    try std.testing.expectEqual(@as(isize, 2), strscpy_pad(&padded, "hi"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 0, 0, 0 }, &padded);
 }
 
 test "streq matches C-string equality semantics" {
