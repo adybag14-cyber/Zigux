@@ -675,6 +675,33 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
     try std.testing.expectEqualStrings("m", summary.entries[1].value);
 }
 
+test "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA="stable"
+        \\CONFIG_ALPHA="unterminated
+        \\# CONFIG_DEBUG is not set
+        \\CONFIG_DEBUG="broken
+        \\CONFIG_GAMMA="still-broken
+        \\CONFIG_BETA=y
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("stable", summary.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_DEBUG", summary.entries[1].name);
+    try std.testing.expectEqual(EntryKind.unset, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("n", summary.entries[1].value);
+    try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[2].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[2].kind);
+    try std.testing.expectEqualStrings("y", summary.entries[2].value);
+}
+
 test "confdata bridge keeps only the last state across unset and set transitions" {
     const Capture = struct {
         list: std.ArrayList(u8),
@@ -734,31 +761,4 @@ test "confdata bridge keeps only the last state across unset and set transitions
         "{\"counts\":{\"set\":2,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_ALPHA\",\"kind\":\"string\",\"value\":\"enabled\"},{\"name\":\"CONFIG_BETA\",\"kind\":\"value\",\"value\":\"7\"}]}\n",
         capture.list.items,
     );
-}
-
-test "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed" {
-    const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA="stable"
-        \\CONFIG_ALPHA="unterminated
-        \\# CONFIG_DEBUG is not set
-        \\CONFIG_DEBUG="broken
-        \\CONFIG_GAMMA="still-broken
-        \\CONFIG_BETA=y
-        \\
-    );
-    defer deinitSummary(allocator, &summary);
-
-    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
-    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
-    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
-    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
-    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
-    try std.testing.expectEqualStrings("stable", summary.entries[0].value);
-    try std.testing.expectEqualStrings("CONFIG_DEBUG", summary.entries[1].name);
-    try std.testing.expectEqual(EntryKind.unset, summary.entries[1].kind);
-    try std.testing.expectEqualStrings("n", summary.entries[1].value);
-    try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[2].name);
-    try std.testing.expectEqual(EntryKind.tristate, summary.entries[2].kind);
-    try std.testing.expectEqualStrings("y", summary.entries[2].value);
 }
