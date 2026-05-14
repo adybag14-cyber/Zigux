@@ -19,3 +19,5 @@
 
 ## Next Step
 Keep this lane parked unless a future base64 follow-up finds a helper-local regression in `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, or `zigux/tests/fixtures/phase6_base64_vectors.zig`.
+
+Current direct file readback for this lane also found `zigux/tests/phase6_base64_perf.zig` readable on `master` while several shared Phase 6 surfaces still model that dedicated replay as absent. If that split remains on the next reread, keep the next reopen bounded to one base64-specific truthfulness correction in `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, or `zigux/tests/phase6_helper_parity_manifest.json` before changing `lib/base64.zig` itself again.
