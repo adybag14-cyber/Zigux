@@ -7,6 +7,8 @@ pub const MemparseResult = struct {
     rest: []const u8,
 };
 
+const strscpy_e2big: isize = -7;
+
 pub fn memdup(allocator: std.mem.Allocator, src: []const u8) ![]u8 {
     return allocator.dupe(u8, src);
 }
@@ -47,6 +49,25 @@ pub fn strlcpy(dest: []u8, src: []const u8) usize {
     @memcpy(dest[0..len], src[0..len]);
     dest[len] = 0;
     return ret;
+}
+
+pub fn strscpy(dest: []u8, src: []const u8) isize {
+    if (dest.len == 0) {
+        return strscpy_e2big;
+    }
+
+    const src_len = cStringLen(src);
+    const copy_len = @min(src_len, dest.len - 1);
+    if (copy_len != 0) {
+        @memcpy(dest[0..copy_len], src[0..copy_len]);
+    }
+    dest[copy_len] = 0;
+
+    if (copy_len != src_len) {
+        return strscpy_e2big;
+    }
+
+    return @intCast(copy_len);
 }
 
 pub fn skipSpaces(str: []const u8) []const u8 {
@@ -414,6 +435,24 @@ test "strlcpy copies and returns the source length" {
     try std.testing.expectEqual(@as(usize, 5), strlcpy(&dst, "hello"));
     try std.testing.expectEqualSlices(u8, "hel", dst[0..3]);
     try std.testing.expectEqual(@as(u8, 0), dst[3]);
+}
+
+test "strscpy keeps NUL termination and reports truncation with -E2BIG" {
+    var copied = [_]u8{0xaa} ** 5;
+    try std.testing.expectEqual(@as(isize, 2), strscpy(&copied, "hi"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 0, 0xaa, 0xaa }, &copied);
+
+    var truncated = [_]u8{0xaa} ** 4;
+    try std.testing.expectEqual(strscpy_e2big, strscpy(&truncated, "hello"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'e', 'l', 0 }, &truncated);
+
+    var zero_sized = [_]u8{};
+    try std.testing.expectEqual(strscpy_e2big, strscpy(&zero_sized, "hello"));
+
+    const src_cstr = [_]u8{ 'o', 'k', 0, 'x', 'y' };
+    var cstr_dst = [_]u8{0xaa} ** 6;
+    try std.testing.expectEqual(@as(isize, 2), strscpy(&cstr_dst, &src_cstr));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 'k', 0, 0xaa, 0xaa, 0xaa }, &cstr_dst);
 }
 
 test "streq matches C-string equality semantics" {
