@@ -112,6 +112,8 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
 }
 
 PHASE2_WORKFLOW_RUN_COUNTS = {
+    "run: python3 scripts/zigux/install-zig.py --self-test": 1,
+    "run: python3 scripts/zigux/check-zig-toolchain.py --self-test": 1,
     "run: python3 scripts/zigux/validate-phase2.py": 1,
     "run: python3 scripts/zigux/validate-phase2-closure.py": 1,
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
@@ -273,7 +275,7 @@ EXPECTED_CONF_CASES = (
         "kconfig": "Kconfig",
         "config": "out/help.config",
         "arch": "riscv64",
-        "silent": True,
+        "silent": true,
         "expected": "helpnewconfig_expected.json",
     },
     {
@@ -435,7 +437,7 @@ EXPECTED_CONFDATA_MANIFEST = {
     ],
 }
 
-SELF_TEST_CHECK_COUNT = 15
+SELF_TEST_CHECK_COUNT = 17
 
 
 def require_files(paths: list[Path]) -> list[str]:
@@ -579,6 +581,24 @@ def run_self_test_checks() -> list[str]:
             "makefile_exact_counts_missing_kconfig_bridge_self_test",
             validate_exact_lines("\n".join(key for key in PHASE2_MAKEFILE_RUN_COUNTS if not key.endswith("check-kconfig-bridge.py --self-test")), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"),
             ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test:count=0:expected=1"],
+        ),
+        (
+            "workflow_exact_counts_missing_install_self_test",
+            validate_exact_lines(
+                "\n".join(key for key in PHASE2_WORKFLOW_RUN_COUNTS if key != "run: python3 scripts/zigux/install-zig.py --self-test"),
+                PHASE2_WORKFLOW_RUN_COUNTS,
+                "workflow",
+            ),
+            ["workflow:exact_count:run: python3 scripts/zigux/install-zig.py --self-test:count=0:expected=1"],
+        ),
+        (
+            "workflow_exact_counts_missing_toolchain_self_test",
+            validate_exact_lines(
+                "\n".join(key for key in PHASE2_WORKFLOW_RUN_COUNTS if key != "run: python3 scripts/zigux/check-zig-toolchain.py --self-test"),
+                PHASE2_WORKFLOW_RUN_COUNTS,
+                "workflow",
+            ),
+            ["workflow:exact_count:run: python3 scripts/zigux/check-zig-toolchain.py --self-test:count=0:expected=1"],
         ),
         (
             "workflow_exact_counts_missing_cross_self_test",
