@@ -1,16 +1,19 @@
 {
   "lane_key": "P7-L04",
-  "lane_key_note": "P7-L04 remains a packet-local historical helper-slice marker for the restored string-helpers starter packet and should not be read as the current bootstrap-glue schedule owner.",
+  "lane_key_note": "P7-L04 is the live helper-local lane for the restored string-helpers starter packet. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with the separate Phase 7 shared-control lanes.",
   "phase": "Phase 7",
   "anchor": "lib/string_helpers.c",
   "current_master_state": "restored_starter_packet",
   "review_surfaces": [
+    "Documentation/zigux/phase7-string-helpers-slice.md",
     "lib/string_helpers.zig",
     "zigux/tests/phase7_string_helpers.zig",
     "zigux/tests/phase7_string_helpers_survey.zig",
     "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-    "zigux/tests/phase7_string_helpers_manifest.json",
-    "Documentation/zigux/phase7-string-helpers-slice.md",
+    "zigux/tests/phase7_string_helpers_manifest.json"
+  ],
+  "adjacent_shared_surfaces": [
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
@@ -50,7 +53,7 @@
     "memcpy_and_pad",
     "strreplace"
   ],
-  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` is back on current master as a restored starter packet. The shared docs-root, scripts-root, tests-root, sample-root, manifest, survey, and no-sample boundary reminders should describe that bounded starter surface truthfully without reviving the older missing-helper wording or overstating the broader parked family as landed.",
+  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` is back on current master as a restored starter packet. The helper-local `P7-L04` packet covers the slice note, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, and this manifest, while the shared docs-root, scripts-root, tests-root, validator, Makefile, workflow, and build-route reminders stay adjacent under the separate Phase 7 shared-control lanes.",
   "starter_packet_focus": [
     "first-NUL-bounded whitespace trimming and prefix skipping",
     "newline-aware sysfs string equality",
@@ -61,5 +64,5 @@
     "in-place replacement inside the exported C-string prefix",
     "shared no-sample boundary and validator-backed reviewability"
   ],
-  "next_bounded_step": "Keep the expanded starter packet truthful across the slice note, survey, manifest, and dedicated no-sample boundary replay before taking another deeper helper-local expansion step."
+  "next_bounded_step": "Keep the expanded starter packet truthful across the slice note, helper-local manifest, dedicated survey, and dedicated no-string-sample boundary replay before taking another deeper helper-local expansion step."
 }
