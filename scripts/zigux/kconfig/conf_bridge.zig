@@ -139,7 +139,6 @@ fn modeAcceptsAllConfigOverride(mode: Mode) bool {
 }
 
 const bridge_option_prefixes = [_][]const u8{
-    "silent",
     "allconfig=",
     "seed=",
     "probability=",
@@ -147,6 +146,9 @@ const bridge_option_prefixes = [_][]const u8{
 };
 
 fn looksLikeBridgeOption(text: []const u8) bool {
+    if (std.mem.eql(u8, text, "silent")) {
+        return true;
+    }
     for (bridge_option_prefixes) |prefix| {
         if (std.mem.startsWith(u8, text, prefix)) {
             return true;
@@ -718,6 +720,11 @@ test "mode argument validation rejects bridge option shaped defconfig payload" {
 
 test "mode argument validation still accepts ordinary path text with equals" {
     try std.testing.expectEqualStrings("arch/x86/configs/debug=1_defconfig", try validateModeArgument(.defconfig, "arch/x86/configs/debug=1_defconfig"));
+}
+
+test "mode argument validation accepts path text that only starts with silent" {
+    try std.testing.expectEqualStrings("arch/x86/configs/silent_debug_defconfig", try validateModeArgument(.defconfig, "arch/x86/configs/silent_debug_defconfig"));
+    try std.testing.expectEqualStrings("silent.save", try validateModeArgument(.savedefconfig, "silent.save"));
 }
 
 test "bridge options parser accepts explicit allconfig override for allmodconfig" {
