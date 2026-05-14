@@ -56,7 +56,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-13", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-14", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
@@ -263,7 +263,7 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Current Approval Posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Maintenance-Mode Handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "PHASE15_LANE_KEY=P15-L08") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-13`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-14`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "exact branch-head parity is not recorded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "no Architecture Council approval is currently recorded for a freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current review-process evidence is limited to named `owner`, `required approver set`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, rollback-threshold, retained-discussion-state, reopen-trigger, `parity scorecard link or blocker record`, and indefinite-C-policy records") != null);
