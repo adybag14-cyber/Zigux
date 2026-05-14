@@ -72,6 +72,18 @@ The directly readable sample still keeps these cues visible on current `master`:
 - ownership and lifetime stay explicit through the `cold`, `initialized`, `replay_complete`, and `exited` stages
 - docs should keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample
 
+## Exact checks verified on 2026-05-14
+
+A focused `zig test samples/zigux/bytestream_fifo.zig` replay against the current `master` sample file passed all six in-file checks. The exact verified checks were:
+
+- descriptor, Linux anchor, and review packet markers stay aligned: `bytestream_fifo`, `samples/kfifo/bytestream-example.c`, `requires_runtime_substrate = false`, `provides_selfcheck = true`, `StorageBacking.embedded_fixed_buffer`, the ten-item `reviewContract().focus` order, and the four non-goals all match the current sample packet
+- `runAnchorReplay()` still proves the bounded FIFO replay body exactly: `"hello"` drains first, `{ 0, 1 }` is requeued, `skipByte()` removes `2`, `peekByte()` then sees `3`, `previewInto()` reports `copied = 8`, `total_visible = 32`, and `truncated = true`, `snapshotInto()` captures the full 32-byte queue, the fill range remains `20` through `42`, and the final drained sequence is `[3, 4, 5, 6, 7, 8, 9, 0, 1, 20..42]`
+- helper-boundary checks stay explicit at empty and short-drain edges: empty `peekByte()` and `skipByte()` return `null`, empty `enqueueSlice(&.{})` copies `0`, empty preview leaves the destination bytes unchanged, draining `"hello"` into a three-byte buffer leaves `"lo"` queued, and draining an empty queue returns `0`
+- full-capacity and wraparound edges stay explicit: a fully packed queue rejects `pushByte(255)`, skipping one byte opens a single slot, the refill push succeeds, and the queue-shape helpers flip from a single visible span to `first_window_len = 31`, `second_window_len = 1`, and `usesWrappedStorageWindow() = true`
+- queue-shape replay helpers remain truthful: `runPreviewBoundaryReplay()` still yields snapshot prefix `{ 2, 3, 4, 5 }`, preview prefix `{ 2, 3, 4, 5, 6, 7, 8, 9 }`, `head_index = 7`, `tail_index = 17`, `total_visible = 10`, `first_window_len = 10`, `second_window_len = 0`, and `wraps = false`, while `runWrappedPreviewReplay()` still yields drained prefix `"hell"`, refill values `{ 200, 201, 202, 203 }`, snapshot prefix `{ 'o', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }`, preview prefix `{ 'o', 0, 1, 2, 3, 4, 5, 6 }`, `head_index = 4`, `tail_index = 4`, `total_visible = 32`, `first_window_len = 28`, `second_window_len = 4`, and `wraps = true`
+- occupancy helper checks still hold across lifecycle states: `occupancySummary()` reports `(used=0, available=32, empty=true, full=false, wrapped_window=false)` when cold, `(used=5, available=27)` after enqueuing `"hello"`, full-and-not-wrapped at capacity before a skip, wrapped-and-full after the skip-plus-refill case, and empty again after reset and exit
+- ownership and lifetime guards remain explicit: replay helpers reject `.cold`, `init()` rejects a second call, queue-shape replays reject the `.replay_complete` stage, `exit()` clears the queue and moves to `.exited`, post-exit replay attempts still fail closed, and `reset()` clears queue contents without rewinding stage or the `init_runs` and `exit_runs` bookkeeping counters
+
 ## Historical verification snapshot
 
 An older commit-pinned replay snapshot for this bytestream packet remains recorded in prior survey wording, but it should no longer be presented as the only broader current proof now that public-tree readback exposes the companion files again.
