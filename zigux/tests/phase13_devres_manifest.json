@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L01",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-13",
+  "surveyed_commit": "master-readback-2026-05-14",
   "anchor": "lib/devres.c",
   "roadmap_destinations": [
     "lib/devres.zig",
@@ -88,6 +88,20 @@
       "kind": "runtime_boundary",
       "zigux_destination": "lib/devres.zig",
       "why_now": "Live MMIO mapping side effects remain blocked because the current helper packet still models only planning, cleanup intent, and failure shaping instead of real mappings or unmaps."
+    },
+    {
+      "id": "phase13-devres-live-region-reservation",
+      "status": "blocked_on_live_mmio_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Live region reservation remains blocked because the current helper packet only records request-region intent and busy-region outcomes around `__devm_ioremap_resource()` instead of claiming actual region acquisition side effects."
+    },
+    {
+      "id": "phase13-devres-live-release-region-mutation",
+      "status": "blocked_on_live_mmio_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Live release-region mutation remains blocked because the current helper packet only models remap-unwind intent around `__devm_ioremap_resource()` instead of claiming real `release_mem_region()` or broader region teardown side effects."
     },
     {
       "id": "phase13-devres-live-device-tree-walk",
