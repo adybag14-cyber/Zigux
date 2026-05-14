@@ -7,7 +7,7 @@
   "validation_entrypoint": "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the restored survey note, samples root, tests root, docs root, scripts root, and review checklist all point at the same non-runtime kretprobe packet instead of the older survey-note-only gap wording",
+    "the restored survey note, sample, focused test, manifest, and survey gate all point at the same non-runtime kretprobe packet while the shared Phase 5 guide, checklist, and root reminders remain the next bounded follow-through",
     "the sample and focused test still keep the default symbol kernel_clone explicit together with pre-init retargeting to do_sys_openat2 and post-init retarget rejection",
     "the anchor replay still keeps skipped kernel-thread handling, private_data_size_bytes = 8, return_value = 42, duration_ns = 75, nmissed = 1, and maxactive = 20 explicit",
     "the lifecycle guard replay still proves pre-init anchor rejection, pre-init exit rejection, double-init rejection, and post-init retarget rejection",
