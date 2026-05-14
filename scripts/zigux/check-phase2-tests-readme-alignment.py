@@ -95,6 +95,8 @@ FILE_MARKERS = {
         "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
         "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
         "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+        "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+        "run: python3 scripts/zigux/check-genksyms-bridge.py",
     ],
     "Documentation/zigux/README.md": [
         "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
@@ -174,6 +176,8 @@ FILE_MARKERS = {
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
+        "scripts/zigux/check-genksyms-bridge.py --self-test",
+        "scripts/zigux/check-genksyms-bridge.py",
         "phase2-cross:",
         "phase2: phase2-validate phase2-cross",
     ],
@@ -263,6 +267,8 @@ LINE_EXACT_COUNT_CHECKS = {
         "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
         "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
         "run: python3 scripts/zigux/check-kconfig-bridge.py": 1,
+        "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test": 1,
+        "run: python3 scripts/zigux/check-genksyms-bridge.py": 1,
     },
     "zigux/Makefile": {
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
@@ -273,6 +279,8 @@ LINE_EXACT_COUNT_CHECKS = {
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test": 1,
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py": 1,
     },
 }
 
@@ -366,6 +374,8 @@ def render_file_text(rel_path: str) -> str:
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
                 "phase2-kconfig: phase2-toolchain",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
