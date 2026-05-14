@@ -47,6 +47,8 @@ MARKERS = {
         "- `drivers/watchdog/dw_wdt.zig`",
         "- `drivers/watchdog/dw_wdt_verify.zig`",
         "surviving DesignWare platform-registration continuity packet through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "- `zigux/tests/phase11_dw_wdt.zig`",
+        "- `zigux/tests/phase11_dw_wdt_survey.zig`",
     ],
     "driver_file": [
         "pub const RegistrationScaffoldState",
@@ -61,9 +63,12 @@ MARKERS = {
         "ProbeTimeoutOrigin.blocked_missing_timer_clock",
         "blocked_on_live_platform_registration",
         "blocked_on_live_mmio",
-        "test \"phase11 dw_wdt platform handoff keeps missing timer-clock acquisition explicit\"",
+        'test "phase11 dw_wdt platform handoff keeps missing timer-clock acquisition explicit"',
         "pub const PlatformResourcePreflightSummary = struct {",
         "pub fn platformResourcePreflightSummary",
+        "pub const RemoveSummary = struct {",
+        "pub fn removeSummary",
+        'test "phase11 dw_wdt remove summary clears interrupts while distinguishing reset-backed shutdown"',
     ],
     "verify_file": [
         "pub fn summarizeStopTeardown",
@@ -102,8 +107,6 @@ MARKERS = {
         "platformResourcePreflightSummary",
     ],
 }
-
-SELF_TEST_CASE_COUNT = 35
 
 
 class CheckError(RuntimeError):
@@ -174,12 +177,17 @@ def run_self_test() -> None:
             ("tests_companion", 4),
             ("tests_companion", 5),
             ("tests_companion", 6),
+            ("tests_companion", 7),
+            ("tests_companion", 8),
             ("driver_file", 0),
             ("driver_file", 8),
             ("driver_file", 9),
             ("driver_file", 12),
             ("driver_file", 13),
             ("driver_file", 14),
+            ("driver_file", 15),
+            ("driver_file", 16),
+            ("driver_file", 17),
             ("verify_file", 0),
             ("verify_file", 4),
             ("verify_file", 5),
@@ -229,8 +237,9 @@ def run_self_test() -> None:
         (missing_companion_root / FILES["tests_companion"]).unlink()
         expect_failure(missing_companion_root, FILES["tests_companion"])
 
+        self_test_case_count = len(cases) + 4
         print("PHASE11_DW_WDT_PACKET_SELF_TEST=pass")
-        print(f"PHASE11_DW_WDT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
+        print(f"PHASE11_DW_WDT_PACKET_SELF_TEST_CASE_COUNT={self_test_case_count}")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
