@@ -18,9 +18,10 @@ The current teardown-facing GPIO review packet still directly visible on `master
 * `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 * `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 * `zigux/tests/phase11_gpio_wdt_manifest.json`
+* `zigux/tests/phase11_gpio_wdt_survey.zig`
 * `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`
 
-Direct current-`master` contents reads do not expose `drivers/watchdog/gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_survey.zig`, or `zigux/tests/phase11_build.zig`.
+Direct current-`master` contents reads still do not expose `drivers/watchdog/gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt.zig`, or `zigux/tests/phase11_build.zig`.
 
 These surfaces keep the archived teardown packet readable without promoting it into a broader runtime-parity claim or treating the older shared replay route as current shipped evidence.
 
@@ -34,7 +35,7 @@ The current archived gpio watchdog review packet still keeps these teardown-faci
 * `rebootGlueCheckpointSummary()` and the bounded `watchdog_stop_on_reboot()` ordering it records between `nowayout`, pre-registration start, and the later register-device request surface
 * teardown-facing failure-mode cues that stay reviewable without claiming live remove-hook or reboot-backed shutdown execution
 
-The still-visible focused `platform_set_drvdata()` replay keeps one early ordering checkpoint directly replayable on current `master`, while the archived survey-backed packet keeps the stop-transition, reboot-glue checkpoint, teardown-ownership boundaries, and bounded failure-mode cues readable as review memory only.
+The still-visible focused `platform_set_drvdata()` replay keeps one early ordering checkpoint directly replayable on current `master`, while the restored dedicated survey gate keeps the surrounding stop-transition, reboot-glue checkpoint, teardown-ownership boundaries, and bounded failure-mode cues freshly checked as archived review memory only.
 
 ## Bounded Meaning
 
