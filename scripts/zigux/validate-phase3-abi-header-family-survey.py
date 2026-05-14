@@ -60,6 +60,7 @@ REQUIRED_SHARED_REMINDER_MARKER_COUNTS = {
     "zigux/tests/README.md": 1,
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
+    "zigux/bindings/dev_t.zig": 1,
     "zigux/tests/phase3_abi_dump.zig": 1,
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c": 1,
     "zigux/tests/fixtures/phase3_abi/expected.json": 1,
@@ -411,6 +412,19 @@ def run_self_test() -> int:
     if expected not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected duplicate shared-reminder marker drift was not reported")
+        return 1
+
+    survey_text = sample
+    before, separator, after = survey_text.partition("## Shared reminder\n")
+    survey_text = before + separator + after.replace("zigux/bindings/dev_t.zig", "", 1)
+    broken = validate_text(survey_text)
+    expected = (
+        "shared reminder marker count drift: zigux/bindings/dev_t.zig "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected bindings/dev_t shared reminder drift was not reported")
         return 1
 
     print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass")
