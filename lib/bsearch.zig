@@ -407,6 +407,55 @@ test "search keeps native and C comparator pointer support" {
     }
 }
 
+test "range helpers keep native and C comparator pointer support" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+
+    const native_comparators = [_]Comparator(i32, i32){ compareInt, compareDescendingInt };
+    const native_slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const native_targets = [_]i32{ 4, 4 };
+    const native_ranges = [_]IndexRange{
+        .{ .lower = 1, .upper = 4 },
+        .{ .lower = 2, .upper = 5 },
+    };
+    const native_gap_targets = [_]i32{ 5, 20 };
+    const native_gap_ranges = [_]IndexRange{
+        .{ .lower = 4, .upper = 4 },
+        .{ .lower = 0, .upper = 0 },
+    };
+
+    for (native_comparators, native_slices, native_targets, native_ranges, native_gap_targets, native_gap_ranges) |compare, items, target, expected_range, gap_target, gap_range| {
+        try std.testing.expectEqual(expected_range.lower, lowerBoundIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(expected_range.upper, upperBoundIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(expected_range, equalRangeIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(gap_range.lower, lowerBoundIndex(i32, i32, &gap_target, items, compare));
+        try std.testing.expectEqual(gap_range.upper, upperBoundIndex(i32, i32, &gap_target, items, compare));
+        try std.testing.expectEqual(gap_range, equalRangeIndex(i32, i32, &gap_target, items, compare));
+    }
+
+    const c_comparators = [_]CComparator(i32, i32){ compareCInt, compareCDescendingInt };
+    const c_slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const c_targets = [_]i32{ 4, 4 };
+    const c_ranges = [_]IndexRange{
+        .{ .lower = 1, .upper = 4 },
+        .{ .lower = 2, .upper = 5 },
+    };
+    const c_gap_targets = [_]i32{ 5, 20 };
+    const c_gap_ranges = [_]IndexRange{
+        .{ .lower = 4, .upper = 4 },
+        .{ .lower = 0, .upper = 0 },
+    };
+
+    for (c_comparators, c_slices, c_targets, c_ranges, c_gap_targets, c_gap_ranges) |compare, items, target, expected_range, gap_target, gap_range| {
+        try std.testing.expectEqual(expected_range.lower, lowerBoundIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(expected_range.upper, upperBoundIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(expected_range, equalRangeIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(gap_range.lower, lowerBoundIndex(i32, i32, &gap_target, items, compare));
+        try std.testing.expectEqual(gap_range.upper, upperBoundIndex(i32, i32, &gap_target, items, compare));
+        try std.testing.expectEqual(gap_range, equalRangeIndex(i32, i32, &gap_target, items, compare));
+    }
+}
+
 test "searchMutable preserves write-through aliases" {
     var values = [_]i32{ 5, 9, 12, 18, 27 };
     const key = @as(i32, 18);
@@ -554,6 +603,61 @@ test "raw lower and upper bounds stay stable for ascending and descending duplic
     try std.testing.expectEqual(@as(usize, 5), bsearchUpperBoundIndex(&descending_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
     try std.testing.expectEqual(@as(usize, 0), bsearchLowerBoundIndex(&descending_front_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
     try std.testing.expectEqual(@as(usize, descending.len), bsearchUpperBoundIndex(&descending_end_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
+}
+
+test "raw range helpers keep native and C comparator pointer support" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
+    const descending_raw: [*]const u8 = @ptrCast(descending[0..].ptr);
+
+    const raw_comparators = [_]RawComparator{ compareOpaqueInt, compareOpaqueDescendingInt };
+    const raw_bases = [_][*]const u8{ ascending_raw, descending_raw };
+    const raw_lengths = [_]usize{ ascending.len, descending.len };
+    const raw_sizes = [_]usize{ @sizeOf(i32), @sizeOf(i32) };
+    const raw_targets = [_]i32{ 4, 4 };
+    const raw_ranges = [_]IndexRange{
+        .{ .lower = 1, .upper = 4 },
+        .{ .lower = 2, .upper = 5 },
+    };
+    const raw_gap_targets = [_]i32{ 5, 20 };
+    const raw_gap_ranges = [_]IndexRange{
+        .{ .lower = 4, .upper = 4 },
+        .{ .lower = 0, .upper = 0 },
+    };
+
+    for (raw_comparators, raw_bases, raw_lengths, raw_sizes, raw_targets, raw_ranges, raw_gap_targets, raw_gap_ranges) |compare, base, len, size, target, expected_range, gap_target, gap_range| {
+        try std.testing.expectEqual(expected_range.lower, bsearchLowerBoundIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(expected_range.upper, bsearchUpperBoundIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(expected_range, bsearchEqualRangeIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range.lower, bsearchLowerBoundIndex(&gap_target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range.upper, bsearchUpperBoundIndex(&gap_target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range, bsearchEqualRangeIndex(&gap_target, base, len, size, compare));
+    }
+
+    const c_raw_comparators = [_]CRawComparator{ compareCOpaqueInt, compareCOpaqueDescendingInt };
+    const c_raw_bases = [_][*]const u8{ ascending_raw, descending_raw };
+    const c_raw_lengths = [_]usize{ ascending.len, descending.len };
+    const c_raw_sizes = [_]usize{ @sizeOf(i32), @sizeOf(i32) };
+    const c_raw_targets = [_]i32{ 4, 4 };
+    const c_raw_ranges = [_]IndexRange{
+        .{ .lower = 1, .upper = 4 },
+        .{ .lower = 2, .upper = 5 },
+    };
+    const c_raw_gap_targets = [_]i32{ 5, 20 };
+    const c_raw_gap_ranges = [_]IndexRange{
+        .{ .lower = 4, .upper = 4 },
+        .{ .lower = 0, .upper = 0 },
+    };
+
+    for (c_raw_comparators, c_raw_bases, c_raw_lengths, c_raw_sizes, c_raw_targets, c_raw_ranges, c_raw_gap_targets, c_raw_gap_ranges) |compare, base, len, size, target, expected_range, gap_target, gap_range| {
+        try std.testing.expectEqual(expected_range.lower, bsearchLowerBoundIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(expected_range.upper, bsearchUpperBoundIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(expected_range, bsearchEqualRangeIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range.lower, bsearchLowerBoundIndex(&gap_target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range.upper, bsearchUpperBoundIndex(&gap_target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range, bsearchEqualRangeIndex(&gap_target, base, len, size, compare));
+    }
 }
 
 test "bsearchEqualRangeIndex reports duplicate spans and empty insertion points" {
