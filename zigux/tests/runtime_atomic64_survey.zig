@@ -91,6 +91,9 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     const phase9_build = try readRepoFileAlloc(std.testing.allocator, "zigux/tests/phase9_build.zig", 128 * 1024);
     defer std.testing.allocator.free(phase9_build);
 
+    const makefile = try readRepoFileAlloc(std.testing.allocator, "zigux/Makefile", 128 * 1024);
+    defer std.testing.allocator.free(makefile);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
     const manifest = parsed.value;
@@ -142,6 +145,14 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try std.testing.expectEqualStrings("survey_gate", survey_gap.kind);
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_survey.zig", survey_gap.zigux_destination);
 
+    const make_route_gap = findGap(manifest.gaps, "runtime-atomic64-make-route") orelse return error.MissingMakeRouteGap;
+    try std.testing.expectEqualStrings("starter_landed", make_route_gap.status);
+    try std.testing.expectEqualStrings("family_local_make_route", make_route_gap.kind);
+    try std.testing.expectEqualStrings("zigux/Makefile", make_route_gap.zigux_destination);
+    try expectContains(make_route_gap.why_now, "make -C zigux phase9-runtime-atomic64-test");
+    try expectContains(make_route_gap.why_now, "direct sample leg");
+    try expectContains(make_route_gap.why_now, "visible shared loader-facing reminder packet");
+
     const loader_gap = findGap(manifest.gaps, "runtime-atomic64-loader-scaffold") orelse return error.MissingLoaderGap;
     try std.testing.expectEqualStrings("starter_landed", loader_gap.status);
     try std.testing.expectEqualStrings("runtime_loader_scaffold", loader_gap.kind);
@@ -187,6 +198,7 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(survey_note, "not a completed loadable runtime-module path");
     try expectContains(survey_note, "`phase9-runtime-loader-shared-tests`");
     try expectContains(survey_note, "`zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig`");
+    try expectContains(survey_note, "`make -C zigux phase9-runtime-atomic64-test`");
     try expectContains(survey_note, "prepared `RuntimeAtomic64LoadSummary` snapshot");
     try expectContains(survey_note, "anchor, checked operation families, counter snapshot, and selftest-run count reviewable");
     try expectContains(survey_note, "later counter mutation, later selftest activity, or later exit activity changes the live sample");
@@ -201,11 +213,13 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(module_slice, "`zigux/tests/phase9_build.zig`");
     try expectContains(module_slice, "`zigux/kernel/runtime_loader.zig`");
     try expectContains(module_slice, "`zigux/kernel/runtime_loader_contract.zig`");
+    try expectContains(module_slice, "`zigux/Makefile`");
     try expectContains(module_slice, "visible review-only evidence");
     try expectContains(module_slice, "not a completed loadable runtime-module path");
     try expectContains(module_slice, "prepared `RuntimeAtomic64LoadSummary` snapshot reviewable");
     try expectContains(module_slice, "anchor, checked operation families, counter snapshot, and selftest-run count");
     try expectContains(module_slice, "later counter mutation, later selftest activity, or later exit activity do not rewrite the shared request");
+    try expectContains(module_slice, "`make -C zigux phase9-runtime-atomic64-test`");
     try expectContains(module_slice, "`zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig`");
 
     try expectContains(runtime_atomic64_loader, "pub const RuntimeAtomic64LoadSummary = struct");
@@ -222,12 +236,17 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(runtime_loader_allocator_init_flow, "phase 9 runtime loader allocator/init-flow replay keeps selftest-complete prepared snapshots stable even if later live state would look exited");
 
     try expectContains(phase9_build, "runtime_atomic64_loader.zig");
-    try expectContains(phase9_build, "\"phase9-runtime-atomic64-sample-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-atomic64-module-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-atomic64-loader-tests\"");
+    try expectContains(phase9_build, "\\\"phase9-runtime-atomic64-sample-tests\\\"");
+    try expectContains(phase9_build, "\\\"phase9-runtime-atomic64-module-tests\\\"");
+    try expectContains(phase9_build, "\\\"phase9-runtime-atomic64-loader-tests\\\"");
     try expectContains(phase9_build, "runtime_loader_allocator_init_flow.zig");
     try expectContains(phase9_build, "runtime_loader_gap_survey.zig");
     try expectContains(phase9_build, "../kernel/runtime_loader_contract.zig");
     try expectContains(phase9_build, "../kernel/runtime_loader.zig");
     try expectContains(phase9_build, "phase9-runtime-loader-shared-tests");
+
+    try expectContains(makefile, "PHONY += phase9-runtime-atomic64-test");
+    try expectContains(makefile, "phase9-runtime-atomic64-test:");
+    try expectContains(makefile, "$(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all");
+    try expectContains(makefile, "phase9: phase9-runtime-atomic64-test");
 }
