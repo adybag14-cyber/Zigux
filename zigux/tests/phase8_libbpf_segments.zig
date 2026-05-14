@@ -42,7 +42,7 @@ const ExpectedSegment = struct {
     status: []const u8,
     kind: []const u8,
     zigux_destination: []const u8,
-    anchor_range_count: usize,
+    anchor_ranges: []const []const u8,
 };
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
@@ -90,7 +90,10 @@ fn expectSegmentsEqual(actual: []const Segment, expected: []const ExpectedSegmen
             expected_segment.zigux_destination,
             actual_segment.zigux_destination,
         );
-        try std.testing.expectEqual(expected_segment.anchor_range_count, actual_segment.anchor_ranges.len);
+        try std.testing.expectEqual(expected_segment.anchor_ranges.len, actual_segment.anchor_ranges.len);
+        for (expected_segment.anchor_ranges, actual_segment.anchor_ranges) |expected_anchor_range, actual_anchor_range| {
+            try std.testing.expectEqualStrings(expected_anchor_range, actual_anchor_range);
+        }
     }
 }
 
@@ -141,7 +144,10 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "starter_landed",
             .kind = "helper_first",
             .zigux_destination = "tools/lib/bpf/zigux_segments/logging.zig",
-            .anchor_range_count = 2,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c:233-364",
+                "tools/lib/bpf/libbpf_utils.c:31-84",
+            },
         },
         .{
             .id = "P8-L15-S02",
@@ -149,7 +155,10 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "starter_landed",
             .kind = "helper_first",
             .zigux_destination = "tools/lib/bpf/zigux_segments/pin_path.zig",
-            .anchor_range_count = 2,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c:2538-2565",
+                "tools/lib/bpf/libbpf.c:9054-9352",
+            },
         },
         .{
             .id = "P8-L15-S03",
@@ -157,7 +166,9 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "starter_landed",
             .kind = "helper_first",
             .zigux_destination = "tools/lib/bpf/zigux_segments/cpu_mask.zig",
-            .anchor_range_count = 1,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c:14379-14480",
+            },
         },
         .{
             .id = "P8-L15-S04",
@@ -165,7 +176,9 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "starter_landed",
             .kind = "helper_first",
             .zigux_destination = "tools/lib/bpf/zigux_segments/type_names.zig",
-            .anchor_range_count = 1,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c: exported attach, link, map, and program type string tables",
+            },
         },
         .{
             .id = "P8-L15-S05",
@@ -173,7 +186,9 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "starter_landed",
             .kind = "helper_first",
             .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-            .anchor_range_count = 1,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing",
+            },
         },
         .{
             .id = "P8-L15-S06",
@@ -181,7 +196,9 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "starter_landed",
             .kind = "helper_first",
             .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-            .anchor_range_count = 1,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks",
+            },
         },
         .{
             .id = "P8-L15-S07",
@@ -189,7 +206,9 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "deferred_high_risk",
             .kind = "resource_boundary",
             .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-            .anchor_range_count = 1,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c: bpf_object_prepare_token() and bpf_object__reuse_map() handle-bridging paths",
+            },
         },
         .{
             .id = "P8-L15-S08",
@@ -197,7 +216,9 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "deferred_high_risk",
             .kind = "interrupt_routing",
             .zigux_destination = "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
-            .anchor_range_count = 1,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c: perf_buffer__new() online-CPU routing and perf_event setup",
+            },
         },
         .{
             .id = "P8-L15-S09",
@@ -205,7 +226,9 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "blocked_on_object_model",
             .kind = "object_adjacent",
             .zigux_destination = "tools/lib/bpf/zigux_segments/skeleton.zig",
-            .anchor_range_count = 1,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c:14482-14771",
+            },
         },
         .{
             .id = "P8-L15-S10",
@@ -213,7 +236,10 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "deferred_high_risk",
             .kind = "core_loader",
             .zigux_destination = "tools/lib/bpf/zigux_segments/object_loader.zig",
-            .anchor_range_count = 2,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c:1514-2065",
+                "tools/lib/bpf/libbpf.c:3705-4514",
+            },
         },
         .{
             .id = "P8-L15-S11",
@@ -221,7 +247,10 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "deferred_high_risk",
             .kind = "verifier_facing",
             .zigux_destination = "tools/lib/bpf/zigux_segments/relocation.zig",
-            .anchor_range_count = 2,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c:3325-3609",
+                "tools/lib/bpf/libbpf.c:4572-9049",
+            },
         },
         .{
             .id = "P8-L15-S12",
@@ -229,7 +258,9 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
             .status = "starter_landed",
             .kind = "helper_adjacent",
             .zigux_destination = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-            .anchor_range_count = 1,
+            .anchor_ranges = &[_][]const u8{
+                "tools/lib/bpf/libbpf.c: perf_buffer__poll() wait-result classification and ordered process_records bookkeeping",
+            },
         },
     };
 
@@ -287,7 +318,7 @@ test "phase 8 libbpf survey note keeps the current landed count and helper-local
     );
     try expectContains(
         phase8_note,
-        "That same checker packet should also keep the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit",
+        "That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit",
     );
     try expectContains(phase8_note, "standalone timer or clockevent helper behavior");
     try expectContains(phase8_note, "broader timeout-sensitive routing behavior");
