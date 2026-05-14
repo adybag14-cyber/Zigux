@@ -37,6 +37,9 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
         "python3 scripts/zigux/check-phase7-build-wiring.py",
+        "make -C zigux phase7-string-helpers-survey",
+        "make -C zigux phase7-string-helpers-sample-boundary",
+        "make -C zigux phase7-test",
     ],
     "samples/zigux/README.md": [
         "scripts/zigux/check-phase7-make-wrapper.py",
@@ -133,6 +136,13 @@ def run_self_test() -> None:
             "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
             "",
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        ),
+        (
+            "alignment_note_string_boundary_route",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "make -C zigux phase7-string-helpers-sample-boundary",
+            "",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: make -C zigux phase7-string-helpers-sample-boundary",
         ),
         (
             "scripts_readme_checker_marker",
