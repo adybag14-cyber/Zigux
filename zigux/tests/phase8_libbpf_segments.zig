@@ -31,6 +31,20 @@ const Manifest = struct {
     segments: []const Segment,
 };
 
+const ExpectedCompanionFile = struct {
+    path: []const u8,
+    lines: usize,
+};
+
+const ExpectedSegment = struct {
+    id: []const u8,
+    slug: []const u8,
+    status: []const u8,
+    kind: []const u8,
+    zigux_destination: []const u8,
+    anchor_range_count: usize,
+};
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
@@ -52,6 +66,32 @@ fn findSegmentBySlug(segments: []const Segment, slug: []const u8) ?Segment {
         if (std.mem.eql(u8, segment.slug, slug)) return segment;
     }
     return null;
+}
+
+fn expectCompanionFilesEqual(
+    actual: []const CompanionFile,
+    expected: []const ExpectedCompanionFile,
+) !void {
+    try std.testing.expectEqual(expected.len, actual.len);
+    for (expected, actual) |expected_file, actual_file| {
+        try std.testing.expectEqualStrings(expected_file.path, actual_file.path);
+        try std.testing.expectEqual(expected_file.lines, actual_file.lines);
+    }
+}
+
+fn expectSegmentsEqual(actual: []const Segment, expected: []const ExpectedSegment) !void {
+    try std.testing.expectEqual(expected.len, actual.len);
+    for (expected, actual) |expected_segment, actual_segment| {
+        try std.testing.expectEqualStrings(expected_segment.id, actual_segment.id);
+        try std.testing.expectEqualStrings(expected_segment.slug, actual_segment.slug);
+        try std.testing.expectEqualStrings(expected_segment.status, actual_segment.status);
+        try std.testing.expectEqualStrings(expected_segment.kind, actual_segment.kind);
+        try std.testing.expectEqualStrings(
+            expected_segment.zigux_destination,
+            actual_segment.zigux_destination,
+        );
+        try std.testing.expectEqual(expected_segment.anchor_range_count, actual_segment.anchor_ranges.len);
+    }
 }
 
 fn readFileAlloc(
@@ -84,51 +124,135 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
     defer parsed.deinit();
 
     const manifest = parsed.value;
+    const expected_companion_files = [_]ExpectedCompanionFile{
+        .{ .path = "tools/lib/bpf/bpf.c", .lines = 1419 },
+        .{ .path = "tools/lib/bpf/btf.c", .lines = 6360 },
+        .{ .path = "tools/lib/bpf/features.c", .lines = 727 },
+        .{ .path = "tools/lib/bpf/libbpf_utils.c", .lines = 256 },
+        .{ .path = "tools/lib/bpf/linker.c", .lines = 3116 },
+        .{ .path = "tools/lib/bpf/netlink.c", .lines = 938 },
+        .{ .path = "tools/lib/bpf/nlattr.c", .lines = 194 },
+        .{ .path = "tools/lib/bpf/ringbuf.c", .lines = 684 },
+    };
+    const expected_segments = [_]ExpectedSegment{
+        .{
+            .id = "P8-L15-S01",
+            .slug = "logging-version-and-errno",
+            .status = "starter_landed",
+            .kind = "helper_first",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/logging.zig",
+            .anchor_range_count = 2,
+        },
+        .{
+            .id = "P8-L15-S02",
+            .slug = "pin-path-helpers",
+            .status = "starter_landed",
+            .kind = "helper_first",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/pin_path.zig",
+            .anchor_range_count = 2,
+        },
+        .{
+            .id = "P8-L15-S03",
+            .slug = "cpu-mask-parsing",
+            .status = "starter_landed",
+            .kind = "helper_first",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+            .anchor_range_count = 1,
+        },
+        .{
+            .id = "P8-L15-S04",
+            .slug = "type-name-helpers",
+            .status = "starter_landed",
+            .kind = "helper_first",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/type_names.zig",
+            .anchor_range_count = 1,
+        },
+        .{
+            .id = "P8-L15-S05",
+            .slug = "fdinfo-map-info-helpers",
+            .status = "starter_landed",
+            .kind = "helper_first",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+            .anchor_range_count = 1,
+        },
+        .{
+            .id = "P8-L15-S06",
+            .slug = "map-reuse-compatibility",
+            .status = "starter_landed",
+            .kind = "helper_first",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+            .anchor_range_count = 1,
+        },
+        .{
+            .id = "P8-L15-S07",
+            .slug = "file-path-and-handle-bridge",
+            .status = "deferred_high_risk",
+            .kind = "resource_boundary",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+            .anchor_range_count = 1,
+        },
+        .{
+            .id = "P8-L15-S08",
+            .slug = "perf-buffer-online-cpu-routing",
+            .status = "deferred_high_risk",
+            .kind = "interrupt_routing",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
+            .anchor_range_count = 1,
+        },
+        .{
+            .id = "P8-L15-S09",
+            .slug = "skeleton-population",
+            .status = "blocked_on_object_model",
+            .kind = "object_adjacent",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/skeleton.zig",
+            .anchor_range_count = 1,
+        },
+        .{
+            .id = "P8-L15-S10",
+            .slug = "object-and-elf-loader",
+            .status = "deferred_high_risk",
+            .kind = "core_loader",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/object_loader.zig",
+            .anchor_range_count = 2,
+        },
+        .{
+            .id = "P8-L15-S11",
+            .slug = "btf-relocation-and-program-load",
+            .status = "deferred_high_risk",
+            .kind = "verifier_facing",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/relocation.zig",
+            .anchor_range_count = 2,
+        },
+        .{
+            .id = "P8-L15-S12",
+            .slug = "perf-buffer-poll-bookkeeping",
+            .status = "starter_landed",
+            .kind = "helper_adjacent",
+            .zigux_destination = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+            .anchor_range_count = 1,
+        },
+    };
+
     try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
+    try std.testing.expectEqualStrings("17fd5f8e2b234738428770e192346d040aff13ce", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 14771), manifest.survey_summary.libbpf_c_lines);
     try std.testing.expect(manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase8_libbpf_note_present);
-    try std.testing.expectEqual(@as(usize, 8), manifest.survey_summary.companion_c_files.len);
-    try std.testing.expectEqual(@as(usize, 12), manifest.segments.len);
+    try expectCompanionFilesEqual(
+        manifest.survey_summary.companion_c_files,
+        expected_companion_files[0..],
+    );
+    try expectSegmentsEqual(manifest.segments, expected_segments[0..]);
     try std.testing.expectEqual(@as(usize, 7), countSegmentsWithStatus(manifest.segments, "starter_landed"));
     try std.testing.expectEqual(@as(usize, 4), countSegmentsWithStatus(manifest.segments, "deferred_high_risk"));
     try std.testing.expectEqual(@as(usize, 1), countSegmentsWithStatus(manifest.segments, "blocked_on_object_model"));
 
-    const fdinfo_helpers = findSegmentBySlug(manifest.segments, "fdinfo-map-info-helpers") orelse
-        return error.MissingFdinfoHelpersSegment;
-    try std.testing.expectEqualStrings("starter_landed", fdinfo_helpers.status);
-    try std.testing.expectEqualStrings(
-        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-        fdinfo_helpers.zigux_destination,
-    );
-
-    const map_reuse = findSegmentBySlug(manifest.segments, "map-reuse-compatibility") orelse
-        return error.MissingMapReuseSegment;
-    try std.testing.expectEqualStrings("starter_landed", map_reuse.status);
-    try std.testing.expectEqualStrings(
-        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-        map_reuse.zigux_destination,
-    );
-
     const routing = findSegmentBySlug(manifest.segments, "perf-buffer-online-cpu-routing") orelse
         return error.MissingRoutingSegment;
-    try std.testing.expectEqualStrings("deferred_high_risk", routing.status);
-    try std.testing.expectEqualStrings(
-        "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
-        routing.zigux_destination,
-    );
     try expectContains(routing.why_now, "online_cpu_routing.zig");
     try expectContains(routing.why_now, "cursor and routing-summary helper");
-
-    const perf_buffer_poll = findSegmentBySlug(manifest.segments, "perf-buffer-poll-bookkeeping") orelse
-        return error.MissingPerfBufferPollSegment;
-    try std.testing.expectEqualStrings("starter_landed", perf_buffer_poll.status);
-    try std.testing.expectEqualStrings(
-        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-        perf_buffer_poll.zigux_destination,
-    );
 }
 
 test "phase 8 libbpf survey note keeps the current landed count and helper-local routing evidence explicit" {
