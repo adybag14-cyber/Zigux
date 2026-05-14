@@ -70,10 +70,9 @@ DIRECT_ANCHOR_HELPERS = set(EXPECTED_MANIFEST["lane_sequencing"]["direct_anchor_
 EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR = 'test "phase 1 helper ports match committed parity fixture"'
 EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
     "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, tiny-buffer, and partial-window xor replay, "
-    "while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word and "
-    "final-partial range boundaries, cross-word scnprintf collapse, truncation, empty-bitmap caller-buffer preservation, copy alias, raw copy alias, "
-    "zero-and-aligned copy-and-extend behavior, zero-bit no-op, zero-bit binary identity, and Linux-style alias "
-    "behavior review-visible on current master"
+    "while helper-local anchors keep zero-size allocator and free-null behavior, predicate tail-mask, first-word boundary, final-partial range boundary, fill tail-clamp, "
+    "cross-word scnprintf collapse, truncation, empty-bitmap caller-buffer preservation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, "
+    "zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master"
 )
 EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_ANCHOR = 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"'
 EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_CONTRACT = (
@@ -89,7 +88,8 @@ EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, the smallest shared-replay expansion is a dedicated iterator or cached-root leftmost-return fixture key; until then, matchIterator coverage plus cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors."
 )
 EXPECTED_STRING_PREFIX_SUFFIX_REVIEW_SUMMARY = (
-    "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields"
+    "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields, "
+    "so strHasPrefix and strstarts plus strEndsWith and str_ends_with remain review-visible at the helper surface"
 )
 EXPECTED_STRING_MEMPARSE_REVIEW_SUMMARY = (
     "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation"
@@ -100,7 +100,7 @@ EXPECTED_STRING_SHARED_REPLACE_CHAR_CSTR_REVIEW_SUMMARY = (
 EXPECTED_RBTREE_BENCH_ITERATIONS = 4000
 EXPECTED_RBTREE_BENCH_EXACT_CHECKSUM = 3380000
 EXPECTED_FIND_BIT_EDGE_BENCH_ITERATIONS = 20000
-EXPECTED_FIND_BIT_EDGE_BENCH_EXACT_CHECKSUM = 23340000
+EXPECTED_FIND_BIT_EDGE_BENCH_EXACT_CHECKSUM = 37500000
 
 REQUIRED_FILES = [
     *EXPECTED_HELPERS,
@@ -504,6 +504,7 @@ def make_fixture_root(root: Path) -> None:
         path.write_text("{}\n" if path.suffix == ".json" else "\n", encoding="utf-8")
 
     (root / "Documentation/zigux/README.md").write_text("\n".join(DOC_MARKERS["docs_root_phase1_packet"]) + "\n", encoding="utf-8")
+    (root / "zigux/tests/README.md").writeText = None
     (root / "zigux/tests/README.md").write_text(DOC_MARKERS["tests_root_phase1_packet"][0] + "\n", encoding="utf-8")
     (root / "Documentation/zigux/review-checklist.md").write_text("\n".join(DOC_MARKERS["review_checklist_phase1_packet"]) + "\n", encoding="utf-8")
     (root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md").write_text("\n".join(PHASE1_LANE_NOTE_MARKERS) + "\n", encoding="utf-8")
@@ -732,7 +733,7 @@ def run_self_test() -> None:
         bench = json.loads(load_text(bench_path))
         bench["exact_checksums"].pop("PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM")
         bench_path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
-        assert "phase1_bench_expectations:find_bit_edge_exact_checksum=23340000" in collect_missing_markers(root)
+        assert "phase1_bench_expectations:find_bit_edge_exact_checksum=37500000" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
 
