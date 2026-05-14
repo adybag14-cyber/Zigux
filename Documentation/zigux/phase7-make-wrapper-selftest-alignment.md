@@ -73,6 +73,13 @@ aligned around the route-present shared packet and the Phase 5 no-sample
 boundary. Treat future docs-root or scripts-root drift there as adjacent
 shared-reminder backlog, not as a currently open blocker recorded by this note.
 
+For `string_helpers`, those shared no-sample reminders should also keep the
+ownership-focus packet explicit: first-NUL trimming and prefix skipping stop at
+the exported C-string boundary, exact-fit and zero-capacity unescape
+destinations stay caller-owned, append-limited escape accounting stays inside
+caller storage, and `memcpyAndPad()` plus `strreplace()` stay bounded by
+caller-provided destinations.
+
 Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase7-string-helpers-slice.md`,
 `Documentation/zigux/phase7-cmdline-slice.md`,
