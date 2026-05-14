@@ -52,15 +52,17 @@ Keep this lane reviewable by rereading:
 2. `Documentation/zigux/phase10-virtio-input-slice.md`
 3. `Documentation/zigux/phase10-virtio-input-module-slice.md`
 4. `zigux/tests/phase10_virtio_input_manifest.json`
-5. `zigux/tests/phase10_virtio_input_survey.zig`
-6. `drivers/virtio/virtio_input.zig`
-7. `drivers/virtio/virtio_input_probe_preflight.zig`
-8. `drivers/virtio/virtio_input_verify.zig`
-9. `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
-10. `zigux/tests/phase10_virtio_input_registration_preflight.zig`
-11. `zigux/tests/phase10_virtio_input_teardown_observation.zig`
-12. `zigux/tests/phase10_virtio_input_status_drain.zig`
+5. `zigux/tests/phase10_virtio_input.zig`
+6. `zigux/tests/phase10_virtio_input_probe_preflight.zig`
+7. `zigux/tests/phase10_virtio_input_survey.zig`
+8. `drivers/virtio/virtio_input.zig`
+9. `drivers/virtio/virtio_input_probe_preflight.zig`
+10. `drivers/virtio/virtio_input_verify.zig`
+11. `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
+12. `zigux/tests/phase10_virtio_input_registration_preflight.zig`
+13. `zigux/tests/phase10_virtio_input_teardown_observation.zig`
+14. `zigux/tests/phase10_virtio_input_status_drain.zig`
 
 ## Next Bounded Step
 
-Keep the next same-lane follow-through narrow: reread the refreshed survey note, slice companions, manifest, and survey gate together, then leave the shared `zigux/tests/phase10_build.zig` compile-path repair parked in `P10-L15` until that adjacent lane can land its already-prepared build-graph patch.
+Keep the next same-lane follow-through narrow: reread the refreshed survey note, slice companions, manifest, survey gate, direct gate, and probe-preflight replay together, then leave the shared `zigux/tests/phase10_build.zig` compile-path repair parked in `P10-L15` until that adjacent lane can land its already-prepared build-graph patch.
