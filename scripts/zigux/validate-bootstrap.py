@@ -43,6 +43,8 @@ WORKFLOW_EXACT_RUN_COUNTS = {
     'make -C zigux phase14-smoke': 1,
     'make -C zigux phase14-test': 1,
     'make -C zigux phase15-validate': 1,
+    'python3 scripts/zigux/check-phase15-shared-summary-gap.py --self-test': 1,
+    'python3 scripts/zigux/check-phase15-shared-summary-gap.py': 1,
     'make -C zigux phase15-test': 1,
 }
 required_files = [
@@ -81,6 +83,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'validate-phase15.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase15-scripts-readme-alignment.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase15-review-process-handoff.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase15-shared-summary-gap.py',
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
     ROOT / 'zigux' / 'Makefile',
     ROOT / 'zigux' / 'tests' / 'README.md',
@@ -246,6 +249,10 @@ required_workflow_markers = [
     'Run focused Phase 14 smoke shard',
     'Run Phase 14 internal bridge tests',
     'Validate Phase 15 governance packet',
+    'Self-test Phase 15 shared summary gap checker',
+    'python3 scripts/zigux/check-phase15-shared-summary-gap.py --self-test',
+    'Check Phase 15 shared summary gap',
+    'python3 scripts/zigux/check-phase15-shared-summary-gap.py',
     'Run Phase 15 governance tests',
 ]
 required_workflow_marker_aliases = [
