@@ -181,6 +181,8 @@ test "phase12 virtio net recovery plan remembers the frozen queue layout and mer
     try std.testing.expect(plan.requires_control_queue_restore);
     try std.testing.expect(plan.requires_receive_buffer_refill);
     try std.testing.expect(plan.requires_mergeable_buffer_refill);
+    try std.testing.expect(plan.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(virtio_net.PostResetProbeReplayCheckpoint.after_control_queue_restore, plan.post_reset_probe_replay_checkpoint);
 
     const restored = try lab.restoreAfterReset();
     try std.testing.expectEqual(virtio_net.RecoveryAction.restore, restored.action);
@@ -235,6 +237,8 @@ test "phase12 virtio net recovery plan distinguishes recycled-room refill from m
     try std.testing.expect(!plan.requires_control_queue_restore);
     try std.testing.expect(plan.requires_receive_buffer_refill);
     try std.testing.expect(!plan.requires_mergeable_buffer_refill);
+    try std.testing.expect(plan.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(virtio_net.PostResetProbeReplayCheckpoint.after_receive_refill, plan.post_reset_probe_replay_checkpoint);
 }
 
 test "phase12 virtio net recovery plan keeps control queue restore separate from refill claims" {
@@ -267,6 +271,47 @@ test "phase12 virtio net recovery plan keeps control queue restore separate from
     try std.testing.expect(plan.requires_control_queue_restore);
     try std.testing.expect(!plan.requires_receive_buffer_refill);
     try std.testing.expect(!plan.requires_mergeable_buffer_refill);
+    try std.testing.expect(plan.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(virtio_net.PostResetProbeReplayCheckpoint.after_control_queue_restore, plan.post_reset_probe_replay_checkpoint);
+}
+
+test "phase12 virtio net recovery plan can skip replay when reset only restores data queues" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 1,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 1,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+
+    const frozen = try lab.freezeForReset();
+    try std.testing.expectEqual(@as(u16, 2), frozen.remembered_total_queue_count);
+    try std.testing.expect(!frozen.receive_buffer_refill_required);
+    try std.testing.expect(!frozen.mergeable_buffer_refill_required);
+
+    const plan = try lab.recoveryQueuePlan();
+    try std.testing.expectEqual(@as(u16, 1), plan.effective_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), plan.total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), plan.first_control_queue_index);
+    try std.testing.expect(!plan.rss_enabled);
+    try std.testing.expect(plan.requires_receive_queue_restore);
+    try std.testing.expect(plan.requires_transmit_queue_restore);
+    try std.testing.expect(!plan.requires_control_queue_restore);
+    try std.testing.expect(!plan.requires_receive_buffer_refill);
+    try std.testing.expect(!plan.requires_mergeable_buffer_refill);
+    try std.testing.expect(!plan.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(virtio_net.PostResetProbeReplayCheckpoint.after_transmit_queue_restore, plan.post_reset_probe_replay_checkpoint);
 }
 
 test "phase12 virtio net mergeable receive buffer plan keeps an exact page fit on the single-page path" {
@@ -367,6 +412,8 @@ test "phase12 virtio net recovery replay requires a fresh probe and only reuses 
     _ = try lab.freezeForReset();
     const first_plan = try lab.recoveryQueuePlan();
     try std.testing.expect(first_plan.requires_mergeable_buffer_refill);
+    try std.testing.expect(first_plan.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(virtio_net.PostResetProbeReplayCheckpoint.after_control_queue_restore, first_plan.post_reset_probe_replay_checkpoint);
 
     const restored = try lab.restoreAfterReset();
     try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
@@ -409,4 +456,6 @@ test "phase12 virtio net recovery replay requires a fresh probe and only reuses 
     try std.testing.expect(!second_plan.rss_enabled);
     try std.testing.expect(second_plan.requires_receive_buffer_refill);
     try std.testing.expect(!second_plan.requires_mergeable_buffer_refill);
+    try std.testing.expect(second_plan.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(virtio_net.PostResetProbeReplayCheckpoint.after_receive_refill, second_plan.post_reset_probe_replay_checkpoint);
 }
