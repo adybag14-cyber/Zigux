@@ -47,16 +47,16 @@ The directly coupled trace-events packet is currently strongest in the sample-ba
 Aligned reminder surfaces in this run:
 
 - `Documentation/zigux/phase5-sample-review-guide.md`
-- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
-- `zigux/tests/README.md`
+- `scripts/zigux/README.md`
 
 Those surfaces already keep the landed trace-events packet explicit, keep the missing shared `zigux/tests/phase5_build.zig` route explicit, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
 
 Shared surfaces that remain readable but should not be reused as exact trace-events source text yet:
 
-- `Documentation/zigux/review-checklist.md`, which still names older helper wording such as `runConditionalBoundaryReplay()` and `runCallbackBoundaryReplay()` instead of the current landed replay helpers
-- `scripts/zigux/README.md`, which still carries the broader Phase 5 shared-surface drift already called out by the kretprobe survey and does not currently serve as the clean exact-readback owner for this landed trace-events packet
+- `Documentation/zigux/README.md`, which still keeps the older shared-route drift story alive by treating `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the `make -C zigux phase5` story as current Phase 5 route evidence even though current `master` no longer exposes those shared Phase 5 wrappers or workflow steps
+- `zigux/tests/README.md`, which still names older helper wording such as `runConditionalBoundaryReplay()`, `runCallbackBoundaryReplay()`, and `runOwnershipReplay()` instead of the current landed replay helpers and public `lifecycleSummary()` route
 
 ## Landed sample and exact checks
 
@@ -78,7 +78,7 @@ The precise current gap is no longer "Zigux lacks a trace-events reference sampl
 
 - the roadmap-backed trace-events anchor already has a directly readable non-runtime sample plus focused tests-root evidence
 - current `master` still does not directly expose the older shared `zigux/tests/phase5_build.zig` route
-- some broader shared Phase 5 reminder surfaces remain readable but still lag the exact landed helper vocabulary for this packet
+- two broader shared Phase 5 reminder surfaces remain readable but still lag the exact landed helper vocabulary or the current shared-route posture for this packet
 
 So the honest same-lane follow-through is to keep this survey note anchored to the directly readable trace-events packet and to leave broader shared-surface cleanup for separate one-file repairs.
 
@@ -97,5 +97,5 @@ Leave this lane parked unless a fresh same-lane reread finds one more exact shar
 
 The best next bounded follow-up remains one of these two shared-surface repairs:
 
-- update `Documentation/zigux/review-checklist.md` so its Phase 5 trace-events wording matches the current landed helper names and the retired shared-build route posture
-- update `scripts/zigux/README.md` so its Phase 5 shared packet matches the already-restored bytestream, kobject, and trace-events split while keeping the missing kretprobe packet and missing shared build route explicit
+- update `Documentation/zigux/README.md` so its Phase 5 summary drops the retired shared-route drift story and matches the current no-Phase-5-wrapper repo reality
+- update `zigux/tests/README.md` so its trace-events wording matches the current landed replay helpers and public `lifecycleSummary()` route
