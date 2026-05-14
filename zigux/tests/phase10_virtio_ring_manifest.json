@@ -26,7 +26,7 @@
   ],
   "architecture_council_reopen_required": true,
   "architecture_council_reopen_attached": false,
-  "freeze_boundary_owner_lane": "P10-L14",
+  "freeze_boundary_owner_lane": "P10-L10",
   "study_only_anchors": [
     "kernel/workqueue.c",
     "kernel/trace/ring_buffer.c"
