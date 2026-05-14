@@ -29,7 +29,8 @@ These reminder surfaces plus the landed inventory-backed build-and-checker packe
 
 The adjacent driver-local or packet-local Phase 11 surfaces remain parked beside that shared route:
 
-* bcm2835, gpio, DesignWare, HVC, and header-boundary continuity still live in their dedicated docs-root notes and `scripts/zigux/check-phase11-*.py` packet checkers
+* bcm2835 continuity on current `master` stays bounded to `drivers/watchdog/bcm2835_wdt.zig`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md`, and `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`; keep that directly readable starter-plus-reminder packet explicit beside the shared closure surface while the raw-fallback replay and verify route remain narrower than a fully direct manifest-backed bcm2835 closure packet
+* gpio, DesignWare, HVC, and header-boundary continuity still live in their dedicated docs-root notes and `scripts/zigux/check-phase11-*.py` packet checkers
 * DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig`; keep the surviving platform-registration packet explicit beside the shared closure surface instead of reviving removed validation-matrix, survey, or teardown reminder notes
 * the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep that landed archival replay packet explicit beside the shared closure surface instead of collapsing it into a generic HVC reminder
 * direct Phase 11 watchdog and HVC replay files are materialized on current `master`, but they should stay framed as bounded replay evidence rather than as a broader closure claim
@@ -47,6 +48,7 @@ The adjacent driver-local or packet-local Phase 11 surfaces remain parked beside
 ## What This Closure Note Does Not Claim
 
 * no overall Phase 11 closure
+* no claim that the bcm2835 manifest-backed survey closure packet is fully direct-read materialized end to end
 * no landed shared `validate-phase11.py` or `phase11-validate` route
 * no broader landed platform registration, PM plumbing, tty registration, notifier execution, khvcd execution, sysrq dispatch, or hardware-backed validation than the current bounded replay packet and parked reminder notes
 
