@@ -26,8 +26,9 @@ ROADMAP_ANCHORS = [
     "`drivers/scsi/virtio_scsi.c`",
     "`tools/lib/bpf/libbpf.c`",
 ]
-REVIEW_CHECKLIST_STALE_MARKERS = [
+REVIEW_CHECKLIST_REQUIRED_MARKERS = [
     "avoid implying a shared `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route that current `master` does not ship?",
+    "if the change touches that same shared Phase 12 complex-driver packet after the shipped validator-first support bundle changes, do `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/Makefile`, and `make -C zigux phase12-validate` keep the dedicated support checker plus the shipped validator-first support route explicit as support-bundle evidence instead of treating them as a second direct replay route or as an absent shared surface?",
 ]
 RELEASE_READINESS_MARKERS = [
     "`PHASE12_STATUS=active`",
@@ -140,7 +141,7 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
 
     review_checklist_text = read_text(root / REVIEW_CHECKLIST_PATH)
     require_exact_count(
-        errors, REVIEW_CHECKLIST_PATH, review_checklist_text, REVIEW_CHECKLIST_STALE_MARKERS
+        errors, REVIEW_CHECKLIST_PATH, review_checklist_text, REVIEW_CHECKLIST_REQUIRED_MARKERS
     )
 
     makefile_text = read_text(root / MAKEFILE_PATH)
@@ -206,6 +207,7 @@ def good_review_checklist_text() -> str:
             "# Zigux Review Checklist",
             "",
             "- avoid implying a shared `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route that current `master` does not ship?",
+            "- if the change touches that same shared Phase 12 complex-driver packet after the shipped validator-first support bundle changes, do `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/Makefile`, and `make -C zigux phase12-validate` keep the dedicated support checker plus the shipped validator-first support route explicit as support-bundle evidence instead of treating them as a second direct replay route or as an absent shared surface?",
             "",
         ]
     )
@@ -425,6 +427,21 @@ def run_self_test() -> int:
 
         write(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
         write(
+            tmp_root / REVIEW_CHECKLIST_PATH,
+            good_review_checklist_text().replace(
+                "- if the change touches that same shared Phase 12 complex-driver packet after the shipped validator-first support bundle changes, do `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/Makefile`, and `make -C zigux phase12-validate` keep the dedicated support checker plus the shipped validator-first support route explicit as support-bundle evidence instead of treating them as a second direct replay route or as an absent shared surface?\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "marker count drift in Documentation/zigux/review-checklist.md: if the change touches that same shared Phase 12 complex-driver packet after the shipped validator-first support bundle changes",
+            "self-test expected review-checklist support-route failure",
+        )
+
+        write(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
+        write(
             tmp_root / ROADMAP_PATH,
             good_roadmap_text().replace("- `drivers/scsi/virtio_scsi.c`\n", "", 1),
         )
@@ -505,7 +522,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
