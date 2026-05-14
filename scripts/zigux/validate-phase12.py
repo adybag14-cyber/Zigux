@@ -14,6 +14,7 @@ REQUIRED_FILES = [
     "drivers/scsi/virtio_scsi.zig",
     "drivers/nvme/host/pci.zig",
     "drivers/nvme/host/pci_verify.zig",
+    "Documentation/zigux/phase12-release-closure-checklist.md",
     "Documentation/zigux/phase12-release-readiness-survey.md",
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
@@ -32,6 +33,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase12_nvme_pci.zig",
     "zigux/tests/phase12_nvme_pci_manifest.json",
     "zigux/tests/phase12_nvme_pci_survey.zig",
+    "scripts/zigux/check-phase12-release-readiness-packet.py",
     "scripts/zigux/validate-phase12.py",
 ]
 
@@ -41,6 +43,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase12-release-readiness-survey.md": [
         "`PHASE12_STATUS=active`",
         "`PHASE12_RELEASE_CLOSED=no`",
+        "`Documentation/zigux/phase12-release-closure-checklist.md`",
         "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "make -C zigux phase12-validate",
@@ -102,6 +105,7 @@ REQUIRED_MARKERS = {
         "--self-test",
         "PHASE12_VALIDATION=pass",
         "PHASE12_VALIDATOR_SELF_TEST=pass",
+        "Documentation/zigux/phase12-release-closure-checklist.md",
         "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
         "Documentation/zigux/phase12-nvme-pci-reopen-governance.md",
         "Documentation/zigux/phase12-nvme-pci-slice.md",
@@ -109,6 +113,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase12_nvme_pci.zig",
         "zigux/tests/phase12_nvme_pci_manifest.json",
         "zigux/tests/phase12_nvme_pci_survey.zig",
+        "scripts/zigux/check-phase12-release-readiness-packet.py",
         "PHASE12_EXPECTED_ABSENT_FILE_COUNT=0",
     ],
 }
@@ -118,6 +123,7 @@ FIXTURE_OVERRIDES = {
     "drivers/scsi/virtio_scsi.zig": "// fixture\n",
     "drivers/nvme/host/pci.zig": "// fixture\n",
     "drivers/nvme/host/pci_verify.zig": "// fixture\n",
+    "Documentation/zigux/phase12-release-closure-checklist.md": "# fixture\n",
     "Documentation/zigux/phase12-virtio-net-survey.md": "# fixture\n",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md": "# fixture\n",
     "Documentation/zigux/phase12-nvme-pci-reopen-governance.md": "# fixture\n",
@@ -133,6 +139,7 @@ FIXTURE_OVERRIDES = {
     "zigux/tests/phase12_nvme_pci.zig": "// fixture\n",
     "zigux/tests/phase12_nvme_pci_manifest.json": "{\n  \"lane_key\": \"P12-L08\",\n  \"phase\": \"Phase 12\",\n  \"anchor\": \"drivers/nvme/host/pci.c\",\n  \"survey_summary\": {\n    \"preexisting_nvme_pci_zig_present\": true,\n    \"preexisting_nvme_pci_verifier_present\": true,\n    \"preexisting_phase12_direct_test_present\": true,\n    \"preexisting_phase12_survey_note_present\": true,\n    \"preexisting_phase12_survey_gate_present\": true\n  }\n}\n",
     "zigux/tests/phase12_nvme_pci_survey.zig": "// phase12 nvme pci survey manifest keeps the bounded queue-and-recovery packet truthful\n// phase12 nvme pci survey note stays aligned with the bounded queue-and-recovery starter\n// phase12 nvme pci survey gate keeps present lane files explicit\n// Documentation/zigux/phase12-nvme-pci-survey.md\n// drivers/nvme/host/pci_verify.zig\n// zigux/tests/phase12_nvme_pci.zig\n",
+    "scripts/zigux/check-phase12-release-readiness-packet.py": "#!/usr/bin/env python3\n",
 }
 
 
@@ -201,6 +208,7 @@ def run_self_test() -> None:
     missing_file_cases = [
         ("missing_phase12_nvme_driver", "drivers/nvme/host/pci.zig"),
         ("missing_phase12_nvme_verify_shard", "drivers/nvme/host/pci_verify.zig"),
+        ("missing_phase12_release_closure_checklist", "Documentation/zigux/phase12-release-closure-checklist.md"),
         ("missing_phase12_nvme_survey_note", "Documentation/zigux/phase12-nvme-pci-survey.md"),
         ("missing_phase12_nvme_fallback_note", "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"),
         ("missing_phase12_nvme_reopen_governance", "Documentation/zigux/phase12-nvme-pci-reopen-governance.md"),
@@ -208,6 +216,7 @@ def run_self_test() -> None:
         ("missing_phase12_nvme_direct_test", "zigux/tests/phase12_nvme_pci.zig"),
         ("missing_phase12_nvme_manifest", "zigux/tests/phase12_nvme_pci_manifest.json"),
         ("missing_phase12_nvme_survey_gate", "zigux/tests/phase12_nvme_pci_survey.zig"),
+        ("missing_phase12_release_readiness_checker", "scripts/zigux/check-phase12-release-readiness-packet.py"),
     ]
 
     marker_cases = [
@@ -217,6 +226,13 @@ def run_self_test() -> None:
             "`PHASE12_STATUS=active`",
             "`PHASE12_STATUS=inactive`",
             "Documentation/zigux/phase12-release-readiness-survey.md: `PHASE12_STATUS=active`",
+        ),
+        (
+            "missing_release_readiness_closure_checklist_marker",
+            "Documentation/zigux/phase12-release-readiness-survey.md",
+            "`Documentation/zigux/phase12-release-closure-checklist.md`",
+            "`Documentation/zigux/phase12-release-closure-checklist-missing.md`",
+            "Documentation/zigux/phase12-release-readiness-survey.md: `Documentation/zigux/phase12-release-closure-checklist.md`",
         ),
         (
             "missing_nvme_survey_lane_marker",
@@ -261,11 +277,25 @@ def run_self_test() -> None:
             "scripts/zigux/validate-phase12.py: --self-test",
         ),
         (
+            "missing_validator_release_closure_checklist_marker",
+            "scripts/zigux/validate-phase12.py",
+            "Documentation/zigux/phase12-release-closure-checklist.md",
+            "Documentation/zigux/phase12-release-closure-checklist-missing.md",
+            "scripts/zigux/validate-phase12.py: Documentation/zigux/phase12-release-closure-checklist.md",
+        ),
+        (
             "missing_validator_nvme_survey_note_marker",
             "scripts/zigux/validate-phase12.py",
             "Documentation/zigux/phase12-nvme-pci-survey.md",
             "Documentation/zigux/phase12-nvme-pci-survey-missing.md",
             "scripts/zigux/validate-phase12.py: Documentation/zigux/phase12-nvme-pci-survey.md",
+        ),
+        (
+            "missing_validator_release_readiness_checker_marker",
+            "scripts/zigux/validate-phase12.py",
+            "scripts/zigux/check-phase12-release-readiness-packet.py",
+            "scripts/zigux/check-phase12-release-readiness-missing.py",
+            "scripts/zigux/validate-phase12.py: scripts/zigux/check-phase12-release-readiness-packet.py",
         ),
         (
             "missing_validator_expected_absent_count_marker",
@@ -300,8 +330,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 shipped packet, the shared release-readiness "
-            "fallback note, and the bounded NVMe starter, verifier shard, direct replay, "
-            "survey packet, and manifest surfaces."
+            "fallback note, the release-closure companion, the dedicated support checker, "
+            "and the bounded NVMe starter, verifier shard, direct replay, survey packet, "
+            "and manifest surfaces."
         )
     )
     parser.add_argument(
