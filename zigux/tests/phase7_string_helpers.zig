@@ -1,6 +1,11 @@
 const std = @import("std");
 const string_helpers = @import("string_helpers");
 
+fn runKasprintfStrarrayWithFailingAllocator(allocator: std.mem.Allocator, prefix: []const u8, n: usize) !void {
+    var result = try string_helpers.kasprintfStrarray(allocator, prefix, n);
+    defer result.deinit(allocator);
+}
+
 test "phase 7 string helpers starter covers whitespace trimming and prefix skipping" {
     try std.testing.expectEqualStrings("hello", string_helpers.skipSpaces("   hello"));
     try std.testing.expectEqualStrings("world", string_helpers.skip_spaces("\t\nworld"));
@@ -187,6 +192,90 @@ test "phase 7 string helpers starter escapes bounded memory across flag families
     const truncated_written = string_helpers.stringEscapeMem(&[_]u8{0}, &truncated, truncated.len, string_helpers.ESCAPE_HEX, null);
     try std.testing.expectEqual(@as(usize, 4), truncated_written);
     try std.testing.expectEqualSlices(u8, "\\x0", &truncated);
+}
+
+test "phase 7 string helpers starter builds sequential string arrays and sentinel views" {
+    var result = try string_helpers.kasprintfStrarray(std.testing.allocator, "phase7-helper", 3);
+    defer result.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 3), result.names.len);
+    try std.testing.expectEqualStrings("phase7-helper-0", result.names[0]);
+    try std.testing.expectEqualStrings("phase7-helper-1", result.names[1]);
+    try std.testing.expectEqualStrings("phase7-helper-2", result.names[2]);
+
+    const c_array = result.cArray();
+    try std.testing.expectEqualStrings("phase7-helper-0", std.mem.span(c_array[0].?));
+    try std.testing.expectEqualStrings("phase7-helper-1", std.mem.span(c_array[1].?));
+    try std.testing.expectEqualStrings("phase7-helper-2", std.mem.span(c_array[2].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), c_array[result.names.len]);
+
+    const nul_prefixed = [_]u8{ 'p', 'r', 'e', 0, 'x' };
+    var nul_result = try string_helpers.kasprintf_strarray(std.testing.allocator, &nul_prefixed, 1);
+    defer nul_result.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("pre-0", nul_result.names[0]);
+}
+
+test "phase 7 string helpers starter reuses the blank string-array sentinel when no names are requested" {
+    var zero = try string_helpers.kasprintfStrarray(std.testing.allocator, "phase7-helper", 0);
+    defer zero.deinit(std.testing.allocator);
+    var zero_alias = try string_helpers.kasprintf_strarray(std.testing.allocator, "phase7-helper", 0);
+    defer zero_alias.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), zero.names.len);
+    try std.testing.expectEqual(@as(usize, 1), zero.names_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), zero.cArray()[0]);
+    try std.testing.expectEqual(zero.names_null_terminated.ptr, zero_alias.names_null_terminated.ptr);
+    try std.testing.expectEqual(zero.cArray(), zero_alias.cArray());
+}
+
+test "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result" {
+    var first = try string_helpers.kasprintfStrarray(std.testing.allocator, "phase7-first", 2);
+    var second = try string_helpers.kasprintfStrarray(std.testing.allocator, "phase7-second", 2);
+    defer second.deinit(std.testing.allocator);
+
+    const second_names_ptr = second.names.ptr;
+    const second_names_nt_ptr = second.names_null_terminated.ptr;
+    const second_c_array = second.cArray();
+
+    string_helpers.kfreeStrarray(std.testing.allocator, &first);
+
+    try std.testing.expect(second.names.ptr == second_names_ptr);
+    try std.testing.expect(second.names_null_terminated.ptr == second_names_nt_ptr);
+    try std.testing.expect(second.cArray() == second_c_array);
+    try std.testing.expectEqualStrings("phase7-second-0", second.names[0]);
+    try std.testing.expectEqualStrings("phase7-second-1", second.names[1]);
+    try std.testing.expectEqualStrings("phase7-second-0", std.mem.span(second.cArray()[0].?));
+    try std.testing.expectEqualStrings("phase7-second-1", std.mem.span(second.cArray()[1].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), second.cArray()[second.names.len]);
+}
+
+test "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent" {
+    var result = try string_helpers.kasprintfStrarray(std.testing.allocator, "phase7-helper", 2);
+
+    string_helpers.kfreeStrarray(std.testing.allocator, &result);
+    try std.testing.expectEqual(@as(usize, 0), result.names.len);
+    try std.testing.expectEqual(@as(usize, 1), result.names_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), result.cArray()[0]);
+
+    string_helpers.kfree_strarray(std.testing.allocator, &result);
+    try std.testing.expectEqual(@as(usize, 0), result.names.len);
+    try std.testing.expectEqual(@as(usize, 1), result.names_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), result.cArray()[0]);
+}
+
+test "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKasprintfStrarrayWithFailingAllocator,
+        .{ "phase7-helper", 4 },
+    );
+}
+
+test "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view" {
+    try std.testing.expectError(
+        error.Overflow,
+        string_helpers.kasprintfStrarray(std.testing.allocator, "phase7-helper", std.math.maxInt(usize)),
+    );
 }
 
 test "phase 7 string helpers starter pads bounded copies without reading past the provided source slice" {
