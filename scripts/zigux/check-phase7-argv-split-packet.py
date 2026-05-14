@@ -13,6 +13,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase7-argv-split-slice.md",
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
+    "samples/zigux/README.md",
     "lib/argv_split.zig",
     "zigux/tests/phase7_argv_split.zig",
     "zigux/tests/phase7_argv_split_survey.zig",
@@ -44,6 +45,9 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/review-checklist.md": [
         "Documentation/zigux/phase7-argv-split-slice.md",
+    ],
+    "samples/zigux/README.md": [
+        "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`",
     ],
     "lib/argv_split.zig": [
         "pub fn countArgc",
@@ -307,6 +311,20 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "samples/zigux/README.md",
+            "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`",
+            "",
+            "samples_no_sample_boundary_marker",
+        )
+        expect_missing_marker(
+            "samples_no_sample_boundary_marker",
+            tmp_root,
+            "samples/zigux/README.md: current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/phase7_argv_split_manifest.json",
             "copied token-buffer ownership and later source-mutation isolation",
             "",
@@ -430,7 +448,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: pub fn cArgv",
         )
 
-    case_count = 19
+    case_count = 20
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
