@@ -25,6 +25,7 @@ pub const ModuleDescriptor = struct {
     provides_addressability_planning: bool,
     provides_offset_seek_planning: bool,
     provides_offset_readdir_planning: bool,
+    provides_offset_add_planning: bool,
     provides_offset_rename_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
@@ -180,6 +181,31 @@ pub const OffsetSlotClass = enum {
     out_of_range,
 };
 
+pub const OffsetAddAllocatorResult = union(enum) {
+    allocated: i64,
+    busy,
+    failure,
+};
+
+pub const OffsetAddStatus = enum {
+    ok,
+    dentry_already_has_offset,
+    no_space,
+    allocator_failure,
+    allocated_offset_out_of_range,
+};
+
+pub const OffsetAddPlan = struct {
+    anchor: []const u8,
+    existing_offset: i64,
+    allocator_result: OffsetAddAllocatorResult,
+    status: OffsetAddStatus,
+    allocated_offset: ?i64,
+    records_offset_in_dentry: bool,
+    stores_dentry_in_map: bool,
+    remaps_allocator_busy_to_no_space: bool,
+};
+
 pub const OffsetRenameStatus = enum {
     ok,
     missing_destination_offset,
@@ -249,6 +275,7 @@ pub const LibfsHelperLab = struct {
             .provides_addressability_planning = true,
             .provides_offset_seek_planning = true,
             .provides_offset_readdir_planning = true,
+            .provides_offset_add_planning = true,
             .provides_offset_rename_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
@@ -524,6 +551,57 @@ pub const LibfsHelperLab = struct {
         return .out_of_range;
     }
 
+    pub fn planSimpleOffsetAdd(existing_offset: i64, allocator_result: OffsetAddAllocatorResult) OffsetAddPlan {
+        if (existing_offset != 0) {
+            return .{
+                .anchor = descriptor().anchor,
+                .existing_offset = existing_offset,
+                .allocator_result = allocator_result,
+                .status = .dentry_already_has_offset,
+                .allocated_offset = null,
+                .records_offset_in_dentry = false,
+                .stores_dentry_in_map = false,
+                .remaps_allocator_busy_to_no_space = false,
+            };
+        }
+
+        return switch (allocator_result) {
+            .allocated => |offset| {
+                const managed = classifyOffsetSlot(offset) == .managed_entry;
+                return .{
+                    .anchor = descriptor().anchor,
+                    .existing_offset = existing_offset,
+                    .allocator_result = allocator_result,
+                    .status = if (managed) .ok else .allocated_offset_out_of_range,
+                    .allocated_offset = if (managed) offset else null,
+                    .records_offset_in_dentry = managed,
+                    .stores_dentry_in_map = managed,
+                    .remaps_allocator_busy_to_no_space = false,
+                };
+            },
+            .busy => .{
+                .anchor = descriptor().anchor,
+                .existing_offset = existing_offset,
+                .allocator_result = allocator_result,
+                .status = .no_space,
+                .allocated_offset = null,
+                .records_offset_in_dentry = false,
+                .stores_dentry_in_map = false,
+                .remaps_allocator_busy_to_no_space = true,
+            },
+            .failure => .{
+                .anchor = descriptor().anchor,
+                .existing_offset = existing_offset,
+                .allocator_result = allocator_result,
+                .status = .allocator_failure,
+                .allocated_offset = null,
+                .records_offset_in_dentry = false,
+                .stores_dentry_in_map = false,
+                .remaps_allocator_busy_to_no_space = false,
+            },
+        };
+    }
+
     pub fn planSimpleOffsetRename(source_offset: ?i64, destination_offset: ?i64) OffsetRenamePlan {
         const source_slot_class = classifyOffsetSlot(source_offset);
         const destination_slot_class = classifyOffsetSlot(destination_offset);
@@ -590,6 +668,7 @@ test "libfs helper descriptor stays anchored to fs/libfs.c" {
     try std.testing.expect(descriptor.provides_addressability_planning);
     try std.testing.expect(descriptor.provides_offset_seek_planning);
     try std.testing.expect(descriptor.provides_offset_readdir_planning);
+    try std.testing.expect(descriptor.provides_offset_add_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
@@ -860,6 +939,47 @@ test "offset slot classification distinguishes managed entries from reserved sen
     try std.testing.expectEqual(OffsetSlotClass.first_real_entry, LibfsHelperLab.classifyOffsetSlot(dir_offset_first));
     try std.testing.expectEqual(OffsetSlotClass.managed_entry, LibfsHelperLab.classifyOffsetSlot(dir_offset_min));
     try std.testing.expectEqual(OffsetSlotClass.end_of_directory, LibfsHelperLab.classifyOffsetSlot(dir_offset_end_of_directory));
+}
+
+test "offset add plan records managed offsets and keeps the busy-to-no-space remap explicit" {
+    const ok_plan = LibfsHelperLab.planSimpleOffsetAdd(0, .{ .allocated = dir_offset_min + 4 });
+    const busy_plan = LibfsHelperLab.planSimpleOffsetAdd(0, .busy);
+    const out_of_range_plan = LibfsHelperLab.planSimpleOffsetAdd(0, .{ .allocated = dir_offset_first });
+
+    try std.testing.expectEqualStrings("fs/libfs.c", ok_plan.anchor);
+    try std.testing.expectEqual(OffsetAddStatus.ok, ok_plan.status);
+    try std.testing.expectEqual(@as(?i64, dir_offset_min + 4), ok_plan.allocated_offset);
+    try std.testing.expect(ok_plan.records_offset_in_dentry);
+    try std.testing.expect(ok_plan.stores_dentry_in_map);
+    try std.testing.expect(!ok_plan.remaps_allocator_busy_to_no_space);
+
+    try std.testing.expectEqual(OffsetAddStatus.no_space, busy_plan.status);
+    try std.testing.expectEqual(@as(?i64, null), busy_plan.allocated_offset);
+    try std.testing.expect(!busy_plan.records_offset_in_dentry);
+    try std.testing.expect(!busy_plan.stores_dentry_in_map);
+    try std.testing.expect(busy_plan.remaps_allocator_busy_to_no_space);
+
+    try std.testing.expectEqual(OffsetAddStatus.allocated_offset_out_of_range, out_of_range_plan.status);
+    try std.testing.expectEqual(@as(?i64, null), out_of_range_plan.allocated_offset);
+    try std.testing.expect(!out_of_range_plan.records_offset_in_dentry);
+    try std.testing.expect(!out_of_range_plan.stores_dentry_in_map);
+}
+
+test "offset add plan rejects prepopulated dentries and preserves allocator failures" {
+    const already_set = LibfsHelperLab.planSimpleOffsetAdd(dir_offset_min + 1, .{ .allocated = dir_offset_min + 5 });
+    const failure = LibfsHelperLab.planSimpleOffsetAdd(0, .failure);
+
+    try std.testing.expectEqual(OffsetAddStatus.dentry_already_has_offset, already_set.status);
+    try std.testing.expectEqual(@as(?i64, null), already_set.allocated_offset);
+    try std.testing.expect(!already_set.records_offset_in_dentry);
+    try std.testing.expect(!already_set.stores_dentry_in_map);
+    try std.testing.expect(!already_set.remaps_allocator_busy_to_no_space);
+
+    try std.testing.expectEqual(OffsetAddStatus.allocator_failure, failure.status);
+    try std.testing.expectEqual(@as(?i64, null), failure.allocated_offset);
+    try std.testing.expect(!failure.records_offset_in_dentry);
+    try std.testing.expect(!failure.stores_dentry_in_map);
+    try std.testing.expect(!failure.remaps_allocator_busy_to_no_space);
 }
 
 test "offset rename plan preserves destination slot value for managed entries" {
