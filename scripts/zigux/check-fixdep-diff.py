@@ -55,6 +55,13 @@ EXPECTED_CASES = {
         "expected": "sample_concatenated_expected.txt",
         "expected_exit_code": 0,
     },
+    "sample_dependency_continuation": {
+        "depfile": "sample_dependency_continuation.d",
+        "target": "sample_dependency_continuation.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_dependency_continuation_source.c -o sample_dependency_continuation.o",
+        "expected": "sample_dependency_continuation_expected.txt",
+        "expected_exit_code": 0,
+    },
     "sample_comment_continuation": {
         "depfile": "sample_comment_continuation.d",
         "target": "sample_comment_continuation.o",
@@ -132,6 +139,8 @@ EXPECTED_FIXTURE_FILES = frozenset(
         "sample_concatenated_source.c",
         "sample_concatenated_temp.c",
         "sample_concatenated_temp_dep.h",
+        "sample_dependency_continuation.d",
+        "sample_dependency_continuation_expected.txt",
         "sample_escaped_colon.d",
         "sample_escaped_colon_expected.txt",
         "sample_escaped_colon_source.c",
