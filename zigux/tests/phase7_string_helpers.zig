@@ -118,8 +118,7 @@ test "phase 7 string helpers starter keeps exact-fit, terminator-only, and zero-
     var exact_fit = [_]u8{ '!', '!', '!' };
     const exact_fit_len = string_helpers.stringUnescape("\n\r", &exact_fit, exact_fit.len, string_helpers.UNESCAPE_SPACE);
     try std.testing.expectEqual(@as(usize, 2), exact_fit_len);
-    try std.testing.expectEqualSlices(u8, "
-", exact_fit[0..2]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '\n', '\r' }, exact_fit[0..2]);
     try std.testing.expectEqual(@as(u8, 0), exact_fit[2]);
 
     var terminator_only = [_]u8{ '!', '!' };
