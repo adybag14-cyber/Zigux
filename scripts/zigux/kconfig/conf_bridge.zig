@@ -442,6 +442,22 @@ test "conf bridge mode surface stays aligned with conf.c long options" {
         try std.testing.expectEqualStrings(entry.text, entry.mode.text());
         try std.testing.expectEqualStrings(entry.flag, entry.mode.flag());
     }
+
+    inline for (fields) |field| {
+        const mode = @field(Mode, field.name);
+        const expects_mode_arg = switch (mode) {
+            .defconfig, .savedefconfig => true,
+            else => false,
+        };
+        const expects_allconfig_packet = switch (mode) {
+            .allnoconfig, .allyesconfig, .allmodconfig, .alldefconfig, .randconfig => true,
+            else => false,
+        };
+
+        try std.testing.expectEqual(expects_mode_arg, modeRequiresArgument(mode));
+        try std.testing.expectEqual(expects_allconfig_packet, modeUsesAllConfigSentinel(mode));
+        try std.testing.expectEqual(expects_allconfig_packet, modeAcceptsAllConfigOverride(mode));
+    }
 }
 
 test "conf bridge parses silentoldconfig alias as syncconfig" {
