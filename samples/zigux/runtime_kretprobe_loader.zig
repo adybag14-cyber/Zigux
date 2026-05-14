@@ -820,17 +820,39 @@ test "runtime kretprobe loader keeps selftest-complete shared-request snapshots 
         prepared_plan,
     ));
     try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(prepared_plan));
-    try std.testing.expectEqualStrings("do_sys_openat2", selftested_summary.symbol_name);
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.selftest_complete, selftested_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), selftested_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftested_summary.exit_runs);
+    try std.testing.expectEqualStrings("do_sys_openat2", selftested_summary.symbol_name);
+    try std.testing.expectEqual(@as(usize, 20), selftested_summary.maxactive);
     try std.testing.expectEqual(@as(usize, 0), selftested_summary.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), selftested_summary.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), selftested_summary.nmissed);
     try std.testing.expectEqual(@as(usize, 42), selftested_summary.last_retval);
     try std.testing.expectEqual(@as(i64, 75), selftested_summary.last_duration_ns);
     try std.testing.expect(!selftested_summary.entry_timestamp_armed);
 
     const exit_report = try module.exit();
+    const exited_summary = module.summary();
     try std.testing.expectEqualStrings("do_sys_openat2", exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.missed_instances);
+    try std.testing.expectEqual(@as(usize, 42), exit_report.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), exit_report.last_duration_ns);
     try std.testing.expectEqual(@as(usize, 1), exit_report.selftest_runs);
-    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.exited, exited_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+    try std.testing.expectEqualStrings(selftested_summary.symbol_name, exited_summary.symbol_name);
+    try std.testing.expectEqual(selftested_summary.maxactive, exited_summary.maxactive);
+    try std.testing.expectEqual(@as(usize, 0), exited_summary.active_instances);
+    try std.testing.expectEqual(selftested_summary.skipped_kernel_threads, exited_summary.skipped_kernel_threads);
+    try std.testing.expectEqual(selftested_summary.nmissed, exited_summary.nmissed);
+    try std.testing.expectEqual(selftested_summary.last_retval, exited_summary.last_retval);
+    try std.testing.expectEqual(selftested_summary.last_duration_ns, exited_summary.last_duration_ns);
+    try std.testing.expect(!exited_summary.entry_timestamp_armed);
     try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeKretprobeLoader.planFor(&module));
 
     const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
