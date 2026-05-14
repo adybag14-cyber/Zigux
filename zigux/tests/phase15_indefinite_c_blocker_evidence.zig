@@ -118,7 +118,7 @@ test "phase 15 blocker evidence docs and scorecard still agree on the no approva
     });
     defer parsed.deinit();
 
-    try std.testing.expectEqualStrings("P15-Y03", parsed.value.lane_key);
+    try std.testing.expectEqualStrings("P15-L03", parsed.value.lane_key);
     try std.testing.expect(!parsed.value.posture.architecture_council_status_change_approval_recorded);
     try std.testing.expectEqualStrings("blocked_posture_accounting_not_port_readiness", parsed.value.posture.scorecard_role);
     try std.testing.expectEqual(@as(usize, 4), parsed.value.metrics.active_freeze_in_c_anchor_count);
@@ -133,6 +133,7 @@ test "phase 15 blocker evidence docs and scorecard still agree on the no approva
     try expectContains(policy_note, "blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`");
     try expectContains(review_process, "no Architecture Council approval is currently recorded for a freeze-map status change");
     try expectContains(readiness_note, "the remaining blocker is still `phase15-deep-core-status-change-blocker`");
+    try expectContains(scorecard_doc, "PHASE15_LANE_KEY=P15-L03");
     try expectContains(scorecard_doc, "Architecture Council approvals recorded for status change: `0`");
     try expectContains(scorecard_doc, "blocked status-change anchor count: `4`");
 }
