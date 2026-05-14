@@ -390,6 +390,99 @@ def run_self_test() -> int:
         write_text(root / SCRIPTS_README_PATH, good_scripts_readme_text())
 
         write_text(
+            root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                "- `zigux/tests/README.md`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/README.md",
+            "self-test expected missing scripts-readme tests-root marker failure",
+        )
+        write_text(root / SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write_text(
+            root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                "- `zigux/tests/README.md`\n",
+                "- `zigux/tests/README.md`\n"
+                "- `zigux/tests/README.md`\n",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/README.md",
+            "self-test expected duplicate scripts-readme tests-root marker failure",
+        )
+        write_text(root / SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write_text(
+            root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            "self-test expected missing scripts-readme smoke-manifest marker failure",
+        )
+        write_text(root / SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write_text(
+            root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n",
+                "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n"
+                "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            "self-test expected duplicate scripts-readme smoke-manifest marker failure",
+        )
+        write_text(root / SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write_text(
+            root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                "- `zigux/tests/phase14_workqueue_reviewability.zig`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_workqueue_reviewability.zig",
+            "self-test expected missing scripts-readme workqueue-reviewability marker failure",
+        )
+        write_text(root / SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write_text(
+            root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                "- `zigux/tests/phase14_workqueue_reviewability.zig`\n",
+                "- `zigux/tests/phase14_workqueue_reviewability.zig`\n"
+                "- `zigux/tests/phase14_workqueue_reviewability.zig`\n",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_workqueue_reviewability.zig",
+            "self-test expected duplicate scripts-readme workqueue-reviewability marker failure",
+        )
+        write_text(root / SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write_text(
             root / TESTS_README_PATH,
             good_tests_readme_text().replace(
                 "  * `zigux/tests/phase14_workqueue_reviewability.zig`\n",
@@ -831,7 +924,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=31")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=37")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
