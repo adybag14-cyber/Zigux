@@ -69,6 +69,7 @@ MARKERS = {
         '"dw_wdt_restart"',
         '"WDOG_TIMEOUT_RANGE_REG_OFFSET"',
         '"WDOG_CONTROL_REG_OFFSET"',
+        'test "phase11 dw_wdt verify keeps unregistered teardown hooks distinct from watchdog unregister"',
     ],
     "registration_scaffold": [
         'test "platform handoff stays blocked when drvdata publication is missing"',
@@ -86,7 +87,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 25
+SELF_TEST_CASE_COUNT = 26
 
 
 class CheckError(RuntimeError):
@@ -160,6 +161,7 @@ def run_self_test() -> None:
             ("verify_file", 4),
             ("verify_file", 5),
             ("verify_file", 11),
+            ("verify_file", 12),
             ("registration_scaffold", 0),
             ("registration_scaffold", 2),
             ("registration_scaffold", 3),
