@@ -34,6 +34,12 @@
     "range_fits": 1,
     "range_last_encoded": 44040202
   },
+  "notifier_chain": {
+    "empty_ok": 1,
+    "single_ok": 1,
+    "descending_ok": 1,
+    "rising_ok": 0
+  },
   "structs": {
     "boundary_header": {
       "size": 8,
