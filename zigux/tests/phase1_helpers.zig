@@ -102,6 +102,7 @@ const Fixture = struct {
         find_missing: bool,
         find_first_serial: usize,
         next_match_serials: []const usize,
+        match_iterator_serials: []const usize,
         next_match_terminal_null: bool,
     },
     argv_split: struct {
@@ -775,6 +776,20 @@ test "phase 1 helper ports match committed parity fixture" {
         match_cursor = rbtree.nextMatch(&duplicate_wanted, match_cursor, searchCmp) orelse break;
     }
     try std.testing.expectEqualSlices(usize, fixture.rbtree.next_match_serials, next_match_serials[0..next_match_count]);
+
+    var match_iterator = rbtree.matchIterator(&duplicate_wanted, &search_root, searchCmp);
+    var match_iterator_serials: [3]usize = undefined;
+    var match_iterator_count: usize = 0;
+    while (match_iterator.next()) |node| {
+        const entry: *const SearchEntry = @fieldParentPtr("node", node);
+        match_iterator_serials[match_iterator_count] = entry.serial;
+        match_iterator_count += 1;
+    }
+    try std.testing.expectEqualSlices(
+        usize,
+        fixture.rbtree.match_iterator_serials,
+        match_iterator_serials[0..match_iterator_count],
+    );
     try std.testing.expectEqual(
         fixture.rbtree.next_match_terminal_null,
         rbtree.nextMatch(&duplicate_wanted, match_cursor, searchCmp) == null,
