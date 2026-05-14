@@ -660,6 +660,21 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     );
 }
 
+test "buildSearchPath skips the rooted argv0 empty-path edge without double separators" {
+    const rooted_argv0 = try buildSearchPath(
+        std.testing.allocator,
+        "/repo",
+        "tools/bin",
+        "",
+        "/usr/bin:/bin",
+    );
+    defer std.testing.allocator.free(rooted_argv0);
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/usr/bin:/bin",
+        rooted_argv0,
+    );
+}
+
 test "prepareExecCmd prepends the configured executable name and preserves a trailing null slot" {
     const config = Config{
         .exec_name = "perf",
