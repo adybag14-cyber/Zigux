@@ -89,6 +89,10 @@ PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_BUILD_MARKER = "\"phase9-runtime-trace-event
 PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_MAKE_MARKER = (
     "$(ZIG) build phase9-runtime-trace-events-loader-substrate-drift-tests --build-file zigux/tests/phase9_build.zig"
 )
+TRACE_EVENTS_SUBSTRATE_DRIFT_PREPARED_PLAN_MARKER = "error.PreparedPlanDrift"
+TRACE_EVENTS_SUBSTRATE_DRIFT_SELFTEST_HOOK_EXPLICIT_MARKER = (
+    "try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(shared_request.plan));"
+)
 OWNER_MAP_MARKERS = [
     "- `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet.",
     "- `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, focused top-bit companion replay, and survey gate packet.",
@@ -245,8 +249,8 @@ REQUIRED_MARKERS = {
         "phase 9 runtime trace-events loader rejects initialized-stage prepared shared selftest-hook drift before any local runtime handoff",
         "shared_request.plan.requires_runtime_substrate = false;",
         "shared_request.plan.provides_selftest_hook = false;",
-        "error.LoaderNotRequired",
-        "error.InvalidSelftestHookEvidence",
+        TRACE_EVENTS_SUBSTRATE_DRIFT_PREPARED_PLAN_MARKER,
+        TRACE_EVENTS_SUBSTRATE_DRIFT_SELFTEST_HOOK_EXPLICIT_MARKER,
     ],
 }
 
@@ -667,12 +671,24 @@ def run_self_test() -> int:
         drift_path = base / TRACE_EVENTS_SUBSTRATE_DRIFT_PATH
         drift = drift_path.read_text(encoding="utf-8")
         drift_path.write_text(
-            drift.replace("error.LoaderNotRequired", "", 1),
+            drift.replace(TRACE_EVENTS_SUBSTRATE_DRIFT_PREPARED_PLAN_MARKER, "", 1),
             encoding="utf-8",
         )
         expect_failure(
             base,
-            "missing_marker:zigux/tests/runtime_trace_events_loader_substrate_drift.zig:error.LoaderNotRequired",
+            f"missing_marker:{TRACE_EVENTS_SUBSTRATE_DRIFT_PATH}:{TRACE_EVENTS_SUBSTRATE_DRIFT_PREPARED_PLAN_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        drift_path = base / TRACE_EVENTS_SUBSTRATE_DRIFT_PATH
+        drift = drift_path.read_text(encoding="utf-8")
+        drift_path.write_text(
+            drift.replace(TRACE_EVENTS_SUBSTRATE_DRIFT_SELFTEST_HOOK_EXPLICIT_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{TRACE_EVENTS_SUBSTRATE_DRIFT_PATH}:{TRACE_EVENTS_SUBSTRATE_DRIFT_SELFTEST_HOOK_EXPLICIT_MARKER}",
         )
 
         write_fixture_tree(base)
