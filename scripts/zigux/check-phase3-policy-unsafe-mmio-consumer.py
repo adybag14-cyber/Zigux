@@ -54,10 +54,12 @@ REQUIRED_MMIO_SNIPPETS = (
     "pub fn write64InteropPolicy(base_addr: usize, offset: usize, value: u64, policy: abi.InteropPolicy) MmioError!void {",
     "pub fn read16InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u16 {",
     "pub fn read32InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u32 {",
+    "pub fn read64InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u64 {",
     "pub fn read64InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) MmioError!u64 {",
     "pub fn write8InteropPolicyByte(base_addr: usize, offset: usize, value: u8, unsafe_scope: u8) MmioError!void {",
     "pub fn write16InteropPolicyByte(base_addr: usize, offset: usize, value: u16, unsafe_scope: u8) MmioError!void {",
     "pub fn write32InteropPolicyByte(base_addr: usize, offset: usize, value: u32, unsafe_scope: u8) MmioError!void {",
+    "pub fn write64InteropPolicyByte(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8) MmioError!void {",
     "pub fn write64InteropPolicyBytes(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8, reserved: u8) MmioError!void {",
     'test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {',
 )
@@ -76,9 +78,11 @@ REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
     "try mmio.write32InteropPolicy(base, 4, 0xfeed_beef, mmio_policy);",
     "try mmio.write32InteropPolicyByte(base, 4, 0xc001_d00d, @intFromEnum(abi.UnsafeScope.volatile_mmio));",
     "try mmio.write64InteropPolicy(base, 8, 0x0123_4567_89ab_cdef, mmio_policy);",
+    "try mmio.write64InteropPolicyByte(base, 8, 0xfedc_ba98_7654_3210, @intFromEnum(abi.UnsafeScope.volatile_mmio));",
     "try mmio.write64InteropPolicyBytes(",
     "try std.testing.expectEqual(",
     "try mmio.read16InteropPolicyByte(base, 4, @intFromEnum(abi.UnsafeScope.volatile_mmio))",
+    "try mmio.read64InteropPolicyByte(base, 8, @intFromEnum(abi.UnsafeScope.volatile_mmio))",
     "try mmio.read64InteropPolicyBytes(base, 8, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0)",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32InteropPolicy(base, 4, no_unsafe_policy));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16InteropPolicy(base, 2, 0x7777, raw_pointer_policy));",
@@ -244,8 +248,80 @@ def run_self_test() -> int:
             in issues
         )
 
+        _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_MMIO_SNIPPETS
+                if snippet
+                != "pub fn read64InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u64 {"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_mmio_snippet:pub fn read64InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u64 {"
+            in issues
+        )
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_MMIO_SNIPPETS
+                if snippet
+                != "pub fn write64InteropPolicyByte(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8) MmioError!void {"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_mmio_snippet:pub fn write64InteropPolicyByte(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8) MmioError!void {"
+            in issues
+        )
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            LOW_LEVEL_TEST_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_LOW_LEVEL_TEST_SNIPPETS
+                if snippet
+                != "try mmio.write64InteropPolicyByte(base, 8, 0xfedc_ba98_7654_3210, @intFromEnum(abi.UnsafeScope.volatile_mmio));"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_low_level_test_snippet:try mmio.write64InteropPolicyByte(base, 8, 0xfedc_ba98_7654_3210, @intFromEnum(abi.UnsafeScope.volatile_mmio));"
+            in issues
+        )
+
+        _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            LOW_LEVEL_TEST_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_LOW_LEVEL_TEST_SNIPPETS
+                if snippet
+                != "try mmio.read64InteropPolicyByte(base, 8, @intFromEnum(abi.UnsafeScope.volatile_mmio))"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_low_level_test_snippet:try mmio.read64InteropPolicyByte(base, 8, @intFromEnum(abi.UnsafeScope.volatile_mmio))"
+            in issues
+        )
+
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
