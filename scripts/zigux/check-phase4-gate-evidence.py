@@ -13,7 +13,7 @@ from pathlib import Path
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 GATE_EVIDENCE_REL = Path("Documentation/zigux/phase4-gate-evidence.md")
-EXPECTED_SHIPPED_TARGET_COUNT = 16
+EXPECTED_SHIPPED_TARGET_COUNT = 19
 EXPECTED_SELF_TEST_CASE_COUNT = 33
 SELF_TEST_CASES = [
     "baseline_round_trip",
@@ -146,6 +146,12 @@ BLOB_TARGETS = {
     "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA": "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
     "PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA": "Documentation/zigux/review-checklist.md",
 }
+
+if EXPECTED_SHIPPED_TARGET_COUNT != len(BLOB_TARGETS):
+    raise AssertionError(
+        "phase4 gate-evidence shipped target count drifted: "
+        f"{EXPECTED_SHIPPED_TARGET_COUNT} != {len(BLOB_TARGETS)}"
+    )
 
 KPROBE_NOTE_REL = Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md")
 KPROBE_MANIFEST_REL = Path("zigux/tests/phase4_kprobe_example_manifest.json")
