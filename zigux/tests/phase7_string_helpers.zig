@@ -105,13 +105,32 @@ test "phase 7 string helpers starter unescapes supported escape families and pre
     var supported_truncated_dst = [_]u8{ '#', '#', '#' };
     const supported_truncated_written = string_helpers.stringUnescape(&supported_truncated_src, &supported_truncated_dst, 2, string_helpers.UNESCAPE_SPACE);
     try std.testing.expectEqual(@as(usize, 1), supported_truncated_written);
-    try std.testing.expectEqualSlices(u8, &[_]u8{ '\\', 0 }, supported_truncated_dst[0 .. supported_truncated_written + 1]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '\n', 0 }, supported_truncated_dst[0 .. supported_truncated_written + 1]);
 
     var truncated_src = [_]u8{ '\\', 'q', 0, '!' };
     var truncated_dst = [_]u8{ '#', '#', '#' };
     const truncated_written = string_helpers.string_unescape(&truncated_src, &truncated_dst, 2, string_helpers.UNESCAPE_ANY);
     try std.testing.expectEqual(@as(usize, 1), truncated_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '\\', 0 }, truncated_dst[0 .. truncated_written + 1]);
+}
+
+test "phase 7 string helpers starter keeps exact-fit, terminator-only, and zero-capacity unescape destinations reviewable" {
+    var exact_fit = [_]u8{ '!', '!', '!' };
+    const exact_fit_len = string_helpers.stringUnescape("\n\r", &exact_fit, exact_fit.len, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 2), exact_fit_len);
+    try std.testing.expectEqualSlices(u8, "
+", exact_fit[0..2]);
+    try std.testing.expectEqual(@as(u8, 0), exact_fit[2]);
+
+    var terminator_only = [_]u8{ '!', '!' };
+    const terminator_only_len = string_helpers.stringUnescape("\n\r", &terminator_only, 1, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 0), terminator_only_len);
+    try std.testing.expectEqual(@as(u8, 0), terminator_only[0]);
+    try std.testing.expectEqual(@as(u8, '!'), terminator_only[1]);
+
+    var zero_capacity = [_]u8{};
+    const zero_capacity_len = string_helpers.stringUnescape("\n", &zero_capacity, 0, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 0), zero_capacity_len);
 }
 
 test "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes" {
