@@ -137,13 +137,25 @@ Phase 8 flow
   * `make -C zigux phase8-perf-buffer-poll-test`
   * `make -C zigux phase8-test`
   * `make -C zigux phase8`
+
+Phase 9 flow
+
+  * `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
+  * `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
+  * `scripts/zigux/check-phase9-build-only-surface.py`
+  * `zigux/kernel/runtime_loader.zig`
+  * `zigux/kernel/runtime_loader_contract.zig`
+  * `zigux/tests/runtime_loader_allocator_init_flow.zig`
+  * `zigux/tests/runtime_loader_gap_manifest.json`
+  * `zigux/tests/runtime_loader_gap_survey.zig`
   * `zigux/tests/phase9_build.zig`
+  * `make -C zigux phase9-runtime-loader-shared-tests`
+  * `make -C zigux phase9-test`
+  * `make -C zigux phase9`
   * `zigux/tests/runtime_atomic64_survey.zig`
   * `zigux/tests/runtime_bitmap_survey.zig`
   * `zigux/tests/runtime_trace_events_survey.zig`
   * `zigux/tests/runtime_kretprobe_survey.zig`
-  * `zigux/tests/runtime_loader_allocator_init_flow.zig`
-  * `zigux/tests/runtime_loader_gap_survey.zig`
   * `zigux/tests/phase10_build.zig`
   * `zigux/tests/phase10_virtio_core.zig`
   * `zigux/tests/phase10_virtio_core_reset_queue.zig`
