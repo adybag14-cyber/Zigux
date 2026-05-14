@@ -71,7 +71,7 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(manifest.repo_evidence.review_process_present);
     try std.testing.expect(manifest.repo_evidence.parity_scorecard_present);
     try std.testing.expect(manifest.repo_evidence.indefinite_c_policy_present);
-    try std.testing.expect(manifest.repo_evidence.docs_index_handoff_pointer_present);
+    try std.testing.expect(!manifest.repo_evidence.docs_index_handoff_pointer_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.dedicated_handoff_guard_present);
@@ -81,8 +81,8 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(manifest.repo_evidence.tests_root_validator_routes_explicit);
     try std.testing.expectEqual(@as(usize, 5), manifest.adjacent_lane_boundaries.len);
     try std.testing.expect(std.mem.eql(u8, "shared-summaries", manifest.adjacent_lane_boundaries[0].lane_family));
-    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[0].why_out_of_scope, "docs-root and checklist reminders are already aligned") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[0].why_out_of_scope, "parity-scorecard-survey reminder repairs stay here") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[0].why_out_of_scope, "reopened docs-root summary drift") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[0].why_out_of_scope, "shared-summary truthfulness repair") != null);
     try std.testing.expect(std.mem.eql(u8, "review-process", manifest.adjacent_lane_boundaries[1].lane_family));
     try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[1].why_out_of_scope, "Review-field wording") != null);
     try std.testing.expect(std.mem.eql(u8, "parity-scorecard-survey", manifest.adjacent_lane_boundaries[2].lane_family));
@@ -94,9 +94,9 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expectEqual(@as(usize, 3), manifest.named_reopen_triggers.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.named_reopen_triggers[0].why_now, "dedicated handoff note, manifest, or Zig guard") != null);
     try std.testing.expectEqual(@as(usize, 3), manifest.pending_next_steps.len);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "queue refresh") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "shared-summary drift") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "named reopen triggers") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "If shared-summary drift appears again") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "Current `master` shows reopened shared-summary drift") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "Documentation/zigux/review-checklist.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "scripts/zigux/README.md") != null);
@@ -107,8 +107,8 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "zigux/tests/phase15_readiness_gate_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "zigux/tests/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "sequencing-marker plus replay-route packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "shared-summary lane parked unless drift actually reappears") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "shared-summary repair lands") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "shared-summary lane reopened until the docs-root reminder catches up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "dedicated packet itself drifts after that repair lands") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "shared build wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "parity-scorecard blocker edits") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "readiness-validator ownership") != null);
@@ -142,6 +142,7 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_PROVENANCE_MODE=dated_master_readback") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-14") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "stable continuity for this parked maintenance surface now follows the shared `handoff-next-steps` lane family") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "current `Documentation/zigux/README.md` still underreports the Phase 15 shared-summary packet on `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Roadmap Versus Ledger") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Current Handoff Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Adjacent Lane Boundaries") != null);
@@ -174,10 +175,8 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared-summary follow-through for the parity-scorecard-survey reminder now belongs to the checker-backed `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "remaining shared-summary follow-through should now be read through `scripts/zigux/check-phase15-shared-summary-gap.py`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "the checker-backed shared-summary follow-through now lives in the docs-root, checklist, and scripts-root parity-scorecard-survey reminder packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Keep the dedicated handoff packet parked after this queue refresh") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "If shared-summary drift appears again, start with `python3 scripts/zigux/check-phase15-shared-summary-gap.py`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "keep the shared-summary lane parked unless drift actually reappears on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Current `master` shows reopened shared-summary drift in `Documentation/zigux/README.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "keep the shared-summary lane reopened until the docs-root reminder catches up") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_handoff_next_steps_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
 }
