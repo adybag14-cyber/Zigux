@@ -6,15 +6,15 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
 - `PHASE4_REVERSIBLE_DELIVERY_STATUS=shared_evidence_packet_landed`
 - `PHASE4_REVERSIBLE_DELIVERY_LANE_KEY=P4-L23`
 - `PHASE4_REVERSIBLE_DELIVERY_PHASE=Phase 4`
+- `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_DATE=2026-05-14`
 - `PHASE4_REVERSIBLE_DELIVERY_MODE=github_connector_readback`
 - `PHASE4_REVERSIBLE_DELIVERY_EXACT_READBACK_REF=master`
-- `PHASE4_REVERSIBLE_DELIVERY_SHARED_NOTE_BLOB_SHA=76623c6dd1d18742e9d9b7068a06e25126629858`
-- `PHASE4_REVERSIBLE_DELIVERY_MATRIX_BLOB_SHA=e83166df5ff8ca637a036d32253eb0bb43d8a972`
-- `PHASE4_REVERSIBLE_DELIVERY_REMAINING_GAP_CHECKER_BLOB_SHA=872ada2cfdc25d4eb0c6fa7e912a86c161b5f195`
-- `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_CHECKER_BLOB_SHA=280cc852d3d97a2ca97d67f178e092a8bbcf2cda`
-- `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_MANIFEST_BLOB_SHA=29d118377f7e48125ddccf19fa34364a8d446b51`
-- `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA=f3dc7b173b7585cbd4cfe9482161e3944d51ce50`
-- `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=6d9d5779c8497f4bf6c215e49b0910af6d48b21c`
+- `PHASE4_REVERSIBLE_DELIVERY_MATRIX_BLOB_SHA=7330832514f71e41d431d571470d833cd6dfdfd6`
+- `PHASE4_REVERSIBLE_DELIVERY_REMAINING_GAP_CHECKER_BLOB_SHA=7c6c2e48af10f225fe075d932fe82a2a04e840dd`
+- `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_CHECKER_BLOB_SHA=4fcf708d0fcdc0d5efe3c4addeb405d0387c78da`
+- `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_MANIFEST_BLOB_SHA=beecae4a6961ac2c8cdb1de889b98dd970086377`
+- `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA=0cfe8c3c7edc9d9edf3aaad79860b737a599c0b1`
+- `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=0c85c245f082c74c82d9c8a341a1fae990bac71a`
 - `PHASE4_REVERSIBLE_DELIVERY_SEQUENCING_NOTE_BLOB_SHA=a2e430b4d8bb5e1b6e8cd67e07872d3a8d4f9dcf`
 
 ## Current Packet
@@ -32,6 +32,8 @@ Treat the following as the current reversible-delivery packet for the already sh
   - `zigux/tests/phase4_perf_baseline_survey.zig`
 - anti-overlap boundary:
   - `Documentation/zigux/phase4-validation-lane-sequencing.md`
+
+Use `Documentation/zigux/phase4-gate-evidence.md` as the exact shared blob-pin checkpoint for the already-landed packet. This handoff note keeps the shared matrix, remaining-gap checker, dedicated local-only perf packet, review checklist, and sequencing note readable together as the smallest reversible-delivery evidence set.
 
 The shared note and matrix keep the rollback-owner map, exact-readback packet, parked starter-gap posture, and shared replay-route boundary explicit. The dedicated local-only perf checker, manifest, and survey keep the approved local benchmark commands, approved local-only acceptable limits, and still-pending shared-CI promotion posture measurable without turning that local packet into a shared CI claim.
 
