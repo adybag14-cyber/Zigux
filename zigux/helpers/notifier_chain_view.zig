@@ -17,6 +17,15 @@ pub const Iterator = struct {
     }
 };
 
+pub const PriorityIncrease = struct {
+    previous: *const abi.NotifierBlock,
+    current: *const abi.NotifierBlock,
+    previous_index: usize,
+    current_index: usize,
+    previous_priority: i32,
+    current_priority: i32,
+};
+
 pub const ChainView = struct {
     head: ?*const abi.NotifierBlock,
 
@@ -41,16 +50,30 @@ pub const ChainView = struct {
         return count;
     }
 
-    pub fn hasNonincreasingPriority(self: ChainView) bool {
+    pub fn firstPriorityIncrease(self: ChainView) ?PriorityIncrease {
         var it = self.iterator();
-        const first_node = it.next() orelse return true;
-        var previous_priority = first_node.priority;
+        const first_node = it.next() orelse return null;
+        var previous = first_node;
+        var index: usize = 1;
 
-        while (it.next()) |node| {
-            if (node.priority > previous_priority) return false;
-            previous_priority = node.priority;
+        while (it.next()) |node| : (index += 1) {
+            if (node.priority > previous.priority) {
+                return .{
+                    .previous = previous,
+                    .current = node,
+                    .previous_index = index - 1,
+                    .current_index = index,
+                    .previous_priority = previous.priority,
+                    .current_priority = node.priority,
+                };
+            }
+            previous = node;
         }
-        return true;
+        return null;
+    }
+
+    pub fn hasNonincreasingPriority(self: ChainView) bool {
+        return self.firstPriorityIncrease() == null;
     }
 };
 
@@ -95,8 +118,35 @@ test "chain view counts empty and populated notifier chains" {
     try std.testing.expectEqual(@as(usize, 2), ChainView.init(&head).len());
 }
 
+test "chain view reports the first priority increase" {
+    var tail = abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 9,
+    };
+    var middle = abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&tail),
+        .priority = 3,
+    };
+    var head = abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&middle),
+        .priority = 5,
+    };
+
+    const increase = ChainView.init(&head).firstPriorityIncrease().?;
+    try std.testing.expectEqual(@as(usize, 1), increase.previous_index);
+    try std.testing.expectEqual(@as(usize, 2), increase.current_index);
+    try std.testing.expectEqual(@as(i32, 3), increase.previous_priority);
+    try std.testing.expectEqual(@as(i32, 9), increase.current_priority);
+    try std.testing.expectEqual(@as(*const abi.NotifierBlock, &middle), increase.previous);
+    try std.testing.expectEqual(@as(*const abi.NotifierBlock, &tail), increase.current);
+}
+
 test "chain view checks nonincreasing notifier priority" {
     try std.testing.expect(ChainView.init(null).hasNonincreasingPriority());
+    try std.testing.expect(ChainView.init(null).firstPriorityIncrease() == null);
 
     var tail = abi.NotifierBlock{
         .notifier_call = 0,
@@ -109,7 +159,13 @@ test "chain view checks nonincreasing notifier priority" {
         .priority = 3,
     };
     try std.testing.expect(ChainView.init(&head).hasNonincreasingPriority());
+    try std.testing.expect(ChainView.init(&head).firstPriorityIncrease() == null);
 
     head.priority = 0;
+    const increase = ChainView.init(&head).firstPriorityIncrease().?;
+    try std.testing.expectEqual(@as(usize, 0), increase.previous_index);
+    try std.testing.expectEqual(@as(usize, 1), increase.current_index);
+    try std.testing.expectEqual(@as(i32, 0), increase.previous_priority);
+    try std.testing.expectEqual(@as(i32, 1), increase.current_priority);
     try std.testing.expect(!ChainView.init(&head).hasNonincreasingPriority());
 }
