@@ -37,10 +37,10 @@ Fresh repo-first inspection against the live Phase 10 manifest plus the shared c
 - `drivers/virtio/virtio_ring.c` remains the Linux anchor for this lane, and `zigux/tests/phase10_virtio_ring_manifest.json` still records `e42103fc02f544e1bd23a5ec2e5b584734f5af7d` as the surveyed Phase 10 ring snapshot.
 - the shared Phase 10 packet still keeps the direct ring helper packet explicit on current `master`: `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `scripts/zigux/check-phase10-ring-packet.py`, and `zigux/tests/phase10_build.zig` remain the queue-local review surfaces that pair with this survey note.
 - the live manifest still records seven preexisting Phase 10 test files together with the existing core foothold, the shared Phase 10 build gate, the ring survey note, the new ring slice note, and the direct ring verify replay as landed packet evidence.
-- the landed queue-local wrapper ladder remains the same bounded Phase 10 ring packet: `phase10-virtqueue-shape-helper`, `phase10-used-buffer-polling-helper`, `phase10-callback-enable-helper`, `phase10-callback-delay-helper`, `phase10-notify-prepare-helper`, `phase10-notification-data-summary-helper`, `phase10-broken-queue-poll-guard`, `phase10-queue-reset-helper`, `phase10-queue-reset-readiness-helper`, and `phase10-ring-verify-replay`.
+- the landed queue-local wrapper ladder remains the same bounded Phase 10 ring packet: `phase10-virtqueue-shape-helper`, `phase10-used-buffer-polling-helper`, `phase10-callback-enable-helper`, `phase10-callback-delay-helper`, `phase10-notify-prepare-helper`, `phase10-notification-data-summary-helper`, `phase10-broken-queue-poll-guard`, `phase10-queue-reset-helper`, and `phase10-queue-reset-readiness-helper`, and `phase10-ring-verify-replay`.
 - the live manifest now keeps `phase10-notification-data-summary-helper` explicit as landed queue-local wrapper evidence, so the helper packet no longer stops at notify-prepare bookkeeping even though it still stays entirely below transport-backed lifecycle work.
 - `Documentation/zigux/phase10-virtio-ring-slice.md` now records the queue-local helper ladder, the direct verify and replay packet, and the blocked MMIO-owned bridge as a packet-local companion, so the ring lane no longer has to treat that slice note as absent review evidence.
-- the ring lane still stays below transport-backed work: the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L14` MMIO packet, so this survey does not claim transport-backed queue discovery, IRQ acknowledgement, queue reset execution, DMA paths, or probe/remove lifecycle behavior.
+- the ring lane still stays below transport-backed work: the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L10` MMIO packet, so this survey does not claim transport-backed queue discovery, IRQ acknowledgement, queue reset execution, DMA paths, or probe/remove lifecycle behavior.
 
 ## Recorded gaps
 
@@ -66,7 +66,7 @@ That keeps the ring lane concrete and reviewable without overstating progress: t
 
 ## Freeze boundary
 - `Documentation/zigux/freeze-map.md` is the governing boundary note for this queue-local survey packet.
-- freeze-boundary owner: `P10-L14`
+- freeze-boundary owner: `P10-L10`
 - rollback owner: keep this survey note, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, and `Documentation/zigux/freeze-map.md` aligned before widening this queue-local note.
 - this ring survey stays inside `drivers/virtio/*.zig`; it does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain Phase 14 study-only anchors under the freeze map.
 - the Phase 15 freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c` also remain outside this lane; this survey does not claim scheduler, MM, RCU, or skbuff ownership, parity, or Architecture Council reopen authority.
