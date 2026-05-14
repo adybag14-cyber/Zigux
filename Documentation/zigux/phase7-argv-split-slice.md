@@ -9,7 +9,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 * `PHASE7_LANE_KEY=P7-L09`
 * scope: first low-risk argument-vector parsing and teardown helpers only
 * lane state: helper, dedicated survey, committed manifest packet, dedicated packet checker, shared validator, shared build-wiring checker, shared helper-lane sequencing note, and parked make-wrapper alignment note landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, survey, manifest, checker, shared validator, or build-wiring packet
-* current verification: a bounded 2026-05-13 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together, and fresh current-master readback also confirmed `zigux/tests/phase7_build.zig` is directly readable again together with sibling `string_helpers` and `rbtree` helper-plus-test pairs, so the shared build route is back to a route-present cross-packet reminder on current `master`
+* current verification: a bounded 2026-05-13 replay confirmed `lib/argv_split.zig` and `zigux/tests/phase7_argv_split.zig` still compile together, and fresh current-master readback also confirmed `zigux/tests/phase7_build.zig` is directly readable again together with sibling `string_helpers`, `cmdline`, and `rbtree` helper-plus-test pairs, so the shared build route is back to a route-present cross-packet reminder on current `master`
 * product boundary:
   * `Documentation/zigux/README.md`
   * `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
@@ -101,6 +101,8 @@ Current `master` also directly exposes the shared Phase 7 build route as a cross
 * `zigux/tests/phase7_build.zig`
 * `lib/string_helpers.zig`
 * `zigux/tests/phase7_string_helpers.zig`
+* `lib/cmdline.zig`
+* `zigux/tests/phase7_cmdline.zig`
 * `lib/rbtree.zig`
 * `zigux/tests/phase7_rbtree.zig`
 
