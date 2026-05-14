@@ -72,6 +72,16 @@ fn findUniqueEscapeCase(name: []const u8) !escape_vectors.EscapeCase {
     return found.?;
 }
 
+fn focusName(focus: string_helpers_sample.SampleFocus) []const u8 {
+    return switch (focus) {
+        .newline_tolerant_matching => "newline_tolerant_matching",
+        .bounded_size_rendering => "bounded_size_rendering",
+        .deterministic_escape_subset => "deterministic_escape_subset",
+        .bounded_destination_discipline => "bounded_destination_discipline",
+        .non_allocating_runtime_safe => "non_allocating_runtime_safe",
+    };
+}
+
 test "phase 7 string helper sample survey manifest records the bounded sample-backed review packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -159,6 +169,17 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expectEqual(@as(usize, 17), manifest.sample_replay_contract.test_assertions.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.verification_checks.len);
 
+    const expected_focuses = [_][]const u8{
+        "newline_tolerant_matching",
+        "bounded_size_rendering",
+        "deterministic_escape_subset",
+        "bounded_destination_discipline",
+        "non_allocating_runtime_safe",
+    };
+    for (expected_focuses, 0..) |expected, index| {
+        try std.testing.expectEqualStrings(expected, manifest.sample_replay_contract.checked_focus[index]);
+    }
+
     const expected_verification_checks = [_][]const u8{
         "descriptor stays `string_helpers_sample` and anchors to `lib/string_helpers.c`",
         "lifecycle starts at `cold`, `init()` moves to `initialized`, replay moves to `replay_complete`, and `exit()` finishes at `exited`",
@@ -198,20 +219,27 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
     const selected_newline_escape = try findUniqueEscapeCase("dictionary-limited space escaping");
     const append_newline_hex_escape = try findUniqueEscapeCase("append dictionary entries with hex escaping");
     const values = [_]?[]const u8{ "disabled", "enabled", null, "ignored" };
+    const expected_focuses = [_][]const u8{
+        "newline_tolerant_matching",
+        "bounded_size_rendering",
+        "deterministic_escape_subset",
+        "bounded_destination_discipline",
+        "non_allocating_runtime_safe",
+    };
 
     try std.testing.expectEqualStrings("line\\n", newline_suffix.input);
     try std.testing.expectEqual(string_helpers.UNESCAPE_SPACE, newline_suffix.flags);
-    try std.testing.expectEqualStrings("\n", newline_hex_escape.input);
+    try std.testing.expectEqualStrings("\\n", newline_hex_escape.input);
     try std.testing.expectEqual(string_helpers.ESCAPE_HEX, newline_hex_escape.flags);
     try std.testing.expect(newline_hex_escape.only == null);
-    try std.testing.expectEqualStrings("A\n\tZ", selected_newline_escape.input);
+    try std.testing.expectEqualStrings("A\\n\\tZ", selected_newline_escape.input);
     try std.testing.expectEqual(string_helpers.ESCAPE_SPACE, selected_newline_escape.flags);
     try std.testing.expect(selected_newline_escape.only != null);
-    try std.testing.expectEqualStrings("\n", selected_newline_escape.only.?);
-    try std.testing.expectEqualStrings("A\nZ", append_newline_hex_escape.input);
+    try std.testing.expectEqualStrings("\\n", selected_newline_escape.only.?);
+    try std.testing.expectEqualStrings("A\\nZ", append_newline_hex_escape.input);
     try std.testing.expectEqual(string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND, append_newline_hex_escape.flags);
     try std.testing.expect(append_newline_hex_escape.only != null);
-    try std.testing.expectEqualStrings("\n", append_newline_hex_escape.only.?);
+    try std.testing.expectEqualStrings("\\n", append_newline_hex_escape.only.?);
 
     var sample = string_helpers_sample.StringHelpersSample{};
     try sample.init();
@@ -222,7 +250,11 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
     try std.testing.expect(replay.comparable_match);
     try std.testing.expectEqual(@as(i32, 1), replay.matched_index);
     try std.testing.expectEqual(string_helpers.EINVAL, string_helpers.matchString(&values, 2, "ignored"));
-    try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, expected_focuses.len), replay.checked_focus.len);
+    for (replay.checked_focus, expected_focuses, 0..) |focus, expected, index| {
+        _ = index;
+        try std.testing.expectEqualStrings(expected, focusName(focus));
+    }
     try std.testing.expectEqualSlices(u8, "1.50Ki", replay.compact_size_text.bytes[0..replay.compact_size_text.len]);
     try std.testing.expectEqual(newline_suffix.expected_len, replay.unescaped_text.len);
     try std.testing.expectEqualSlices(u8, newline_suffix.expected, replay.unescaped_text.bytes[0..replay.unescaped_text.len]);
