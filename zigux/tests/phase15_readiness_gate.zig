@@ -2,6 +2,7 @@ const std = @import("std");
 
 const RepoEvidence = struct {
     phase15_validator_script_present: bool,
+    phase15_docs_readme_checker_present: bool,
     phase15_validate_target_present: bool,
     phase15_test_target_present: bool,
     shared_ci_phase15_present: bool,
@@ -38,6 +39,7 @@ test "phase 15 readiness manifest preserves the parked validator-first route" {
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-14", manifest.surveyed_commit);
     try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(manifest.repo_evidence.phase15_test_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
@@ -79,7 +81,9 @@ test "phase 15 readiness note and replay routes stay aligned" {
     try expectContains(readiness_note, "The packet remains parked.");
     try expectContains(readiness_note, "no Architecture Council approval is currently recorded");
     try expectContains(readiness_note, "python3 scripts/zigux/validate-phase15.py");
+    try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-docs-readme-alignment.py");
     try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
+    try expectContains(readiness_note, "phase15-docs-root-summary-alignment");
     try expectContains(readiness_note, "shared-summary lane `P15-Y06`");
     try expectContains(readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig");
     try expectContains(readiness_note, "make -C zigux phase15-validate");
