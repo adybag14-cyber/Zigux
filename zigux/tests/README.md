@@ -95,6 +95,9 @@ Key entrypoints
   * `zigux/tests/phase7_rbtree_manifest.json`
   * `zigux/tests/fixtures/phase7_rbtree.json`
   * `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
+
+Phase 8 flow
+
   * `zigux/tests/phase8_build.zig`
   * `Documentation/zigux/phase8-help-slice.md`
   * `Documentation/zigux/phase8-kallsyms-slice.md`
@@ -237,7 +240,6 @@ Key entrypoints
   * `scripts/zigux/phase3_check_lib.py --self-test`
   * `scripts/zigux/generate-phase3-check-wrappers.py --check`
   * `scripts/zigux/run-phase3-checks.py`
-
 Phase 3 fixtures
   * each Phase 3 slice keeps its expected JSON and C harness under `zigux/tests/fixtures/phase3_*`
   * manifests may live beside the fixture directory or inside it; the Phase 3 catalog selects the best valid manifest candidate
