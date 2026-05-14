@@ -40,10 +40,12 @@ MARKERS = {
     ],
     "tests_companion": [
         "## Phase 11 tests-root packet",
-        "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
-        "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
-        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
-        "surviving DesignWare platform-registration continuity note",
+        "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
+        "- `scripts/zigux/check-phase11-dw-wdt-packet.py`",
+        "- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "- `drivers/watchdog/dw_wdt.zig`",
+        "- `drivers/watchdog/dw_wdt_verify.zig`",
+        "surviving DesignWare platform-registration continuity packet through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
     ],
     "driver_file": [
         "pub const RegistrationScaffoldState",
@@ -87,7 +89,7 @@ MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 28
 
 
 class CheckError(RuntimeError):
@@ -155,6 +157,8 @@ def run_self_test() -> None:
             ("tests_companion", 1),
             ("tests_companion", 3),
             ("tests_companion", 4),
+            ("tests_companion", 5),
+            ("tests_companion", 6),
             ("driver_file", 0),
             ("driver_file", 6),
             ("verify_file", 0),
