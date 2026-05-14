@@ -105,41 +105,6 @@ are both cleared on current `master`; the remaining same-lane follow-through is
 now future reminder drift around the blocked module-metadata and
 depmod-publication boundary rather than shared packet inventory sync.
 
-## Historical Reminder Wording
-
-The last narrower shared reminder pass recorded the older docs-root drift like
-this before the docs-root summary caught up:
-
-Fresh repo-first inspection now shows `scripts/zigux/README.md` and
-`zigux/tests/README.md` already keep
-`Documentation/zigux/phase9-runtime-loader-gap-survey.md`,
-`zigux/tests/runtime_loader_gap_manifest.json`, and
-`zigux/tests/runtime_loader_gap_survey.zig` explicit inside the shared loader
-packet while still deferring the exact shared owner map back to
-`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, but
-`Documentation/zigux/README.md` still undercounts that same live packet by
-omitting the loader-gap survey note plus the manifest-backed survey trio from
-its Phase 9 summary.
-
-Repair `Documentation/zigux/README.md` first, then re-read
-`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and
-`zigux/tests/README.md` before reopening any broader shared reminder pass.
-
-The tests-root follow-through that just closed read like this before
-`zigux/tests/README.md` caught up:
-
-Fresh repo-first inspection also shows `zigux/tests/README.md` still keeps the
-shared Phase 9 build and survey files visible, but its key entrypoint list
-still blurs that packet into the tail of the Phase 8 flow and does not yet call
-out `Documentation/zigux/phase9-runtime-loader-gap-survey.md` or
-`zigux/tests/runtime_loader_gap_manifest.json` beside the shared loader-facing
-packet.
-
-Keep that historical wording visible until the dedicated
-`zigux/tests/runtime_loader_gap_survey.zig` guard is refreshed too, so future
-runs can still see exactly which packet-local drift the previous follow-through
-closed.
-
 ## Next Bounded Step
 
 Leave this note parked unless `Documentation/zigux/README.md`,
