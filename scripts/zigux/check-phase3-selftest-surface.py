@@ -511,6 +511,36 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace("include/zigux/dev_t.h", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "include/zigux/dev_t.h (expected 2, found 1)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support dev_t header drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace("zigux/uapi/version.zig", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "zigux/uapi/version.zig (expected 2, found 1)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support version companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
         tests_path = root / TESTS_README_PATH
         tests_path.write_text(
             _read(tests_path).replace("scripts/zigux/phase3_catalog.py --self-test", "", 1),
