@@ -41,6 +41,8 @@ Phase 3 ABI and runtime tranche.
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
 - `zigux/bindings/abi.zig`
+- `zigux/tests/phase3_low_level_wrappers.zig`
+- `zigux/tests/phase3_low_level_wrappers_build.zig`
 - `zigux/Makefile`
 - `python3 scripts/zigux/phase3_catalog.py --self-test`
 - `python3 scripts/zigux/phase3_catalog.py --audit-doc-sync`
@@ -51,6 +53,7 @@ Phase 3 ABI and runtime tranche.
 - `python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `make -C zigux phase3-validate`
 - `make -C zigux phase3-selftest`
+- `make -C zigux phase3-low-level-wrappers-test`
 - `make -C zigux phase3`
 
 ## Review boundary
@@ -95,13 +98,17 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`,
 `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`,
 `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`,
-`include/zigux/dev_t.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`,
-`zigux/bindings/abi.zig`, and `make -C zigux phase3-selftest`; keep the
-canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`
-starter-companion split explicit here whenever this validator-support packet
-names the dedicated header-family survey and next-step note, and keep
-`Documentation/zigux/phase3-kernel-export-shim-governance.md` paired with this
-note, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and the
-shared ABI slice when `zigux/kernel/export_shim.zig` itself changes instead of
-claiming that narrower kernel-facing governance note is already a broad
-scripts-root or tests-root reminder surface on current `master`.
+`zigux/tests/phase3_low_level_wrappers.zig`,
+`zigux/tests/phase3_low_level_wrappers_build.zig`, `include/zigux/dev_t.h`,
+`zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/abi.zig`,
+`make -C zigux phase3-selftest`, and
+`make -C zigux phase3-low-level-wrappers-test`; keep the focused low-level
+wrapper replay plus dedicated build-anchor route explicit beside the
+validator-support packet, keep the canonical `include/zigux/dev_t.h` plus
+`zigux/uapi/version.zig` starter-companion split explicit here whenever this
+validator-support packet names the dedicated header-family survey and next-step
+note, and keep `Documentation/zigux/phase3-kernel-export-shim-governance.md`
+paired with this note, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`,
+and the shared ABI slice when `zigux/kernel/export_shim.zig` itself changes
+instead of claiming that narrower kernel-facing governance note is already a
+broad scripts-root or tests-root reminder surface on current `master`.
