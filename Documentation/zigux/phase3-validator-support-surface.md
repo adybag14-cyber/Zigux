@@ -42,6 +42,7 @@ Phase 3 ABI and runtime tranche.
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
 - `zigux/bindings/abi.zig`
+- `zigux/bindings/dev_t.zig`
 - `zigux/tests/phase3_low_level_wrappers.zig`
 - `zigux/tests/phase3_low_level_wrappers_build.zig`
 - `zigux/Makefile`
@@ -105,7 +106,8 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `zigux/tests/phase3_low_level_wrappers.zig`,
 `zigux/tests/phase3_low_level_wrappers_build.zig`,
 `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`,
-`include/zigux/dev_t.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/abi.zig`,
+`include/zigux/dev_t.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`,
+`zigux/bindings/abi.zig`, and `zigux/bindings/dev_t.zig`,
 `make -C zigux phase3-selftest`, and
 `make -C zigux phase3-low-level-wrappers-test`; keep the dedicated ABI gate,
 policy-survey validator, policy-byte guard, focused low-level wrapper replay,
@@ -117,7 +119,8 @@ header-governance context through the paired survey and next-step notes instead
 of naming that validator directly, keep the canonical `include/zigux/dev_t.h`
 plus `zigux/uapi/version.zig` starter-companion split explicit here whenever
 this validator-support packet names the dedicated header-family survey and
-next-step note, and keep
+next-step note, keep `zigux/bindings/dev_t.zig` explicit beside
+`zigux/bindings/abi.zig` for that same narrowed companion packet, and keep
 `Documentation/zigux/phase3-kernel-export-shim-governance.md` paired with this
 note, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and the
 shared ABI slice when `zigux/kernel/export_shim.zig` itself changes instead of
