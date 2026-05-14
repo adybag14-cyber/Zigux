@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -14,6 +15,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
+    "zigux/tests/fixtures/phase1_helper_manifest.json",
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -70,6 +72,13 @@ WORKFLOW_MARKERS = [
     "run: python3 scripts/zigux/check-phase1-direct-owner-markers.py",
 ]
 
+EXPECTED_MANIFEST_NEXT_SAFE_STEPS = {
+    "tools/lib/bitmap.zig": "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen the already-closed closure-validator or validator-summary packets by default.",
+    "tools/lib/find_bit.zig": "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families.",
+    "tools/lib/rbtree.zig": "If this helper lane reopens, the smallest shared-replay expansion is a dedicated iterator or cached-root leftmost-return fixture key; until then, matchIterator coverage plus cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors.",
+    "tools/lib/string.zig": "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the string review packet and closure note unless current master later adds dedicated shared sysfs fixture keys; until then, newline-aware equality and lookup order remain owned by the direct string tests.",
+}
+
 
 def repo_root(root_arg: str | None) -> Path:
     return Path(root_arg).resolve() if root_arg else ROOT
@@ -87,6 +96,29 @@ def collect_exact_count_markers(text: str, label: str, markers: list[str], *, ls
         if count != 1:
             missing.append(f"{label}:{marker}:expected=1:actual={count}")
     return missing
+
+
+def collect_manifest_next_safe_step_issues(root: Path) -> list[str]:
+    manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"phase1_direct_owner_manifest:json_decode_error:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
+
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        return ["phase1_direct_owner_manifest:review_anchors"]
+
+    issues: list[str] = []
+    for helper, expected in EXPECTED_MANIFEST_NEXT_SAFE_STEPS.items():
+        anchors = review_anchors.get(helper)
+        if not isinstance(anchors, dict):
+            issues.append(f"phase1_direct_owner_manifest:{helper}:review_anchor_shape")
+            continue
+        actual = anchors.get("next_safe_step_note")
+        if actual != expected:
+            issues.append(f"phase1_direct_owner_manifest:{helper}:next_safe_step_note")
+    return issues
 
 
 def collect_missing_markers(root: Path) -> list[str]:
@@ -122,6 +154,7 @@ def collect_missing_markers(root: Path) -> list[str]:
             lstrip=True,
         )
     )
+    missing.extend(collect_manifest_next_safe_step_issues(root))
     return missing
 
 
@@ -188,6 +221,22 @@ def make_fixture_root(root: Path) -> None:
         encoding="utf-8",
     )
 
+    manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "review_anchors": {
+                    helper: {"next_safe_step_note": note}
+                    for helper, note in EXPECTED_MANIFEST_NEXT_SAFE_STEPS.items()
+                }
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
 
 def expect_missing_exact_count(root: Path, path: Path, original_text: str, label: str, marker: str, replacement: str, expected_count: int) -> None:
     path.write_text(original_text.replace(marker, replacement, 1), encoding="utf-8")
@@ -209,6 +258,7 @@ def run_self_test() -> None:
         lane_note = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
         makefile = root / "zigux/Makefile"
         workflow = root / ".github/workflows/zigux-bootstrap.yml"
+        manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
 
         docs_root.unlink()
         assert collect_missing_files(root) == ["Documentation/zigux/README.md"]
@@ -227,6 +277,11 @@ def run_self_test() -> None:
         make_fixture_root(root)
         workflow.unlink()
         assert collect_missing_files(root) == [".github/workflows/zigux-bootstrap.yml"]
+        case_count += 1
+
+        make_fixture_root(root)
+        manifest_path.unlink()
+        assert collect_missing_files(root) == ["zigux/tests/fixtures/phase1_helper_manifest.json"]
         case_count += 1
 
         make_fixture_root(root)
@@ -412,6 +467,34 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_root(root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert (
+            "phase1_direct_owner_manifest:tools/lib/string.zig:next_safe_step_note"
+            in collect_missing_markers(root)
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        del manifest["review_anchors"]["tools/lib/find_bit.zig"]["next_safe_step_note"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert (
+            "phase1_direct_owner_manifest:tools/lib/find_bit.zig:next_safe_step_note"
+            in collect_missing_markers(root)
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        manifest_path.write_text("{\n", encoding="utf-8")
+        assert any(
+            item.startswith("phase1_direct_owner_manifest:json_decode_error:")
+            for item in collect_missing_markers(root)
+        )
+        case_count += 1
+
+        make_fixture_root(root)
         makefile_text = makefile.read_text(encoding="utf-8")
         for marker in MAKEFILE_MARKERS:
             expect_missing_exact_count(
@@ -491,7 +574,7 @@ def main() -> int:
     print(f"PHASE1_DIRECT_OWNER_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_DIRECT_OWNER_REQUIRED_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(DIRECT_OWNER_MARKERS) + len(CURRENT_REPO_REALITY_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS) + len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(DIRECT_OWNER_MARKERS) + len(CURRENT_REPO_REALITY_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS) + len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(EXPECTED_MANIFEST_NEXT_SAFE_STEPS)}"
     )
     return 0
 
