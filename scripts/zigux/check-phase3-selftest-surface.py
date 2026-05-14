@@ -91,13 +91,19 @@ VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS = {
     "zigux/tests/README.md": 1,
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 2,
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md": 1,
     "include/zigux/dev_t.h": 2,
     "zigux/uapi/version.zig": 2,
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
+    "zigux/kernel/export_shim.zig": 1,
     "keep the canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`": 1,
     "starter-companion split explicit here whenever this validator-support packet": 1,
     "names the dedicated header-family survey and next-step note": 1,
+    "header-governance context through the paired survey and next-step notes": 1,
+    "naming that validator directly": 1,
+    "kernel-facing governance note is already a broad": 1,
 }
 
 REVIEW_CHECKLIST_PHASE3_PROMPT_PREFIX = (
@@ -340,6 +346,13 @@ def validate_repo(repo_root: Path) -> list[str]:
     return issues
 
 
+def _expanded_marker_lines(marker_counts: dict[str, int]) -> list[str]:
+    lines: list[str] = []
+    for marker, count in marker_counts.items():
+        lines.extend(marker for _ in range(count))
+    return lines
+
+
 def _populate_repo(root: Path) -> None:
     _write(
         root / README_PATH,
@@ -372,11 +385,11 @@ def _populate_repo(root: Path) -> None:
             (
                 "# Phase 3 ABI Header Family Survey",
                 HEADER_FAMILY_SURVEY_CURRENT_PACKET_PREFIX,
-                *HEADER_FAMILY_SURVEY_CURRENT_PACKET_MARKER_COUNTS.keys(),
+                *_expanded_marker_lines(HEADER_FAMILY_SURVEY_CURRENT_PACKET_MARKER_COUNTS),
                 HEADER_FAMILY_SURVEY_CURRENT_PACKET_NEXT_PREFIX,
                 "review boundary marker",
                 HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX,
-                *HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS.keys(),
+                *_expanded_marker_lines(HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS),
             )
         )
         + "\n",
@@ -388,6 +401,7 @@ def _populate_repo(root: Path) -> None:
                 "# Phase 3 Validator Support Surface",
                 VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
                 *VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS.keys(),
+                "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
             )
         )
         + "\n",
@@ -540,6 +554,82 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected validator-support version companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace(
+                "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "scripts/zigux/validate-phase3-linux-zigux-header-governance.py (expected 2, found 1)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support header-governance validator drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace(
+                "Documentation/zigux/phase3-kernel-export-shim-governance.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "Documentation/zigux/phase3-kernel-export-shim-governance.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support export-shim governance drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace(
+                "header-governance context through the paired survey and next-step notes",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "header-governance context through the paired survey and next-step notes (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support paired-survey wording drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace(
+                "kernel-facing governance note is already a broad",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "kernel-facing governance note is already a broad (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support kernel-governance wording drift was not reported")
             return 1
 
         _populate_repo(root)
