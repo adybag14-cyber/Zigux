@@ -139,9 +139,13 @@ FIXTURE_MARKERS = [
     '.{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },',
     'test "phase 6 hexdump curated length packet stays bounded to the documented matrix" {',
     "try std.testing.expectEqual(expected.len, length_cases.len);",
+    '.{ .label = "16B-plain-g1", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },',
+    '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550 },',
+    '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },',
+    '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
 ]
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 19
 
 
 class CheckError(RuntimeError):
@@ -299,6 +303,30 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, '.{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },')
+
+        build_self_test_fixture(tmpdir)
+        fixtures = tmpdir / REQUIRED_FILES["fixtures"]
+        fixtures.write_text(
+            fixtures.read_text(encoding="utf-8").replace(
+                '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },')
+
+        build_self_test_fixture(tmpdir)
+        fixtures = tmpdir / REQUIRED_FILES["fixtures"]
+        fixtures.write_text(
+            fixtures.read_text(encoding="utf-8").replace(
+                "max_slowdown_pct = 600",
+                "max_slowdown_pct = 601",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "max_slowdown_pct = 600")
 
         build_self_test_fixture(tmpdir)
         slice_note = tmpdir / REQUIRED_FILES["slice_note"]
