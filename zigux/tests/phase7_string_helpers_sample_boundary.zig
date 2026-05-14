@@ -26,6 +26,22 @@ fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
 }
 
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    if (needle.len == 0) return 0;
+
+    var count: usize = 0;
+    var search_start: usize = 0;
+    while (std.mem.indexOfPos(u8, haystack, search_start, needle)) |index| {
+        count += 1;
+        search_start = index + needle.len;
+    }
+    return count;
+}
+
+fn expectOccurrenceCount(haystack: []const u8, needle: []const u8, expected_count: usize) !void {
+    try std.testing.expectEqual(expected_count, countOccurrences(haystack, needle));
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
@@ -146,9 +162,9 @@ test "phase 7 string helper boundary keeps the restored starter packet and no-sa
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_manifest.json");
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(scripts_root, "scripts/zigux/validate-phase7.py");
-    try expectContains(scripts_root, "scripts/zigux/check-phase7-make-wrapper.py");
-    try expectContains(scripts_root, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
-    try expectContains(scripts_root, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectOccurrenceCount(scripts_root, "scripts/zigux/check-phase7-make-wrapper.py", 2);
+    try expectOccurrenceCount(scripts_root, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py", 2);
+    try expectOccurrenceCount(scripts_root, "scripts/zigux/check-phase7-build-wiring.py", 2);
     try expectContains(scripts_root, "make -C zigux phase7-validate");
 
     const workflow = try readRepoFile(allocator, ".github/workflows/zigux-bootstrap.yml");
