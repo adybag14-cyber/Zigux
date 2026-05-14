@@ -107,7 +107,7 @@ jobs:
       - name: Validate Phase 1 closure
         run: python3 scripts/zigux/validate-phase1-closure.py
 
-      - name: Validate Phase 2 fixdep files
+      - name: Validate Phase 2 toolchain packet
         run: python3 scripts/zigux/validate-phase2.py
 
       - name: Validate Phase 2 closure
