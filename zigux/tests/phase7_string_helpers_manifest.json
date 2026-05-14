@@ -41,11 +41,15 @@
     "string_escape_str",
     "stringEscapeStrAnyNp",
     "string_escape_str_any_np",
+    "kasprintfStrarray",
+    "kasprintf_strarray",
+    "kfreeStrarray",
+    "kfree_strarray",
     "memcpyAndPad",
     "memcpy_and_pad",
     "strreplace"
   ],
-  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` now ships an expanded starter packet on current master. The helper-local packet keeps the slice note, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, and this manifest aligned on the newly landed bounded string-escape family without overstating the broader task-owned, file-owned, or device-managed follow-ons as landed.",
+  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` now ships an expanded starter packet on current master. The helper-local packet keeps the slice note, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, and this manifest aligned on the newly landed bounded string-array ownership pair without overstating the broader parse, quotable, replacement-adjacent, or device-managed follow-ons as landed.",
   "starter_packet_focus": [
     "first-NUL-bounded whitespace trimming and prefix skipping",
     "newline-aware sysfs string equality",
@@ -53,6 +57,7 @@
     "bounded size rendering with explicit units and truncation-safe output accounting",
     "bounded string unescaping across space, octal, hex, and special escape families",
     "bounded string escaping across space, special, null, octal, hex, and append-limited dictionary modes",
+    "bounded sequential string-array allocation with NULL-terminated pointer views",
     "bounded memcpy-and-pad copy semantics",
     "in-place replacement inside the exported C-string prefix",
     "shared no-sample boundary and validator-backed reviewability"
@@ -61,7 +66,8 @@
     "first-NUL-bounded helpers keep caller-provided slices explicit so whitespace trimming and prefix skipping stop at the exported C-string boundary",
     "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit",
     "stringEscapeMem() and stringEscapeStrAnyNp() keep append-limited and dictionary-mode output accounting inside caller-owned storage",
+    "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
     "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries"
   ],
-  "next_bounded_step": "Keep the expanded starter packet truthful across the slice note, helper-local manifest, dedicated survey, and dedicated no-string-sample boundary replay before taking another deeper helper-local expansion step."
+  "next_bounded_step": "Keep the expanded starter packet truthful across the slice note, helper-local manifest, dedicated survey, and dedicated no-string-sample boundary replay, then take the next helper-local string_helpers expansion only if the remaining non-goals still read the same way everywhere."
 }
