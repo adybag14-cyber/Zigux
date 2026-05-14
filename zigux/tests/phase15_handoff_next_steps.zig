@@ -167,7 +167,8 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "scripts/zigux/check-phase15-shared-summary-gap.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "scripts/zigux/validate-phase15.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_parity_scorecard.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "should no longer point at `zigux/tests/phase15_parity_scorecard.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "the live machine-readable parity-scorecard companion inside that same parked governance packet is `zigux/tests/phase15_parity_scorecard.json`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "while `zigux/tests/phase15_parity_scorecard.zig` remains the shipped direct Zig replay surface for the dedicated parity-scorecard packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_governance_lane_sequencing.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_architecture_council_review_process.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_indefinite_c_policy.zig") != null);
