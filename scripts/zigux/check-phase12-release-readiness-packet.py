@@ -14,6 +14,7 @@ from pathlib import Path
 MARKER = "PHASE12_CHECK_PACKET=release_readiness_packet"
 RELEASE_READINESS_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
+REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 ROADMAP_PATH = "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md"
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -24,6 +25,9 @@ ROADMAP_ANCHORS = [
     "`drivers/nvme/host/pci.c`",
     "`drivers/scsi/virtio_scsi.c`",
     "`tools/lib/bpf/libbpf.c`",
+]
+REVIEW_CHECKLIST_STALE_MARKERS = [
+    "avoid implying a shared `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route that current `master` does not ship?",
 ]
 RELEASE_READINESS_MARKERS = [
     "`PHASE12_STATUS=active`",
@@ -36,6 +40,7 @@ RELEASE_READINESS_MARKERS = [
     "Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
     "The public fallback split must stay explicit: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the only commit-pinned direct replay fallback artifact, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the current-master gap-inventory companion for the shipped NVMe starter-plus-verifier foothold, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.",
     "During degraded GitHub contents reads, `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` remain the shared-tree anchors for the smoke-first packet, so fallback wording should keep them visible without promoting them into extra commit-pinned artifacts.",
+    "while `Documentation/zigux/review-checklist.md` still carries one older clause that treats that route as absent and `scripts/zigux/README.md` plus `scripts/zigux/check-build-only-phase12-surface.py` still carry older wording that treats `scripts/zigux/validate-phase12.py` as support material or denies the shipped route.",
 ]
 SCRIPTS_README_MARKERS = [
     "`scripts/zigux/check-phase12-release-readiness-packet.py`",
@@ -111,6 +116,7 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
     required_files = [
         root / RELEASE_READINESS_PATH,
         root / SCRIPTS_README_PATH,
+        root / REVIEW_CHECKLIST_PATH,
         root / ROADMAP_PATH,
         root / BUILD_ONLY_CHECKER_PATH,
         root / MAKEFILE_PATH,
@@ -131,6 +137,11 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
 
     scripts_readme_text = read_text(root / SCRIPTS_README_PATH)
     require_exact_count(errors, SCRIPTS_README_PATH, scripts_readme_text, SCRIPTS_README_MARKERS)
+
+    review_checklist_text = read_text(root / REVIEW_CHECKLIST_PATH)
+    require_exact_count(
+        errors, REVIEW_CHECKLIST_PATH, review_checklist_text, REVIEW_CHECKLIST_STALE_MARKERS
+    )
 
     makefile_text = read_text(root / MAKEFILE_PATH)
     require_exact_count(errors, MAKEFILE_PATH, makefile_text, MAKEFILE_MARKERS)
@@ -172,6 +183,7 @@ def good_release_readiness_text() -> str:
             "- Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
             "- The public fallback split must stay explicit: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the only commit-pinned direct replay fallback artifact, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the current-master gap-inventory companion for the shipped NVMe starter-plus-verifier foothold, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.",
             "- During degraded GitHub contents reads, `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` remain the shared-tree anchors for the smoke-first packet, so fallback wording should keep them visible without promoting them into extra commit-pinned artifacts.",
+            "- while `Documentation/zigux/review-checklist.md` still carries one older clause that treats that route as absent and `scripts/zigux/README.md` plus `scripts/zigux/check-build-only-phase12-surface.py` still carry older wording that treats `scripts/zigux/validate-phase12.py` as support material or denies the shipped route.",
             "",
         ]
     )
@@ -183,6 +195,17 @@ def good_scripts_readme_text() -> str:
             "# scripts/zigux",
             "",
             "- `scripts/zigux/check-phase12-release-readiness-packet.py`",
+            "",
+        ]
+    )
+
+
+def good_review_checklist_text() -> str:
+    return "\n".join(
+        [
+            "# Zigux Review Checklist",
+            "",
+            "- avoid implying a shared `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route that current `master` does not ship?",
             "",
         ]
     )
@@ -242,6 +265,7 @@ def run_self_test() -> int:
     try:
         write(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
         write(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
+        write(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
         write(tmp_root / ROADMAP_PATH, good_roadmap_text())
         write(tmp_root / BUILD_ONLY_CHECKER_PATH, "#!/usr/bin/env python3\n")
         write(tmp_root / MAKEFILE_PATH, good_makefile_text())
@@ -386,6 +410,21 @@ def run_self_test() -> int:
 
         write(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
         write(
+            tmp_root / REVIEW_CHECKLIST_PATH,
+            good_review_checklist_text().replace(
+                "- avoid implying a shared `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route that current `master` does not ship?\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "marker count drift in Documentation/zigux/review-checklist.md: avoid implying a shared `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route that current `master` does not ship?",
+            "self-test expected review-checklist lag marker failure",
+        )
+
+        write(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
+        write(
             tmp_root / ROADMAP_PATH,
             good_roadmap_text().replace("- `drivers/scsi/virtio_scsi.c`\n", "", 1),
         )
@@ -466,7 +505,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
