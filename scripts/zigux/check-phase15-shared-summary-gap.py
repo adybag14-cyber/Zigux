@@ -18,12 +18,16 @@ REQUIRED_FILES = (
     DOCS_README_REL,
     REVIEW_CHECKLIST_REL,
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
     SCRIPTS_README_REL,
     TESTS_README_REL,
     LANE_NOTE_REL,
 )
 
 SURVEY_MARKER = "Documentation/zigux/phase15-parity-scorecard-survey.md"
+PARITY_SCORECARD_MARKER = "Documentation/zigux/phase15-parity-scorecard.md"
+INDEFINITE_C_POLICY_MARKER = "Documentation/zigux/phase15-indefinite-c-policy.md"
 READINESS_MARKER = "Documentation/zigux/phase15-readiness-gate-survey.md"
 HANDOFF_MARKER = "Documentation/zigux/phase15-handoff-next-steps-survey.md"
 SEQUENCING_MARKER = "Documentation/zigux/phase15-governance-lane-sequencing.md"
@@ -43,6 +47,8 @@ FILE_MARKERS = {
     DOCS_README_REL: (
         "Phase 15 notes",
         SURVEY_MARKER,
+        PARITY_SCORECARD_MARKER,
+        INDEFINITE_C_POLICY_MARKER,
         READINESS_MARKER,
         HANDOFF_MARKER,
         SEQUENCING_MARKER,
@@ -55,6 +61,8 @@ FILE_MARKERS = {
     REVIEW_CHECKLIST_REL: (
         "shared Phase 15 governance packet",
         SURVEY_MARKER,
+        PARITY_SCORECARD_MARKER,
+        INDEFINITE_C_POLICY_MARKER,
         READINESS_MARKER,
         HANDOFF_MARKER,
         SEQUENCING_MARKER,
@@ -132,6 +140,8 @@ def _seed(root: Path) -> None:
                 "# docs",
                 "Phase 15 notes",
                 SURVEY_MARKER,
+                PARITY_SCORECARD_MARKER,
+                INDEFINITE_C_POLICY_MARKER,
                 READINESS_MARKER,
                 HANDOFF_MARKER,
                 SEQUENCING_MARKER,
@@ -151,6 +161,8 @@ def _seed(root: Path) -> None:
                 "# review",
                 "shared Phase 15 governance packet",
                 SURVEY_MARKER,
+                PARITY_SCORECARD_MARKER,
+                INDEFINITE_C_POLICY_MARKER,
                 READINESS_MARKER,
                 HANDOFF_MARKER,
                 SEQUENCING_MARKER,
@@ -168,6 +180,8 @@ def _seed(root: Path) -> None:
         ),
     )
     _write(root / "Documentation/zigux/phase15-parity-scorecard-survey.md", "# survey\n")
+    _write(root / "Documentation/zigux/phase15-parity-scorecard.md", "# parity scorecard\n")
+    _write(root / "Documentation/zigux/phase15-indefinite-c-policy.md", "# indefinite c policy\n")
     _write(
         root / SCRIPTS_README_REL,
         "\n".join(
@@ -236,6 +250,26 @@ def run_self_test() -> int:
         case_count += 1
 
         path = root / DOCS_README_REL
+        _write(path, _read(path).replace(PARITY_SCORECARD_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{DOCS_README_REL}:missing:{PARITY_SCORECARD_MARKER}"],
+            "docs_readme_missing_parity_scorecard",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace(INDEFINITE_C_POLICY_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{DOCS_README_REL}:missing:{INDEFINITE_C_POLICY_MARKER}"],
+            "docs_readme_missing_indefinite_c_policy",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
         _write(path, _read(path).replace(READINESS_MARKER + "\n", "", 1))
         _assert_only(
             validate(root),
@@ -291,6 +325,26 @@ def run_self_test() -> int:
             validate(root),
             [f"{REVIEW_CHECKLIST_REL}:missing:{SURVEY_MARKER}"],
             "review_checklist_missing_survey",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / REVIEW_CHECKLIST_REL
+        _write(path, _read(path).replace(PARITY_SCORECARD_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{REVIEW_CHECKLIST_REL}:missing:{PARITY_SCORECARD_MARKER}"],
+            "review_checklist_missing_parity_scorecard",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / REVIEW_CHECKLIST_REL
+        _write(path, _read(path).replace(INDEFINITE_C_POLICY_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{REVIEW_CHECKLIST_REL}:missing:{INDEFINITE_C_POLICY_MARKER}"],
+            "review_checklist_missing_indefinite_c_policy",
         )
         _seed(root)
         case_count += 1
@@ -384,6 +438,24 @@ def run_self_test() -> int:
         case_count += 1
 
         _seed(root)
+        (root / "Documentation/zigux/phase15-parity-scorecard.md").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase15-parity-scorecard.md"],
+            "missing_parity_scorecard_file",
+        )
+        case_count += 1
+
+        _seed(root)
+        (root / "Documentation/zigux/phase15-indefinite-c-policy.md").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase15-indefinite-c-policy.md"],
+            "missing_indefinite_c_policy_file",
+        )
+        case_count += 1
+
+        _seed(root)
         (root / LANE_NOTE_REL).unlink()
         _assert_only(
             validate(root),
@@ -401,9 +473,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the current Phase 15 shared summaries keep the parity-scorecard survey, "
-            "readiness and handoff reminders, lane-sequencing note, validator-route packet, "
-            "scripts-root alignment checker, manifest reminders, lane-owner alignment surface, "
-            "and replay-route packet explicit."
+            "the dedicated parity-scorecard and indefinite-C policy surfaces, readiness and handoff "
+            "reminders, the lane-sequencing note, the validator-route packet, the scripts-root "
+            "alignment checker, the manifest reminders, the lane-owner alignment surface, and the "
+            "replay-route packet explicit."
         )
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
