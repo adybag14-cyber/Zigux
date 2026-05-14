@@ -120,6 +120,7 @@ EXPECTED_SELF_TEST_CASES = [
     "scripts_root_marker_drift",
     "helper_summary_round_trip",
     "helper_summary_count_drift",
+    "helper_summary_duplicate_case_drift",
     "helper_summary_case_order_drift",
     "contract_self_test_round_trip",
     "contract_self_test_count_drift",
@@ -367,6 +368,16 @@ def run_self_test() -> int:
         lambda: assert_helper_summary(bad_helper_count),
     )
     covered_cases.append("helper_summary_count_drift")
+
+    bad_helper_duplicate = helper_lines.copy()
+    bad_helper_duplicate[2] = "ARTIFACT_DIFF_SELF_TEST_CASES=" + ",".join(
+        ["text_pass", "text_pass", *EXPECTED_HELPER_SELF_TEST_CASES[2:]]
+    )
+    expect_assertion(
+        "helper_summary_duplicate_case_drift",
+        lambda: assert_helper_summary(bad_helper_duplicate),
+    )
+    covered_cases.append("helper_summary_duplicate_case_drift")
 
     bad_helper_order = helper_lines.copy()
     bad_helper_order[2] = "ARTIFACT_DIFF_SELF_TEST_CASES=" + ",".join(
