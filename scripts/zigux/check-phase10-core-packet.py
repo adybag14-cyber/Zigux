@@ -318,7 +318,6 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_manifest_test_count_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
-        manifest_path.writeText = None
         manifest_path.write_text(original_manifest.replace('"preexisting_virtio_core_slice_note_present": true', '"preexisting_virtio_core_slice_note_present": false', 1), encoding="utf-8")
         _, missing_markers = validate(root)
         if "manifest:preexisting_virtio_core_slice_note_present=true" not in missing_markers:
