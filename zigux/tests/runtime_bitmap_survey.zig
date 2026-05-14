@@ -290,10 +290,16 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
 
     try expectContains(top_bit_contract_source, "runtime bitmap top-bit contract keeps the highest valid bit explicit");
     try expectContains(top_bit_contract_source, "runtime bitmap top-bit contract keeps boundary mutation and bounds checks reviewable");
+    try expectContains(top_bit_contract_source, "runtime bitmap top-bit contract keeps selftested copy replay and lifecycle counters explicit");
     try expectContains(top_bit_contract_source, "runtime bitmap top-bit contract keeps exit-path lifecycle parity explicit");
     try expectContains(top_bit_contract_source, "summary.weight");
     try expectContains(top_bit_contract_source, "ModuleStage.initialized");
     try expectContains(top_bit_contract_source, "ModuleStage.exited");
+    try expectContains(top_bit_contract_source, "try destination.copyFrom(&source);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.selftest_complete, snapshot.stage);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 1), snapshot.selftest_runs);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 0), snapshot.exit_runs);");
+    try expectContains(top_bit_contract_source, "try std.testing.expect(destination.isSet(top_bit));");
     try expectContains(top_bit_contract_source, "BitRangeOutOfBounds");
     try expectContains(top_bit_contract_source, "InvalidLifecycleTransition");
 
