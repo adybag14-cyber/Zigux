@@ -14,6 +14,7 @@ SURVEYED_COMMIT = "c11221dc7a68d7511ae1c69d64b3f08528287ed8"
 
 FILES = [
     "scripts/zigux/check-phase10-core-packet.py",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "drivers/virtio/virtio.zig",
     "drivers/virtio/virtio_driver_id.zig",
     "drivers/virtio/virtio_verify.zig",
@@ -89,6 +90,7 @@ EXPECTED_SURVEY_MARKERS = [
     "phase10-core-probe-remove-lifecycle",
     "phase10_virtio_core_manifest.json",
     "phase10_virtio_core_survey.zig",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "drivers/virtio/virtio.zig",
     "drivers/virtio/virtio_driver_id.zig",
     "drivers/virtio/virtio_verify.zig",
@@ -284,6 +286,7 @@ def build_fixture_files() -> dict[str, str]:
     build_markers = "\n".join(EXPECTED_BUILD_MARKERS)
     return {
         "scripts/zigux/check-phase10-core-packet.py": "# fixture copy\n",
+        "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "# fixture copy\n",
         "drivers/virtio/virtio.zig": "pub const fixture_core = true;\n",
         "drivers/virtio/virtio_driver_id.zig": "pub const fixture_driver_id = true;\n",
         "drivers/virtio/virtio_verify.zig": "pub const fixture_verify = true;\n",
@@ -329,6 +332,17 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_verify_replay_file_missing")
         write_fixture(root, "drivers/virtio/virtio_verify.zig", fixture["drivers/virtio/virtio_verify.zig"])
 
+        tests_readme_checker_path = root / "scripts/zigux/check-phase10-tests-readme-core-surfaces.py"
+        tests_readme_checker_path.unlink()
+        missing_files, _ = validate(root)
+        if "scripts/zigux/check-phase10-tests-readme-core-surfaces.py" not in missing_files:
+            raise SystemExit("phase10-core-self-test:expected_tests_readme_checker_file_missing")
+        write_fixture(
+            root,
+            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+            fixture["scripts/zigux/check-phase10-tests-readme-core-surfaces.py"],
+        )
+
         manifest_path = root / "zigux/tests/phase10_virtio_core_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(original_manifest.replace(SURVEYED_COMMIT, "deadbeef", 1), encoding="utf-8")
@@ -371,6 +385,19 @@ def run_self_test() -> int:
         _, missing_markers = validate(root)
         if "survey_note:phase10-core-slice-note" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_slice_gap_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+                "scripts/zigux/check-phase10-tests-readme-core-surfaces-drift.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(root)
+        if "survey_note:scripts/zigux/check-phase10-tests-readme-core-surfaces.py" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_tests_readme_checker_survey_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
         slice_path = root / "Documentation/zigux/phase10-virtio-core-slice.md"
@@ -434,7 +461,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_tests_readme_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
