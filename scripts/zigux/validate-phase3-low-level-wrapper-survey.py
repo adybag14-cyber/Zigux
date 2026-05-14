@@ -19,6 +19,7 @@ DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 MAKEFILE_REL = Path("zigux/Makefile")
+ABI_MANIFEST_REL = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig",
@@ -157,6 +158,7 @@ REQUIRED_MMIO_SNIPPETS = (
 REFERENCE_MARKERS = (
     (ABI_SLICE_REL, "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     (ABI_SLICE_REL, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+    (ABI_MANIFEST_REL, "zigux/tests/phase3_low_level_wrappers.zig"),
     (DOCS_ROOT_REL, "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     (DOCS_ROOT_REL, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     (SCRIPTS_README_REL, "validate-phase3-low-level-wrapper-survey.py"),
@@ -625,6 +627,26 @@ def run_self_test() -> int:
             return 1
 
         _write(root, MAKEFILE_REL, "\n".join(grouped_markers[MAKEFILE_REL]) + "\n")
+        _write(
+            root,
+            ABI_MANIFEST_REL,
+            (root / ABI_MANIFEST_REL).read_text(encoding="utf-8").replace(
+                "zigux/tests/phase3_low_level_wrappers.zig",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue
+            == "missing_reference:zigux/tests/fixtures/phase3_abi_manifest.json:zigux/tests/phase3_low_level_wrappers.zig"
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing ABI manifest replay reference failure")
+            return 1
+
+        _write(root, ABI_MANIFEST_REL, "\n".join(grouped_markers[ABI_MANIFEST_REL]) + "\n")
         _write(
             root,
             SURVEY_REL,
