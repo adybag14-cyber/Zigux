@@ -46,6 +46,33 @@ test "runtime atomic64 sample keeps lifecycle snapshot replay explicit at the mo
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(9));
 }
 
+test "runtime atomic64 sample keeps initialized-stage exit replay explicit at the module boundary" {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(-17);
+
+    const initialized_summary = module.summary();
+    try std.testing.expectEqual(@as(i64, -17), initialized_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.exit_runs);
+
+    try module.exit();
+
+    const exited_snapshot = module.lifecycleSnapshot();
+    const exited_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), exited_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.exit_runs);
+    try std.testing.expect(!exited_snapshot.allows_counter_ops);
+    try std.testing.expectEqual(@as(i64, -17), exited_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), exited_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
+}
+
 test "runtime atomic64 sample keeps post-selftest mutation replay explicit at the module boundary" {
     var module = sample.RuntimeAtomic64Sample{};
     const seed = 0x0102_0304_0506_0708;
