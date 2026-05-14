@@ -6,8 +6,10 @@ It stays inside the simple-driver lane and records the shipped starter, the boun
 ## Status
 
 * `PHASE11_HVC_CONSOLE_SURVEY_STATUS=starter_packet_archived`
+* lane: `P11-L13`
 * archival landing checkpoint: `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
 * Phase 11 simple-production-driver gap has been closed by the bounded starter.
+* the roadmap destination family `drivers/tty/hvc/*.zig` now materializes on current `master` through `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, and `drivers/tty/hvc/hvc_console_sysrq.zig`
 * remaining unported work is now tty-driver registration, khvcd worker execution, live sysrq execution, notifier callback execution, and host-backed transport or teardown validation
 
 ## Surveyed Packet
@@ -63,4 +65,5 @@ The paired archival survey gate in `zigux/tests/phase11_hvc_console_survey.zig` 
 
 This archival note records the landed starter, the direct verify, replay, and cleanup companions, the helper-facing survey, the targetless notifier no-unregister edge, the split tests, the sysrq helper, and the directly coupled governance packet only.
 It does not claim tty-driver registration, notifier callback execution, khvcd polling execution, live sysrq dispatch, host-backed cleanup, or hardware-validated teardown parity.
+The roadmap destination family is now materially present on current `master`, so the remaining same-lane work is execution-facing follow-through rather than a missing simple-driver starter.
 Those follow-through steps still belong to later same-lane HVC work rather than the already-landed archival packet.
