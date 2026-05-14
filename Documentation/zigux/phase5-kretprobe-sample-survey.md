@@ -51,6 +51,12 @@ The same readback now confirms the shared reminder surfaces are aligned to that 
 - `Documentation/zigux/review-checklist.md` now keeps the missing kretprobe sample-local paths explicit without treating `.github/workflows/zigux-bootstrap.yml` or retired `phase5*` wrappers as current shared Phase 5 evidence
 - `scripts/zigux/README.md` now keeps the bytestream-only, kobject, trace-events, and survey-note-only kretprobe packet split explicit, and it also says directly that current `master` ships no `validate-phase5.py`, no `check-phase5-*.py` checker packet, and no `phase5-validate` target
 
+Treat that seven-file reminder set as the current reviewable reference-pattern packet for the Phase 5 kretprobe anchor on current `master`:
+
+- `Documentation/zigux/phase5-kretprobe-sample-survey.md` owns the anchor-local gap statement and the reminder that the missing non-runtime sample packet has not returned
+- `Documentation/zigux/phase5-sample-review-guide.md` owns the shared reviewer posture for how the anchor stays reviewable without reusing stale restored-path claims
+- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` own the cross-packet reminder surfaces that keep the four-anchor Phase 5 scope and the Phase 5-versus-Phase 9 boundary aligned
+
 ## What still remains true
 
 Even with that missing readback, the roadmap and ledger still keep the intended Phase 5 ownership clear:
