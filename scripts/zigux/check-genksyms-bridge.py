@@ -22,6 +22,7 @@ PHASE2_TOOL_MANIFEST_REL = "zigux/tests/fixtures/phase2_tool_manifest.json"
 PHASE2_CLOSURE_REL = "Documentation/zigux/phase2-closure.md"
 TESTS_README_REL = "zigux/tests/README.md"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
+MAKEFILE_REL = "zigux/Makefile"
 
 EXPECTED_GENKSYMS_CASES = [
     {
@@ -285,6 +286,11 @@ EXPECTED_WORKFLOW_LINES = [
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
 ]
 
+EXPECTED_MAKEFILE_LINES = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+]
+
 EXPECTED_TESTS_README_MARKERS = [
     "scripts/zigux/check-genksyms-bridge.py",
     "the shipped genksyms bridge direct replay",
@@ -307,7 +313,7 @@ EXPECTED_CLOSURE_MARKERS = [
     expected_closure_case_marker(),
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 22
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -431,6 +437,7 @@ def validate_root(root: Path) -> list[str]:
         PHASE2_CLOSURE_REL,
         TESTS_README_REL,
         WORKFLOW_REL,
+        MAKEFILE_REL,
     ]
     for rel_path in required:
         if not (root / rel_path).is_file():
@@ -488,6 +495,9 @@ def validate_root(root: Path) -> list[str]:
 
     workflow_text = (root / WORKFLOW_REL).read_text(encoding="utf-8")
     issues.extend(validate_line_counts(workflow_text, EXPECTED_WORKFLOW_LINES, WORKFLOW_REL))
+
+    makefile_text = (root / MAKEFILE_REL).read_text(encoding="utf-8")
+    issues.extend(validate_line_counts(makefile_text, EXPECTED_MAKEFILE_LINES, MAKEFILE_REL))
 
     return issues
 
@@ -561,6 +571,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root / WORKFLOW_REL,
         "\n".join(EXPECTED_WORKFLOW_LINES) + "\n",
+    )
+    write_text(
+        root / MAKEFILE_REL,
+        "\n".join(EXPECTED_MAKEFILE_LINES) + "\n",
     )
     fixture_root = root / "zigux" / "tests" / "fixtures" / "genksyms_bridge"
     for filename in sorted({case["expected"] for case in EXPECTED_GENKSYMS_CASES}):
@@ -664,6 +678,30 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        makefile_path = root / MAKEFILE_REL
+        makefile_path.write_text(
+            makefile_path.read_text(encoding="utf-8").replace(EXPECTED_MAKEFILE_LINES[0] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"line_count:{MAKEFILE_REL}:{EXPECTED_MAKEFILE_LINES[0]}:count=0:expected=1" in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        makefile_path = root / MAKEFILE_REL
+        makefile_path.write_text(
+            makefile_path.read_text(encoding="utf-8") + EXPECTED_MAKEFILE_LINES[1] + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"line_count:{MAKEFILE_REL}:{EXPECTED_MAKEFILE_LINES[1]}:count=2:expected=1" in issues
         )
         case_count += 1
 
@@ -788,7 +826,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check the Phase 2 genksyms bridge packet and workflow wiring."
+        description="Check the Phase 2 genksyms bridge packet plus workflow and Makefile wiring."
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage.")
     args = parser.parse_args()
@@ -807,6 +845,8 @@ def main() -> int:
     print(
         f"PHASE2_GENKSYMS_BRIDGE_HELPER_ANCHOR_COUNT={len(EXPECTED_GENKSYMS_MANIFEST['helper_local_anchors'])}"
     )
+    print(f"PHASE2_GENKSYMS_BRIDGE_WORKFLOW_HOOK_COUNT={len(EXPECTED_WORKFLOW_LINES)}")
+    print(f"PHASE2_GENKSYMS_BRIDGE_MAKEFILE_HOOK_COUNT={len(EXPECTED_MAKEFILE_LINES)}")
     return 0
 
 
