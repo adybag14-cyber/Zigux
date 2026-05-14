@@ -93,25 +93,25 @@ Authenticated contents reads for some Phase 8 files are inconsistent from this
 environment, so current public default-branch tree evidence and readable blob
 content should win over older absent-file assumptions.
 
-Current authenticated 2026-05-12 contents readback still shows that route
-instability for the command packet itself:
+Current mixed 2026-05-14 readback still shows a narrower route split for the
+command packet itself:
 - `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`,
-  and `zigux/tests/phase8_help.zig` remain readable through the authenticated
-  contents route
-- `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and
-  `zigux/tests/phase8_exec_cmd_only_build.zig` still intermittently return `404`
-  through that same contents route
-- current public default-branch tree readback and exact readable blob content
+  `zigux/tests/phase8_help.zig`, and `tools/lib/subcmd/exec-cmd.zig` read cleanly
+  through the authenticated contents route
+- `zigux/tests/phase8_exec_cmd.zig` and `zigux/tests/phase8_exec_cmd_only_build.zig`
+  still intermittently return `404` through that same contents route
+- current public default-branch tree readback and exact public raw readback
   still carry the direct exec-cmd shard, including `Documentation/zigux/phase8-exec-cmd-slice.md`,
   `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and
   `zigux/tests/phase8_exec_cmd_only_build.zig`
 
 Treat that split as route instability rather than as a live repo-reality gap:
 the roadmap-backed command and environment lane still exists, the shared parked
-reminder packet still names it, the direct exec-cmd starter shard remains
-publicly present and blob-readable on current `master`, and the current
-authenticated contents route is the part that remains unreliable from this
-environment.
+reminder packet still names it, the direct exec-cmd helper now reads cleanly
+through the authenticated contents route again, the focused exec-cmd replay
+files remain publicly present and raw-readable on current `master`, and only
+those two focused replay files still remain unreliable through the authenticated
+contents route from this environment.
 
 That packet keeps the roadmap-backed command and environment plumbing gap explicit
 without claiming direct `execvp()` parity, direct process-launch ownership, live
@@ -132,9 +132,10 @@ terminal-probing, token handoff, and reopened-handle closure behavior.
 
 This note should therefore remain the truthful bridge between the roadmap target
 and the bounded current-tree evidence: the direct exec-cmd shard is still part
-of the live parked Phase 8 packet, while authenticated contents reads for that
-same shard remain inconsistent enough that the survey must call out route
-instability instead of pretending the underlying file family disappeared.
+of the live parked Phase 8 packet, while the focused exec-cmd replay shards
+still remain inconsistent enough through the authenticated contents route that
+the survey must call out a narrowed helper-versus-test readback split instead
+of pretending the underlying file family disappeared.
 
 ## Next Bounded Step
 
@@ -149,9 +150,11 @@ before widening broader Phase 8 summaries.
 
 The next honest follow-through inside this packet is the smaller truthfulness
 step of keeping the shared Phase 8 wording aligned with the mixed current
-readback: public tree and readable blob evidence still carry the direct
-exec-cmd shard, while authenticated contents reads for that same shard remain
-intermittent from this environment.
+readback: public tree, public raw, and authenticated helper readback still carry
+the direct exec-cmd shard, while authenticated contents reads for
+`zigux/tests/phase8_exec_cmd.zig` and
+`zigux/tests/phase8_exec_cmd_only_build.zig` remain intermittent from this
+environment.
 
 Current `master` also shows that `Documentation/zigux/README.md` and
 `Documentation/zigux/review-checklist.md` already carry the refreshed shared-wording
