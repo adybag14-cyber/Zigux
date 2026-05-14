@@ -116,6 +116,10 @@ pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Encod
     return dst_index;
 }
 
+pub fn encodeStd(dst: []u8, src: []const u8, padding: bool) EncodeError!usize {
+    return encode(dst, src, padding, .std);
+}
+
 pub fn encodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool, variant: Variant) EncodeAllocError![]u8 {
     const needed = chars(src.len, padding);
     var out = try allocator.alloc(u8, needed);
@@ -125,9 +129,17 @@ pub fn encodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool,
     return out[0..written];
 }
 
+pub fn encodeStdAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) EncodeAllocError![]u8 {
+    return encodeAlloc(allocator, src, padding, .std);
+}
+
 pub fn encodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) EncodeError![]u8 {
     const written = try encode(dst, src, padding, variant);
     return dst[0..written];
+}
+
+pub fn encodeStdSlice(dst: []u8, src: []const u8, padding: bool) EncodeError![]u8 {
+    return encodeSlice(dst, src, padding, .std);
 }
 
 pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
@@ -193,6 +205,10 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
     return dst_index;
 }
 
+pub fn decodeStd(dst: []u8, src: []const u8, padding: bool) DecodeError!usize {
+    return decode(dst, src, padding, .std);
+}
+
 pub fn decodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool, variant: Variant) DecodeAllocError![]u8 {
     const exact_len = try bytes(src, padding, variant);
     var out = try allocator.alloc(u8, exact_len);
@@ -202,9 +218,17 @@ pub fn decodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool,
     return out[0..written];
 }
 
+pub fn decodeStdAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) DecodeAllocError![]u8 {
+    return decodeAlloc(allocator, src, padding, .std);
+}
+
 pub fn decodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError![]u8 {
     const written = try decode(dst, src, padding, variant);
     return dst[0..written];
+}
+
+pub fn decodeStdSlice(dst: []u8, src: []const u8, padding: bool) DecodeError![]u8 {
+    return decodeSlice(dst, src, padding, .std);
 }
 
 fn alphabetFor(variant: Variant) []const u8 {
@@ -583,6 +607,36 @@ test "base64 helpers keep padded and unpadded sizing explicit" {
     try std.testing.expectEqual(@as(usize, 2), try bytes("aGk", false, .std));
 }
 
+test "base64 standard convenience wrappers pin the common variant across direct, slice, and allocator paths" {
+    var encoded_buf: [8]u8 = [_]u8{0xaa} ** 8;
+    const encoded = try encodeStdSlice(encoded_buf[0..], "hi", true);
+    try std.testing.expectEqualStrings("aGk=", encoded);
+    try std.testing.expectEqual(@as(u8, 0xaa), encoded_buf[encoded.len]);
+
+    const encoded_alloc = try encodeStdAlloc(std.testing.allocator, "hi", false);
+    defer std.testing.allocator.free(encoded_alloc);
+    try std.testing.expectEqualStrings("aGk", encoded_alloc);
+
+    var direct_encoded_buf: [8]u8 = [_]u8{0xbb} ** 8;
+    const direct_encoded_len = try encodeStd(direct_encoded_buf[0..], "f", true);
+    try std.testing.expectEqualStrings("Zg==", direct_encoded_buf[0..direct_encoded_len]);
+    try std.testing.expectEqual(@as(u8, 0xbb), direct_encoded_buf[direct_encoded_len]);
+
+    var decoded_buf: [8]u8 = [_]u8{0xdd} ** 8;
+    const decoded = try decodeStdSlice(decoded_buf[0..], "aGk=", true);
+    try std.testing.expectEqualStrings("hi", decoded);
+    try std.testing.expectEqual(@as(u8, 0xdd), decoded_buf[decoded.len]);
+
+    const decoded_alloc = try decodeStdAlloc(std.testing.allocator, "aGk", false);
+    defer std.testing.allocator.free(decoded_alloc);
+    try std.testing.expectEqualStrings("hi", decoded_alloc);
+
+    var direct_decoded_buf: [8]u8 = [_]u8{0xee} ** 8;
+    const direct_decoded_len = try decodeStd(direct_decoded_buf[0..], "Zg==", true);
+    try std.testing.expectEqualStrings("f", direct_decoded_buf[0..direct_decoded_len]);
+    try std.testing.expectEqual(@as(u8, 0xee), direct_decoded_buf[direct_decoded_len]);
+}
+
 test "base64 allocator wrappers allocate exact encoded and decoded lengths" {
     const encoded = try encodeAlloc(std.testing.allocator, "hi", true, .std);
     defer std.testing.allocator.free(encoded);
@@ -612,6 +666,16 @@ test "base64 slice wrappers preserve destination-too-small errors" {
 
     var decoded: [1]u8 = [_]u8{0xdd} ** 1;
     try std.testing.expectError(error.DestinationTooSmall, decodeSlice(decoded[0..], "aGk=", true, .std));
+    try std.testing.expectEqual(@as(u8, 0xdd), decoded[0]);
+}
+
+test "base64 standard convenience wrappers preserve destination-too-small errors" {
+    var encoded: [1]u8 = [_]u8{0xaa} ** 1;
+    try std.testing.expectError(error.DestinationTooSmall, encodeStd(encoded[0..], "f", true));
+    try std.testing.expectEqual(@as(u8, 0xaa), encoded[0]);
+
+    var decoded: [1]u8 = [_]u8{0xdd} ** 1;
+    try std.testing.expectError(error.DestinationTooSmall, decodeStd(decoded[0..], "Zm8=", true));
     try std.testing.expectEqual(@as(u8, 0xdd), decoded[0]);
 }
 
