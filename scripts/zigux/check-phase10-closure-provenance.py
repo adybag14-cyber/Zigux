@@ -190,8 +190,7 @@ def run_self_test() -> int:
             "PHASE10_LEDGER_SURVEY_RING_COMMIT=9999999999999999999999999999999999999999",
             "phase10-closure-provenance-self-test:ring_commit_mismatch_not_detected",
         )
-        writeFixture = write_fixture
-        writeFixture(root)
+        write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         del manifest["survey_provenance"]["lane_keys"]["input"]
