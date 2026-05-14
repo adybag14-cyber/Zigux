@@ -19,19 +19,36 @@ FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
 
 REQUIRED_CONF_HELPER_ANCHORS = [
     "conf bridge mode surface stays aligned with conf.c long options",
+    "conf bridge parses silentoldconfig alias as syncconfig",
     "conf bridge emits olddefconfig argv and env",
     "conf bridge emits syncconfig auto files",
     "conf bridge emits syncconfig nosilentupdate when present",
+    "conf bridge omits empty syncconfig nosilentupdate",
+    "conf bridge emits silent flag before mode flag",
     "conf bridge emits alldefconfig argv and env",
     "conf bridge emits explicit empty allconfig override for allmodconfig",
+    "conf bridge emits allnoconfig sentinel env",
+    "conf bridge emits allyesconfig sentinel env",
     "conf bridge emits randconfig tunables when present",
     "conf bridge emits explicit randconfig allconfig override when present",
+    "conf bridge emits randconfig allconfig sentinel without explicit override",
     "conf bridge emits yes2modconfig argv and env",
     "conf bridge emits defconfig mode argument before kconfig",
     "conf bridge emits savedefconfig mode argument before kconfig",
     "conf bridge escapes low control bytes in JSON strings",
+    "mode argument validation rejects bridge option shaped defconfig payload",
+    "mode argument validation still accepts ordinary path text with equals",
+    "mode argument validation accepts path text that only starts with silent",
     "bridge options parser accepts explicit allconfig override for allmodconfig",
     "bridge options parser accepts syncconfig nosilentupdate",
+    "bridge options parser keeps empty syncconfig nosilentupdate unset",
+    "bridge options parser accepts generic silent flag",
+    "bridge options parser accepts silent alongside randconfig options",
+    "bridge options parser rejects duplicate silent flag",
+    "bridge options parser rejects duplicate randconfig probability",
+    "bridge options parser rejects unexpected options for mode",
+    "bridge options parser keeps empty randconfig tunables unset",
+    "bridge options parser rejects duplicate mode specific options",
 ]
 
 REQUIRED_CONFDATA_CASES = [
@@ -106,7 +123,7 @@ ALLCONFIG_SENTINEL_MODES = {
     "alldefconfig",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 21
+EXPECTED_SELF_TEST_CASE_COUNT = 22
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -158,7 +175,7 @@ def ordered_conf_helper_anchors(conf_bridge_path: Path) -> list[str]:
     anchors = re.findall(r'^test "([^"]+)" \{$', source, re.M)
     if not anchors:
         raise SystemExit("failed to discover conf bridge test anchors")
-    return [anchor for anchor in anchors if anchor in REQUIRED_CONF_HELPER_ANCHORS]
+    return anchors
 
 
 def ordered_confdata_helper_anchors(confdata_bridge_path: Path) -> list[str]:
@@ -358,11 +375,11 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
         if not (fixture_dir / rel_path).exists():
             issues.append(("MISSING_CONF_CASE_EXPECTED_PATHS", f"{name}:expected:{rel_path}"))
 
-    for case in confdata_cases:
-        for field_name in ("input", "expected"):
-            rel_path = case[field_name]
-            if not (fixture_dir / rel_path).exists():
-                issues.append(("MISSING_CONFDATA_CASE_PATHS", f"{case['name']}:{field_name}:{rel_path}"))
+        for case in confdata_cases:
+            for field_name in ("input", "expected"):
+                rel_path = case[field_name]
+                if not (fixture_dir / rel_path).exists():
+                    issues.append(("MISSING_CONFDATA_CASE_PATHS", f"{case['name']}:{field_name}:{rel_path}"))
 
     issues.extend(collect_conf_manifest_issues(fixture_dir, conf_bridge, conf_cases))
     issues.extend(collect_confdata_manifest_issues(fixture_dir, confdata_bridge, confdata_cases))
@@ -754,6 +771,15 @@ def run_self_test() -> int:
         build_self_test_root(root)
         source = conf_bridge_path.read_text(encoding="utf-8")
         source = source.replace('test "conf bridge emits randconfig tunables when present" {\n', 'test "conf bridge emits renamed randconfig tunables" {\n', 1)
+        write_text(conf_bridge_path, source)
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
+        assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        source = conf_bridge_path.read_text(encoding="utf-8")
+        source += '\ntest "conf bridge future helper surface stays visible to the checker" {\n    try std.testing.expect(true);\n}\n'
         write_text(conf_bridge_path, source)
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
