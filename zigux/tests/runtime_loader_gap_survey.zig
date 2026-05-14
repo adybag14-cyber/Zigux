@@ -199,6 +199,11 @@ test "phase 9 runtime loader gap survey keeps rollback, metadata-only trace-even
     try expectContains(trace_loader, "releaseSharedWithoutSubstrate");
     try expectContains(trace_loader, "waiting_on_runtime_substrate");
     try expectContains(trace_loader, "released_without_substrate");
+    try expectContains(trace_loader, "runtime trace-events loader rejects prepared shared approved-family anchor and staged init or exit symbol drift before any local runtime handoff");
+    try expectContains(trace_loader, "anchor_request.plan.anchor = \"samples/trace_events/trace-events-sample-drift.c\";");
+    try expectContains(trace_loader, "runtime trace-events loader rejects registration snapshot drift");
+    try expectContains(trace_loader, "var drifted_register_api = snapshot;");
+    try expectContains(trace_loader, "runtime trace-events loader keeps selftest-ready single registration drain explicit before shared handoff");
 
     try expectContains(trace_loader_substrate_drift, "phase 9 runtime trace-events loader rejects prepared shared runtime-substrate drift before any local runtime handoff");
     try expectContains(trace_loader_substrate_drift, "shared_request.plan.requires_runtime_substrate = false;");
