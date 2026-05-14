@@ -40,6 +40,7 @@ const RoadmapGapSummary = struct {
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
+    surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     roadmap_gap_summary: RoadmapGapSummary,
@@ -50,6 +51,12 @@ const Manifest = struct {
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn expectSurveyedCommitMarker(note: []const u8, surveyed_commit: []const u8) !void {
+    var marker_buffer: [64]u8 = undefined;
+    const marker = try std.fmt.bufPrint(&marker_buffer, "PHASE9_SURVEYED_COMMIT={s}", .{surveyed_commit});
+    try expectContains(note, marker);
 }
 
 fn readRepoFileAlloc(allocator: std.mem.Allocator, path: []const u8, max_bytes: usize) ![]u8 {
@@ -145,6 +152,9 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
 
     try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
+    try std.testing.expect(manifest.surveyed_commit.len == 40);
+    try expectSurveyedCommitMarker(survey_note, manifest.surveyed_commit);
+    try expectSurveyedCommitMarker(module_slice_note, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("zigux/tests/runtime_*", manifest.roadmap_destinations[0]);
