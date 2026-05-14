@@ -19,6 +19,11 @@ SURVEY_REQUIRED = (
     "The current tree still does not ship a dedicated `phase3_policy_unsafe` replay pair",
 )
 
+SURVEY_NEXT_STEP_REQUIRED = (
+    "keep the next same-lane change to one shared-ABI marker, one directly coupled focused-replay note refresh, or one validator-wording refresh tied only to this packet",
+    "if the directly coupled focused low-level replay, one of the dedicated policy packet checks, or a broader policy-and-unsafe helper family changes later, resurvey this note against the exact live files before claiming that surface here",
+)
+
 ABI_SLICE_REQUIRED = (
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
@@ -106,6 +111,7 @@ def forbid_markers(path: Path, markers: tuple[str, ...]) -> None:
 
 def check_repo_root(repo_root: Path) -> None:
     require_markers(repo_root / SURVEY_REL, SURVEY_REQUIRED)
+    require_markers(repo_root / SURVEY_REL, SURVEY_NEXT_STEP_REQUIRED)
     require_markers(repo_root / ABI_SLICE_REL, ABI_SLICE_REQUIRED)
     forbid_markers(repo_root / ABI_SLICE_REL, ABI_SLICE_FORBIDDEN)
     require_markers(repo_root / ABI_MANIFEST_REL, MANIFEST_REQUIRED)
@@ -119,7 +125,10 @@ def write_fixture(root: Path) -> None:
     (root / ABI_MANIFEST_REL.parent).mkdir(parents=True, exist_ok=True)
     (root / ABI_SLICE_REL.parent).mkdir(parents=True, exist_ok=True)
     (root / LOW_LEVEL_TEST_REL.parent).mkdir(parents=True, exist_ok=True)
-    (root / SURVEY_REL).write_text("\n".join(SURVEY_REQUIRED) + "\n", encoding="utf-8")
+    (root / SURVEY_REL).write_text(
+        "\n".join(SURVEY_REQUIRED + SURVEY_NEXT_STEP_REQUIRED) + "\n",
+        encoding="utf-8",
+    )
     (root / ABI_SLICE_REL).write_text("\n".join(ABI_SLICE_REQUIRED) + "\n", encoding="utf-8")
     (root / ABI_MANIFEST_REL).write_text("\n".join(MANIFEST_REQUIRED) + "\n", encoding="utf-8")
     (root / LOW_LEVEL_TEST_REL).write_text("\n".join(LOW_LEVEL_TEST_REQUIRED) + "\n", encoding="utf-8")
@@ -140,6 +149,34 @@ def run_self_test() -> None:
             assert SURVEY_REL.as_posix() in str(exc)
         else:
             raise AssertionError("expected missing survey marker failure")
+
+        write_fixture(tmpdir)
+        survey_path = tmpdir / SURVEY_REL
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(SURVEY_NEXT_STEP_REQUIRED[0] + "\n", ""),
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert SURVEY_REL.as_posix() in str(exc)
+            assert SURVEY_NEXT_STEP_REQUIRED[0] in str(exc)
+        else:
+            raise AssertionError("expected missing survey next-step focused-replay marker failure")
+
+        write_fixture(tmpdir)
+        survey_path = tmpdir / SURVEY_REL
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(SURVEY_NEXT_STEP_REQUIRED[1] + "\n", ""),
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert SURVEY_REL.as_posix() in str(exc)
+            assert SURVEY_NEXT_STEP_REQUIRED[1] in str(exc)
+        else:
+            raise AssertionError("expected missing survey next-step resurvey marker failure")
 
         write_fixture(tmpdir)
         abi_slice_path = tmpdir / ABI_SLICE_REL
@@ -205,7 +242,7 @@ def run_self_test() -> None:
             raise AssertionError("expected missing low-level build anchor failure")
 
         print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST=pass")
-        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=7")
+        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=9")
     finally:
         shutil.rmtree(tmpdir)
 
