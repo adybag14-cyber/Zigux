@@ -110,6 +110,20 @@ REQUIRED_FIND_BIT_SOURCE_MARKERS = [
     'checksum +%= @intCast(find_bit.find_next_and_bit(&empty, &empty, past_nbits, past_nbits));',
     'checksum +%= @intCast(find_bit.find_next_and_bit(&empty, &empty, past_nbits, past_nbits + 4));',
 ]
+REQUIRED_STRING_SOURCE_MARKERS = [
+    'fn stringBench() !struct { checksum: u64 } {',
+    'const enabled = try string.strtobool(if (even) "on" else "0");',
+    "var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };",
+    'const trimmed = string.trimSpaces(&trim_buf);',
+    'const parsed = string.memparse(if (even) "64K rest" else "-17 tail");',
+    'const dirty = if (even)',
+    "string.memchrInv(\"aaaaXaaa\", 'a')",
+    "string.memchrInv(\"bbbb\", 'b');",
+    'checksum +%= @as(u64, @intFromBool(enabled));',
+    'checksum +%= @intCast(trimmed.len);',
+    'checksum +%= @intCast(parsed.rest.len);',
+    'checksum +%= @as(u64, @intFromBool(dirty != null));',
+]
 REQUIRED_RBTREE_SOURCE_MARKERS = [
     'rbtree.findAdd(&find_add_entries[3].node, &find_add_root, cmpNode)',
     'rbtree.find(&wanted, &duplicate_root, cmpKey)',
@@ -261,6 +275,9 @@ def validate_bench_source(source: str) -> tuple[str, object]:
     missing_find_bit = [marker for marker in REQUIRED_FIND_BIT_SOURCE_MARKERS if marker not in source]
     if missing_find_bit:
         return ('missing_find_bit_source_markers', missing_find_bit)
+    missing_string = [marker for marker in REQUIRED_STRING_SOURCE_MARKERS if marker not in source]
+    if missing_string:
+        return ('missing_string_source_markers', missing_string)
     missing_rbtree = [marker for marker in REQUIRED_RBTREE_SOURCE_MARKERS if marker not in source]
     if missing_rbtree:
         return ('missing_rbtree_source_markers', missing_rbtree)
@@ -387,6 +404,7 @@ def run_self_test() -> None:
     kind, _ = validate_bench_source('\n'.join([
         *REQUIRED_BITMAP_SOURCE_MARKERS,
         *REQUIRED_FIND_BIT_SOURCE_MARKERS,
+        *REQUIRED_STRING_SOURCE_MARKERS,
         *REQUIRED_RBTREE_SOURCE_MARKERS,
     ]))
     assert kind == 'pass'
@@ -395,6 +413,7 @@ def run_self_test() -> None:
     kind, payload = validate_bench_source('\n'.join([
         *REQUIRED_BITMAP_SOURCE_MARKERS,
         *REQUIRED_RBTREE_SOURCE_MARKERS,
+        *REQUIRED_STRING_SOURCE_MARKERS,
     ]))
     assert kind == 'missing_find_bit_source_markers'
     assert payload == REQUIRED_FIND_BIT_SOURCE_MARKERS
@@ -403,6 +422,7 @@ def run_self_test() -> None:
     kind, payload = validate_bench_source('\n'.join([
         *REQUIRED_FIND_BIT_SOURCE_MARKERS,
         *REQUIRED_RBTREE_SOURCE_MARKERS,
+        *REQUIRED_STRING_SOURCE_MARKERS,
     ]))
     assert kind == 'missing_bitmap_source_markers'
     assert payload == REQUIRED_BITMAP_SOURCE_MARKERS
@@ -411,6 +431,16 @@ def run_self_test() -> None:
     kind, payload = validate_bench_source('\n'.join([
         *REQUIRED_BITMAP_SOURCE_MARKERS,
         *REQUIRED_FIND_BIT_SOURCE_MARKERS,
+        *REQUIRED_RBTREE_SOURCE_MARKERS,
+    ]))
+    assert kind == 'missing_string_source_markers'
+    assert payload == REQUIRED_STRING_SOURCE_MARKERS
+    cases += 1
+
+    kind, payload = validate_bench_source('\n'.join([
+        *REQUIRED_BITMAP_SOURCE_MARKERS,
+        *REQUIRED_FIND_BIT_SOURCE_MARKERS,
+        *REQUIRED_STRING_SOURCE_MARKERS,
     ]))
     assert kind == 'missing_rbtree_source_markers'
     assert payload == REQUIRED_RBTREE_SOURCE_MARKERS
@@ -419,6 +449,7 @@ def run_self_test() -> None:
     kind, payload = validate_bench_source('\n'.join([
         *REQUIRED_BITMAP_SOURCE_MARKERS,
         *REQUIRED_FIND_BIT_SOURCE_MARKERS,
+        *REQUIRED_STRING_SOURCE_MARKERS,
         *[marker for marker in REQUIRED_RBTREE_SOURCE_MARKERS if marker != 'duplicate_checksum +%= entry.serial + 107;'],
     ]))
     assert kind == 'missing_rbtree_source_markers'
@@ -673,12 +704,15 @@ def main() -> int:
     if kind in {
         'missing_bitmap_source_markers',
         'missing_find_bit_source_markers',
+        'missing_string_source_markers',
         'missing_rbtree_source_markers',
     }:
         if kind == 'missing_bitmap_source_markers':
             group = 'bitmap'
         elif kind == 'missing_find_bit_source_markers':
             group = 'find_bit'
+        elif kind == 'missing_string_source_markers':
+            group = 'string'
         else:
             group = 'rbtree'
         print('PHASE1_BENCH_CHECK=fail')
