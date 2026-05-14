@@ -37,7 +37,7 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     );
     defer allocator.free(manifest);
 
-    try expectContains(note, "PHASE9_STATUS=parked-readback-gap-aligned");
+    try expectContains(note, "PHASE9_STATUS=shared-reminder-follow-through-open");
     try expectContains(note, "PHASE9_SLICE=runtime-loader-gap-survey");
     try expectContains(note, "PHASE9_LANE_KEY=P9-L18");
     try expectContains(note, "`zigux/kernel/runtime_loader.zig`");
@@ -46,7 +46,12 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     try expectContains(note, "`make -C zigux phase9-test`");
     try expectContains(note, "`make -C zigux phase9`");
     try expectContains(note, "There is no dedicated shared `validate-phase9.py`");
-    try expectContains(note, "there is no one-file shared reminder repair pending in this packet today");
+    try expectContains(note, "`scripts/zigux/README.md` still undercounts the\nlive shared loader packet");
+    try expectContains(note, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md`");
+    try expectContains(note, "`zigux/tests/runtime_loader_gap_manifest.json`");
+    try expectContains(note, "`zigux/tests/runtime_loader_gap_survey.zig`");
+    try expectContains(note, "Repair `scripts/zigux/README.md` first, then tighten");
+    try expectContains(note, "`scripts/zigux/check-phase9-build-only-surface.py`");
     try expectContains(note, "`.modinfo`");
     try expectContains(note, "`MODULE_ALIAS()`");
     try expectContains(note, "`depmod` script or manifest state");
