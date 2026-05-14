@@ -1,29 +1,32 @@
 # Phase 11 GPIO Watchdog Teardown Note
 
-This note restores the missing teardown-facing checkpoint for the bounded Phase 11 `gpio_wdt` packet on current `master`.
-It stays inside the simple-drivers lane and records only the host-free teardown and stop-policy surfaces that the shipped GPIO survey packet already describes.
+This note keeps the archived teardown-facing checkpoint for the bounded Phase 11 `gpio_wdt` packet truthful on current `master`.
+It stays inside the simple-drivers lane and records only the host-free teardown and stop-policy surfaces that the still-visible gpio watchdog review packet can support today.
 
 ## Status
 
 * `PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_archived`
-* teardown evidence remains bounded to the landed `gpio_wdt` starter packet
-* remaining follow-through is still live GPIO descriptor lookup, platform-driver registration, watchdog-core registration, remove hooks, reboot-backed teardown execution, failure-mode parity beyond the landed bounded starter checks, and hardware-backed validation
+* teardown evidence remains bounded to the archived `gpio_wdt` review packet on current `master`
+* remaining follow-through is still restoring the visible main driver packet, plus live GPIO descriptor lookup, platform-driver registration, watchdog-core registration, remove hooks, reboot-backed teardown execution, failure-mode parity beyond the archived bounded review packet, and hardware-backed validation
 
 ## Teardown Packet
 
-The current teardown-facing GPIO packet on `master` is:
+The current teardown-facing GPIO review packet still directly visible on `master` is:
 
 * `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 * `Documentation/zigux/phase11-gpio-wdt-survey.md`
 * `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
-* `zigux/tests/phase11_gpio_wdt.zig`
+* `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 * `zigux/tests/phase11_gpio_wdt_manifest.json`
+* `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`
 
-These surfaces keep the teardown packet readable beside the shared Phase 11 replay route without promoting it into a broader runtime-parity claim.
+Direct current-`master` contents reads do not expose `drivers/watchdog/gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_survey.zig`, or `zigux/tests/phase11_build.zig`.
 
-## What The Landed Teardown Packet Covers
+These surfaces keep the archived teardown packet readable without promoting it into a broader runtime-parity claim or treating the older shared replay route as current shipped evidence.
 
-The current host-free teardown replay keeps these handoffs explicit:
+## What The Archived Teardown Packet Covers
+
+The current archived gpio watchdog review packet still keeps these teardown-facing handoffs explicit:
 
 * `teardownSummary()` and the bounded stop-request outcomes it records
 * the split between watchdog-core stop policy and hardware `always-running` behavior
@@ -31,10 +34,10 @@ The current host-free teardown replay keeps these handoffs explicit:
 * `rebootGlueCheckpointSummary()` and the bounded `watchdog_stop_on_reboot()` ordering it records between `nowayout`, pre-registration start, and the later register-device request surface
 * teardown-facing failure-mode cues that stay reviewable without claiming live remove-hook or reboot-backed shutdown execution
 
-The landed survey-backed packet also keeps the stop-transition, reboot-glue checkpoint, teardown-ownership boundaries, and bounded failure-mode cues visible beside the starter replay without claiming live GPIO execution, platform cleanup callbacks, or host-backed shutdown behavior.
+The still-visible focused `platform_set_drvdata()` replay keeps one early ordering checkpoint directly replayable on current `master`, while the archived survey-backed packet keeps the stop-transition, reboot-glue checkpoint, teardown-ownership boundaries, and bounded failure-mode cues readable as review memory only.
 
 ## Bounded Meaning
 
-This note records the shipped teardown summaries only.
-It does not claim live GPIO descriptor acquisition, `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution, `devm_watchdog_register_device()` execution, platform-driver registration, live reboot-hook registration, remove-hook parity, failure-mode parity beyond the landed bounded starter checks, or hardware-validated teardown parity.
-Those remain later same-lane follow-through steps rather than part of the already-landed archival packet.
+This note records archived teardown summaries only.
+It does not claim visible main-driver scaffolding on current `master`, live GPIO descriptor acquisition, `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution, `devm_watchdog_register_device()` execution, platform-driver registration, live reboot-hook registration, remove-hook parity, failure-mode parity beyond the archived bounded review packet, or hardware-validated teardown parity.
+Those remain later same-lane follow-through steps rather than part of the currently visible archived packet.
