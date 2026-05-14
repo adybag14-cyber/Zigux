@@ -5,7 +5,7 @@ const RepoEvidence = struct {
     review_process_present: bool,
     parity_scorecard_present: bool,
     indefinite_c_policy_present: bool,
-    docs_index_handoff_pointer_present: bool,
+    shared_summary_packet_present: bool,
     phase15_make_target_present: bool,
     shared_ci_phase15_present: bool,
     dedicated_handoff_guard_present: bool,
@@ -71,7 +71,7 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(manifest.repo_evidence.review_process_present);
     try std.testing.expect(manifest.repo_evidence.parity_scorecard_present);
     try std.testing.expect(manifest.repo_evidence.indefinite_c_policy_present);
-    try std.testing.expect(manifest.repo_evidence.docs_index_handoff_pointer_present);
+    try std.testing.expect(manifest.repo_evidence.shared_summary_packet_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.dedicated_handoff_guard_present);
