@@ -140,6 +140,9 @@ test "phase 9 runtime loader gap survey keeps the shared replay routes and no-de
     try expectContains(scripts_readme, "Phase 9 flow");
     try expectContains(scripts_readme, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map");
     try expectContains(scripts_readme, "there is no dedicated shared `validate-phase9.py`");
+    try expectContains(scripts_readme, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md`");
+    try expectContains(scripts_readme, "`zigux/tests/runtime_loader_gap_manifest.json`");
+    try expectContains(scripts_readme, "`zigux/tests/runtime_loader_gap_survey.zig`");
 
     try expectContains(tests_readme, "`zigux/tests/runtime_loader_allocator_init_flow.zig`");
     try expectContains(tests_readme, "`zigux/tests/runtime_loader_gap_survey.zig`");
