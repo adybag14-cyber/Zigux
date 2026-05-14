@@ -83,6 +83,55 @@ A focused `zig test samples/zigux/bytestream_fifo.zig` replay against the curren
 - queue-shape replay helpers remain truthful: `runPreviewBoundaryReplay()` still yields snapshot prefix `{ 2, 3, 4, 5 }`, preview prefix `{ 2, 3, 4, 5, 6, 7, 8, 9 }`, `head_index = 7`, `tail_index = 17`, `total_visible = 10`, `first_window_len = 10`, `second_window_len = 0`, and `wraps = false`, while `runWrappedPreviewReplay()` still yields drained prefix `"hell"`, refill values `{ 200, 201, 202, 203 }`, snapshot prefix `{ 'o', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }`, preview prefix `{ 'o', 0, 1, 2, 3, 4, 5, 6 }`, `head_index = 4`, `tail_index = 4`, `total_visible = 32`, `first_window_len = 28`, `second_window_len = 4`, and `wraps = true`
 - occupancy helper checks still hold across lifecycle states: `occupancySummary()` reports `(used=0, available=32, empty=true, full=false, wrapped_window=false)` when cold, `(used=5, available=27)` after enqueuing `"hello"`, full-and-not-wrapped at capacity before a skip, wrapped-and-full after the skip-plus-refill case, and empty again after reset and exit
 - ownership and lifetime guards remain explicit: replay helpers reject `.cold`, `init()` rejects a second call, queue-shape replays reject the `.replay_complete` stage, `exit()` clears the queue and moves to `.exited`, post-exit replay attempts still fail closed, and `reset()` clears queue contents without rewinding stage or the `init_runs` and `exit_runs` bookkeeping counters
+- does that same helper-facing packet still keep the bounded helper contract explicit: empty-queue peek and skip return `null`, empty enqueue copies `0` bytes, skip-at-capacity returns `0`, `pop-after-reset` returning `null`, draining a three-byte destination from the queued string `"hello"` yields `"hel"`, leaves the remaining prefix `"lo"` queued in order, and follow-up drain on the now-empty queue returns `0`
+- `runPreviewBoundaryReplay()` keeps preview truncation stay non-destructive: truncated preview stays non-destructive, `snapshotInto()` still begins with `[2,3,4,5]`, `previewInto()` copies `[2,3,4,5,6,7,8,9]`, reports `10` visible bytes, leaves the queued data intact, and the preview truncation boundary plus preview-boundary replay also held with `snapshot_prefix = {2, 3, 4, 5}`, `preview_prefix = {2, 3, 4, 5, 6, 7, 8, 9}`, `preview_total_visible = 10`, and `queue_len_after_preview = 10`
+- `available()` reports `32` at cold, initialized, replay-complete, reset, and exited boundaries, `27` after enqueueing `"hello"`, `22` after the preview-boundary setup, `0` at full capacity`, and `1` immediately after skip-at-capacity`
+- `usesWrappedStorageWindow()` stays `false` at cold, initialized, reset, preview-boundary, replay-complete, and full-capacity states, flips `true` only after the skip-at-capacity plus refill rollover cue, and `visibleSpanSummary()` keeps the same bounded split cues reviewers expect from the ring window: `{ first_span_len = 0, second_span_len = 0 }` at cold, initialized, replay-complete, reset, and exited boundaries, `{ 5, 0 }` after enqueueing `"hello"`, `{ 32, 0 }` at full capacity, `{ 31, 0 }` immediately after skip-at-capacity, `{ 31, 1 }` once refill makes the bounded window wrap, the queue-shape replay also held, `usesWrappedStorageWindow()` stayed `false` until the refill-after-skip rollover flipped it `true`, and `runWrappedPreviewReplay()` keeps that same wrapped-window boundary reviewable without mutation too by draining `"hell"`, refilling `{200,201,202,203}`, keeping `previewInto()` at `['o',0,1,2,3,4,5,6]`, holding `available_after_preview` at `0`, and preserving the wrapped `{28,4}` split cue
+
+## Latest verification snapshot
+
+The latest full-packet replay snapshot still preserved in the coupled survey gate remains useful as a compatibility record even though the current direct sample-local replay above now covers six in-file checks.
+
+- `0.17.0-dev.87+9b177a7d2`
+- `zig test samples/zigux/bytestream_fifo.zig`
+- passed `5/5` sample self-checks
+- shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route for the bytestream packet without relying on a brittle aggregate build-step or test count
+- passed `5/5` build steps and `8/8` tests
+- `len_after_initial_fill = 15`
+- `first_out = "hello"`
+- `second_out = {0, 1}`
+- `skipped_byte = 2`
+- `peek_value = 3`
+- `fill_start = 20`
+- `fill_end = 42`
+- `snapshot_len = 32`
+- `snapshot_sequence stayed [3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
+- `final_len = 32`
+- `peek and skip returned null`
+- `empty enqueue copied 0 bytes`
+- `overflow push was rejected at the 32-byte capacity`
+- `skip-at-capacity returned 0`
+- `pop-after-reset returned null`
+- `cold -> initialized -> replay_complete -> exited`
+
+## Historical packet markers kept for the coupled survey gate
+
+Keep these legacy packet markers visible until `zigux/tests/phase5_bytestream_fifo_survey.zig` is refreshed to the current wording:
+
+- `PHASE5_STATUS=parked`
+- `PHASE5_SLICE=kfifo-reference-sample-starter`
+- `PHASE5_LANE_KEY=P5-L01`
+- `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea`
+- `samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea|Phase 5`
+- `runtime_atomic64.zig`
+- `runtime_atomic64_loader.zig`
+- `runtime_bitmap.zig`
+- `runtime_bitmap_loader.zig`
+- `runtime_kretprobe.zig`
+- `runtime_kretprobe_loader.zig`
+- `runtime_trace_events.zig`
+- `runtime_trace_events_loader.zig`
+- `loader-side follow-ons`
 
 ## Historical verification snapshot
 
