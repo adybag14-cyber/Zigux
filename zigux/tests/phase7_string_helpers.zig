@@ -39,6 +39,25 @@ test "phase 7 string helpers starter matches tables through the first null entry
     try std.testing.expectEqual(@as(?usize, null), string_helpers.matchString(&values, "ignored"));
 }
 
+test "phase 7 string helpers starter unescapes supported escape families and preserves unsupported escapes" {
+    var escaped = [_]u8{ '\\', 'n', '\\', 'x', '4', '1', '\\', '1', '0', '1', '\\', 'e', '\\', 'q', 0 };
+    var decoded = [_]u8{0} ** 16;
+    const written = string_helpers.stringUnescapeAny(&escaped, &decoded, 0);
+    try std.testing.expectEqual(@as(usize, 6), written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '\n', 'A', 'A', '\x1b', '\\', 'q', 0 }, decoded[0 .. written + 1]);
+
+    var selective = [_]u8{ '\\', 'x', '4', '1', '\\', 'n', 0, '#' };
+    const selective_written = string_helpers.stringUnescapeInplace(&selective, string_helpers.UNESCAPE_HEX);
+    try std.testing.expectEqual(@as(usize, 3), selective_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'A', '\\', 'n', 0 }, selective[0 .. selective_written + 1]);
+
+    var truncated_src = [_]u8{ '\\', 'q', 0, '!' };
+    var truncated_dst = [_]u8{ '#', '#', '#' };
+    const truncated_written = string_helpers.string_unescape(&truncated_src, &truncated_dst, 2, string_helpers.UNESCAPE_ANY);
+    try std.testing.expectEqual(@as(usize, 1), truncated_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '\\', 0 }, truncated_dst[0 .. truncated_written + 1]);
+}
+
 test "phase 7 string helpers starter pads bounded copies without reading past the provided source slice" {
     var padded = [_]u8{ '#', '#', '#', '#', '#', '#' };
     string_helpers.memcpyAndPad(&padded, "zig", 3, '.');
