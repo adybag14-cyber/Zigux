@@ -137,6 +137,9 @@ test "phase 7 string helper boundary keeps the restored starter packet and no-sa
     try expectContains(scripts_root, "current `master` still ships no standalone `samples/zigux/*string*` Phase 5 reference sample");
     try expectContains(scripts_root, "restored starter packet");
     try expectContains(scripts_root, "Documentation/zigux/phase7-string-helpers-slice.md");
+    try expectContains(scripts_root, "Documentation/zigux/review-checklist.md");
+    try expectContains(scripts_root, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
+    try expectContains(scripts_root, "samples/zigux/README.md");
     try expectContains(scripts_root, "lib/string_helpers.zig");
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers.zig");
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_survey.zig");
