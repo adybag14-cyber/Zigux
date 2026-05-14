@@ -23,6 +23,15 @@ REQUIRED_GROWTH_RULE = (
     "and already-landed top-level review surfaces may be rehomed there, only when the same bounded "
     "change also lands packet-local proof and updates this note."
 )
+REQUIRED_PACKET_MARKERS = {
+    "zigux/bindings/abi.zig": 2,
+    "zigux/bindings/dev_t.zig": 2,
+    "zigux/bindings/notifier_abi.zig": 2,
+    "zigux/uapi/version.zig": 1,
+}
+REQUIRED_STARTER_PACKET_MARKERS = {
+    "live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`": 1,
+}
 HEADER_INCLUDE_MARKERS = (
     '#include "../zigux/abi.h"',
     '#include "../zigux/dev_t.h"',
@@ -79,6 +88,20 @@ def validate_text(note_text: str, header_text: str) -> list[str]:
             f"(expected 1, found {growth_rule_count})"
         )
 
+    for marker, expected_count in REQUIRED_PACKET_MARKERS.items():
+        actual_count = note_text.count(marker)
+        if actual_count != expected_count:
+            issues.append(
+                f"packet marker count drift: {marker} (expected {expected_count}, found {actual_count})"
+            )
+
+    for marker, expected_count in REQUIRED_STARTER_PACKET_MARKERS.items():
+        actual_count = note_text.count(marker)
+        if actual_count != expected_count:
+            issues.append(
+                f"starter packet marker count drift: {marker} (expected {expected_count}, found {actual_count})"
+            )
+
     for include_marker in HEADER_INCLUDE_MARKERS:
         actual_count = header_text.count(include_marker)
         if actual_count != 1:
@@ -115,11 +138,67 @@ def run_self_test() -> int:
         '#endif\n'
     )
     sample_blob = _git_blob_sha(sample_header)
-    sample_note = f"""## Scope\nPHASE3_ZIGUX_H_PATH=include/linux/zigux.h\nPHASE3_ZIGUX_H_BLOB_SHA={sample_blob}\nPHASE3_ZIGUX_H_PACKET=shared Phase 3 ABI substrate packet only\nPHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md\nPHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json\nPHASE3_ZIGUX_H_VALIDATOR_PATH=scripts/zigux/validate-phase3-linux-zigux-header-governance.py\n\nPHASE3_ZIGUX_H_GROWTH_RULE=new top-level helper families may land in include/linux/zigux.h, and already-landed top-level review surfaces may be rehomed there, only when the same bounded change also lands packet-local proof and updates this note.\n\n`zigux_export_status_ok()`\n`zigux_boundary_header_make()`\n`zigux_boundary_header_make_compatible()`\nkeep canonical and future-compatible constructors as thin named relays over the canonical header and starter UAPI ownership\naggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally\n"""
+    sample_note = f"""## Scope
+PHASE3_ZIGUX_H_PATH=include/linux/zigux.h
+PHASE3_ZIGUX_H_BLOB_SHA={sample_blob}
+PHASE3_ZIGUX_H_PACKET=shared Phase 3 ABI substrate packet only
+PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md
+PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json
+PHASE3_ZIGUX_H_VALIDATOR_PATH=scripts/zigux/validate-phase3-linux-zigux-header-governance.py
+
+PHASE3_ZIGUX_H_GROWTH_RULE=new top-level helper families may land in include/linux/zigux.h, and already-landed top-level review surfaces may be rehomed there, only when the same bounded change also lands packet-local proof and updates this note.
+
+zigux/bindings/abi.zig
+zigux/bindings/dev_t.zig
+zigux/bindings/notifier_abi.zig
+zigux/uapi/version.zig
+zigux/bindings/abi.zig
+zigux/bindings/dev_t.zig
+zigux/bindings/notifier_abi.zig
+live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`
+
+`zigux_export_status_ok()`
+`zigux_boundary_header_make()`
+`zigux_boundary_header_make_compatible()`
+keep canonical and future-compatible constructors as thin named relays over the canonical header and starter UAPI ownership
+aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally
+"""
     issues = validate_text(sample_note, sample_header)
     if issues:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("\n".join(issues))
+        return 1
+
+    broken = validate_text(sample_note.replace("zigux/uapi/version.zig\n", "", 1), sample_header)
+    expected = "packet marker count drift: zigux/uapi/version.zig (expected 1, found 0)"
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected starter-uapi marker drift was not reported")
+        return 1
+
+    broken = validate_text(
+        sample_note.replace(
+            "live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`\n",
+            "",
+            1,
+        ),
+        sample_header,
+    )
+    expected = (
+        "starter packet marker count drift: "
+        "live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig` "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected starter-pair marker drift was not reported")
+        return 1
+
+    broken = validate_text(sample_note.replace("zigux/bindings/notifier_abi.zig\n", "", 1), sample_header)
+    expected = "packet marker count drift: zigux/bindings/notifier_abi.zig (expected 2, found 1)"
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected bindings marker drift was not reported")
         return 1
 
     broken = validate_text(sample_note.replace('`zigux_boundary_header_make_compatible()`', '', 1), sample_header)
