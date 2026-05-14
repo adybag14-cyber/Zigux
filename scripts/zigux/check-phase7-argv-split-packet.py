@@ -10,18 +10,37 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase7-argv-split-slice.md",
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
     "Documentation/zigux/review-checklist.md",
     "samples/zigux/README.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase7.py",
     "lib/argv_split.zig",
+    "zigux/tests/README.md",
     "zigux/tests/phase7_argv_split.zig",
     "zigux/tests/phase7_argv_split_survey.zig",
     "zigux/tests/phase7_argv_split_manifest.json",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+    "zigux/tests/phase7_build.zig",
+    "zigux/Makefile",
 ]
 
 REQUIRED_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": [
+        "Validate Phase 7 runtime helper gates",
+        "make -C zigux phase7-validate",
+        "Run Phase 7 runtime helper tests",
+        "make -C zigux phase7-test",
+    ],
+    "Documentation/zigux/README.md": [
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "zigux/tests/phase7_argv_split_manifest.json",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
+    ],
     "Documentation/zigux/phase7-argv-split-slice.md": [
         "PHASE7_LANE_KEY=P7-L09",
         "scope: first low-risk argument-vector parsing and teardown helpers only",
@@ -45,11 +64,31 @@ REQUIRED_MARKERS = {
         "`argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
         "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
     ],
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "`python3 scripts/zigux/check-phase7-argv-split-packet.py`",
+        "make -C zigux phase7-argv-split-survey",
+        "make -C zigux phase7-validate",
+        "make -C zigux phase7-test",
+    ],
     "Documentation/zigux/review-checklist.md": [
         "Documentation/zigux/phase7-argv-split-slice.md",
     ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`",
+    ],
+    "scripts/zigux/README.md": [
+        "scripts/zigux/validate-phase7.py",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
+        "zigux/tests/phase7_argv_split_survey.zig",
+        "make -C zigux phase7-validate",
+    ],
+    "scripts/zigux/validate-phase7.py": [
+        "\"scripts/zigux/check-phase7-argv-split-packet.py\"",
+        "\"zigux/tests/phase7_argv_split.zig\"",
+        "\"zigux/tests/phase7_argv_split_survey.zig\"",
+        "\"zigux/tests/phase7_argv_split_manifest.json\"",
+        "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"",
     ],
     "lib/argv_split.zig": [
         "pub fn countArgc",
@@ -60,6 +99,12 @@ REQUIRED_MARKERS = {
         "const argc = countArgc(current);",
         "if (argc == 0) {",
         "self.* = .{",
+    ],
+    "zigux/tests/README.md": [
+        "zigux/tests/phase7_argv_split.zig",
+        "zigux/tests/phase7_argv_split_survey.zig",
+        "zigux/tests/phase7_argv_split_manifest.json",
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     ],
     "zigux/tests/phase7_argv_split.zig": [
         "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");",
@@ -126,7 +171,44 @@ REQUIRED_MARKERS = {
         ".name = \"leading NUL truncates to zero argv entries\"",
         ".name = \"quote characters stay inside returned tokens\"",
     ],
+    "zigux/tests/phase7_build.zig": [
+        "\"phase7_argv_split.zig\"",
+        "\"phase7-argv-split-survey-tests\"",
+        "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));",
+    ],
+    "zigux/Makefile": [
+        "phase7-validate:",
+        "scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py",
+        "phase7-argv-split-survey:",
+        "phase7-test:",
+        "phase7: phase7-validate phase7-test",
+    ],
 }
+
+MISSING_FILE_CASES = [
+    ".github/workflows/zigux-bootstrap.yml",
+    "zigux/tests/phase7_argv_split_manifest.json",
+]
+
+MISSING_MARKER_CASES = [
+    ("Documentation/zigux/README.md", "scripts/zigux/check-phase7-argv-split-packet.py"),
+    ("Documentation/zigux/phase7-argv-split-slice.md", "PHASE7_LANE_KEY=P7-L09"),
+    ("Documentation/zigux/phase7-helper-lane-sequencing.md", "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09"),
+    ("Documentation/zigux/phase7-make-wrapper-selftest-alignment.md", "make -C zigux phase7-argv-split-survey"),
+    ("Documentation/zigux/review-checklist.md", "Documentation/zigux/phase7-argv-split-slice.md"),
+    ("samples/zigux/README.md", "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`"),
+    ("scripts/zigux/README.md", "zigux/tests/phase7_argv_split_survey.zig"),
+    ("scripts/zigux/validate-phase7.py", "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\""),
+    ("lib/argv_split.zig", "pub fn cArgv"),
+    ("zigux/tests/README.md", "zigux/tests/phase7_argv_split_manifest.json"),
+    ("zigux/tests/phase7_argv_split.zig", "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup"),
+    ("zigux/tests/phase7_argv_split_survey.zig", "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space"),
+    ("zigux/tests/phase7_argv_split_manifest.json", "canonical blank sentinels, repeatable teardown, and a null-terminated argv view"),
+    ("zigux/tests/fixtures/phase7_argv_split_vectors.zig", ".name = \"quote characters stay inside returned tokens\""),
+    ("zigux/tests/phase7_build.zig", "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));"),
+    ("zigux/Makefile", "phase7-argv-split-survey:"),
+]
 
 
 def collect_missing_files(root: Path) -> list[str]:
@@ -151,11 +233,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 
 def write_fixture_root(tmp_root: Path) -> None:
-    fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
     for rel in REQUIRED_FILES:
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(fixture_text[rel], encoding="utf-8")
+        path.write_text("\n".join(REQUIRED_MARKERS[rel]) + "\n", encoding="utf-8")
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -164,16 +245,16 @@ def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     assert missing_files == [rel], case
 
 
-def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
+def expect_missing_marker(case: str, tmp_root: Path, expected: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
-    assert missing_markers == [marker], case
+    assert missing_markers == [expected], case
 
 
-def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
+def mutate_file(tmp_root: Path, rel: str, marker: str, case: str) -> None:
     path = tmp_root / rel
     original = path.read_text(encoding="utf-8")
-    updated = original.replace(old, new, 1)
+    updated = original.replace(marker, "", 1)
     assert updated != original, case
     path.write_text(updated, encoding="utf-8")
 
@@ -184,420 +265,17 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
 
-        (tmp_root / "zigux/tests/phase7_argv_split_manifest.json").unlink()
-        expect_missing_file(
-            "missing_manifest",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json",
-        )
-        write_fixture_root(tmp_root)
+        for rel in MISSING_FILE_CASES:
+            (tmp_root / rel).unlink()
+            expect_missing_file(f"missing_file::{rel}", tmp_root, rel)
+            write_fixture_root(tmp_root)
 
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md",
-            "PHASE7_LANE_KEY=P7-L09",
-            "",
-            "slice_lane_key_marker",
-        )
-        expect_missing_marker(
-            "slice_lane_key_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: PHASE7_LANE_KEY=P7-L09",
-        )
-        write_fixture_root(tmp_root)
+        for rel, marker in MISSING_MARKER_CASES:
+            mutate_file(tmp_root, rel, marker, f"missing_marker::{rel}")
+            expect_missing_marker(f"missing_marker::{rel}", tmp_root, f"{rel}: {marker}")
+            write_fixture_root(tmp_root)
 
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md",
-            "non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact",
-            "",
-            "slice_teardown_safety_marker",
-        )
-        expect_missing_marker(
-            "slice_teardown_safety_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md",
-            "exported storage and argv views resetting back to the canonical empty sentinels after teardown",
-            "",
-            "slice_canonical_reset_marker",
-        )
-        expect_missing_marker(
-            "slice_canonical_reset_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: exported storage and argv views resetting back to the canonical empty sentinels after teardown",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md",
-            "allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns",
-            "",
-            "slice_allocator_failure_marker",
-        )
-        expect_missing_marker(
-            "slice_allocator_failure_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/review-checklist.md",
-            "Documentation/zigux/phase7-argv-split-slice.md",
-            "",
-            "review_checklist_slice_marker",
-        )
-        expect_missing_marker(
-            "review_checklist_slice_marker",
-            tmp_root,
-            "Documentation/zigux/review-checklist.md: Documentation/zigux/phase7-argv-split-slice.md",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "Documentation/zigux/phase7-argv-split-slice.md",
-            "",
-            "helper_lane_slice_reference_marker",
-        )
-        expect_missing_marker(
-            "helper_lane_slice_reference_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: Documentation/zigux/phase7-argv-split-slice.md",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_ARGV_SPLIT_LANE=P7-L09",
-            "",
-            "helper_lane_key_marker",
-        )
-        expect_missing_marker(
-            "helper_lane_key_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_LANE=P7-L09",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
-            "",
-            "helper_lane_alias_marker",
-        )
-        expect_missing_marker(
-            "helper_lane_alias_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "scheduled alias note: recurring scheduled lane `P7-Y07` is the older schedule label for this same argv-split packet and must be treated as the same owner, not as a second helper lane",
-            "",
-            "helper_lane_schedule_note_marker",
-        )
-        expect_missing_marker(
-            "helper_lane_schedule_note_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: scheduled alias note: recurring scheduled lane `P7-Y07` is the older schedule label for this same argv-split packet and must be treated as the same owner, not as a second helper lane",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "`argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
-            "",
-            "helper_lane_current_packet_marker",
-        )
-        expect_missing_marker(
-            "helper_lane_current_packet_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: `argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
-            "",
-            "helper_lane_owner_marker",
-        )
-        expect_missing_marker(
-            "helper_lane_owner_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "samples/zigux/README.md",
-            "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`",
-            "",
-            "samples_no_sample_boundary_marker",
-        )
-        expect_missing_marker(
-            "samples_no_sample_boundary_marker",
-            tmp_root,
-            "samples/zigux/README.md: current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json",
-            "copied token-buffer ownership and later source-mutation isolation",
-            "",
-            "manifest_ownership_marker",
-        )
-        expect_missing_marker(
-            "manifest_ownership_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json: copied token-buffer ownership and later source-mutation isolation",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json",
-            "owned-storage reuse keeps token pointers inside caller-managed storage",
-            "",
-            "manifest_storage_pointer_marker",
-        )
-        expect_missing_marker(
-            "manifest_storage_pointer_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json: owned-storage reuse keeps token pointers inside caller-managed storage",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json",
-            "canonical blank sentinels, repeatable teardown, and a null-terminated argv view",
-            "",
-            "manifest_blank_sentinels_marker",
-        )
-        expect_missing_marker(
-            "manifest_blank_sentinels_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json: canonical blank sentinels, repeatable teardown, and a null-terminated argv view",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig",
-            "const active_lane_key = \"P7-L09\";",
-            "",
-            "survey_lane_key_marker",
-        )
-        expect_missing_marker(
-            "survey_lane_key_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig: const active_lane_key = \"P7-L09\";",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig",
-            "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
-            "",
-            "survey_first_nul_blank_marker",
-        )
-        expect_missing_marker(
-            "survey_first_nul_blank_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig: phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig",
-            "phase 7 argvSplit token buffer does not alias the source text",
-            "",
-            "tests_source_isolation_marker",
-        )
-        expect_missing_marker(
-            "tests_source_isolation_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit token buffer does not alias the source text",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig",
-            "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
-            "",
-            "tests_argc_mirror_marker",
-        )
-        expect_missing_marker(
-            "tests_argc_mirror_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig",
-            "phase 7 argvSplit deinit clears exported storage and argv views",
-            "",
-            "tests_deinit_clear_marker",
-        )
-        expect_missing_marker(
-            "tests_deinit_clear_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit deinit clears exported storage and argv views",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig",
-            "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
-            "",
-            "tests_allocator_failure_marker",
-        )
-        expect_missing_marker(
-            "tests_allocator_failure_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig",
-            "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
-            "",
-            "tests_shared_blank_deinit_marker",
-        )
-        expect_missing_marker(
-            "tests_shared_blank_deinit_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig",
-            "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
-            "",
-            "tests_first_nul_blank_marker",
-        )
-        expect_missing_marker(
-            "tests_first_nul_blank_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig",
-            "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
-            "",
-            "tests_repeatable_deinit_marker",
-        )
-        expect_missing_marker(
-            "tests_repeatable_deinit_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig",
-            "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
-            "",
-            "tests_argv_free_marker",
-        )
-        expect_missing_marker(
-            "tests_argv_free_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig",
-            "phase 7 argvFree on a non-blank result restores the canonical blank sentinels",
-            "",
-            "tests_blank_reset_marker",
-        )
-        expect_missing_marker(
-            "tests_blank_reset_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 argvFree on a non-blank result restores the canonical blank sentinels",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-            ".name = \"quote characters stay inside returned tokens\"",
-            "",
-            "fixture_quote_marker",
-        )
-        expect_missing_marker(
-            "fixture_quote_marker",
-            tmp_root,
-            "zigux/tests/fixtures/phase7_argv_split_vectors.zig: .name = \"quote characters stay inside returned tokens\"",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "lib/argv_split.zig",
-            "pub fn cArgv",
-            "",
-            "helper_c_argv_marker",
-        )
-        expect_missing_marker(
-            "helper_c_argv_marker",
-            tmp_root,
-            "lib/argv_split.zig: pub fn cArgv",
-        )
-        write_fixture_root(tmp_root)
-
-        mutate_file(
-            tmp_root,
-            "lib/argv_split.zig",
-            "if (argc == 0) {",
-            "",
-            "helper_blank_path_marker",
-        )
-        expect_missing_marker(
-            "helper_blank_path_marker",
-            tmp_root,
-            "lib/argv_split.zig: if (argc == 0) {",
-        )
-
-    case_count = 30
+    case_count = len(MISSING_FILE_CASES) + len(MISSING_MARKER_CASES)
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
