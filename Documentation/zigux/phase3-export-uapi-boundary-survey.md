@@ -6,7 +6,7 @@ This note records the current export shim and starter UAPI boundary evidence tha
 
 - `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-readback-from-public-github-fallback`
 - `PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-shared-review-surface-refresh`
-- `PHASE3_BUILD_ROUTE_OWNERSHIP=export-uapi-packet-owns-current-shared-phase3-build-route-wording-for-the-starter-surface`
+- `PHASE3_BUILD_ROUTE_OWNERSHIP=export-uapi-packet-owns-current-shared-build-route-wording-for-the-starter-surface`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_BLOB_SHA=1e51196e063f0d1c8acb082ef226c32f804fcd34`
 - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
@@ -20,6 +20,7 @@ This note records the current export shim and starter UAPI boundary evidence tha
 - `PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
 - `PHASE3_SHARED_MANIFEST_BLOB_SHA=66fccfddf6c47a9723143628b6c462d824be81d3`
 - `PHASE3_SHARED_BUILD_PATH=zigux/tests/build.zig`
+- `PHASE3_SHARED_COMPILE_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
 - `PHASE3_SHARED_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_SHARED_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
 - `PHASE3_SHARED_INTEROP_ROUTE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
