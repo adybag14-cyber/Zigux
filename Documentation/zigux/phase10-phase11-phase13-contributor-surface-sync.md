@@ -57,7 +57,7 @@ Contributor reminder:
 - keep the parked `P10-L10` freeze-boundary owner and rollback-owner note explicit around `Documentation/zigux/freeze-map.md` plus `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - keep Phase 5 reference samples and Phase 9 runtime starters as adjacent evidence, not extra Phase 10 closure proof
 - keep the separate Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit
-- keep the missing slice-note companions `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` framed as repo-reality gaps instead of shipped current-`master` evidence
+- keep only the current missing slice-note companions `Documentation/zigux/phase10-virtio-core-slice.md` and `Documentation/zigux/phase10-virtio-mmio-slice.md` framed as repo-reality gaps, and keep `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md` explicit as restored shared-review evidence on current `master`
 
 ## Phase 11 contributor packet
 
