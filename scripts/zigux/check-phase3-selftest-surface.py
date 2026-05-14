@@ -24,6 +24,7 @@ README_PHASE3_MARKER_COUNTS = {
     "Documentation/zigux/phase3-abi-slice.md": 1,
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md": 1,
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md": 1,
+    "Documentation/zigux/phase3-validator-support-surface.md": 1,
     "scripts/zigux/validate-phase3.py": 1,
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py": 1,
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py": 1,
@@ -443,6 +444,25 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected docs README Phase 3 slice drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        docs_path.write_text(
+            _read(docs_path).replace(
+                "Documentation/zigux/phase3-validator-support-surface.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "docs README Phase 3 notes marker count drift: "
+            "Documentation/zigux/phase3-validator-support-surface.md (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected docs README Phase 3 validator-support drift was not reported")
             return 1
 
         _populate_repo(root)
