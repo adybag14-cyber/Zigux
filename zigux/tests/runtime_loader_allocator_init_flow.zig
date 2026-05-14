@@ -671,34 +671,45 @@ test "phase 9 runtime loader allocator/init-flow replay keeps exact current init
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", trace_events.value.anchor);
     try std.testing.expectEqualStrings("Phase 9", kretprobe.value.phase);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", kretprobe.value.anchor);
-    try std.testing.expectEqual(@as(usize, 4), trace_events.value.delivery_evidence_catalog.len);
-    try std.testing.expectEqual(@as(usize, 6), trace_events.value.ownership_map.len);
+    try std.testing.expectEqual(@as(usize, 11), trace_events.value.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 5), trace_events.value.ownership_map.len);
 
+    const trace_events_loader_scaffold = findDeliveryEvidence(trace_events.value.delivery_evidence_catalog, "trace-events-loader-scaffold") orelse return error.MissingTraceEventsLoaderScaffold;
+    try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events_loader.zig", trace_events_loader_scaffold.path);
+    try std.testing.expect(std.mem.indexOf(u8, trace_events_loader_scaffold.why_now, "prepared-snapshot stability") != null);
+    const trace_events_loader_substrate_drift = findDeliveryEvidence(trace_events.value.delivery_evidence_catalog, "trace-events-loader-substrate-drift") orelse return error.MissingTraceEventsLoaderSubstrateDrift;
+    try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_loader_substrate_drift.zig", trace_events_loader_substrate_drift.path);
+    try std.testing.expect(std.mem.indexOf(u8, trace_events_loader_substrate_drift.why_now, "prepared shared runtime-substrate rejection") != null);
     const trace_events_survey_note = findDeliveryEvidence(trace_events.value.delivery_evidence_catalog, "trace-events-survey-note") orelse return error.MissingTraceEventsSurveyNote;
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-survey.md", trace_events_survey_note.path);
     const trace_events_module_slice = findDeliveryEvidence(trace_events.value.delivery_evidence_catalog, "trace-events-module-slice-note") orelse return error.MissingTraceEventsModuleSlice;
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-module-slice.md", trace_events_module_slice.path);
     const trace_events_survey_gate = findDeliveryEvidence(trace_events.value.delivery_evidence_catalog, "trace-events-survey-gate") orelse return error.MissingTraceEventsSurveyGate;
     try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_survey.zig", trace_events_survey_gate.path);
-    const trace_events_build_gate = findDeliveryEvidence(trace_events.value.delivery_evidence_catalog, "trace-events-shared-build-gate") orelse return error.MissingTraceEventsBuildGate;
-    try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", trace_events_build_gate.path);
+    const trace_events_shared_owner_map = findDeliveryEvidence(trace_events.value.delivery_evidence_catalog, "trace-events-shared-owner-map") orelse return error.MissingTraceEventsSharedOwnerMap;
+    try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md", trace_events_shared_owner_map.path);
+    const trace_events_shared_build_boundary = findDeliveryEvidence(trace_events.value.delivery_evidence_catalog, "trace-events-shared-build-boundary") orelse return error.MissingTraceEventsSharedBuildBoundary;
+    try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", trace_events_shared_build_boundary.path);
 
-    const trace_events_loader_owner = findOwnershipEntry(trace_events.value.ownership_map, "samples/zigux/runtime_trace_events_loader.zig") orelse return error.MissingTraceEventsLoaderOwnership;
-    try std.testing.expectEqualStrings("loader_scaffold", trace_events_loader_owner.role);
-    try std.testing.expectEqualStrings("P9-L10", trace_events_loader_owner.owner);
-    try std.testing.expect(std.mem.indexOf(u8, trace_events_loader_owner.boundary, "release-without-substrate behavior") != null);
+    const trace_events_survey_owner = findOwnershipEntry(trace_events.value.ownership_map, "Documentation/zigux/phase9-runtime-trace-events-survey.md") orelse return error.MissingTraceEventsSurveyOwnership;
+    try std.testing.expectEqualStrings("survey_note", trace_events_survey_owner.role);
+    try std.testing.expectEqualStrings("P9-L10", trace_events_survey_owner.owner);
+    try std.testing.expect(std.mem.indexOf(u8, trace_events_survey_owner.boundary, "shared runtime-substrate blocker explicit") != null);
+    const trace_events_shared_owner = findOwnershipEntry(trace_events.value.ownership_map, "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md") orelse return error.MissingTraceEventsSharedOwnerMapOwnership;
+    try std.testing.expectEqualStrings("shared_owner_map", trace_events_shared_owner.role);
+    try std.testing.expectEqualStrings("P9-L11", trace_events_shared_owner.owner);
+    try std.testing.expect(std.mem.indexOf(u8, trace_events_shared_owner.boundary, "shared Phase 9 reminder packet") != null);
     const trace_events_build_owner = findOwnershipEntry(trace_events.value.ownership_map, "zigux/tests/phase9_build.zig") orelse return error.MissingTraceEventsBuildOwnership;
     try std.testing.expectEqualStrings("shared_build_bundle", trace_events_build_owner.role);
-    try std.testing.expectEqualStrings("P9-L10", trace_events_build_owner.owner);
-    try std.testing.expect(std.mem.indexOf(u8, trace_events_build_owner.boundary, "shared Phase 9 replay bundle only") != null);
+    try std.testing.expectEqualStrings("P9-L11", trace_events_build_owner.owner);
+    try std.testing.expect(std.mem.indexOf(u8, trace_events_build_owner.boundary, "shared Phase 9 build boundary") != null);
 
     try expectGapStatusAndWhyNow(atomic64.value.gaps, "runtime-atomic64-loader-scaffold", "starter_landed", "entry and exit symbol names");
     try expectGapStatusAndWhyNow(atomic64.value.gaps, "runtime-atomic64-live-loader-binding", "blocked_on_runtime_substrate", "full runtime module lifecycle parity");
     try expectGapStatusAndWhyNow(bitmap.value.gaps, "runtime-bitmap-loader-scaffold", "starter_landed", "entry and exit symbol names");
     try expectGapStatusAndWhyNow(bitmap.value.gaps, "runtime-bitmap-live-loader-binding", "blocked_on_runtime_substrate", "lifecycle parity still depend on shared runtime substrate pieces");
-    try expectGapStatusAndWhyNow(trace_events.value.gaps, "runtime-trace-events-loader-scaffold", "starter_landed", "tracepoint register and unregister APIs");
-    try expectGapStatusAndWhyNow(trace_events.value.gaps, "runtime-trace-events-loader-scaffold", "starter_landed", "prepared and initialized-stage handoff snapshots");
-    try expectGapStatusAndWhyNow(trace_events.value.gaps, "runtime-trace-events-substrate-handoff", "blocked_on_runtime_substrate", "tracepoint registration lifecycle");
+    try expectGapStatusAndWhyNow(trace_events.value.gaps, "runtime-trace-events-substrate-handoff", "blocked_on_runtime_substrate", "runtime task ownership");
+    try expectGapStatusAndWhyNow(trace_events.value.gaps, "runtime-trace-events-substrate-handoff", "blocked_on_runtime_substrate", ".modinfo");
 
     try std.testing.expect(kretprobe.value.lifecycle_boundary_summary.pre_execution_handoff_only);
     try std.testing.expect(kretprobe.value.lifecycle_boundary_summary.requires_idle_registration_snapshot);
