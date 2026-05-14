@@ -198,8 +198,8 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam");
     try expectContains(governance_note, "blocked_packet_lifetime_boundary_still_too_wide");
     try expectContains(governance_note, "lane P14-L16 still records blocked `phase14-rcu-tree-bridge-blocker`");
-    try expectContains(governance_note, "Documentation/zigux/phase14-skbuff-bridge-survey.md still records packet-local lane P14-L11");
-    try expectContains(governance_note, "Documentation/zigux/phase14-core-boundary-traceability.md now keeps the same shared owner-map lane P14-L11");
+    try expectContainsWithoutBackticks(governance_note, "Documentation/zigux/phase14-skbuff-bridge-survey.md still records packet-local lane P14-L11");
+    try expectContainsWithoutBackticks(governance_note, "Documentation/zigux/phase14-core-boundary-traceability.md now keeps the same shared owner-map lane P14-L11");
     try expectContains(governance_note, "## Maintenance-Mode Handoff");
     try expectContains(governance_note, "current lane posture: `maintenance_mode`");
     try expectContains(governance_note, "check-phase15-review-process-handoff.py");
@@ -244,6 +244,9 @@ test "phase 15 freeze-map required terms, maintenance handoff, and scorecard own
 
     try expectContains(scorecard_doc, "validator-first gate wording");
     try expectContains(scorecard_doc, "python3 scripts/zigux/validate-phase15.py");
+    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-scripts-readme-alignment.py");
+    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-review-process-handoff.py");
+    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
     try expectContains(scorecard_doc, "make -C zigux phase15-validate");
     try expectContains(scorecard_doc, "## Gates");
 
