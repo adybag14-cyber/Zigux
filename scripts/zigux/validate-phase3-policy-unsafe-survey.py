@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import subprocess
 import sys
 import tempfile
@@ -20,6 +21,7 @@ UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
 POLICY_BYTE_GUARD_REL = "scripts/zigux/check-phase3-policy-byte-guards.py"
 POLICY_FOCUSED_REPLAY_REL = "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
 POLICY_MMIO_CONSUMER_REL = "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"
+POLICY_SURVEY_VALIDATOR_REL = "scripts/zigux/validate-phase3-policy-unsafe-survey.py"
 ABI_TEST_REL = "zigux/tests/phase3_abi.zig"
 ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
@@ -65,6 +67,24 @@ BLOB_MARKERS = {
     "PHASE3_ABI_MANIFEST_BLOB_SHA": ABI_MANIFEST_REL,
     "PHASE3_ABI_SLICE_DOC_BLOB_SHA": ABI_SLICE_DOC_REL,
 }
+
+REQUIRED_ABI_MANIFEST_FILES = (
+    LAYOUT_ASSERT_REL,
+    PANIC_POLICY_REL,
+    ALLOCATOR_POLICY_REL,
+    MMIO_REL,
+    UNSAFE_NARROW_REL,
+    SURVEY_REL,
+    ABI_TEST_REL,
+    ABI_DUMP_REL,
+    ABI_EXPECTED_REL,
+    ABI_MANIFEST_REL,
+    ABI_SLICE_DOC_REL,
+    POLICY_BYTE_GUARD_REL,
+    POLICY_FOCUSED_REPLAY_REL,
+    POLICY_MMIO_CONSUMER_REL,
+    POLICY_SURVEY_VALIDATOR_REL,
+)
 
 MAKEFILE_REQUIRED_LINES = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py",
@@ -260,6 +280,7 @@ def validate(root: Path) -> list[str]:
         POLICY_BYTE_GUARD_REL,
         POLICY_FOCUSED_REPLAY_REL,
         POLICY_MMIO_CONSUMER_REL,
+        POLICY_SURVEY_VALIDATOR_REL,
         ABI_TEST_REL,
         ABI_DUMP_REL,
         ABI_EXPECTED_REL,
@@ -304,6 +325,22 @@ def validate(root: Path) -> list[str]:
         if actual != expected:
             issues.append(f"stale_blob_marker:{marker}:{actual}!={expected}")
 
+    try:
+        abi_manifest = json.loads((root / ABI_MANIFEST_REL).read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        issues.append(f"invalid_manifest_json:{exc.msg}")
+    else:
+        manifest_files = abi_manifest.get("files")
+        if not isinstance(manifest_files, list):
+            issues.append("invalid_manifest_files_field")
+        else:
+            for rel in REQUIRED_ABI_MANIFEST_FILES:
+                count = manifest_files.count(rel)
+                if count == 0:
+                    issues.append(f"missing_manifest_file:{rel}")
+                elif count != 1:
+                    issues.append(f"duplicate_manifest_file:{rel}:{count}")
+
     for line in MAKEFILE_REQUIRED_LINES:
         require_exact_line_count(issues, makefile, "makefile_line", line)
 
@@ -339,14 +376,23 @@ def build_valid_workspace(root: Path) -> None:
         POLICY_BYTE_GUARD_REL: "#!/usr/bin/env python3\nprint(\"PHASE3_POLICY_BYTE_GUARDS=pass\")\n",
         POLICY_FOCUSED_REPLAY_REL: "#!/usr/bin/env python3\nprint(\"PHASE3_POLICY_UNSAFE_PACKET=pass\")\n",
         POLICY_MMIO_CONSUMER_REL: "#!/usr/bin/env python3\nprint(\"PHASE3_POLICY_UNSAFE_MMIO_CONSUMER=pass\")\n",
+        POLICY_SURVEY_VALIDATOR_REL: "#!/usr/bin/env python3\nprint(\"PHASE3_POLICY_UNSAFE_SURVEY_VALIDATOR=pass\")\n",
         ABI_TEST_REL: "\n".join(REQUIRED_ABI_TEST_SNIPPETS) + "\n",
         ABI_DUMP_REL: "\n".join(REQUIRED_ABI_DUMP_SNIPPETS) + "\n",
         ABI_EXPECTED_REL: "\n".join(REQUIRED_ABI_EXPECTED_SNIPPETS) + "\n",
-        ABI_MANIFEST_REL: '{"phase":"Phase 3"}\n',
         ABI_SLICE_DOC_REL: "# Phase 3 ABI Slice\n",
     }
     for rel, content in minimal_files.items():
         write_file(root / rel, content)
+
+    manifest_payload = {
+        "phase": "Phase 3",
+        "status": "active",
+        "slice": "abi-substrate-skeleton",
+        "file_count": len(REQUIRED_ABI_MANIFEST_FILES),
+        "files": list(REQUIRED_ABI_MANIFEST_FILES),
+    }
+    write_file(root / ABI_MANIFEST_REL, json.dumps(manifest_payload, indent=2) + "\n")
 
     survey_lines = [
         "# Phase 3 Policy and Unsafe Boundary Survey",
@@ -440,6 +486,22 @@ def run_self_test() -> int:
         assert f"missing_panic_policy_snippet:{REQUIRED_PANIC_POLICY_SNIPPETS[-1]}" in issues
 
         build_valid_workspace(root)
+        abi_manifest = json.loads((root / ABI_MANIFEST_REL).read_text(encoding="utf-8"))
+        abi_manifest["files"] = [rel for rel in abi_manifest["files"] if rel != UNSAFE_NARROW_REL]
+        abi_manifest["file_count"] = len(abi_manifest["files"])
+        write_file(root / ABI_MANIFEST_REL, json.dumps(abi_manifest, indent=2) + "\n")
+        issues = validate(root)
+        assert f"missing_manifest_file:{UNSAFE_NARROW_REL}" in issues
+
+        build_valid_workspace(root)
+        abi_manifest = json.loads((root / ABI_MANIFEST_REL).read_text(encoding="utf-8"))
+        abi_manifest["files"] = [rel for rel in abi_manifest["files"] if rel != SURVEY_REL]
+        abi_manifest["file_count"] = len(abi_manifest["files"])
+        write_file(root / ABI_MANIFEST_REL, json.dumps(abi_manifest, indent=2) + "\n")
+        issues = validate(root)
+        assert f"missing_manifest_file:{SURVEY_REL}" in issues
+
+        build_valid_workspace(root)
         write_file(
             root / POLICY_BYTE_GUARD_REL,
             "#!/usr/bin/env python3\nimport sys\nprint(\"PHASE3_POLICY_BYTE_GUARDS=fail\")\nsys.exit(1)\n",
@@ -503,7 +565,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
