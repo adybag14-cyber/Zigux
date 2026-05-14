@@ -151,8 +151,8 @@ REQUIRED_SCRIPTS_README_MARKERS = (
     "Phase 13 flow -",
     "`check-phase13-notifier-priority-signal.py`",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
-    "adjacent release-surface evidence",
-    "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`.",
+    "direct slice, survey, manifest, build, notifier, and Landlock tests-root companions that current `master` cannot materialize should stay framed as repo-reality gaps",
+    "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h` stay explicit on current `master`.",
 )
 
 REQUIRED_TESTS_README_MARKERS = (
