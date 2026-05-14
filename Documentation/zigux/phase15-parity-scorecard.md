@@ -9,7 +9,7 @@ This note records the bounded Phase 15 parity-accounting surface for the freeze-
 - `PHASE15_SLICE=parity-scorecard-baseline`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - `PHASE15_SCORECARD_ROLE=blocked_posture_accounting_not_port_readiness`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-13`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-14`
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the scorecard remains an honest blocker-accounting packet, not a port-readiness claim
 
@@ -23,7 +23,7 @@ The scorecard now also carries the same phase, status-bucket, required-approver-
 
 The paired freeze-map governance gate now cross-checks this scorecard's dated readback marker plus the active-freeze and blocked-anchor aggregate counts against the live freeze-map manifest, so the metrics below are reviewable governance accounting rather than note-only summary prose.
 
-That means the current parity-tracking gap is narrower and maintenance-only: keep the scorecard's lane identity, surveyed-master provenance, validator-first gate wording, roadmap wording, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata.
+That means the current parity-tracking gap is narrower and maintenance-only: the scorecard now matches the freeze-map governance packet's current 2026-05-14 dated readback marker and still keeps the lane identity, surveyed-master provenance, validator-first gate wording, roadmap wording, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata.
 
 ## Aggregate Metrics
 
@@ -105,6 +105,19 @@ That means the current parity-tracking gap is narrower and maintenance-only: kee
 - if the evidence becomes stale or contradictory, the scorecard must keep the anchor blocked until the review-process packet records a fresh dated readback or reopen trigger
 - if a future lane wants a status change, it must update this scorecard together with `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/phase15-architecture-council-review-process.md`
 - study-only anchors remain outside this scorecard until a lane asks for a status-bucket review
+
+## Maintenance-Mode Handoff
+
+- current lane posture: `maintenance_mode`
+- replay before trusting this parked scorecard:
+  - `python3 scripts/zigux/validate-phase15.py`
+  - `make -C zigux phase15-validate`
+  - `zig build test --build-file zigux/tests/phase15_build.zig`
+- reopen only when one of the packet-local conditions below becomes true:
+  - a freeze-in-C anchor changes blocker posture or required approver set
+  - the Architecture Council approval count changes from zero
+  - the paired freeze-map governance packet records a newer dated readback that changes the scorecard's blocker accounting
+- next future target: keep the scorecard parked unless one of those packet-local conditions fires; if a future truthfulness drift is scorecard-local, reread `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/tests/phase15_parity_scorecard.json`, `zigux/tests/phase15_parity_scorecard.zig`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `zigux/tests/phase15_freeze_map_manifest.json`, then keep any repair inside the scorecard packet instead of reopening the broader review-process or indefinite-C policy lanes
 
 ## Non-goals
 
