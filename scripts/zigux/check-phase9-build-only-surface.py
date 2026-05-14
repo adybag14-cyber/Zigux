@@ -167,6 +167,9 @@ REQUIRED_MARKERS = {
     SCRIPTS_README_PATH: [
         "Phase 9 flow",
         "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map",
+        "`Documentation/zigux/phase9-runtime-loader-gap-survey.md`",
+        "`zigux/tests/runtime_loader_gap_manifest.json`",
+        "`zigux/tests/runtime_loader_gap_survey.zig`",
         "there is no dedicated shared `validate-phase9.py`",
     ],
     TESTS_README_PATH: [
