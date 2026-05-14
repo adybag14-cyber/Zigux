@@ -275,7 +275,7 @@ def assert_order_case(root: Path, rel_path: str, earlier_marker: str, later_mark
         + earlier_marker
         + text[later_index + len(later_marker) :]
     )
-    (root / rel_path).writeText(swapped, encoding="utf-8")
+    (root / rel_path).write_text(swapped, encoding="utf-8")
 
     result = run_validator(root)
     expected = f"marker-order:{rel_path}:{earlier_marker}:{later_marker}"
