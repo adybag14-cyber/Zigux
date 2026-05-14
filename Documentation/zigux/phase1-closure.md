@@ -262,6 +262,14 @@ That means `test "bitmap fill clamps tail bits in partial words"` stays present 
 
 - `PHASE1_BITMAP_FILL_TAIL_CLAMP_REVIEW=helper-local bitmap fill tail-clamp proof stays explicit through the direct bitmap test anchor so fill and bitmap_fill clamp the final partial word to the live tail window instead of setting out-of-range tail bits`
 
+The helper-local cross-word `bitmap.scnprintf()` range-collapse proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap scnprintf collapses contiguous ranges across word boundaries"` stays present and review-visible whenever `bitmap.scnprintf()` changes. This helper-local test is the bounded proof that one contiguous live range still renders as one collapsed interval even when it crosses a backing-word boundary, while later disjoint bits continue to render as separate suffix ranges instead of splitting the cross-word interval or dropping the later bit.
+
+- `PHASE1_BITMAP_SCNPRINTF_CROSS_WORD_REVIEW=helper-local bitmap.scnprintf cross-word range-collapse proof stays explicit through the direct bitmap test anchor so one contiguous live range still renders as one collapsed interval across backing-word boundaries while later disjoint bits stay visible as separate suffix ranges`
+
 The helper-local `bitmap.scnprintf()` truncation proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
