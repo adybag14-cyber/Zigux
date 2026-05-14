@@ -66,6 +66,10 @@ pub const StringFormattingCase = struct {
     iteration_count: i32,
     selected_string: []const u8,
     selected_string_slot: usize,
+    array_prefix: [4]i32,
+    array_prefix_len: usize,
+    payload_len: usize,
+    array_sentinel: i32,
     formatted_message: [16]u8,
     formatted_message_len: usize,
 };
@@ -322,6 +326,10 @@ pub const TraceEventsReferenceSample = struct {
             const count: i32 = @intCast(i);
             try self.replayMainIteration(count);
 
+            var array_prefix: [4]i32 = [_]i32{0} ** 4;
+            const array_prefix_len = @min(self.selected_string_slot, array_prefix.len);
+            @memcpy(array_prefix[0..array_prefix_len], self.array_payload[0..array_prefix_len]);
+
             var formatted_message: [16]u8 = [_]u8{0} ** 16;
             const message = self.formattedMessage();
             @memcpy(formatted_message[0..message.len], message);
@@ -330,6 +338,10 @@ pub const TraceEventsReferenceSample = struct {
                 .iteration_count = count,
                 .selected_string = expected_string,
                 .selected_string_slot = self.selected_string_slot,
+                .array_prefix = array_prefix,
+                .array_prefix_len = array_prefix_len,
+                .payload_len = self.selected_string_slot,
+                .array_sentinel = self.array_payload[self.selected_string_slot],
                 .formatted_message = formatted_message,
                 .formatted_message_len = message.len,
             };
@@ -569,6 +581,14 @@ test "trace-events sample replays every modulo-selected string and formatted mes
         "Frodo",
         "One ring to rule them all",
     };
+    const expected_prefix_lens = [_]usize{ 0, 1, 2, 3, 4 };
+    const expected_prefixes = [_][4]i32{
+        .{ 0, 0, 0, 0 },
+        .{ 1, 0, 0, 0 },
+        .{ 1, 2, 0, 0 },
+        .{ 1, 2, 3, 0 },
+        .{ 1, 2, 3, 4 },
+    };
     var message_buffer: [16]u8 = undefined;
 
     try sample.init();
@@ -586,6 +606,10 @@ test "trace-events sample replays every modulo-selected string and formatted mes
         try std.testing.expectEqual(@as(i32, @intCast(count)), case.iteration_count);
         try std.testing.expectEqualStrings(expected_string, case.selected_string);
         try std.testing.expectEqual(@as(usize, count), case.selected_string_slot);
+        try std.testing.expectEqual(@as(usize, expected_prefix_lens[count]), case.array_prefix_len);
+        try std.testing.expectEqual(@as(usize, expected_prefix_lens[count]), case.payload_len);
+        try std.testing.expectEqualSlices(i32, expected_prefixes[count][0..expected_prefix_lens[count]], case.array_prefix[0..case.array_prefix_len]);
+        try std.testing.expectEqual(@as(i32, 0), case.array_sentinel);
         try std.testing.expectEqualStrings(
             try std.fmt.bufPrint(&message_buffer, "iter={d}", .{count}),
             case.formatted_message[0..case.formatted_message_len],
