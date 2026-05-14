@@ -49,8 +49,11 @@ test "phase 7 string helpers survey keeps the restored starter packet truthful" 
     try expectContains(helper, "pub fn stringUnescape");
     try expectContains(helper, "pub fn string_unescape");
     try expectContains(helper, "pub fn stringUnescapeInplace");
+    try expectContains(helper, "pub fn string_unescape_inplace");
     try expectContains(helper, "pub fn stringUnescapeAny");
+    try expectContains(helper, "pub fn string_unescape_any");
     try expectContains(helper, "pub fn stringUnescapeAnyInplace");
+    try expectContains(helper, "pub fn string_unescape_any_inplace");
     try expectContains(helper, "pub fn memcpyAndPad");
     try expectContains(helper, "pub fn memcpy_and_pad");
     try expectContains(helper, "pub fn strreplace");
@@ -62,6 +65,9 @@ test "phase 7 string helpers survey keeps the restored starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter keeps sysfs matching newline aware");
     try expectContains(helper_tests, "phase 7 string helpers starter matches tables through the first null entry");
     try expectContains(helper_tests, "phase 7 string helpers starter unescapes supported escape families and preserves unsupported escapes");
+    try expectContains(helper_tests, "string_helpers.stringUnescapeInplace(&selective, string_helpers.UNESCAPE_HEX)");
+    try expectContains(helper_tests, "string_helpers.string_unescape_any(&escaped, &alias_decoded, 0)");
+    try expectContains(helper_tests, "string_helpers.string_unescape_any_inplace(&alias_inplace)");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
 
