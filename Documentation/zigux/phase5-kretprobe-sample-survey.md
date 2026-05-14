@@ -43,6 +43,16 @@ The remaining shared-surface drift in this reread is `zigux/tests/README.md`: it
 - `runOwnershipReplay()` keeps `cold`, `initialized`, `armed`, `replay_complete`, and `exited` snapshots explicit, with `active_instances = 1` and `entry_timestamp_armed = true` only in the armed state
 - `runRecoveryReplay()` keeps outstanding-instance exit rejection, invalid timestamp-order rejection, recovered duration `60`, and post-exit handler rejection explicit
 
+## Contributor checklist
+
+When a contributor updates `samples/zigux/kretprobe_example.zig` or one of its directly coupled reminder surfaces, keep these packet-local prompts explicit here instead of relying on the broader shared guides alone:
+
+- does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` so the packet stays in the non-runtime Phase 5 lane?
+- does the sample still keep the default `kernel_clone` path explicit together with `runRetargetReplay("do_sys_openat2")`, including empty-symbol rejection before init and post-init retarget rejection afterward?
+- do `runAnchorReplay()`, `runLifecycleGuardReplay()`, `runOwnershipReplay()`, and `runRecoveryReplay()` still describe the same bounded packet across the sample, focused test, manifest-backed contract, and survey gate, including `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `nmissed = 1`, `maxactive = 20`, and recovered duration `60`?
+- if a shared reminder surface mentions the restored kretprobe packet, does it keep `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` explicit while still keeping the missing shared `zigux/tests/phase5_build.zig` route framed as the remaining gap?
+- do the docs still keep the separate Phase 9 `runtime_kretprobe` family visible without widening this note into `register_kretprobe()` parity, `unregister_kretprobe()` parity, `pt_regs` parity, or runtime module wiring claims?
+
 ## Boundary reminders
 
 Keep this packet separate from the later Phase 9 runtime family:
