@@ -39,6 +39,12 @@ pub const RecoveryAction = enum {
     restore,
 };
 
+pub const PostResetProbeReplayCheckpoint = enum {
+    after_transmit_queue_restore,
+    after_receive_refill,
+    after_control_queue_restore,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -152,6 +158,8 @@ pub const RecoveryQueuePlan = struct {
     requires_control_queue_restore: bool,
     requires_receive_buffer_refill: bool,
     requires_mergeable_buffer_refill: bool,
+    requires_post_reset_probe_replay: bool,
+    post_reset_probe_replay_checkpoint: PostResetProbeReplayCheckpoint,
 };
 
 pub const ControlQueueRecoveryRequest = struct {
@@ -383,6 +391,13 @@ pub const VirtioNetProbeLab = struct {
 
         const topology = self.frozen_queue_topology_summary orelse return error.QueueTopologyUnavailable;
         const mergeable_plan = self.frozen_mergeable_plan;
+        const requires_post_reset_probe_replay = topology.control_queue_count > 0 or topology.rss_enabled or mergeable_plan != null;
+        const post_reset_probe_replay_checkpoint: PostResetProbeReplayCheckpoint = if (topology.control_queue_count > 0 or topology.rss_enabled)
+            .after_control_queue_restore
+        else if (mergeable_plan != null)
+            .after_receive_refill
+        else
+            .after_transmit_queue_restore;
 
         return .{
             .anchor = descriptor().anchor,
@@ -399,6 +414,8 @@ pub const VirtioNetProbeLab = struct {
             .requires_control_queue_restore = topology.control_queue_count > 0,
             .requires_receive_buffer_refill = mergeable_plan != null,
             .requires_mergeable_buffer_refill = if (mergeable_plan) |plan| plan.uses_mergeable_path else false,
+            .requires_post_reset_probe_replay = requires_post_reset_probe_replay,
+            .post_reset_probe_replay_checkpoint = post_reset_probe_replay_checkpoint,
         };
     }
 
@@ -809,6 +826,80 @@ test "recoveryQueuePlan mirrors the frozen queue summary" {
     try std.testing.expect(plan.requires_control_queue_restore);
     try std.testing.expect(plan.requires_receive_buffer_refill);
     try std.testing.expect(plan.requires_mergeable_buffer_refill);
+    try std.testing.expect(plan.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(PostResetProbeReplayCheckpoint.after_control_queue_restore, plan.post_reset_probe_replay_checkpoint);
+}
+
+test "recoveryQueuePlan schedules probe replay after refill when reset keeps only receive buffers live" {
+    var lab = VirtioNetProbeLab.init();
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 1,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 1,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeReceiveRefill(.{
+        .packet_bytes = 2048,
+        .existing_room_bytes = 4096,
+        .headroom_bytes = 32,
+        .mergeable_rx_bufs = true,
+    });
+    _ = try lab.freezeForReset();
+
+    const plan = try lab.recoveryQueuePlan();
+    try std.testing.expectEqual(@as(u16, 1), plan.effective_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), plan.total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), plan.first_control_queue_index);
+    try std.testing.expect(!plan.rss_enabled);
+    try std.testing.expect(!plan.requires_control_queue_restore);
+    try std.testing.expect(plan.requires_receive_buffer_refill);
+    try std.testing.expect(!plan.requires_mergeable_buffer_refill);
+    try std.testing.expect(plan.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(PostResetProbeReplayCheckpoint.after_receive_refill, plan.post_reset_probe_replay_checkpoint);
+}
+
+test "recoveryQueuePlan can skip extra probe replay when reset has only queue restore work" {
+    var lab = VirtioNetProbeLab.init();
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 1,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 1,
+        .device_queue_pairs = 1,
+        .has_control_vq = false,
+        .has_rss = false,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+    _ = try lab.freezeForReset();
+
+    const plan = try lab.recoveryQueuePlan();
+    try std.testing.expectEqual(@as(u16, 1), plan.effective_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), plan.total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), plan.first_control_queue_index);
+    try std.testing.expect(!plan.rss_enabled);
+    try std.testing.expect(!plan.requires_control_queue_restore);
+    try std.testing.expect(!plan.requires_receive_buffer_refill);
+    try std.testing.expect(!plan.requires_mergeable_buffer_refill);
+    try std.testing.expect(!plan.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(PostResetProbeReplayCheckpoint.after_transmit_queue_restore, plan.post_reset_probe_replay_checkpoint);
 }
 
 test "controlQueueRecoveryPlan keeps control sequencing reviewable without runtime traffic" {
