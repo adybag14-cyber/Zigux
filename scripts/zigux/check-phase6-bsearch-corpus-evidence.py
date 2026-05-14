@@ -146,14 +146,14 @@ REQUIRED_SNIPPETS = {
         "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
         "- direct local corpus evidence checker self-test: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`",
-        "Current `master` still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, but only as a parked seed companion that mirrors the representative ascending, descending, hit-or-miss, symbol, and packed-record cases already exercised inline.",
-        "Reviewers should treat that file as support evidence outside the executable packet rather than as a separate replay surface or a standalone timing-style perf route.",
+        "The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains helper-local support inside that packet today: `phase6_bsearch.zig` still imports it for representative ascending and descending raw-array reuse, and the bounds-focused plus direct C ABI budget replays still reuse its dynamic-length and packed-record seed corpus.",
+        "Reviewers should treat that fixture as compact shared packet support rather than as a separate standalone timing-style route.",
         "Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable`, while the direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` wrappers hand those typed slice and raw byte views back without forcing callers to peel `IndexRange` apart by hand or widening Phase 6 into a separate fixture or routing packet.",
         "`lib/bsearch.zig` now also exports direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` companions on top of `IndexRange`",
     ],
     PERF_SURVEY_PATH.as_posix(): [
         "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig`, not a separate wall-clock perf harness",
-        "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture-backed timing route; the compact `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains supporting seed evidence outside the executable perf packet",
+        "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline equality probes plus a compact shared seed fixture companion for representative arrays, dynamic lengths, and packed-record corpus reuse, without widening into a separate timing route",
     ],
 }
 
@@ -236,10 +236,10 @@ EXPECTED_BSEARCH_EVIDENCE = {
     "lower_upper_dynamic_lengths": 33,
     "lower_upper_max_probe_formula": "len == 0 ? 1 : 2 * len + 2",
     "lower_upper_probe_count_formula": "len == 0 ? 2 : 2 * len + 3",
-    "lower_upper_record_member_size_replay": True,
+    "lower_upper_record_member_size_replay": true,
     "c_abi_equality_dynamic_lengths": 33,
     "c_abi_equality_max_probe_formula": "len == 0 ? 1 : 2 * len + 1",
-    "c_abi_equality_record_member_size_replay": True,
+    "c_abi_equality_record_member_size_replay": true,
     "fixture_companion": "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
     "fixture_ascending_values": 15,
     "fixture_descending_values": 15,
@@ -591,14 +591,14 @@ def run_self_test() -> None:
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
-            "Current `master` still carries `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, but only as a parked seed companion that mirrors the representative ascending, descending, hit-or-miss, symbol, and packed-record cases already exercised inline.",
-            "Current `master` still carries no fixture companion.",
+            "The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains helper-local support inside that packet today: `phase6_bsearch.zig` still imports it for representative ascending and descending raw-array reuse, and the bounds-focused plus direct C ABI budget replays still reuse its dynamic-length and packed-record seed corpus.",
+            "The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains helper-local support outside the packet today.",
         )
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
-            "Reviewers should treat that file as support evidence outside the executable packet rather than as a separate replay surface or a standalone timing-style perf route.",
-            "Reviewers should treat that file as the live executable packet.",
+            "Reviewers should treat that fixture as compact shared packet support rather than as a separate standalone timing-style route.",
+            "Reviewers should treat that fixture as the live executable packet.",
         )
         assert_failure(
             root,
@@ -615,7 +615,7 @@ def run_self_test() -> None:
         assert_failure(
             root,
             PERF_SURVEY_PATH.as_posix(),
-            "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture-backed timing route; the compact `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains supporting seed evidence outside the executable perf packet",
+            "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline equality probes plus a compact shared seed fixture companion for representative arrays, dynamic lengths, and packed-record corpus reuse, without widening into a separate timing route",
             "- bsearch review-surface posture: drifted",
         )
     print("self-test passed")
