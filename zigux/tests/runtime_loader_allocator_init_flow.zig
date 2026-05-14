@@ -437,7 +437,6 @@ test "phase 9 runtime loader allocator/init-flow replay keeps selftest-complete 
     try std.testing.expectEqual(atomic64_pending.init_flow.exit_runs, trace_events_pending.init_flow.exit_runs);
     try std.testing.expectEqual(atomic64_pending.requires_runtime_substrate, trace_events_pending.requires_runtime_substrate);
     try std.testing.expectEqual(atomic64_pending.provides_selftest_hook, trace_events_pending.provides_selftest_hook);
-
     try atomic64_request.releaseWithoutSubstrate();
     try trace_events_request.releaseWithoutSubstrate();
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, atomic64_request.state);
@@ -600,6 +599,7 @@ test "phase 9 runtime loader allocator/init-flow replay keeps prepared snapshots
     request.plan.allocator_handoff = .arena;
     try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
     try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
     try std.testing.expectEqual(runtime_loader.AllocatorHandoff.caller_provided, request.prepared_plan.allocator_handoff);
     try std.testing.expectEqual(runtime_loader.AllocatorHandoff.arena, request.plan.allocator_handoff);
 
