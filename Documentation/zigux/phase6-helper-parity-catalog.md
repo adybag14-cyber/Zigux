@@ -41,17 +41,18 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 
 ### checksum
 - roadmap anchor: `lib/checksum.c`
-- helper expected by the shared packet: `lib/checksum.zig`
+- helper: `lib/checksum.zig`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
+- focused helper replay: `zigux/tests/phase6_checksum.zig`
+- dedicated helper-local perf replay: `zigux/tests/phase6_checksum_perf.zig`
+- compact shared fixture companion: `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - still-present direct C parity scaffolding: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
-- current missing helper-local helper and perf packet: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`
-- blocked route note: the checked-in direct C parity scaffolding is not currently runnable as a complete packet because `zigux/tests/phase6_checksum_c_parity.zig` still imports the absent `lib/checksum.zig` helper and the absent `zigux/tests/fixtures/phase6_checksum_vectors.zig` fixture module
-- stale shared route surfaces that still point at the absent broader checksum helper packet: `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
+- blocked route note: the helper, focused replay, perf runner, and fixture companion are present on current `master`, but `zigux/tests/phase6_build.zig` still does not add a checksum module or checksum test/perf step, so the checksum packet is not yet wired through the same direct `zig build ... --build-file zigux/tests/phase6_build.zig` route shape used by the other landed Phase 6 helpers
+- make/workflow drift note: `zigux/Makefile` still names `phase6-checksum-c-parity` and `phase6-checksum-perf` as phony routes without target bodies, while `.github/workflows/zigux-bootstrap.yml` still limits checksum CI coverage to the parity checker self-test instead of running the restored checksum helper packet itself
 - still-present direct C parity checker: `scripts/zigux/check-phase6-checksum-c-parity.py`
-- direct local C parity rerun route once the helper packet is restored: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
-- Linux-style C parity rerun route once the helper packet is restored: `make -C zigux phase6-checksum-c-parity`
-- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records `27` direct C parity cases and preserves the last blocked slowdown packet as `64B` at `iterations = 200000` and `1501B` at `iterations = 12000`, both with `max_slowdown_pct = 150`
-- current review posture: blocked; the checksum roadmap anchor still belongs in the bounded Phase 6 helper packet, but current `master` only keeps the direct C parity scaffolding, and it cannot honestly claim the broader helper-local replay or slowdown gate until the missing checksum helper and fixture packet return
+- direct local C parity rerun route: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
+- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records `27` direct C parity cases and preserves the checksum slowdown packet as `64B` at `iterations = 200000` and `1501B` at `iterations = 12000`, both with `max_slowdown_pct = 150`
+- current review posture: partially blocked; current `master` now keeps the checksum helper, focused replay, dedicated perf runner, fixture companion, and direct C parity scaffolding, but the routed checksum build/perf packet still lags the restored helper-owned surface so the checksum leg cannot yet claim the same runnable shared-route posture as the landed base64, bsearch, and hexdump evidence
 
 ### hexdump
 - roadmap anchor: `lib/hexdump.c`
@@ -88,6 +89,6 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - `make -C zigux phase6-perf`
 - `make -C zigux phase6-validate`
 - `make -C zigux phase6`
-- current blocked-route posture: the slice notes above keep the focused base64 helper replay, the dedicated base64 slowdown gate, the direct base64 C parity packet, and the direct checksum C parity scaffolding readable as review surfaces, but the checksum helper packet remains blocked because its helper-owned replay and slowdown packet are still incomplete on current `master`
-- current perf-route posture: the shared perf survey above keeps the checksum slowdown route documentary until its missing helper-owned replay files return, while the aggregate `phase6-perf` route should still be read as inventory evidence because the current `zigux/Makefile` readback exposes only the wrapper name instead of a committed target body
-- current shared-lane posture: the broader `phase6-base64-perf`, `phase6-validate`, `phase6-perf`, and `phase6` wrappers remain part of the shared route inventory, but the documented base64 direct build step and the blocked checksum helper packet mean reviewers should cross-check the slice notes, the shared perf survey, and `zigux/tests/phase6_build.zig` before treating those wrappers as runnable packet summaries
+- current blocked-route posture: the slice notes above keep the focused base64 helper replay, the dedicated base64 slowdown gate, the direct base64 C parity packet, and the restored checksum helper packet readable as review surfaces, but the checksum leg remains partially blocked at the shared-route layer because `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still lag the restored checksum helper/test/perf packet
+- current perf-route posture: the shared perf survey above keeps the checksum slowdown route documentary until its helper-owned build/test wiring and wrapper bodies catch up with the restored `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` packet, while the aggregate `phase6-perf` route should still be read as inventory evidence because the current `zigux/Makefile` readback exposes only the wrapper name instead of a committed target body
+- current shared-lane posture: the broader `phase6-base64-perf`, `phase6-validate`, `phase6-perf`, and `phase6` wrappers remain part of the shared route inventory, but the documented base64 direct build step and the checksum packet's restored helper-owned files mean reviewers should cross-check the slice notes, the shared perf survey, and `zigux/tests/phase6_build.zig` before treating those wrappers as runnable packet summaries
