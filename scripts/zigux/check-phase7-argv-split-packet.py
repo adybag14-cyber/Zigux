@@ -70,6 +70,7 @@ REQUIRED_MARKERS = {
         "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
+        "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
         "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
         "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
@@ -86,6 +87,7 @@ REQUIRED_MARKERS = {
         "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
+        "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
         "phase 7 argvSplit deinit clears exported storage and argv views",
         "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
@@ -368,6 +370,20 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "zigux/tests/phase7_argv_split_survey.zig",
+            "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
+            "",
+            "survey_first_nul_blank_marker",
+        )
+        expect_missing_marker(
+            "survey_first_nul_blank_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_survey.zig: phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/phase7_argv_split.zig",
             "phase 7 argvSplit token buffer does not alias the source text",
             "",
@@ -405,6 +421,20 @@ def run_self_test() -> None:
             "tests_shared_blank_deinit_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split.zig: phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig",
+            "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
+            "",
+            "tests_first_nul_blank_marker",
+        )
+        expect_missing_marker(
+            "tests_first_nul_blank_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
         )
         write_fixture_root(tmp_root)
 
@@ -463,7 +493,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: pub fn cArgv",
         )
 
-    case_count = 21
+    case_count = 23
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
