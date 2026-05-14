@@ -86,6 +86,20 @@ pub const WrappedPreviewSummary = struct {
     visible_span_after_preview: VisibleSpanSummary,
 };
 
+pub const RemainingCapacitySummary = struct {
+    drained_prefix: [8]u8,
+    available_after_init: usize,
+    available_after_hello: usize,
+    available_when_full: usize,
+    available_after_skip: usize,
+    available_after_wrap_refill: usize,
+    available_after_partial_drain: usize,
+    queue_len_after_partial_drain: usize,
+    visible_span_after_partial_drain: VisibleSpanSummary,
+    wrapped_when_full: bool,
+    wrapped_after_wrap_refill: bool,
+};
+
 pub const SampleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -371,6 +385,45 @@ pub const BytestreamFifoSample = struct {
             .queue_len_after_preview = self.count(),
             .available_after_preview = self.available(),
             .visible_span_after_preview = self.visibleSpanSummary(),
+        };
+    }
+
+    pub fn runRemainingCapacityReplay(self: *Self) !RemainingCapacitySummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+
+        self.reset();
+        const available_after_init = self.available();
+
+        if (self.enqueueSlice("hello") != 5) return error.UnexpectedInitialCopyCount;
+        const available_after_hello = self.available();
+
+        var fill_value: u8 = 0;
+        while (self.pushByte(fill_value)) : (fill_value += 1) {}
+        const available_when_full = self.available();
+        const wrapped_when_full = self.usesWrappedStorageWindow();
+
+        _ = self.skipByte() orelse return error.UnexpectedSkipOnEmpty;
+        const available_after_skip = self.available();
+
+        if (!self.pushByte(200)) return error.UnexpectedWrapRefillFailure;
+        const available_after_wrap_refill = self.available();
+        const wrapped_after_wrap_refill = self.usesWrappedStorageWindow();
+
+        var drained_prefix: [8]u8 = undefined;
+        if (self.dequeueSlice(drained_prefix[0..]) != drained_prefix.len) return error.UnexpectedDrainCount;
+
+        return .{
+            .drained_prefix = drained_prefix,
+            .available_after_init = available_after_init,
+            .available_after_hello = available_after_hello,
+            .available_when_full = available_when_full,
+            .available_after_skip = available_after_skip,
+            .available_after_wrap_refill = available_after_wrap_refill,
+            .available_after_partial_drain = self.available(),
+            .queue_len_after_partial_drain = self.count(),
+            .visible_span_after_partial_drain = self.visibleSpanSummary(),
+            .wrapped_when_full = wrapped_when_full,
+            .wrapped_after_wrap_refill = wrapped_after_wrap_refill,
         };
     }
 
@@ -711,6 +764,33 @@ test "bytestream fifo sample keeps occupancy review helper explicit" {
     try std.testing.expect(after_exit.empty);
     try std.testing.expect(!after_exit.full);
     try std.testing.expect(!after_exit.wrapped_window);
+}
+
+test "bytestream fifo sample keeps remaining-capacity replay explicit" {
+    var sample = BytestreamFifoSample{};
+
+    try sample.init();
+    const summary = try sample.runRemainingCapacityReplay();
+
+    try std.testing.expectEqualSlices(u8, &.{ 'e', 'l', 'l', 'o', 0, 1, 2, 3 }, summary.drained_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), summary.available_after_init);
+    try std.testing.expectEqual(@as(usize, 27), summary.available_after_hello);
+    try std.testing.expectEqual(@as(usize, 0), summary.available_when_full);
+    try std.testing.expect(!summary.wrapped_when_full);
+    try std.testing.expectEqual(@as(usize, 1), summary.available_after_skip);
+    try std.testing.expectEqual(@as(usize, 0), summary.available_after_wrap_refill);
+    try std.testing.expect(summary.wrapped_after_wrap_refill);
+    try std.testing.expectEqual(@as(usize, 8), summary.available_after_partial_drain);
+    try std.testing.expectEqual(@as(usize, 24), summary.queue_len_after_partial_drain);
+    try std.testing.expectEqual(@as(usize, 9), summary.visible_span_after_partial_drain.head_index);
+    try std.testing.expectEqual(@as(usize, 1), summary.visible_span_after_partial_drain.tail_index);
+    try std.testing.expectEqual(@as(usize, 24), summary.visible_span_after_partial_drain.total_visible);
+    try std.testing.expectEqual(@as(usize, 23), summary.visible_span_after_partial_drain.first_window_len);
+    try std.testing.expectEqual(@as(usize, 1), summary.visible_span_after_partial_drain.second_window_len);
+    try std.testing.expect(summary.visible_span_after_partial_drain.wraps);
+    try std.testing.expectEqual(@as(usize, 24), sample.count());
+    try std.testing.expectEqual(@as(usize, 8), sample.available());
+    try std.testing.expect(sample.usesWrappedStorageWindow());
 }
 
 test "bytestream fifo sample keeps queue-shape review helpers explicit" {
