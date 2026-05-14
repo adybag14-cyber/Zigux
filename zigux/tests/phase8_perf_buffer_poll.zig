@@ -45,6 +45,25 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "no standalone clockevent helper");
 }
 
+test "phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit" {
+    const gate = try readWorkspaceFile(
+        std.testing.allocator,
+        "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(gate);
+
+    try expectContains(gate, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py");
+    try expectContains(gate, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
+    try expectContains(gate, "zigux/tests/phase8_perf_buffer_poll.zig");
+    try expectContains(gate, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
+    try expectContains(gate, "make -C zigux phase8-perf-buffer-poll-test");
+    try expectContains(
+        gate,
+        "test \"phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit\" {",
+    );
+}
+
 test "phase 8 perf-buffer poll helper keeps ready-buffer cursor traversal explicit" {
     const buffers = [_]perf_buffer_poll.BufferObservation{
         .{},
