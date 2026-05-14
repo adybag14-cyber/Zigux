@@ -80,6 +80,13 @@ The current starter replay keeps these proofs explicit:
 - in-place replacement behavior that stops at the first NUL
 - the dedicated survey gate, manifest packet, no-sample boundary replay, shared validator route, shared build route, and Linux-style `make -C zigux phase7` replay
 
+The current starter replay also keeps these ownership-focused boundaries explicit:
+
+- `skipSpaces()`, `trimSpaces()`, and `strim()` stop at the exported C-string boundary and keep caller-provided slices visible
+- exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit
+- `stringEscapeMem()` and `stringEscapeStrAnyNp()` keep append-limited and dictionary-mode output accounting inside caller-owned storage
+- `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries
+
 ## Non-goals
 
 This expanded starter slice does not yet claim:
