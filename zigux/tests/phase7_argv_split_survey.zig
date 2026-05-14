@@ -60,6 +60,8 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    review_surfaces: []const []const u8,
+    covered_helpers: []const []const u8,
     current_verification: CurrentVerification,
     ownership_focus: []const []const u8,
     survey_summary: SurveySummary,
@@ -135,6 +137,35 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(std.mem.containsAtLeast(u8, slice_note, 1, "PHASE7_LANE_KEY=P7-L09"));
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/argv_split.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqual(@as(usize, 21), manifest.review_surfaces.len);
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/README.md");
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/review-checklist.md");
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-argv-split-slice.md");
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md");
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
+    try expectStringSliceContains(manifest.review_surfaces, "samples/zigux/README.md");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/README.md");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/validate-phase7.py");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/README.md");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_build.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split_survey.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split_manifest.json");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "lib/argv_split.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/Makefile");
+    try expectStringSliceContains(manifest.review_surfaces, ".github/workflows/zigux-bootstrap.yml");
+    try std.testing.expectEqual(@as(usize, 6), manifest.covered_helpers.len);
+    try expectStringSliceContains(manifest.covered_helpers, "countArgc");
+    try expectStringSliceContains(manifest.covered_helpers, "argvSplit");
+    try expectStringSliceContains(manifest.covered_helpers, "argvSplitWithArgc");
+    try expectStringSliceContains(manifest.covered_helpers, "cArgv");
+    try expectStringSliceContains(manifest.covered_helpers, "argvFree");
+    try expectStringSliceContains(manifest.covered_helpers, "deinit");
     try std.testing.expect(manifest.current_verification.verified_on_utc.len != 0);
     try std.testing.expectEqualStrings("confirmed", manifest.current_verification.argv_split_pair_compile.status);
     try std.testing.expectEqual(@as(usize, 2), manifest.current_verification.argv_split_pair_compile.paths.len);
@@ -175,6 +206,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_lane_note, "argv-split packet, lane `P7-L09`:");
     try expectContains(helper_lane_note, "Documentation/zigux/phase7-argv-split-slice.md");
     try expectContains(helper_lane_note, "PHASE7_ARGV_SPLIT_LANE=P7-L09");
+    try expectContains(helper_lane_note, "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09");
     try expectContains(helper_lane_note, "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.");
 
     try expectContains(docs_root, "Documentation/zigux/phase7-argv-split-slice.md");
@@ -239,11 +271,16 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(checker, "\"zigux/tests/phase7_argv_split_manifest.json\"");
     try expectContains(checker, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"");
 
-    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-argv-split-packet.py\",");
-    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split.zig\",");
-    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_survey.zig\",");
-    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_manifest.json\",");
-    try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\",");
+    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-argv-split-packet.py\","
+);
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split.zig\","
+);
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_survey.zig\","
+);
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_manifest.json\","
+);
+    try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\","
+);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -256,6 +293,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
         try std.testing.expect(gap.kind.len > 0);
         try std.testing.expect(gap.why_now.len > 0);
         try std.testing.expect(isAllowedStatus(gap.status));
+        try expectStringSliceContains(manifest.review_surfaces, gap.zigux_destination);
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             starter_landed_count += 1;
