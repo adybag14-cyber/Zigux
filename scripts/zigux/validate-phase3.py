@@ -34,6 +34,8 @@ REPO_FILES = (
     Path("Documentation/zigux/README.md"),
     Path("Documentation/zigux/review-checklist.md"),
     Path("Documentation/zigux/phase3-abi-slice.md"),
+    Path("Documentation/zigux/phase3-abi-bindings-survey.md"),
+    Path("Documentation/zigux/phase3-bindings-governance.md"),
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
     Path("Documentation/zigux/phase3-kernel-export-shim-governance.md"),
     Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"),
@@ -77,6 +79,7 @@ REPO_FILES = (
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"),
     Path("scripts/zigux/survey-phase3-abi-constant-parity.py"),
@@ -693,8 +696,49 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        validator_support_rel = Path("Documentation/zigux/phase3-validator-support-surface.md")
+        abi_bindings_survey_rel = Path("Documentation/zigux/phase3-abi-bindings-survey.md")
         _write(root / kernel_export_governance_rel, "# restored\n")
+        (root / abi_bindings_survey_rel).unlink()
+        issues = validate_repo(root)
+        expected_abi_bindings_survey_missing = (
+            f"missing repo file: {abi_bindings_survey_rel.as_posix()}"
+        )
+        if expected_abi_bindings_survey_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing ABI bindings survey note was not reported")
+            return 1
+        case_count += 1
+
+        bindings_governance_rel = Path("Documentation/zigux/phase3-bindings-governance.md")
+        _write(root / abi_bindings_survey_rel, "# restored\n")
+        (root / bindings_governance_rel).unlink()
+        issues = validate_repo(root)
+        expected_bindings_governance_missing = (
+            f"missing repo file: {bindings_governance_rel.as_posix()}"
+        )
+        if expected_bindings_governance_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing bindings-governance note was not reported")
+            return 1
+        case_count += 1
+
+        linux_zigux_header_governance_validator_rel = Path(
+            "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"
+        )
+        _write(root / bindings_governance_rel, "# restored\n")
+        (root / linux_zigux_header_governance_validator_rel).unlink()
+        issues = validate_repo(root)
+        expected_linux_zigux_header_governance_validator_missing = (
+            f"missing repo file: {linux_zigux_header_governance_validator_rel.as_posix()}"
+        )
+        if expected_linux_zigux_header_governance_validator_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing linux-zigux header-governance validator was not reported")
+            return 1
+        case_count += 1
+
+        validator_support_rel = Path("Documentation/zigux/phase3-validator-support-surface.md")
+        _write(root / linux_zigux_header_governance_validator_rel, "# restored\n")
         (root / validator_support_rel).unlink()
         issues = validate_repo(root)
         expected_validator_support_missing = (
