@@ -12,6 +12,16 @@ pub const CpuMask = struct {
     }
 };
 
+pub const PossibleCpuSummary = struct {
+    mask_bit_len: usize,
+    possible_cpu_count: usize,
+    highest_cpu_index: ?usize,
+
+    pub fn deriveAutoCpuCount(self: PossibleCpuSummary, requested_cpu_count: usize) usize {
+        return derivePerfBufferAutoCpuCount(self.possible_cpu_count, requested_cpu_count);
+    }
+};
+
 pub const ParseCpuMaskError = error{
     EmptyCpuRange,
     InvalidCpuRange,
@@ -156,12 +166,36 @@ pub fn parseCpuMaskFromReader(
     return parseCpuMaskString(allocator, collected.items);
 }
 
-pub fn countPossibleCpus(mask: []const bool) usize {
-    var count: usize = 0;
-    for (mask) |present| {
-        if (present) count += 1;
+pub fn summarizePossibleCpus(mask: []const bool) PossibleCpuSummary {
+    var possible_cpu_count: usize = 0;
+    var highest_cpu_index: ?usize = null;
+
+    for (mask, 0..) |present, index| {
+        if (!present) continue;
+        possible_cpu_count += 1;
+        highest_cpu_index = index;
     }
-    return count;
+
+    return .{
+        .mask_bit_len = mask.len,
+        .possible_cpu_count = possible_cpu_count,
+        .highest_cpu_index = highest_cpu_index,
+    };
+}
+
+pub fn summarizePossibleCpusFromReader(
+    allocator: std.mem.Allocator,
+    scratch: []u8,
+    reader: ChunkReader,
+) anyerror!PossibleCpuSummary {
+    const parsed = try parseCpuMaskFromReader(allocator, scratch, reader);
+    defer parsed.deinit(allocator);
+
+    return summarizePossibleCpus(parsed.values);
+}
+
+pub fn countPossibleCpus(mask: []const bool) usize {
+    return summarizePossibleCpus(mask).possible_cpu_count;
 }
 
 pub fn derivePerfBufferAutoCpuCount(total_possible_cpus: usize, requested_cpu_count: usize) usize {
@@ -169,4 +203,14 @@ pub fn derivePerfBufferAutoCpuCount(total_possible_cpus: usize, requested_cpu_co
         return total_possible_cpus;
     }
     return requested_cpu_count;
+}
+
+pub fn derivePerfBufferAutoCpuCountFromReader(
+    allocator: std.mem.Allocator,
+    scratch: []u8,
+    reader: ChunkReader,
+    requested_cpu_count: usize,
+) anyerror!usize {
+    const summary = try summarizePossibleCpusFromReader(allocator, scratch, reader);
+    return summary.deriveAutoCpuCount(requested_cpu_count);
 }
