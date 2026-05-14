@@ -47,6 +47,10 @@ const Manifest = struct {
     anchors: []const Anchor,
 };
 
+const FreezeMapManifest = struct {
+    study_only_targets: []const []const u8,
+};
+
 fn readRepoFile(path: []const u8, limit: usize) ![]u8 {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -100,6 +104,12 @@ fn expectAnchorPacketAlignment(scorecard_doc: []const u8, governance_note: []con
     try expectContains(governance_note, anchor.evidence_archive.benchmark_notes_status);
     try expectContains(governance_note, anchor.evidence_archive.replay_command);
     try expectContains(governance_note, anchor.evidence_archive.latest_blocker_disposition);
+}
+
+fn expectAnchorsOmitPath(anchors: []const Anchor, forbidden_path: []const u8) !void {
+    for (anchors) |anchor| {
+        try std.testing.expect(!std.mem.eql(u8, anchor.path, forbidden_path));
+    }
 }
 
 fn countStatusBucket(anchors: []const Anchor, expected_status_bucket: []const u8) usize {
@@ -221,10 +231,21 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     const manifest_json = try readRepoFile("zigux/tests/phase15_parity_scorecard.json", 24 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
+    const freeze_map_manifest_json = try readRepoFile("zigux/tests/phase15_freeze_map_manifest.json", 32 * 1024);
+    defer std.testing.allocator.free(freeze_map_manifest_json);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
         .ignore_unknown_fields = true,
     });
     defer parsed.deinit();
+
+    const freeze_map_manifest = try std.json.parseFromSlice(
+        FreezeMapManifest,
+        std.testing.allocator,
+        freeze_map_manifest_json,
+        .{ .ignore_unknown_fields = true },
+    );
+    defer freeze_map_manifest.deinit();
 
     try expectContains(scorecard_doc, "P15-Y03");
     try expectContains(scorecard_doc, "parity-scorecard-baseline");
@@ -238,6 +259,15 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectMetricLine(scorecard_doc, "study-only anchors tracked outside this scorecard", parsed.value.metrics.study_only_anchors_tracked_outside_scorecard);
     try expectMetricLine(scorecard_doc, "Architecture Council approvals recorded for status change", parsed.value.metrics.architecture_council_status_change_approval_count);
     try expectCurrentBoundedStepHandoff(scorecard_doc);
+
+    try std.testing.expectEqual(
+        freeze_map_manifest.value.study_only_targets.len,
+        parsed.value.metrics.study_only_anchors_tracked_outside_scorecard,
+    );
+    for (freeze_map_manifest.value.study_only_targets) |study_only_target| {
+        try expectContains(freeze_map, study_only_target);
+        try expectAnchorsOmitPath(parsed.value.anchors, study_only_target);
+    }
 
     for (parsed.value.anchors) |anchor| {
         try expectAnchorPacketAlignment(scorecard_doc, governance_note, anchor);
