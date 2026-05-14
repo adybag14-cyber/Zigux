@@ -34,6 +34,7 @@ RUNTIME_LOADER_CONTRACT_PATH = "zigux/kernel/runtime_loader_contract.zig"
 ALLOCATOR_INIT_FLOW_PATH = "zigux/tests/runtime_loader_allocator_init_flow.zig"
 LOADER_GAP_MANIFEST_PATH = "zigux/tests/runtime_loader_gap_manifest.json"
 LOADER_GAP_SURVEY_PATH = "zigux/tests/runtime_loader_gap_survey.zig"
+TRACE_EVENTS_SUBSTRATE_DRIFT_PATH = "zigux/tests/runtime_trace_events_loader_substrate_drift.zig"
 
 FREEZE_MAP_TRACE_BOUNDARY_MARKER = (
     "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`"
@@ -76,6 +77,10 @@ PHASE9_GAP_SURVEY_NOTE_BOUNDARY_MARKER = "`depmod` script or manifest state"
 LOADER_GAP_MANIFEST_NOTE_SURFACE_MARKER = '"surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md"'
 LOADER_GAP_MANIFEST_ROUTE_MARKER = '"current_honest_gate": "make -C zigux phase9-runtime-loader-shared-tests"'
 LOADER_GAP_MANIFEST_BOUNDARY_MARKER = '"id": "runtime-loader-publication-metadata"'
+PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_BUILD_MARKER = "\"phase9-runtime-trace-events-loader-substrate-drift-tests\""
+PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_MAKE_MARKER = (
+    "$(ZIG) build phase9-runtime-trace-events-loader-substrate-drift-tests --build-file zigux/tests/phase9_build.zig"
+)
 OWNER_MAP_MARKERS = [
     "- `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet.",
     "- `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, focused top-bit companion replay, and survey gate packet.",
@@ -99,6 +104,7 @@ REQUIRED_FILES = [
     ALLOCATOR_INIT_FLOW_PATH,
     LOADER_GAP_MANIFEST_PATH,
     LOADER_GAP_SURVEY_PATH,
+    TRACE_EVENTS_SUBSTRATE_DRIFT_PATH,
     "samples/zigux/runtime_atomic64_loader.zig",
     "samples/zigux/runtime_bitmap_loader.zig",
     "samples/zigux/runtime_bitmap_top_bit_contract.zig",
@@ -172,6 +178,7 @@ REQUIRED_MARKERS = {
         "PHONY += phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test phase9",
         "phase9-runtime-loader-shared-tests:",
         "$(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig",
+        PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_MAKE_MARKER,
         "phase9-test:",
         "$(PYTHON) scripts/zigux/check-phase9-build-only-surface.py",
         "phase9: phase9-test",
@@ -188,6 +195,8 @@ REQUIRED_MARKERS = {
         "\"phase9-runtime-loader-shared-tests\"",
         "runtime_loader_gap_survey.zig",
         "runtime_loader_allocator_init_flow.zig",
+        PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_BUILD_MARKER,
+        "runtime_trace_events_loader_substrate_drift.zig",
         "\"phase9-runtime-bitmap-top-bit-tests\"",
         "runtime_bitmap_top_bit_contract.zig",
     ],
@@ -215,6 +224,16 @@ REQUIRED_MARKERS = {
         "shared_loader_shared_tests_route_present",
         "shared_phase9_bundle_route_present",
         "dedicated_validate_phase9_present",
+    ],
+    TRACE_EVENTS_SUBSTRATE_DRIFT_PATH: [
+        "phase 9 runtime trace-events loader rejects prepared shared runtime-substrate drift before any local runtime handoff",
+        "phase 9 runtime trace-events loader rejects initialized-stage prepared shared runtime-substrate drift before any local runtime handoff",
+        "phase 9 runtime trace-events loader rejects prepared shared selftest-hook drift before any local runtime handoff",
+        "phase 9 runtime trace-events loader rejects initialized-stage prepared shared selftest-hook drift before any local runtime handoff",
+        "shared_request.plan.requires_runtime_substrate = false;",
+        "shared_request.plan.provides_selftest_hook = false;",
+        "error.LoaderNotRequired",
+        "error.InvalidSelftestHookEvidence",
     ],
 }
 
@@ -498,6 +517,15 @@ def run_self_test() -> int:
         expect_failure(base, "missing_marker:zigux/Makefile:phase9-runtime-loader-shared-tests:")
 
         write_fixture_tree(base)
+        makefile_path = base / MAKEFILE_PATH
+        makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            makefile.replace(PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_MAKE_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"missing_marker:{MAKEFILE_PATH}:{PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_MAKE_MARKER}")
+
+        write_fixture_tree(base)
         build_path = base / PHASE9_BUILD_PATH
         build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
@@ -505,6 +533,18 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, "missing_marker:zigux/tests/phase9_build.zig:runtime_loader_gap_survey.zig")
+
+        write_fixture_tree(base)
+        build_path = base / PHASE9_BUILD_PATH
+        build = build_path.read_text(encoding="utf-8")
+        build_path.write_text(
+            build.replace("runtime_trace_events_loader_substrate_drift.zig", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:zigux/tests/phase9_build.zig:runtime_trace_events_loader_substrate_drift.zig",
+        )
 
         write_fixture_tree(base)
         allocator_init_flow_path = base / ALLOCATOR_INIT_FLOW_PATH
@@ -560,6 +600,18 @@ def run_self_test() -> int:
         expect_failure(
             base,
             "missing_marker:zigux/tests/runtime_loader_gap_survey.zig:shared_phase9_bundle_route_present",
+        )
+
+        write_fixture_tree(base)
+        drift_path = base / TRACE_EVENTS_SUBSTRATE_DRIFT_PATH
+        drift = drift_path.read_text(encoding="utf-8")
+        drift_path.write_text(
+            drift.replace("error.LoaderNotRequired", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:zigux/tests/runtime_trace_events_loader_substrate_drift.zig:error.LoaderNotRequired",
         )
 
         write_fixture_tree(base)
