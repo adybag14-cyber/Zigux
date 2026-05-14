@@ -75,9 +75,9 @@ shared-reminder backlog, not as a currently open blocker recorded by this note.
 
 For `string_helpers`, those shared no-sample reminders should also keep the
 ownership-focus packet explicit: first-NUL trimming and prefix skipping stop at
-the exported C-string boundary, exact-fit and zero-capacity unescape
-destinations stay caller-owned, append-limited escape accounting stays inside
-caller storage, and `memcpyAndPad()` plus `strreplace()` stay bounded by
+the exported C-string boundary, exact-fit, terminator-only, and zero-capacity
+unescape destinations stay caller-owned, append-limited escape accounting stays
+inside caller storage, and `memcpyAndPad()` plus `strreplace()` stay bounded by
 caller-provided destinations.
 
 Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
