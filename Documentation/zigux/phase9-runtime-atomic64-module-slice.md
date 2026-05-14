@@ -45,7 +45,8 @@ That means the honest current atomic64 packet is a direct starter plus a visible
 2. `zigux/tests/runtime_atomic64_diff.zig` remains the narrow differential gate against `lib/atomic64_test.c`.
 3. `zigux/tests/runtime_atomic64_survey.zig` remains the truthfulness gate for the direct packet and the visible shared-loader reminder packet.
 4. `zigux/Makefile` keeps `make -C zigux phase9-runtime-atomic64-test` explicit as the family-local convenience route beside the direct sample, loader, module, diff, and survey packet.
-5. `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/kernel/runtime_loader.zig`, and `zigux/kernel/runtime_loader_contract.zig` stay adjacent shared review surfaces only until the broader runtime substrate actually lands.
+5. `zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig` keeps the landed loader-scaffold replay explicit as first-class shared-build evidence beside the direct sample leg.
+6. `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/kernel/runtime_loader.zig`, and `zigux/kernel/runtime_loader_contract.zig` stay adjacent shared review surfaces only until the broader runtime substrate actually lands.
 
 ## Review Surface
 
