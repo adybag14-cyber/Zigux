@@ -196,7 +196,7 @@ SURVEY_GATE_MARKERS = [
     'test "phase11 hvc_console survey keeps the dedicated archival packet explicit"',
     'test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step"',
     'test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter"',
-    "try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);",
+    "try std.testing.expect(manifest.survey_summary.hvc_console_test_present);",
 ]
 
 CONSOLE_REPLAY_MARKERS = [
@@ -291,8 +291,8 @@ def load_manifest(root: Path) -> dict[str, object]:
     summary = manifest.get("survey_summary")
     if not isinstance(summary, dict):
         raise CheckError("missing survey_summary in manifest")
-    if summary.get("hvc_console_test_present") is not False:
-        raise CheckError("expected hvc_console_test_present to stay false")
+    if summary.get("hvc_console_test_present") is not True:
+        raise CheckError("expected hvc_console_test_present to stay true")
     return manifest
 
 
@@ -368,7 +368,7 @@ def build_manifest_text(surveyed_commit: str) -> str:
         "surveyed_commit": surveyed_commit,
         "anchor": "drivers/tty/hvc/hvc_console.c",
         "survey_summary": {
-            "hvc_console_test_present": False,
+            "hvc_console_test_present": True,
         },
     }
     return json.dumps(manifest, indent=2) + "\n"
@@ -448,7 +448,7 @@ def run_self_test() -> None:
             (REQUIRED_FILES["teardown_note"], "HUPCL-gated modem-line shutdown"),
             (REQUIRED_FILES["teardown_note"], "stale hangup short-circuit behavior"),
             (REQUIRED_FILES["validation_matrix"], PRESENT_DIRECT_COMPANION_MARKER),
-            (REQUIRED_FILES["survey_gate"], 'try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);'),
+            (REQUIRED_FILES["survey_gate"], 'try std.testing.expect(manifest.survey_summary.hvc_console_test_present);'),
             (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[-1]),
             (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[-1]),
             (REQUIRED_FILES["makefile"], "phase11-hvc-survey:"),
@@ -484,9 +484,9 @@ def run_self_test() -> None:
 
         reset_fixture(tmpdir)
         manifest = json.loads((tmpdir / REQUIRED_FILES["manifest"]).read_text(encoding="utf-8"))
-        manifest["survey_summary"]["hvc_console_test_present"] = True
+        manifest["survey_summary"]["hvc_console_test_present"] = False
         (tmpdir / REQUIRED_FILES["manifest"]).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_failure(tmpdir, "expected hvc_console_test_present to stay false")
+        expect_failure(tmpdir, "expected hvc_console_test_present to stay true")
 
         case_count = len(missing_marker_cases) + len(stale_cases) + 3
         print("PHASE11_HVC_SURVEY_PACKET_SELF_TEST=pass")
