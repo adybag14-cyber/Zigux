@@ -326,6 +326,9 @@ jobs:
       - name: Run bounded conf bridge unit tests
         run: zig test scripts/zigux/kconfig/conf_bridge.zig
 
+      - name: Run bounded confdata bridge unit tests
+        run: zig test scripts/zigux/kconfig/confdata_bridge.zig
+
       - name: Run Phase 1 helper tests
         run: zig build test --build-file zigux/tests/build.zig
 
