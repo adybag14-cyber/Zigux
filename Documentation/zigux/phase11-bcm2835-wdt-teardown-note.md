@@ -1,49 +1,44 @@
 # Phase 11 BCM2835 Watchdog Teardown Note
 
-This note records the bounded teardown and poweroff-ownership surface already present in the Zigux `bcm2835_wdt` packet.
+This note records the bounded teardown and restart or poweroff surface that is directly reviewable in the current Zigux `bcm2835_wdt` starter packet.
+It stays inside the bcm2835 watchdog lane and avoids describing larger registration or remove flows that this run could not read back directly from `master`.
 
 ## Status
 
-- `PHASE11_BCM2835_WDT_TEARDOWN_STATUS=teardown_note_landed`
-- archival packet identity remains `P11-L08` for traceability while the current bcm2835-only continuity note is tracked through `P11-L10`
-- lane scope: keep the current bcm2835 watchdog teardown story reviewable without widening into live platform remove, PM base plumbing, watchdog-core deregistration, or hardware-backed poweroff execution
-- paired driver-local packet:
+- `PHASE11_BCM2835_WDT_TEARDOWN_STATUS=driver_teardown_truthful`
+- archival packet identity remains `P11-L08`
+- lane scope: keep the current bcm2835 watchdog stop, restart, and poweroff story reviewable without widening into platform registration, PM-base plumbing, shared callback installation, or hardware-backed execution
+- directly readable bcm2835 reminder packet for this note:
   - `drivers/watchdog/bcm2835_wdt.zig`
-  - `drivers/watchdog/bcm2835_wdt_verify.zig`
+  - `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
   - `Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md`
   - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
-  - `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
-  - `zigux/tests/phase11_bcm2835_wdt_manifest.json`
-  - `zigux/tests/phase11_bcm2835_wdt_survey.zig`
-  - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
-  - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 
-## Teardown Ownership
+## Teardown And Poweroff Surface
 
-The current bcm2835 watchdog packet already keeps one small teardown boundary explicit:
+The current directly readable bcm2835 driver starter keeps one small teardown boundary explicit:
 
-- `registrationOutcomeSummary()` owns the success-versus-failure split around `devm_watchdog_register_device()` intent, probe-error return intent, and whether the shared `pm_power_off` callback can be claimed or must stay untouched.
-- `ownershipMatrixSummary()` keeps the four current callback-ownership paths aligned in one packet by replaying `claimed_poweroff_handler`, `conflicting_poweroff_handler`, `failed_registration`, and `not_system_power_controller` through `registrationOutcomeSummary()`, `poweroffSummary()`, and `removeSummary()`.
-- `lifecycleMatrixSummary()` keeps the four current PM-base and teardown-readiness paths aligned by replaying `claimed_ready_path`, `conflicting_handler_path`, `failed_registration_path`, and `not_system_power_controller_path` through `platformHandoffSummary()`, `registrationOutcomeSummary()`, `poweroffSummary()`, and `removeSummary()`.
-- `poweroffSummary()` is the bounded poweroff-path surface. It records the shared system-poweroff callback preconditions, the Raspberry Pi halt-partition request bits, and the short watchdog restart arming sequence without claiming a live callback install or board-backed shutdown path.
-- `removeSummary()` and `removeAfterRegistrationSummary()` own the remove-side cleanup by recording that watchdog teardown stays devm-managed while the explicit remove path clears the shared poweroff callback only when `pm_power_off` still belongs to `bcm2835_power_off`, leaving conflicting or unrelated ownership in place.
+- `summarizeProbe()` keeps the system-power-controller split and the claimed-versus-conflicting poweroff-handler summary readable before any live callback installation is implied.
+- `Bcm2835WdtLab.stop()` owns the bounded stop path by recording `reset_register_written`, `running_before_stop`, `running_after_stop`, and `full_reset_armed_after_stop`.
+- `Bcm2835WdtLab.restart()` owns the short restart-arm path by recording the fixed restart timeout ticks, the full-reset posture, the bounded delay marker, and the running state after restart intent.
+- `Bcm2835WdtLab.poweroff()` keeps the halt-partition request and restart-path reuse explicit without claiming that a shared platform poweroff callback was actually installed or executed.
+- `Bcm2835WdtLab.importBootloaderRunning()` keeps the imported running-state checkpoint readable so the restart and poweroff path can be reviewed from a nonzero time-left starting point.
 
 | boundary | current Zigux owner | what stays reviewable now | still out of scope |
 | --- | --- | --- | --- |
-| registration outcome boundary | `registrationOutcomeSummary()` | register-device intent, success-versus-failure bookkeeping, probe-error return intent, claimed-versus-conflicting `pm_power_off` ownership, and whether the callback remains present after probe | live watchdog-core registration, platform probe return wiring, and hardware-backed rollback |
-| ownership matrix paths | `ownershipMatrixSummary()` | the `claimed_poweroff_handler`, `conflicting_poweroff_handler`, `failed_registration`, and `not_system_power_controller` paths tied across registration outcome, poweroff readiness, halt-partition intent, restart arming, and remove-side callback cleanup | live callback installation, platform remove ordering, and hardware-backed rollback |
-| lifecycle handoff matrix paths | `lifecycleMatrixSummary()` | the `claimed_ready_path`, `conflicting_handler_path`, `failed_registration_path`, and `not_system_power_controller_path` rows tied across PM-base availability, registration outcome, poweroff readiness, halt-partition intent, and remove-side cleanup posture | live PM base mapping, platform probe execution, and hardware-backed teardown timing |
-| poweroff handoff | `poweroffSummary()` | callback ownership preconditions, ready-versus-blocked path selection, halt-partition request bits, and short restart-arming intent | live poweroff callback installation, PM base wiring, and hardware-backed shutdown execution |
-| remove handoff | `removeSummary()` and `removeAfterRegistrationSummary()` | devm-managed teardown posture, callback-clear request selection, and preserve-versus-clear ownership outcomes after registration | live platform remove callbacks, reboot-time ordering, and hardware-backed poweroff release |
+| probe-time ownership summary | `summarizeProbe()` | system-power-controller split, claimed-versus-conflicting handler summary, and bounded registration intent flags | live callback installation, platform probe execution, and watchdog-core registration |
+| stop path | `Bcm2835WdtLab.stop()` | reset-register-written intent, running-state transition, and full-reset clear posture | real register IO, driver remove ordering, and hardware-backed shutdown |
+| restart path | `Bcm2835WdtLab.restart()` | restart timeout ticks, full-reset request posture, delay marker, and running-after-restart intent | reboot notifier wiring, platform restart execution, and board timing |
+| poweroff path | `Bcm2835WdtLab.poweroff()` | halt-partition request, restart-path reuse, short restart arm posture, and running-after-poweroff summary | shared callback installation, PM-base plumbing, and board-backed poweroff execution |
+| imported running checkpoint | `Bcm2835WdtLab.importBootloaderRunning()` | bootloader-running carry-in state before restart or poweroff review | live boot firmware handoff and probe-time MMIO observation |
 
 ## Review Rules
 
-- treat this note as an ownership boundary, not as proof of live platform remove execution
-- do not claim PM base release, watchdog-core deregistration, platform-driver remove ordering, or hardware-backed poweroff coverage from this note alone
-- keep this note aligned with `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, and `scripts/zigux/check-phase11-bcm2835-wdt-packet.py` so the teardown story matches the live bcm2835 review packet on `master`
-- when `registrationOutcomeSummary()`, `ownershipMatrixSummary()`, `lifecycleMatrixSummary()`, `poweroffSummary()`, `removeSummary()`, or `removeAfterRegistrationSummary()` change, update this note together with `Documentation/zigux/phase11-bcm2835-wdt-slice.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, and `zigux/tests/phase11_bcm2835_wdt_survey.zig` so the lane keeps one honest teardown story
-- if a later Phase 11 lane widens into live platform registration or PM base plumbing, update this note together with the bcm2835 validation matrix so the teardown story stays truthful
+- Treat this note as a bounded ownership and teardown reminder for the current directly readable driver starter, not as proof of live platform remove or shared callback execution.
+- Keep this note aligned with `drivers/watchdog/bcm2835_wdt.zig`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, and `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` when the directly readable stop, restart, or poweroff helpers change.
+- Do not describe `drivers/watchdog/bcm2835_wdt_verify.zig`, `zigux/tests/phase11_bcm2835_wdt*.zig`, manifest-backed packet closure, or remove-time cleanup helpers as live current-master evidence until those paths are directly readable again in this lane.
+- If a later Phase 11 lane widens the bcm2835 packet into dedicated replay files or broader platform-registration work, refresh this note together with the bcm2835 survey and matrix so the teardown story stays truthful.
 
 ## Next Blocked Step
 
-The next honest bcm2835 follow-up remains blocked on an explicit hardware-validation plan for any wider platform-registration, PM-base, or shared poweroff-handler coordination work. This teardown note does not change that blocker.
+The next honest bcm2835 follow-through remains one directly readable replay-backed or manifest-backed extension that matches the current driver starter. Until then, keep this teardown note bounded to the driver-local stop, restart, and poweroff model already visible on `master`.
