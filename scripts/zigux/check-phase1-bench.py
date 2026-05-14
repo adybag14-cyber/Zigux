@@ -69,6 +69,28 @@ REQUIRED_BITMAP_SOURCE_MARKERS = [
     'bitmap.xorBits(&dst, &lhs, &rhs, nbits);',
     'checksum +%= @as(u64, @intFromBool(bitmap.intersects(&lhs, &rhs, nbits)));',
     'checksum +%= @as(u64, @intFromBool(bitmap.subset(&rhs, &dst, nbits)));',
+    'bitmap.__bitmap_or(&dst, &lhs, &rhs, nbits);',
+    'checksum +%= @intCast(bitmap.__bitmap_weight(&dst, nbits));',
+    'checksum +%= @as(u64, @intFromBool(bitmap.__bitmap_and(&dst, &lhs, &rhs, nbits)));',
+    'checksum +%= @as(u64, @intFromBool(bitmap.__bitmap_andnot(&dst, &lhs, &rhs, nbits)));',
+    'bitmap.__bitmap_xor(&dst, &lhs, &rhs, nbits);',
+    'checksum +%= @as(u64, @intFromBool(bitmap.__bitmap_intersects(&lhs, &rhs, nbits)));',
+    'checksum +%= @as(u64, @intFromBool(bitmap.__bitmap_subset(&rhs, &dst, nbits)));',
+    'var cleared = [_]bitmap.Word{ 0, 0, copy_sentinel };',
+    'bitmap.copyClearTail(cleared[0..2], partial_copy_src[0..2], copy_count);',
+    'checksum +%= @as(u64, @intFromBool(cleared[1] == bitmap.lastWordMask(copy_count)));',
+    'checksum +%= @as(u64, @intFromBool(cleared[2] == copy_sentinel));',
+    'var extended = [_]bitmap.Word{ copy_sentinel, copy_sentinel, copy_sentinel, copy_sentinel };',
+    'bitmap.copyAndExtend(extended[0..3], partial_copy_src[0..2], copy_count, copy_size);',
+    'checksum +%= @as(u64, @intFromBool(extended[1] == bitmap.lastWordMask(copy_count)));',
+    'checksum +%= @as(u64, @intFromBool(extended[2] == 0));',
+    'checksum +%= @as(u64, @intFromBool(extended[3] == copy_sentinel));',
+    'var aligned_extended = [_]bitmap.Word{ copy_sentinel, copy_sentinel, copy_sentinel, copy_sentinel };',
+    'bitmap.copyAndExtend(aligned_extended[0..3], aligned_copy_src[0..1], aligned_copy_count, copy_size);',
+    'checksum +%= @as(u64, @intFromBool(aligned_extended[0] == aligned_copy_src[0]));',
+    'checksum +%= @as(u64, @intFromBool(aligned_extended[1] == 0));',
+    'checksum +%= @as(u64, @intFromBool(aligned_extended[2] == 0));',
+    'checksum +%= @as(u64, @intFromBool(aligned_extended[3] == copy_sentinel));',
 ]
 REQUIRED_FIND_BIT_SOURCE_MARKERS = [
     'fn findBitBench() struct { checksum: u64 } {',
@@ -433,6 +455,26 @@ def run_self_test() -> None:
     ]))
     assert kind == 'missing_bitmap_source_markers'
     assert payload == REQUIRED_BITMAP_SOURCE_MARKERS
+    cases += 1
+
+    kind, payload = validate_bench_source('\n'.join([
+        *[marker for marker in REQUIRED_BITMAP_SOURCE_MARKERS if marker != 'bitmap.copyClearTail(cleared[0..2], partial_copy_src[0..2], copy_count);'],
+        *REQUIRED_FIND_BIT_SOURCE_MARKERS,
+        *REQUIRED_RBTREE_SOURCE_MARKERS,
+        *REQUIRED_STRING_SOURCE_MARKERS,
+    ]))
+    assert kind == 'missing_bitmap_source_markers'
+    assert payload == ['bitmap.copyClearTail(cleared[0..2], partial_copy_src[0..2], copy_count);']
+    cases += 1
+
+    kind, payload = validate_bench_source('\n'.join([
+        *[marker for marker in REQUIRED_BITMAP_SOURCE_MARKERS if marker != 'bitmap.__bitmap_xor(&dst, &lhs, &rhs, nbits);'],
+        *REQUIRED_FIND_BIT_SOURCE_MARKERS,
+        *REQUIRED_RBTREE_SOURCE_MARKERS,
+        *REQUIRED_STRING_SOURCE_MARKERS,
+    ]))
+    assert kind == 'missing_bitmap_source_markers'
+    assert payload == ['bitmap.__bitmap_xor(&dst, &lhs, &rhs, nbits);']
     cases += 1
 
     kind, payload = validate_bench_source('\n'.join([
