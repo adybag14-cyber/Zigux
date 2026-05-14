@@ -66,7 +66,7 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge ignores malformed unset comments with extra tokens",
     "confdata bridge keeps trailing escaped backslashes in quoted strings",
     "confdata bridge emits escaped quoted payloads before trailing suffix bytes",
-    "confdata bridge leaves malformed quoted values as raw scalar values",
+    "confdata bridge ignores malformed quoted values when first seen",
     "confdata bridge emits no entries for empty CONFIG symbol names",
     "confdata bridge keeps only the last assignment for duplicate symbols",
     "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
