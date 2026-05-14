@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
 - `PHASE9_LANE_KEY=P9-L13`
-- `PHASE9_SURVEYED_AT=2026-05-12`
+- `PHASE9_SURVEYED_AT=2026-05-14`
 - scope: survey manifest, dedicated runtime survey gate, dedicated sample and diff packet, directly readable loader and module packet, focused shared-request lifecycle proof, failed-exit retention until drain, maxactive-overflow retention until drain, and the lane-level review note that keeps the still-unlanded shared runtime-loader substrate explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
@@ -42,6 +42,7 @@ The live repo now keeps a bounded `runtime_kretprobe` review packet explicit thr
 - the same loader packet also keeps the selftest-complete prepared snapshot explicit across later exit activity, while the shared-request packet keeps selftest-hook evidence reviewable through the prepared-state handoff and the kretprobe loader keeps prepared selftest-hook drift rejection, prepared shared-plan drift rejection, and release-without-substrate behavior.
 - the same shared handoff packet also rejects idle-loader, non-prepared shared-request, and premature shared-release paths before any live registration claim so the local loader stage and the shared request release state stay synchronized during review-only release-without-substrate flows.
 - `zigux/tests/runtime_loader_allocator_init_flow.zig` now keeps the shared allocator/init-flow replay explicit for the kretprobe family beside the other landed runtime pilot families.
+- the shared request surface only keeps `zigux_runtime_kretprobe_init`, `zigux_runtime_kretprobe_exit`, `register_kretprobe`, and `unregister_kretprobe` readable as review-only lifecycle metadata, so this lane does not claim live `module_init()`, `module_exit()`, `register_kretprobe()`, or `unregister_kretprobe()` execution or kernel initcall ordering parity.
 - the shared `zigux/kernel/runtime_loader.zig` facade and `zigux/kernel/runtime_loader_contract.zig` contract remain a review-only Phase 9 packet under the freeze map's study-only boundary, so this lane keeps the handoff proof explicit without claiming scheduler-facing substrate closure or a freeze-map status change.
 - runtime substrate work is still missing, so the lane intentionally stops at bounded lifecycle and loader-handoff behavior rather than claiming real `register_kretprobe` or `unregister_kretprobe` execution parity.
 
@@ -50,6 +51,7 @@ The live repo now keeps a bounded `runtime_kretprobe` review packet explicit thr
 - the current kretprobe packet now satisfies the bounded selftest-hook, lifecycle-evidence, and tracing-proof part of that roadmap through the sample, diff, module, loader, manifest, and shared allocator/init-flow proofs.
 - the manifest-backed intended state still reads as `starter_landed_without_loadable_runtime_substrate`, and the current review packet now matches that starter posture more closely because the dedicated sample and diff legs are kept explicit beside the module, loader, and survey surfaces.
 - the dedicated `zigux/tests/runtime_kretprobe_survey.zig` gate now already keeps that `starter_landed_without_loadable_runtime_substrate` posture, the still-blocked `loadable Phase 9 runtime kretprobe pilot module parity` cue, and the shared-runtime-substrate next gate explicit across this note and the manifest-backed packet instead of leaving that roadmap gap as a future follow-through item.
+- the next packet-local follow-through is keeping the dedicated kretprobe review packet explicit that `zigux_runtime_kretprobe_init`, `zigux_runtime_kretprobe_exit`, `register_kretprobe`, and `unregister_kretprobe` remain review-only lifecycle metadata rather than live `module_init()`, `module_exit()`, or kernel initcall ordering parity.
 - the next shared blocker after that remains the runtime-loader substrate that could turn the bounded `register_kretprobe` and `unregister_kretprobe` handoff plan into a real loadable runtime-module path.
 
 ## Footer
