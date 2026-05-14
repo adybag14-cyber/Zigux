@@ -162,9 +162,9 @@ EXPECTED_BENCH = {
     ],
     "exact_checksums": {
         "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 2260000,
-        "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 620000,
+        "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 4820000,
         "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 15621472,
-        "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 23340000,
+        "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 37500000,
         "PHASE1_BENCH_STRING_CHECKSUM": 320000,
         "PHASE1_BENCH_RBTREE_CHECKSUM": 3380000,
         "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 1308000,
@@ -245,9 +245,11 @@ EXPECTED_FIND_BIT_MANIFEST = {
     "tail_word_inclusive_boundary_anchor": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
     "tail_word_inclusive_boundary_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit of the final partial word, while later starts still return nbits instead of leaking the out-of-range tail.",
     "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
+    "zero_sized_short_circuit_anchor": 'test "zero-sized scans ignore populated backing words"',
     "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
     "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers"',
     "linux_alias_anchor": 'test "Linux-style aliases mirror the primary find helpers"',
+    "tail_word_set_skip_anchor": 'test "tail-word next set scans skip earlier in-range matches before clamping"',
     "tail_word_skip_anchor": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
     "tail_clamp_fixture_keys": [
         "tail_clamped_first",
@@ -669,6 +671,20 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_inclusive_boundary_anchor"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "find_bit_manifest:tail_word_inclusive_boundary_anchor" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/find_bit.zig"]["zero_sized_short_circuit_anchor"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "find_bit_manifest:zero_sized_short_circuit_anchor" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_set_skip_anchor"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "find_bit_manifest:tail_word_set_skip_anchor" in collect_missing_markers(root)
         case_count += 1
         make_fixture_root(root)
 
