@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
 - `PHASE9_LANE_KEY=P9-L13`
-- `PHASE9_SURVEYED_AT=2026-05-14`
+- `PHASE9_SURVEYED_COMMIT=dc9121502a99ed8c88d79081c6d83a8eada20a00`
 - scope: survey manifest, dedicated runtime survey gate, dedicated sample and diff packet, directly readable loader and module packet, focused shared-request lifecycle proof, failed-exit retention until drain, maxactive-overflow retention until drain, and the lane-level review note that keeps the still-unlanded shared runtime-loader substrate explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
@@ -24,6 +24,8 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
   - `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md`
   - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 
+This note keeps the manifest-backed inspected commit explicit so the kretprobe review packet stays pinned to `zigux/tests/runtime_kretprobe_manifest.json` while the shared runtime substrate remains blocked.
+
 ## Why This Slice Exists
 
 The Phase 9 roadmap explicitly names `samples/kprobes/kretprobe_example.c` as a runtime pilot anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
@@ -35,6 +37,7 @@ The live repo now keeps a bounded `runtime_kretprobe` review packet explicit thr
 ## Survey Findings
 - `samples/kprobes/kretprobe_example.c` remains the Phase 9 runtime pilot anchor for this lane.
 - the live repo now keeps `samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `zigux/tests/runtime_kretprobe_diff.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, `zigux/tests/runtime_kretprobe_manifest.json`, the focused `zig build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig` replay, the matching `make -C zigux phase9-runtime-kretprobe-test` convenience route, and the shared `zigux/tests/phase9_build.zig` coverage explicit for this lane.
+- the same bounded family also remains visible through the broader workflow-backed `make -C zigux phase9` route, so the survey note keeps the family-local replay and the shared bundle route explicit together.
 - the dedicated tracing-proof portion of this lane is now kept explicit through that sample-plus-diff packet, so maxactive pressure, missed-instance accounting, overlapping-entry timestamps, duration expectations, and failed-exit retention do not have to be described as missing direct-read debt while the shared runtime substrate is still blocked.
 - the currently readable packet still keeps selftest-hook behavior, skipped-kernel-thread accounting, missed-instance accounting, duration tracking, and lifecycle transitions reviewable through the dedicated sample, diff, module test, loader scaffold, and shared allocator/init-flow replay without claiming a real loadable runtime module.
 - the landed module packet keeps failed-exit state explicit until the active probe drains, and it keeps maxactive-overflow state explicit until the active probe drains, so the current directly readable module packet does not overstate exit or pressure recovery behavior.
