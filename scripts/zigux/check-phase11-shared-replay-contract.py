@@ -28,6 +28,7 @@ MARKERS = {
         "* no shared `validate-phase11.py`",
         "* no shared `make -C zigux phase11-validate` target on `master`",
         "* the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts together with the materialized build-backed replay files and the landed inventory fixture rather than a broader validator stack",
+        "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; platform-registration scaffolding remains the next same-lane follow-through, while the direct teardown and restart proofs stay compile-local and host-free rather than broader hardware-backed closure",
         "* the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `drivers/tty/hvc/hvc_console.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep those landed bounded replay surfaces explicit in shared summaries without widening them into notifier, khvcd, or host-backed execution closure",
     ],
     "closure_note": [
@@ -126,6 +127,8 @@ def run_self_test() -> None:
             (FILES["note"], MARKERS["note"][5]),
             (FILES["note"], MARKERS["note"][6]),
             (FILES["note"], MARKERS["note"][7]),
+            (FILES["note"], MARKERS["note"][12]),
+            (FILES["note"], "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`"),
             (FILES["note"], "`Documentation/zigux/phase11-hvc-console-slice.md`"),
             (FILES["note"], "`drivers/tty/hvc/hvc_console.zig`"),
             (FILES["closure_note"], MARKERS["closure_note"][2]),
