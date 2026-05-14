@@ -336,6 +336,7 @@ def validate(root: Path) -> list[str]:
             "pub fn requestedExtraBytes(header_value: Header) ?u32 {",
             "pub fn encodeDeviceNumber(",
             "pub fn lastDeviceNumberInRange(",
+            "pub fn decodeDeviceNumber(",
         ),
         UAPI_VERSION: (
             "pub const abi_version: u16 = abi.ABI_VERSION;",
@@ -383,7 +384,8 @@ def build_valid_workspace(root: Path) -> None:
         "pub fn compatibilityStatus() void {}\n"
         "pub fn requestedExtraBytes(header_value: Header) ?u32 { _ = header_value; return null; }\n"
         "pub fn encodeDeviceNumber() void {}\n"
-        "pub fn lastDeviceNumberInRange() void {}\n",
+        "pub fn lastDeviceNumberInRange() void {}\n"
+        "pub fn decodeDeviceNumber() void {}\n",
     )
     write(
         root / UAPI_VERSION,
@@ -630,6 +632,21 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             f"missing_marker:{EXPORT_SHIM.as_posix()}:pub fn lastDeviceNumberInRange(" in issues
+        ), issues
+        case_count += 1
+
+        build_valid_workspace(root)
+        write(
+            root / EXPORT_SHIM,
+            (root / EXPORT_SHIM).read_text(encoding="utf-8").replace(
+                "pub fn decodeDeviceNumber(",
+                "pub fn decodeDevNumber(",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert (
+            f"missing_marker:{EXPORT_SHIM.as_posix()}:pub fn decodeDeviceNumber(" in issues
         ), issues
         case_count += 1
 
