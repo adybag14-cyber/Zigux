@@ -135,8 +135,8 @@ CLOSURE_NOTE_MARKERS = [
     "`Documentation/zigux/phase10-virtio-input-slice.md`",
     "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
     "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
-    "`Documentation/zigux/README.md` now matches that same narrower posture, and fresh public raw rereads show that `scripts/zigux/README.md` does too.",
-    "The remaining honest repo-reality gap in this lane is now only the packet-local slice companion `Documentation/zigux/phase10-virtio-mmio-slice.md`.",
+    "`Documentation/zigux/README.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` should all treat the core, ring, input, input-module, and MMIO slice notes as restored current-`master` evidence",
+    "This closure note should no longer treat `Documentation/zigux/phase10-virtio-mmio-slice.md` as a remaining repo-reality gap.",
 ]
 
 COMPANION_MARKERS = [
@@ -186,8 +186,8 @@ FIXTURE_CONTENT = {
             "- the live `zigux/Makefile` `phase10-test` route reruns the shared packet",
             "- `make -C zigux phase10-test` and `make -C zigux phase10` remain the local replay wrappers",
             "- direct rereads still keep `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` explicit in the closure packet",
-            "- `Documentation/zigux/README.md` now matches that same narrower posture, and fresh public raw rereads show that `scripts/zigux/README.md` does too.",
-            "- The remaining honest repo-reality gap in this lane is now only the packet-local slice companion `Documentation/zigux/phase10-virtio-mmio-slice.md`.",
+            "- `Documentation/zigux/README.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` should all treat the core, ring, input, input-module, and MMIO slice notes as restored current-`master` evidence instead of leaving the MMIO slice note framed as a missing companion.",
+            "- This closure note should no longer treat `Documentation/zigux/phase10-virtio-mmio-slice.md` as a remaining repo-reality gap.",
             "",
         ]
     ),
