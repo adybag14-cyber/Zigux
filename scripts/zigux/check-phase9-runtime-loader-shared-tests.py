@@ -17,6 +17,8 @@ BUILD_EXPECTATIONS = (
     'runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);',
     'runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);',
     'runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);',
+    'runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);',
+    'test_step.dependOn(&run_runtime_loader_gap_survey_tests.step);',
 )
 
 ALLOCATOR_FLOW_EXPECTATIONS = (
@@ -116,6 +118,22 @@ def run_self_test() -> None:
 
         check(root)
 
+        (root / "zigux/tests/phase9_build.zig").write_text(
+            "\n".join(BUILD_EXPECTATIONS[:-1]) + "\n",
+            encoding="utf-8",
+        )
+        try:
+            check(root)
+        except SystemExit as exc:
+            if "run_runtime_loader_gap_survey_tests.step" not in str(exc):
+                raise SystemExit(f"unexpected self-test failure: {exc}") from exc
+        else:
+            raise SystemExit("self-test expected missing shared runtime-loader gap survey dependency failure")
+
+        (root / "zigux/tests/phase9_build.zig").writeText(
+            "\n".join(BUILD_EXPECTATIONS) + "\n",
+            encoding="utf-8",
+        )
         (root / "zigux/tests/runtime_loader_allocator_init_flow.zig").write_text(
             "\n".join(
                 [
