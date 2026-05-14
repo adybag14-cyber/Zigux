@@ -18,6 +18,7 @@ DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 SMOKE_SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 CORE_TRACEABILITY_PATH = Path("Documentation/zigux/phase14-core-boundary-traceability.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
@@ -61,6 +62,7 @@ DOCS_ROOT_MARKERS = [
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
     "zigux/tests/phase14_ring_buffer_manifest.json",
     "zigux/tests/phase14_rcu_tree_manifest.json",
+    ".github/workflows/zigux-bootstrap.yml",
     "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
@@ -293,6 +295,9 @@ def check(root: Path) -> list[str]:
         MAKEFILE_EXACT_COUNT_MARKERS,
         exact_line_match=True,
     )
+    workflow_path = root / WORKFLOW_PATH
+    if not workflow_path.exists():
+        errors.append(f"missing file: {WORKFLOW_PATH.as_posix()}")
     check_manifest(errors, root)
     return errors
 
@@ -394,6 +399,7 @@ def run_self_test() -> int:
         write_text(root / CORE_TRACEABILITY_PATH, good_core_traceability_text())
         write_text(root / MAKEFILE_PATH, good_makefile_text())
         write_text(root / MANIFEST_PATH, good_manifest_text())
+        write_text(root / WORKFLOW_PATH, "name: zigux-bootstrap\n")
 
         if errors := check(root):
             print("self-test expected success but failed:", file=sys.stderr)
@@ -416,6 +422,26 @@ def run_self_test() -> int:
         ):
             print(
                 "self-test expected missing docs-root traceability marker failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_docs_root_text())
+
+        write_text(
+            root / DOCS_ROOT_PATH,
+            good_docs_root_text().replace(
+                "- `.github/workflows/zigux-bootstrap.yml`\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in Documentation/zigux/README.md: .github/workflows/zigux-bootstrap.yml"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing docs-root workflow marker failure",
                 file=sys.stderr,
             )
             return 1
@@ -858,7 +884,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=25")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
