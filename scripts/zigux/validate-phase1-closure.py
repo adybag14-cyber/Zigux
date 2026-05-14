@@ -354,6 +354,13 @@ STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES = (
     'test "strEndsWith ',
 )
 
+STRING_SYSFS_ANCHOR_PREFIXES = (
+    'test "sysfsStreq ',
+    'test "sysfs_streq ',
+    'test "sysfsMatchString ',
+    'test "sysfs_match_string ',
+)
+
 STRING_LOOKUP_ANCHOR_PREFIXES = (
     'test "matchString ',
     'test "match_string ',
@@ -510,6 +517,10 @@ def expected_string_prefix_suffix_review_anchors(test_names: list[str]) -> list[
     return [name for name in test_names if name.startswith(STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES)]
 
 
+def expected_string_sysfs_review_anchors(test_names: list[str]) -> list[str]:
+    return [name for name in test_names if name.startswith(STRING_SYSFS_ANCHOR_PREFIXES)]
+
+
 def expected_string_lookup_review_anchors(test_names: list[str]) -> list[str]:
     return [name for name in test_names if name.startswith(STRING_LOOKUP_ANCHOR_PREFIXES)]
 
@@ -542,6 +553,8 @@ def collect_string_manifest_markers(root: Path, manifest: Any) -> list[str]:
         missing.append("string_manifest:memparse_review_anchors")
     if string_anchors.get("prefix_suffix_review_anchors") != expected_string_prefix_suffix_review_anchors(helper_tests):
         missing.append("string_manifest:prefix_suffix_review_anchors")
+    if string_anchors.get("sysfs_review_anchors") != expected_string_sysfs_review_anchors(helper_tests):
+        missing.append("string_manifest:sysfs_review_anchors")
     if string_anchors.get("lookup_review_anchors") != expected_string_lookup_review_anchors(helper_tests):
         missing.append("string_manifest:lookup_review_anchors")
     if string_anchors.get("strnchr_review_anchor") != expected_string_strnchr_review_anchor(helper_tests):
@@ -620,6 +633,7 @@ def make_fixture_root(root: Path) -> None:
                         "helper_test_anchors": EXPECTED_STRING_HELPER_TESTS,
                         "memparse_review_anchors": expected_string_memparse_review_anchors(EXPECTED_STRING_HELPER_TESTS),
                         "prefix_suffix_review_anchors": expected_string_prefix_suffix_review_anchors(EXPECTED_STRING_HELPER_TESTS),
+                        "sysfs_review_anchors": expected_string_sysfs_review_anchors(EXPECTED_STRING_HELPER_TESTS),
                         "lookup_review_anchors": expected_string_lookup_review_anchors(EXPECTED_STRING_HELPER_TESTS),
                         "strnchr_review_anchor": expected_string_strnchr_review_anchor(EXPECTED_STRING_HELPER_TESTS),
                     },
@@ -740,6 +754,13 @@ def run_self_test() -> None:
         make_fixture_root(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["sysfs_review_anchors"] = ["drift"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "string_manifest:sysfs_review_anchors" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["review_anchors"]["tools/lib/string.zig"]["lookup_review_anchors"] = ["drift"]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "string_manifest:lookup_review_anchors" in collect_missing_markers(root)
@@ -827,7 +848,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + len(EXPECTED_RBTREE_MANIFEST) + 5}"
+        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + len(EXPECTED_RBTREE_MANIFEST) + 6}"
     )
     return 0
 
