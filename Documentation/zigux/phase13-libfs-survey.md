@@ -37,6 +37,7 @@ That matters because `fs/libfs.c` contains small VFS-adjacent helpers that can e
 
 The current lane state is:
 
+- helper-local governance for this packet is tracked under `P13-Y01`, while the separate verification-only replay lane remains parked under `P13-L03`
 - landed `phase13-libfs-helper-starter`
 - landed `phase13-libfs-offset-rename-planner`
 - landed `phase13-libfs-transaction-acquire-helper`
@@ -64,4 +65,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Leave `P13-L04` parked unless fresh current-master inspection finds new same-packet drift across `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, or `zigux/tests/phase13_libfs_manifest.json`; if the libfs family reopens for code later, require a new equally small helper-first step with explicit non-goals before claiming it.
+Leave `P13-Y01` parked unless fresh current-master inspection finds new same-packet drift across `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, or `zigux/tests/phase13_libfs_manifest.json`; if the libfs family reopens for code later, require a new equally small helper-first step with explicit non-goals before claiming it. Keep verification-only published-tree replays on `P13-L03`.
