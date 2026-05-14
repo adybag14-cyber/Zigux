@@ -109,6 +109,14 @@ test "phase 5 trace-events sample keeps the full string and formatting cycle exp
         "Frodo",
         "One ring to rule them all",
     };
+    const expected_prefix_lens = [_]usize{ 0, 1, 2, 3, 4 };
+    const expected_prefixes = [_][4]i32{
+        .{ 0, 0, 0, 0 },
+        .{ 1, 0, 0, 0 },
+        .{ 1, 2, 0, 0 },
+        .{ 1, 2, 3, 0 },
+        .{ 1, 2, 3, 4 },
+    };
     var message_buffer: [16]u8 = undefined;
 
     try module.init();
@@ -126,6 +134,10 @@ test "phase 5 trace-events sample keeps the full string and formatting cycle exp
         try std.testing.expectEqual(@as(i32, @intCast(count)), case.iteration_count);
         try std.testing.expectEqualStrings(expected_string, case.selected_string);
         try std.testing.expectEqual(@as(usize, count), case.selected_string_slot);
+        try std.testing.expectEqual(@as(usize, expected_prefix_lens[count]), case.array_prefix_len);
+        try std.testing.expectEqual(@as(usize, expected_prefix_lens[count]), case.payload_len);
+        try std.testing.expectEqualSlices(i32, expected_prefixes[count][0..expected_prefix_lens[count]], case.array_prefix[0..case.array_prefix_len]);
+        try std.testing.expectEqual(@as(i32, 0), case.array_sentinel);
         try std.testing.expectEqualStrings(
             try std.fmt.bufPrint(&message_buffer, "iter={d}", .{count}),
             case.formatted_message[0..case.formatted_message_len],
