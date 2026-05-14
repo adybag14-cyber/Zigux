@@ -34,7 +34,7 @@ Current `master` keeps the active Phase 7 helper packet split into six non-overl
   - `Documentation/zigux/phase7-helper-lane-sequencing.md`
 - shared Phase 7 docs-root backlog note, lane `P7-Y08`:
   - `Documentation/zigux/README.md`
-- string-helpers packet, lane `P7-L04`:
+- string-helpers starter packet, lane `P7-L04`:
   - `Documentation/zigux/phase7-string-helpers-slice.md`
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
@@ -78,14 +78,14 @@ Current `master` keeps the active Phase 7 helper packet split into six non-overl
 
 ## Current Repo Reality
 
-Fresh repo-first inspection shows four landed helper-local packets plus the separate shared reminder lanes on current `master`.
+Fresh repo-first inspection shows one restored starter helper-local packet, three parked helper-local packets, plus the separate shared reminder lanes on current `master`.
 
-- `string_helpers` is parked as a landed helper-local packet because `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, and `zigux/tests/phase7_string_helpers_sample_boundary.zig` all remain directly readable on current `master`, and the broader shared `phase7_build.zig` replay is directly readable again as a shared bundle reminder.
+- `string_helpers` is restored as a starter helper-local packet because `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, and `zigux/tests/phase7_string_helpers_sample_boundary.zig` all remain directly readable on current `master`, and the broader shared `phase7_build.zig` replay is directly readable again as a shared bundle reminder. That means `P7-L04` should stay on starter-packet truthfulness or one deeper helper-local expansion step, not on the parked same-posture wording used by the cmdline, argv_split, and rbtree lanes.
 - `cmdline` is parked as a landed helper-local packet because the slice note, helper, dedicated test, dedicated survey, committed manifest packet, and committed `nextArg()` fixture remain visible on current `master`, and the broader shared `phase7_build.zig` replay is directly readable again as a shared bundle reminder.
 - `argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible, and the still-used scheduled lane label `P7-Y07` should be treated as the same packet owner as live repo lane `P7-L09` rather than as a second helper lane.
 - `rbtree` is parked as a landed helper-local packet because `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `scripts/zigux/check-phase7-rbtree-parity.py` remain directly readable on current `master`, and the shared `zigux/tests/phase7_build.zig` route is directly readable again as a shared bundle reminder rather than a missing-sibling blocker.
 
-That means the honest shared owner map is not "all helper follow-up stays inside one Phase 7 reminder lane." The helper families still have different reopen conditions, but current repo reality no longer needs a missing-rbtree exception to explain the split.
+That means the honest shared owner map is not "all helper follow-up stays inside one Phase 7 reminder lane." The helper families still have different reopen conditions, and current repo reality now splits one restored starter packet from three parked helper-local packets without needing a missing-rbtree exception to explain the map.
 
 The docs root still keeps its own bounded backlog lane because `Documentation/zigux/README.md` remains the shared tranche summary for the whole Phase 7 bundle. Current `master` already reflects the route-present split: `string_helpers` is a restored starter packet, `cmdline`, `argv_split`, and `rbtree` are landed helper-local packets, and the shared `phase7_build.zig` route is directly readable again as a cross-packet reminder. Recording that docs-root ownership still belongs here; future docs-root truthfulness work still belongs to `P7-Y08` if another summary line drifts.
 
@@ -97,7 +97,7 @@ The tests root also keeps explicit shared-control ownership because `zigux/tests
 - Do not let helper-local slice notes reuse `P7-Y06`; helper-local notes must keep their own helper lane keys.
 - Treat scheduled lane `P7-Y07` as the argv-split alias for `P7-L09`; if a scheduled run starts under `P7-Y07`, keep the work inside the argv-split packet and record the alias instead of creating a second Phase 7 helper owner.
 - `P7-Y08` owns only `Documentation/zigux/README.md` truthfulness for the current Phase 7 tranche summary; it does not own helper-local slices, validators, Makefile routes, or `zigux/tests/phase7_build.zig`.
-- `P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift; the helper and dedicated replay are back on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.
+- `P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift; the helper and dedicated replay are back on current `master`, so follow-through here should stay inside that restored starter packet or one deeper helper-local expansion step unless a new repo-reality gap appears.
 - `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift; the helper and committed `nextArg()` fixture are already visible on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.
 - `P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.
 - `P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift; the dedicated replay, survey, manifest, and parity packet are already visible on current `master`, so follow-through here should stay inside that landed packet unless a new repo-reality gap appears.
