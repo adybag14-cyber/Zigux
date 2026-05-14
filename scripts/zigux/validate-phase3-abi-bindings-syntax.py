@@ -179,6 +179,7 @@ DEV_T_BINDING_MARKERS = (
 )
 
 NOTIFIER_BINDING_MARKERS = (
+    'const std = @import("std");',
     "pub const NotifierResult = enum(u32) {",
     "    done = 0,",
     "    ok = 1,",
@@ -187,6 +188,11 @@ NOTIFIER_BINDING_MARKERS = (
     "    notifier_call: usize,",
     "    next: usize,",
     "    priority: i32,",
+    "pub fn prioritiesNonincreasing(blocks: []const NotifierBlock) bool {",
+    "    if (blocks.len < 2) return true;",
+    "        if (block.priority > previous_priority) return false;",
+    'test "notifier abi keeps nonincreasing priority order reviewable" {',
+    'test "notifier abi accepts empty and singleton priority samples" {',
 )
 
 
@@ -642,6 +648,42 @@ def run_self_test() -> int:
         if expected_notifier_binding_marker not in issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
             print("expected missing notifier binding marker was not reported")
+            return 1
+        case_count += 1
+        _populate_repo(root)
+        _write(
+            root / Path("zigux/bindings/notifier_abi.zig"),
+            _read(root / Path("zigux/bindings/notifier_abi.zig")).replace(
+                "pub fn prioritiesNonincreasing(blocks: []const NotifierBlock) bool {\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_notifier_helper_marker = (
+            "missing notifier binding marker: pub fn prioritiesNonincreasing(blocks: []const NotifierBlock) bool {"
+        )
+        if expected_notifier_helper_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing notifier helper marker was not reported")
+            return 1
+        case_count += 1
+        _populate_repo(root)
+        _write(
+            root / Path("zigux/bindings/notifier_abi.zig"),
+            _read(root / Path("zigux/bindings/notifier_abi.zig")).replace(
+                'test "notifier abi keeps nonincreasing priority order reviewable" {\n',
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_notifier_test_marker = (
+            'missing notifier binding marker: test "notifier abi keeps nonincreasing priority order reviewable" {'
+        )
+        if expected_notifier_test_marker not in issues:
+            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+            print("expected missing notifier test marker was not reported")
             return 1
         case_count += 1
         _populate_repo(root)
