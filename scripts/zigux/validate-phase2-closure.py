@@ -111,6 +111,8 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py": 1,
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig": 1,
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py": 1,
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test": 1,
@@ -130,6 +132,8 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "run: python3 scripts/zigux/check-kconfig-bridge.py": 1,
+    "run: zig test scripts/zigux/kconfig/conf_bridge.zig": 1,
+    "run: zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
     "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase2-fixdep-gate.py": 1,
     "run: python3 scripts/zigux/check-fixdep-diff.py --self-test": 1,
@@ -448,7 +452,7 @@ EXPECTED_CONFDATA_MANIFEST = {
     ],
 }
 
-SELF_TEST_CHECK_COUNT = 20
+SELF_TEST_CHECK_COUNT = 24
 
 
 def require_files(paths: list[Path]) -> list[str]:
@@ -594,6 +598,24 @@ def run_self_test_checks() -> list[str]:
             ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test:count=0:expected=1"],
         ),
         (
+            "makefile_exact_counts_missing_conf_bridge_direct_replay",
+            validate_exact_lines(
+                "\n".join(key for key in PHASE2_MAKEFILE_RUN_COUNTS if key != "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig"),
+                PHASE2_MAKEFILE_RUN_COUNTS,
+                "makefile",
+            ),
+            ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig:count=0:expected=1"],
+        ),
+        (
+            "makefile_exact_counts_missing_confdata_bridge_direct_replay",
+            validate_exact_lines(
+                "\n".join(key for key in PHASE2_MAKEFILE_RUN_COUNTS if key != "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig"),
+                PHASE2_MAKEFILE_RUN_COUNTS,
+                "makefile",
+            ),
+            ["makefile:exact_count:cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig:count=0:expected=1"],
+        ),
+        (
             "makefile_exact_counts_missing_fixdep_gate",
             validate_exact_lines(
                 "\n".join(key for key in PHASE2_MAKEFILE_RUN_COUNTS if key != "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py"),
@@ -619,6 +641,24 @@ def run_self_test_checks() -> list[str]:
                 "workflow",
             ),
             ["workflow:exact_count:run: python3 scripts/zigux/check-zig-toolchain.py --self-test:count=0:expected=1"],
+        ),
+        (
+            "workflow_exact_counts_missing_conf_bridge_direct_replay",
+            validate_exact_lines(
+                "\n".join(key for key in PHASE2_WORKFLOW_RUN_COUNTS if key != "run: zig test scripts/zigux/kconfig/conf_bridge.zig"),
+                PHASE2_WORKFLOW_RUN_COUNTS,
+                "workflow",
+            ),
+            ["workflow:exact_count:run: zig test scripts/zigux/kconfig/conf_bridge.zig:count=0:expected=1"],
+        ),
+        (
+            "workflow_exact_counts_missing_confdata_bridge_direct_replay",
+            validate_exact_lines(
+                "\n".join(key for key in PHASE2_WORKFLOW_RUN_COUNTS if key != "run: zig test scripts/zigux/kconfig/confdata_bridge.zig"),
+                PHASE2_WORKFLOW_RUN_COUNTS,
+                "workflow",
+            ),
+            ["workflow:exact_count:run: zig test scripts/zigux/kconfig/confdata_bridge.zig:count=0:expected=1"],
         ),
         (
             "workflow_exact_counts_missing_fixdep_diff_self_test",
