@@ -134,12 +134,43 @@ REQUIRED_WORKFLOW_ORDER_MARKERS = [
 ]
 
 REQUIRED_BUILD_MARKERS = [
+    'b.path("phase4_runtime_atomic64_diff_survey.zig")',
     'b.path("phase4_perf_baseline_survey.zig")',
+    'b.path("phase4_test_fsmount_survey.zig")',
+    'b.path("phase4_bitmap_diff_survey.zig")',
+    'b.path("phase4_bitmap_live_helper_replay.zig")',
+    '"phase4-runtime-atomic64-diff-tests"',
+    '"phase4-runtime-atomic64-diff-survey-tests"',
     '"phase4-perf-baseline-survey-tests"',
+    '"phase4-test-fsmount-survey-tests"',
+    '"phase4-bitmap-diff-tests"',
+    '"phase4-bitmap-diff-survey-tests"',
+    '"phase4-bitmap-live-helper-replay-tests"',
+    "const runtime_atomic64_diff_step = b.step(",
+    '"phase4-runtime-atomic64-diff",',
+    "runtime_atomic64_diff_step.dependOn(&run_atomic64_diff_tests.step);",
+    "const runtime_atomic64_diff_survey_step = b.step(",
+    '"phase4-runtime-atomic64-diff-survey",',
+    "runtime_atomic64_diff_survey_step.dependOn(&run_runtime_atomic64_diff_survey_tests.step);",
     "const perf_baseline_survey_step = b.step(",
     '"phase4-perf-baseline-survey",',
     '"Run the dedicated Phase 4 perf-baseline posture survey without widening the shared correctness-first packet",',
     "perf_baseline_survey_step.dependOn(&run_perf_baseline_survey_tests.step);",
+    "const test_fsmount_survey_step = b.step(",
+    '"phase4-test-fsmount-survey",',
+    '"Run the dedicated Phase 4 test_fsmount gap survey without promoting a shipped Zig starter",',
+    "test_fsmount_survey_step.dependOn(&run_test_fsmount_survey_tests.step);",
+    "const bitmap_diff_step = b.step(",
+    '"phase4-bitmap-diff",',
+    "bitmap_diff_step.dependOn(&run_bitmap_diff_tests.step);",
+    "const bitmap_diff_survey_step = b.step(",
+    '"phase4-bitmap-diff-survey",',
+    '"Run the manifest-backed Phase 4 bitmap rollback survey",',
+    "bitmap_diff_survey_step.dependOn(&run_bitmap_diff_survey_tests.step);",
+    "const bitmap_live_helper_replay_step = b.step(",
+    '"phase4-bitmap-live-helper-replay",',
+    '"Run the helper-backed Phase 4 bitmap rollback replay",',
+    "bitmap_live_helper_replay_step.dependOn(&run_bitmap_live_helper_replay_tests.step);",
 ]
 
 REQUIRED_MATRIX_MARKERS = [
@@ -187,6 +218,10 @@ SELFTEST_CASES = [
     "missing_matrix_remaining_gap_marker",
     "missing_gate_evidence_bitmap_wrapper",
     "missing_tests_readme_perf_make_route",
+    "missing_build_test_fsmount_route",
+    "missing_build_bitmap_diff_route",
+    "missing_build_bitmap_diff_survey_route",
+    "missing_build_bitmap_live_helper_replay_route",
     "forbidden_perf_baseline_dependency",
 ]
 
@@ -272,24 +307,51 @@ SELFTEST_WORKFLOW = """jobs:
 SELFTEST_BUILD = """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    const target = b.standardTargetOptions(.{});
-    const optimize = b.standardOptimizeOption(.{});
-    const perf_baseline_survey_module = b.createModule(.{
-        .root_source_file = b.path("phase4_perf_baseline_survey.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const perf_baseline_survey_tests = b.addTest(.{
-        .name = "phase4-perf-baseline-survey-tests",
-        .root_module = perf_baseline_survey_module,
-    });
-    const run_perf_baseline_survey_tests = b.addRunArtifact(perf_baseline_survey_tests);
+    b.path("phase4_runtime_atomic64_diff_survey.zig");
+    b.path("phase4_perf_baseline_survey.zig");
+    b.path("phase4_test_fsmount_survey.zig");
+    b.path("phase4_bitmap_diff_survey.zig");
+    b.path("phase4_bitmap_live_helper_replay.zig");
+    "phase4-runtime-atomic64-diff-tests";
+    "phase4-runtime-atomic64-diff-survey-tests";
+    "phase4-perf-baseline-survey-tests";
+    "phase4-test-fsmount-survey-tests";
+    "phase4-bitmap-diff-tests";
+    "phase4-bitmap-diff-survey-tests";
+    "phase4-bitmap-live-helper-replay-tests";
     const test_step = b.step("test", "Run Phase 4 differential validation tests");
+    const runtime_atomic64_diff_step = b.step(
+        "phase4-runtime-atomic64-diff",
+        "Run the isolated Phase 4 runtime atomic64 diff replay",
+    );
+    runtime_atomic64_diff_step.dependOn(&run_atomic64_diff_tests.step);
+    const runtime_atomic64_diff_survey_step = b.step(
+        "phase4-runtime-atomic64-diff-survey",
+        "Run the manifest-backed Phase 4 runtime atomic64 handoff survey",
+    );
+    runtime_atomic64_diff_survey_step.dependOn(&run_runtime_atomic64_diff_survey_tests.step);
     const perf_baseline_survey_step = b.step(
         "phase4-perf-baseline-survey",
         "Run the dedicated Phase 4 perf-baseline posture survey without widening the shared correctness-first packet",
     );
     perf_baseline_survey_step.dependOn(&run_perf_baseline_survey_tests.step);
+    const test_fsmount_survey_step = b.step(
+        "phase4-test-fsmount-survey",
+        "Run the dedicated Phase 4 test_fsmount gap survey without promoting a shipped Zig starter",
+    );
+    test_fsmount_survey_step.dependOn(&run_test_fsmount_survey_tests.step);
+    const bitmap_diff_step = b.step("phase4-bitmap-diff", "Run the isolated Phase 4 bitmap diff replay");
+    bitmap_diff_step.dependOn(&run_bitmap_diff_tests.step);
+    const bitmap_diff_survey_step = b.step(
+        "phase4-bitmap-diff-survey",
+        "Run the manifest-backed Phase 4 bitmap rollback survey",
+    );
+    bitmap_diff_survey_step.dependOn(&run_bitmap_diff_survey_tests.step);
+    const bitmap_live_helper_replay_step = b.step(
+        "phase4-bitmap-live-helper-replay",
+        "Run the helper-backed Phase 4 bitmap rollback replay",
+    );
+    bitmap_live_helper_replay_step.dependOn(&run_bitmap_live_helper_replay_tests.step);
 }
 """
 
@@ -921,6 +983,102 @@ def run_selftest() -> None:
             ),
         )
         covered_cases.append("missing_tests_readme_perf_make_route")
+
+        write_baseline()
+        build.write_text(
+            build.read_text(encoding="utf-8").replace(
+                "test_fsmount_survey_step.dependOn(&run_test_fsmount_survey_tests.step);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "missing build test_fsmount route",
+            lambda: check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            ),
+        )
+        covered_cases.append("missing_build_test_fsmount_route")
+
+        write_baseline()
+        build.write_text(
+            build.read_text(encoding="utf-8").replace(
+                "bitmap_diff_step.dependOn(&run_bitmap_diff_tests.step);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "missing build bitmap diff route",
+            lambda: check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            ),
+        )
+        covered_cases.append("missing_build_bitmap_diff_route")
+
+        write_baseline()
+        build.write_text(
+            build.read_text(encoding="utf-8").replace(
+                "bitmap_diff_survey_step.dependOn(&run_bitmap_diff_survey_tests.step);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "missing build bitmap diff survey route",
+            lambda: check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            ),
+        )
+        covered_cases.append("missing_build_bitmap_diff_survey_route")
+
+        write_baseline()
+        build.write_text(
+            build.read_text(encoding="utf-8").replace(
+                "bitmap_live_helper_replay_step.dependOn(&run_bitmap_live_helper_replay_tests.step);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "missing build bitmap live helper replay route",
+            lambda: check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            ),
+        )
+        covered_cases.append("missing_build_bitmap_live_helper_replay_route")
 
         write_baseline()
         build.write_text(
