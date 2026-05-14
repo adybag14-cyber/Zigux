@@ -2,7 +2,7 @@
 
 ## Status
 
-- `PHASE9_STATUS=parked-readback-gap-aligned`
+- `PHASE9_STATUS=shared-reminder-follow-through-open`
 - `PHASE9_SLICE=runtime-loader-gap-survey`
 - `PHASE9_LANE_KEY=P9-L18`
 
@@ -75,18 +75,22 @@ symbol-export boundary references rather than Phase 9 runtime evidence.
 
 ## Next Bounded Step
 
-Leave this loader-gap survey lane parked unless fresh direct readback shows one
-shared reminder surface reclaiming family-local owner-map detail or dropping
-the blocked module-metadata and depmod-publication boundary.
+Fresh repo-first inspection now shows `Documentation/zigux/README.md` and
+`zigux/tests/README.md` already defer the exact shared owner map back to
+`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and keep the
+blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`,
+`modules.builtin`, module install-root state, and `depmod` script or manifest
+state boundary explicit, but `scripts/zigux/README.md` still undercounts the
+live shared loader packet by omitting
+`Documentation/zigux/phase9-runtime-loader-gap-survey.md`,
+`zigux/tests/runtime_loader_gap_manifest.json`, and
+`zigux/tests/runtime_loader_gap_survey.zig` from its Phase 9 summary.
 
-Fresh repo-first inspection now shows `Documentation/zigux/README.md`,
-`zigux/tests/README.md`, and `scripts/zigux/README.md` already defer the exact
-shared owner map back to `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
-and keep the blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`,
-`modules.order`, `modules.builtin`, module install-root state, and `depmod`
-script or manifest state boundary explicit, so there is no one-file shared
-reminder repair pending in this packet today.
+Repair `scripts/zigux/README.md` first, then tighten
+`scripts/zigux/check-phase9-build-only-surface.py` so the scripts-root
+summary fails closed on that loader-gap survey trio before reopening any
+broader shared reminder pass.
 
-If shared reminder drift returns, repair the smallest regressed shared surface
-first instead of reopening pilot-family behavior, loader implementation, or new
-checker growth.
+Keep future follow-through inside the smallest regressed shared surface instead
+of reopening pilot-family behavior, loader implementation, or new checker
+growth.
