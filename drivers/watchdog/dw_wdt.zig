@@ -104,6 +104,9 @@ pub const PlatformHandoffSummary = struct {
     reset_control_available: bool,
     reset_release_call: []const u8,
     reset_release_requested: bool,
+    pretimeout_irq_optional: bool,
+    pretimeout_irq_present: bool,
+    pretimeout_irq_call: []const u8,
     drvdata_published: bool,
     timeout_programming_requested: bool,
     imported_running_state: bool,
@@ -138,6 +141,9 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .reset_control_available = preflight.reset_control_available,
             .reset_release_call = "reset_control_deassert",
             .reset_release_requested = false,
+            .pretimeout_irq_optional = preflight.pretimeout_irq_optional,
+            .pretimeout_irq_present = preflight.pretimeout_irq_present,
+            .pretimeout_irq_call = preflight.pretimeout_irq_call,
             .drvdata_published = false,
             .timeout_programming_requested = false,
             .imported_running_state = request.imported_running,
@@ -160,6 +166,9 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .reset_control_available = preflight.reset_control_available,
             .reset_release_call = "reset_control_deassert",
             .reset_release_requested = false,
+            .pretimeout_irq_optional = preflight.pretimeout_irq_optional,
+            .pretimeout_irq_present = preflight.pretimeout_irq_present,
+            .pretimeout_irq_call = preflight.pretimeout_irq_call,
             .drvdata_published = true,
             .timeout_programming_requested = false,
             .imported_running_state = false,
@@ -182,6 +191,9 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .reset_control_available = preflight.reset_control_available,
             .reset_release_call = "reset_control_deassert",
             .reset_release_requested = reset_release_requested,
+            .pretimeout_irq_optional = preflight.pretimeout_irq_optional,
+            .pretimeout_irq_present = preflight.pretimeout_irq_present,
+            .pretimeout_irq_call = preflight.pretimeout_irq_call,
             .drvdata_published = true,
             .timeout_programming_requested = false,
             .imported_running_state = true,
@@ -204,6 +216,9 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .reset_control_available = preflight.reset_control_available,
             .reset_release_call = "reset_control_deassert",
             .reset_release_requested = reset_release_requested,
+            .pretimeout_irq_optional = preflight.pretimeout_irq_optional,
+            .pretimeout_irq_present = preflight.pretimeout_irq_present,
+            .pretimeout_irq_call = preflight.pretimeout_irq_call,
             .drvdata_published = true,
             .timeout_programming_requested = true,
             .imported_running_state = false,
@@ -225,6 +240,9 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
         .reset_control_available = preflight.reset_control_available,
         .reset_release_call = "reset_control_deassert",
         .reset_release_requested = reset_release_requested,
+        .pretimeout_irq_optional = preflight.pretimeout_irq_optional,
+        .pretimeout_irq_present = preflight.pretimeout_irq_present,
+        .pretimeout_irq_call = preflight.pretimeout_irq_call,
         .drvdata_published = true,
         .timeout_programming_requested = true,
         .imported_running_state = false,
@@ -320,6 +338,8 @@ pub const PlatformRegistrationScaffoldSummary = struct {
     reset_release_call: []const u8,
     reset_release_requested: bool,
     pretimeout_irq_optional: bool,
+    pretimeout_irq_present: bool,
+    pretimeout_irq_call: []const u8,
     blocked_on_live_platform_registration: bool,
     blocked_on_live_mmio: bool,
 };
@@ -354,7 +374,9 @@ pub fn platformRegistrationScaffoldSummary(
         .reset_release_ready = request.has_reset_control,
         .reset_release_call = handoff.reset_release_call,
         .reset_release_requested = handoff.reset_release_requested,
-        .pretimeout_irq_optional = true,
+        .pretimeout_irq_optional = handoff.pretimeout_irq_optional,
+        .pretimeout_irq_present = handoff.pretimeout_irq_present,
+        .pretimeout_irq_call = handoff.pretimeout_irq_call,
         .blocked_on_live_platform_registration = handoff.blocked_on_live_platform_registration,
         .blocked_on_live_mmio = handoff.blocked_on_live_mmio,
     };
@@ -481,19 +503,25 @@ test "phase11 dw_wdt platform handoff keeps reset-release intent explicit" {
     });
     try std.testing.expectEqualStrings("reset_control_deassert", blocked.reset_release_call);
     try std.testing.expect(!blocked.reset_release_requested);
+    try std.testing.expect(blocked.pretimeout_irq_optional);
+    try std.testing.expect(!blocked.pretimeout_irq_present);
+    try std.testing.expectEqualStrings("platform_get_irq_optional", blocked.pretimeout_irq_call);
 
     const ready = platformHandoffSummary(.{
         .has_named_tclk = true,
         .has_shared_clock = false,
         .has_pclk = true,
         .has_reset_control = true,
-        .has_pretimeout_irq = false,
+        .has_pretimeout_irq = true,
         .drvdata_published = true,
         .timeout_programmed = false,
         .imported_running = false,
     });
     try std.testing.expectEqualStrings("reset_control_deassert", ready.reset_release_call);
     try std.testing.expect(ready.reset_release_requested);
+    try std.testing.expect(ready.pretimeout_irq_optional);
+    try std.testing.expect(ready.pretimeout_irq_present);
+    try std.testing.expectEqualStrings("platform_get_irq_optional", ready.pretimeout_irq_call);
     try std.testing.expect(ready.blocked_on_live_mmio);
 }
 
@@ -521,6 +549,9 @@ test "phase11 dw_wdt platform handoff keeps missing timer-clock acquisition expl
     try std.testing.expect(!summary.timeout_programming_requested);
     try std.testing.expect(!summary.registration_ready);
     try std.testing.expect(!summary.stop_on_reboot_requested);
+    try std.testing.expect(summary.pretimeout_irq_optional);
+    try std.testing.expect(!summary.pretimeout_irq_present);
+    try std.testing.expectEqualStrings("platform_get_irq_optional", summary.pretimeout_irq_call);
     try std.testing.expect(!summary.reset_release_requested);
     try std.testing.expect(summary.blocked_on_live_platform_registration);
     try std.testing.expect(!summary.blocked_on_live_mmio);
@@ -549,6 +580,8 @@ test "phase11 dw_wdt platform registration scaffold keeps shared-clock fallback 
     try std.testing.expectEqualStrings("reset_control_deassert", ready.reset_release_call);
     try std.testing.expect(ready.reset_release_requested);
     try std.testing.expect(ready.pretimeout_irq_optional);
+    try std.testing.expect(ready.pretimeout_irq_present);
+    try std.testing.expectEqualStrings("platform_get_irq_optional", ready.pretimeout_irq_call);
     try std.testing.expect(ready.blocked_on_live_platform_registration);
     try std.testing.expect(!ready.blocked_on_live_mmio);
 
@@ -568,6 +601,9 @@ test "phase11 dw_wdt platform registration scaffold keeps shared-clock fallback 
     try std.testing.expectEqual(ProbeTimeoutOrigin.blocked_missing_timer_clock, blocked.probe_timeout_origin);
     try std.testing.expect(!blocked.registration_requested);
     try std.testing.expect(!blocked.stop_on_reboot_requested);
+    try std.testing.expect(blocked.pretimeout_irq_optional);
+    try std.testing.expect(blocked.pretimeout_irq_present);
+    try std.testing.expectEqualStrings("platform_get_irq_optional", blocked.pretimeout_irq_call);
     try std.testing.expect(!blocked.reset_release_requested);
     try std.testing.expect(blocked.blocked_on_live_platform_registration);
     try std.testing.expect(!blocked.blocked_on_live_mmio);
