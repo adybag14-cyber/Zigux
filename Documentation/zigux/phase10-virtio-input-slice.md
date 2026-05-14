@@ -6,7 +6,7 @@ This slice keeps the current `virtio_input` packet reviewable as a bounded Phase
 
 Keep this note focused on the helper-facing, manifest-backed, checker-backed, and replay-facing packet that already exists around `drivers/virtio/virtio_input.c`.
 
-The current slice is anchored by the direct helper in `drivers/virtio/virtio_input.zig`, the dedicated probe-preflight helper in `drivers/virtio/virtio_input_probe_preflight.zig`, the direct gate in `zigux/tests/phase10_virtio_input.zig`, the wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay, the focused queue-callback-preflight replay in `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, the registration-preflight replay in `zigux/tests/phase10_virtio_input_registration_preflight.zig`, the teardown-observation replay in `zigux/tests/phase10_virtio_input_teardown_observation.zig`, the bounded status-completion drain helper plus replay in `zigux/tests/phase10_virtio_input_status_drain.zig`, the committed survey manifest in `zigux/tests/phase10_virtio_input_manifest.json`, the survey gate in `zigux/tests/phase10_virtio_input_survey.zig`, and the dedicated packet checker in `scripts/zigux/check-phase10-input-packet.py`.
+The current slice is anchored by the direct helper in `drivers/virtio/virtio_input.zig`, the dedicated probe-preflight helper in `drivers/virtio/virtio_input_probe_preflight.zig`, the direct gate in `zigux/tests/phase10_virtio_input.zig`, the wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay, the focused queue-callback-preflight replay in `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, the registration-preflight replay in `zigux/tests/phase10_virtio_input_registration_preflight.zig`, the teardown-observation replay in `zigux/tests/phase10_virtio_input_teardown_observation.zig`, the bounded status-completion drain helper plus replay in `zigux/tests/phase10_virtio_input_status_drain.zig`, the committed survey manifest in `zigux/tests/phase10_virtio_input_manifest.json`, the survey gate in `zigux/tests/phase10_virtio_input_survey.zig` that keeps the manifest-backed survey note and slice-companion posture aligned, and the dedicated packet checker in `scripts/zigux/check-phase10-input-packet.py` that keeps the broader replay inventory fail-closed.
 
 ## What This Slice Covers
 
@@ -17,7 +17,7 @@ The current slice is anchored by the direct helper in `drivers/virtio/virtio_inp
 - the focused registration-preflight replay in `zigux/tests/phase10_virtio_input_registration_preflight.zig`
 - the focused teardown-observation replay in `zigux/tests/phase10_virtio_input_teardown_observation.zig`
 - the bounded status-completion drain helper plus replay in `zigux/tests/phase10_virtio_input_status_drain.zig`
-- the committed survey manifest in `zigux/tests/phase10_virtio_input_manifest.json`, the survey gate in `zigux/tests/phase10_virtio_input_survey.zig`, and the dedicated packet checker in `scripts/zigux/check-phase10-input-packet.py` that keep the same bounded Phase 10 input packet fail-closed
+- the committed survey manifest in `zigux/tests/phase10_virtio_input_manifest.json`, the survey gate in `zigux/tests/phase10_virtio_input_survey.zig`, and the dedicated packet checker in `scripts/zigux/check-phase10-input-packet.py` that split the bounded Phase 10 input packet between manifest-backed survey-note alignment and full replay-inventory rollback checks
 
 ## What This Slice Does Not Claim
 
