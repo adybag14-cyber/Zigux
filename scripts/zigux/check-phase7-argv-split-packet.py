@@ -33,6 +33,9 @@ REQUIRED_MARKERS = {
         "Keep this slice parked unless fresh repo inspection finds one concrete `argv_split` parity, survey, manifest, fixture, or shared reminder drift inside the current helper packet.",
     ],
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
+        "argv-split packet, lane `P7-L09`:",
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "PHASE7_ARGV_SPLIT_LANE=P7-L09",
         "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
         "scheduled alias note: recurring scheduled lane `P7-Y07` is the older schedule label for this same argv-split packet and must be treated as the same owner, not as a second helper lane",
         "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
@@ -203,6 +206,34 @@ def run_self_test() -> None:
         mutate_file(
             tmp_root,
             "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "",
+            "helper_lane_slice_reference_marker",
+        )
+        expect_missing_marker(
+            "helper_lane_slice_reference_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: Documentation/zigux/phase7-argv-split-slice.md",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_ARGV_SPLIT_LANE=P7-L09",
+            "",
+            "helper_lane_key_marker",
+        )
+        expect_missing_marker(
+            "helper_lane_key_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_LANE=P7-L09",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
             "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
             "",
             "helper_lane_alias_marker",
@@ -339,7 +370,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: pub fn cArgv",
         )
 
-    case_count = 13
+    case_count = 15
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
