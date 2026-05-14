@@ -11,8 +11,12 @@ from pathlib import Path
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 MATRIX_REL = Path("Documentation/zigux/phase4-validation-matrix.md")
+TEST_FSMOUNT_GAP_NOTE_REL = Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md")
 PERF_SECTION_HEADER = "### `Phase 4 perf thresholds`"
 PERF_SECTION_FOOTER = "## Review Rules"
+TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE = (
+    "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"
+)
 
 REQUIRED_MARKERS = [
     "## Remaining Roadmap Gaps",
@@ -35,6 +39,13 @@ REQUIRED_MARKERS = [
     "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, together with the dedicated local survey wrapper `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` and the matching Linux-style survey wrapper `make -C zigux phase4-test-fsmount-survey`, now keeps the current C anchor, replay command, owner, rollback owner, and the explicit reviewability-only no-perf-threshold posture reviewable, and the packet now stays under the shared exact-readback checker while still remaining outside the shared `phase4-test` target set until a later bounded promotion lands",
     "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
     PERF_SECTION_HEADER,
+]
+
+REQUIRED_TEST_FSMOUNT_GAP_NOTE_MARKERS = [
+    f"PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE={TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE}",
+    "PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
+    "PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    "PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey",
 ]
 
 REQUIRED_PERF_SECTION_MARKERS = [
@@ -87,9 +98,23 @@ BASELINE_MATRIX = "\n".join(
     ]
 )
 
+BASELINE_TEST_FSMOUNT_GAP_NOTE = "\n".join(
+    [
+        "# Phase 4 test_fsmount Gap Survey",
+        "",
+        "## Status",
+        "- `PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+        "- `PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey`",
+        f"- `PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE={TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE}`",
+        "- `PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix`",
+        "",
+    ]
+)
+
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "missing_matrix_file",
+    "missing_test_fsmount_gap_note_file",
     "kprobe_c_anchor_drift",
     "kprobe_replay_path_drift",
     "kprobe_local_lab_replay_drift",
@@ -109,6 +134,7 @@ SELF_TEST_CASES = [
     "test_fsmount_owner_drift",
     "test_fsmount_rollback_owner_drift",
     "test_fsmount_next_step_drift",
+    "test_fsmount_gap_note_bootstrap_ci_posture_drift",
     "perf_gate_anchor_drift",
     "perf_replay_path_drift",
     "perf_benchmark_command_status_drift",
@@ -155,11 +181,20 @@ def validate_root(root: Path) -> list[str]:
     if not matrix_path.exists():
         return [f"file:{MATRIX_REL.as_posix()}"]
 
+    test_fsmount_gap_note_path = root / TEST_FSMOUNT_GAP_NOTE_REL
+    if not test_fsmount_gap_note_path.exists():
+        return [f"file:{TEST_FSMOUNT_GAP_NOTE_REL.as_posix()}"]
+
     text = normalize_matrix_text(read_text(matrix_path))
     failures: list[str] = []
     for marker in REQUIRED_MARKERS:
         if marker not in text:
             failures.append(f"missing_marker:{marker}")
+
+    test_fsmount_gap_note = read_text(test_fsmount_gap_note_path)
+    for marker in REQUIRED_TEST_FSMOUNT_GAP_NOTE_MARKERS:
+        if marker not in test_fsmount_gap_note:
+            failures.append(f"missing_test_fsmount_gap_note_marker:{marker}")
 
     try:
         perf_section = require_section(text, PERF_SECTION_HEADER, PERF_SECTION_FOOTER)
@@ -186,6 +221,7 @@ def run_self_test() -> int:
                 "samples/kprobes/kprobe_example.c",
                 "samples/kprobes/kprobe_example_drift.c",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* current C anchor: `samples/kprobes/kprobe_example.c`",
         ),
         (
@@ -195,6 +231,7 @@ def run_self_test() -> int:
                 "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
                 "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=n",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`",
         ),
         (
@@ -204,6 +241,7 @@ def run_self_test() -> int:
                 "* explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`",
                 "* explicit local lab replay marker: `make -C zigux phase4-kprobe-gap-survey`",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`",
         ),
         (
@@ -213,6 +251,7 @@ def run_self_test() -> int:
                 "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
                 "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-gap-survey`",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
         ),
         (
@@ -222,6 +261,7 @@ def run_self_test() -> int:
                 "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
                 "* validation entrypoint: `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
         ),
         (
@@ -231,6 +271,7 @@ def run_self_test() -> int:
                 "* survey owner: `Validation and Perf Team`",
                 "* survey owner: `Tooling and Validation Team`",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`\n* survey owner: `Validation and Perf Team`",
         ),
         (
@@ -240,6 +281,7 @@ def run_self_test() -> int:
                 "* rollback owner: `Validation and Perf Team`\n* current measurable status:",
                 "* rollback owner: `Tooling and Validation Team`\n* current measurable status:",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`",
         ),
         (
@@ -249,6 +291,7 @@ def run_self_test() -> int:
                 "explicit local lab replay marker, dedicated local survey wrapper",
                 "dedicated local survey wrapper, dedicated local survey wrapper",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`",
         ),
         (
@@ -258,16 +301,19 @@ def run_self_test() -> int:
                 "* next bounded evidence step: keep the dedicated parked survey packet, the explicit local lab replay marker, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
                 "* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* next bounded evidence step: keep the dedicated parked survey packet, the explicit local lab replay marker, the dedicated local survey wrapper, and the current shared exact-readback coverage adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either the Zig starter itself or a broader replay promotion beyond today's parked-gap packet",
         ),
         (
             "test_fsmount_c_anchor_drift",
             replace_once(BASELINE_MATRIX, "samples/vfs/test-fsmount.c", "samples/vfs/test-fsmount-drift.c"),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* current C anchor: `samples/vfs/test-fsmount.c`",
         ),
         (
             "test_fsmount_replay_path_drift",
             replace_once(BASELINE_MATRIX, "make M=samples/vfs", "make M=samples/vfs-drift"),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* current replay path: `make M=samples/vfs`",
         ),
         (
@@ -277,6 +323,7 @@ def run_self_test() -> int:
                 "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
                 "Documentation/zigux/phase4-test-fsmount-gap-note.md",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`",
         ),
         (
@@ -286,6 +333,7 @@ def run_self_test() -> int:
                 "explicit reviewability-only no-perf-threshold posture reviewable",
                 "explicit shared-CI perf-threshold posture reviewable",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`",
         ),
         (
@@ -295,6 +343,7 @@ def run_self_test() -> int:
                 "* dedicated local survey wrapper: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
                 "* dedicated local survey wrapper: `zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig`",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* dedicated local survey wrapper: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
         ),
         (
@@ -304,6 +353,7 @@ def run_self_test() -> int:
                 "* dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
                 "* dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-gap-survey`",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
         ),
         (
@@ -313,6 +363,7 @@ def run_self_test() -> int:
                 "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
                 "* validation entrypoint: `zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig`",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
         ),
         (
@@ -322,6 +373,7 @@ def run_self_test() -> int:
                 "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`\n* survey owner: `Validation and Perf Team`",
                 "* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`\n* survey owner: `Tooling and Validation Team`",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`\n* survey owner: `Validation and Perf Team`",
         ),
         (
@@ -331,6 +383,7 @@ def run_self_test() -> int:
                 "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`",
                 "* rollback owner: `Tooling and Validation Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`",
         ),
         (
@@ -340,7 +393,18 @@ def run_self_test() -> int:
                 "land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
                 "land one focused promotion that widens the shared replay surface rather than reopening measurability wording alone",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* next bounded evidence step: keep the dedicated parked survey packet, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet while the current validator and gate-evidence checker continue to carry that same note, manifest, replay commands, and threshold posture without claiming a shipped Zig starter; if that same-family follow-through still stays below starter work, land one focused promotion that widens the local survey packet or shared replay surface rather than reopening measurability wording alone",
+        ),
+        (
+            "test_fsmount_gap_note_bootstrap_ci_posture_drift",
+            BASELINE_MATRIX,
+            replace_once(
+                BASELINE_TEST_FSMOUNT_GAP_NOTE,
+                TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE,
+                "shared_phase4_test_and_bootstrap_workflow_promoted",
+            ),
+            f"missing_test_fsmount_gap_note_marker:PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE={TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE}",
         ),
         (
             "perf_gate_anchor_drift",
@@ -349,6 +413,7 @@ def run_self_test() -> int:
                 "* current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`",
                 "* current gate anchors: `zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/phase4_bitmap_diff_survey.zig`",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_perf_section_marker:* current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`",
         ),
         (
@@ -358,6 +423,7 @@ def run_self_test() -> int:
                 "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
                 "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` only",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_perf_section_marker:* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
         ),
         (
@@ -367,6 +433,7 @@ def run_self_test() -> int:
                 "the local benchmark commands are approved for both landed gates",
                 "the local benchmark commands remain provisional for both landed gates",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_perf_section_marker:* current benchmark-command status: the dedicated survey packet at `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig`, together with the matching Linux-style wrapper `make -C zigux phase4-perf-baseline-survey`, is now shipped, the local benchmark commands are approved for both landed gates, and the dedicated survey intentionally keeps that posture local rather than treating it as shared CI perf coverage",
         ),
         (
@@ -376,6 +443,7 @@ def run_self_test() -> int:
                 "approved local-only acceptable limits for both atomic64 and bitmap",
                 "tentative local-only acceptable limits",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_perf_section_marker:* current acceptable-limit status: the dedicated survey packet now carries approved local-only acceptable limits for both atomic64 and bitmap",
         ),
         (
@@ -385,6 +453,7 @@ def run_self_test() -> int:
                 "* gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
                 "* gate owners: `Validation and Perf Team` only",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_perf_section_marker:* gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
         ),
         (
@@ -394,6 +463,7 @@ def run_self_test() -> int:
                 "* rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
                 "* rollback owners: `Validation and Perf Team` only",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_perf_section_marker:* rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
         ),
         (
@@ -403,6 +473,7 @@ def run_self_test() -> int:
                 "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod",
                 "Tooling and Validation Team owning that policy decision on its own",
             ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_perf_section_marker:* next bounded evidence step: keep the current local-only acceptable limits survey-only until a later bounded lane intentionally decides whether the existing bounds should stay local-only or support a broader shared CI perf-coverage claim, with the Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners so the validator-first packet does not widen by accident.",
         ),
         (
@@ -414,11 +485,13 @@ def run_self_test() -> int:
             )
             + "\nShared replay note duplicate:\n"
             + "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`\n",
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_perf_section_marker:* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
         ),
         (
             "perf_section_footer_drift",
             replace_once(BASELINE_MATRIX, PERF_SECTION_FOOTER, "## Review Drift"),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
             f"missing_perf_section:missing section footer: {PERF_SECTION_FOOTER}",
         ),
     ]
@@ -427,8 +500,10 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase4_gap_matrix_") as tmp_dir:
         root = Path(tmp_dir)
         matrix_path = root / MATRIX_REL
+        test_fsmount_gap_note_path = root / TEST_FSMOUNT_GAP_NOTE_REL
 
         write_text(matrix_path, BASELINE_MATRIX)
+        write_text(test_fsmount_gap_note_path, BASELINE_TEST_FSMOUNT_GAP_NOTE)
         if validate_root(root):
             print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
             print("baseline fixture did not validate")
@@ -441,9 +516,19 @@ def run_self_test() -> int:
             print("missing matrix file case did not fail closed")
             return 1
         case_count += 1
+        write_text(matrix_path, BASELINE_MATRIX)
 
-        for name, drifted_text, failure_prefix in cases:
+        test_fsmount_gap_note_path.unlink()
+        if not expect_failure(root, f"file:{TEST_FSMOUNT_GAP_NOTE_REL.as_posix()}"):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("missing test_fsmount gap note case did not fail closed")
+            return 1
+        case_count += 1
+        write_text(test_fsmount_gap_note_path, BASELINE_TEST_FSMOUNT_GAP_NOTE)
+
+        for name, drifted_text, drifted_gap_note_text, failure_prefix in cases:
             write_text(matrix_path, drifted_text)
+            write_text(test_fsmount_gap_note_path, drifted_gap_note_text)
             if not expect_failure(root, failure_prefix):
                 print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
                 print(f"{name} case did not fail closed")
@@ -487,7 +572,7 @@ def main() -> int:
     print("PHASE4_REMAINING_GAP_MATRIX_CHECK=pass")
     print(
         f"PHASE4_REMAINING_GAP_MATRIX_MARKER_COUNT="
-        f"{len(REQUIRED_MARKERS) + len(REQUIRED_PERF_SECTION_MARKERS)}"
+        f"{len(REQUIRED_MARKERS) + len(REQUIRED_TEST_FSMOUNT_GAP_NOTE_MARKERS) + len(REQUIRED_PERF_SECTION_MARKERS)}"
     )
     return 0
 
