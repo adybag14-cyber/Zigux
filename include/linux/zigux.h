@@ -21,4 +21,19 @@ static inline struct zigux_boundary_header zigux_boundary_header_make_compatible
     return header;
 }
 
+static inline int zigux_boundary_header_is_current_abi_version(uint16_t abi_version)
+{
+    return abi_version == (uint16_t)ZIGUX_ABI_VERSION;
+}
+
+static inline int zigux_boundary_header_is_compatible_size(uint32_t size)
+{
+    return size >= (uint32_t)sizeof(struct zigux_boundary_header);
+}
+
+static inline int zigux_boundary_header_is_canonical_size(uint32_t size)
+{
+    return size == (uint32_t)sizeof(struct zigux_boundary_header);
+}
+
 #endif
