@@ -84,6 +84,21 @@ HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS = {
 }
 HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX = "## Shared reminder"
 
+VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX = "## Shared reminder"
+VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS = {
+    "scripts/zigux/README.md": 1,
+    "zigux/tests/README.md": 1,
+    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "include/zigux/dev_t.h": 2,
+    "zigux/uapi/version.zig": 2,
+    "zigux/uapi/dev_t.zig": 1,
+    "zigux/bindings/abi.zig": 1,
+    "keep the canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`": 1,
+    "starter-companion split explicit here whenever this validator-support packet": 1,
+    "names the dedicated header-family survey and next-step note": 1,
+}
+
 TESTS_README_MARKERS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
     "python3 scripts/zigux/validate_phase3_selftest.py",
@@ -254,6 +269,16 @@ def _check_header_family_survey_shared_reminder(path: Path) -> list[str]:
     )
 
 
+def _check_validator_support_shared_reminder(path: Path) -> list[str]:
+    return _check_prefix_section_marker_counts(
+        path,
+        VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+        None,
+        VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS,
+        "validator-support shared reminder",
+    )
+
+
 def _check_tests_readme_phase3_reminder(path: Path) -> list[str]:
     return _check_prefix_section_marker_counts(
         path,
@@ -292,6 +317,7 @@ def validate_repo(repo_root: Path) -> list[str]:
     issues.extend(_check_note_next_step(repo_root / NOTE_PATH))
     issues.extend(_check_header_family_survey_current_packet(repo_root / SURVEY_PATH))
     issues.extend(_check_header_family_survey_shared_reminder(repo_root / SURVEY_PATH))
+    issues.extend(_check_validator_support_shared_reminder(repo_root / VALIDATOR_SUPPORT_PATH))
 
     tests_readme = repo_root / TESTS_README_PATH
     issues.extend(_check_markers(tests_readme, TESTS_README_MARKERS, "tests README"))
@@ -361,7 +387,17 @@ def _populate_repo(root: Path) -> None:
         )
         + "\n",
     )
-    _write(root / VALIDATOR_SUPPORT_PATH, "validator support placeholder\n")
+    _write(
+        root / VALIDATOR_SUPPORT_PATH,
+        "\n".join(
+            (
+                "# Phase 3 Validator Support Surface",
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                *VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS.keys(),
+            )
+        )
+        + "\n",
+    )
     _write(
         root / TESTS_README_PATH,
         "\n".join(
@@ -655,6 +691,62 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected bindings/dev_t shared reminder drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path = root / VALIDATOR_SUPPORT_PATH
+        validator_support_path.write_text(
+            _read(validator_support_path).replace("zigux/uapi/version.zig", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "zigux/uapi/version.zig (expected 2, found 1)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support version starter-companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace(
+                "starter-companion split explicit here whenever this validator-support packet",
+                "## Future follow-through\nstarter-companion split explicit here whenever this validator-support packet",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "starter-companion split explicit here whenever this validator-support packet "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support section-scoped split drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path = root / VALIDATOR_SUPPORT_PATH
+        validator_support_path.write_text(
+            _read(validator_support_path).replace(
+                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "Documentation/zigux/phase3-abi-h-boundary-next-step.md (expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support next-step drift was not reported")
             return 1
 
         _populate_repo(root)
