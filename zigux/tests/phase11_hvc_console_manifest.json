@@ -15,7 +15,7 @@
     "hvc_console_header_present": true,
     "hvc_console_zig_present": true,
     "hvc_console_sysrq_present": true,
-    "hvc_console_test_present": false,
+    "hvc_console_test_present": true,
     "hvc_console_modem_control_split_present": true,
     "hvc_console_poll_retry_split_present": true,
     "hvc_console_survey_gate_present": true,
