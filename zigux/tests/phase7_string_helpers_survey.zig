@@ -27,6 +27,15 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "The next bounded follow-through should keep the expanded starter packet truthful");
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
 
+    const shared_note = try readRepoFile(allocator, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
+    defer allocator.free(shared_note);
+    try expectContains(shared_note, "shared docs-root and scripts-root");
+    try expectContains(shared_note, "ownership-focus packet explicit");
+    try expectContains(shared_note, "first-NUL trimming and prefix skipping stop at the exported C-string boundary");
+    try expectContains(shared_note, "exact-fit and zero-capacity unescape destinations stay caller-owned");
+    try expectContains(shared_note, "append-limited escape accounting stays inside caller storage");
+    try expectContains(shared_note, "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations");
+
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
