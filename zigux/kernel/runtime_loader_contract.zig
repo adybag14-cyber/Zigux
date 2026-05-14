@@ -59,6 +59,32 @@ pub fn keepsLoadPlanExplicit(actual: LoadPlan, expected: LoadPlan) bool {
         actual.init_flow.exit_runs == expected.init_flow.exit_runs;
 }
 
+fn keepsRequestContractBoundaryExplicit() bool {
+    const blocked_request_control_fields = [_][]const u8{
+        "command",
+        "environment",
+        "register_api",
+        "unregister_api",
+        "summary",
+        "modinfo",
+        "module_alias",
+        "module_aliases",
+        "modules_alias_path",
+        "module_install_root",
+        "modules_order_path",
+        "modules_builtin_path",
+        "depmod_script",
+        "depmod_manifest",
+        "depmod_aliases",
+    };
+
+    inline for (blocked_request_control_fields) |field_name| {
+        if (@hasField(LoadPlan, field_name)) return false;
+    }
+
+    return true;
+}
+
 test "InitFlow.readyForRuntimeLoad keeps the staged handoff rules explicit" {
     const initialized_ready = InitFlow{
         .handoff_stage = .initialized,
@@ -129,4 +155,32 @@ test "keepsLoadPlanExplicit compares every shared handoff field" {
     drifted = stable;
     drifted.init_flow.selftest_runs = 1;
     try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+}
+
+test "shared runtime loader contract keeps command, environment, registration-summary, depmod-facing, and study-only core-boundary control surfaces outside the request contract" {
+    try std.testing.expect(keepsRequestContractBoundaryExplicit());
+
+    const blocked_publication_markers = [_][]const u8{
+        ".modinfo",
+        "MODULE_ALIAS()",
+        "modules.alias",
+        "modules.order",
+        "modules.builtin",
+    };
+    try std.testing.expectEqual(@as(usize, 5), blocked_publication_markers.len);
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_markers[0], ".modinfo"));
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_markers[1], "MODULE_ALIAS()"));
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_markers[2], "modules.alias"));
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_markers[3], "modules.order"));
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_markers[4], "modules.builtin"));
+
+    const blocked_depmod_boundary_fields = [_][]const u8{
+        "depmod_script",
+        "depmod_manifest",
+        "depmod_aliases",
+    };
+    try std.testing.expectEqual(@as(usize, 3), blocked_depmod_boundary_fields.len);
+    try std.testing.expect(std.mem.eql(u8, blocked_depmod_boundary_fields[0], "depmod_script"));
+    try std.testing.expect(std.mem.eql(u8, blocked_depmod_boundary_fields[1], "depmod_manifest"));
+    try std.testing.expect(std.mem.eql(u8, blocked_depmod_boundary_fields[2], "depmod_aliases"));
 }
