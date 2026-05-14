@@ -119,6 +119,34 @@ test "nvme pci dropped backlog retirement keeps blocker ordering and parity surf
     try testing.expect(ready.can_retire_dropped_io_backlog);
 }
 
+test "nvme pci dropped backlog retirement keeps dma debt explicit after queue counts recover" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(64, 64, false);
+    _ = try lab.planIoQueue(128, 64, false);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, true);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    const summary = lab.summarizeDroppedIoRetirement();
+    try testing.expect(summary.admin_queue_replayed_after_reset);
+    try testing.expectEqual(@as(usize, 2), summary.dropped_io_queue_count);
+    try testing.expectEqual(@as(usize, 2), summary.rebuilt_io_queue_count);
+    try testing.expectEqual(@as(usize, 0), summary.remaining_io_queue_count);
+    try testing.expect(summary.queue_count_parity_recovered);
+    try testing.expectEqual(@as(u32, 5), summary.dropped_io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 2), summary.rebuilt_io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 3), summary.remaining_io_host_dma_pages);
+    try testing.expect(!summary.host_dma_parity_recovered);
+    try testing.expectEqual(nvme_pci.DroppedIoRetirementBlocker.dma_page_parity, summary.retirement_blocker);
+    try testing.expect(!summary.can_retire_dropped_io_backlog);
+}
+
 test "nvme pci recovery restore verifier keeps admin-first replay and mixed DMA budget explicit" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
 
