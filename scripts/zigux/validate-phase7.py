@@ -393,6 +393,24 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_string_helpers_sample_boundary.zig: expanded helper packet",
             ),
             (
+                "string helper sample boundary make-wrapper marker",
+                "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+                "scripts/zigux/check-phase7-make-wrapper.py",
+                "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-make-wrapper.py",
+            ),
+            (
+                "string helper sample boundary selftest-alignment marker",
+                "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+                "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+                "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+            ),
+            (
+                "string helper sample boundary build-wiring marker",
+                "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+                "scripts/zigux/check-phase7-build-wiring.py",
+                "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-build-wiring.py",
+            ),
+            (
                 "string helper survey escape marker",
                 "zigux/tests/phase7_string_helpers_survey.zig",
                 "stringEscapeMem()",
