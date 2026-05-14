@@ -9,7 +9,7 @@
   ],
   "survey_summary": {
     "gpio_wdt_c_lines": 194,
-    "preexisting_phase11_test_files": 1,
+    "preexisting_phase11_test_files": 2,
     "preexisting_phase11_build_present": false,
     "preexisting_gpio_wdt_zig_present": false,
     "preexisting_gpio_wdt_test_present": false,
@@ -24,35 +24,35 @@
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_build.zig",
-      "why_now": "Current master no longer exposes the shared Phase 11 build route for gpio_wdt, so the archived replay command must stay out of shipped evidence until the visible main driver packet is restored."
+      "why_now": "Current master still does not expose the shared Phase 11 build route for gpio_wdt, so the archived replay command must stay out of shipped evidence until the visible main driver packet is restored."
     },
     {
       "id": "phase11-gpio-wdt-survey-gate",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt_survey.zig",
-      "why_now": "Current master no longer exposes the dedicated gpio_wdt survey gate, so the lane needs the visible main driver packet back before this freshness check can return as shipped evidence."
+      "why_now": "A dedicated archived-packet survey gate is again directly visible on current master, so the lane can revalidate the manifest, survey note, validation matrix, and teardown note without pretending the missing main driver packet or shared Phase 11 build route are back."
     },
     {
       "id": "phase11-gpio-wdt-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-survey.md",
-      "why_now": "The survey note now keeps the archived gpio watchdog review packet truthful by naming the still-visible notes and focused replay, the missing main driver or replay or survey-gate or shared-build surfaces, and the remaining Phase 11 registration, teardown, failure-mode, and hardware-backed validation gap."
+      "why_now": "The survey note now keeps the archived gpio watchdog review packet truthful by naming the still-visible notes, the focused platform-drvdata replay, and the restored dedicated survey gate, while still calling out the missing main driver or replay or shared-build surfaces and the remaining Phase 11 registration, teardown, failure-mode, and hardware-backed validation gap."
     },
     {
       "id": "phase11-gpio-wdt-driver-starter",
       "status": "blocked_on_driver_scaffold",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "Current master no longer exposes the gpio_wdt starter itself, so the roadmap destination under drivers/watchdog/*.zig remains missing even though the archived review notes still describe the earlier bounded starter surface."
+      "why_now": "Current master still does not expose the gpio_wdt starter itself, so the roadmap destination under drivers/watchdog/*.zig remains missing even though the archived review notes and the restored survey gate can now keep that absence explicit."
     },
     {
       "id": "phase11-gpio-wdt-driver-tests",
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt.zig",
-      "why_now": "Current master no longer exposes the main gpio_wdt replay, so the archived packet can keep earlier bounded behavior reviewable only as note-backed review memory rather than as a directly visible shipped test surface."
+      "why_now": "Current master still does not expose the main gpio_wdt replay, so the archived packet can keep earlier bounded behavior reviewable only as note-backed review memory rather than as a directly visible shipped test surface."
     },
     {
       "id": "phase11-gpio-wdt-slice-note",
@@ -66,14 +66,14 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-teardown-note.md",
-      "why_now": "The teardown note remains visible on current master and now keeps the archived teardown-facing review packet aligned with the still-visible module-slice, survey, matrix, manifest, and focused platform-drvdata replay instead of claiming the missing main starter replay as shipped."
+      "why_now": "The teardown note remains visible on current master and now keeps the archived teardown-facing review packet aligned with the still-visible module-slice, survey, matrix, manifest, focused platform-drvdata replay, and restored survey gate instead of claiming the missing main starter replay as shipped."
     },
     {
       "id": "phase11-gpio-wdt-validation-matrix",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
-      "why_now": "The validation matrix remains visible on current master and keeps the archived gpio watchdog review packet truthful by separating the still-visible focused platform-drvdata replay from the missing main driver, survey-gate, and shared-build surfaces."
+      "why_now": "The validation matrix remains visible on current master and keeps the archived gpio watchdog review packet truthful by separating the still-visible focused platform-drvdata replay and restored survey gate from the missing main driver, main replay, and shared-build surfaces."
     },
     {
       "id": "phase11-gpio-wdt-probe-summary-followup",
@@ -122,7 +122,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt_platform_drvdata.zig",
-      "why_now": "The focused platform_set_drvdata() replay remains directly visible on current master and keeps one early ordering checkpoint reviewable without widening into the missing main driver, survey-gate, or shared Phase 11 route."
+      "why_now": "The focused platform_set_drvdata() replay remains directly visible on current master and now pairs with the restored dedicated survey gate to keep one early ordering checkpoint and the archived packet truthfulness reviewable without widening into the missing main driver, main replay, or shared Phase 11 route."
     },
     {
       "id": "phase11-gpio-wdt-drvdata-checkpoint",
