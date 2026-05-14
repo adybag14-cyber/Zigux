@@ -14,11 +14,13 @@ pub const TimerClockPath = TimerClockSelection;
 pub const ProbeTimeoutOrigin = enum {
     programmed_top_window,
     imported_running_counter,
+    blocked_missing_timer_clock,
     blocked_on_live_mmio,
 };
 
 pub const RegistrationScaffoldState = enum {
     blocked_missing_drvdata,
+    blocked_missing_timer_clock,
     blocked_on_live_mmio,
     import_running_state_then_register,
     ready_to_register,
@@ -150,9 +152,9 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
     if (!preflight.timer_clock_available) {
         return .{
             .anchor = anchor_path,
-            .state = .ready_to_register,
+            .state = .blocked_missing_timer_clock,
             .timer_clock_path = preflight.timer_clock_selection,
-            .probe_timeout_origin = .blocked_on_live_mmio,
+            .probe_timeout_origin = .blocked_missing_timer_clock,
             .timer_clock_available = false,
             .apb_clock_present = preflight.apb_clock_present,
             .reset_control_available = preflight.reset_control_available,
@@ -346,7 +348,7 @@ pub fn platformRegistrationScaffoldSummary(
         .state = handoff.state,
         .timer_clock_path = handoff.timer_clock_path,
         .probe_timeout_origin = handoff.probe_timeout_origin,
-        .registration_requested = order.registration_requested,
+        .registration_requested = order.registration_requested and handoff.timer_clock_available,
         .stop_on_reboot_requested = handoff.stop_on_reboot_requested,
         .restart_priority_value = handoff.restart_priority_value,
         .reset_release_ready = request.has_reset_control,
@@ -493,4 +495,33 @@ test "phase11 dw_wdt platform handoff keeps reset-release intent explicit" {
     try std.testing.expectEqualStrings("reset_control_deassert", ready.reset_release_call);
     try std.testing.expect(ready.reset_release_requested);
     try std.testing.expect(ready.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt platform handoff keeps missing timer-clock acquisition explicit" {
+    const summary = platformHandoffSummary(.{
+        .has_named_tclk = false,
+        .has_shared_clock = false,
+        .has_pclk = true,
+        .has_reset_control = true,
+        .has_pretimeout_irq = false,
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = false,
+    });
+
+    try std.testing.expectEqual(
+        RegistrationScaffoldState.blocked_missing_timer_clock,
+        summary.state,
+    );
+    try std.testing.expectEqual(
+        ProbeTimeoutOrigin.blocked_missing_timer_clock,
+        summary.probe_timeout_origin,
+    );
+    try std.testing.expect(!summary.timer_clock_available);
+    try std.testing.expect(!summary.timeout_programming_requested);
+    try std.testing.expect(!summary.registration_ready);
+    try std.testing.expect(!summary.stop_on_reboot_requested);
+    try std.testing.expect(!summary.reset_release_requested);
+    try std.testing.expect(summary.blocked_on_live_platform_registration);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
 }
