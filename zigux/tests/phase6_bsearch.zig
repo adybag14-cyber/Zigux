@@ -84,7 +84,7 @@ fn rawProbe(items: []const u32, target: u32, expect_hit: bool, compare: anytype)
 }
 
 test "phase 6 bsearch keeps representative lookup work inside a binary-search budget" {
-    const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
+    const values = fixtures.representative_ascending_values;
 
     {
         const counted_compare_calls = try typedProbe(values[0..], 3, true, compareCountedInt);
@@ -129,7 +129,7 @@ test "phase 6 bsearch keeps representative lookup work inside a binary-search bu
 }
 
 test "phase 6 bsearch keeps descending lookup work inside a binary-search budget" {
-    const values = [_]u32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
+    const values = fixtures.representative_descending_values;
 
     {
         const descending_compare_calls = try typedProbe(values[0..], 45, true, compareCountedDescendingInt);
@@ -220,7 +220,7 @@ test "phase 6 bsearch raw lookup keeps representative work inside a binary-searc
 }
 
 test "phase 6 bsearch bounded typed and raw equality probes stay inside a binary-search budget" {
-    const duplicates = [_]u32{ 3, 6, 9, 12, 21, 21, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
+    const duplicates = fixtures.representative_duplicate_values;
     var duplicate_target = @as(u32, 21);
     const typed_range = bsearch.equalRangeIndex(u32, u32, &duplicate_target, duplicates[0..], struct {
         fn compare(key: *const u32, item: *const u32) i32 {
