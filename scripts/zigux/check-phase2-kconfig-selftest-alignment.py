@@ -133,10 +133,10 @@ PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
     "older dedicated `check-kconfig-bridge.py` scaffold claim",
 )
 
-EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 21
+EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 22
 EXPECTED_CONF_CASE_COUNT = 16
 EXPECTED_CONFDATA_CASE_COUNT = 13
-EXPECTED_SELF_TEST_CASE_COUNT = 43
+EXPECTED_SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(path: Path) -> str:
@@ -762,7 +762,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "KCONFIG_CHECKER_SELF_TEST_COUNT_MISMATCH",
-            "actual=20:expected=21",
+            "actual=20:expected=22",
         ) in issues
         checks_run += 1
 
