@@ -52,7 +52,6 @@ MARKERS = {
 FORBIDDEN_MARKERS = {
     "note": [
         "* no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
-        "* the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts together with the materialized build-backed replay files rather than a broader validator stack",
     ],
     "closure_note": [
         "* no landed shared `zigux/tests/fixtures/phase11_build_inventory.json`",
