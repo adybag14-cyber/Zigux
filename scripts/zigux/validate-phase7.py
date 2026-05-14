@@ -100,6 +100,14 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase7-argv-split-slice.md",
         "Documentation/zigux/phase7-rbtree-slice.md",
     ],
+    "Documentation/zigux/phase7-helper-lane-sequencing.md": [
+        "Documentation/zigux/phase7-string-helpers-slice.md",
+        "Documentation/zigux/phase7-cmdline-slice.md",
+        "PHASE7_STRING_HELPERS_LANE=P7-L04",
+        "PHASE7_CMDLINE_LANE=P7-L05",
+        "`P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift;",
+        "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
+    ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;",
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;",
@@ -262,6 +270,50 @@ def run_self_test() -> None:
 
         remove_once(
             tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_STRING_HELPERS_LANE=P7-L04",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_STRING_HELPERS_LANE=P7-L04",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "`P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift;",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift;",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "PHASE7_CMDLINE_LANE=P7-L05",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_CMDLINE_LANE=P7-L05",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
             "scripts/zigux/README.md",
             "zigux/tests/phase7_rbtree_survey.zig",
         )
@@ -392,7 +444,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=14")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=18")
 
 
 def main() -> int:
