@@ -85,10 +85,30 @@ HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS = {
 }
 HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX = "## Shared reminder"
 
+VALIDATOR_SUPPORT_CURRENT_PACKET_PREFIX = "## Current packet"
+VALIDATOR_SUPPORT_CURRENT_PACKET_NEXT_PREFIX = "## Review boundary"
+VALIDATOR_SUPPORT_CURRENT_PACKET_MARKER_COUNTS = {
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md": 1,
+    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "scripts/zigux/check-phase3-abi.py": 1,
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 1,
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
+    "scripts/zigux/validate-phase3-validator-support-surface.py": 1,
+    "include/zigux/dev_t.h": 1,
+    "zigux/uapi/version.zig": 1,
+    "zigux/uapi/dev_t.zig": 1,
+    "zigux/bindings/abi.zig": 1,
+    "zigux/bindings/dev_t.zig": 1,
+    "zigux/tests/phase3_low_level_wrappers.zig": 1,
+    "zigux/tests/phase3_low_level_wrappers_build.zig": 2,
+    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig": 1,
+    "make -C zigux phase3-low-level-wrappers-test": 1,
+}
 VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX = "## Shared reminder"
 VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS = {
-    "scripts/zigux/README.md": 1,
-    "zigux/tests/README.md": 1,
+    "scripts/zigux/README.md": 2,
+    "zigux/tests/README.md": 2,
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 2,
@@ -96,7 +116,7 @@ VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS = {
     "include/zigux/dev_t.h": 2,
     "zigux/uapi/version.zig": 2,
     "zigux/uapi/dev_t.zig": 1,
-    "zigux/bindings/abi.zig": 1,
+    "zigux/bindings/abi.zig": 2,
     "zigux/kernel/export_shim.zig": 1,
     "keep the canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`": 1,
     "starter-companion split explicit here whenever this validator-support packet": 1,
@@ -181,6 +201,8 @@ SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS = {
 SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
+    'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")',
+    'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
     'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
     "PHASE3_VALIDATE_SELFTEST=pass",
 )
@@ -219,6 +241,25 @@ def _extract_section(text: str, start_prefix: str, next_prefix: str | None) -> s
     elif next_prefix is None and "\n## " in section:
         section = section.split("\n## ", 1)[0]
     return section
+
+
+def _replace_in_section(
+    text: str,
+    start_prefix: str,
+    next_prefix: str | None,
+    old: str,
+    new: str = "",
+) -> str:
+    prefix, marker, suffix = text.partition(start_prefix)
+    if not marker:
+        return text
+    if next_prefix is None:
+        section = suffix
+        next_marker = ""
+        tail = ""
+    else:
+        section, next_marker, tail = suffix.partition(next_prefix)
+    return prefix + marker + section.replace(old, new, 1) + next_marker + tail
 
 
 def _check_section_marker_counts(
@@ -285,6 +326,15 @@ def validate_repo(repo_root: Path) -> list[str]:
             None,
             HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS,
             "header-family survey shared reminder",
+        )
+    )
+    issues.extend(
+        _check_section_marker_counts(
+            repo_root / VALIDATOR_SUPPORT_PATH,
+            VALIDATOR_SUPPORT_CURRENT_PACKET_PREFIX,
+            VALIDATOR_SUPPORT_CURRENT_PACKET_NEXT_PREFIX,
+            VALIDATOR_SUPPORT_CURRENT_PACKET_MARKER_COUNTS,
+            "validator-support current packet",
         )
     )
     issues.extend(
@@ -399,9 +449,33 @@ def _populate_repo(root: Path) -> None:
         "\n".join(
             (
                 "# Phase 3 Validator Support Surface",
+                VALIDATOR_SUPPORT_CURRENT_PACKET_PREFIX,
+                *VALIDATOR_SUPPORT_CURRENT_PACKET_MARKER_COUNTS.keys(),
+                VALIDATOR_SUPPORT_CURRENT_PACKET_NEXT_PREFIX,
+                "review boundary marker",
                 VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                *VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS.keys(),
+                "scripts/zigux/README.md",
+                "zigux/tests/README.md",
+                "Documentation/zigux/phase3-abi-header-family-survey.md",
+                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
                 "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
+                "Documentation/zigux/phase3-kernel-export-shim-governance.md",
+                "include/zigux/dev_t.h",
+                "zigux/uapi/version.zig",
+                "zigux/uapi/dev_t.zig",
+                "zigux/bindings/abi.zig",
+                "zigux/kernel/export_shim.zig",
+                "keep the canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`",
+                "starter-companion split explicit here whenever this validator-support packet",
+                "names the dedicated header-family survey and next-step note",
+                "naming that validator directly",
+                "kernel-facing governance note is already a broad",
+                "keep `zigux/bindings/dev_t.zig` explicit beside `zigux/bindings/abi.zig`",
+                "current broad `scripts/zigux/README.md` and `zigux/tests/README.md` reminders still route header-governance context through the paired survey and next-step notes instead of naming `scripts/zigux/validate-phase3-linux-zigux-header-governance.py` directly",
+                "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+                "zigux/tests/phase3_low_level_wrappers.zig",
+                "zigux/tests/phase3_low_level_wrappers_build.zig",
+                "scripts/zigux/check-phase3-abi.py",
             )
         )
         + "\n",
@@ -510,9 +584,97 @@ def run_self_test() -> int:
         validator_support_path = root / VALIDATOR_SUPPORT_PATH
         validator_support_path.write_text(
             _read(validator_support_path).replace(
-                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+                "Documentation/zigux/phase3-kernel-export-shim-governance.md",
                 "",
                 1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support current packet marker count drift: "
+            "Documentation/zigux/phase3-kernel-export-shim-governance.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support current-packet governance drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace(
+                "scripts/zigux/check-phase3-abi.py",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support current packet marker count drift: "
+            "scripts/zigux/check-phase3-abi.py (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support current-packet ABI gate drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace("include/zigux/dev_t.h", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support current packet marker count drift: "
+            "include/zigux/dev_t.h (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support current-packet dev_t header drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace("zigux/uapi/version.zig", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support current packet marker count drift: "
+            "zigux/uapi/version.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support current-packet version companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace(
+                "zigux/tests/phase3_low_level_wrappers_build.zig",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support current packet marker count drift: "
+            "zigux/tests/phase3_low_level_wrappers_build.zig (expected 2, found 1)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support current-packet low-level-wrapper build drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
+                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
             ),
             encoding="utf-8",
         )
@@ -528,7 +690,12 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         validator_support_path.write_text(
-            _read(validator_support_path).replace("include/zigux/dev_t.h", "", 1),
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
+                "include/zigux/dev_t.h",
+            ),
             encoding="utf-8",
         )
         issues = validate_repo(root)
@@ -543,7 +710,12 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         validator_support_path.write_text(
-            _read(validator_support_path).replace("zigux/uapi/version.zig", "", 1),
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
+                "zigux/uapi/version.zig",
+            ),
             encoding="utf-8",
         )
         issues = validate_repo(root)
@@ -558,10 +730,11 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         validator_support_path.write_text(
-            _read(validator_support_path).replace(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
                 "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
-                "",
-                1,
             ),
             encoding="utf-8",
         )
@@ -577,10 +750,11 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         validator_support_path.write_text(
-            _read(validator_support_path).replace(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
                 "Documentation/zigux/phase3-kernel-export-shim-governance.md",
-                "",
-                1,
             ),
             encoding="utf-8",
         )
@@ -596,10 +770,11 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         validator_support_path.write_text(
-            _read(validator_support_path).replace(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
                 "header-governance context through the paired survey and next-step notes",
-                "",
-                1,
             ),
             encoding="utf-8",
         )
@@ -615,10 +790,11 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         validator_support_path.write_text(
-            _read(validator_support_path).replace(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
                 "kernel-facing governance note is already a broad",
-                "",
-                1,
             ),
             encoding="utf-8",
         )
@@ -702,6 +878,24 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected selftest driver drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        driver_path.write_text(_read(driver_path).replace(SELFTEST_DRIVER_MARKERS[2], "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        expected = f"missing selftest driver marker: {SELFTEST_DRIVER_MARKERS[2]}"
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-family selftest driver drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        driver_path.write_text(_read(driver_path).replace(SELFTEST_DRIVER_MARKERS[3], "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        expected = f"missing selftest driver marker: {SELFTEST_DRIVER_MARKERS[3]}"
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support selftest driver drift was not reported")
             return 1
 
         _populate_repo(root)
