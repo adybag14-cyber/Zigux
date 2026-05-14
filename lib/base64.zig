@@ -488,6 +488,29 @@ fn expectExhaustiveEncodeShortTailCanonicality(variant: Variant, padding: bool) 
     }
 }
 
+fn expectLengthSweepRoundTrip(variant: Variant, padding: bool) !void {
+    var payload: [257]u8 = undefined;
+    for (&payload, 0..) |*byte, idx| {
+        byte.* = @as(u8, @intCast((idx * 73 + 19) % 256));
+    }
+
+    var encoded: [paddedChars(payload.len)]u8 = undefined;
+    var decoded: [payload.len]u8 = undefined;
+
+    for (0..(payload.len + 1)) |len| {
+        const written = try encode(encoded[0..], payload[0..len], padding, variant);
+        try std.testing.expectEqual(chars(len, padding), written);
+        const exact_len = try bytes(encoded[0..written], padding, variant);
+        try std.testing.expectEqual(len, exact_len);
+        try std.testing.expect(exact_len <= maxDecodedBytes(written));
+        try std.testing.expect(maxDecodedBytes(written) - exact_len < 3);
+
+        const decoded_len = try decode(decoded[0..], encoded[0..written], padding, variant);
+        try std.testing.expectEqual(len, decoded_len);
+        try std.testing.expectEqualSlices(u8, payload[0..len], decoded[0..decoded_len]);
+    }
+}
+
 test "base64 standard encoding matches Linux-style padded output" {
     var out: [8]u8 = undefined;
     const written = try encode(out[0..], "hi", true, .std);
@@ -671,4 +694,13 @@ test "base64 encode exhaustively emits canonical padded and unpadded short tails
     try expectExhaustiveEncodeShortTailCanonicality(.urlsafe, false);
     try expectExhaustiveEncodeShortTailCanonicality(.imap, true);
     try expectExhaustiveEncodeShortTailCanonicality(.imap, false);
+}
+
+test "base64 length sweep keeps chars encode bytes and decode aligned across variants" {
+    try expectLengthSweepRoundTrip(.std, true);
+    try expectLengthSweepRoundTrip(.std, false);
+    try expectLengthSweepRoundTrip(.urlsafe, true);
+    try expectLengthSweepRoundTrip(.urlsafe, false);
+    try expectLengthSweepRoundTrip(.imap, true);
+    try expectLengthSweepRoundTrip(.imap, false);
 }
