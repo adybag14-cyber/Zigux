@@ -64,6 +64,9 @@ REQUIRED_MARKERS = {
         "lib/string_helpers.zig",
         "zigux/tests/phase7_string_helpers.zig",
         "The next bounded follow-through should keep the expanded starter packet truthful",
+        "The current starter replay also keeps these ownership-focused boundaries explicit:",
+        "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
+        "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
     ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
         "PHASE7_STATUS=parked",
@@ -221,6 +224,9 @@ REQUIRED_MARKERS = {
         "\"memcpyAndPad\"",
         "\"strreplace\"",
         "\"shared no-sample boundary and validator-backed reviewability\"",
+        "\"ownership_focus\": [",
+        "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
+        "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
     ],
     "zigux/tests/phase7_string_helpers_survey.zig": [
         "expanded starter packet",
@@ -337,6 +343,24 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase7-string-helpers-slice.md: The next bounded follow-through should keep the expanded starter packet truthful",
             ),
             (
+                "phase7-string-helpers-slice ownership heading marker",
+                "Documentation/zigux/phase7-string-helpers-slice.md",
+                "The current starter replay also keeps these ownership-focused boundaries explicit:",
+                "Documentation/zigux/phase7-string-helpers-slice.md: The current starter replay also keeps these ownership-focused boundaries explicit:",
+            ),
+            (
+                "phase7-string-helpers-slice strarray ownership marker",
+                "Documentation/zigux/phase7-string-helpers-slice.md",
+                "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
+                "Documentation/zigux/phase7-string-helpers-slice.md: `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
+            ),
+            (
+                "phase7-string-helpers-slice bounded-write marker",
+                "Documentation/zigux/phase7-string-helpers-slice.md",
+                "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
+                "Documentation/zigux/phase7-string-helpers-slice.md: `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
+            ),
+            (
                 "phase7 cmdline slice parked status marker",
                 "Documentation/zigux/phase7-cmdline-slice.md",
                 "PHASE7_STATUS=parked",
@@ -449,6 +473,24 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_string_helpers_manifest.json",
                 "\"current_master_state\": \"expanded_starter_packet\"",
                 "zigux/tests/phase7_string_helpers_manifest.json: \"current_master_state\": \"expanded_starter_packet\"",
+            ),
+            (
+                "string helper manifest ownership block marker",
+                "zigux/tests/phase7_string_helpers_manifest.json",
+                "\"ownership_focus\": [",
+                "zigux/tests/phase7_string_helpers_manifest.json: \"ownership_focus\": [",
+            ),
+            (
+                "string helper manifest strarray ownership marker",
+                "zigux/tests/phase7_string_helpers_manifest.json",
+                "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
+                "zigux/tests/phase7_string_helpers_manifest.json: kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
+            ),
+            (
+                "string helper manifest bounded-write marker",
+                "zigux/tests/phase7_string_helpers_manifest.json",
+                "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
+                "zigux/tests/phase7_string_helpers_manifest.json: memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
             ),
             (
                 "lib string helpers escape function",
