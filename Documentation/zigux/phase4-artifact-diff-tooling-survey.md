@@ -23,7 +23,7 @@ Current `master` already closes the deterministic-check slice of that requiremen
 - `scripts/zigux/check-artifact-diff-contract.py` replays the helper's outward CLI contract, including help-output, missing-required-args, missing-actual-operand, invalid-mode, missing-path, malformed-JSON, and repeat-run cases, and it also keeps the isolated checker self-test entrypoint reviewable beside the live contract replay.
 - `scripts/zigux/check-phase4-artifact-diff-determinism.py` separately rechecks the helper self-test catalog, the contract self-test catalog, the base-case catalog, the repeat-case catalog, the full contract catalog, the dedicated review note, the docs-root and scripts-root reminder surfaces, and this roadmap-facing survey packet so case-count or reminder-surface drift fails closed.
 - `scripts/zigux/validate-phase4.py` already treats both artifact-diff checkers as part of the shared Phase 4 validator-first route before the Zig rollback gates run.
-- `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` already expose the same validator-first replay surface through `make -C zigux phase4-validate` and the bootstrap workflow.
+- `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` already expose the same validator-first replay surface through `make -C zigux phase4-validate` and the bootstrap workflow, and the workflow now also carries a named direct helper evidence step through `python3 scripts/zigux/artifact_diff.py --self-test`.
 
 ## Deterministic Contract Packet
 - `PHASE4_ARTIFACT_DIFF_HELPER_SELF_TEST_CASE_COUNT=19`
@@ -39,10 +39,10 @@ Current `master` already closes the deterministic-check slice of that requiremen
 
 ## Current Conclusion
 
-The live Phase 4 artifact-diff tooling gap is not a missing deterministic checker anymore. The current same-lane follow-through is a fail-closed reminder surface: this survey now records the live helper, contract, and determinism packet counts plus the exact base-case and full-case contract catalogs, and the determinism checker now also exact-checks this survey's published direct replay packet so the shared `artifact_diff.py`, contract, determinism, and `phase4-validate` entrypoints stay visible as part of the reviewed tooling surface rather than only as prose outside the checked catalog packet.
+The live Phase 4 artifact-diff tooling gap is not a missing deterministic checker anymore. The current same-lane follow-through is a fail-closed reminder surface: this survey now records the live helper, contract, and determinism packet counts plus the exact base-case and full-case contract catalogs, the bootstrap workflow now carries a dedicated direct helper self-test rerun, and the determinism checker also exact-checks this survey's published direct replay packet so the shared `artifact_diff.py`, contract, determinism, and `phase4-validate` entrypoints stay visible as part of the reviewed tooling surface rather than only as prose outside the checked catalog packet.
 
 ## Next Safe Step
-- current `master` already closes the helper, contract, deterministic checker, and validator-first route for this tooling packet, so the next same-lane move is not another helper feature and not another count-only survey refresh
+- current `master` already closes the helper, contract, deterministic checker, and validator-first plus direct-helper workflow evidence for this tooling packet, so the next same-lane move is not another helper feature and not another count-only survey refresh
 - the remaining same-lane closure correction is to widen `scripts/zigux/validate-phase4.py` so `REQUIRED_ARTIFACT_DOC_MARKERS` and the synthetic `Documentation/zigux/artifact-diff.md` self-test fixture also require the published `ARTIFACT_DIFF_RESULT_LINES`, the malformed-JSON marker `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID`, and the helper, contract, and determinism catalog markers that `Documentation/zigux/artifact-diff.md` now treats as reviewable contract
 - until that validator-only follow-through lands, stale review-note catalog drift can still slip past the shared Phase 4 validator even though the dedicated artifact-diff note already publishes those markers
 - keep the follow-through scoped to `scripts/zigux/validate-phase4.py` only; do not widen into helper behavior, bitmap, atomic64, perf-baseline, workflow-route, kprobe, or `test_fsmount` work
