@@ -217,6 +217,7 @@ FORBIDDEN_FILE_MARKERS = {
 EXACT_COUNT_CHECKS = {
     "Documentation/zigux/README.md": {
         DOCS_ROOT_PHASE2_REVIEWER_GUARDS_CLAUSE: 1,
+        "The broader Phase 2 fixdep, genksyms, kconfig bridge, artifact-tools, manifest, cross-target, and closure-route inventory should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile`": 1,
     },
     "Documentation/zigux/review-checklist.md": {
         FALLBACK_REMINDER: 1,
@@ -275,24 +276,7 @@ LINE_EXACT_COUNT_CHECKS = {
     },
 }
 
-MISSING_FILE_CASES = [
-    ".github/workflows/zigux-bootstrap.yml",
-    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
-    "Documentation/zigux/review-checklist.md",
-    "scripts/zigux/check-phase2-fixdep-gate.py",
-    "scripts/zigux/check-fixdep-diff.py",
-    "scripts/zigux/check-kconfig-bridge.py",
-    "scripts/zigux/check-genksyms-bridge.py",
-    "scripts/zigux/check-phase2-cross.py",
-    "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-    "scripts/zigux/check-phase2-tool-manifest-packets.py",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-    "scripts/zigux/install-zig.py",
-    "scripts/zigux/validate-phase2.py",
-    "scripts/zigux/validate-phase2-closure.py",
-    "zigux/Makefile",
-]
+MISSING_FILE_CASES = list(REQUIRED_FILES)
 
 
 def count_occurrences(text: str, marker: str) -> int:
