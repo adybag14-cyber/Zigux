@@ -53,7 +53,6 @@ const usage_text =
 
 const version_text = "genksyms version 2.5.60\n";
 const max_reference_files: usize = 16;
-const getopt_error_prefix = "genksyms: ";
 
 const LongOptionKind = enum {
     help,
@@ -109,7 +108,6 @@ fn writeJsonArray(writer: anytype, values: []const []const u8) !void {
 }
 
 fn writeInvalidOptionError(writer: anytype, option: []const u8) !void {
-    try writer.writeAll(getopt_error_prefix);
     if (std.mem.startsWith(u8, option, "--")) {
         try writer.print("unrecognized option '{s}'\n", .{option});
         return;
@@ -124,7 +122,6 @@ fn writeAmbiguousOptionError(writer: anytype, option: []const u8) !void {
 }
 
 fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
-    try writer.writeAll(getopt_error_prefix);
     if (std.mem.startsWith(u8, option, "--")) {
         try writer.print("option '{s}' requires an argument\n", .{option});
         return;
@@ -135,7 +132,6 @@ fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
 }
 
 fn writeUnexpectedOptionArgumentError(writer: anytype, option: []const u8) !void {
-    try writer.writeAll(getopt_error_prefix);
     if (std.mem.startsWith(u8, option, "--")) {
         try writer.print("option '{s}' doesn't allow an argument\n", .{option});
         return;
@@ -706,6 +702,61 @@ test "genksyms bridge renders ambiguous long option failure like the fixture" {
     try writeAmbiguousOptionError(&output.writer, "--du");
     try testing.expectEqualStrings(
         "option '--du' is ambiguous\n",
+        output.written(),
+    );
+}
+
+test "genksyms bridge renders invalid short option failure like the fixture" {
+    var output: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer output.deinit();
+
+    try writeInvalidOptionError(&output.writer, "x");
+    try testing.expectEqualStrings(
+        "invalid option -- 'x'\n",
+        output.written(),
+    );
+}
+
+test "genksyms bridge renders invalid long option failure like the fixture" {
+    var output: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer output.deinit();
+
+    try writeInvalidOptionError(&output.writer, "--unknown");
+    try testing.expectEqualStrings(
+        "unrecognized option '--unknown'\n",
+        output.written(),
+    );
+}
+
+test "genksyms bridge renders missing long option argument like the fixture" {
+    var output: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer output.deinit();
+
+    try writeMissingOptionArgumentError(&output.writer, "--reference");
+    try testing.expectEqualStrings(
+        "option '--reference' requires an argument\n",
+        output.written(),
+    );
+}
+
+test "genksyms bridge renders missing short option argument like the fixture" {
+    var output: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer output.deinit();
+
+    try writeMissingOptionArgumentError(&output.writer, "T");
+    try testing.expectEqualStrings(
+        "option requires an argument -- 'T'\n",
+        output.written(),
+    );
+}
+
+test "genksyms bridge renders unexpected long option argument like the fixture" {
+    var output: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer output.deinit();
+
+    try writeUnexpectedOptionArgumentError(&output.writer, "--help");
+    try testing.expectEqualStrings(
+        "option '--help' doesn't allow an argument\n",
         output.written(),
     );
 }
