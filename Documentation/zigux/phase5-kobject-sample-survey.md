@@ -29,6 +29,7 @@ The current kobject packet still describes the approved Phase 5 in-memory owners
 
 - `runAnchorReplay()` still requires `init()` first, registers exactly three attributes, leaves the sample in the registered stage, keeps the unnamed attribute group explicit, and still reads back default values `42`, `7`, and `-5` for `foo`, `baz`, and `bar`
 - before `registerAttributes()`, the sample still reports zero active attributes and blocks `showValue()` or `storeValue()`
+- `runSingleInitBoundaryReplay()` keeps the one-time `init()` rule executable so a second `init()` still returns `InvalidLifecycleTransition` while the sample stays initialized with zero active attributes and `1/0/0` counters
 - `runPreRegistrationBoundaryReplay()` keeps that initialized-but-not-registered access boundary executable instead of implied
 - `runRegisteredBoundaryReplay()` keeps that already-registered duplicate-registration and replay-restart packet executable while still proving the registered sample can accept a bounded foo write/read roundtrip afterward
 - `runInputValidationReplay()` keeps the shared `baz`/`bar` dispatch, invalid-integer rejection, and unknown-attribute rejection packet executable while the sample remains in the `registered` stage
@@ -69,7 +70,7 @@ The current manifest-backed exact checks for the kobject packet remain the bound
 When a contributor updates `samples/zigux/kobject_example.zig` or one of its directly coupled review surfaces, keep these packet-local questions explicit here instead of relying on the broader shared guides alone:
 
 - does the packet still keep the one-time `init()` rule explicit so a second `init()` returns `InvalidLifecycleTransition` without advancing `register_runs` or `exit_runs`?
-- do `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()` still describe the same bounded ownership-and-lifetime packet across the sample root, focused test, manifest, and public fallback survey replay?
+- do `runSingleInitBoundaryReplay()`, `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()` still describe the same bounded ownership-and-lifetime packet across the sample root, focused test, manifest, and public fallback survey replay?
 - if a shared reminder surface mentions `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig`, does it say clearly whether that claim comes from public fallback, connector-first readback, or both?
 - shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too: `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
 - keep the validation routes explicit for the currently landed packet: `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `make -C zigux phase5-test`, and `make -C zigux phase5`
