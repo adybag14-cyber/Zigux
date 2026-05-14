@@ -33,9 +33,16 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase13-notifier-priority-signal.py",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
+    "fs/libfs.zig",
+    "lib/devres.zig",
     "security/landlock/ruleset.zig",
     "security/landlock/syscalls.zig",
+    "zigux/tests/phase13_libfs.zig",
+    "zigux/tests/phase13_libfs_reviewability.zig",
     "zigux/tests/phase13_libfs_manifest.json",
+    "zigux/tests/phase13_devres.zig",
+    "zigux/tests/phase13_devres_reviewability.zig",
+    "zigux/tests/phase13_devres_dma_coherent.zig",
     "zigux/tests/phase13_devres_manifest.json",
     "zigux/tests/phase13_landlock_ruleset.zig",
     "zigux/tests/phase13_landlock_ruleset_manifest.json",
@@ -335,6 +342,24 @@ def run_self_test() -> int:
             "missing_priority_signal_checker_failed",
         )
         write_text(root, "scripts/zigux/check-phase13-notifier-priority-signal.py", "# stub\n")
+        case_count += 1
+
+        (root / "fs/libfs.zig").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:fs/libfs.zig"],
+            "missing_libfs_helper_failed",
+        )
+        write_text(root, "fs/libfs.zig", "// stub\n")
+        case_count += 1
+
+        (root / "zigux/tests/phase13_devres_reviewability.zig").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:zigux/tests/phase13_devres_reviewability.zig"],
+            "missing_devres_reviewability_helper_failed",
+        )
+        write_text(root, "zigux/tests/phase13_devres_reviewability.zig", "// stub\n")
         case_count += 1
 
         (root / "drivers/tty/hvc/hvc_console.h").unlink()
