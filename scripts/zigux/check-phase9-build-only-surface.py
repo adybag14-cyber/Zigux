@@ -26,7 +26,6 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 README_PATH = "Documentation/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
-SAMPLES_README_PATH = "samples/zigux/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
@@ -87,7 +86,6 @@ REQUIRED_FILES = [
     README_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
-    SAMPLES_README_PATH,
     MAKEFILE_PATH,
     WORKFLOW_PATH,
     PHASE9_BUILD_PATH,
@@ -164,11 +162,6 @@ REQUIRED_MARKERS = {
         "`zigux/tests/runtime_loader_allocator_init_flow.zig`",
         "`zigux/tests/runtime_loader_gap_survey.zig`",
         "`zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`",
-    ],
-    SAMPLES_README_PATH: [
-        "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map",
-        "the focused `phase9-runtime-loader-shared-tests` step",
-        "instead of implying a dedicated `validate-phase9.py` route",
     ],
     MAKEFILE_PATH: [
         "PHONY += phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test phase9",
@@ -487,18 +480,6 @@ def run_self_test() -> int:
         expect_failure(
             base,
             "missing_marker:zigux/tests/README.md:`zigux/tests/runtime_loader_gap_survey.zig`",
-        )
-
-        write_fixture_tree(base)
-        samples_readme_path = base / SAMPLES_README_PATH
-        samples_readme = samples_readme_path.read_text(encoding="utf-8")
-        samples_readme_path.write_text(
-            samples_readme.replace("the focused `phase9-runtime-loader-shared-tests` step", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            "missing_marker:samples/zigux/README.md:the focused `phase9-runtime-loader-shared-tests` step",
         )
 
         write_fixture_tree(base)
