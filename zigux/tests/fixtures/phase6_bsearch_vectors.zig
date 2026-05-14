@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const representative_ascending_values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
 pub const representative_descending_values = [_]u32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
+pub const representative_duplicate_values = [_]u32{ 3, 6, 9, 12, 21, 21, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
 
 pub const representative_hit_queries = [_]u32{ 3, 21, 24, 39, 45 };
 pub const representative_miss_queries = [_]u32{ 1, 10, 26, 44, 50 };
@@ -77,9 +78,10 @@ pub fn seedDeterministicQueries(len: usize, values: []const u32, queries: []u32,
     }
 }
 
-test "phase 6 bsearch vectors stay deterministic and sorted" {
+test "phase 6 bsearch vectors stay deterministic, sorted, and duplicate-aware" {
     try std.testing.expectEqual(@as(usize, 15), representative_ascending_values.len);
     try std.testing.expectEqual(@as(usize, 15), representative_descending_values.len);
+    try std.testing.expectEqual(@as(usize, 15), representative_duplicate_values.len);
     try std.testing.expectEqual(@as(usize, 33), dynamic_case_lengths.len);
 
     for (representative_ascending_values, 0..) |value, index| {
@@ -88,6 +90,10 @@ test "phase 6 bsearch vectors stay deterministic and sorted" {
         }
         try std.testing.expectEqual(value, representative_descending_values[representative_descending_values.len - 1 - index]);
     }
+
+    try std.testing.expectEqual(@as(u32, 21), representative_duplicate_values[4]);
+    try std.testing.expectEqual(@as(u32, 21), representative_duplicate_values[5]);
+    try std.testing.expectEqual(@as(u32, 21), representative_duplicate_values[6]);
 
     for (dynamic_case_lengths, 0..) |length, index| {
         try std.testing.expectEqual(index, length);
