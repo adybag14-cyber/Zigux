@@ -77,6 +77,7 @@ test "runtime trace-events sample keeps replay-summary continuity explicit after
     try std.testing.expectEqual(@as(usize, 10), replay.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), replay.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 14), replay.total_events);
+    try std.testing.expectEqual(@as(?usize, 0), replay.last_main_conditional_event_count);
     try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.exit_runs);
@@ -134,6 +135,7 @@ test "runtime trace-events module gate keeps resumed diagnostics-summary continu
     try std.testing.expectEqual(@as(usize, 20), replay.total_events);
     try std.testing.expectEqual(@as(?usize, 4), replay.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), replay.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 0), replay.last_main_conditional_event_count);
     try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.exit_runs);
@@ -309,6 +311,7 @@ test "runtime trace-events module gate keeps selftest-ready failed-exit rollback
     try std.testing.expectEqual(@as(usize, 14), before_failed_exit.total_events);
     try std.testing.expectEqual(@as(?usize, 4), before_failed_exit.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), before_failed_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 0), before_failed_exit.last_main_conditional_event_count);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
@@ -344,6 +347,7 @@ test "runtime trace-events module gate keeps selftest-ready failed-exit rollback
     try std.testing.expectEqual(before_failed_exit.total_events, after_failed_exit.total_events);
     try std.testing.expectEqual(before_failed_exit.last_main_emitted_events, after_failed_exit.last_main_emitted_events);
     try std.testing.expectEqual(before_failed_exit.last_fn_emitted_events, after_failed_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(before_failed_exit.last_main_conditional_event_count, after_failed_exit.last_main_conditional_event_count);
     try std.testing.expectEqual(before_failed_exit.init_runs, after_failed_exit.init_runs);
     try std.testing.expectEqual(before_failed_exit.selftest_runs, after_failed_exit.selftest_runs);
     try std.testing.expectEqual(before_failed_exit.exit_runs, after_failed_exit.exit_runs);
@@ -375,6 +379,7 @@ test "runtime trace-events module gate keeps selftest-ready failed-exit rollback
     const before_exit = module.summary();
     try std.testing.expectEqual(@as(?usize, 4), before_exit.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), before_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 0), before_exit.last_main_conditional_event_count);
     try module.exit();
 
     const after_exit = module.summary();
@@ -386,6 +391,7 @@ test "runtime trace-events module gate keeps selftest-ready failed-exit rollback
     try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);
     try std.testing.expectEqual(before_exit.last_main_emitted_events, after_exit.last_main_emitted_events);
     try std.testing.expectEqual(before_exit.last_fn_emitted_events, after_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(before_exit.last_main_conditional_event_count, after_exit.last_main_conditional_event_count);
     try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);
     try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
