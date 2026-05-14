@@ -51,13 +51,9 @@ fn isDelimiter(byte: u8) bool {
     return byte == ',' or byte == '\n';
 }
 
-fn isTokenWhitespace(byte: u8) bool {
-    return byte == ' ' or byte == '\t' or byte == '\r';
-}
-
-fn skipTokenWhitespace(text: []const u8, start: usize) usize {
+fn skipScanfWhitespace(text: []const u8, start: usize) usize {
     var idx = start;
-    while (idx < text.len and isTokenWhitespace(text[idx])) : (idx += 1) {}
+    while (idx < text.len and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
     return idx;
 }
 
@@ -84,16 +80,14 @@ fn parseUnsignedPrefix(text: []const u8) ParseCpuMaskError!ParsedUnsigned {
 }
 
 fn parseRangePrefix(text: []const u8) ParseCpuMaskError!ParsedRange {
-    var cursor = skipTokenWhitespace(text, 0);
+    var cursor = skipScanfWhitespace(text, 0);
     const start_prefix = try parseUnsignedPrefix(text[cursor..]);
     const start = start_prefix.value;
     const after_start = cursor + start_prefix.consumed;
 
     var end = start;
-    const cursor_after_token = skipTokenWhitespace(text, after_start);
-    if (cursor_after_token < text.len and text[cursor_after_token] == '-') {
-        cursor = cursor_after_token + 1;
-        cursor = skipTokenWhitespace(text, cursor);
+    if (after_start < text.len and text[after_start] == '-') {
+        cursor = skipScanfWhitespace(text, after_start + 1);
 
         const end_prefix = try parseUnsignedPrefix(text[cursor..]);
         end = end_prefix.value;
