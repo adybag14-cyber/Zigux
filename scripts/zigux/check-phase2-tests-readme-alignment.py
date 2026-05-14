@@ -53,6 +53,8 @@ TESTS_README_GENKSYMS_PACKET_SENTENCE = (
     "keep the shipped genksyms bridge direct replay visible in the tests root through the "
     "committed fixture packet instead of reviving a direct tests-root replay command"
 )
+WORKFLOW_PHASE2_VALIDATOR_STEP_NAME = "- name: Validate Phase 2 toolchain packet"
+WORKFLOW_PHASE2_STALE_VALIDATOR_STEP_NAME = "- name: Validate Phase 2 fixdep files"
 
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
@@ -82,6 +84,8 @@ REQUIRED_FILES = [
 
 FILE_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
+        WORKFLOW_PHASE2_VALIDATOR_STEP_NAME,
+        "run: python3 scripts/zigux/validate-phase2.py",
         "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
         "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
@@ -192,6 +196,9 @@ FILE_MARKERS = {
 }
 
 FORBIDDEN_FILE_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": [
+        WORKFLOW_PHASE2_STALE_VALIDATOR_STEP_NAME,
+    ],
     "Documentation/zigux/README.md": [
         "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
         "scripts/zigux/check-kconfig-bridge.py",
@@ -267,6 +274,8 @@ EXACT_COUNT_CHECKS = {
 
 LINE_EXACT_COUNT_CHECKS = {
     ".github/workflows/zigux-bootstrap.yml": {
+        WORKFLOW_PHASE2_VALIDATOR_STEP_NAME: 1,
+        "run: python3 scripts/zigux/validate-phase2.py": 1,
         "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
         "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
         "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
