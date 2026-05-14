@@ -35,7 +35,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Roadmap Contract
 
-Phase 3 is where Zigux starts defining permanent C and Zigux boundary rules rather than only helper scaffolding.
+Phase 3 is where Zigux starts defining permanent C and Zig boundary rules rather than only helper scaffolding.
 
 For this lane, the roadmap-backed contract is still narrow:
 
