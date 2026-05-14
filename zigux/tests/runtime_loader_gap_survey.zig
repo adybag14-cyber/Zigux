@@ -46,11 +46,11 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     try expectContains(note, "`make -C zigux phase9-test`");
     try expectContains(note, "`make -C zigux phase9`");
     try expectContains(note, "There is no dedicated shared `validate-phase9.py`");
-    try expectContains(note, "`scripts/zigux/README.md` still undercounts the\nlive shared loader packet");
+    try expectContains(note, "`Documentation/zigux/README.md` still undercounts that same live packet by\nomitting the loader-gap survey note plus the manifest-backed survey trio from\nits Phase 9 summary.");
     try expectContains(note, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md`");
     try expectContains(note, "`zigux/tests/runtime_loader_gap_manifest.json`");
     try expectContains(note, "`zigux/tests/runtime_loader_gap_survey.zig`");
-    try expectContains(note, "Repair `scripts/zigux/README.md` first, then tighten");
+    try expectContains(note, "Repair `Documentation/zigux/README.md` first, then re-read");
     try expectContains(note, "`scripts/zigux/check-phase9-build-only-surface.py`");
     try expectContains(note, "`.modinfo`");
     try expectContains(note, "`MODULE_ALIAS()`");
