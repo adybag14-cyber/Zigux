@@ -52,6 +52,12 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": [
+        "Validate Phase 7 runtime helper gates",
+        "make -C zigux phase7-validate",
+        "Run Phase 7 runtime helper tests",
+        "make -C zigux phase7-test",
+    ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "PHASE7_STATUS=starter_landed",
         "restored starter packet",
@@ -182,6 +188,7 @@ REQUIRED_MARKERS = {
         "phase7-rbtree-survey:",
         "phase7-test:",
         "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
+        "phase7: phase7-validate phase7-test",
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
         "\"current_master_state\": \"restored_starter_packet\"",
@@ -570,6 +577,28 @@ def run_self_test() -> None:
 
         remove_once(
             tmp_root,
+            ".github/workflows/zigux-bootstrap.yml",
+            "make -C zigux phase7-validate",
+        )
+        expect_missing_marker(
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase7-validate",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml",
+            "make -C zigux phase7-test",
+        )
+        expect_missing_marker(
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase7-test",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
             "zigux/tests/phase7_build.zig",
             "\"phase7-argv-split-survey-tests\"",
         )
@@ -587,6 +616,17 @@ def run_self_test() -> None:
         expect_missing_marker(
             tmp_root,
             "zigux/Makefile: phase7-cmdline-survey:",
+        )
+        write_fixture_tree(tmp_root)
+
+        remove_once(
+            tmp_root,
+            "zigux/Makefile",
+            "phase7: phase7-validate phase7-test",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "zigux/Makefile: phase7: phase7-validate phase7-test",
         )
         write_fixture_tree(tmp_root)
 
@@ -616,7 +656,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=31")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=34")
 
 
 def main() -> int:
