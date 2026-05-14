@@ -101,7 +101,9 @@ MAKEFILE_MARKERS = [
     "phase2-toolchain:",
     "phase2-validate: phase2-tools phase2-kconfig",
     "phase2-validate:",
-    "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))",
+    "ZIG_PINNED_CHANNEL := 0.17.0-dev.87+9b177a7d2",
+    "ZIG_PINNED_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/zig-x86_64-linux-$(ZIG_PINNED_CHANNEL)/zig $(ZIGUX_ROOT)/.zig-toolchain/zig-x86_64-linux-$(ZIG_PINNED_CHANNEL)/bin/zig))",
+    "ZIG_LOCAL_TOOLCHAIN := $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),$(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig)))",
     "ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)",
     'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -123,7 +125,9 @@ EXACT_MAKEFILE_RUN_COUNTS = {
 }
 
 EXACT_MAKEFILE_FALLBACK_LINES = {
-    "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))": 1,
+    "ZIG_PINNED_CHANNEL := 0.17.0-dev.87+9b177a7d2": 1,
+    "ZIG_PINNED_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/zig-x86_64-linux-$(ZIG_PINNED_CHANNEL)/zig $(ZIGUX_ROOT)/.zig-toolchain/zig-x86_64-linux-$(ZIG_PINNED_CHANNEL)/bin/zig))": 1,
+    "ZIG_LOCAL_TOOLCHAIN := $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),$(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig)))": 1,
     "ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)": 1,
 }
 
@@ -400,7 +404,9 @@ def run_self_test() -> int:
         [
             "PYTHON ?= python3",
             "ZIGUX_ROOT := /tmp/zigux-root",
-            "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))",
+            f"ZIG_PINNED_CHANNEL := {SELF_TEST_CHANNEL}",
+            "ZIG_PINNED_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/zig-x86_64-linux-$(ZIG_PINNED_CHANNEL)/zig $(ZIGUX_ROOT)/.zig-toolchain/zig-x86_64-linux-$(ZIG_PINNED_CHANNEL)/bin/zig))",
+            "ZIG_LOCAL_TOOLCHAIN := $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),$(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig)))",
             "ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)",
             "phase2-toolchain:",
             '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
@@ -474,21 +480,20 @@ def run_self_test() -> int:
     )
     missing_fallback_issues = validate_makefile_fallback_lines(
         valid_makefile.replace(
-            "ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)\n",
+            f"ZIG_PINNED_CHANNEL := {SELF_TEST_CHANNEL}\n",
             "",
             1,
         )
     )
     assert (
-        "makefile_fallback_line:ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig):count=0:expected=1"
+        f"makefile_fallback_line:ZIG_PINNED_CHANNEL := {SELF_TEST_CHANNEL}:count=0:expected=1"
         in missing_fallback_issues
     )
     duplicate_fallback_issues = validate_makefile_fallback_lines(
-        valid_makefile
-        + "\nZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)"
+        valid_makefile + f"\nZIG_PINNED_CHANNEL := {SELF_TEST_CHANNEL}"
     )
     assert (
-        "makefile_fallback_line:ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig):count=2:expected=1"
+        f"makefile_fallback_line:ZIG_PINNED_CHANNEL := {SELF_TEST_CHANNEL}:count=2:expected=1"
         in duplicate_fallback_issues
     )
     leaked_scope = "\n".join(
