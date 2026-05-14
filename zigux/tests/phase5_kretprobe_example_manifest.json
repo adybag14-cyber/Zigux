@@ -7,7 +7,7 @@
   "validation_entrypoint": "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the restored survey note, sample, focused test, manifest, and survey gate all point at the same non-runtime kretprobe packet while zigux/tests/README.md remains the only shared reminder surface still needing same-lane follow-through and Documentation/zigux/phase5-sample-review-guide.md, Documentation/zigux/review-checklist.md, Documentation/zigux/README.md, samples/zigux/README.md, and scripts/zigux/README.md stay aligned",
+    "the restored survey note, sample, focused test, manifest, survey gate, and shared reminder packet all point at the same non-runtime kretprobe packet, so any next bounded follow-through should start only from a newly observed shared-surface drift while Documentation/zigux/phase5-sample-review-guide.md, Documentation/zigux/review-checklist.md, Documentation/zigux/README.md, samples/zigux/README.md, scripts/zigux/README.md, and zigux/tests/README.md stay aligned beside the missing phase5_build route",
     "the sample and focused test still keep the default symbol kernel_clone explicit together with pre-init retargeting to do_sys_openat2 and post-init retarget rejection",
     "the anchor replay still keeps skipped kernel-thread handling, private_data_size_bytes = 8, return_value = 42, duration_ns = 75, nmissed = 1, and maxactive = 20 explicit",
     "the lifecycle guard replay still proves pre-init anchor rejection, pre-init exit rejection, double-init rejection, and post-init retarget rejection",
@@ -54,7 +54,7 @@
     {
       "id": "phase9-boundary",
       "kind": "review_surface",
-      "expected": "the shared reminder packet keeps zigux/tests/README.md as the only remaining shared same-lane drift while the Phase 5 guide, checklist, docs root, sample root, and scripts root stay aligned beside the separate runtime_kretprobe Phase 9 family and the missing phase5_build route"
+      "expected": "the shared reminder packet keeps Documentation/zigux/phase5-sample-review-guide.md, Documentation/zigux/review-checklist.md, Documentation/zigux/README.md, samples/zigux/README.md, scripts/zigux/README.md, and zigux/tests/README.md aligned beside the separate runtime_kretprobe Phase 9 family and the missing phase5_build route"
     }
   ],
   "non_goals": [
