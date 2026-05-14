@@ -55,7 +55,7 @@ REQUIRED_MARKERS = {
         "separate `kernel/workqueue.c` Phase 14 boundary-study target",
     ),
     SCRIPTS_README_PATH: (
-        "Phase 8 flow - the current shared Phase 8 review surface on `master` is",
+        "Phase 8 flow - `validate-phase8.py` checks that the parked libbpf and tooling packet stays aligned across",
         "`scripts/zigux/check-phase8-exec-cmd-packet.py`",
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
         "`Documentation/zigux/phase8-exec-cmd-slice.md`",
@@ -206,6 +206,7 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{details}")
 
         mutations = (
+            (SCRIPTS_README_PATH, "Phase 8 flow - `validate-phase8.py` checks that the parked libbpf and tooling packet stays aligned across"),
             (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-exec-cmd-packet.py`"),
             (SCRIPTS_README_PATH, "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`"),
             (DOCS_ROOT_PATH, "`make -C zigux phase8-exec-cmd-test`"),
