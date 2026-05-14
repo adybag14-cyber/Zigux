@@ -38,6 +38,18 @@ fn manifestById(manifest: Manifest, id: []const u8) ?ExactCheck {
     return null;
 }
 
+fn isLowerHexCommitSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+
+    for (value) |byte| {
+        const is_digit = byte >= '0' and byte <= '9';
+        const is_lower_hex = byte >= 'a' and byte <= 'f';
+        if (!is_digit and !is_lower_hex) return false;
+    }
+
+    return true;
+}
+
 test "phase 5 trace-events manifest records the focused direct replay packet" {
     const manifest_json = try readFile(
         std.testing.allocator,
@@ -52,6 +64,7 @@ test "phase 5 trace-events manifest records the focused direct replay packet" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P5-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
+    try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try std.testing.expectEqualStrings(
