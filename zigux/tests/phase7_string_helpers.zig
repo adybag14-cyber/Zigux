@@ -51,6 +51,12 @@ test "phase 7 string helpers starter unescapes supported escape families and pre
     try std.testing.expectEqual(@as(usize, 3), selective_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'A', '\\', 'n', 0 }, selective[0 .. selective_written + 1]);
 
+    var supported_truncated_src = [_]u8{ '\\', 'n', 0, '!' };
+    var supported_truncated_dst = [_]u8{ '#', '#', '#' };
+    const supported_truncated_written = string_helpers.stringUnescape(&supported_truncated_src, &supported_truncated_dst, 2, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 1), supported_truncated_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '\\', 0 }, supported_truncated_dst[0 .. supported_truncated_written + 1]);
+
     var truncated_src = [_]u8{ '\\', 'q', 0, '!' };
     var truncated_dst = [_]u8{ '#', '#', '#' };
     const truncated_written = string_helpers.string_unescape(&truncated_src, &truncated_dst, 2, string_helpers.UNESCAPE_ANY);
