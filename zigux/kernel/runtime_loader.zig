@@ -152,7 +152,7 @@ test "prepareRequest enforces the bounded runtime loader contract" {
     try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .released_without_substrate, pending));
 }
 
-test "prepareRequest rejects loader-not-required, pilot-family drift, init-flow drift, and selftest drift" {
+test "prepareRequest rejects loader-not-required, pilot-family drift, init-flow drift, duplicate-selftest drift, and selftest drift" {
     var plan = LoadPlan{
         .module_name = "runtime_bitmap",
         .anchor = "lib/test_bitmap.c",
@@ -179,6 +179,12 @@ test "prepareRequest rejects loader-not-required, pilot-family drift, init-flow 
 
     plan.init_flow.selftest_runs = 1;
     try std.testing.expectError(error.InvalidInitFlow, prepareRequest(plan));
+    plan.init_flow.selftest_runs = 0;
+
+    plan.init_flow.handoff_stage = .selftest_complete;
+    plan.init_flow.selftest_runs = 2;
+    try std.testing.expectError(error.InvalidInitFlow, prepareRequest(plan));
+    plan.init_flow.handoff_stage = .initialized;
     plan.init_flow.selftest_runs = 0;
 
     plan.provides_selftest_hook = false;
