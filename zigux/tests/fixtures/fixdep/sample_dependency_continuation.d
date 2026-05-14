@@ -1,0 +1,3 @@
+sample_dependency_continuation.o: sample_dependency_continuation_source.rmeta sample_dependency_continuation_dep_one.so \
+ sample_dependency_continuation_dep_two.so \
+ sample_dependency_continuation_dep_three.so
