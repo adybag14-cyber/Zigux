@@ -165,7 +165,11 @@ fn formatFullLine(buf: []const u8, rowsize: usize, groupsize: usize, linebuf: []
     return written;
 }
 
-pub fn hexToBin(ch: u8) ?u8 {
+fn asciiRangeMask(ch: i16, lo: i16, hi: i16) i16 {
+    return ((ch - hi - 1) & (lo - 1 - ch)) >> 15;
+}
+
+fn referenceHexToBin(ch: u8) ?u8 {
     if (ch >= '0' and ch <= '9') {
         return ch - '0';
     }
@@ -176,6 +180,18 @@ pub fn hexToBin(ch: u8) ?u8 {
     }
 
     return null;
+}
+
+pub fn hexToBin(ch: u8) ?u8 {
+    const value: i16 = @intCast(ch);
+    const folded: i16 = @intCast(ch & 0xdf);
+
+    // Match Linux's arithmetic decode so digit classification does not branch on input.
+    const digit = -1 + ((value - '0' + 1) & asciiRangeMask(value, '0', '9'));
+    const alpha = (folded - 'A' + 11) & asciiRangeMask(folded, 'A', 'F');
+    const decoded = digit + alpha;
+
+    return if (decoded >= 0) @intCast(decoded) else null;
 }
 
 pub fn hex_to_bin(ch: u8) isize {
@@ -305,6 +321,14 @@ test "hex_to_bin accepts numeric, lower, and upper digits" {
     try std.testing.expectEqual(@as(?u8, 10), hexToBin('a'));
     try std.testing.expectEqual(@as(?u8, 15), hexToBin('F'));
     try std.testing.expectEqual(@as(isize, -1), hex_to_bin('g'));
+}
+
+test "hex_to_bin arithmetic decode matches the straightforward reference across all bytes" {
+    var raw: u16 = 0;
+    while (raw <= std.math.maxInt(u8)) : (raw += 1) {
+        const byte: u8 = @intCast(raw);
+        try std.testing.expectEqual(referenceHexToBin(byte), hexToBin(byte));
+    }
 }
 
 test "hex2bin decodes mixed-case input" {
