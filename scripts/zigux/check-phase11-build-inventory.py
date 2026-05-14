@@ -60,6 +60,7 @@ REQUIRED_MODULE_PATHS = {
     "gpio_wdt_module": "../../drivers/watchdog/gpio_wdt.zig",
     "bcm2835_wdt_verify_module": "../../drivers/watchdog/bcm2835_wdt_verify.zig",
     "dw_wdt_verify_module": "../../drivers/watchdog/dw_wdt_verify.zig",
+    "phase11_dw_wdt_survey_module": "phase11_dw_wdt_survey.zig",
     "hvc_console_module": "../../drivers/tty/hvc/hvc_console.zig",
     "hvc_console_verify_module": "../../drivers/tty/hvc/hvc_console_verify.zig",
     "phase11_hvc_cleanup_module": "phase11_hvc_cleanup.zig",
@@ -83,6 +84,7 @@ REQUIRED_TEST_ROOT_MODULES = {
     "phase11-bcm2835-wdt-verify-tests": "bcm2835_wdt_verify_module",
     "phase11-dw-wdt-registration-scaffold-tests": "phase11_dw_wdt_registration_scaffold_module",
     "phase11-dw-wdt-verify-tests": "dw_wdt_verify_module",
+    "phase11-dw-wdt-survey-tests": "phase11_dw_wdt_survey_module",
     "phase11-hvc-console-verify-tests": "hvc_console_verify_module",
     "phase11-hvc-cleanup-tests": "phase11_hvc_cleanup_module",
     "phase11-hvc-console-survey-tests": "phase11_hvc_console_survey_module",
@@ -312,6 +314,10 @@ def build_inventory_fixture() -> dict[str, object]:
                 "path": "phase11_dw_wdt_registration_scaffold.zig",
             },
             {
+                "module": "phase11_dw_wdt_survey_module",
+                "path": "phase11_dw_wdt_survey.zig",
+            },
+            {
                 "module": "hvc_console_module",
                 "path": "../../drivers/tty/hvc/hvc_console.zig",
             },
@@ -371,6 +377,10 @@ def build_inventory_fixture() -> dict[str, object]:
             {
                 "test": "phase11-dw-wdt-verify-tests",
                 "root_module": "dw_wdt_verify_module",
+            },
+            {
+                "test": "phase11-dw-wdt-survey-tests",
+                "root_module": "phase11_dw_wdt_survey_module",
             },
             {
                 "test": "phase11-hvc-console-verify-tests",
@@ -465,6 +475,28 @@ def run_self_test() -> None:
         )
         expect_failure(
             rewrite_json(
+                "wrong_dw_wdt_survey_path",
+                lambda data: next(
+                    entry.update({"path": "phase11_dw_wdt_registration_scaffold.zig"})
+                    for entry in data["module_root_source_files"]
+                    if entry["module"] == "phase11_dw_wdt_survey_module"
+                ),
+            ),
+            "module_root_source_files mismatch for phase11_dw_wdt_survey_module",
+        )
+        expect_failure(
+            rewrite_json(
+                "wrong_dw_wdt_survey_root_module",
+                lambda data: next(
+                    entry.update({"root_module": "phase11_dw_wdt_registration_scaffold_module"})
+                    for entry in data["test_root_modules"]
+                    if entry["test"] == "phase11-dw-wdt-survey-tests"
+                ),
+            ),
+            "test_root_modules mismatch for phase11-dw-wdt-survey-tests",
+        )
+        expect_failure(
+            rewrite_json(
                 "forbidden_shared_step",
                 lambda data: data["shared_test_depend_steps"].append(FORBIDDEN_SHARED_DEPEND_STEP),
             ),
@@ -493,7 +525,7 @@ def run_self_test() -> None:
         expect_failure(missing_build_case, FILES["build_file"])
 
         print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-        print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=6")
+        print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=8")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
