@@ -673,7 +673,7 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
-        for marker_index in (21, 9, 17, 33, 34, -1, 10, 11, 18, 22):
+        for marker_index in (21, 8, 9, 17, 33, 34, -1, 10, 11, 12, 13, 18, 22):
             closure_path.write_text(
                 closure_path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[marker_index], "", 1),
                 encoding="utf-8",
@@ -813,6 +813,9 @@ def run_self_test() -> None:
             CLOSURE_MARKERS[22],
             CLOSURE_MARKERS[30],
             CLOSURE_MARKERS[32],
+            CLOSURE_MARKERS[35],
+            CLOSURE_MARKERS[36],
+            CLOSURE_MARKERS[37],
         ]:
             closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
             assert any(item == f"closure:{marker}" for item in collect_missing_markers(root))
