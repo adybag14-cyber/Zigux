@@ -25,6 +25,7 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-export-uapi-survey.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"), ("--self-test",)),
+    (Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-validator-support-surface.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"), ("--self-test",)),
     (Path("scripts/zigux/survey-phase3-abi-constant-parity.py"), ("--self-test",)),
@@ -56,6 +57,9 @@ SELFTEST_OUTPUT_MARKERS = {
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"): (
         "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
     ),
+    Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"): (
+        "PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass",
+    ),
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"): (
         "PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass",
     ),
@@ -69,6 +73,11 @@ PHASE3_SELFTEST_DRIVER_COMMAND = (
 PHASE3_VALIDATE_SUPPORT_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check",
+)
+INDIRECT_PHASE3_VALIDATE_COMMANDS = frozenset(
+    {
+        Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
+    }
 )
 REQUIRED_SELFTEST_DRIVER_PATHS = tuple(
     rel_path for rel_path, _args in SELFTEST_COMMANDS
@@ -116,7 +125,11 @@ def _selftest_make_command(rel_path: Path, args: tuple[str, ...]) -> str:
 
 def _required_phase3_validate_commands() -> tuple[str, ...]:
     commands = [PHASE3_SELFTEST_DRIVER_COMMAND, *PHASE3_VALIDATE_SUPPORT_COMMANDS]
-    commands.extend(_selftest_make_command(rel_path, args) for rel_path, args in SELFTEST_COMMANDS)
+    commands.extend(
+        _selftest_make_command(rel_path, args)
+        for rel_path, args in SELFTEST_COMMANDS
+        if rel_path not in INDIRECT_PHASE3_VALIDATE_COMMANDS
+    )
     return tuple(commands)
 
 
@@ -459,6 +472,16 @@ def run_self_test() -> int:
         if expected not in missing:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing wrapper-check makefile command was not reported")
+            return 1
+
+        governance_command = _selftest_make_command(
+            Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
+            ("--self-test",),
+        )
+        makefile = (root / MAKEFILE_PATH).read_text(encoding="utf-8")
+        if governance_command in makefile:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected governance validator to stay indirect through the selftest driver")
             return 1
 
         for rel_path, expected_markers in SELFTEST_OUTPUT_MARKERS.items():
