@@ -77,6 +77,8 @@ REQUIRED_MARKERS = {
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
         "phase 7 argvSplit deinit clears exported storage and argv views",
         "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+        "argvFree on one live non-blank result does not disturb another caller-owned split result",
+        "deinit on one live non-blank result does not disturb another caller-owned split result",
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
         "\"lane_key\": \"P7-L09\"",
@@ -94,6 +96,8 @@ REQUIRED_MARKERS = {
         "copied token-buffer ownership and later source-mutation isolation",
         "owned-storage reuse keeps token pointers inside caller-managed storage",
         "non-blank results keep storage, argv slices, and C-argv views distinct across callers",
+        "argvFree on one live non-blank result does not disturb another caller-owned split result",
+        "deinit on one live non-blank result does not disturb another caller-owned split result",
         "blank-input sentinel reuse stays stable across argvFree and deinit, including shared empty-sentinel teardown beside another blank caller",
     ],
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": [
