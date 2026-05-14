@@ -337,6 +337,35 @@ test "runtime bitmap sample failed init leaves the sample cold and empty" {
     try std.testing.expect(module.isSet(1));
 }
 
+test "runtime bitmap sample failed range mutations preserve bitmap state and lifecycle" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long + 2 });
+    _ = try module.runSelftest();
+
+    const before_summary = module.summary();
+    const before_snapshot = module.lifecycleSnapshot();
+
+    try std.testing.expectError(error.BitRangeOutOfBounds, module.setRange(RuntimeBitmapSample.bitmap_nbits - 1, 2));
+    try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(RuntimeBitmapSample.bitmap_nbits, 1));
+
+    const after_summary = module.summary();
+    const after_snapshot = module.lifecycleSnapshot();
+
+    try std.testing.expectEqual(before_summary.first_set, after_summary.first_set);
+    try std.testing.expectEqual(before_summary.first_zero, after_summary.first_zero);
+    try std.testing.expectEqual(before_summary.weight, after_summary.weight);
+    try std.testing.expectEqual(before_summary.nbits, after_summary.nbits);
+    try std.testing.expectEqual(before_snapshot.stage, after_snapshot.stage);
+    try std.testing.expectEqual(before_snapshot.init_runs, after_snapshot.init_runs);
+    try std.testing.expectEqual(before_snapshot.selftest_runs, after_snapshot.selftest_runs);
+    try std.testing.expectEqual(before_snapshot.exit_runs, after_snapshot.exit_runs);
+    try std.testing.expectEqual(before_snapshot.allows_mutation, after_snapshot.allows_mutation);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 2));
+    try std.testing.expect(!module.isSet(1));
+}
+
 test "runtime bitmap sample copyFrom accepts a selftested source without widening lifecycle claims" {
     var source = RuntimeBitmapSample{};
     try source.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long + 7 });
