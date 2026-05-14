@@ -11,7 +11,7 @@
     "gpio_wdt_c_lines": 194,
     "preexisting_phase11_test_files": 2,
     "preexisting_phase11_build_present": false,
-    "preexisting_gpio_wdt_zig_present": false,
+    "preexisting_gpio_wdt_zig_present": true,
     "preexisting_gpio_wdt_test_present": false,
     "preexisting_phase11_survey_note_present": true,
     "preexisting_phase11_module_note_present": true,
@@ -24,133 +24,133 @@
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_build.zig",
-      "why_now": "Current master still does not expose the shared Phase 11 build route for gpio_wdt, so the archived replay command must stay out of shipped evidence until the visible main driver packet is restored."
+      "why_now": "Current master still does not expose the shared Phase 11 build route for gpio_wdt, so the archived replay command must stay out of shipped evidence until the directly coupled main replay and shared build packet are restored."
     },
     {
       "id": "phase11-gpio-wdt-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt_survey.zig",
-      "why_now": "A dedicated archived-packet survey gate is again directly visible on current master, so the lane can revalidate the manifest, survey note, validation matrix, and teardown note without pretending the missing main driver packet or shared Phase 11 build route are back."
+      "why_now": "The dedicated survey gate should now keep the visible starter, the still-visible notes, and the focused platform-drvdata replay aligned without pretending the missing main replay or shared Phase 11 build route are already back."
     },
     {
       "id": "phase11-gpio-wdt-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-survey.md",
-      "why_now": "The survey note now keeps the archived gpio watchdog review packet truthful by naming the still-visible notes, the focused platform-drvdata replay, and the restored dedicated survey gate, while still calling out the missing main driver or replay or shared-build surfaces and the remaining Phase 11 registration, teardown, failure-mode, and hardware-backed validation gap."
+      "why_now": "The survey note should acknowledge that current master now exposes `drivers/watchdog/gpio_wdt.zig` again while still keeping the missing main replay, missing shared build route, and later live registration or hardware-backed work explicit."
     },
     {
       "id": "phase11-gpio-wdt-driver-starter",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "Current master still does not expose the gpio_wdt starter itself, so the roadmap destination under drivers/watchdog/*.zig remains missing even though the archived review notes and the restored survey gate can now keep that absence explicit."
+      "why_now": "Current master now exposes the bounded gpio_wdt starter itself again, so this lane should keep the archived packet aligned with the visible code-backed summaries instead of claiming the starter is absent."
     },
     {
       "id": "phase11-gpio-wdt-driver-tests",
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt.zig",
-      "why_now": "Current master still does not expose the main gpio_wdt replay, so the archived packet can keep earlier bounded behavior reviewable only as note-backed review memory rather than as a directly visible shipped test surface."
+      "why_now": "Current master still does not expose the main gpio_wdt replay, so the archived packet can only keep the visible starter, the focused platform-drvdata replay, and the truthfulness notes reviewable for now."
     },
     {
       "id": "phase11-gpio-wdt-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-module-slice.md",
-      "why_now": "The module-slice note remains visible on current master and keeps the archived descriptor-preflight, timeout-property, platform-drvdata, drvdata, register-device, reboot-glue, and teardown-facing review packet explicit without treating the missing driver file as still shipped."
+      "why_now": "The module-slice note should now name only the checkpoints that the visible starter actually exports, while staying honest about the still-missing main replay, shared build route, live registration execution, and reboot-backed follow-through."
     },
     {
       "id": "phase11-gpio-wdt-teardown-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-teardown-note.md",
-      "why_now": "The teardown note remains visible on current master and now keeps the archived teardown-facing review packet aligned with the still-visible module-slice, survey, matrix, manifest, focused platform-drvdata replay, and restored survey gate instead of claiming the missing main starter replay as shipped."
+      "why_now": "The teardown note should now treat the visible starter as code-backed teardown evidence, keep the focused platform-drvdata replay and dedicated survey gate explicit, and stop naming reboot-glue checkpoints that the current starter does not export."
     },
     {
       "id": "phase11-gpio-wdt-validation-matrix",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
-      "why_now": "The validation matrix remains visible on current master and keeps the archived gpio watchdog review packet truthful by separating the still-visible focused platform-drvdata replay and restored survey gate from the missing main driver, main replay, and shared-build surfaces."
+      "why_now": "The validation matrix should now keep the visible starter and the still-missing main replay or shared build route separate so the archived gpio_wdt packet stays truthful on current master."
     },
     {
       "id": "phase11-gpio-wdt-probe-summary-followup",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The archived notes still describe the probe-time summary, but current master needs the visible gpio_wdt starter restored before that checkpoint can count as shipped driver evidence again."
+      "why_now": "The visible starter now exposes `probeSummary()`, so the archived notes should treat probe-time bookkeeping as code-backed while leaving the missing main replay and live execution out of scope."
     },
     {
       "id": "phase11-gpio-wdt-nowayout-followup",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The archived notes still describe the nowayout-aware stop helper, but current master needs the visible gpio_wdt starter restored before that stop-policy split can count as shipped driver evidence again."
+      "why_now": "The visible starter now exposes `nowayoutPolicySummary()` and the stop-policy split, so the archived packet should keep that boundary explicit without treating main replay or hardware-backed execution as restored."
     },
     {
       "id": "phase11-gpio-wdt-registration-handoff-followup",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The archived notes still describe the registration-facing handoff summary, but current master needs the visible gpio_wdt starter restored before that handoff surface can count as shipped driver evidence again."
+      "why_now": "The visible starter now exposes `registrationHandoffSummary()`, so the archived notes should treat the registration-facing handoff as code-backed while keeping platform-driver registration and watchdog-core side effects blocked."
     },
     {
       "id": "phase11-gpio-wdt-descriptor-preflight",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The archived notes still record the descriptor preflight boundary around devm_gpiod_get(), but current master needs the visible gpio_wdt starter restored before that checkpoint can count as shipped driver evidence again."
+      "why_now": "The visible starter now exposes `descriptorRequestSummary()`, so the exact `devm_gpiod_get()` flag choice and early ordering boundary are visible again without claiming live descriptor acquisition."
     },
     {
       "id": "phase11-gpio-wdt-timeout-property-checkpoint",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The archived notes still record the hw_margin_ms timeout-property checkpoint, but current master needs the visible gpio_wdt starter restored before that fail-closed ordering can count as shipped driver evidence again."
+      "why_now": "The visible starter keeps the required `hw_margin_ms` boundary explicit through `probeSummary()` and `platformDrvdataCheckpointSummary()`, even though there is still no dedicated timeout-only replay surface."
     },
     {
       "id": "phase11-gpio-wdt-platform-drvdata-checkpoint",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The archived notes still record the platform_set_drvdata() checkpoint, but current master needs the visible gpio_wdt starter restored before that platform-drvdata ordering can count as shipped driver evidence again."
+      "why_now": "The visible starter now exposes `platformDrvdataCheckpointSummary()`, so the early `platform_set_drvdata()` ordering boundary is code-backed again."
     },
     {
       "id": "phase11-gpio-wdt-platform-drvdata-tests",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt_platform_drvdata.zig",
-      "why_now": "The focused platform_set_drvdata() replay remains directly visible on current master and now pairs with the restored dedicated survey gate to keep one early ordering checkpoint and the archived packet truthfulness reviewable without widening into the missing main driver, main replay, or shared Phase 11 route."
+      "why_now": "The focused `platform_set_drvdata()` replay remains directly visible on current master and now pairs with the visible starter plus the dedicated survey gate to keep one early ordering checkpoint reviewable."
     },
     {
       "id": "phase11-gpio-wdt-drvdata-checkpoint",
-      "status": "blocked_on_driver_scaffold",
+      "status": "note_only_archived",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The archived notes still record the watchdog_set_drvdata() checkpoint, but current master needs the visible gpio_wdt starter restored before that drvdata ordering can count as shipped driver evidence again."
+      "why_now": "The current visible starter does not yet expose a dedicated `watchdog_set_drvdata()` checkpoint summary, so this remains note-backed review memory until a smaller same-family follow-up lands."
     },
     {
       "id": "phase11-gpio-wdt-reboot-glue-checkpoint",
-      "status": "blocked_on_driver_scaffold",
+      "status": "note_only_archived",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The archived notes still record the reboot-glue checkpoint around watchdog_stop_on_reboot(), but current master needs the visible gpio_wdt starter restored before that bounded ordering can count as shipped driver evidence again."
+      "why_now": "The current visible starter does not yet expose a reboot-glue checkpoint summary, so reboot-hook ordering remains archived review memory rather than visible code-backed evidence."
     },
     {
       "id": "phase11-gpio-wdt-register-device-call-surface",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The archived notes still record the first bounded devm_watchdog_register_device() request surface, but current master needs the visible gpio_wdt starter restored before that request summary can count as shipped driver evidence again."
+      "why_now": "The visible starter now exposes `registerDeviceCallSummary()` and `registerDeviceFailureSummary()`, so the first bounded `devm_watchdog_register_device()` request surface is code-backed again without claiming live registration execution."
     },
     {
       "id": "phase11-gpio-wdt-platform-registration",
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt.zig",
-      "why_now": "Current master still lacks the visible main gpio_wdt driver and replay packet, so platform-driver registration, GPIO descriptor acquisition, watchdog_set_drvdata() execution, watchdog-core registration, teardown and failure-mode parity, and hardware-backed validation remain blocked behind restoring that driver-local scaffold."
+      "why_now": "Current master still lacks the directly coupled main gpio_wdt replay and the shared Phase 11 build route, so platform-driver registration, GPIO descriptor acquisition, `watchdog_set_drvdata()` execution, watchdog-core registration, broader teardown and failure-mode parity, and hardware-backed validation remain blocked behind restoring that larger replay packet."
     }
   ]
 }
