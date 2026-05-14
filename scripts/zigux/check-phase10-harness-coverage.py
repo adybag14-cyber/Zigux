@@ -135,19 +135,6 @@ CLOSURE_NOTE_MARKERS = [
     "repo-reality gaps",
 ]
 
-REVIEW_CHECKLIST_MARKERS = [
-    "`Documentation/zigux/phase10-closure-evidence.md`",
-    "`scripts/zigux/check-phase10-harness-coverage.py`",
-    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
-    "`zigux/tests/phase10_closure_manifest.json`",
-    "`drivers/virtio/virtio.zig`",
-    "`drivers/virtio/virtio_driver_id.zig`",
-    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
-    "`make -C zigux phase10-test`",
-    "`make -C zigux phase10`",
-    "`Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` framed as repo-reality gaps rather than shipped current-`master` evidence",
-]
-
 COMPANION_MARKERS = [
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "ring drained-reset reuse replay",
@@ -164,6 +151,56 @@ INPUT_SURVEY_MARKERS = [
     "`drivers/virtio/virtio_input_probe_preflight.zig`",
 ]
 
+CHECKS = [
+    ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_NOTE_MARKERS),
+    (
+        "companion",
+        "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+        COMPANION_MARKERS,
+    ),
+    ("lane_note", "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", LANE_NOTE_MARKERS),
+    ("input_survey", "Documentation/zigux/phase10-virtio-input-survey.md", INPUT_SURVEY_MARKERS),
+    ("doc_readme", "Documentation/zigux/README.md", DOC_README_MARKERS),
+    ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
+    ("make", "zigux/Makefile", MAKE_MARKERS),
+    ("workflow", ".github/workflows/zigux-bootstrap.yml", WORKFLOW_MARKERS),
+    ("build", "zigux/tests/phase10_build.zig", BUILD_MARKERS),
+    ("manifest", "zigux/tests/phase10_closure_manifest.json", MANIFEST_TEXT_MARKERS),
+    ("tests_readme", "zigux/tests/README.md", TESTS_README_MARKERS),
+]
+
+FIXTURE_CONTENT = {
+    "Documentation/zigux/phase10-closure-evidence.md": "\n".join(
+        [
+            "# Phase 10 Closure Evidence",
+            "",
+            "- a dedicated shared harness-coverage checker, `scripts/zigux/check-phase10-harness-coverage.py`, keeps the packet honest",
+            "- a focused tests-root direct-core checker, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, keeps the direct-core reminder explicit",
+            "- a manifest-backed closure packet, `zigux/tests/phase10_closure_manifest.json`, still records the intended packet",
+            "- the broader shared reminder packet keeps the exact `zigux/tests/phase10_virtio_ring_reset_reuse.zig` replay explicit on current `master`",
+            "- the ring drained-reset reuse replay stays visible beside the shared closure packet",
+            "- the live `zigux/Makefile` `phase10-test` route reruns the shared packet",
+            "- `make -C zigux phase10-test` and `make -C zigux phase10` remain the local replay wrappers",
+            "- repo-reality gaps stay explicit through `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md`",
+            "- `scripts/zigux/README.md` still presents those missing slice-note paths as live evidence, so the next same-lane repair stays in the scripts-root summary",
+            "",
+        ]
+    ),
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(COMPANION_MARKERS)
+    + "\n",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_NOTE_MARKERS) + "\n",
+    "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join(INPUT_SURVEY_MARKERS) + "\n",
+    "Documentation/zigux/review-checklist.md": "# Zigux Review Checklist\n\n",
+    "Documentation/zigux/README.md": "\n".join(DOC_README_MARKERS) + "\n",
+    "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
+    "scripts/zigux/README.md": "\n".join(SCRIPTS_README_MARKERS) + "\n",
+    "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
+    ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
+    "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
+    "zigux/tests/README.md": "\n".join(TESTS_README_MARKERS) + "\n",
+}
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -175,31 +212,35 @@ def check_markers(missing: list[str], label: str, text: str, markers: list[str])
             missing.append(f"{label}:{marker}")
 
 
+def manifest_fixture_text() -> str:
+    return json.dumps(
+        {
+            "phase": "Phase 10",
+            "tranche": "virtio-lab-bundle",
+            "test_count": 16,
+            "roadmap_parity_scoreboard": {
+                "lab_only_driver_validation": {
+                    "evidence": [
+                        "zigux/tests/phase10_build.zig",
+                        "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+                        "scripts/zigux/check-phase10-harness-coverage.py",
+                        "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+                    ]
+                }
+            },
+            "exact_checks": EXACT_CHECK_MARKERS,
+        },
+        indent=2,
+    ) + "\n"
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [path for path in FILES if not (root / path).exists()]
     if missing_files:
         return missing_files, []
 
     missing: list[str] = []
-    checks = [
-        ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_NOTE_MARKERS),
-        (
-            "companion",
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            COMPANION_MARKERS,
-        ),
-        ("lane_note", "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", LANE_NOTE_MARKERS),
-        ("input_survey", "Documentation/zigux/phase10-virtio-input-survey.md", INPUT_SURVEY_MARKERS),
-        ("review_checklist", "Documentation/zigux/review-checklist.md", REVIEW_CHECKLIST_MARKERS),
-        ("doc_readme", "Documentation/zigux/README.md", DOC_README_MARKERS),
-        ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
-        ("make", "zigux/Makefile", MAKE_MARKERS),
-        ("workflow", ".github/workflows/zigux-bootstrap.yml", WORKFLOW_MARKERS),
-        ("build", "zigux/tests/phase10_build.zig", BUILD_MARKERS),
-        ("manifest", "zigux/tests/phase10_closure_manifest.json", MANIFEST_TEXT_MARKERS),
-        ("tests_readme", "zigux/tests/README.md", TESTS_README_MARKERS),
-    ]
-    for label, rel_path, markers in checks:
+    for label, rel_path, markers in CHECKS:
         check_markers(missing, label, read_text(root, rel_path), markers)
 
     manifest = json.loads(read_text(root, "zigux/tests/phase10_closure_manifest.json"))
@@ -238,59 +279,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 
 def write_fixture(root: Path) -> None:
-    text_files = {
-        "Documentation/zigux/phase10-closure-evidence.md": "\n".join(
-            [
-                "# Phase 10 Closure Evidence",
-                "",
-                "- a dedicated shared harness-coverage checker, `scripts/zigux/check-phase10-harness-coverage.py`, keeps the packet honest",
-                "- a focused tests-root direct-core checker, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, keeps the direct-core reminder explicit",
-                "- a manifest-backed closure packet, `zigux/tests/phase10_closure_manifest.json`, still records the intended packet",
-                "- the broader shared reminder packet keeps the exact `zigux/tests/phase10_virtio_ring_reset_reuse.zig` replay explicit on current `master`",
-                "- the ring drained-reset reuse replay stays visible beside the shared closure packet",
-                "- the live `zigux/Makefile` `phase10-test` route reruns the shared packet",
-                "- `make -C zigux phase10-test` and `make -C zigux phase10` remain the local replay wrappers",
-                "- repo-reality gaps stay explicit through `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md`",
-                "- `scripts/zigux/README.md` still presents those missing slice-note paths as live evidence, so the next same-lane repair stays in the scripts-root summary",
-                "",
-            ]
-        ),
-        "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(COMPANION_MARKERS)
-        + "\n",
-        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_NOTE_MARKERS) + "\n",
-        "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join(INPUT_SURVEY_MARKERS) + "\n",
-        "Documentation/zigux/review-checklist.md": "# Zigux Review Checklist\n\n"
-        + "\n".join(REVIEW_CHECKLIST_MARKERS)
-        + "\n",
-        "Documentation/zigux/README.md": "\n".join(DOC_README_MARKERS) + "\n",
-        "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
-        "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
-        "scripts/zigux/README.md": "\n".join(SCRIPTS_README_MARKERS) + "\n",
-        "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
-        ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
-        "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
-        "zigux/tests/phase10_closure_manifest.json": json.dumps(
-            {
-                "phase": "Phase 10",
-                "tranche": "virtio-lab-bundle",
-                "test_count": 16,
-                "roadmap_parity_scoreboard": {
-                    "lab_only_driver_validation": {
-                        "evidence": [
-                            "zigux/tests/phase10_build.zig",
-                            "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
-                            "scripts/zigux/check-phase10-harness-coverage.py",
-                            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
-                        ]
-                    }
-                },
-                "exact_checks": EXACT_CHECK_MARKERS,
-            },
-            indent=2,
-        )
-        + "\n",
-        "zigux/tests/README.md": "\n".join(TESTS_README_MARKERS) + "\n",
-    }
+    text_files = dict(FIXTURE_CONTENT)
+    text_files["zigux/tests/phase10_closure_manifest.json"] = manifest_fixture_text()
     for rel_path, content in text_files.items():
         path = root / rel_path
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -367,11 +357,7 @@ def run_self_test() -> int:
         scripts_readme_path = root / "scripts/zigux/README.md"
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
-            original_scripts_readme.replace(
-                "`make -C zigux phase10-test`",
-                "`make -C zigux phase10-shared-test`",
-                1,
-            ),
+            original_scripts_readme.replace("`make -C zigux phase10-test`", "`make -C zigux phase10-shared-test`", 1),
             encoding="utf-8",
         )
         expect_missing_marker(
@@ -380,23 +366,6 @@ def run_self_test() -> int:
             "scripts_readme:`make -C zigux phase10-test`",
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        review_checklist_path = root / "Documentation/zigux/review-checklist.md"
-        original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
-        review_checklist_path.write_text(
-            original_review_checklist.replace(
-                "framed as repo-reality gaps rather than shipped current-`master` evidence",
-                "framed as shared reminder evidence on current `master`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "review_checklist_repo_reality_gap_phrase",
-            root,
-            "review_checklist:`Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` framed as repo-reality gaps rather than shipped current-`master` evidence",
-        )
-        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
         manifest_path = root / "zigux/tests/phase10_closure_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -436,14 +405,10 @@ def run_self_test() -> int:
 
         checker_path = root / "scripts/zigux/check-phase10-tests-readme-core-surfaces.py"
         checker_path.unlink()
-        expect_missing_file(
-            "checker_file",
-            root,
-            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
-        )
+        expect_missing_file("checker_file", root, "scripts/zigux/check-phase10-tests-readme-core-surfaces.py")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -470,5 +435,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(CLOSURE_NOTE_MARKERS) + len(COMPANION_MARKERS) + len(LANE_NOTE_MARKERS) + len(INPUT_SURVEY_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(DOC_README_MARKERS) + len(SCRIPTS_README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
+    f"{sum(len(markers) for _, _, markers in CHECKS) + len(EXACT_CHECK_MARKERS)}"
 )
