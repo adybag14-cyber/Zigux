@@ -159,6 +159,70 @@ test "phase3 abi keeps policy helper decoding aligned with interop policy bytes"
     try std.testing.expectError(error.UnsafeScopeDenied, narrow_unsafe.requireVolatileMmioInteropPolicy(caller_abort_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, narrow_unsafe.requireRawPointerBridgeInteropPolicy(caller_abort_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, narrow_unsafe.requireRawPointerBridgeInteropPolicy(reserved_policy));
+
+    try std.testing.expectEqual(@as(?abi.PanicMode, .abort), panic_policy.modeFromByte(abi.PANIC_ABORT));
+    try std.testing.expectEqual(@as(?abi.PanicMode, .bug), panic_policy.modeFromByte(abi.PANIC_BUG));
+    try std.testing.expectEqual(@as(?abi.PanicMode, .warn), panic_policy.modeFromByte(abi.PANIC_WARN));
+    try std.testing.expectEqual(@as(?abi.PanicMode, null), panic_policy.modeFromByte(9));
+    try std.testing.expect(panic_policy.recognizesByte(abi.PANIC_ABORT));
+    try std.testing.expect(!panic_policy.recognizesByte(9));
+    try std.testing.expectEqual(@as(?panic_policy.Action, .abort_now), panic_policy.actionForByte(abi.PANIC_ABORT));
+    try std.testing.expectEqual(@as(?panic_policy.Action, .bug_check), panic_policy.actionForByte(abi.PANIC_BUG));
+    try std.testing.expectEqual(@as(?panic_policy.Action, .warn_and_return), panic_policy.actionForByte(abi.PANIC_WARN));
+    try std.testing.expectEqual(@as(?panic_policy.Action, null), panic_policy.actionForByte(9));
+    try std.testing.expect(panic_policy.mustAbortByte(abi.PANIC_ABORT));
+    try std.testing.expect(!panic_policy.mustAbortByte(abi.PANIC_BUG));
+    try std.testing.expect(!panic_policy.mustAbortByte(abi.PANIC_WARN));
+    try std.testing.expect(!panic_policy.mustAbortByte(9));
+    try std.testing.expect(!panic_policy.mustBugCheckByte(abi.PANIC_ABORT));
+    try std.testing.expect(panic_policy.mustBugCheckByte(abi.PANIC_BUG));
+    try std.testing.expect(!panic_policy.mustBugCheckByte(abi.PANIC_WARN));
+    try std.testing.expect(!panic_policy.mustBugCheckByte(9));
+    try std.testing.expect(!panic_policy.canReturnByte(abi.PANIC_ABORT));
+    try std.testing.expect(!panic_policy.canReturnByte(abi.PANIC_BUG));
+    try std.testing.expect(panic_policy.canReturnByte(abi.PANIC_WARN));
+    try std.testing.expect(!panic_policy.canReturnByte(9));
+
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), allocator_policy.modeFromByte(abi.ALLOC_CALLER_PROVIDED));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), allocator_policy.modeFromByte(abi.ALLOC_KERNEL_HEAP));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .arena), allocator_policy.modeFromByte(abi.ALLOC_ARENA));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, null), allocator_policy.modeFromByte(9));
+    try std.testing.expect(allocator_policy.recognizesByte(abi.ALLOC_CALLER_PROVIDED));
+    try std.testing.expect(!allocator_policy.recognizesByte(9));
+    try std.testing.expect(allocator_policy.requiresExplicitCallerByte(abi.ALLOC_CALLER_PROVIDED));
+    try std.testing.expect(!allocator_policy.requiresExplicitCallerByte(abi.ALLOC_KERNEL_HEAP));
+    try std.testing.expect(!allocator_policy.requiresExplicitCallerByte(abi.ALLOC_ARENA));
+    try std.testing.expect(!allocator_policy.requiresExplicitCallerByte(9));
+    try std.testing.expect(!allocator_policy.permitsGlobalFallbackByte(abi.ALLOC_CALLER_PROVIDED));
+    try std.testing.expect(allocator_policy.permitsGlobalFallbackByte(abi.ALLOC_KERNEL_HEAP));
+    try std.testing.expect(allocator_policy.permitsGlobalFallbackByte(abi.ALLOC_ARENA));
+    try std.testing.expect(!allocator_policy.permitsGlobalFallbackByte(9));
+
+    try std.testing.expectEqual(@as(?narrow_unsafe.UnsafeScopeTag, .none), narrow_unsafe.scopeFromByte(abi.UNSAFE_NONE));
+    try std.testing.expectEqual(@as(?narrow_unsafe.UnsafeScopeTag, .volatile_mmio), narrow_unsafe.scopeFromByte(abi.UNSAFE_VOLATILE_MMIO));
+    try std.testing.expectEqual(@as(?narrow_unsafe.UnsafeScopeTag, .raw_pointer_bridge), narrow_unsafe.scopeFromByte(abi.UNSAFE_RAW_POINTER_BRIDGE));
+    try std.testing.expectEqual(@as(?narrow_unsafe.UnsafeScopeTag, null), narrow_unsafe.scopeFromByte(9));
+    try std.testing.expect(narrow_unsafe.recognizesByte(abi.UNSAFE_NONE));
+    try std.testing.expect(!narrow_unsafe.recognizesByte(9));
+    try std.testing.expect(narrow_unsafe.permitsNoUnsafeByte(abi.UNSAFE_NONE));
+    try std.testing.expect(!narrow_unsafe.permitsNoUnsafeByte(abi.UNSAFE_VOLATILE_MMIO));
+    try std.testing.expect(!narrow_unsafe.permitsNoUnsafeByte(abi.UNSAFE_RAW_POINTER_BRIDGE));
+    try std.testing.expect(!narrow_unsafe.permitsNoUnsafeByte(9));
+    try std.testing.expect(!narrow_unsafe.permitsVolatileMmioByte(abi.UNSAFE_NONE));
+    try std.testing.expect(narrow_unsafe.permitsVolatileMmioByte(abi.UNSAFE_VOLATILE_MMIO));
+    try std.testing.expect(!narrow_unsafe.permitsVolatileMmioByte(abi.UNSAFE_RAW_POINTER_BRIDGE));
+    try std.testing.expect(!narrow_unsafe.permitsVolatileMmioByte(9));
+    try std.testing.expect(!narrow_unsafe.permitsRawPointerBridgeByte(abi.UNSAFE_NONE));
+    try std.testing.expect(!narrow_unsafe.permitsRawPointerBridgeByte(abi.UNSAFE_VOLATILE_MMIO));
+    try std.testing.expect(narrow_unsafe.permitsRawPointerBridgeByte(abi.UNSAFE_RAW_POINTER_BRIDGE));
+    try std.testing.expect(!narrow_unsafe.permitsRawPointerBridgeByte(9));
+    try narrow_unsafe.requireNoUnsafeByte(abi.UNSAFE_NONE);
+    try narrow_unsafe.requireVolatileMmioByte(abi.UNSAFE_VOLATILE_MMIO);
+    try narrow_unsafe.requireRawPointerBridgeByte(abi.UNSAFE_RAW_POINTER_BRIDGE);
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow_unsafe.requireNoUnsafeByte(abi.UNSAFE_RAW_POINTER_BRIDGE));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow_unsafe.requireVolatileMmioByte(abi.UNSAFE_NONE));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow_unsafe.requireRawPointerBridgeByte(abi.UNSAFE_VOLATILE_MMIO));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow_unsafe.requireRawPointerBridgeByte(9));
 }
 
 test "phase3 abi keeps dev_t sample encoding and kernel relay status explicit" {
