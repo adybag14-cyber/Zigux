@@ -28,6 +28,8 @@ REQUIRED_MARKERS = {
         "keep stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path",
         "keep copied-buffer ownership so later source mutation does not affect split results",
         "non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact",
+        "exported storage and argv views resetting back to the canonical empty sentinels after teardown",
+        "allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns",
         "zigux/tests/phase7_argv_split_survey.zig",
         "zigux/tests/phase7_argv_split_manifest.json",
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
@@ -68,6 +70,8 @@ REQUIRED_MARKERS = {
         "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on a non-blank result restores the canonical blank sentinels",
+        "phase 7 argvSplit deinit clears exported storage and argv views",
+        "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
         "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
@@ -114,6 +118,7 @@ REQUIRED_MARKERS = {
         "argvFree on one live non-blank result does not disturb another caller-owned split result",
         "deinit on one live non-blank result does not disturb another caller-owned split result",
         "blank-input sentinel reuse stays stable across argvFree and deinit, including shared empty-sentinel teardown beside another blank caller",
+        "canonical blank sentinels, repeatable teardown, and a null-terminated argv view",
     ],
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": [
         ".name = \"repeated whitespace collapses into separators\"",
@@ -212,6 +217,34 @@ def run_self_test() -> None:
             "slice_teardown_safety_marker",
             tmp_root,
             "Documentation/zigux/phase7-argv-split-slice.md: non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "exported storage and argv views resetting back to the canonical empty sentinels after teardown",
+            "",
+            "slice_canonical_reset_marker",
+        )
+        expect_missing_marker(
+            "slice_canonical_reset_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: exported storage and argv views resetting back to the canonical empty sentinels after teardown",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md",
+            "allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns",
+            "",
+            "slice_allocator_failure_marker",
+        )
+        expect_missing_marker(
+            "slice_allocator_failure_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns",
         )
         write_fixture_root(tmp_root)
 
@@ -357,6 +390,20 @@ def run_self_test() -> None:
 
         mutate_file(
             tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json",
+            "canonical blank sentinels, repeatable teardown, and a null-terminated argv view",
+            "",
+            "manifest_blank_sentinels_marker",
+        )
+        expect_missing_marker(
+            "manifest_blank_sentinels_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json: canonical blank sentinels, repeatable teardown, and a null-terminated argv view",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig",
             "const active_lane_key = \"P7-L09\";",
             "",
@@ -408,6 +455,34 @@ def run_self_test() -> None:
             "tests_argc_mirror_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split.zig: phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig",
+            "phase 7 argvSplit deinit clears exported storage and argv views",
+            "",
+            "tests_deinit_clear_marker",
+        )
+        expect_missing_marker(
+            "tests_deinit_clear_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit deinit clears exported storage and argv views",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig",
+            "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+            "",
+            "tests_allocator_failure_marker",
+        )
+        expect_missing_marker(
+            "tests_allocator_failure_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
         )
         write_fixture_root(tmp_root)
 
@@ -522,7 +597,7 @@ def run_self_test() -> None:
             "lib/argv_split.zig: if (argc == 0) {",
         )
 
-    case_count = 25
+    case_count = 30
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
