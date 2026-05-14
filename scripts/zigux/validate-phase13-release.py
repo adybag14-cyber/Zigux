@@ -109,6 +109,7 @@ REQUIRED_MARKERS = {
         "Broad summaries should also keep the shipped adjacent direct-evidence shards visible without counting them as extra shared replay steps:",
         "Broad summaries should also keep the shipped adjacent notifier release surface visible through:",
         "If direct notifier companions such as:",
+        "Current `master` no longer frames shipped `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, or `zigux/helpers/notifier_chain_view.zig` as missing in `scripts/zigux/README.md`.",
     ],
     "Documentation/zigux/phase13-release-coordination-matrix.md": [
         "# Phase 13 Release Coordination Matrix",
@@ -119,6 +120,7 @@ REQUIRED_MARKERS = {
         "tests-root companion: `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
         "release validator: `scripts/zigux/validate-phase13-release.py`",
         "shared replay handle: `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`",
+        "shared-summary reread target: `scripts/zigux/README.md`, `zigux/tests/README.md`, this matrix, the docs-root Phase 13 companions, and the tests-root companion note are the shared surfaces to reread together;",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche.",
@@ -559,6 +561,58 @@ def run_self_test() -> int:
             root,
             "Documentation/zigux/phase13-release-notes-survey.md",
             "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]) + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
+                if marker
+                != "Current `master` no longer frames shipped `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, or `zigux/helpers/notifier_chain_view.zig` as missing in `scripts/zigux/README.md`."
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:"
+                "Current `master` no longer frames shipped `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, or `zigux/helpers/notifier_chain_view.zig` as missing in `scripts/zigux/README.md`."
+            ],
+            "missing_release_notes_scripts_readme_alignment_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]) + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-coordination-matrix.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-coordination-matrix.md"]
+                if marker
+                != "shared-summary reread target: `scripts/zigux/README.md`, `zigux/tests/README.md`, this matrix, the docs-root Phase 13 companions, and the tests-root companion note are the shared surfaces to reread together;"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:"
+                "shared-summary reread target: `scripts/zigux/README.md`, `zigux/tests/README.md`, this matrix, the docs-root Phase 13 companions, and the tests-root companion note are the shared surfaces to reread together;"
+            ],
+            "missing_release_coordination_reread_target_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-coordination-matrix.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-release-coordination-matrix.md"]) + "\n",
         )
         case_count += 1
 
