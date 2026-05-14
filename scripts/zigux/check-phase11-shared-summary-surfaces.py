@@ -29,7 +29,7 @@ CONTRACT_MARKERS = [
     "* no shared `validate-phase11.py`",
     "* no shared `make -C zigux phase11-validate` target on `master`",
     "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; platform-registration scaffolding remains the next same-lane follow-through, while the direct teardown and restart proofs stay compile-local and host-free rather than broader hardware-backed closure",
-    "* the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep those landed bounded replay surfaces explicit in shared summaries without widening them into notifier, khvcd, or host-backed execution closure",
+    "* the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `drivers/tty/hvc/hvc_console.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep those landed bounded replay surfaces explicit in shared summaries without widening them into notifier, khvcd, or host-backed execution closure",
 ]
 
 REQUIRED_MARKERS = {
@@ -40,6 +40,8 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase11-build-inventory.py`",
         "`zigux/tests/fixtures/phase11_build_inventory.json`",
         "direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
+        "`Documentation/zigux/phase11-hvc-console-slice.md`",
+        "`drivers/tty/hvc/hvc_console.zig`",
         "`zigux/tests/phase11_hvc_console.zig`",
         "`zigux/tests/phase11_hvc_console_manifest.json`",
         "`zigux/tests/phase11_hvc_console_survey.zig`",
@@ -213,6 +215,8 @@ def run_self_test() -> None:
             (FILES["contract_note"], CONTRACT_MARKERS[5]),
             (FILES["contract_note"], CONTRACT_MARKERS[6]),
             (FILES["contract_note"], CONTRACT_MARKERS[10]),
+            (FILES["contract_note"], "`Documentation/zigux/phase11-hvc-console-slice.md`"),
+            (FILES["contract_note"], "`drivers/tty/hvc/hvc_console.zig`"),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][3]),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][5]),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][6]),
@@ -222,6 +226,8 @@ def run_self_test() -> None:
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][10]),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][11]),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][12]),
+            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][13]),
+            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][14]),
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][4]),
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][6]),
             (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][7]),
@@ -265,7 +271,7 @@ def run_self_test() -> None:
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / relative_path
             path.write_text(
-                path.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
+                path.read_text(encoding="utf-8").replace(marker + "\n", "", 1).replace(marker, "", 1),
                 encoding="utf-8",
             )
             expect_failure(case_root, marker)
