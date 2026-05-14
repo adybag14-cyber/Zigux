@@ -48,11 +48,18 @@ test "phase 5 kobject sample keeps the pre-registration boundary explicit throug
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
 }
 
-test "phase 5 kobject sample keeps the one-time init boundary explicit through the focused test surface too" {
+test "phase 5 kobject sample keeps the sample-owned single-init boundary replay explicit through the focused test surface too" {
     var module = sample.KobjectExampleSample{};
-    try module.init();
+    const replay = try module.runSingleInitBoundaryReplay();
 
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_before_second_init);
+    try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_after_second_init);
+    try std.testing.expectEqual(@as(usize, 0), replay.active_attr_count);
+    try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.exit_runs);
+    try std.testing.expect(replay.rejected_second_init);
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
 
     const summary = module.ownershipSummary();
