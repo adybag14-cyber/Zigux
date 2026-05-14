@@ -33,6 +33,7 @@ What this run could verify directly:
 - the helper-first packet keeps one direct `kallsymsParse()` wrapper alongside the bounded `parseLine()`, `forEachParsedChunked()`, `forEachParsedReader()`, `forEachParsedFile()`, and `kallsymsParseFile()` parser helpers
 - oversized symbol names now truncate to `KSYM_NAME_LEN`
 - weak-object `V` and `v` classes still follow the current C header contract
+- helper-local reader, path, and callback replays still preserve a raw trailing carriage return before newline, so the parked packet should treat broader CRLF normalization as a future same-packet parser-and-test decision rather than as already-landed wrapper behavior
 - `make -C zigux phase8-help-kallsyms-test` and `make -C zigux phase8-kallsyms-test` remain the focused replay routes that keep the parked symbol packet reviewable beside the shared Phase 8 validator lane
 
 Because of that read surface, this note should now describe the following as current parked evidence:
@@ -41,6 +42,7 @@ Because of that read surface, this note should now describe the following as cur
 - the focused `zigux/tests/phase8_kallsyms.zig` replay packet
 - the focused `zigux/tests/phase8_kallsyms_only_build.zig` build route
 - the current parser-local truncation and weak-object classification contract
+- the current wrapper-local carriage-return preservation cue for reader, path, and direct callback flows
 
 ## Non-goals
 
@@ -56,5 +58,6 @@ Leave the `kallsyms` lane parked unless one of the following happens:
 
 - a same-packet reminder surface drifts and starts understating the currently readable helper-and-test packet again
 - a consistent reread from one source shows a new helper-local parser contract drift that still fits inside the parked packet
+- the chunked parser, focused Phase 8 replay, and helper-local wrapper tests need one bounded same-packet CRLF contract alignment
 
 If the lane reopens, keep it to one helper-local or note-local truthfulness pass at a time and avoid widening into unrelated Phase 8 tooling work.
