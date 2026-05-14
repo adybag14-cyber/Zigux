@@ -381,3 +381,55 @@ test "runtime kretprobe sample preserves selftest-ready maxactive-overflow state
     try std.testing.expectEqual(@as(usize, 1), exit_report.selftest_runs);
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
 }
+
+test "runtime kretprobe sample keeps overlapping entry timestamps stable through drain and exit" {
+    var module = sample.RuntimeKretprobeSample{};
+    try module.init();
+
+    try std.testing.expect(try module.entryHandler(true, 100));
+    try std.testing.expect(try module.entryHandler(true, 140));
+
+    const armed = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 2), armed.active_instances);
+    try std.testing.expect(armed.entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 0), armed.nmissed);
+    try std.testing.expectEqual(@as(usize, 0), armed.last_retval);
+    try std.testing.expectEqual(@as(i64, 0), armed.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), armed.selftest_runs);
+
+    const inner = try module.retHandler(7, 170);
+    try std.testing.expectEqual(@as(usize, 7), inner.retval);
+    try std.testing.expectEqual(@as(i64, 30), inner.duration_ns);
+
+    const after_inner = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), after_inner.active_instances);
+    try std.testing.expect(after_inner.entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 0), after_inner.nmissed);
+    try std.testing.expectEqual(@as(usize, 7), after_inner.last_retval);
+    try std.testing.expectEqual(@as(i64, 30), after_inner.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), after_inner.selftest_runs);
+
+    const outer = try module.retHandler(11, 240);
+    try std.testing.expectEqual(@as(usize, 11), outer.retval);
+    try std.testing.expectEqual(@as(i64, 140), outer.duration_ns);
+
+    const drained = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 0), drained.active_instances);
+    try std.testing.expect(!drained.entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 0), drained.nmissed);
+    try std.testing.expectEqual(@as(usize, 11), drained.last_retval);
+    try std.testing.expectEqual(@as(i64, 140), drained.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), drained.selftest_runs);
+
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings(sample.RuntimeKretprobeSample.default_symbol_name, exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.missed_instances);
+    try std.testing.expectEqual(@as(usize, 11), exit_report.last_retval);
+    try std.testing.expectEqual(@as(i64, 140), exit_report.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.selftest_runs);
+    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+}
