@@ -233,6 +233,26 @@ pub fn equalRangeIndex(
     };
 }
 
+pub fn equalRange(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) []const T {
+    return equalRangeIndex(Key, T, key, items, compare).sliceConst(T, items);
+}
+
+pub fn equalRangeMutable(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []T,
+    compare: anytype,
+) []T {
+    return equalRangeIndex(Key, T, key, items, compare).sliceMutable(T, items);
+}
+
 pub fn bsearchIndex(
     key: *const anyopaque,
     base: [*]const u8,
@@ -328,6 +348,26 @@ pub fn bsearchEqualRangeIndex(
         .lower = bsearchLowerBoundIndex(key, base, num, size, compare),
         .upper = bsearchUpperBoundIndex(key, base, num, size, compare),
     };
+}
+
+pub fn bsearchEqualRange(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) []const u8 {
+    return bsearchEqualRangeIndex(key, base, num, size, compare).bytes(base, size);
+}
+
+pub fn bsearchEqualRangeMutable(
+    key: *const anyopaque,
+    base: [*]u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) []u8 {
+    return bsearchEqualRangeIndex(key, base, num, size, compare).bytesMutable(base, size);
 }
 
 fn compareInt(key: *const i32, item: *const i32) i32 {
@@ -588,6 +628,51 @@ test "IndexRange byte helpers keep raw duplicate spans and write-through aliases
     var mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const mutable_raw: [*]u8 = @ptrCast(mutable[0..].ptr);
     const mutable_bytes = bsearchEqualRangeIndex(&duplicate_key, mutable_raw, mutable.len, @sizeOf(i32), compareOpaqueInt).bytesMutable(mutable_raw, @sizeOf(i32));
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), mutable_bytes.len);
+    const typed_mutable: [*]i32 = @ptrCast(@alignCast(mutable_bytes.ptr));
+    typed_mutable[1] = 7;
+    try std.testing.expectEqual(@as(i32, 7), mutable[2]);
+}
+
+test "equalRange wrappers keep direct duplicate-span views" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const duplicate_key = @as(i32, 4);
+    const missing_key = @as(i32, 5);
+
+    const duplicate_view = equalRange(i32, i32, &duplicate_key, ascending[0..], compareInt);
+    try std.testing.expectEqual(@as(usize, 3), duplicate_view.len);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, duplicate_view);
+
+    const missing_view = equalRange(i32, i32, &missing_key, ascending[0..], compareInt);
+    try std.testing.expectEqual(@as(usize, 0), missing_view.len);
+    try std.testing.expectEqual(@intFromPtr(&ascending[4]), @intFromPtr(missing_view.ptr));
+
+    var mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const mutable_view = equalRangeMutable(i32, i32, &duplicate_key, mutable[0..], compareInt);
+    try std.testing.expectEqual(@as(usize, 3), mutable_view.len);
+    mutable_view[1] = 6;
+    try std.testing.expectEqual(@as(i32, 6), mutable[2]);
+}
+
+test "bsearchEqualRange wrappers keep raw duplicate-span views" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
+    const duplicate_key = @as(i32, 4);
+    const missing_key = @as(i32, 5);
+
+    const duplicate_bytes = bsearchEqualRange(&duplicate_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), duplicate_bytes.len);
+    const typed_bytes: [*]const i32 = @ptrCast(@alignCast(duplicate_bytes.ptr));
+    try std.testing.expectEqual(@as(i32, 4), typed_bytes[0]);
+    try std.testing.expectEqual(@as(i32, 4), typed_bytes[2]);
+
+    const missing_bytes = bsearchEqualRange(&missing_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(@as(usize, 0), missing_bytes.len);
+    try std.testing.expectEqual(@intFromPtr(ascending_raw + (4 * @sizeOf(i32))), @intFromPtr(missing_bytes.ptr));
+
+    var mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const mutable_raw: [*]u8 = @ptrCast(mutable[0..].ptr);
+    const mutable_bytes = bsearchEqualRangeMutable(&duplicate_key, mutable_raw, mutable.len, @sizeOf(i32), compareOpaqueInt);
     try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), mutable_bytes.len);
     const typed_mutable: [*]i32 = @ptrCast(@alignCast(mutable_bytes.ptr));
     typed_mutable[1] = 7;
