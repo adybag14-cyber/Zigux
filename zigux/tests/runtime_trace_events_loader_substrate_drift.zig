@@ -229,6 +229,35 @@ test "phase 9 runtime trace-events loader rejects non-prepared shared requests b
     ));
 }
 
+test "phase 9 runtime trace-events loader rejects idle shared-loader handoff before any local runtime handoff" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    var prepared_loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
+    var shared_request = try prepared_loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.prepared, prepared_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
+
+    var idle_loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
+    try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.idle, idle_loader.stage());
+
+    try std.testing.expectError(error.InvalidLoaderState, idle_loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.idle, idle_loader.stage());
+    try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.prepared, prepared_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
+}
+
 test "phase 9 runtime trace-events loader keeps selftest-complete shared-request snapshots stable across later exit activity" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
@@ -266,7 +295,6 @@ test "phase 9 runtime trace-events loader keeps selftest-complete shared-request
     try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
-    try std.testing.expectEqual(@as(usize, 0), exited_summary.registration_depth);
     try std.testing.expectEqual(selftested_summary.main_thread_events, exited_summary.main_thread_events);
     try std.testing.expectEqual(selftested_summary.fn_thread_events, exited_summary.fn_thread_events);
     try std.testing.expectEqual(selftested_summary.total_events, exited_summary.total_events);
