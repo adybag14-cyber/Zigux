@@ -16,18 +16,19 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 - `zigux/tests/fixtures/genksyms_bridge/manifest.json` is present, marks the tool `closed`, records `mode: "wrapper-first bridge"`, and names the current 23-case external bridge packet.
 - `scripts/zigux/check-genksyms-bridge.py` now matches that 23-case packet, including the committed `missing_dump_types_argument` process case and the external `version` bridge case that proves the same `-V` side effect before later argument parsing that `scripts/zigux/genksyms.zig` already anchors locally.
 - `Documentation/zigux/phase2-toolchain-lane-sequencing.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` continue to describe the same bounded genksyms packet as fixture-backed bridge evidence rather than as a shipped direct `zig test scripts/zigux/genksyms.zig` replay.
+- `Documentation/zigux/phase2-closure.md` now also names the same live `23-case` genksyms bridge packet, so the earlier closure-note undercount that motivated the first follow-through is no longer present on current `master`.
 - The external `version_expected.json` packet now proves the same version-side-effect behavior as the helper-local anchor `genksyms bridge keeps version as a side effect while parsing later options`, so the helper-local and external bridge packets are aligned on that behavior.
 
 ## Survey result
 
-- Current `master` does not have a remaining roadmap gap at the level of genksyms wrapper scaffolding or version-side-effect proof. The bridge entrypoint, committed 23-case fixture packet, manifest, checker, and helper-local anchors are all present.
-- The honest remaining follow-through is narrower and governance-shaped: refresh any coupled reminder surface that still undercounts the genksyms bridge packet or still describes the older pre-proof packet, then rerun the bounded validation routes from a writable checkout with Zig.
-- Future reopening in this file family should therefore stay inside bridge-local proof, checker, manifest, or tightly coupled reminder-surface alignment work, not shared Phase 2 closure churn or revived parser/CRC ambitions.
+- Current `master` does not have a remaining roadmap gap at the level of genksyms wrapper scaffolding, version-side-effect proof, or the directly coupled closure-note count. The bridge entrypoint, committed 23-case fixture packet, manifest, checker, helper-local anchors, and checked reminder surfaces are all present.
+- The honest remaining follow-through is now validation-only: rerun the bounded checker and direct Zig replay from a writable checkout with Zig so the already-landed dual-implementation packet stays replay-backed instead of reopening older fixture or reminder-surface work that current `master` has already closed.
+- Future reopening in this file family should therefore stay inside bridge-local proof, checker, manifest, or tightly coupled reminder-surface alignment work only when a fresh reread shows a new mismatch, not shared Phase 2 closure churn or revived parser or CRC ambitions.
 
 ## Next bounded step
 
-1. Refresh the directly coupled Phase 2 reminder surface that still undercounts the genksyms bridge packet as `22-case`, then keep the dedicated checker wording aligned with that closure evidence.
-2. When a writable checkout with Zig is available, re-run `python3 scripts/zigux/check-genksyms-bridge.py --self-test`, `python3 scripts/zigux/check-genksyms-bridge.py`, and `zig test scripts/zigux/genksyms.zig` so the bounded external packet and the helper-local packet stay aligned.
+1. When a writable checkout with Zig is available, rerun `python3 scripts/zigux/check-genksyms-bridge.py --self-test`, `python3 scripts/zigux/check-genksyms-bridge.py`, and `zig test scripts/zigux/genksyms.zig` so the bounded external packet and the helper-local packet stay aligned.
+2. If a future same-family reread finds fresh drift, keep the follow-through to one directly coupled genksyms survey, closure, checker, manifest, or fixture truthfulness repair rather than widening into broader Phase 2 reminder churn.
 
 ## Boundary
 
