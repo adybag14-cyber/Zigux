@@ -24,8 +24,12 @@ Current `master` keeps these direct atomic64 packet files visible:
 
 Current `master` also keeps these adjacent shared-loader reminder surfaces visible:
 
+- `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
+- `scripts/zigux/check-phase9-build-only-surface.py`
+- `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/phase9_build.zig`
 - `zigux/tests/runtime_loader_allocator_init_flow.zig`
+- `zigux/tests/runtime_loader_gap_manifest.json`
 - `zigux/tests/runtime_loader_gap_survey.zig`
 - `zigux/kernel/runtime_loader.zig`
 - `zigux/kernel/runtime_loader_contract.zig`
@@ -40,7 +44,7 @@ That means the honest current packet is a direct atomic64 sample, module, diff, 
 3. `zigux/tests/runtime_atomic64_survey.zig` keeps the direct packet and the visible shared-loader reminder packet fail-closed.
 4. `zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig` keeps the landed loader-scaffold replay explicit as first-class shared-build evidence beside the direct sample leg, including the prepared `RuntimeAtomic64LoadSummary` snapshot that keeps the anchor, checked operation families, counter snapshot, and selftest-run count reviewable even if later counter mutation, later selftest activity, or later exit activity changes the live sample before the still-blocked runtime handoff.
 5. `make -C zigux phase9-runtime-atomic64-test` keeps the shipped family-local convenience route explicit beside the direct sample, loader, module, diff, and survey packet instead of leaving the atomic64 replay visible only through the shared Phase 9 build file.
-6. `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/Makefile` remain visible shared loader-facing review surfaces, including the focused `phase9-runtime-loader-shared-tests` replay, while the broader runtime substrate stays blocked.
+6. `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/Makefile` remain visible shared loader-facing review surfaces, including the focused `phase9-runtime-loader-shared-tests` replay, the shared build-only surface checker, and the workflow-backed `make -C zigux phase9` route, while the broader runtime substrate stays blocked.
 
 ## Boundaries
 
