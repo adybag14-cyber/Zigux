@@ -131,6 +131,12 @@ TEARDOWN_NOTE_MARKERS = [
     "`summarizeNotifierAddOutcome()`",
     "wait-until-sent intent",
     "keep-IRQ-until-hangup teardown boundaries",
+    "tty detachment",
+    "HUPCL-gated modem-line shutdown",
+    "notifier ownership",
+    "resize-work cancellation",
+    "buffered-write clearing",
+    "stale hangup short-circuit behavior",
 ]
 
 VALIDATION_MATRIX_MARKERS = [
@@ -418,6 +424,9 @@ def run_self_test() -> None:
             (REQUIRED_FILES["survey_note"], "`__hvc_poll` drain-order summary"),
             (REQUIRED_FILES["slice_note"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["teardown_note"], PRESENT_DIRECT_COMPANION_MARKER),
+            (REQUIRED_FILES["teardown_note"], "tty detachment"),
+            (REQUIRED_FILES["teardown_note"], "HUPCL-gated modem-line shutdown"),
+            (REQUIRED_FILES["teardown_note"], "stale hangup short-circuit behavior"),
             (REQUIRED_FILES["validation_matrix"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["survey_gate"], 'try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);'),
             (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[-1]),
