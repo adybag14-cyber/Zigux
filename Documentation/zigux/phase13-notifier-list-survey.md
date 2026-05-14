@@ -89,6 +89,7 @@ When the shared Phase 13 contributor packet changes, re-read these surfaces toge
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
@@ -103,8 +104,8 @@ Those summaries should keep this notifier survey, the shipped
 `zigux/helpers/notifier_chain_view.zig` read-only traversal helper, the shipped
 `zigux/bindings/notifier_abi.zig` plus `include/zigux/abi.h` ABI footholds, the
 Linux-side `drivers/tty/hvc/hvc_console.h` notifier declarations, the shared
-release-notes and roadmap-traceability packet, the paired Landlock ownership and
-syscall-governance notes, and the stable `phase13-validate` or `phase13` make routes
+release-notes, release-coordination-matrix, and roadmap-traceability packet, the
+paired Landlock ownership and syscall-governance notes, and the stable `phase13-validate` or `phase13` make routes
 visible while framing the still-missing direct notifier packet, dedicated header,
 tests-root, `list_head`, and `hlist` helper companions as repo-reality gaps rather
 than shipped current-`master` evidence.
