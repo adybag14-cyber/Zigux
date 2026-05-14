@@ -31,10 +31,11 @@ ROADMAP_ANCHORS = [
 RELEASE_READINESS_MARKERS = [
     "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
     "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+    "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, and `zigux/tests/README.md` now does the same in its Phase 12 inventory, so the docs-root, review-checklist, and tests-root reminders are no longer part of the live PMO drift.",
     "The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
     "Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
     "`scripts/zigux/README.md` still lacks any dedicated Phase 12 scripts-root summary and `scripts/zigux/check-build-only-phase12-surface.py` still carries older marker expectations around the shipped `phase12-validate` route.",
-    "while `scripts/zigux/README.md` still lacks a dedicated Phase 12 flow block and `scripts/zigux/check-build-only-phase12-surface.py` still needs a later scripts-root marker sync before that broader reminder stack is fully current.",
+    "`scripts/zigux/README.md` still lacks a dedicated Phase 12 flow block and `scripts/zigux/check-build-only-phase12-surface.py` still needs a later reminder-marker sync before that broader reminder stack is fully current.",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -183,12 +184,13 @@ def good_release_readiness_text() -> str:
             "- support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
             "",
             "## Current Release Reading",
+            "- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, and `zigux/tests/README.md` now does the same in its Phase 12 inventory, so the docs-root, review-checklist, and tests-root reminders are no longer part of the live PMO drift.",
             "- The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
             "- Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
             "- `scripts/zigux/README.md` still lacks any dedicated Phase 12 scripts-root summary and `scripts/zigux/check-build-only-phase12-surface.py` still carries older marker expectations around the shipped `phase12-validate` route.",
             "",
             "## Next Bounded Step",
-            "- while `scripts/zigux/README.md` still lacks a dedicated Phase 12 flow block and `scripts/zigux/check-build-only-phase12-surface.py` still needs a later scripts-root marker sync before that broader reminder stack is fully current.",
+            "- `scripts/zigux/README.md` still lacks a dedicated Phase 12 flow block and `scripts/zigux/check-build-only-phase12-surface.py` still needs a later reminder-marker sync before that broader reminder stack is fully current.",
             "",
         ]
     )
@@ -296,6 +298,21 @@ def run_self_test() -> int:
         write_text(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
+                "- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, and `zigux/tests/README.md` now does the same in its Phase 12 inventory, so the docs-root, review-checklist, and tests-root reminders are no longer part of the live PMO drift.\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "docs-root, review-checklist, and tests-root reminders are no longer part of the live PMO drift",
+            "missing resolved-reminder marker",
+        )
+
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
+        write_text(
+            tmp_root / RELEASE_READINESS_PATH,
+            good_release_readiness_text().replace(
                 "`scripts/zigux/README.md` still lacks any dedicated Phase 12 scripts-root summary and `scripts/zigux/check-build-only-phase12-surface.py` still carries older marker expectations around the shipped `phase12-validate` route.",
                 "",
                 1,
@@ -388,7 +405,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
