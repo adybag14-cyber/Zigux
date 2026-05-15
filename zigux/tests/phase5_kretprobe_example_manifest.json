@@ -7,13 +7,13 @@
   "validation_entrypoint": "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the restored survey note, sample, focused test, manifest, survey gate, and shared reminder packet all point at the same non-runtime kretprobe packet, so any next bounded follow-through should start only from a newly observed shared-surface drift while Documentation/zigux/phase5-sample-review-guide.md, Documentation/zigux/review-checklist.md, Documentation/zigux/README.md, samples/zigux/README.md, scripts/zigux/README.md, and zigux/tests/README.md stay aligned beside the missing phase5_build route",
+    "the restored survey note, sample, focused test, manifest, survey gate, and shared reminder packet all point at the same non-runtime kretprobe packet, so any next bounded follow-through should start only from a newly observed shared-surface drift while Documentation/zigux/phase5-sample-review-guide.md, Documentation/zigux/review-checklist.md, Documentation/zigux/README.md, samples/zigux/README.md, scripts/zigux/README.md, and zigux/tests/README.md stay aligned beside the directly readable shared phase5_build route",
     "the sample and focused test still keep the default symbol kernel_clone explicit together with pre-init retargeting to do_sys_openat2 and post-init retarget rejection",
     "the anchor replay still keeps skipped kernel-thread handling, private_data_size_bytes = 8, return_value = 42, duration_ns = 75, nmissed = 1, and maxactive = 20 explicit",
     "the lifecycle guard replay still proves pre-init anchor rejection, pre-init exit rejection, double-init rejection, and post-init retarget rejection",
     "the ownership replay still keeps cold, initialized, armed, replay_complete, and exited snapshots explicit with active_instances = 1 and entry_timestamp_armed = true only in the armed state",
     "the recovery replay still keeps outstanding-instance exit rejection, invalid timestamp-order rejection, recovered duration 60, and post-exit entry or ret-handler rejection explicit",
-    "the shared reminder packet still keeps the separate Phase 9 runtime_kretprobe family and the still-missing shared phase5_build route explicit"
+    "the shared reminder packet still keeps the separate Phase 9 runtime_kretprobe family explicit while the directly readable shared phase5_build route stays visible as current proof"
   ],
   "exact_checks": [
     {
@@ -54,7 +54,7 @@
     {
       "id": "phase9-boundary",
       "kind": "review_surface",
-      "expected": "the shared reminder packet keeps Documentation/zigux/phase5-sample-review-guide.md, Documentation/zigux/review-checklist.md, Documentation/zigux/README.md, samples/zigux/README.md, scripts/zigux/README.md, and zigux/tests/README.md aligned beside the separate runtime_kretprobe Phase 9 family and the missing phase5_build route"
+      "expected": "the shared reminder packet keeps Documentation/zigux/phase5-sample-review-guide.md, Documentation/zigux/review-checklist.md, Documentation/zigux/README.md, samples/zigux/README.md, scripts/zigux/README.md, and zigux/tests/README.md aligned beside the separate runtime_kretprobe Phase 9 family and the directly readable shared phase5_build route"
     }
   ],
   "non_goals": [
