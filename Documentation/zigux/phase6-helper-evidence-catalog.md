@@ -2,7 +2,7 @@
 
 This note records the current helper-evidence survey for the bounded Phase 6 leaf-helper packet on `master`.
 
-- surveyed head: `a0f4d7e`
+- surveyed head: `2236c72`
 - lane scope: shared helper-evidence rows only
 - shared packet note: `Documentation/zigux/phase6-helper-parity-catalog.md`
 - shared manifest: `zigux/tests/phase6_helper_parity_manifest.json`
@@ -41,11 +41,13 @@ The four Phase 6 slice notes keep the helper-local detail, but they do not keep 
 
 ### checksum
 - roadmap anchor: `lib/checksum.c`
-- Zig helper expected by the shared packet: `lib/checksum.zig`
-- missing helper-owned replay packet on current `master`: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`
-- still-present direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
+- Zig helper: `lib/checksum.zig`
+- focused helper replay: `zigux/tests/phase6_checksum.zig`
+- dedicated slowdown replay: `zigux/tests/phase6_checksum_perf.zig`
+- committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`
+- direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
-- current review posture: blocked; the roadmap anchor remains in the shared packet, but current `master` only keeps the direct C parity scaffolding and cannot honestly claim the broader helper-local replay or slowdown gate yet
+- current review posture: reviewable; current `master` now keeps the helper, focused replay, dedicated slowdown gate, committed vectors, and direct C parity packet under one bounded helper-owned surface, while the remaining shared Phase 6 follow-up is route-inventory truthfulness rather than missing checksum-owned evidence
 
 ### hexdump
 - roadmap anchor: `lib/hexdump.c`
@@ -65,6 +67,7 @@ The four Phase 6 slice notes keep the helper-local detail, but they do not keep 
 - `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
 - `python3 scripts/zigux/check-phase6-hexdump-packet.py`
+- `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-bsearch-test`
 - `make -C zigux phase6-hexdump-review`
 - `make -C zigux phase6-hexdump-test`
