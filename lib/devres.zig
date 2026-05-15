@@ -313,12 +313,12 @@ pub const DevresHelperLab = struct {
         });
     }
 
-    pub fn ioremapReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
+    fn releaseMatches(tracked_address: usize, candidate_address: usize) bool {
         return tracked_address == candidate_address;
     }
 
-    pub fn planManagedIounmap(tracked_address: usize, candidate_address: usize) ManagedIounmapPlan {
-        const release_matches = ioremapReleaseMatches(tracked_address, candidate_address);
+    fn planReleaseCall(tracked_address: usize, candidate_address: usize) ManagedIounmapPlan {
+        const release_matches = releaseMatches(tracked_address, candidate_address);
         return .{
             .anchor = descriptor().anchor,
             .tracked_address = tracked_address,
@@ -326,6 +326,14 @@ pub const DevresHelperLab = struct {
             .release_matches = release_matches,
             .warns_on_release_miss = !release_matches,
         };
+    }
+
+    pub fn ioremapReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
+        return releaseMatches(tracked_address, candidate_address);
+    }
+
+    pub fn planManagedIounmap(tracked_address: usize, candidate_address: usize) ManagedIounmapPlan {
+        return planReleaseCall(tracked_address, candidate_address);
     }
 
     pub fn resolveIoremapType(resource: Resource, requested_type: IoremapType) IoremapType {
