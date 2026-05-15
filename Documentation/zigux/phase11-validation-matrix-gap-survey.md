@@ -4,10 +4,10 @@ This note records the roadmap-facing validation-matrix coverage for the current 
 
 ## Status
 
-- `PHASE11_MATRIX_GAP_STATUS=dw_matrix_gap_only`
+- `PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`
 - lane: `P11-L01`
 - reviewed against live `master`
-- scope: compare the Phase 11 roadmap anchors against the current validation-matrix packet without reopening driver-local implementation, shared replay-contract wording, or removed DesignWare matrix-era files
+- scope: compare the Phase 11 roadmap anchors against the current validation-matrix packet without reopening driver-local implementation, shared replay-contract wording, or DesignWare platform-registration scaffolding
 
 ## Roadmap Anchor
 
@@ -19,24 +19,31 @@ This note records the roadmap-facing validation-matrix coverage for the current 
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-survey.md`
+- `Documentation/zigux/phase11-dw-wdt-slice.md`
+- `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
 - `scripts/zigux/check-phase11-dw-wdt-packet.py`
 - `drivers/watchdog/dw_wdt.zig`
 - `drivers/watchdog/dw_wdt_verify.zig`
 - `zigux/tests/phase11_dw_wdt.zig`
+- `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+- `zigux/tests/phase11_dw_wdt_survey.zig`
+- `zigux/tests/phase11_build.zig`
 
-Current `master` does not ship `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, or `zigux/tests/phase11_dw_wdt_survey.zig`.
+Current `master` now ships the bounded DesignWare review packet beside the surviving platform-registration continuity note, so the shared matrix survey should treat the DesignWare matrix as landed rather than as an open matrix-count gap.
 
 ## Gap Survey
 
 - `bcm2835_wdt`: validation matrix present through `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, and the bounded bcm2835 packet still keeps teardown, ownership, lifecycle, and register-model evidence reviewable.
 - `gpio_wdt`: validation matrix present through `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, and the bounded gpio packet still keeps descriptor, drvdata, registration-handoff, and teardown checkpoints reviewable without overclaiming live platform behavior.
 - `hvc_console`: validation matrix present through `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and the bounded archival packet still keeps teardown, sysrq-helper, notifier-edge, and direct companion evidence reviewable without widening into tty or hypervisor execution.
-- `dw_wdt`: no current `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` is shipped on `master`; the surviving same-lane evidence stays in `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, so the roadmap-facing validation-matrix gap is explicit rather than silently treated as closed.
+- `dw_wdt`: validation matrix present through `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and the bounded DesignWare packet keeps the direct starter replay, teardown or failure-mode parity, registration-order scaffold, shared build route, and deferred platform-backed registration gap reviewable without pretending that live clock, reset, IRQ, PM, or MMIO behavior is already complete.
 
 ## Review Rules
 
-- Treat this survey as shared matrix truthfulness only, not as proof that the DesignWare starter is absent.
-- Do not claim four live driver-local validation matrices on current `master`; the live matrix count is three, with DesignWare currently represented by the surviving platform-registration continuity packet instead.
-- If a future DesignWare lane lands enough same-family evidence to justify a bounded validation matrix again, update this survey in the same patch so the roadmap-facing matrix count stays honest.
+- Treat this survey as shared matrix truthfulness only, not as proof that the DesignWare starter or its platform-registration follow-through is complete.
+- It is now accurate to claim four live driver-local validation matrices on current `master`; DesignWare is represented by the landed bounded review packet together with the surviving platform-registration continuity note.
+- If a future DesignWare lane removes, broadens, or materially reframes that bounded matrix packet, update this survey in the same patch so the roadmap-facing matrix count stays honest.
