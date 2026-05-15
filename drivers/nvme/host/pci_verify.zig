@@ -121,6 +121,42 @@ test "nvme pci dropped backlog retirement keeps blocker ordering and parity surf
     try testing.expect(ready.can_retire_dropped_io_backlog);
 }
 
+test "nvme pci dropped backlog retirement still requires admin replay after parity rebuilds" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(64, 64, false);
+    _ = try lab.planIoQueue(32, 64, false);
+    _ = try lab.planIoQueue(16, 64, true);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    _ = try lab.planIoQueue(32, 64, false);
+    _ = try lab.planIoQueue(16, 64, true);
+
+    const summary = lab.summarizeDroppedIoRetirement();
+    try testing.expect(!summary.admin_queue_replayed_after_reset);
+    try testing.expect(summary.admin_queue_must_be_replayed);
+    try testing.expectEqual(@as(usize, 2), summary.dropped_io_queue_count);
+    try testing.expectEqual(@as(usize, 2), summary.rebuilt_io_queue_count);
+    try testing.expectEqual(@as(usize, 0), summary.remaining_io_queue_count);
+    try testing.expect(summary.queue_count_parity_recovered);
+    try testing.expectEqual(@as(u32, 2), summary.dropped_io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 2), summary.rebuilt_io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 0), summary.remaining_io_host_dma_pages);
+    try testing.expect(summary.host_dma_parity_recovered);
+    try testing.expect(summary.queue_numbering_restarted);
+    try testing.expectEqual(nvme_pci.DroppedIoRetirementBlocker.admin_queue_replay, summary.retirement_blocker);
+    try testing.expect(!summary.can_retire_dropped_io_backlog);
+
+    const rollback = lab.recoveryRollbackGateSummary();
+    try testing.expect(!rollback.admin_queue_replayed_after_reset);
+    try testing.expect(rollback.queue_count_parity_recovered);
+    try testing.expect(rollback.host_dma_parity_recovered);
+    try testing.expect(rollback.queue_numbering_restarted);
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.admin_queue_replay, rollback.rollback_blocker);
+    try testing.expect(!rollback.can_clear_rollback_gate);
+}
+
 test "nvme pci recovery restore verifier keeps admin-first replay and mixed DMA budget explicit" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
 
