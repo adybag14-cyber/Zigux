@@ -21,6 +21,7 @@ REQUIRED_MARKERS = (
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
     "zigux/tests/fixtures/phase3_abi/expected.json",
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
@@ -185,6 +186,18 @@ def run_self_test() -> int:
     if expected not in broken:
         print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
         print("expected missing current-packet marker was not reported")
+        return 1
+
+    broken = validate_text(
+        sample.replace("scripts/zigux/validate-phase3-abi-header-family-survey.py", "", 1)
+    )
+    expected = (
+        "current packet marker count drift: scripts/zigux/validate-phase3-abi-header-family-survey.py "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=fail")
+        print("expected current-packet dedicated survey validator marker was not reported")
         return 1
 
     broken = validate_text(sample.replace("zigux/bindings/abi.zig", "", 1))
