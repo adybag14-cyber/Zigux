@@ -345,3 +345,32 @@ test "phase 9 runtime atomic64 survey keeps prepared shared drift guards and sha
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps shared release failures from desynchronizing loader state");
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps direct shared runtime-load transitions from desynchronizing shared release state");
 }
+
+test "phase 9 runtime atomic64 survey keeps shared selftest-complete exit parity proof explicit" {
+    const manifest_json = try readRepoFileAlloc(std.testing.allocator, "zigux/tests/runtime_atomic64_manifest.json", 64 * 1024);
+    defer std.testing.allocator.free(manifest_json);
+
+    const survey_note = try readRepoFileAlloc(std.testing.allocator, "Documentation/zigux/phase9-runtime-atomic64-survey.md", 32 * 1024);
+    defer std.testing.allocator.free(survey_note);
+
+    const module_slice = try readRepoFileAlloc(std.testing.allocator, "Documentation/zigux/phase9-runtime-atomic64-module-slice.md", 32 * 1024);
+    defer std.testing.allocator.free(module_slice);
+
+    const phase9_build = try readRepoFileAlloc(std.testing.allocator, "zigux/tests/phase9_build.zig", 128 * 1024);
+    defer std.testing.allocator.free(phase9_build);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+    const manifest = parsed.value;
+
+    const parity_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-loader-selftest-complete-exit-parity") orelse return error.MissingSharedSelftestCompleteExitParityEntry;
+    try std.testing.expectEqualStrings("validation", parity_entry.kind);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_loader_selftest_complete_exit_parity.zig", parity_entry.path);
+    try expectContains(parity_entry.why_now, "selftest-complete versus later exit replay");
+    try expectContains(parity_entry.why_now, "shared release-state synchronization");
+
+    try expectContains(survey_note, "`zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`");
+    try expectContains(module_slice, "`zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`");
+    try expectContains(phase9_build, "runtime_loader_selftest_complete_exit_parity.zig");
+    try expectContains(phase9_build, "\"phase9-runtime-loader-selftest-complete-exit-parity-tests\"");
+}
