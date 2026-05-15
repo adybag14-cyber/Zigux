@@ -125,6 +125,12 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-build-wiring.py",
         "make -C zigux phase7-validate",
     ],
+    "scripts/zigux/validate-phase7.py": [
+        "\"makefile make-wrapper self-test route\"",
+        "\"makefile live make-wrapper route\"",
+        "\"makefile live selftest-alignment route\"",
+        "\"makefile build-wiring direct route\"",
+    ],
     "zigux/tests/README.md": [
         "zigux/tests/phase7_build.zig",
         "zigux/tests/phase7_string_helpers_sample_boundary.zig",
@@ -272,6 +278,58 @@ def run_self_test() -> None:
 
         remove_marker(
             tmp_root,
+            "scripts/zigux/validate-phase7.py",
+            "\"makefile make-wrapper self-test route\"",
+            "missing_validator_make_wrapper_selftest_case",
+        )
+        expect_missing_marker(
+            "missing_validator_make_wrapper_selftest_case",
+            tmp_root,
+            "scripts/zigux/validate-phase7.py: \"makefile make-wrapper self-test route\"",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "scripts/zigux/validate-phase7.py",
+            "\"makefile live make-wrapper route\"",
+            "missing_validator_live_make_wrapper_case",
+        )
+        expect_missing_marker(
+            "missing_validator_live_make_wrapper_case",
+            tmp_root,
+            "scripts/zigux/validate-phase7.py: \"makefile live make-wrapper route\"",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "scripts/zigux/validate-phase7.py",
+            "\"makefile live selftest-alignment route\"",
+            "missing_validator_live_selftest_alignment_case",
+        )
+        expect_missing_marker(
+            "missing_validator_live_selftest_alignment_case",
+            tmp_root,
+            "scripts/zigux/validate-phase7.py: \"makefile live selftest-alignment route\"",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "scripts/zigux/validate-phase7.py",
+            "\"makefile build-wiring direct route\"",
+            "missing_validator_build_wiring_case",
+        )
+        expect_missing_marker(
+            "missing_validator_build_wiring_case",
+            tmp_root,
+            "scripts/zigux/validate-phase7.py: \"makefile build-wiring direct route\"",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
             "zig build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
             "missing_direct_string_helpers_route",
@@ -373,7 +431,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=8")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=12")
 
 
 def main() -> int:
