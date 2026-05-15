@@ -439,6 +439,11 @@ def run_self_test() -> None:
         closure_path.write_text(original_closure, encoding="utf-8")
         case_count += 1
 
+        closure_path.write_text(original_closure.replace(EXPECTED_CLOSURE_MARKERS[-1] + "\n", "", 1), encoding="utf-8")
+        assert any(item.startswith("phase1_string_closure:") for item in collect_missing_markers(root))
+        closure_path.write_text(original_closure, encoding="utf-8")
+        case_count += 1
+
         lane_note_path = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
         lane_note_path.write_text("", encoding="utf-8")
         assert any(item.startswith("phase1_string_lane_note:") for item in collect_missing_markers(root))
