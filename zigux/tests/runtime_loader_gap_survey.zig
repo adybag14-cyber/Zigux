@@ -41,7 +41,7 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     );
     defer allocator.free(manifest);
 
-    try expectContains(note, "PHASE9_STATUS=shared-reminder-follow-through-open");
+    try expectContains(note, "PHASE9_STATUS=shared-reminder-packet-aligned");
     try expectContains(note, "PHASE9_SLICE=runtime-loader-gap-survey");
     try expectContains(note, "PHASE9_LANE_KEY=P9-L18");
     try expectContains(note, "`zigux/kernel/runtime_loader.zig`");
@@ -52,7 +52,7 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     try expectContains(note, "There is no dedicated shared `validate-phase9.py`");
     try expectContains(note, "Fresh repo-first inspection now shows `Documentation/zigux/README.md` and\n`scripts/zigux/README.md` both keep");
     try expectContains(note, "Fresh repo-first inspection now also shows `zigux/tests/README.md` keeps that\nsame shared Phase 9 loader-gap packet explicit through a dedicated Phase 9 flow");
-    try expectContains(note, "That means the earlier docs-root undercount and the later tests-root undercount\nare both cleared on current `master`; the remaining same-lane follow-through is\nnow future reminder drift around the blocked module-metadata and\ndepmod-publication boundary rather than shared packet inventory sync.");
+    try expectContains(note, "That means the earlier docs-root undercount, the later tests-root undercount,\nand the checklist-local cross-phase non-owner reminder are all cleared on\ncurrent `master`. The remaining same-lane job is just keeping the shared\nreviewer-facing packet truthful when one of those already-landed reminder or\nboundary surfaces moves again.");
     try expectContains(note, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md`");
     try expectContains(note, "`zigux/tests/runtime_loader_gap_manifest.json`");
     try expectContains(note, "`zigux/tests/runtime_loader_gap_survey.zig`");
