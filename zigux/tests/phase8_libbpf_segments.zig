@@ -253,6 +253,29 @@ test "phase 8 libbpf survey note keeps the current landed count and helper-local
     try expectContains(phase8_note, "broader timeout-sensitive routing behavior");
 }
 
+test "phase 8 libbpf survey gate keeps the landed online CPU routing helper evidence replayable" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const routing_helper = try readFileAlloc(
+        io_instance.io(),
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(routing_helper);
+
+    try expectContains(routing_helper, "pub const OnlineCpuRouteAttemptDisposition = enum {");
+    try expectContains(routing_helper, "pub const OnlineCpuRoutingDisposition = enum {");
+    try expectContains(routing_helper, "pub fn advanceOnlineCpuCursor(");
+    try expectContains(routing_helper, "pub fn summarizeNextOnlineCpuRoute(");
+    try expectContains(routing_helper, "pub fn summarizeOnlineCpuRouting(");
+    try expectContains(routing_helper, "test \"summarizeNextOnlineCpuRoute keeps missing buffer slots and fds explicit\" {");
+    try expectContains(routing_helper, "test \"summarizeOnlineCpuRouting keeps requested subsets explicit without inventing missing buffers\" {");
+    try expectContains(routing_helper, "test \"summarizeOnlineCpuRouting keeps sparse missing-slot routing non-claiming when no buffer table exists\" {");
+    try expectContains(routing_helper, "test \"summarizeOnlineCpuRouting reports the first routed online CPU whose fd slot is empty\" {");
+}
+
 test "phase 8 libbpf survey note does not regress to the older ready-next wording" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
