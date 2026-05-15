@@ -70,6 +70,7 @@ REQUIRED_TEST_FSMOUNT_GAP_NOTE_MARKERS = [
 REQUIRED_PERF_SECTION_MARKERS = [
     "* current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`",
     "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
+    "* dedicated local checker: `python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`; this checker keeps the dedicated perf-baseline packet local-only and self-tested without promoting it into the shared workflow or the shared `phase4-test` route while shared CI perf promotion stays pending",
     "* gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
     "* rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
     "* current benchmark-command status: the dedicated survey packet at `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig`, together with the matching Linux-style wrapper `make -C zigux phase4-perf-baseline-survey`, is now shipped, the local benchmark commands are approved for both landed gates, and the dedicated survey intentionally keeps that posture local rather than treating it as shared CI perf coverage",
@@ -107,6 +108,7 @@ BASELINE_MATRIX = "\n".join(
         PERF_SECTION_HEADER,
         "* current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`",
         "* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
+        "* dedicated local checker: `python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`; this checker keeps the dedicated perf-baseline packet local-only and self-tested without promoting it into the shared workflow or the shared `phase4-test` route while shared CI perf promotion stays pending",
         "* gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
         "* rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
         "* current benchmark-command status: the dedicated survey packet at `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig`, together with the matching Linux-style wrapper `make -C zigux phase4-perf-baseline-survey`, is now shipped, the local benchmark commands are approved for both landed gates, and the dedicated survey intentionally keeps that posture local rather than treating it as shared CI perf coverage",
@@ -185,6 +187,7 @@ SELF_TEST_CASES = [
     "test_fsmount_gap_note_threshold_posture_drift",
     "perf_gate_anchor_drift",
     "perf_replay_path_drift",
+    "perf_dedicated_local_checker_drift",
     "perf_benchmark_command_status_drift",
     "perf_limit_status_drift",
     "perf_gate_owner_drift",
@@ -427,7 +430,11 @@ def run_self_test() -> int:
         ),
         (
             "test_fsmount_c_anchor_drift",
-            replace_once(BASELINE_MATRIX, "samples/vfs/test-fsmount.c", "samples/vfs/test-fsmount-drift.c"),
+            replace_once(
+                BASELINE_MATRIX,
+                "samples/vfs/test-fsmount.c",
+                "samples/vfs/test-fsmount-drift.c",
+            ),
             BASELINE_KPROBE_GAP_NOTE,
             BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* current C anchor: `samples/vfs/test-fsmount.c`",
@@ -614,6 +621,17 @@ def run_self_test() -> int:
             BASELINE_KPROBE_GAP_NOTE,
             BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_perf_section_marker:* current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`",
+        ),
+        (
+            "perf_dedicated_local_checker_drift",
+            replace_once(
+                BASELINE_MATRIX,
+                "* dedicated local checker: `python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`; this checker keeps the dedicated perf-baseline packet local-only and self-tested without promoting it into the shared workflow or the shared `phase4-test` route while shared CI perf promotion stays pending",
+                "* dedicated local checker: `python3 scripts/zigux/check-phase4-perf-baseline-note.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-note.py`; this checker keeps the dedicated perf-baseline packet local-only and self-tested without promoting it into the shared workflow or the shared `phase4-test` route while shared CI perf promotion stays pending",
+            ),
+            BASELINE_KPROBE_GAP_NOTE,
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
+            "missing_perf_section_marker:* dedicated local checker: `python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`; this checker keeps the dedicated perf-baseline packet local-only and self-tested without promoting it into the shared workflow or the shared `phase4-test` route while shared CI perf promotion stays pending",
         ),
         (
             "perf_benchmark_command_status_drift",
