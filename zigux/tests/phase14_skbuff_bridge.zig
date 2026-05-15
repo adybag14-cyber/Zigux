@@ -77,6 +77,7 @@ test "phase14 skbuff bridge manifest records the live blocked ownership packet" 
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(hasGap(manifest, "phase14-skbuff-live-ownership-blocker", "blocked_on_stay_in_c_evidence"));
+    try std.testing.expect(std.mem.indexOf(u8, manifest_json, "final sock-owned tail transfer") != null);
     try std.testing.expect(hasChecklistEntry(
         manifest.decision_checklist,
         "queue-facing-tail-publication",
