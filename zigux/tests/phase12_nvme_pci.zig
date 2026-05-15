@@ -131,6 +131,43 @@ test "phase12 nvme pci dropped backlog retirement stays blocked until recovery p
     try std.testing.expect(ready.can_retire_dropped_io_backlog);
 }
 
+test "phase12 nvme pci dropped backlog retirement keeps DMA-page debt visible after queue-count parity returns" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(64, 64, false);
+    _ = try lab.planIoQueue(128, 64, false);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, true);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    const summary = lab.summarizeDroppedIoRetirement();
+    try std.testing.expect(summary.admin_queue_replayed_after_reset);
+    try std.testing.expectEqual(@as(usize, 2), summary.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.remaining_io_queue_count);
+    try std.testing.expect(summary.queue_count_parity_recovered);
+    try std.testing.expectEqual(@as(u32, 5), summary.dropped_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 2), summary.rebuilt_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 3), summary.remaining_io_host_dma_pages);
+    try std.testing.expect(!summary.host_dma_parity_recovered);
+    try std.testing.expect(summary.queue_numbering_restarted);
+    try std.testing.expectEqual(nvme_pci.DroppedIoRetirementBlocker.dma_page_parity, summary.retirement_blocker);
+    try std.testing.expect(!summary.can_retire_dropped_io_backlog);
+
+    const rollback = lab.recoveryRollbackGateSummary();
+    try std.testing.expect(rollback.admin_queue_replayed_after_reset);
+    try std.testing.expect(rollback.queue_count_parity_recovered);
+    try std.testing.expect(!rollback.host_dma_parity_recovered);
+    try std.testing.expect(rollback.queue_numbering_restarted);
+    try std.testing.expectEqual(@as(u32, 3), rollback.remaining_io_host_dma_pages);
+    try std.testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.dma_page_parity, rollback.rollback_blocker);
+    try std.testing.expect(!rollback.can_clear_rollback_gate);
+}
+
 test "phase12 nvme pci rollback gate keeps rollback closure blocked until recovery parity returns" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     const descriptor = nvme_pci.NvmePciQueueLab.descriptor();
