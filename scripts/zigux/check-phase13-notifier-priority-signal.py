@@ -181,7 +181,8 @@ REQUIRED_SCRIPTS_README_MARKERS = (
     "`check-phase13-notifier-priority-signal.py`",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "direct slice, survey, manifest, build, notifier, and Landlock tests-root companions that current `master` cannot materialize should stay framed as repo-reality gaps",
-    "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h` stay explicit on current `master`.",
+    "the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`.",
+    "`zigux/helpers/notifier_chain_view.zig`, `drivers/tty/hvc/hvc_console.h`, `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_libfs_manifest.json`, `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` stay explicit as the current direct evidence set without inventing a broader shared build route.",
 )
 
 REQUIRED_TESTS_README_MARKERS = (
@@ -350,6 +351,7 @@ def run_self_test() -> int:
             ("release-validator", RELEASE_VALIDATOR_PATH, REQUIRED_RELEASE_VALIDATOR_MARKERS[0]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[3]),
             ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[4]),
+            ("scripts-readme", SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_MARKERS[5]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[6]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[10]),
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[14]),
