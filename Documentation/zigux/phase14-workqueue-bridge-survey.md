@@ -59,7 +59,7 @@ This keeps the lane explicit without overstating progress. Zigux still does not 
 ## Reviewability guardrails
 
 - `zigux/tests/phase14_workqueue_bridge.zig` remains the anchor-local descriptor and manifest contract for the blocked-maintenance workqueue packet.
-- `zigux/tests/phase14_workqueue_reviewability.zig` remains the reviewer-facing guard for lane `P14-L04` and surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, keeping the manifest, survey, slice, traceability, and shared-smoke reminder surfaces aligned.
+- `zigux/tests/phase14_workqueue_reviewability.zig` remains the reviewer-facing guard for lane `P14-L04` and surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, keeping the manifest, survey, slice, core traceability note, shared review checklist, and shared-smoke reminder surfaces aligned.
 - Do not treat this lane as permission to claim wrapper ownership for delayed-work requeue, flush or drain completion, scheduler-visible worker state, rescuer execution, hotplug rebinding, or runtime `max_active` retuning while live execution remains in C.
 
 ## Non-goals
@@ -92,11 +92,11 @@ This survey slice does not claim:
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
   - `make -C zigux phase14`
 - reopen only when one of the packet-local conditions below becomes true:
-  - the dedicated workqueue survey, slice note, manifest, or reviewability test drifts on surveyed commit, blocked gap, blocked-maintenance posture, or blocked live-execution wording
+  - the dedicated workqueue survey, slice note, manifest, reviewability test, coupled core traceability note, or shared review checklist drifts on surveyed commit, blocked gap, blocked-maintenance posture, or blocked live-execution wording
   - the directly coupled shared smoke or core traceability packet reintroduces a stale lane key, ready-next record, or blocked-gap record for the workqueue anchor
   - genuinely narrower stay-in-C evidence appears around delayed-work timer expiry, delayed-work requeue governance, flush-drain ownership, hotplug topology rebinding, or scheduler-visible worker-state transitions without implying live execution ownership
-- next future target: stay in blocked maintenance unless one of those packet-local reopen conditions fires; if a future truthfulness drift is workqueue-local, reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, and `Documentation/zigux/phase14-workqueue-bridge-survey.md` together before touching the shared Phase 14 smoke packet
+- next future target: stay in blocked maintenance unless one of the packet-local conditions below becomes true; if a future truthfulness drift is workqueue-local, reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, `Documentation/zigux/phase14-workqueue-bridge-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, and `Documentation/zigux/review-checklist.md` together before touching any shared Phase 14 reminder surface
 
 ## Next bounded step
 
-Leave this lane in blocked maintenance unless the shared Phase 14 smoke packet or this workqueue survey drifts. Any reopen should stay review-only and keep the flush-drain active-color governance note, timer-base ownership, CPU affinity, delayed-work requeue ownership, hotplug topology rebinding, scheduler-visible worker-state transitions, the runtime `max_active` retuning boundary, and live execution in C.
+Leave this lane in blocked maintenance unless the shared Phase 14 smoke packet, the core boundary traceability note, the shared review checklist, or this workqueue survey drifts. Any reopen should stay review-only and keep the flush-drain active-color governance note, timer-base ownership, CPU affinity, delayed-work requeue ownership, hotplug topology rebinding, scheduler-visible worker-state transitions, the runtime `max_active` retuning boundary, and live execution in C.
