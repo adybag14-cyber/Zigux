@@ -431,7 +431,7 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
             elif helper_test_anchors != extract_test_titles(source_text):
                 missing.append(f"phase1_helper_test_anchor_list:{helper}")
         for key, value in anchors.items():
-            target_text = replay_text if key == "phase1_helper_replay_anchor" else source_text
+            target_text = replay_body if key == "phase1_helper_replay_anchor" else source_text
             for marker in review_anchor_tests(value):
                 count = target_text.count(marker)
                 if count != 1:
