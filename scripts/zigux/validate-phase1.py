@@ -174,6 +174,7 @@ DOC_MARKERS = {
     ],
     "tests_root_phase1_packet": [
         "keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface",
+        "current public-tree-backed Phase 1 parity packet: `zigux/tests/fixtures/phase1_helpers.json` and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
     ],
     "review_checklist_phase1_packet": [
         "if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`, `python3 scripts/zigux/check-phase1-installer-companion-checks.py`, `zigux/tests/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` still agree on the same closed helper tranche and validator-first replay path without widening Phase 1 beyond the bounded host-side helper packet?",
@@ -374,92 +375,109 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
 
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
-        return [*missing, "phase1_manifest:review_anchors"]
+        return missing + ["phase1_manifest:review_anchors"]
 
-    bitmap_review_anchors = review_anchors.get("tools/lib/bitmap.zig")
-    if not isinstance(bitmap_review_anchors, dict):
-        missing.append("phase1_manifest_review_anchor:shape=tools/lib/bitmap.zig")
-        bitmap_review_anchors = {}
-    if bitmap_review_anchors.get("phase1_helper_replay_anchor") != EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:phase1_helper_replay_anchor")
-    if bitmap_review_anchors.get("review_packet_summary") != EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:review_packet_summary")
-    if bitmap_review_anchors.get("next_safe_step_note") != EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:next_safe_step_note")
+    expected_anchor_helpers = set(DIRECT_ANCHOR_HELPERS)
+    if set(review_anchors.keys()) != expected_anchor_helpers:
+        missing.append("phase1_manifest:review_anchor_helpers")
 
-    find_bit_review_anchors = review_anchors.get("tools/lib/find_bit.zig")
-    if not isinstance(find_bit_review_anchors, dict):
-        missing.append("phase1_manifest_review_anchor:shape=tools/lib/find_bit.zig")
-        find_bit_review_anchors = {}
-    if find_bit_review_anchors.get("tail_word_inclusive_boundary_anchor") != EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_ANCHOR:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:tail_word_inclusive_boundary_anchor")
-    if find_bit_review_anchors.get("tail_word_inclusive_boundary_contract") != EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_CONTRACT:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:tail_word_inclusive_boundary_contract")
-    if find_bit_review_anchors.get("review_packet_summary") != EXPECTED_FIND_BIT_REVIEW_PACKET_SUMMARY:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:review_packet_summary")
-    if find_bit_review_anchors.get("next_safe_step_note") != EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:next_safe_step_note")
-
-    rbtree_review_anchors = review_anchors.get("tools/lib/rbtree.zig")
-    if not isinstance(rbtree_review_anchors, dict):
-        missing.append("phase1_manifest_review_anchor:shape=tools/lib/rbtree.zig")
-        rbtree_review_anchors = {}
-    if rbtree_review_anchors.get("review_packet_summary") != EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/rbtree.zig:review_packet_summary")
-    if rbtree_review_anchors.get("next_safe_step_note") != EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/rbtree.zig:next_safe_step_note")
-
-    string_review_anchors = review_anchors.get("tools/lib/string.zig")
-    if not isinstance(string_review_anchors, dict):
-        missing.append("phase1_manifest_review_anchor:shape=tools/lib/string.zig")
-        string_review_anchors = {}
-    if string_review_anchors.get("prefix_suffix_review_summary") != EXPECTED_STRING_PREFIX_SUFFIX_REVIEW_SUMMARY:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/string.zig:prefix_suffix_review_summary")
-    if string_review_anchors.get("memparse_review_summary") != EXPECTED_STRING_MEMPARSE_REVIEW_SUMMARY:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/string.zig:memparse_review_summary")
-    if string_review_anchors.get("shared_replace_char_cstr_review_summary") != EXPECTED_STRING_SHARED_REPLACE_CHAR_CSTR_REVIEW_SUMMARY:
-        missing.append("phase1_manifest_review_anchor:value=tools/lib/string.zig:shared_replace_char_cstr_review_summary")
-
-    fixture_path = root / "zigux/tests/fixtures/phase1_helpers.json"
-    helpers_path = root / "zigux/tests/phase1_helpers.zig"
-    _, fixture_errors = load_json(fixture_path, "phase1_fixture")
-    fixture = EXPECTED_FIXTURE if not fixture_errors else {}
-    helpers_text = load_text(helpers_path)
-    replay_body = extract_test_body(helpers_text, "phase 1 helper ports match committed parity fixture") or ""
-
-    for helper in DIRECT_ANCHOR_HELPERS:
-        anchors = review_anchors.get(helper)
-        if not isinstance(anchors, dict):
-            missing.append(f"phase1_manifest_review_anchor:shape={helper}")
-            continue
+    for helper in EXPECTED_HELPERS:
         source_path = root / source_path_for_helper(helper)
         if not source_path.exists():
-            missing.append(f"phase1_source_missing:{helper}")
             continue
         source_text = load_text(source_path)
-        helper_test_anchors = anchors.get("helper_test_anchors")
-        if helper_test_anchors is not None:
-            if not isinstance(helper_test_anchors, list):
-                missing.append(f"phase1_helper_test_anchor_list:{helper}:not_list")
-            elif helper_test_anchors != extract_test_titles(source_text):
-                missing.append(f"phase1_helper_test_anchor_list:{helper}")
-        for key, value in anchors.items():
-            target_text = replay_body if key == "phase1_helper_replay_anchor" else source_text
-            for marker in review_anchor_tests(value):
-                count = target_text.count(marker)
-                if count != 1:
-                    missing.append(f"phase1_anchor:{helper}:{key}:{marker}:expected=1:actual={count}")
-            if key in {"parity_fixture_keys", "tail_clamp_fixture_keys", "partial_xor_review_fields"}:
-                section = helper.rsplit("/", 1)[-1].replace(".zig", "")
-                section_data = fixture.get(section)
-                if not isinstance(section_data, dict):
-                    missing.append(f"phase1_fixture_section:{section}")
+        helper_titles = extract_test_titles(source_text)
+
+        if helper in DIRECT_ANCHOR_HELPERS:
+            helper_anchor = review_anchors.get(helper)
+            if not isinstance(helper_anchor, dict):
+                missing.append(f"phase1_manifest:review_anchor={helper}")
+                continue
+            for key in helper_anchor.keys():
+                if key == "helper_test_anchors":
                     continue
-                for field in fixture_key_markers(value):
-                    if field not in replay_body:
-                        missing.append(f"phase1_replay_field:{helper}:{field}")
-                    if field not in section_data:
-                        missing.append(f"phase1_fixture_field:{helper}:{field}")
+                expected_value = None
+                if helper == "tools/lib/bitmap.zig" and key == "phase1_helper_replay_anchor":
+                    expected_value = EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "review_packet_summary":
+                    expected_value = EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY
+                elif helper == "tools/lib/bitmap.zig" and key == "next_safe_step_note":
+                    expected_value = EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE
+                elif helper == "tools/lib/find_bit.zig" and key == "tail_word_inclusive_boundary_anchor":
+                    expected_value = EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_ANCHOR
+                elif helper == "tools/lib/find_bit.zig" and key == "tail_word_inclusive_boundary_contract":
+                    expected_value = EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_CONTRACT
+                elif helper == "tools/lib/find_bit.zig" and key == "review_packet_summary":
+                    expected_value = EXPECTED_FIND_BIT_REVIEW_PACKET_SUMMARY
+                elif helper == "tools/lib/find_bit.zig" and key == "next_safe_step_note":
+                    expected_value = EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE
+                elif helper == "tools/lib/rbtree.zig" and key == "review_packet_summary":
+                    expected_value = EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY
+                elif helper == "tools/lib/rbtree.zig" and key == "next_safe_step_note":
+                    expected_value = EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE
+                elif helper == "tools/lib/string.zig" and key == "prefix_suffix_review_summary":
+                    expected_value = EXPECTED_STRING_PREFIX_SUFFIX_REVIEW_SUMMARY
+                elif helper == "tools/lib/string.zig" and key == "memparse_review_summary":
+                    expected_value = EXPECTED_STRING_MEMPARSE_REVIEW_SUMMARY
+                elif helper == "tools/lib/string.zig" and key == "shared_replace_char_cstr_review_summary":
+                    expected_value = EXPECTED_STRING_SHARED_REPLACE_CHAR_CSTR_REVIEW_SUMMARY
+                if expected_value is not None and helper_anchor.get(key) != expected_value:
+                    missing.append(f"phase1_manifest_review_anchor:value={helper}:{key}")
+            anchor_tests = review_anchor_tests(helper_anchor.get("helper_test_anchors"))
+            if anchor_tests != helper_titles:
+                missing.append(f"phase1_helper_test_anchor_list:{helper}")
+            for marker in anchor_tests:
+                if helper_titles.count(marker) != 1:
+                    missing.append(f"phase1_helper_test_marker:{helper}:{marker}")
+            if helper == "tools/lib/bitmap.zig":
+                parity_anchor = helper_anchor.get("phase1_helper_replay_anchor")
+                if parity_anchor != EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR:
+                    missing.append(
+                        "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:phase1_helper_replay_anchor"
+                    )
+                for marker in BITMAP_MANIFEST_VALUE_MARKERS:
+                    if marker not in helper_anchor:
+                        missing.append(
+                            f"phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:{marker}"
+                        )
+            elif helper == "tools/lib/find_bit.zig":
+                for marker in FIND_BIT_MANIFEST_VALUE_MARKERS:
+                    if marker not in helper_anchor:
+                        missing.append(
+                            f"phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:{marker}"
+                        )
+            elif helper == "tools/lib/rbtree.zig":
+                for marker in RBTREE_MANIFEST_VALUE_MARKERS:
+                    if marker not in helper_anchor:
+                        missing.append(
+                            f"phase1_manifest_review_anchor:value=tools/lib/rbtree.zig:{marker}"
+                        )
+            elif helper == "tools/lib/string.zig":
+                for marker in STRING_MANIFEST_VALUE_MARKERS:
+                    if marker not in helper_anchor:
+                        missing.append(
+                            f"phase1_manifest_review_anchor:value=tools/lib/string.zig:{marker}"
+                        )
+            if helper == "tools/lib/bitmap.zig":
+                for marker in fixture_key_markers(helper_anchor.get("partial_xor_review_fields")):
+                    if marker not in EXPECTED_FIXTURE["bitmap"]:
+                        missing.append(f"phase1_manifest_review_anchor:bitmap_partial_xor_review_fields={marker}")
+            if helper == "tools/lib/find_bit.zig":
+                for marker in fixture_key_markers(helper_anchor.get("tail_clamp_fixture_keys")):
+                    if marker not in EXPECTED_FIXTURE["find_bit"]:
+                        missing.append(f"phase1_manifest_review_anchor:find_bit_tail_clamp_fixture_keys={marker}")
+            if helper == "tools/lib/rbtree.zig":
+                for marker in fixture_key_markers(helper_anchor.get("parity_fixture_keys")):
+                    if marker not in EXPECTED_FIXTURE["rbtree"]:
+                        missing.append(f"phase1_manifest_review_anchor:rbtree_parity_fixture_keys={marker}")
+            if helper == "tools/lib/string.zig":
+                for marker in fixture_key_markers(helper_anchor.get("parity_fixture_keys")):
+                    if marker not in EXPECTED_FIXTURE["string"]:
+                        missing.append(f"phase1_manifest_review_anchor:string_parity_fixture_keys={marker}")
+        else:
+            if review_anchors.get(helper) is not None:
+                missing.append(f"phase1_manifest:unexpected_review_anchor={helper}")
+
     return missing
 
 
@@ -569,7 +587,7 @@ def make_fixture_root(root: Path) -> None:
         path.write_text("{}\n" if path.suffix == ".json" else "\n", encoding="utf-8")
 
     (root / "Documentation/zigux/README.md").write_text("\n".join(DOC_MARKERS["docs_root_phase1_packet"]) + "\n", encoding="utf-8")
-    (root / "zigux/tests/README.md").write_text(DOC_MARKERS["tests_root_phase1_packet"][0] + "\n", encoding="utf-8")
+    (root / "zigux/tests/README.md").write_text("\n".join(DOC_MARKERS["tests_root_phase1_packet"]) + "\n", encoding="utf-8")
     (root / "Documentation/zigux/review-checklist.md").write_text("\n".join(DOC_MARKERS["review_checklist_phase1_packet"]) + "\n", encoding="utf-8")
     (root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md").write_text("\n".join(PHASE1_LANE_NOTE_MARKERS) + "\n", encoding="utf-8")
 
@@ -681,6 +699,19 @@ def run_self_test() -> None:
             in collect_missing_markers(root)
         )
         readme.write_text(original, encoding="utf-8")
+        case_count += 1
+
+        tests_readme = root / "zigux/tests/README.md"
+        original = load_text(tests_readme)
+        tests_readme.write_text(
+            original.replace(DOC_MARKERS["tests_root_phase1_packet"][1] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert (
+            f'tests_root_phase1_packet:{DOC_MARKERS["tests_root_phase1_packet"][1]}:expected=1:actual=0'
+            in collect_missing_markers(root)
+        )
+        tests_readme.write_text(original, encoding="utf-8")
         case_count += 1
 
         helpers = root / "zigux/tests/phase1_helpers.zig"
