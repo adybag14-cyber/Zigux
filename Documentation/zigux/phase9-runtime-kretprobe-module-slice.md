@@ -31,6 +31,7 @@ This slice keeps the smallest honest runtime-facing note in place: a sample-back
 ## Landed Starter Surface
 - module descriptor metadata and lifecycle review coverage remain directly readable through `zigux/tests/runtime_kretprobe_module.zig`
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
+- a retargeted probe symbol now stays fixed from `cold` through `initialized`, `selftest_complete`, and `exited`, and late `retargetSymbol()` attempts are rejected after arming so symbol ownership does not drift during lifecycle review
 - bounded return-probe bookkeeping for skipped kernel threads, duration tracking, missed instances, and explicit selftest summaries
 - direct failed-exit replay coverage that keeps outstanding-probe state explicit until the active probe drains instead of pretending exit is already safe
 - direct maxactive-overflow replay coverage that keeps pressure-induced missed-instance state explicit until the active probe drains
