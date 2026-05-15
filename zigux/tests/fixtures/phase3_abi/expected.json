@@ -22,6 +22,46 @@
     "notifier_ok": 1,
     "notifier_stop": 2
   },
+  "uapi_boundary_header": {
+    "header_size": 8,
+    "abi_version": 1,
+    "canonical_header": {
+      "size": 8,
+      "abi_version": 1,
+      "flags": 34,
+      "current_abi": 1,
+      "compatible_size": 1,
+      "canonical_size": 1,
+      "compatible": 1,
+      "canonical": 1,
+      "extends_boundary": 0,
+      "requested_extra_bytes": 0
+    },
+    "future_compatible": {
+      "size": 24,
+      "abi_version": 1,
+      "flags": 34,
+      "current_abi": 1,
+      "compatible_size": 1,
+      "canonical_size": 0,
+      "compatible": 1,
+      "canonical": 0,
+      "extends_boundary": 1,
+      "requested_extra_bytes": 16
+    },
+    "mismatched_version": {
+      "size": 8,
+      "abi_version": 2,
+      "flags": 34,
+      "current_abi": 0,
+      "compatible_size": 1,
+      "canonical_size": 1,
+      "compatible": 0,
+      "canonical": 0,
+      "extends_boundary": 0,
+      "requested_extra_bytes": 0
+    }
+  },
   "dev_t": {
     "minor_bits": 20,
     "minor_mask": 1048575,
