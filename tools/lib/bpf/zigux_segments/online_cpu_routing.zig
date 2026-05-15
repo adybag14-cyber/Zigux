@@ -213,7 +213,7 @@ pub fn summarizeOnlineCpuRouting(
                 .selected_cpu_count = selection.selected_cpu_count,
                 .buffer_slot_count = buffer_fds.len,
                 .routed_cpu_count = routed_cpu_count,
-                .first_routed_cpu_index = first_routed_cpu_index orelse route.cpu_index,
+                .first_routed_cpu_index = first_routed_cpu_index,
                 .next_online_cpu_index = route.cpu_index,
                 .missing_buffer_index = route.buffer_index,
                 .disposition = .missing_buffer_slot,
@@ -224,7 +224,7 @@ pub fn summarizeOnlineCpuRouting(
                 .selected_cpu_count = selection.selected_cpu_count,
                 .buffer_slot_count = buffer_fds.len,
                 .routed_cpu_count = routed_cpu_count,
-                .first_routed_cpu_index = first_routed_cpu_index orelse route.cpu_index,
+                .first_routed_cpu_index = first_routed_cpu_index,
                 .next_online_cpu_index = route.cpu_index,
                 .missing_buffer_index = route.buffer_index,
                 .disposition = .missing_buffer_fd,
@@ -468,11 +468,30 @@ test "summarizeOnlineCpuRouting keeps sparse missing-slot routing non-claiming w
     try std.testing.expectEqual(@as(usize, 2), summary.online_cpu_count);
     try std.testing.expectEqual(@as(usize, 2), summary.selected_cpu_count);
     try std.testing.expectEqual(@as(usize, 0), summary.routed_cpu_count);
-    try std.testing.expectEqual(@as(?usize, 2), summary.first_routed_cpu_index);
+    try std.testing.expectEqual(@as(?usize, null), summary.first_routed_cpu_index);
     try std.testing.expectEqual(@as(?usize, 2), summary.next_online_cpu_index);
     try std.testing.expectEqual(@as(?usize, 0), summary.missing_buffer_index);
     try std.testing.expectEqual(
         OnlineCpuRoutingDisposition.missing_buffer_slot,
+        summary.disposition,
+    );
+}
+
+test "summarizeOnlineCpuRouting keeps first_routed_cpu_index null when the first online cpu has no fd" {
+    const summary = summarizeOnlineCpuRouting(
+        &.{ false, true, false, true },
+        0,
+        &.{ null, 17 },
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), summary.online_cpu_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.selected_cpu_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.routed_cpu_count);
+    try std.testing.expectEqual(@as(?usize, null), summary.first_routed_cpu_index);
+    try std.testing.expectEqual(@as(?usize, 1), summary.next_online_cpu_index);
+    try std.testing.expectEqual(@as(?usize, 0), summary.missing_buffer_index);
+    try std.testing.expectEqual(
+        OnlineCpuRoutingDisposition.missing_buffer_fd,
         summary.disposition,
     );
 }
