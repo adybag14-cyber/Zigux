@@ -145,6 +145,24 @@ def validate_script_list(repo_root: Path) -> list[str]:
     return missing
 
 
+def validate_script_syntax(repo_root: Path) -> list[str]:
+    issues: list[str] = []
+    for rel_path, _args in SELFTEST_COMMANDS:
+        script_path = repo_root / rel_path
+        if not script_path.is_file():
+            continue
+        try:
+            compile(
+                script_path.read_text(encoding="utf-8"),
+                script_path.as_posix(),
+                "exec",
+            )
+        except SyntaxError as exc:
+            lineno = exc.lineno or "?"
+            issues.append(f"syntax failure: {rel_path.as_posix()}:{lineno}: {exc.msg}")
+    return issues
+
+
 def _extract_make_target_commands(text: str, target: str) -> list[str] | None:
     target_header = f"{target}:"
     lines = text.splitlines()
@@ -239,6 +257,7 @@ def _validate_selftest_output(rel_path: Path, stdout: str) -> list[str]:
 def run_packet(repo_root: Path) -> int:
     missing = validate_driver_inventory()
     missing.extend(validate_script_list(repo_root))
+    missing.extend(validate_script_syntax(repo_root))
     missing.extend(validate_makefile(repo_root))
     if missing:
         print("PHASE3_VALIDATE_SELFTEST=fail")
@@ -328,10 +347,49 @@ def run_self_test() -> int:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected synthetic self-test script set to validate")
             return 1
+        if validate_script_syntax(root):
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected synthetic self-test script syntax to validate")
+            return 1
         if validate_makefile(root):
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected synthetic makefile self-test route to validate")
             return 1
+
+        syntax_broken_path = Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")
+        (root / syntax_broken_path).write_text(
+            "def broken(:\n    pass\n",
+            encoding="utf-8",
+        )
+        missing = validate_script_syntax(root)
+        expected_syntax_issue = (
+            f"syntax failure: {syntax_broken_path.as_posix()}:1: invalid syntax"
+        )
+        if expected_syntax_issue not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected syntax drift was not reported")
+            return 1
+
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            result = run_packet(root)
+        if result == 0:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected syntax-broken self-test script to fail the packet")
+            return 1
+        output = buffer.getvalue()
+        for marker in (
+            "PHASE3_VALIDATE_SELFTEST=fail",
+            expected_syntax_issue,
+        ):
+            if marker not in output:
+                print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+                print(f"expected syntax failure marker was not reported: {marker}")
+                return 1
+        (root / syntax_broken_path).write_text(
+            _synthetic_selftest_script(syntax_broken_path),
+            encoding="utf-8",
+        )
 
         for required_path in REQUIRED_SELFTEST_DRIVER_PATHS:
             missing = validate_driver_inventory(
