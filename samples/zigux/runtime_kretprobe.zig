@@ -373,6 +373,78 @@ test "kretprobe sample preserves failed-exit state until the active probe drains
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
 }
 
+test "runtime kretprobe sample keeps rejected selftest rollback explicit" {
+    var module = RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+
+    const selftest = try module.runSelftest();
+    try std.testing.expectEqualStrings("do_sys_openat2", selftest.symbol_name);
+
+    const before_rejected_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_selftest.exit_runs);
+    try std.testing.expectEqualStrings("do_sys_openat2", before_rejected_selftest.symbol_name);
+    try std.testing.expectEqual(RuntimeKretprobeSample.default_maxactive, before_rejected_selftest.maxactive);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_selftest.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), before_rejected_selftest.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), before_rejected_selftest.last_duration_ns);
+    try std.testing.expect(!before_rejected_selftest.entry_timestamp_armed);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_selftest = module.summary();
+    try std.testing.expectEqual(before_rejected_selftest.stage, after_rejected_selftest.stage);
+    try std.testing.expectEqual(before_rejected_selftest.init_runs, after_rejected_selftest.init_runs);
+    try std.testing.expectEqual(before_rejected_selftest.selftest_runs, after_rejected_selftest.selftest_runs);
+    try std.testing.expectEqual(before_rejected_selftest.exit_runs, after_rejected_selftest.exit_runs);
+    try std.testing.expectEqualStrings(before_rejected_selftest.symbol_name, after_rejected_selftest.symbol_name);
+    try std.testing.expectEqual(before_rejected_selftest.maxactive, after_rejected_selftest.maxactive);
+    try std.testing.expectEqual(before_rejected_selftest.active_instances, after_rejected_selftest.active_instances);
+    try std.testing.expectEqual(before_rejected_selftest.skipped_kernel_threads, after_rejected_selftest.skipped_kernel_threads);
+    try std.testing.expectEqual(before_rejected_selftest.nmissed, after_rejected_selftest.nmissed);
+    try std.testing.expectEqual(before_rejected_selftest.last_retval, after_rejected_selftest.last_retval);
+    try std.testing.expectEqual(before_rejected_selftest.last_duration_ns, after_rejected_selftest.last_duration_ns);
+    try std.testing.expectEqual(before_rejected_selftest.entry_timestamp_armed, after_rejected_selftest.entry_timestamp_armed);
+
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings("do_sys_openat2", exit_report.symbol_name);
+
+    const before_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, before_rejected_exit_selftest.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);
+    try std.testing.expectEqualStrings("do_sys_openat2", before_rejected_exit_selftest.symbol_name);
+    try std.testing.expectEqual(RuntimeKretprobeSample.default_maxactive, before_rejected_exit_selftest.maxactive);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_exit_selftest.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), before_rejected_exit_selftest.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), before_rejected_exit_selftest.last_duration_ns);
+    try std.testing.expect(!before_rejected_exit_selftest.entry_timestamp_armed);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(before_rejected_exit_selftest.stage, after_rejected_exit_selftest.stage);
+    try std.testing.expectEqual(before_rejected_exit_selftest.init_runs, after_rejected_exit_selftest.init_runs);
+    try std.testing.expectEqual(before_rejected_exit_selftest.selftest_runs, after_rejected_exit_selftest.selftest_runs);
+    try std.testing.expectEqual(before_rejected_exit_selftest.exit_runs, after_rejected_exit_selftest.exit_runs);
+    try std.testing.expectEqualStrings(before_rejected_exit_selftest.symbol_name, after_rejected_exit_selftest.symbol_name);
+    try std.testing.expectEqual(before_rejected_exit_selftest.maxactive, after_rejected_exit_selftest.maxactive);
+    try std.testing.expectEqual(before_rejected_exit_selftest.active_instances, after_rejected_exit_selftest.active_instances);
+    try std.testing.expectEqual(before_rejected_exit_selftest.skipped_kernel_threads, after_rejected_exit_selftest.skipped_kernel_threads);
+    try std.testing.expectEqual(before_rejected_exit_selftest.nmissed, after_rejected_exit_selftest.nmissed);
+    try std.testing.expectEqual(before_rejected_exit_selftest.last_retval, after_rejected_exit_selftest.last_retval);
+    try std.testing.expectEqual(before_rejected_exit_selftest.last_duration_ns, after_rejected_exit_selftest.last_duration_ns);
+    try std.testing.expectEqual(before_rejected_exit_selftest.entry_timestamp_armed, after_rejected_exit_selftest.entry_timestamp_armed);
+}
+
 test "runtime kretprobe sample keeps selftest missed-instance and maxactive cues explicit" {
     var module = RuntimeKretprobeSample{ .maxactive = 1 };
     try module.init();
