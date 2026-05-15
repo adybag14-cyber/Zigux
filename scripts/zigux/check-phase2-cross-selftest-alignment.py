@@ -396,6 +396,35 @@ def run_self_test() -> int:
     if missing_confdata_scope_pattern_issues != [expected_confdata_scope_pattern_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_confdata_failure")
 
+    missing_install_scope_pattern = scope_pattern_text.replace(
+        "scripts/zigux/install-zig\\.py|", "", 1
+    )
+    missing_install_scope_pattern_issues = validate_workflow_scope_pattern(
+        missing_install_scope_pattern
+    )
+    expected_install_scope_pattern_issue = (
+        "workflow_scope_pattern:missing_marker:scripts/zigux/install-zig\\.py"
+    )
+    if missing_install_scope_pattern_issues != [expected_install_scope_pattern_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_install_failure")
+
+    missing_toolchain_policy_scope_pattern = scope_pattern_text.replace(
+        "scripts/zigux/zig-toolchain-policy\\.json|", "", 1
+    )
+    missing_toolchain_policy_scope_pattern_issues = validate_workflow_scope_pattern(
+        missing_toolchain_policy_scope_pattern
+    )
+    expected_toolchain_policy_scope_pattern_issue = (
+        "workflow_scope_pattern:missing_marker:scripts/zigux/zig-toolchain-policy\\.json"
+    )
+    if (
+        missing_toolchain_policy_scope_pattern_issues
+        != [expected_toolchain_policy_scope_pattern_issue]
+    ):
+        raise SystemExit(
+            "phase2-cross-alignment:self-test:workflow_scope_pattern_toolchain_policy_failure"
+        )
+
     makefile_text = "\n".join(
         [
             "phase2-validate: phase2-tools phase2-kconfig",
@@ -581,7 +610,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_zig_test_files_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=26")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
