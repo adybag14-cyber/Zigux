@@ -64,7 +64,7 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expectEqualStrings("lane_family_owner_map", manifest.continuity_mode);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-governance-lane-sequencing.md", manifest.owner_map_anchor);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-14", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-15", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
@@ -145,7 +145,7 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_CONTINUITY_MODE=lane_family_owner_map") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_OWNER_MAP_ANCHOR=Documentation/zigux/phase15-governance-lane-sequencing.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_PROVENANCE_MODE=dated_master_readback") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-14") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-15") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "stable continuity for this parked maintenance surface now follows the shared `handoff-next-steps` lane family") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase14-workqueue-bridge-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase14_workqueue_bridge_manifest.json") != null);
