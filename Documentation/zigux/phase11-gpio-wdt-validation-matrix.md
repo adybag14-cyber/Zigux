@@ -7,8 +7,8 @@ This document records the bounded gpio watchdog validation matrix for the curren
 - `PHASE11_GPIO_WDT_STATUS=visible_starter_with_archived_review_surface`
 - lane: `P11-L04`
 - reviewed against live `master`
-- scope: keep the current `gpio_wdt` review packet honest about the visible starter, the archived notes, the dedicated survey gate, and the focused replay that remain directly visible on current `master`, without overclaiming the missing main replay, the missing shared build route, live GPIO descriptor acquisition, platform-driver registration, watchdog-core registration, remove hooks, reboot-backed teardown execution, or hardware-backed validation
-- latest directly visible focused replay recorded by the current packet: `zig test zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`
+- scope: keep the current `gpio_wdt` review packet honest about the visible starter, the archived notes, the dedicated survey gate, and the focused replays that remain directly visible on current `master`, without overclaiming the missing main replay, the missing shared build route, live GPIO descriptor acquisition, platform-driver registration, watchdog-core registration, remove hooks, reboot-backed teardown execution, or hardware-backed validation
+- latest directly visible focused replays recorded by the current packet: `zig test zigux/tests/phase11_gpio_wdt_platform_drvdata.zig` and `zig test zigux/tests/phase11_gpio_wdt_watchdog_drvdata.zig`
 - dedicated archived-packet freshness gate now visible: `zig test zigux/tests/phase11_gpio_wdt_survey.zig`
 - shared replay boundary: current direct contents reads still do not expose `zigux/tests/phase11_build.zig`, so this matrix keeps the older shared replay route only as archived review context rather than current shipped evidence
 
@@ -24,6 +24,7 @@ The live gpio watchdog review surfaces still directly visible on current `master
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`
+- `zigux/tests/phase11_gpio_wdt_watchdog_drvdata.zig`
 
 Direct current-`master` contents reads still do not expose `zigux/tests/phase11_gpio_wdt.zig` or `zigux/tests/phase11_build.zig`.
 
@@ -46,6 +47,8 @@ The gpio-local evidence still directly visible on current `master` is narrower t
 
 - `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`
 - `zig test zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`
+- `zigux/tests/phase11_gpio_wdt_watchdog_drvdata.zig`
+- `zig test zigux/tests/phase11_gpio_wdt_watchdog_drvdata.zig`
 - `zigux/tests/phase11_gpio_wdt_survey.zig`
 - `zig test zigux/tests/phase11_gpio_wdt_survey.zig`
 
@@ -63,7 +66,7 @@ This gpio-local matrix does not treat those archived references as proof that th
 - descriptor preflight boundary: the visible starter now exposes `descriptorRequestSummary()`, so the exact `devm_gpiod_get()` flag choice and the early probe-ordering boundary are code-backed again without claiming live descriptor acquisition.
 - timeout-property bookkeeping: the visible starter keeps the required `hw_margin_ms` boundary explicit through `probeSummary()` and `platformDrvdataCheckpointSummary()`, but there is still no dedicated timeout-only replay surface yet.
 - platform-drvdata checkpoint: `platformDrvdataCheckpointSummary()` plus the still-visible focused `phase11_gpio_wdt_platform_drvdata.zig` replay keep the early `platform_set_drvdata()` ordering boundary explicit while staying outside the missing shared `phase11_build.zig` route.
-- watchdog-drvdata checkpoint: `watchdogDrvdataCheckpointSummary()` keeps the bounded `watchdog_set_drvdata()` ownership handoff explicit in the visible starter without claiming live watchdog-core registration execution.
+- watchdog-drvdata checkpoint: `watchdogDrvdataCheckpointSummary()` plus the still-visible focused `phase11_gpio_wdt_watchdog_drvdata.zig` replay keep the bounded `watchdog_set_drvdata()` ordering boundary explicit without claiming live watchdog-core registration or the missing shared Phase 11 build route.
 - stop-policy and failure-mode surface: the visible starter now exposes `nowayoutPolicySummary()`, `requestStop()`, and `registerDeviceFailureSummary()` so the watchdog-core stop-policy split and the bounded registration failure surface are code-backed without promoting them into live watchdog-core registration or hardware-backed execution.
 - registration handoff and register-device request surface: the visible starter now exposes `registrationHandoffSummary()`, `registrationPlanSummary()`, and `registerDeviceCallSummary()` without claiming platform-driver registration or watchdog-core side effects are currently replayable.
 - teardown surface: `summarizeTeardown()` plus `Documentation/zigux/phase11-gpio-wdt-teardown-note.md` keep the bounded teardown handoff explicit without claiming live reboot hooks, remove hooks, or reboot-backed shutdown execution.
@@ -72,7 +75,7 @@ This gpio-local matrix does not treat those archived references as proof that th
 ## Review Guardrails
 
 - Treat this matrix as a truthfulness note for the current gpio watchdog packet, not as proof that the missing main replay and shared build route are already restored on current `master`.
-- Keep this matrix aligned with `drivers/watchdog/gpio_wdt.zig`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-module-slice.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_gpio_wdt_survey.zig`, and the still-visible `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig` replay whenever gpio checkpoint wording moves.
+- Keep this matrix aligned with `drivers/watchdog/gpio_wdt.zig`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-module-slice.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_gpio_wdt_survey.zig`, `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`, and `zigux/tests/phase11_gpio_wdt_watchdog_drvdata.zig` whenever gpio checkpoint wording moves.
 - Preserve lane identity `P11-L04` so the matrix, survey note, module-slice note, teardown note, manifest, and dedicated survey gate continue to describe the same archived gpio watchdog packet.
 
 ## Next Blocked Step
