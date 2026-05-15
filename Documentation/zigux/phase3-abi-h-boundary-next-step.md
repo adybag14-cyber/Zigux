@@ -52,6 +52,13 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and
   `zigux/tests/fixtures/phase3_abi/expected.json`; if this header-family
   packet reopens, keep the next parity extension equally small and sibling-local
+- `include/zigux/dev_t.h` now carries bounded `zigux_major_valid()`,
+  `zigux_minor_valid()`, `zigux_dev_range_fits()`, and
+  `zigux_last_in_range()` parity beside `zigux/bindings/dev_t.zig`,
+  `zigux/uapi/dev_t.zig`, and `zigux/kernel/export_shim.zig`; if this
+  header-family packet reopens next, keep the follow-through inside the
+  directly coupled dump, harness, expected-fixture, or syntax-guard surfaces
+  instead of widening into a broader export or UAPI packet
 - the shared review checklist now carries an explicit Phase 3 header-family
   prompt; keep `Documentation/zigux/review-checklist.md`,
   `Documentation/zigux/phase3-abi-header-family-survey.md`,
