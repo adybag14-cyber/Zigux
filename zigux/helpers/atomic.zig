@@ -52,6 +52,7 @@ pub fn compareExchange(
     comptime success_order: std.builtin.AtomicOrder,
     comptime failure_order: std.builtin.AtomicOrder,
 ) ?T {
+    ensureCompareExchangeSuccessOrder(success_order);
     return @cmpxchgStrong(T, ptr, expected_value, new_value, success_order, failure_order);
 }
 
@@ -63,7 +64,15 @@ pub fn compareExchangeWeak(
     comptime success_order: std.builtin.AtomicOrder,
     comptime failure_order: std.builtin.AtomicOrder,
 ) ?T {
+    ensureCompareExchangeSuccessOrder(success_order);
     return @cmpxchgWeak(T, ptr, expected_value, new_value, success_order, failure_order);
+}
+
+fn ensureCompareExchangeSuccessOrder(comptime order: std.builtin.AtomicOrder) void {
+    switch (order) {
+        .monotonic, .acquire, .release, .acq_rel, .seq_cst => {},
+        .unordered => @compileError("compareExchange success ordering must be monotonic or stricter"),
+    }
 }
 
 fn requireUnsignedInt(comptime T: type) void {
@@ -233,6 +242,27 @@ test "phase3 atomic wrappers keep signed arithmetic orderings reviewable" {
     );
     try std.testing.expectEqual(@as(?i32, 11), signed_mismatch);
     try std.testing.expectEqual(@as(i32, 11), signed_compare_value);
+
+    var signed_weak_value: i32 = -5;
+    var signed_weak_attempts: usize = 0;
+    while (true) {
+        signed_weak_attempts += 1;
+        if (compareExchangeWeak(i32, &signed_weak_value, -5, 9, .acq_rel, .acquire) == null) break;
+        try std.testing.expectEqual(@as(i32, -5), signed_weak_value);
+        try std.testing.expect(signed_weak_attempts < 16);
+    }
+    try std.testing.expectEqual(@as(i32, 9), signed_weak_value);
+
+    const signed_weak_mismatch = compareExchangeWeak(
+        i32,
+        &signed_weak_value,
+        -5,
+        13,
+        .release,
+        .monotonic,
+    );
+    try std.testing.expectEqual(@as(?i32, 9), signed_weak_mismatch);
+    try std.testing.expectEqual(@as(i32, 9), signed_weak_value);
 }
 
 test "phase3 atomic wrappers keep bit wrappers reviewable" {
