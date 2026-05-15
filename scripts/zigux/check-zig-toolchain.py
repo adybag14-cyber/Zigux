@@ -15,7 +15,7 @@ ARCHIVE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 FALLBACK_MIN_VERSION = "0.16.0"
-EXPECTED_SELF_TEST_CASE_COUNT = 46
+EXPECTED_SELF_TEST_CASE_COUNT = 51
 ARCHIVE_CACHE_DIRNAME = "archives"
 
 
@@ -26,6 +26,15 @@ class ZigVersion:
     patch: int
     release_rank: int
     dev_build: int
+
+
+def reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    payload: dict[str, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise ValueError(f"duplicate key {key!r}")
+        payload[key] = value
+    return payload
 
 
 def parse_zig_version(raw: str) -> ZigVersion:
@@ -46,9 +55,14 @@ def load_policy(policy_path: Path = TOOLCHAIN_POLICY) -> dict[str, object] | Non
     if not policy_path.exists():
         return None
     try:
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        payload = json.loads(
+            policy_path.read_text(encoding="utf-8"),
+            object_pairs_hook=reject_duplicate_json_keys,
+        )
     except json.JSONDecodeError as exc:
         raise ValueError(f"invalid toolchain policy JSON in {policy_path}: {exc.msg}") from exc
+    except ValueError as exc:
+        raise ValueError(f"invalid toolchain policy JSON in {policy_path}: {exc}") from exc
     if not isinstance(payload, dict):
         raise ValueError(f"invalid toolchain policy payload in {policy_path}: expected object")
     return payload
@@ -430,6 +444,20 @@ def run_self_test() -> int:
         expect_raises(lambda: load_policy_archive_sha256(policy_path, "x86_64-linux"), "invalid archive_sha256")
         policy_path.write_text('{"minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"short"}}\n', encoding="utf-8")
         expect_raises(lambda: load_policy_archive_sha256(policy_path, "x86_64-linux"), "invalid archive sha256")
+        policy_path.write_text('{"minimum_version":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.18.0","channel":"0.17.0-dev.87+9b177a7d2"}\n', encoding="utf-8")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "duplicate key 'minimum_version'")
+        policy_path.write_text(
+            '{"minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + expected_archive_sha256 + '","x86_64-linux":"' + ("1" * 64) + '"}}\n',
+            encoding="utf-8",
+        )
+        expect_raises(lambda: load_policy_archive_sha256(policy_path, "x86_64-linux"), "duplicate key 'x86_64-linux'")
+        policy_path.write_text(
+            '{"minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + expected_archive_sha256 + '","aarch64-linux":"' + ("2" * 64) + '"}}\n',
+            encoding="utf-8",
+        )
+        expect_raises(lambda: resolve_archive_target(policy_path=policy_path), "archive target must be specified when multiple archive digests exist")
+        expect_equal(resolve_archive_target("aarch64-linux", policy_path=policy_path), "aarch64-linux")
+        expect_equal(resolve_default_archive_target(policy_path=policy_path), None)
         policy_path.write_text("{not-json}\n", encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid toolchain policy JSON")
         expect_raises(lambda: parse_zig_version("master"))
