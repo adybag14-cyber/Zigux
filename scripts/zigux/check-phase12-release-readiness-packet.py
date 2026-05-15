@@ -59,7 +59,7 @@ FREEZE_MAP_MARKERS = [
 
 SCRIPTS_README_MARKERS = [
     "Phase 12 flow - `validate-phase12.py` checks that the current complex-driver packet stays aligned across `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `zigux/tests/phase12_build.zig`, the starter-present `virtio_net` packet, the shipped `virtio_scsi` packet, and the bounded NVMe starter-plus-verifier-plus-direct-test-plus-manifest packet before the shared validator-first then smoke-first routes run.",
-    "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit in this scripts-root summary so the shipped validator-first route stays visible as support-bundle evidence rather than as a second direct replay route.",
+    "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-cross.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit in this scripts-root summary so the shipped validator-first route stays visible as support-bundle evidence rather than as a second direct replay route.",
 ]
 
 MAKEFILE_MARKERS = [
@@ -267,7 +267,7 @@ def good_scripts_readme_text() -> str:
             "# scripts/zigux",
             "",
             "Phase 12 flow - `validate-phase12.py` checks that the current complex-driver packet stays aligned across `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `zigux/tests/phase12_build.zig`, the starter-present `virtio_net` packet, the shipped `virtio_scsi` packet, and the bounded NVMe starter-plus-verifier-plus-direct-test-plus-manifest packet before the shared validator-first then smoke-first routes run.",
-            "- `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit in this scripts-root summary so the shipped validator-first route stays visible as support-bundle evidence rather than as a second direct replay route.",
+            "- `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-cross.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit in this scripts-root summary so the shipped validator-first route stays visible as support-bundle evidence rather than as a second direct replay route.",
             "",
         ]
     )
