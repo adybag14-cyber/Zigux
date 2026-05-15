@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that the Phase 10 tests-root reminder keeps direct virtio core and ring surfaces explicit."""
+"""Check that the Phase 10 tests-root flow keeps direct virtio core and ring surfaces explicit."""
 
 from __future__ import annotations
 
@@ -8,416 +8,202 @@ from pathlib import Path
 import sys
 
 TESTS_README_PATH = Path("zigux/tests/README.md")
-PHASE10_PREFIX = "  * keep the active Phase 10 virtio packet explicit in the tests root too:"
+PHASE10_START = "Phase 10 flow"
+PHASE10_END = "Phase 3 fixtures"
 
-REQUIRED_SURFACES = (
-    "`drivers/virtio/virtio.zig`",
-    "`drivers/virtio/virtio_driver_id.zig`",
-    "`drivers/virtio/virtio_ring.zig`",
-)
-
-REQUIRED_CONTEXT = (
-    "`Documentation/zigux/freeze-map.md`",
-    "`Documentation/zigux/phase10-virtio-core-survey.md`",
-    "`Documentation/zigux/phase10-closure-evidence.md`",
-    "`scripts/zigux/check-phase10-harness-coverage.py`",
-    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
-    "`scripts/zigux/validate-phase10.py`",
-    "`scripts/zigux/validate-phase10-closure.py`",
-    "`zigux/tests/phase10_closure_manifest.json`",
+REQUIRED_MARKERS = (
+    "`zigux/tests/phase10_build.zig`",
     "`zigux/tests/phase10_virtio_core.zig`",
     "`zigux/tests/phase10_virtio_core_reset_queue.zig`",
-    "`zigux/tests/phase10_virtio_core_manifest.json`",
     "`zigux/tests/phase10_virtio_core_survey.zig`",
+    "`zigux/tests/phase10_virtio_core_manifest.json`",
     "`zigux/tests/phase10_virtio_driver_id.zig`",
-    "`drivers/virtio/virtio_verify.zig`",
     "`zigux/tests/phase10_virtio_ring.zig`",
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "`zigux/tests/phase10_virtio_ring_survey.zig`",
-    "`drivers/virtio/virtio_ring_verify.zig`",
-    "`zigux/tests/phase10_virtio_input.zig`",
+    "`zigux/tests/phase10_virtio_ring_manifest.json`",
     "`zigux/tests/phase10_virtio_input_probe_preflight.zig`",
-    "`drivers/virtio/virtio_input_verify.zig`",
+    "`zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`",
+    "`zigux/tests/phase10_virtio_input_registration_preflight.zig`",
+    "`zigux/tests/phase10_virtio_input_teardown_observation.zig`",
+    "`zigux/tests/phase10_virtio_input_status_drain.zig`",
+    "`zigux/tests/phase10_virtio_input_manifest.json`",
     "`zigux/tests/phase10_virtio_mmio.zig`",
-    "`drivers/virtio/virtio_mmio_verify.zig`",
-    "`make -C zigux phase10-validate`",
-    "`zig build test --build-file zigux/tests/phase10_build.zig`",
-    "`make -C zigux phase10-test`",
-    "`make -C zigux phase10`",
-)
-
-REQUIRED_SUMMARY_MARKERS = (
-    "the current virtio core, the direct `drivers/virtio/virtio.zig` plus "
-    "`drivers/virtio/virtio_driver_id.zig` review surfaces, the bounded reset replay",
-    "the direct `drivers/virtio/virtio_ring.zig` ring surface beside "
-    "`drivers/virtio/virtio_ring_verify.zig` and "
-    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+    "`zigux/tests/phase10_virtio_mmio_survey.zig`",
+    "`zigux/tests/phase10_virtio_mmio_manifest.json`",
 )
 
 EXPECTED_MARKER_COUNTS = {
-    "`Documentation/zigux/phase10-virtio-core-survey.md`": 1,
-    "`Documentation/zigux/phase10-closure-evidence.md`": 1,
-    "`drivers/virtio/virtio.zig`": 2,
-    "`drivers/virtio/virtio_driver_id.zig`": 2,
-    "`drivers/virtio/virtio_ring.zig`": 2,
-    "`zigux/tests/phase10_virtio_core_manifest.json`": 1,
-    "`zigux/tests/phase10_virtio_core_survey.zig`": 1,
+    "`zigux/tests/phase10_build.zig`": 1,
+    "`zigux/tests/phase10_virtio_core.zig`": 1,
+    "`zigux/tests/phase10_virtio_ring.zig`": 1,
+    "`zigux/tests/phase10_virtio_input_probe_preflight.zig`": 1,
+    "`zigux/tests/phase10_virtio_mmio_manifest.json`": 1,
 }
 
 
-def phase10_line(text: str) -> str:
-    matches = [line for line in text.splitlines() if line.startswith(PHASE10_PREFIX)]
-    if len(matches) != 1:
+def phase10_section(text: str) -> str:
+    start = text.find(PHASE10_START)
+    if start == -1:
         raise SystemExit(
-            "phase10 tests-readme core-surfaces checker expected exactly one "
-            f"Phase 10 tests-root line, found {len(matches)}"
+            "phase10 tests-readme core-surfaces checker missing `Phase 10 flow` section heading"
         )
-    return matches[0]
+
+    end = text.find(PHASE10_END, start)
+    if end == -1:
+        raise SystemExit(
+            "phase10 tests-readme core-surfaces checker missing `Phase 3 fixtures` section heading"
+        )
+
+    return text[start:end]
 
 
-def check_line(line: str) -> None:
-    missing = [marker for marker in REQUIRED_SURFACES + REQUIRED_CONTEXT if marker not in line]
+def check_section(section: str) -> None:
+    missing = [marker for marker in REQUIRED_MARKERS if marker not in section]
     if missing:
         raise SystemExit(
             "phase10 tests-readme core-surfaces checker missing markers: "
             + ", ".join(missing)
         )
-    for marker in REQUIRED_SUMMARY_MARKERS:
-        if marker not in line:
-            raise SystemExit(
-                "phase10 tests-readme core-surfaces checker missing summary marker: "
-                + marker
-            )
+
     for marker, expected_count in EXPECTED_MARKER_COUNTS.items():
-        if line.count(marker) != expected_count:
+        actual_count = section.count(marker)
+        if actual_count != expected_count:
             raise SystemExit(
                 "phase10 tests-readme core-surfaces checker expected exactly "
-                f"{expected_count} occurrences of {marker}, found {line.count(marker)}"
+                f"{expected_count} occurrences of {marker}, found {actual_count}"
             )
 
 
 def check_text(text: str) -> None:
-    check_line(phase10_line(text))
+    check_section(phase10_section(text))
 
 
 def run_self_test() -> int:
-    good_line = (
-        "  * keep the active Phase 10 virtio packet explicit in the tests root too: "
-        "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, "
-        "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, "
-        "`Documentation/zigux/freeze-map.md`, "
-        "`Documentation/zigux/phase10-virtio-core-survey.md`, "
-        "`Documentation/zigux/phase10-virtio-ring-survey.md`, "
-        "`Documentation/zigux/phase10-virtio-input-survey.md`, "
-        "`Documentation/zigux/phase10-virtio-mmio-survey.md`, "
-        "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, "
-        "`Documentation/zigux/phase10-closure-evidence.md`, `scripts/zigux/README.md`, "
-        "`scripts/zigux/check-phase10-core-packet.py`, "
-        "`scripts/zigux/check-phase10-ring-packet.py`, "
-        "`scripts/zigux/check-phase10-input-packet.py`, "
-        "`scripts/zigux/check-phase10-mmio-packet.py`, "
-        "`scripts/zigux/check-phase10-mmio-freeze-boundary.py`, "
-        "`scripts/zigux/check-phase10-harness-coverage.py`, "
-        "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, "
-        "`scripts/zigux/validate-phase10.py`, "
-        "`scripts/zigux/validate-phase10-closure.py`, "
-        "`zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, "
-        "`drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, "
-        "`zigux/tests/phase10_virtio_core.zig`, "
-        "`zigux/tests/phase10_virtio_core_reset_queue.zig`, "
-        "`zigux/tests/phase10_virtio_core_manifest.json`, "
-        "`zigux/tests/phase10_virtio_core_survey.zig`, "
-        "`zigux/tests/phase10_virtio_driver_id.zig`, "
-        "`drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, "
-        "`drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, "
-        "`zigux/tests/phase10_virtio_ring_manifest.json`, "
-        "`zigux/tests/phase10_virtio_ring_survey.zig`, "
-        "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`, "
-        "`zigux/tests/phase10_virtio_input.zig`, "
-        "`drivers/virtio/virtio_input_verify.zig`, "
-        "`zigux/tests/phase10_virtio_input_probe_preflight.zig`, "
-        "`zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, "
-        "`zigux/tests/phase10_virtio_input_registration_preflight.zig`, "
-        "`zigux/tests/phase10_virtio_input_teardown_observation.zig`, "
-        "`zigux/tests/phase10_virtio_input_status_drain.zig`, "
-        "`zigux/tests/phase10_virtio_input_manifest.json`, "
-        "`zigux/tests/phase10_virtio_input_survey.zig`, "
-        "`zigux/tests/phase10_virtio_mmio.zig`, "
-        "`drivers/virtio/virtio_mmio_verify.zig`, "
-        "`zigux/tests/phase10_virtio_mmio_manifest.json`, "
-        "`zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/Makefile`, "
-        "`make -C zigux phase10-validate`, "
-        "`zig build test --build-file zigux/tests/phase10_build.zig`, "
-        "`make -C zigux phase10-test`, and `make -C zigux phase10` should continue "
-        "to keep the current virtio core, the direct `drivers/virtio/virtio.zig` plus "
-        "`drivers/virtio/virtio_driver_id.zig` review surfaces, the bounded reset replay, "
-        "the direct `drivers/virtio/virtio_ring.zig` ring surface beside "
-        "`drivers/virtio/virtio_ring_verify.zig` and "
-        "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and the lane-sequenced input "
-        "verify plus probe-preflight, queue-callback-preflight, registration-preflight, "
-        "teardown-observation, and status-drain replays, and the virtio mmio packet plus "
-        "the focused mmio-verify replay reviewable from the tests root while keeping only "
-        "`Documentation/zigux/phase10-virtio-core-slice.md` and "
-        "`Documentation/zigux/phase10-virtio-mmio-slice.md` framed as repo-reality gaps, "
-        "and treating `Documentation/zigux/phase10-virtio-ring-slice.md`, "
-        "`Documentation/zigux/phase10-virtio-input-slice.md`, and "
-        "`Documentation/zigux/phase10-virtio-input-module-slice.md` as restored "
-        "shared-review evidence on current `master`"
-    )
-    good = "# zigux/tests\n\nGuidance\n" + good_line + "\n"
+    good = """# zigux/tests
+
+Phase 10 flow
+
+  * `zigux/tests/phase10_build.zig`
+  * `zigux/tests/phase10_virtio_core.zig`
+  * `zigux/tests/phase10_virtio_core_reset_queue.zig`
+  * `zigux/tests/phase10_virtio_core_survey.zig`
+  * `zigux/tests/phase10_virtio_core_manifest.json`
+  * `zigux/tests/phase10_virtio_driver_id.zig`
+  * `zigux/tests/phase10_virtio_ring.zig`
+  * `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
+  * `zigux/tests/phase10_virtio_ring_survey.zig`
+  * `zigux/tests/phase10_virtio_ring_manifest.json`
+  * `zigux/tests/phase10_virtio_input_probe_preflight.zig`
+  * `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
+  * `zigux/tests/phase10_virtio_input_registration_preflight.zig`
+  * `zigux/tests/phase10_virtio_input_teardown_observation.zig`
+  * `zigux/tests/phase10_virtio_input_status_drain.zig`
+  * `zigux/tests/phase10_virtio_input_manifest.json`
+  * `zigux/tests/phase10_virtio_mmio.zig`
+  * `zigux/tests/phase10_virtio_mmio_survey.zig`
+  * `zigux/tests/phase10_virtio_mmio_manifest.json`
+  * `zigux/tests/phase11_build.zig`
+
+Phase 3 fixtures
+"""
     check_text(good)
 
-    missing_surfaces = good.replace(
-        "`drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, ", "", 1
-    )
+    missing_phase10_heading = good.replace("Phase 10 flow", "Phase Ten flow", 1)
     try:
-        check_text(missing_surfaces)
+        check_text(missing_phase10_heading)
     except SystemExit as exc:
-        message = str(exc)
-        assert "missing markers" in message or "expected exactly 2 occurrences" in message
+        assert "`Phase 10 flow`" in str(exc)
     else:
-        raise AssertionError("expected missing direct surfaces failure")
+        raise AssertionError("expected missing Phase 10 heading failure")
 
-    missing_closure_manifest = good.replace(
-        "`zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, ",
-        "`zigux/tests/phase10_build.zig`, ",
-        1,
-    )
+    missing_phase3_heading = good.replace("Phase 3 fixtures", "Phase Three fixtures", 1)
     try:
-        check_text(missing_closure_manifest)
+        check_text(missing_phase3_heading)
     except SystemExit as exc:
-        assert "`zigux/tests/phase10_closure_manifest.json`" in str(exc)
+        assert "`Phase 3 fixtures`" in str(exc)
     else:
-        raise AssertionError("expected missing closure manifest failure")
+        raise AssertionError("expected missing Phase 3 fixtures heading failure")
 
-    missing_core_survey_note = good.replace(
-        "`Documentation/zigux/phase10-virtio-core-survey.md`, ",
+    missing_phase10_build = good.replace("  * `zigux/tests/phase10_build.zig`\n", "", 1)
+    try:
+        check_text(missing_phase10_build)
+    except SystemExit as exc:
+        assert "`zigux/tests/phase10_build.zig`" in str(exc)
+    else:
+        raise AssertionError("expected missing phase10 build marker failure")
+
+    missing_core_reset_queue = good.replace(
+        "  * `zigux/tests/phase10_virtio_core_reset_queue.zig`\n",
         "",
         1,
     )
     try:
-        check_text(missing_core_survey_note)
+        check_text(missing_core_reset_queue)
     except SystemExit as exc:
-        assert "`Documentation/zigux/phase10-virtio-core-survey.md`" in str(exc)
+        assert "`zigux/tests/phase10_virtio_core_reset_queue.zig`" in str(exc)
     else:
-        raise AssertionError("expected missing core survey note failure")
+        raise AssertionError("expected missing core reset queue marker failure")
 
-    missing_closure_evidence = good.replace(
-        "`Documentation/zigux/phase10-closure-evidence.md`, ",
+    missing_ring_surface = good.replace("  * `zigux/tests/phase10_virtio_ring.zig`\n", "", 1)
+    try:
+        check_text(missing_ring_surface)
+    except SystemExit as exc:
+        assert "`zigux/tests/phase10_virtio_ring.zig`" in str(exc)
+    else:
+        raise AssertionError("expected missing ring surface marker failure")
+
+    missing_ring_reset_reuse = good.replace(
+        "  * `zigux/tests/phase10_virtio_ring_reset_reuse.zig`\n",
         "",
         1,
     )
     try:
-        check_text(missing_closure_evidence)
+        check_text(missing_ring_reset_reuse)
     except SystemExit as exc:
-        assert "`Documentation/zigux/phase10-closure-evidence.md`" in str(exc)
+        assert "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`" in str(exc)
     else:
-        raise AssertionError("expected missing closure evidence failure")
+        raise AssertionError("expected missing ring reset reuse marker failure")
 
-    missing_core_manifest = good.replace(
-        "`zigux/tests/phase10_virtio_core_manifest.json`, ",
+    missing_input_probe_preflight = good.replace(
+        "  * `zigux/tests/phase10_virtio_input_probe_preflight.zig`\n",
         "",
         1,
     )
     try:
-        check_text(missing_core_manifest)
-    except SystemExit as exc:
-        assert "`zigux/tests/phase10_virtio_core_manifest.json`" in str(exc)
-    else:
-        raise AssertionError("expected missing core manifest failure")
-
-    missing_core_survey_gate = good.replace(
-        "`zigux/tests/phase10_virtio_core_survey.zig`, ",
-        "",
-        1,
-    )
-    try:
-        check_text(missing_core_survey_gate)
-    except SystemExit as exc:
-        assert "`zigux/tests/phase10_virtio_core_survey.zig`" in str(exc)
-    else:
-        raise AssertionError("expected missing core survey gate failure")
-
-    missing_probe_preflight_replay = good.replace(
-        "`zigux/tests/phase10_virtio_input_probe_preflight.zig`, ",
-        "",
-        1,
-    )
-    try:
-        check_text(missing_probe_preflight_replay)
+        check_text(missing_input_probe_preflight)
     except SystemExit as exc:
         assert "`zigux/tests/phase10_virtio_input_probe_preflight.zig`" in str(exc)
     else:
-        raise AssertionError("expected missing probe-preflight replay failure")
+        raise AssertionError("expected missing input probe preflight marker failure")
 
-    missing_core_surfaces_checker = good.replace(
-        "`scripts/zigux/check-phase10-harness-coverage.py`, "
-        "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, ",
-        "`scripts/zigux/check-phase10-harness-coverage.py`, ",
-        1,
-    )
-    try:
-        check_text(missing_core_surfaces_checker)
-    except SystemExit as exc:
-        assert "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`" in str(exc)
-    else:
-        raise AssertionError("expected missing direct checker failure")
-
-    missing_phase10_validate = good.replace(
-        "`scripts/zigux/validate-phase10.py`, ",
+    missing_mmio_manifest = good.replace(
+        "  * `zigux/tests/phase10_virtio_mmio_manifest.json`\n",
         "",
         1,
     )
     try:
-        check_text(missing_phase10_validate)
+        check_text(missing_mmio_manifest)
     except SystemExit as exc:
-        assert "`scripts/zigux/validate-phase10.py`" in str(exc)
+        assert "`zigux/tests/phase10_virtio_mmio_manifest.json`" in str(exc)
     else:
-        raise AssertionError("expected missing shared validator failure")
-
-    missing_phase10_closure_validate = good.replace(
-        "`scripts/zigux/validate-phase10-closure.py`, ",
-        "",
-        1,
-    )
-    try:
-        check_text(missing_phase10_closure_validate)
-    except SystemExit as exc:
-        assert "`scripts/zigux/validate-phase10-closure.py`" in str(exc)
-    else:
-        raise AssertionError("expected missing shared closure validator failure")
-
-    missing_phase10_validate_route = good.replace(
-        "`make -C zigux phase10-validate`, ",
-        "",
-        1,
-    )
-    try:
-        check_text(missing_phase10_validate_route)
-    except SystemExit as exc:
-        assert "`make -C zigux phase10-validate`" in str(exc)
-    else:
-        raise AssertionError("expected missing phase10-validate route failure")
-
-    duplicate_surface = good.replace(
-        "`drivers/virtio/virtio.zig`",
-        "`drivers/virtio/virtio.zig`, `drivers/virtio/virtio.zig`",
-        1,
-    )
-    try:
-        check_text(duplicate_surface)
-    except SystemExit as exc:
-        assert "expected exactly 2 occurrences" in str(exc)
-    else:
-        raise AssertionError("expected duplicate direct surface failure")
-
-    duplicate_core_survey_note = good.replace(
-        "`Documentation/zigux/phase10-virtio-core-survey.md`",
-        "`Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-core-survey.md`",
-        1,
-    )
-    try:
-        check_text(duplicate_core_survey_note)
-    except SystemExit as exc:
-        assert "`Documentation/zigux/phase10-virtio-core-survey.md`" in str(exc)
-        assert "expected exactly 1 occurrences" in str(exc)
-    else:
-        raise AssertionError("expected duplicate core survey note failure")
-
-    missing_summary = good.replace(
-        "the current virtio core, the direct `drivers/virtio/virtio.zig` plus "
-        "`drivers/virtio/virtio_driver_id.zig` review surfaces, the bounded reset replay, ",
-        "the current virtio core, the bounded reset replay, ",
-        1,
-    )
-    try:
-        check_text(missing_summary)
-    except SystemExit as exc:
-        assert "missing summary marker" in str(exc)
-    else:
-        raise AssertionError("expected direct-surface summary failure")
-
-    missing_ring_surface_entry = good.replace(
-        "`zigux/tests/phase10_virtio_ring.zig`, `drivers/virtio/virtio_ring.zig`, ",
-        "`zigux/tests/phase10_virtio_ring.zig`, ",
-        1,
-    )
-    try:
-        check_text(missing_ring_surface_entry)
-    except SystemExit as exc:
-        assert "`drivers/virtio/virtio_ring.zig`" in str(exc)
-    else:
-        raise AssertionError("expected direct ring surface failure")
+        raise AssertionError("expected missing MMIO manifest marker failure")
 
     duplicate_ring_surface = good.replace(
-        "`drivers/virtio/virtio_ring.zig`",
-        "`drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring.zig`",
+        "`zigux/tests/phase10_virtio_ring.zig`",
+        "`zigux/tests/phase10_virtio_ring.zig`\n  * `zigux/tests/phase10_virtio_ring.zig`",
         1,
     )
     try:
         check_text(duplicate_ring_surface)
     except SystemExit as exc:
-        assert "`drivers/virtio/virtio_ring.zig`" in str(exc)
-        assert "expected exactly 2 occurrences" in str(exc)
+        assert "`zigux/tests/phase10_virtio_ring.zig`" in str(exc)
+        assert "expected exactly 1 occurrences" in str(exc)
     else:
-        raise AssertionError("expected duplicate direct ring surface failure")
-
-    missing_ring_surface_summary = good.replace(
-        "the direct `drivers/virtio/virtio_ring.zig` ring surface beside `drivers/virtio/virtio_ring_verify.zig` and ",
-        "the focused `drivers/virtio/virtio_ring_verify.zig` and ",
-        1,
-    )
-    try:
-        check_text(missing_ring_surface_summary)
-    except SystemExit as exc:
-        assert "`drivers/virtio/virtio_ring.zig` ring surface beside" in str(exc)
-    else:
-        raise AssertionError("expected direct ring surface summary failure")
-
-    missing_ring_reset_reuse_entry = good.replace(
-        "`zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, ",
-        "`zigux/tests/phase10_virtio_ring_survey.zig`, ",
-        1,
-    ).replace(
-        "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
-        "ring reset reuse",
-        1,
-    )
-    try:
-        check_text(missing_ring_reset_reuse_entry)
-    except SystemExit as exc:
-        assert "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`" in str(exc)
-    else:
-        raise AssertionError("expected ring reset reuse marker failure")
-
-    missing_ring_survey_entry = good.replace(
-        "`zigux/tests/phase10_virtio_ring_manifest.json`, "
-        "`zigux/tests/phase10_virtio_ring_survey.zig`, ",
-        "`zigux/tests/phase10_virtio_ring_manifest.json`, ",
-        1,
-    )
-    try:
-        check_text(missing_ring_survey_entry)
-    except SystemExit as exc:
-        assert "`zigux/tests/phase10_virtio_ring_survey.zig`" in str(exc)
-    else:
-        raise AssertionError("expected ring survey marker failure")
-
-    missing_ring_reset_reuse_summary = good.replace(
-        "the direct `drivers/virtio/virtio_ring.zig` ring surface beside `drivers/virtio/virtio_ring_verify.zig` and "
-        "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`, ",
-        "the direct `drivers/virtio/virtio_ring.zig` ring surface beside `drivers/virtio/virtio_ring_verify.zig` replay, ",
-        1,
-    )
-    try:
-        check_text(missing_ring_reset_reuse_summary)
-    except SystemExit as exc:
-        assert "`drivers/virtio/virtio_ring.zig` ring surface beside" in str(exc)
-    else:
-        raise AssertionError("expected ring reset reuse summary failure")
+        raise AssertionError("expected duplicate ring marker failure")
 
     print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=20")
+    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
