@@ -25,6 +25,7 @@ LIBBPF_SEGMENT_GATE_PATH = "scripts/zigux/check-phase8-libbpf-segment-gate.py"
 LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 LIBBPF_SEGMENT_SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
 LIBBPF_MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
+EXEC_CMD_SLICE_PATH = "Documentation/zigux/phase8-exec-cmd-slice.md"
 BRIDGE_SLICE_PATH = "Documentation/zigux/phase8-file-path-handle-bridge-slice.md"
 BRIDGE_HELPER_PATH = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
@@ -49,6 +50,7 @@ REQUIRED_FILES = (
     LIBBPF_SHARD_ROUTES_PATH,
     LIBBPF_SEGMENT_SURVEY_PATH,
     LIBBPF_MANIFEST_PATH,
+    EXEC_CMD_SLICE_PATH,
     BRIDGE_SLICE_PATH,
     BRIDGE_HELPER_PATH,
     BRIDGE_TEST_PATH,
@@ -58,6 +60,7 @@ REQUIRED_FILES = (
 
 REQUIRED_MARKERS = {
     DOCS_ROOT_PATH: (
+        "`Documentation/zigux/phase8-exec-cmd-slice.md`",
         "`Documentation/zigux/phase8-help-slice.md`",
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
         "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
@@ -103,6 +106,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase8-libbpf-shard-routes.py",
         "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
         "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        "Documentation/zigux/phase8-exec-cmd-slice.md",
         "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
         "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
@@ -177,6 +181,13 @@ REQUIRED_MARKERS = {
         '"slug": "map-reuse-compatibility", "status": "starter_landed"',
         '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk"',
         '"slug": "perf-buffer-poll-bookkeeping", "status": "starter_landed"',
+    ),
+    EXEC_CMD_SLICE_PATH: (
+        "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
+        "`tools/lib/subcmd/exec-cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+        "`make -C zigux phase8-exec-cmd-test`",
     ),
     BRIDGE_SLICE_PATH: (
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
@@ -292,6 +303,7 @@ def run_self_test() -> None:
         ("missing_libbpf_shard_routes", LIBBPF_SHARD_ROUTES_PATH),
         ("missing_libbpf_segment_survey", LIBBPF_SEGMENT_SURVEY_PATH),
         ("missing_libbpf_manifest", LIBBPF_MANIFEST_PATH),
+        ("missing_exec_cmd_slice", EXEC_CMD_SLICE_PATH),
         ("missing_bridge_slice", BRIDGE_SLICE_PATH),
         ("missing_bridge_helper", BRIDGE_HELPER_PATH),
         ("missing_bridge_test", BRIDGE_TEST_PATH),
@@ -299,6 +311,13 @@ def run_self_test() -> None:
         ("missing_phase8_build", PHASE8_BUILD_PATH),
     ]
     marker_cases = [
+        (
+            "docs_root_exec_cmd_slice_marker",
+            DOCS_ROOT_PATH,
+            "`Documentation/zigux/phase8-exec-cmd-slice.md`",
+            "`Documentation/zigux/phase8-exec-cmd-outline.md`",
+            f"{DOCS_ROOT_PATH}: `Documentation/zigux/phase8-exec-cmd-slice.md`",
+        ),
         (
             "docs_root_help_slice_marker",
             DOCS_ROOT_PATH,
@@ -375,6 +394,13 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
             "Documentation/zigux/phase8-libbpf-segment-outline.md",
             f"{SCRIPTS_README_PATH}: Documentation/zigux/phase8-libbpf-segment-survey.md",
+        ),
+        (
+            "scripts_readme_exec_cmd_slice_marker",
+            SCRIPTS_README_PATH,
+            "Documentation/zigux/phase8-exec-cmd-slice.md",
+            "Documentation/zigux/phase8-exec-cmd-outline.md",
+            f"{SCRIPTS_README_PATH}: Documentation/zigux/phase8-exec-cmd-slice.md",
         ),
         (
             "scripts_readme_libbpf_segment_gate_marker",
@@ -606,6 +632,13 @@ def run_self_test() -> None:
             '"slug": "map-reuse-compatibility", "status": "starter_landed"',
             '"slug": "map-reuse-compatibility", "status": "ready_next"',
             f"{LIBBPF_MANIFEST_PATH}: \"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
+        ),
+        (
+            "exec_cmd_slice_phase8_slice_marker",
+            EXEC_CMD_SLICE_PATH,
+            "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
+            "PHASE8_SLICE=exec-cmd-outline-packet",
+            f"{EXEC_CMD_SLICE_PATH}: PHASE8_SLICE=exec-cmd-deferred-exec-packet",
         ),
         (
             "bridge_slice_shared_build_marker",
