@@ -187,6 +187,13 @@ pub const ManagedMemtypeReserveOutcome = union(enum) {
     err: ManagedMemtypeReserveFailure,
 };
 
+pub const ManagedMemtypeReleasePlan = struct {
+    anchor: []const u8,
+    start: u64,
+    size: u64,
+    releases_wc_memtype: bool,
+};
+
 pub const ManagedPhysWcAddInput = struct {
     start: u64,
     size: u64,
@@ -217,6 +224,12 @@ pub const ManagedPhysWcAddFailure = struct {
 pub const ManagedPhysWcAddOutcome = union(enum) {
     added: ManagedPhysWcAddPlan,
     err: ManagedPhysWcAddFailure,
+};
+
+pub const ManagedPhysWcDeletePlan = struct {
+    anchor: []const u8,
+    token: i32,
+    removes_wc_token: bool,
 };
 
 pub const DevresHelperLab = struct {
@@ -542,6 +555,15 @@ pub const DevresHelperLab = struct {
         };
     }
 
+    pub fn planArchIoFreeMemtypeWc(start: u64, size: u64) ManagedMemtypeReleasePlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .start = start,
+            .size = size,
+            .releases_wc_memtype = true,
+        };
+    }
+
     pub fn planArchPhysWcAdd(input: ManagedPhysWcAddInput) !ManagedPhysWcAddOutcome {
         if (!input.release_record_allocated) {
             return error.OutOfMemory;
@@ -569,6 +591,14 @@ pub const DevresHelperLab = struct {
                 .release_record_freed = false,
                 .should_remove_on_detach = true,
             },
+        };
+    }
+
+    pub fn planArchPhysWcDel(token: i32) ManagedPhysWcDeletePlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .token = token,
+            .removes_wc_token = true,
         };
     }
 };
