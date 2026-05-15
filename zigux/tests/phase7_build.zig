@@ -1,26 +1,51 @@
 const std = @import("std");
 
+fn createStandaloneRootModule(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    root_source_file: []const u8,
+) *std.Build.Module {
+    return b.createModule(.{
+        .root_source_file = b.path(root_source_file),
+        .target = target,
+        .optimize = optimize,
+    });
+}
+
+fn createImportedRootModule(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    helper_source_file: []const u8,
+    root_source_file: []const u8,
+    import_name: []const u8,
+) *std.Build.Module {
+    const helper_module = createStandaloneRootModule(b, target, optimize, helper_source_file);
+    const root_module = createStandaloneRootModule(b, target, optimize, root_source_file);
+    root_module.addImport(import_name, helper_module);
+    return root_module;
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const string_helpers_module = b.createModule(.{
-        .root_source_file = b.path("../../lib/string_helpers.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const string_helpers_root_module = b.createModule(.{
-        .root_source_file = b.path("phase7_string_helpers.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    string_helpers_root_module.addImport("string_helpers", string_helpers_module);
+    const string_helpers_root_module = createImportedRootModule(
+        b,
+        target,
+        optimize,
+        "../../lib/string_helpers.zig",
+        "phase7_string_helpers.zig",
+        "string_helpers",
+    );
 
-    const string_helpers_survey_root_module = b.createModule(.{
-        .root_source_file = b.path("phase7_string_helpers_survey.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    const string_helpers_survey_root_module = createStandaloneRootModule(
+        b,
+        target,
+        optimize,
+        "phase7_string_helpers_survey.zig",
+    );
     const string_helpers_survey_tests = b.addTest(.{
         .name = "phase7-string-helpers-survey-tests",
         .root_module = string_helpers_survey_root_module,
@@ -33,23 +58,21 @@ pub fn build(b: *std.Build) void {
     );
     string_helpers_survey_step.dependOn(&run_string_helpers_survey_tests.step);
 
-    const cmdline_module = b.createModule(.{
-        .root_source_file = b.path("../../lib/cmdline.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const cmdline_root_module = b.createModule(.{
-        .root_source_file = b.path("phase7_cmdline.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    cmdline_root_module.addImport("cmdline", cmdline_module);
+    const cmdline_root_module = createImportedRootModule(
+        b,
+        target,
+        optimize,
+        "../../lib/cmdline.zig",
+        "phase7_cmdline.zig",
+        "cmdline",
+    );
 
-    const cmdline_survey_root_module = b.createModule(.{
-        .root_source_file = b.path("phase7_cmdline_survey.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    const cmdline_survey_root_module = createStandaloneRootModule(
+        b,
+        target,
+        optimize,
+        "phase7_cmdline_survey.zig",
+    );
     const cmdline_survey_tests = b.addTest(.{
         .name = "phase7-cmdline-survey-tests",
         .root_module = cmdline_survey_root_module,
@@ -62,23 +85,21 @@ pub fn build(b: *std.Build) void {
     );
     cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step);
 
-    const argv_split_module = b.createModule(.{
-        .root_source_file = b.path("../../lib/argv_split.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const argv_split_root_module = b.createModule(.{
-        .root_source_file = b.path("phase7_argv_split.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    argv_split_root_module.addImport("argv_split", argv_split_module);
+    const argv_split_root_module = createImportedRootModule(
+        b,
+        target,
+        optimize,
+        "../../lib/argv_split.zig",
+        "phase7_argv_split.zig",
+        "argv_split",
+    );
 
-    const argv_split_survey_root_module = b.createModule(.{
-        .root_source_file = b.path("phase7_argv_split_survey.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    const argv_split_survey_root_module = createStandaloneRootModule(
+        b,
+        target,
+        optimize,
+        "phase7_argv_split_survey.zig",
+    );
     const argv_split_survey_tests = b.addTest(.{
         .name = "phase7-argv-split-survey-tests",
         .root_module = argv_split_survey_root_module,
@@ -91,23 +112,21 @@ pub fn build(b: *std.Build) void {
     );
     argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step);
 
-    const rbtree_module = b.createModule(.{
-        .root_source_file = b.path("../../lib/rbtree.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const rbtree_root_module = b.createModule(.{
-        .root_source_file = b.path("phase7_rbtree.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    rbtree_root_module.addImport("rbtree", rbtree_module);
+    const rbtree_root_module = createImportedRootModule(
+        b,
+        target,
+        optimize,
+        "../../lib/rbtree.zig",
+        "phase7_rbtree.zig",
+        "rbtree",
+    );
 
-    const rbtree_survey_root_module = b.createModule(.{
-        .root_source_file = b.path("phase7_rbtree_survey.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    const rbtree_survey_root_module = createStandaloneRootModule(
+        b,
+        target,
+        optimize,
+        "phase7_rbtree_survey.zig",
+    );
     const rbtree_survey_tests = b.addTest(.{
         .name = "phase7-rbtree-survey-tests",
         .root_module = rbtree_survey_root_module,
@@ -120,11 +139,12 @@ pub fn build(b: *std.Build) void {
     );
     rbtree_survey_step.dependOn(&run_rbtree_survey_tests.step);
 
-    const string_helpers_sample_boundary_root_module = b.createModule(.{
-        .root_source_file = b.path("phase7_string_helpers_sample_boundary.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    const string_helpers_sample_boundary_root_module = createStandaloneRootModule(
+        b,
+        target,
+        optimize,
+        "phase7_string_helpers_sample_boundary.zig",
+    );
     const string_helpers_sample_boundary_tests = b.addTest(.{
         .name = "phase7-string-helpers-sample-boundary-tests",
         .root_module = string_helpers_sample_boundary_root_module,
