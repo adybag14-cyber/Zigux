@@ -318,10 +318,16 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(runtime_bitmap_loader, "runtime bitmap loader keeps selftest-complete shared-request snapshots stable across later exit activity");
     try expectContains(runtime_bitmap_loader, "runtime bitmap loader bridges the shared request lifecycle without widening bitmap claims");
     try expectContains(runtime_bitmap_loader, "runtime bitmap loader keeps shared release failures from desynchronizing loader state");
+    try expectContains(runtime_bitmap_loader, "runtime bitmap loader rejects idle shared-loader handoff before any local runtime state exists");
+    try expectContains(runtime_bitmap_loader, "runtime bitmap loader rejects prepared shared request drift before any live bitmap claim");
     try expectContains(runtime_bitmap_loader, "runtime bitmap loader rejects prepared shared selftest-hook drift before any local runtime handoff");
     try expectContains(runtime_bitmap_loader, "runtime bitmap loader rejects prepared shared allocator and init-flow drift before any local runtime handoff");
+    try expectContains(runtime_bitmap_loader, "runtime bitmap loader rejects non-prepared shared requests before any local runtime handoff");
     try expectContains(runtime_bitmap_loader, "runtime bitmap loader rejects shared selftest-hook drift before any local runtime handoff");
     try expectContains(runtime_bitmap_loader, "runtime bitmap loader rejects shared-load-plan snapshot drift");
+    try expectContains(runtime_bitmap_loader, "shared_request.plan.module_name = \"runtime_bitmap_drift\";");
+    try expectContains(runtime_bitmap_loader, "try std.testing.expectError(error.InvalidLoaderState, idle_loader.requestSharedRuntimeLoad(&shared_request));");
+    try expectContains(runtime_bitmap_loader, "try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad(&shared_request));");
     try expectContains(runtime_bitmap_loader, "try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);");
     try expectContains(runtime_bitmap_loader, "try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_plan.init_flow.handoff_stage);");
     try expectContains(runtime_bitmap_loader, "try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);");
