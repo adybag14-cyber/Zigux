@@ -27,7 +27,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig",
     "PHASE3_BARRIER_SCOPE=compiler-acquire-release-full-acquirerelease",
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
-    "PHASE3_MMIO_SCOPE=direct-range-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
+    "PHASE3_MMIO_SCOPE=direct-range-indexed-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
     "PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
@@ -38,7 +38,7 @@ REQUIRED_SURVEY_MARKERS = (
 REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `bitTest`, `bitSet`, `bitReset`, `bitToggle`, `compareExchange`, and `compareExchangeWeak`, including helper-local non-`seq_cst` ordering, signed min/max, and bit-wrapper replays.",
     "`zigux/helpers/barrier.zig` keeps the approved barrier surface explicit through `compiler`, `acquire`, `release`, `full`, and `acquireRelease`, with `compiler()` staying helper-local while current `master` still ships the barrier-locality and handoff replays in the focused route.",
-    "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.",
+    "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, indexed reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.",
     "`zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, odd-offset, and byte-scoped interop-policy checks plus the non-`seq_cst` atomic, barrier locality or handoff, and shared allocator-or-panic consumer proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` and `compiler()` stays helper-local in `zigux/helpers/barrier.zig` to keep this focused route bounded.",
     "Current `master` no longer treats `zigux/helpers/mmio.zig` as declarations-only support for the focused replay. The helper file itself now ships direct MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate replays, while `zigux/tests/phase3_low_level_wrappers.zig` remains the shared cross-helper route that keeps those already-landed MMIO calls visible beside the atomic, barrier, raw-pointer, allocator, and panic consumers.",
     "`zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned by `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` and its coupled policy validators, even when the current low-level replay still imports them for the shared allocator-and-panic consumer proof.",
@@ -271,6 +271,26 @@ def run_self_test() -> int:
         if not any(issue.startswith("missing_survey_marker:") for issue in issues):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing survey marker failure")
+            return 1
+
+        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
+        _write(
+            root,
+            SURVEY_REL,
+            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+                "PHASE3_MMIO_SCOPE=direct-range-indexed-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
+                "PHASE3_MMIO_SCOPE=direct-range-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue
+            == "missing_survey_marker:PHASE3_MMIO_SCOPE=direct-range-indexed-read-write-8-16-32-64-width-alignment-and-odd-offset-replay"
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing indexed-mmio scope survey failure")
             return 1
 
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
