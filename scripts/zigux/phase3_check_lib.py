@@ -29,6 +29,13 @@ ABI_COMMAND_PLAN = (
     (sys.executable, "scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     (sys.executable, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     ("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"),
+    (
+        "zig",
+        "build",
+        "phase3-export-uapi-layout-test",
+        "--build-file",
+        "zigux/tests/phase3_export_uapi_layout_build.zig",
+    ),
     ("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),
     (
         "zig",
@@ -177,6 +184,13 @@ def run_self_test() -> int:
         ((sys.executable, "scripts/zigux/validate-phase3-abi-header-family-survey.py"), ROOT, False),
         ((sys.executable, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ROOT, False),
         (("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"), ROOT, False),
+        ((
+            "zig",
+            "build",
+            "phase3-export-uapi-layout-test",
+            "--build-file",
+            "zigux/tests/phase3_export_uapi_layout_build.zig",
+        ), ROOT, False),
         (("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"), ROOT, False),
         ((
             "zig",
