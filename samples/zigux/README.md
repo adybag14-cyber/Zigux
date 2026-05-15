@@ -70,6 +70,8 @@ Keep later runtime-facing sample work in the separate Phase 9 lane instead of co
 * keep older command and environment control boundaries under the existing tooling lanes instead of reading the runtime loader packet as shipped command or environment activation control
 * if a proposed sample needs runtime-loader wiring, scheduler-visible execution, workqueue handoff, ring-buffer substrate, or other live kernel execution context to make its contract honest, route it to the separate runtime lane instead of widening Phase 5
 
+The separate runtime bitmap family stays explicit here too: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` companion replay remain Phase 9 review surfaces; the `phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local; and the paired `make -C zigux phase9-runtime-bitmap-top-bit-test` plus `make -C zigux phase9-runtime-loader-shared-tests` routes stay explicit as bounded review-only build surfaces rather than proof of live runtime substrate parity.
+
 Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep direct bitmap helper reviewability in its existing helper and runtime lanes instead of counting runtime-facing bitmap work as a fifth approved Phase 5 sample idiom.
 
 ## Approved Phase 5 sample scope
