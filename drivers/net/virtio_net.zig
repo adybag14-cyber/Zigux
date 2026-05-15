@@ -251,14 +251,15 @@ pub const VirtioNetProbeLab = struct {
     }
 
     pub fn captureProbeSnapshot(self: *Self, request: ProbeRequest) ProbeSnapshot {
+        const effective_queue_pairs = negotiatedQueuePairs(request);
         const snapshot = ProbeSnapshot{
             .anchor = descriptor().anchor,
             .requested_queue_pairs = request.requested_queue_pairs,
             .device_queue_pairs = request.device_queue_pairs,
-            .effective_queue_pairs = negotiatedQueuePairs(request),
+            .effective_queue_pairs = effective_queue_pairs,
             .fallback_reason = queueFallbackReason(request),
             .control_vq_present = request.has_control_vq,
-            .rss_enabled = request.has_rss,
+            .rss_enabled = request.has_rss and effective_queue_pairs > 1,
             .header_shape = queueHeaderShape(request),
             .hdr_len_bytes = if (request.uses_udp_tunnel_headers) tunnel_header_len_bytes else default_headroom_bytes,
         };
@@ -621,6 +622,25 @@ test "captureProbeSnapshot clamps queue pairs to device capacity" {
     try std.testing.expect(snapshot.control_vq_present);
     try std.testing.expect(snapshot.rss_enabled);
     try std.testing.expectEqual(HeaderShape.hash_report, snapshot.header_shape);
+    try std.testing.expectEqual(@as(u16, default_headroom_bytes), snapshot.hdr_len_bytes);
+    try std.testing.expectEqual(snapshot, lab.last_probe_snapshot.?);
+}
+
+test "captureProbeSnapshot keeps rss off when fallback collapses to one pair" {
+    var lab = VirtioNetProbeLab.init();
+    const snapshot = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 0,
+        .has_control_vq = false,
+        .has_rss = true,
+        .uses_hash_report = false,
+        .uses_udp_tunnel_headers = false,
+    });
+
+    try std.testing.expectEqual(@as(u16, default_queue_pairs), snapshot.effective_queue_pairs);
+    try std.testing.expectEqual(QueueFallbackReason.device_single_queue, snapshot.fallback_reason);
+    try std.testing.expect(!snapshot.rss_enabled);
+    try std.testing.expectEqual(HeaderShape.legacy, snapshot.header_shape);
     try std.testing.expectEqual(@as(u16, default_headroom_bytes), snapshot.hdr_len_bytes);
     try std.testing.expectEqual(snapshot, lab.last_probe_snapshot.?);
 }
