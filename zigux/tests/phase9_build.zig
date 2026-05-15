@@ -187,6 +187,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const runtime_loader_lifecycle_boundary_guard_module = b.createModule(.{
+        .root_source_file = b.path("runtime_loader_lifecycle_boundary_guard.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const runtime_atomic64_sample_tests = b.addTest(.{
         .name = "phase9-runtime-atomic64-sample-tests",
@@ -304,14 +309,21 @@ pub fn build(b: *std.Build) void {
     });
     const run_runtime_loader_gap_survey_tests = b.addRunArtifact(runtime_loader_gap_survey_tests);
     run_runtime_loader_gap_survey_tests.setCwd(b.path("../.."));
+    const runtime_loader_lifecycle_boundary_guard_tests = b.addTest(.{
+        .name = "phase9-runtime-loader-lifecycle-boundary-guard-tests",
+        .root_module = runtime_loader_lifecycle_boundary_guard_module,
+    });
+    const run_runtime_loader_lifecycle_boundary_guard_tests = b.addRunArtifact(runtime_loader_lifecycle_boundary_guard_tests);
+    run_runtime_loader_lifecycle_boundary_guard_tests.setCwd(b.path("../.."));
     const runtime_loader_shared_tests_step = b.step(
         "phase9-runtime-loader-shared-tests",
-        "Run the focused Phase 9 runtime-loader facade, contract, allocator/init-flow, selftest-complete-exit-parity, trace-events loader-substrate-drift, and loader-gap survey tests",
+        "Run the focused Phase 9 runtime-loader facade, contract, allocator/init-flow, selftest-complete-exit-parity, lifecycle-boundary-guard, trace-events loader-substrate-drift, and loader-gap survey tests",
     );
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);
+    runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_trace_events_loader_substrate_drift_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
@@ -408,7 +420,7 @@ pub fn build(b: *std.Build) void {
     runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);
     runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
-    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, runtime-loader facade, contract, allocator/init-flow, selftest-complete-exit-parity, loader-substrate-drift, and loader-gap survey tests");
+    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, runtime-loader facade, contract, allocator/init-flow, selftest-complete-exit-parity, lifecycle-boundary-guard, loader-substrate-drift, and loader-gap survey tests");
     test_step.dependOn(&run_runtime_atomic64_sample_tests.step);
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
@@ -431,6 +443,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_loader_facade_tests.step);
     test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     test_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);
+    test_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);
     test_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
     test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
     test_step.dependOn(&run_runtime_bitmap_survey_tests.step);
