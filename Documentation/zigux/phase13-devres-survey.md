@@ -24,7 +24,7 @@ The Phase 13 roadmap explicitly names `lib/devres.c` as a shared subsystem-helpe
 
 That matters because `lib/devres.c` spans managed allocation, resource lifetime tracking, region reservation, device-tree resource translation, arch memtype cleanup, and neighboring helper families that can quickly drift into live MMIO, live device-tree, or live arch memtype claims if the lane overstates parity.
 
-Current `master` still carries a real helper-first `lib/devres.zig` foothold for managed ioremap lifetime, pure `devm_of_iomap()` translation handoff, and WC token bookkeeping. The highest-value bounded work in this lane is therefore to keep that MMIO-facing packet explicit about what has landed and what live MMIO, device-tree, live region, and arch memtype state is still blocked, while DMA or scatterlist ownership stays outside this helper-local packet.
+Current `master` still carries a real helper-first `lib/devres.zig` foothold for managed ioremap lifetime, pure `devm_of_iomap()` translation handoff, and WC token bookkeeping. The highest-value bounded work in this lane is therefore to keep that MMIO-facing packet explicit about what has landed and what live MMIO, device-tree, live region, live DMA-backed mapping, live scatterlist, and arch memtype state is still blocked, while DMA or scatterlist ownership stays outside this helper-local packet.
 
 ## Survey findings
 
@@ -37,6 +37,7 @@ Current `master` still carries a real helper-first `lib/devres.zig` foothold for
 - current `master` still ships the devres slice note, the shared `phase13-validate` make target, `scripts/zigux/validate-phase13-release.py`, the direct `zigux/tests/phase13_devres.zig` replay, the direct `zigux/tests/phase13_devres_reviewability.zig` companion, and the dedicated `zigux/tests/phase13_devres_dma_coherent.zig` boundary replay, but it still does not ship the older shared `zigux/tests/phase13_build.zig` packet surface that broader Phase 13 notes sometimes imply.
 - the adjacent coherent-DMA evidence shard remains present on current `master`, but this survey lane keeps that shard as neighboring boundary proof rather than treating DMA-backed or scatterlist ownership as the core MMIO gap map.
 - the current packet now keeps a helper-only DMA/scatterlist boundary explicit too: `lib/devres.zig` still exposes no DMA mapping helpers, no live scatterlist ownership, and no `sg_table` lifecycle control, so the coherent-DMA shard remains adjacent evidence rather than a claim of DMA-backed parity.
+- the manifest-backed packet now records `phase13-devres-live-dma-mappings` and `phase13-devres-live-scatterlist-ownership` as separate blocked boundaries so live DMA-backed mapping claims cannot silently collapse back into one shared catch-all phrase.
 
 ## Exact Live Readback
 
@@ -48,7 +49,7 @@ Current `master` still carries a real helper-first `lib/devres.zig` foothold for
 - `Documentation/zigux/phase13-devres-slice.md` still names `devm_iounmap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, `devm_of_iomap()`, `devm_arch_io_reserve_memtype_wc()`, and `devm_arch_phys_wc_add()` as shipped helper-first evidence.
 - `zigux/tests/phase13_devres.zig` is still present on current `master` and still replays the exact-match and release-miss `planManagedIounmap()` cases, the managed `devm_ioremap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()` wrapper paths, the pure `devm_of_iomap()` bridge, the detach-time WC memtype reservation helper, and the token-style phys-WC helper.
 - `zigux/tests/phase13_devres_reviewability.zig` and `zigux/tests/phase13_devres_dma_coherent.zig` are both present on current `master`, while `zigux/tests/phase13_build.zig` is absent on current `master`.
-- `zigux/tests/phase13_devres_manifest.json` now records the same `P13-L01` helper packet and the same live `master-readback-2026-05-14` marker as the survey note, direct replay, and reviewability gate, while also keeping the detach-time WC memtype reservation helper, the helper-only DMA/scatterlist boundary, and the blocked MMIO, live-region, device-tree, arch-memtype, and scatterlist-ownership state gaps explicit beside the coherent-DMA shard.
+- `zigux/tests/phase13_devres_manifest.json` now records the same `P13-L01` helper packet and the same live `master-readback-2026-05-14` marker as the survey note, direct replay, and reviewability gate, while also keeping the detach-time WC memtype reservation helper, the helper-only DMA/scatterlist boundary, the dedicated blocked `phase13-devres-live-dma-mappings` gap, and the blocked MMIO, live-region, device-tree, arch-memtype, and scatterlist-ownership state gaps explicit beside the coherent-DMA shard.
 - older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift rather than as the current checker label for this helper-first packet.
 
 ## Recorded gaps
@@ -71,9 +72,10 @@ The current lane state is:
 - blocked `phase13-devres-live-release-region-mutation`
 - blocked `phase13-devres-live-device-tree-walk`
 - blocked `phase13-devres-live-arch-memtype-state`
+- blocked `phase13-devres-live-dma-mappings`
 - blocked `phase13-devres-live-scatterlist-ownership`
 
-This keeps the lane explicit without overstating progress: Zigux has a real helper-first MMIO safety foothold for managed ioremap lifetime planning, exact `devm_iounmap()` matching, pure translated-resource `devm_of_iomap()` handoff, detach-time WC memtype bookkeeping, detach-time WC token bookkeeping, the direct devres replay, the direct boundary-evidence replay, and reviewability guards, but it still does not claim live MMIO mappings, live region reservation, live release-region mutation, live device-tree walking, live arch memtype state transitions, live scatterlist ownership, or `sg_table` lifecycle control, and it still keeps DMA-backed helper ownership outside this helper-local packet.
+This keeps the lane explicit without overstating progress: Zigux has a real helper-first MMIO safety foothold for managed ioremap lifetime planning, exact `devm_iounmap()` matching, pure translated-resource `devm_of_iomap()` handoff, detach-time WC memtype bookkeeping, detach-time WC token bookkeeping, the direct devres replay, the direct boundary-evidence replay, and reviewability guards, but it still does not claim live MMIO mappings, live region reservation, live release-region mutation, live device-tree walking, live arch memtype state transitions, live DMA-backed mappings, live scatterlist ownership, or `sg_table` lifecycle control, and it still keeps DMA-backed helper ownership outside this helper-local packet.
 
 ## Non-goals
 
