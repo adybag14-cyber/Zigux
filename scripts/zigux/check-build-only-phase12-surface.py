@@ -643,7 +643,7 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
-        docs_root_path.writeText(
+        docs_root_path.write_text(
             docs_root_path.read_text(encoding="utf-8").replace(
                 DOCS_ROOT_MARKERS[14],
                 "",
