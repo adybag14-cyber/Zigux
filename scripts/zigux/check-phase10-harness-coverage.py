@@ -87,6 +87,8 @@ DOC_README_MARKERS = [
     "`Documentation/zigux/phase10-virtio-core-survey.md`",
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`scripts/zigux/check-phase10-mmio-packet.py`",
+    "`scripts/zigux/check-phase10-mmio-freeze-boundary.py`",
     "`scripts/zigux/validate-phase10.py`",
     "`scripts/zigux/validate-phase10-closure.py`",
     "`drivers/virtio/virtio.zig`",
@@ -100,6 +102,10 @@ DOC_README_MARKERS = [
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "`zigux/tests/phase10_virtio_ring_manifest.json`",
     "`drivers/virtio/virtio_input_probe_preflight.zig`",
+    "`drivers/virtio/virtio_mmio.zig`",
+    "`drivers/virtio/virtio_mmio_verify.zig`",
+    "`zigux/tests/phase10_virtio_mmio.zig`",
+    "`zigux/tests/phase10_virtio_mmio_manifest.json`",
     "`Documentation/zigux/phase10-virtio-core-slice.md`",
     "`Documentation/zigux/phase10-virtio-ring-slice.md`",
     "`Documentation/zigux/phase10-virtio-input-slice.md`",
@@ -374,6 +380,36 @@ def run_self_test() -> int:
         )
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`scripts/zigux/check-phase10-mmio-packet.py`",
+                "`scripts/zigux/check-phase10-mmio-packet-missing.py`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_mmio_packet_checker",
+            root,
+            "doc_readme:`scripts/zigux/check-phase10-mmio-packet.py`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`drivers/virtio/virtio_mmio_verify.zig`",
+                "`drivers/virtio/virtio_mmio_verify_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_mmio_verify_surface",
+            root,
+            "doc_readme:`drivers/virtio/virtio_mmio_verify.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
         scripts_readme_path = root / "scripts/zigux/README.md"
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
@@ -428,7 +464,7 @@ def run_self_test() -> int:
         expect_missing_file("checker_file", root, "scripts/zigux/check-phase10-tests-readme-core-surfaces.py")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
