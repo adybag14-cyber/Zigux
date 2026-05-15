@@ -249,7 +249,7 @@ def run_self_test() -> int:
                 if snippet
                 != "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, indexed reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route."
             )
-            + "\n`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.\n",
+            + "\n`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, indexed reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.\n",
         )
         issues = validate(root)
         assert (
@@ -257,7 +257,40 @@ def run_self_test() -> int:
             in issues
         )
 
-        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(root, LOW_LEVEL_SURVEY_REL, "\n".join(REQUIRED_LOW_LEVEL_SURVEY_MARKERS + REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS) + "\n")
+        _write(
+            root,
+            LOW_LEVEL_SURVEY_REL,
+            "\n".join(REQUIRED_LOW_LEVEL_SURVEY_MARKERS)
+            + "\n"
+            + "\n".join(
+                snippet
+                for snippet in REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS
+                if snippet
+                != "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them."
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_low_level_survey_snippet:the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them."
+            in issues
+        )
+
+        _write(root, LOW_LEVEL_SURVEY_REL, "\n".join(REQUIRED_LOW_LEVEL_SURVEY_MARKERS + REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_MMIO_SNIPPETS
+                if snippet != "pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert "missing_mmio_snippet:pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {" in issues
+
         _write(
             root,
             MMIO_REL,
@@ -361,7 +394,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=12")
+    print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
