@@ -61,6 +61,14 @@ test "phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit" 
     try expectContains(gate, "make -C zigux phase8-perf-buffer-poll-test");
     try expectContains(gate, "\"ready-buffer processing attempts cannot exceed the helper-counted ready buffers\"");
     try expectContains(gate, "phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit");
+    try expectContains(
+        gate,
+        "phase 8 perf-buffer poll helper keeps buffer-state-only ready events explicit below routing parity",
+    );
+    try expectContains(
+        gate,
+        "phase 8 perf-buffer poll helper rejects inconsistent processing accounting summaries before return shaping",
+    );
 }
 
 test "phase 8 perf-buffer poll helper keeps ready-buffer cursor traversal explicit" {
@@ -124,6 +132,24 @@ test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping be
     try std.testing.expectEqual(@as(?usize, 1), processing_failure.execution.first_process_error_index);
 }
 
+test "phase 8 perf-buffer poll helper keeps buffer-state-only ready events explicit below routing parity" {
+    const result = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(
+        5,
+        2,
+        &.{
+            .{ .error_code = -22 },
+            .{ .error_code = -32 },
+        },
+        &.{},
+    );
+    try std.testing.expectEqual(perf_buffer_poll.PollOutcome.failed, result.execution.poll.outcome);
+    try std.testing.expectEqual(
+        perf_buffer_poll.PollReturnDisposition.buffer_state_failed,
+        result.disposition,
+    );
+    try std.testing.expectEqual(@as(i32, -22), result.return_value);
+}
+
 test "phase 8 perf-buffer poll helper rejects inconsistent processing-failure bookkeeping before return shaping" {
     const missing_error = perf_buffer_poll.PollExecutionSummary{
         .poll = .{
@@ -163,6 +189,48 @@ test "phase 8 perf-buffer poll helper rejects inconsistent processing-failure bo
     try std.testing.expectError(
         perf_buffer_poll.PollError.InconsistentProcessingFailureSummary,
         perf_buffer_poll.resolvePollExecutionResultFromWaitResult(2, missing_index),
+    );
+}
+
+test "phase 8 perf-buffer poll helper rejects inconsistent processing accounting summaries before return shaping" {
+    const too_many_attempts = perf_buffer_poll.PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 2,
+            .ready_count = 1,
+            .first_ready_index = 0,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 2,
+        .completed_ready_buffer_count = 1,
+        .processed_record_count = 4,
+        .first_process_error_index = 1,
+        .first_process_error = -11,
+    };
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.InconsistentProcessingAccountingSummary,
+        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(2, too_many_attempts),
+    );
+
+    const failed_with_processing = perf_buffer_poll.PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .failed,
+            .observed_ready_events = 0,
+            .ready_count = 0,
+            .first_ready_index = null,
+            .first_error = -5,
+        },
+        .attempted_ready_buffer_count = 1,
+        .completed_ready_buffer_count = 1,
+        .processed_record_count = 2,
+        .first_process_error_index = null,
+        .first_process_error = null,
+    };
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.InconsistentProcessingAccountingSummary,
+        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(-5, failed_with_processing),
     );
 }
 
@@ -249,7 +317,7 @@ test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result an
         12,
         2,
         &.{ .{ .ready = true }, .{ .ready = true } },
-        &.{ .{ .records_processed = 1 } },
+        &.{.{ .records_processed = 1 }},
     );
     try std.testing.expectError(
         perf_buffer_poll.PollError.WaitResultDisagreesWithExecutionOutcome,
