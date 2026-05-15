@@ -265,6 +265,9 @@ def validate(root: Path) -> list[str]:
             "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
             "`include/linux/zigux.h`",
             "`include/zigux/abi.h`",
+            "`zigux/kernel/export_shim.zig`",
+            "`zigux/uapi/version.zig`",
+            "`zigux/uapi/dev_t.zig`",
             f"`{DUMP_GATE}`",
         ),
         ABI_SLICE: (
@@ -352,7 +355,7 @@ def validate(root: Path) -> list[str]:
             "pub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 {",
         ),
         ABI_DUMP: (
-            'try writer.writeAll("{\\\"abi_version\\\":");',
+            'try writer.writeAll("{\\\\\\"abi_version\\\\\\":");',
             "try writeDevT(writer);",
             'try writeStruct(writer, "boundary_header", abi.BoundaryHeader);',
         ),
@@ -418,11 +421,21 @@ def build_valid_workspace(root: Path) -> None:
     write(root / BUILD_FILE, "// build\n")
     write(
         root / ABI_DUMP,
-        'try writer.writeAll("{\\\"abi_version\\\":");\n'
+        'try writer.writeAll("{\\\\\\"abi_version\\\\\\":");\n'
         "try writeDevT(writer);\n"
         'try writeStruct(writer, "boundary_header", abi.BoundaryHeader);\n',
     )
-    write(root / SCRIPTS_README, f"- `validate-phase3-export-uapi-survey.py`\n- `Documentation/zigux/phase3-linux-zigux-header-governance.md`\n- `include/linux/zigux.h`\n- `include/zigux/abi.h`\n- `{DUMP_GATE}`\n")
+    write(
+        root / SCRIPTS_README,
+        f"- `validate-phase3-export-uapi-survey.py`\n"
+        "- `Documentation/zigux/phase3-linux-zigux-header-governance.md`\n"
+        "- `include/linux/zigux.h`\n"
+        "- `include/zigux/abi.h`\n"
+        "- `zigux/kernel/export_shim.zig`\n"
+        "- `zigux/uapi/version.zig`\n"
+        "- `zigux/uapi/dev_t.zig`\n"
+        f"- `{DUMP_GATE}`\n",
+    )
     write(
         root / ABI_SLICE,
         "- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n"
@@ -585,6 +598,45 @@ def run_self_test() -> int:
         assert (
             f"missing_marker:{ABI_DUMP.as_posix()}:try writeDevT(writer);" in issues
         ), issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(
+            root / SCRIPTS_README,
+            (root / SCRIPTS_README).read_text(encoding="utf-8").replace(
+                "- `zigux/kernel/export_shim.zig`\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert "missing_README:`zigux/kernel/export_shim.zig`" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(
+            root / SCRIPTS_README,
+            (root / SCRIPTS_README).read_text(encoding="utf-8").replace(
+                "- `zigux/uapi/version.zig`\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert "missing_README:`zigux/uapi/version.zig`" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(
+            root / SCRIPTS_README,
+            (root / SCRIPTS_README).read_text(encoding="utf-8").replace(
+                "- `zigux/uapi/dev_t.zig`\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert "missing_README:`zigux/uapi/dev_t.zig`" in issues, issues
         build_valid_workspace(root)
         case_count += 1
 
