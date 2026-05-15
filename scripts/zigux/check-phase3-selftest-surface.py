@@ -106,6 +106,7 @@ VALIDATOR_SUPPORT_CURRENT_PACKET_MARKER_COUNTS = {
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
     "zigux/bindings/dev_t.zig": 1,
+    "zigux/bindings/notifier_abi.zig": 1,
     "zigux/tests/phase3_low_level_wrappers.zig": 1,
     "zigux/tests/phase3_low_level_wrappers_build.zig": 2,
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig": 1,
@@ -125,6 +126,7 @@ VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS = {
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 2,
     "zigux/bindings/dev_t.zig": 2,
+    "zigux/bindings/notifier_abi.zig": 1,
     "zigux/kernel/export_shim.zig": 1,
     "keep the canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`": 1,
     "starter-companion split explicit here whenever this validator-support packet": 1,
@@ -476,6 +478,7 @@ def _populate_repo(root: Path) -> None:
                 "zigux/uapi/dev_t.zig",
                 "zigux/bindings/abi.zig",
                 "zigux/bindings/dev_t.zig",
+                "zigux/bindings/notifier_abi.zig",
                 "zigux/kernel/export_shim.zig",
                 "keep the canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`",
                 "starter-companion split explicit here whenever this validator-support packet",
@@ -806,6 +809,21 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         validator_support_path.write_text(
+            _read(validator_support_path).replace("zigux/bindings/notifier_abi.zig", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support current packet marker count drift: "
+            "zigux/bindings/notifier_abi.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support current-packet notifier binding drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
             _read(validator_support_path).replace(
                 "zigux/tests/phase3_low_level_wrappers_build.zig",
                 "",
@@ -941,6 +959,26 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected validator-support dev_t binding drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
+                "zigux/bindings/notifier_abi.zig",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "zigux/bindings/notifier_abi.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support notifier binding drift was not reported")
             return 1
 
         _populate_repo(root)
