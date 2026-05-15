@@ -61,18 +61,18 @@ Base raw URL prefix:
 - the same twelve covered current-master packet paths remain present beside this commit-pinned raw replay note:
   - `drivers/scsi/virtio_scsi.zig` -> blob `aef0c4205b7d99f7451ee6011adf63b6ac5220f5`
   - `Documentation/zigux/phase12-virtio-scsi-slice.md` -> blob `346ea74e682322135eeb56ee2532e663f32188b2`
-  - `Documentation/zigux/phase12-virtio-scsi-survey.md` -> blob `a1fa942a65be4611e2fe008c84faa628ac8a092a`
-  - `Documentation/zigux/README.md` -> blob `37b8d2bc15b2fddda0731fb99518a41641d1a1c8`
-  - `zigux/tests/README.md` -> blob `b3fc43e75c9d80ce60d6823453b24dcea43378ea`
-  - `scripts/zigux/README.md` -> blob `53062c520f8e561a6be2af0217ffed0fe12ff245`
-  - `zigux/tests/phase12_build.zig` -> blob `d5746e7fc71d926e8e72310f29bca9c9fcdad5fc`
+  - `Documentation/zigux/phase12-virtio-scsi-survey.md` -> blob `9b10ef0cc480198547fad347d8b137755f190d68`
+  - `Documentation/zigux/README.md` -> blob `38f2dd1097c630b5b7cc1b602b004a21911741fc`
+  - `zigux/tests/README.md` -> blob `65bcef0c2a72a2ac4ca240b5085ea69e3fecb810`
+  - `scripts/zigux/README.md` -> blob `00cea585750e34173e0a29982443b2a0a85b1d22`
+  - `zigux/tests/phase12_build.zig` -> blob `817e868e544a63e021253d0f5b029ea8f751e6b2`
   - `zigux/tests/phase12_virtio_scsi.zig` -> blob `f829de9b39576c67e81e75fe1e9d849e583db62f`
   - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` -> blob `89173ebd7f2c66d9673375e8d15f32cb645b60db`
-  - `zigux/tests/phase12_virtio_scsi_survey.zig` -> blob `c99597ec217e9d456e658a9942ebb2eaef535203`
-  - `zigux/tests/phase12_virtio_scsi_manifest.json` -> blob `6e0ed13c124baa6d2e845cd954ccdf93a148a4ca`
-  - `zigux/Makefile` -> blob `3e19e8da0be49eaa7a4f75d29d324648261aad8e`
+  - `zigux/tests/phase12_virtio_scsi_survey.zig` -> blob `a74d5ff9c3fe97575f78b784af0459ec2468930a`
+  - `zigux/tests/phase12_virtio_scsi_manifest.json` -> blob `dec20bc8cce036aef1a0a9353ed7370f3b681eb4`
+  - `zigux/Makefile` -> blob `767510ae3aa2a2ad0e574e6ad2cddc5adb4ff40e`
 - current-master support-material boundary rechecked beside the same packet:
-  - `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `759d9ff404e80310deb603a42212b1b74ec92f76`
-  - `scripts/zigux/validate-phase12.py` -> blob `c548ea93121984ab3926c38ab64fbaf1022c0343`
-  - `.github/workflows/zigux-bootstrap.yml` -> blob `c345316a52e250a3eaf66b2d0b121a61872117f8`
+  - `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `196cc338346d7ce39e88c8c45bb49cc04d2b08a1`
+  - `scripts/zigux/validate-phase12.py` -> blob `82ec805559aafad5f80947cef01ed4869763a5ff`
+  - `.github/workflows/zigux-bootstrap.yml` -> blob `1ee77591a9bbf6b3b36060ba44f56f6e2fd929a0`
 - this exact-evidence recheck preserves the existing split: this catalog stays pinned to `ee64eec272a352da1d967999c99bb3c3560c9b97` for direct raw replay, while the blob list above records what the broader current-master packet looked like immediately before this note refresh.
