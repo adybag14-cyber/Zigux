@@ -7,7 +7,7 @@ This document tracks the bounded Phase 10 MMIO lane around `drivers/virtio/virti
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-mmio-survey`
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
-- lane: `P10-L10`
+- lane: `P10-L11`
 - surveyed commit: `84f90e23ad1c28ae345905d5293a8c5395f37d43`
 - roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
 - scope: keep the dedicated MMIO survey path visible beside the shared closure packet, the MMIO helper ladder recorded by the shared closure manifest, the dedicated freeze-boundary reminder, and the blocked transport-facing gap without widening into risky lifecycle claims
