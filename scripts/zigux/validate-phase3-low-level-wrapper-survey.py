@@ -40,11 +40,14 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/barrier.zig` keeps the approved barrier surface explicit through `compiler`, `acquire`, `release`, `full`, and `acquireRelease`, with `compiler()` staying helper-local while current `master` still ships the barrier-locality and handoff replays in the focused route.",
     "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.",
     "`zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, odd-offset, and byte-scoped interop-policy checks plus the non-`seq_cst` atomic, barrier locality or handoff, and shared allocator-or-panic consumer proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` and `compiler()` stays helper-local in `zigux/helpers/barrier.zig` to keep this focused route bounded.",
+    "Current `master` no longer treats `zigux/helpers/mmio.zig` as declarations-only support for the focused replay. The helper file itself now ships direct MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate replays, while `zigux/tests/phase3_low_level_wrappers.zig` remains the shared cross-helper route that keeps those already-landed MMIO calls visible beside the atomic, barrier, raw-pointer, allocator, and panic consumers.",
     "`zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned by `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` and its coupled policy validators, even when the current low-level replay still imports them for the shared allocator-and-panic consumer proof.",
     "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
+    "that helper-local MMIO proof surface does not move volatile-MMIO policy relay ownership into this lane; it only means the already-landed policy relays now have both helper-local and focused-route evidence on current `master`.",
     "`zigux/tests/phase3_low_level_wrappers.zig` still exercises byte-scoped MMIO policy relays such as `allowsInteropPolicyByte`, `rangeInteropPolicyByte`, `read8InteropPolicyByte`, `write8InteropPolicyByte`, `read8InteropPolicyBytes`, and `write8InteropPolicyBytes`, but those focused checks continue to serve the adjacent policy-and-unsafe owner packet rather than widening direct MMIO ownership here.",
     "`zigux/tests/phase3_low_level_wrappers.zig` now also replays raw-pointer bridge admission helpers such as `permitsRawPointerBridgeInteropPolicy`, `pointerAtInteropPolicy`, `sliceAtInteropPolicy`, `constSliceAtInteropPolicy`, and `writeValueAtInteropPolicy`, but those focused checks still belong to the adjacent policy-and-unsafe packet instead of widening this lane beyond the direct atomic, barrier, and MMIO wrapper family.",
     "helper-local `compiler()` barrier coverage in `zigux/helpers/barrier.zig`",
+    "helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage in `zigux/helpers/mmio.zig`",
 )
 
 REQUIRED_BUILD_SNIPPETS = (
@@ -131,7 +134,12 @@ REQUIRED_BARRIER_SNIPPETS = (
 
 REQUIRED_MMIO_SNIPPETS = (
     'pub fn range(base_addr: usize, length: u32, stride: u32) Range {',
+    'pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {',
+    'pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {',
     'pub fn allowsInteropPolicyByte(unsafe_scope: u8) bool {',
+    'pub fn requireInteropPolicyBytes(unsafe_scope: u8, reserved: u8) MmioError!void {',
+    'pub fn requireInteropPolicy(policy: abi.InteropPolicy) MmioError!void {',
+    'pub fn requireInteropPolicyByte(unsafe_scope: u8) MmioError!void {',
     'pub fn rangeInteropPolicyBytes(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8, reserved: u8) MmioError!Range {',
     'pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8) MmioError!Range {',
     'pub fn read8(base_addr: usize, offset: usize) u8 {',
@@ -142,8 +150,14 @@ REQUIRED_MMIO_SNIPPETS = (
     'pub fn write16(base_addr: usize, offset: usize, value: u16) void {',
     'pub fn write32(base_addr: usize, offset: usize, value: u32) void {',
     'pub fn write64(base_addr: usize, offset: usize, value: u64) void {',
+    'pub fn readInteropPolicy(comptime T: type, base_addr: usize, offset: usize, policy: abi.InteropPolicy) MmioError!T {',
+    'pub fn writeInteropPolicy(',
+    'pub fn readInteropPolicyBytes(',
+    'pub fn writeInteropPolicyBytes(',
     'pub fn read8InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) MmioError!u8 {',
     'pub fn write8InteropPolicyBytes(base_addr: usize, offset: usize, value: u8, unsafe_scope: u8, reserved: u8) MmioError!void {',
+    'pub fn readInteropPolicyByte(comptime T: type, base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!T {',
+    'pub fn writeInteropPolicyByte(',
     'pub fn read8InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u8 {',
     'pub fn write8InteropPolicyByte(base_addr: usize, offset: usize, value: u8, unsafe_scope: u8) MmioError!void {',
     'test "phase3 mmio wrappers keep direct reads and writes reviewable" {',
@@ -151,7 +165,11 @@ REQUIRED_MMIO_SNIPPETS = (
     'test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {',
     'test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {',
     'try std.testing.expectEqual(@as(?usize, 24), typedOffsetForIndex(desc, u64, 3));',
+    'try requireInteropPolicy(mmio_policy);',
+    'try requireInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0);',
     'try requireInteropPolicyByte(@intFromEnum(abi.UnsafeScope.volatile_mmio));',
+    'try writeInteropPolicyByte(u32, base, 4, 0xc001_d00d, @intFromEnum(abi.UnsafeScope.volatile_mmio));',
+    'try std.testing.expectError(error.UnsafeScopeDenied, writeInteropPolicy(u8, base, 0, 0x44, raw_policy));',
     'try std.testing.expect(!allowsInteropPolicyByte(@intFromEnum(abi.UnsafeScope.none)));',
 )
 
@@ -283,6 +301,69 @@ def run_self_test() -> int:
             return 1
 
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
+        _write(
+            root,
+            SURVEY_REL,
+            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+                "Current `master` no longer treats `zigux/helpers/mmio.zig` as declarations-only support for the focused replay. The helper file itself now ships direct MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate replays, while `zigux/tests/phase3_low_level_wrappers.zig` remains the shared cross-helper route that keeps those already-landed MMIO calls visible beside the atomic, barrier, raw-pointer, allocator, and panic consumers.",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue.startswith(
+                "missing_survey_snippet:Current `master` no longer treats `zigux/helpers/mmio.zig` as declarations-only support"
+            )
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing helper-local mmio survey paragraph failure")
+            return 1
+
+        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
+        _write(
+            root,
+            SURVEY_REL,
+            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+                "that helper-local MMIO proof surface does not move volatile-MMIO policy relay ownership into this lane; it only means the already-landed policy relays now have both helper-local and focused-route evidence on current `master`.",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue.startswith(
+                "missing_survey_snippet:that helper-local MMIO proof surface does not move volatile-MMIO policy relay ownership"
+            )
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing helper-local mmio owner-split survey failure")
+            return 1
+
+        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
+        _write(
+            root,
+            SURVEY_REL,
+            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+                "helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage in `zigux/helpers/mmio.zig`",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue.startswith(
+                "missing_survey_snippet:helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage"
+            )
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing helper-local mmio boundary-reading failure")
+            return 1
+
+        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
         _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
         _write(
             root,
@@ -395,6 +476,25 @@ def run_self_test() -> int:
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing byte-scoped mmio range helper failure")
+            return 1
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            (root / MMIO_REL).read_text(encoding="utf-8").replace(
+                'pub fn requireInteropPolicyByte(unsafe_scope: u8) MmioError!void {',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_mmio_snippet:pub fn requireInteropPolicyByte(unsafe_scope: u8) MmioError!void {'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing byte-scoped mmio policy helper failure")
             return 1
 
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
