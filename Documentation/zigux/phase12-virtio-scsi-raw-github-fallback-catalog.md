@@ -45,7 +45,8 @@ Base raw URL prefix:
 ## Review Use
 - use this file only as a read-only fallback index; it does not add a new replay surface
 - keep the same smoke-first release order explicit beside this catalog: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
-- keep the focused direct packet explicit too: the current smoke shard for this driver is `zigux/tests/phase12_virtio_scsi.zig` plus `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
+- keep the focused full replay explicit too: `zigux/tests/phase12_virtio_scsi.zig` remains the direct bounded starter replay that the shared `test` step layers in after the smoke shard
+- keep the current smoke shard explicit too: `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` are the shipped driver-local raw-read anchors inside the current `smoke` step
 - keep the fallback split honest: this file is the only commit-pinned direct replay artifact, while the newer `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` remain shared-tree current-master survey companions for the widened queue-submit-completion-and-recovery packet, `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than commit-pinned fallback artifacts, and the shipped `make -C zigux phase12-validate` route keeps `scripts/zigux/validate-phase12.py` plus `scripts/zigux/check-phase12-release-readiness-packet.py` inside the validator-first support bundle rather than turning them into standalone direct replay routes
 - keep `zigux/tests/phase12_build.zig`, `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` visible as shared-tree raw-read anchors for the shipped smoke-first packet rather than treating them as extra commit-pinned artifacts
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening any PMO wording around this artifact
@@ -58,7 +59,7 @@ Base raw URL prefix:
 
 ## Current-Master Exact Coverage Evidence
 - public `master` packet rechecked immediately before this note refresh on `2026-05-15`; this run's contents read path did not expose one authoritative branch-head commit, so the evidence below records exact current blob SHAs instead.
-- the same twelve covered current-master packet paths remain present beside this commit-pinned raw replay note:
+- the same fifteen covered current-master packet paths remain present beside this commit-pinned raw replay note:
   - `drivers/scsi/virtio_scsi.zig` -> blob `aef0c4205b7d99f7451ee6011adf63b6ac5220f5`
   - `Documentation/zigux/phase12-virtio-scsi-slice.md` -> blob `346ea74e682322135eeb56ee2532e663f32188b2`
   - `Documentation/zigux/phase12-virtio-scsi-survey.md` -> blob `9b10ef0cc480198547fad347d8b137755f190d68`
@@ -68,6 +69,9 @@ Base raw URL prefix:
   - `zigux/tests/phase12_build.zig` -> blob `817e868e544a63e021253d0f5b029ea8f751e6b2`
   - `zigux/tests/phase12_virtio_scsi.zig` -> blob `f829de9b39576c67e81e75fe1e9d849e583db62f`
   - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` -> blob `89173ebd7f2c66d9673375e8d15f32cb645b60db`
+  - `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig` -> blob `0dcdfea49684b4af523c82a277a54e4362b308cd`
+  - `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig` -> blob `2d2582f7607a255ce8bd9ccdd6ed5d52b5c8ecca`
+  - `zigux/tests/phase12_virtio_scsi_packet.zig` -> blob `db3fa0bb1ab8d4288ec95c48a76a8725b766b4d5`
   - `zigux/tests/phase12_virtio_scsi_survey.zig` -> blob `a74d5ff9c3fe97575f78b784af0459ec2468930a`
   - `zigux/tests/phase12_virtio_scsi_manifest.json` -> blob `dec20bc8cce036aef1a0a9353ed7370f3b681eb4`
   - `zigux/Makefile` -> blob `767510ae3aa2a2ad0e574e6ad2cddc5adb4ff40e`
