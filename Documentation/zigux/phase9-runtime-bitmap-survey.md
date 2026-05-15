@@ -5,7 +5,7 @@ This note tracks the bounded Phase 9 runtime bitmap review packet under `samples
 ## Status
 - `PHASE9_STATUS=active`
 - `PHASE9_LANE_KEY=P9-L08`
-- `PHASE9_SURVEYED_COMMIT=dc9121502a99ed8c88d79081c6d83a8eada20a00`
+- `PHASE9_SURVEYED_COMMIT=66e60700501fc8bb08d645b081064c4698562427`
 - scope: direct sample, diff gate, loader scaffold, top-bit companion replay, module gate, survey gate, manifest-backed ownership packet, and shared loader handoff plus shared build routes only
 
 ## Boundaries
@@ -35,4 +35,4 @@ This note tracks the bounded Phase 9 runtime bitmap review packet under `samples
 
 ## Next Bounded Step
 
-Keep the bounded runtime bitmap packet aligned with the visible sample, dedicated top-bit companion replay route, diff gate, loader scaffold, survey gate, manifest-backed ownership packet, and shared build surfaces while the broader runtime substrate remains blocked.
+Keep the bounded runtime bitmap packet aligned with the visible sample, direct repeat-init rejection guard, dedicated top-bit companion replay route, diff gate, loader scaffold, survey gate, manifest-backed ownership packet, and shared build surfaces while the broader runtime substrate remains blocked.
