@@ -147,15 +147,15 @@ def collect_drift_markers(root: Path) -> list[str]:
                 drift.append(f"{rel}: {marker}")
 
     packet = load_snapshot(root)
+    survey_text = (root / SURVEY_PATH).read_text(encoding="utf-8")
     for entry in packet["files"]:
         rel = entry["path"]
         current_sha = git_blob_sha(root / rel)
         if current_sha == entry["blob_sha"]:
             continue
-        if rel == COORDINATION_PATH and "parked reviewability packet visible" in (root / SURVEY_PATH).read_text(
-            encoding="utf-8"
-        ):
+        if rel == COORDINATION_PATH and "parked reviewability packet visible" in survey_text:
             continue
+        drift.append(f"{SNAPSHOT_PATH}: blob sha drift for {rel}")
     return drift
 
 
@@ -240,6 +240,15 @@ def run_self_test() -> None:
         expect_marker_error("invalid_tracked_file_count", tmp_root, "invalid tracked file count")
         write_fixture_root(tmp_root)
 
+        text = (tmp_root / VERIFY_PATH).read_text(encoding="utf-8") + "\n"
+        (tmp_root / VERIFY_PATH).write_text(text, encoding="utf-8")
+        expect_marker_error(
+            "verify_blob_sha_drift",
+            tmp_root,
+            f"{SNAPSHOT_PATH}: blob sha drift for {VERIFY_PATH}",
+        )
+        write_fixture_root(tmp_root)
+
         text = (tmp_root / SURVEY_PATH).read_text(encoding="utf-8").replace(
             "parked reviewability packet visible",
             "reviewability packet visible",
@@ -268,7 +277,7 @@ def run_self_test() -> None:
         assert unexpected_files == []
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=5")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=6")
 
 
 def main() -> int:
