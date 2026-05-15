@@ -67,6 +67,28 @@ The live Phase 10 virtio evidence that this runtime could verify directly is:
 
 Shared Phase 10 reminder surfaces therefore need to keep the directly readable docs-root packet, the shared checker packet, the manifest-backed closure packet, the focused core and input replays that did return, the directly readable `drivers/virtio/virtio_mmio_verify.zig` review surface, and the still-blocked risky-transport boundary explicit while framing the broader driver-local and build-backed packet entries as shared review vocabulary or manifest-backed evidence rather than as freshly re-verified direct reads in this run.
 
+## Exact Checks
+
+Current `master` now records one manifest-backed exact-check packet for the shared Phase 10 closure bundle, and the note-local, ledger-local, validator, and route-local surfaces agree on it:
+
+1. `python3 scripts/zigux/validate-phase10.py`
+2. `python3 scripts/zigux/validate-phase10-closure.py`
+3. `make -C zigux phase10-validate`
+4. `python3 scripts/zigux/check-phase10-core-packet.py`
+5. `python3 scripts/zigux/check-phase10-ring-packet.py`
+6. `python3 scripts/zigux/check-phase10-input-packet.py`
+7. `python3 scripts/zigux/check-phase10-mmio-packet.py`
+8. `python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py`
+9. `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test`
+10. `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+11. `python3 scripts/zigux/check-phase10-harness-coverage.py --self-test`
+12. `python3 scripts/zigux/check-phase10-harness-coverage.py`
+13. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+14. `make -C zigux phase10-test`
+15. `make -C zigux phase10`
+
+This exact-check packet is carried directly by `zigux/tests/phase10_closure_manifest.json` and mirrored in `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`. The live `zigux/Makefile` route stays truthful to that shared packet by expanding the five packet-local Python guards with `--self-test` invocations before their live runs, then finishing with the shared docs-root and harness checks, `validate-phase10.py`, `validate-phase10-closure.py`, and the `phase10_build.zig` replay. This run verified the packet by live readback of the manifest, closure ledger, validator, and Makefile; it did not rerun those commands from a writable checkout in this runtime.
+
 ## Current Truthfulness Posture
 
 Fresh direct rereads now show that the earlier docs-root ring undercount is already closed on current repo reality. `Documentation/zigux/README.md` keeps the direct `drivers/virtio/virtio_ring.zig` helper explicit beside `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_manifest.json`, which matches the live `scripts/zigux/check-phase10-harness-coverage.py` markers and the narrower shared-lane guidance in `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`.
