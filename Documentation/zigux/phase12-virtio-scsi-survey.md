@@ -8,7 +8,7 @@ This note records the current-master verification result for the bounded Phase 1
 - `PHASE12_SLICE=virtio-scsi-roadmap-gap-survey`
 - `PHASE12_LANE=P12-L13`
 - scope: verify the bounded `virtio_scsi` Zig starter around queue layout, probe snapshot, host-limit, queue-depth, request-submit sequencing, completion-handback sequencing, command-buffer ownership, io-map, transport-reset recovery, and second-cycle rollback summaries without widening into live DMA-safe request flow, blk-mq execution, `scsi_host` registration, or transport-backed host-scan runtime work
-- verified on: `2026-05-14`
+- verified on: `2026-05-15`
 - repo-truth boundary:
   - `drivers/scsi/virtio_scsi.zig`
   - `zigux/tests/phase12_virtio_scsi.zig`
@@ -35,7 +35,7 @@ That anchor remains high value because `virtio_scsi.c` still covers virtqueue se
 
 - current `master` now carries `drivers/scsi/virtio_scsi.zig`
 - the current bounded starter exposes `planQueueLayout()`, `requestQueue()`, `captureProbeSnapshot()`, `captureHostLimitSummary()`, `captureQueueDepthSummary()`, `captureRequestSubmitSequencingSummary()`, `captureCompletionHandbackSummary()`, `captureCommandBufferOwnershipSummary()`, and `captureIoQueueMapSummary()` so queue-family planning, host-limit clamping, queue-depth clamping, request-queue selection, pre-kick submit ordering, completion-handback ordering, used-ring observation, sense-buffer readback, and command and sense-buffer ownership return stay reviewable without claiming live blk-mq traffic or DMA submission
-- the current bounded starter also exposes `freezeForTransportReset()`, `recoveryQueuePlan()`, `recoveryQueueDepthSummary()`, `recoveryIoQueueMapSummary()`, `recoveryEventBufferOwnershipSummary()`, and `recoveryHostScanSummary()` so transport-reset recovery order, event-buffer ownership, and host-scan restore ordering stay reviewable without claiming runtime reset execution
+- the current bounded starter also exposes `freezeForTransportReset()`, `recoveryQueuePlan()`, `recoveryQueueDepthSummary()`, `recoveryIoQueueMapSummary()`, `recoveryEventBufferOwnershipSummary()`, `recoveryRequestQueueRestoreSummary()`, and `recoveryHostScanSummary()` so transport-reset recovery order, request-queue restore ordering, event-buffer ownership, and host-scan restore ordering stay reviewable without claiming runtime reset execution
 - current `master` now carries `zigux/tests/phase12_virtio_scsi.zig` as the direct bounded replay for this starter
 - current `master` now carries `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` as the dedicated syntax lab for this starter
 - current `master` now carries `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig` so the second-cycle recovery boundary remains explicit
@@ -51,7 +51,7 @@ Those checks mean the current lane now has a truthful survey packet for the exis
 
 - rollback owner: `P12-L13` keeps the driver-local `virtio_scsi` survey packet truthful while shared PMO notes, build-only checkers, and broader rollback-note upkeep stay in their nearby Phase 12 lanes
 - fallback path: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` remains the read-only degraded-read companion for this packet and must not be treated as a second survey note or shipped replay route
-- reversible-delivery evidence: current `master` keeps the direct test, syntax lab, repeated-replan gate, repeated-rollback gate, support packet, survey note, survey gate, shared `zigux/tests/phase12_build.zig` route, and `zigux/Makefile` wrappers aligned around the same bounded queue-submit-completion-and-recovery packet
+- reversible-delivery evidence: current `master` keeps the direct test, syntax lab, repeated-replan gate, repeated-rollback gate, support packet, survey note, survey gate, shared `zigux/tests/phase12_build.zig` route, and `zigux/Makefile` wrappers aligned around the same bounded queue-submit-completion-and-recovery packet, including the request-queue restore ordering surface inside `recoveryRequestQueueRestoreSummary()`
 - rollback drill: when this packet moves, reread the survey note, slice note, fallback catalog, manifest, survey gate, shared build route, and `zigux/Makefile`, then rerun `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` before widening the packet
 
 ## Truthful boundary
@@ -59,7 +59,7 @@ Those checks mean the current lane now has a truthful survey packet for the exis
 The truthful current boundary is:
 
 - the roadmap still wants a bounded `virtio_scsi` lane in Phase 12
-- current `master` now carries `drivers/scsi/virtio_scsi.zig`, and the current starter keeps queue layout, request-submit sequencing, completion-handback sequencing, host-limit, queue-depth, command-buffer ownership, io-map, transport-reset, event-buffer ownership, and host-scan restore ordering reviewable
+- current `master` now carries `drivers/scsi/virtio_scsi.zig`, and the current starter keeps queue layout, control-path governance, queue restore ordering, request-submit sequencing, completion-handback sequencing, host-limit, queue-depth, command-buffer ownership, io-map, transport-reset, event-buffer ownership, and host-scan restore ordering reviewable
 - current `master` now carries the direct test, syntax lab, repeated-replan gate, repeated-rollback gate, support packet, and this survey packet, so the starter is directly executable and reviewable through bounded driver-local surfaces
 - current `master` still does not claim live DMA-safe request submission, descriptor population, virtqueue kicks, request completion handling, blk-mq tag wiring, `scsi_host` registration, TMF execution, event-queue runtime handling, or transport-backed host-scan recovery
 - current `master` still does not claim throughput parity, reset replay parity, or a live storage data path
@@ -81,7 +81,7 @@ The next honest same-lane move is a narrower survey-packet or direct-replay trut
 The next bounded step is:
 
 1. keep the current starter focused on queue layout, request-submit sequencing, completion-handback sequencing, host-limit, queue-depth, command-buffer ownership, control-path governance, io-map, and transport-reset recovery summaries instead of widening into live DMA or host-registration code
-2. treat control-path governance, command-buffer ownership, request-submit sequencing, completion-handback sequencing, second-cycle rollback readiness, and recovery ordering as already-landed bounded review surfaces inside the current survey packet
+2. treat control-path governance, command-buffer ownership, request-submit sequencing, completion-handback sequencing, request-queue restore ordering, second-cycle rollback readiness, and recovery ordering as already-landed bounded review surfaces inside the current survey packet
 3. only reopen this lane for one equally narrow direct-replay or survey-packet tightening if those bounded surfaces drift again; otherwise leave it parked until a later DMA-safe, `scsi_host`, or TMF-facing packet is ready
 
 Until then, treat the current `virtio_scsi` starter as a real but deliberately small Phase 12 queue-submit-completion-and-recovery survey packet, not as a live storage-driver proof.
