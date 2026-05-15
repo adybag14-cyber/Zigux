@@ -20,10 +20,13 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "PHASE7_STATUS=starter_landed");
     try expectContains(slice_note, "expanded starter packet");
     try expectContains(slice_note, "stringEscapeMem()");
+    try expectContains(slice_note, "stringEscapeMemAnyNp()");
+    try expectContains(slice_note, "stringEscapeStr()");
     try expectContains(slice_note, "string_escape_str_any_np()");
     try expectContains(slice_note, "kasprintfStrarray()");
     try expectContains(slice_note, "kfreeStrarray()");
     try expectContains(slice_note, "leading whitespace skipping that stops at the first NUL");
+    try expectContains(slice_note, "bounded string escaping across space, special, null, octal, hex, append-limited dictionary mode, and string-wrapper mode");
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view");
     try expectContains(slice_note, "The next bounded follow-through should stay inside the helper-local packet");
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
@@ -81,6 +84,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper, "pub fn kfree_strarray");
     try expectContains(helper, "fn allocKasprintfStrarrayNullTerminated");
     try expectContains(helper, "pub fn stringEscapeMem");
+    try expectContains(helper, "pub fn stringEscapeMemAnyNp");
+    try expectContains(helper, "pub fn stringEscapeStr");
     try expectContains(helper, "pub fn stringEscapeStrAnyNp");
     try expectContains(helper, "pub fn memcpyAndPad");
     try expectContains(helper, "pub fn strreplace");
@@ -94,6 +99,9 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent");
     try expectContains(helper_tests, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
     try expectContains(helper_tests, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
+    try expectContains(helper_tests, "string_helpers.string_escape_mem_any_np(&[_]u8{ '\n', 0x7f }, &alias_dst, 0, null);");
+    try expectContains(helper_tests, "const string_written = string_helpers.stringEscapeStr(");
+    try expectContains(helper_tests, "const any_np_written = string_helpers.string_escape_str_any_np(&[_]u8{ '\n', 0 }, &any_np_dst, 0, null);");
     try expectContains(helper_tests, "string_helpers.kasprintfStrarray(std.testing.allocator, \"phase7-helper\", 3)");
     try expectContains(helper_tests, "string_helpers.kfreeStrarray(std.testing.allocator, &first);");
     try expectContains(helper_tests, "string_helpers.kfree_strarray(std.testing.allocator, &result);");
