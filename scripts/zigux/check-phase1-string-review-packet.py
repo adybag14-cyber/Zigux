@@ -16,6 +16,7 @@ REQUIRED_FILES = [
     "tools/lib/string.zig",
     "zigux/tests/phase1_helpers.zig",
     "zigux/tests/fixtures/phase1_helper_manifest.json",
+    "zigux/tests/fixtures/phase1_helpers.json",
 ]
 
 EXPECTED_HELPER_TEST_ANCHORS = [
@@ -285,6 +286,20 @@ def collect_manifest_issues(manifest: object) -> list[str]:
     return issues
 
 
+def collect_shared_fixture_issues(shared_fixture: object) -> list[str]:
+    if not isinstance(shared_fixture, dict):
+        return ["phase1_string_shared_fixture:json_object"]
+
+    string_fixture = shared_fixture.get("string")
+    if not isinstance(string_fixture, dict):
+        return ["phase1_string_shared_fixture:string"]
+
+    if sorted(string_fixture.keys()) != sorted(EXPECTED_PARITY_FIXTURE_KEYS):
+        return ["phase1_string_shared_fixture:parity_fixture_keys"]
+
+    return []
+
+
 def collect_source_issues(source_text: str) -> list[str]:
     actual_titles = extract_test_titles(source_text)
     if actual_titles != EXPECTED_HELPER_TEST_ANCHORS:
@@ -328,15 +343,22 @@ def collect_missing_markers(root: Path) -> list[str]:
         root / "zigux/tests/fixtures/phase1_helper_manifest.json",
         "phase1_string_manifest",
     )
+    shared_fixture, shared_fixture_errors = load_json(
+        root / "zigux/tests/fixtures/phase1_helpers.json",
+        "phase1_string_shared_fixture",
+    )
 
     issues: list[str] = []
     issues.extend(manifest_errors)
+    issues.extend(shared_fixture_errors)
     issues.extend(collect_source_issues(source_text))
     issues.extend(collect_shared_replay_issues(shared_replay_text))
     issues.extend(collect_closure_issues(closure_text))
     issues.extend(collect_lane_note_issues(lane_note_text))
     if manifest is not None:
         issues.extend(collect_manifest_issues(manifest))
+    if shared_fixture is not None:
+        issues.extend(collect_shared_fixture_issues(shared_fixture))
     return issues
 
 
@@ -405,6 +427,14 @@ def make_fixture_root(root: Path) -> None:
         encoding="utf-8",
     )
 
+    shared_fixture = {
+        "string": {key: None for key in EXPECTED_PARITY_FIXTURE_KEYS},
+    }
+    (root / "zigux/tests/fixtures/phase1_helpers.json").write_text(
+        json.dumps(shared_fixture, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
 
 def run_self_test() -> None:
     case_count = 0
@@ -470,6 +500,19 @@ def run_self_test() -> None:
         make_fixture_root(root)
         case_count += 1
 
+        shared_fixture_path = root / "zigux/tests/fixtures/phase1_helpers.json"
+        shared_fixture = json.loads(shared_fixture_path.read_text(encoding="utf-8"))
+        shared_fixture["string"].pop(EXPECTED_PARITY_FIXTURE_KEYS[-1])
+        shared_fixture_path.write_text(json.dumps(shared_fixture, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_shared_fixture:parity_fixture_keys" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        shared_fixture_path.write_text("{\n", encoding="utf-8")
+        assert any(item.startswith("phase1_string_shared_fixture:json_decode_error:") for item in collect_missing_markers(root))
+        make_fixture_root(root)
+        case_count += 1
+
         source_path.unlink()
         assert collect_missing_files(root) == ["tools/lib/string.zig"]
         make_fixture_root(root)
@@ -481,7 +524,7 @@ def run_self_test() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the bounded Phase 1 string review packet across helper anchors, manifest summaries, shared replay, and next-step note.",
+        description="Validate the bounded Phase 1 string review packet across helper anchors, manifest summaries, shared replay, shared fixture keys, and next-step note.",
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker self-tests.")
     parser.add_argument("--root", help="Validate an alternate Zigux tree root.")
@@ -512,7 +555,7 @@ def main() -> int:
 
     print("PHASE1_STRING_REVIEW_PACKET=pass")
     print(f"PHASE1_STRING_REVIEW_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print("PHASE1_STRING_REVIEW_PACKET_REQUIRED_MARKER_COUNT=24")
+    print("PHASE1_STRING_REVIEW_PACKET_REQUIRED_MARKER_COUNT=25")
     return 0
 
 
