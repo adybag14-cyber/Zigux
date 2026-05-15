@@ -97,8 +97,11 @@ PHASE2_CROSS_WORKFLOW_JOB_FORBIDDEN_MARKERS = [
 ]
 
 PHASE2_CROSS_CHECKER_MARKERS = [
+    'CHECK_ZIG_TOOLCHAIN = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"',
     "EXPECTED_TARGETS = [",
     "EXPECTED_ZIG_TEST_FILES = [",
+    "def run_toolchain_preflight(",
+    '[sys.executable, str(root / "scripts" / "zigux" / "check-zig-toolchain.py"), "--zig", zig_executable],',
     '    "scripts/zigux/fixdep.zig",',
     '    "scripts/zigux/genksyms.zig",',
     '    "scripts/zigux/kconfig/conf_bridge.zig",',
@@ -209,7 +212,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 42
+EXPECTED_SELF_TEST_CASE_COUNT = 44
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
@@ -434,6 +437,31 @@ def run_self_test() -> int:
     issues = validate_targets_manifest(bad_zig_test_files)
     if "targets:zig_test_files=expected_exact_list" not in issues:
         raise SystemExit("phase2-cross-alignment:self-test:zig_test_file_list_mismatch")
+    checks_run += 1
+
+    cross_checker_issues = validate_required_markers(
+        "\n".join(PHASE2_CROSS_CHECKER_MARKERS),
+        label="phase2_cross_checker",
+        markers=PHASE2_CROSS_CHECKER_MARKERS,
+    )
+    if cross_checker_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:cross_checker_marker_presence")
+    checks_run += 1
+
+    cross_checker_missing = validate_required_markers(
+        "\n".join(
+            marker
+            for marker in PHASE2_CROSS_CHECKER_MARKERS
+            if marker != "def run_toolchain_preflight("
+        ),
+        label="phase2_cross_checker",
+        markers=PHASE2_CROSS_CHECKER_MARKERS,
+    )
+    expected_cross_checker_issue = (
+        "phase2_cross_checker:missing_marker:def run_toolchain_preflight("
+    )
+    if cross_checker_missing != [expected_cross_checker_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:cross_checker_marker_failure")
     checks_run += 1
 
     workflow_text = "\n".join(
