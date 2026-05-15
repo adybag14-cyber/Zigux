@@ -248,6 +248,8 @@ test "phase 8 libbpf survey note keeps the current landed count and helper-local
     try expectContains(phase8_note, "summarizeNextOnlineCpuRoute()");
     try expectContains(phase8_note, "summarizeOnlineCpuRouting()");
     try expectContains(phase8_note, "The real current gap is now survey truthfulness about the already-landed checker packet, helper-local routing evidence, and the still-mixed contents-route stability for the landed bridge-plus-build packet, not a missing checker rule or docs-root summary.");
+    try expectContains(phase8_note, "current `2026-05-15 authenticated contents readback from this environment also returned `404` for `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`");
+    try expectContains(phase8_note, "`zigux/tests/phase8_libbpf_segments_only_build.zig`, and `zigux/tests/phase8_build.zig`, so the landed bridge-helper and shared-build packet should still be treated as mixed-source review evidence rather than as uniformly stable contents-route proof.");
     try expectContains(phase8_note, "That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit");
     try expectContains(phase8_note, "standalone timer or clockevent helper behavior");
     try expectContains(phase8_note, "broader timeout-sensitive routing behavior");
