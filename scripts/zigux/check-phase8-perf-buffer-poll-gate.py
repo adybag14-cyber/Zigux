@@ -186,7 +186,9 @@ def run_self_test() -> int:
 
         mutations = (
             (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
+            (TESTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
             (TESTS_README_PATH, "`make -C zigux phase8-perf-buffer-poll-test`"),
+            (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
             (REVIEW_CHECKLIST_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
             (SEQUENCING_PATH, "make -C zigux phase8-perf-buffer-poll-test"),
             (SLICE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
@@ -195,8 +197,11 @@ def run_self_test() -> int:
             (SLICE_PATH, "make -C zigux phase8-test"),
             (SLICE_PATH, "ready-buffer processing attempts cannot exceed the helper-counted ready buffers"),
             (MAKEFILE_PATH, "phase8-perf-buffer-poll-test:"),
+            (MAKEFILE_PATH, "phase8-libbpf-segments-test:"),
             (MAKEFILE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
+            (PACKET_HELPER_PATH, "pub fn classifyWaitClass("),
             (PACKET_HELPER_PATH, "pub fn summarizePollExecutionResultFromWaitResult("),
+            (PACKET_HELPER_PATH, "ReadyBufferProcessingExceedsObservedEvents"),
             (
                 PACKET_HELPER_PATH,
                 'test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {',
@@ -227,11 +232,19 @@ def run_self_test() -> int:
             ),
             (
                 PACKET_TEST_PATH,
+                'test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity" {',
+            ),
+            (
+                PACKET_TEST_PATH,
                 'test "phase 8 perf-buffer poll helper keeps buffer-state-only ready events explicit below routing parity" {',
             ),
             (
                 PACKET_TEST_PATH,
                 'test "phase 8 perf-buffer poll helper rejects inconsistent processing accounting summaries before return shaping" {',
+            ),
+            (
+                PACKET_TEST_PATH,
+                'test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {',
             ),
             (
                 PACKET_TEST_PATH,
@@ -243,6 +256,7 @@ def run_self_test() -> int:
             ),
             (PACKET_TEST_PATH, "perf_buffer_poll.PollReturnDisposition.buffer_state_failed"),
             (PACKET_TEST_PATH, "perf_buffer_poll.PollError.InconsistentProcessingAccountingSummary"),
+            (PACKET_ONLY_BUILD_PATH, "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
             (PACKET_ONLY_BUILD_PATH, "phase8-perf-buffer-poll-tests"),
         )
         for rel_path, marker in mutations:
