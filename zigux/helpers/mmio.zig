@@ -77,6 +77,17 @@ pub fn typedOffsetForIndex(desc: Range, comptime T: type, index: usize) ?usize {
     return if (containsAccess(desc, offset, @sizeOf(T))) offset else null;
 }
 
+pub fn readIndex(comptime T: type, desc: Range, index: usize) ?T {
+    const offset = typedOffsetForIndex(desc, T, index) orelse return null;
+    return read(T, desc.base_addr, offset);
+}
+
+pub fn writeIndex(comptime T: type, desc: Range, index: usize, value: T) bool {
+    const offset = typedOffsetForIndex(desc, T, index) orelse return false;
+    write(T, desc.base_addr, offset, value);
+    return true;
+}
+
 pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return narrow.permitsVolatileMmioPolicyBytes(unsafe_scope, reserved);
 }
@@ -370,6 +381,32 @@ test "phase3 mmio ranges keep byte and stride boundaries explicit" {
     try std.testing.expectEqual(@as(?usize, null), typedOffsetForIndex(desc, u16, 4));
     try std.testing.expectEqual(@as(?usize, null), typedOffsetForIndex(desc, u64, std.math.maxInt(usize)));
     try std.testing.expectEqual(@as(?usize, null), typedOffsetForIndex(empty, u8, 0));
+}
+
+test "phase3 mmio wrappers keep stride-indexed accesses reviewable" {
+    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    const base = narrow.addressOf(&bytes[0]);
+    const desc = range(base, 24, 4);
+    const first_word: *align(1) const u32 = @ptrCast(&bytes[0]);
+    const third_word: *align(1) const u32 = @ptrCast(&bytes[8]);
+    const last_doubleword: *align(1) const u64 = @ptrCast(&bytes[16]);
+
+    try std.testing.expect(writeIndex(u32, desc, 0, 0x1122_3344));
+    try std.testing.expect(writeIndex(u32, desc, 2, 0xaabb_ccdd));
+    try std.testing.expect(writeIndex(u64, desc, 4, 0x0123_4567_89ab_cdef));
+
+    try std.testing.expectEqual(@as(u32, 0x1122_3344), first_word.*);
+    try std.testing.expectEqual(@as(u32, 0xaabb_ccdd), third_word.*);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), last_doubleword.*);
+
+    try std.testing.expectEqual(@as(?u32, 0x1122_3344), readIndex(u32, desc, 0));
+    try std.testing.expectEqual(@as(?u32, 0xaabb_ccdd), readIndex(u32, desc, 2));
+    try std.testing.expectEqual(@as(?u64, 0x0123_4567_89ab_cdef), readIndex(u64, desc, 4));
+
+    try std.testing.expectEqual(@as(?u16, null), readIndex(u16, desc, 6));
+    try std.testing.expectEqual(@as(?u64, null), readIndex(u64, desc, 5));
+    try std.testing.expect(!writeIndex(u32, desc, 6, 0x5566_7788));
+    try std.testing.expect(!writeIndex(u64, desc, 5, 0xfedc_ba98_7654_3210));
 }
 
 test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {
