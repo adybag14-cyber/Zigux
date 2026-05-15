@@ -32,7 +32,7 @@ The current visible starter and archived gpio watchdog review packet keep these 
 
 * `summarizeTeardown()` and the bounded stop-request outcomes recorded through `requestStop()`
 * the split between watchdog-core stop policy and hardware `always-running` behavior through `nowayoutPolicySummary()`
-* the teardown handoff after descriptor request summary, `platform_set_drvdata()` ordering, probe-time bookkeeping, registration handoff, and the first bounded register-device request surface
+* the teardown handoff after descriptor request summary, `platform_set_drvdata()` ordering, `watchdogDrvdataCheckpointSummary()`, probe-time bookkeeping, registration handoff, and the first bounded register-device request surface
 * teardown-facing failure-mode cues that stay reviewable through `registerDeviceFailureSummary()` without claiming live remove-hook or reboot-backed shutdown execution
 
 The still-visible focused `platform_set_drvdata()` replay keeps one early ordering checkpoint directly replayable on current `master`, while the dedicated survey gate keeps the surrounding stop-transition, teardown-ownership boundaries, and bounded failure-mode cues freshly checked as archived review memory only.
