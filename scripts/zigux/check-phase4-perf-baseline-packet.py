@@ -20,6 +20,8 @@ TESTS_README_REL = Path("zigux/tests/README.md")
 BUILD_REL = Path("zigux/tests/phase4_build.zig")
 MAKEFILE_REL = Path("zigux/Makefile")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
+REVERSIBLE_DELIVERY_REL = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
+SEQUENCING_REL = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
 
 EXPECTED_COORDINATION_OWNERS = [
     "ABI and Runtime Team",
@@ -36,6 +38,8 @@ REQUIRED_FILES = [
     BUILD_REL,
     MAKEFILE_REL,
     WORKFLOW_REL,
+    REVERSIBLE_DELIVERY_REL,
+    SEQUENCING_REL,
     Path("scripts/zigux/check-phase4-perf-baseline-packet.py"),
 ]
 
@@ -66,6 +70,8 @@ REQUIRED_REVERSIBLE_DELIVERY_MARKERS = [
     "zigux/tests/README.md",
     "Documentation/zigux/phase4-validation-matrix.md",
     "Documentation/zigux/phase4-gate-evidence.md",
+    "Documentation/zigux/phase4-reversible-delivery-evidence.md",
+    "Documentation/zigux/phase4-validation-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "zigux/Makefile, and zigux/tests/phase4_build.zig",
 ]
@@ -110,6 +116,24 @@ GATE_EVIDENCE_MARKERS = [
     "while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.",
     "its manifest, survey, and dedicated local checker exact-pin the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.",
     "atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
+]
+
+REVERSIBLE_DELIVERY_MARKERS = [
+    "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "Documentation/zigux/phase4-validation-lane-sequencing.md",
+    "`Validation and Perf Team` owns the dedicated local-only perf packet and any future broader perf-promotion decision.",
+    "If the local benchmark commands, acceptable limits, or shared-CI-pending posture drifts, repair the dedicated local-only perf packet first.",
+]
+
+SEQUENCING_MARKERS = [
+    "Documentation/zigux/phase4-reversible-delivery-evidence.md",
+    "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.",
+    "Do not use the perf lane to claim shared CI perf approval unless the broader shared packet has intentionally widened and names that policy decision directly.",
 ]
 
 CHECKLIST_MARKERS = [
@@ -173,6 +197,8 @@ SELF_TEST_CASES = [
     "build_shared_test_scope_drift",
     "workflow_survey_route_drift",
     "workflow_checker_route_drift",
+    "reversible_delivery_perf_owner_drift",
+    "sequencing_perf_boundary_drift",
 ]
 
 
@@ -211,6 +237,8 @@ def validate_root(root: Path) -> list[str]:
     survey_text = read_text(root / SURVEY_REL)
     matrix_text = read_text(root / MATRIX_REL)
     gate_evidence_text = read_text(root / GATE_EVIDENCE_REL)
+    reversible_delivery_text = read_text(root / REVERSIBLE_DELIVERY_REL)
+    sequencing_text = read_text(root / SEQUENCING_REL)
     checklist_text = read_text(root / CHECKLIST_REL)
     tests_readme_text = read_text(root / TESTS_README_REL)
     build_text = read_text(root / BUILD_REL)
@@ -276,6 +304,12 @@ def validate_root(root: Path) -> list[str]:
     for marker in GATE_EVIDENCE_MARKERS:
         if marker not in gate_evidence_text:
             failures.append(f"gate_evidence_marker:{marker}")
+    for marker in REVERSIBLE_DELIVERY_MARKERS:
+        if marker not in reversible_delivery_text:
+            failures.append(f"reversible_delivery_marker:{marker}")
+    for marker in SEQUENCING_MARKERS:
+        if marker not in sequencing_text:
+            failures.append(f"sequencing_marker:{marker}")
     for marker in CHECKLIST_MARKERS:
         if marker not in checklist_text:
             failures.append(f"checklist_marker:{marker}")
@@ -320,6 +354,8 @@ def build_fixture_tree(root: Path) -> None:
                     "zigux/tests/README.md, "
                     "Documentation/zigux/phase4-validation-matrix.md, "
                     "Documentation/zigux/phase4-gate-evidence.md, "
+                    "Documentation/zigux/phase4-reversible-delivery-evidence.md, "
+                    "Documentation/zigux/phase4-validation-lane-sequencing.md, "
                     "Documentation/zigux/review-checklist.md, "
                     "zigux/Makefile, and "
                     "zigux/tests/phase4_build.zig aligned."
@@ -330,7 +366,9 @@ def build_fixture_tree(root: Path) -> None:
                     "zigux/tests/phase4_perf_baseline_survey.zig, "
                     "zigux/tests/README.md, "
                     "Documentation/zigux/phase4-validation-matrix.md, "
-                    "Documentation/zigux/phase4-gate-evidence.md, and "
+                    "Documentation/zigux/phase4-gate-evidence.md, "
+                    "Documentation/zigux/phase4-reversible-delivery-evidence.md, "
+                    "Documentation/zigux/phase4-validation-lane-sequencing.md, and "
                     "Documentation/zigux/review-checklist.md continue to fail "
                     "closed on the same decision-owner, coordination-owner, "
                     "acceptable-limit, and shared-CI-pending promotion markers; "
@@ -432,6 +470,36 @@ def build_fixture_tree(root: Path) -> None:
                 "while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.",
                 "its manifest, survey, and dedicated local checker exact-pin the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.",
                 "atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root / REVERSIBLE_DELIVERY_REL,
+        "\n".join(
+            [
+                "# Phase 4 Reversible Delivery Evidence",
+                "scripts/zigux/check-phase4-perf-baseline-packet.py",
+                "zigux/tests/phase4_perf_baseline_manifest.json",
+                "zigux/tests/phase4_perf_baseline_survey.zig",
+                "Documentation/zigux/phase4-validation-lane-sequencing.md",
+                "`Validation and Perf Team` owns the dedicated local-only perf packet and any future broader perf-promotion decision.",
+                "If the local benchmark commands, acceptable limits, or shared-CI-pending posture drifts, repair the dedicated local-only perf packet first.",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root / SEQUENCING_REL,
+        "\n".join(
+            [
+                "# Phase 4 Validation Lane Sequencing",
+                "Documentation/zigux/phase4-reversible-delivery-evidence.md",
+                "scripts/zigux/check-phase4-perf-baseline-packet.py",
+                "zigux/tests/phase4_perf_baseline_manifest.json",
+                "zigux/tests/phase4_perf_baseline_survey.zig",
+                "If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.",
+                "Do not use the perf lane to claim shared CI perf approval unless the broader shared packet has intentionally widened and names that policy decision directly.",
             ]
         )
         + "\n",
@@ -860,6 +928,36 @@ def run_self_test() -> int:
         if not expect_failure(root, "workflow_unexpected_marker:check-phase4-perf-baseline-packet.py"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("workflow checker-route drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / REVERSIBLE_DELIVERY_REL,
+            replace_once(
+                read_text(root / REVERSIBLE_DELIVERY_REL),
+                "`Validation and Perf Team` owns the dedicated local-only perf packet and any future broader perf-promotion decision.",
+                "`Tooling and Validation Team` owns the dedicated local-only perf packet and any future broader perf-promotion decision.",
+            ),
+        )
+        if not expect_failure(root, "reversible_delivery_marker:`Validation and Perf Team` owns the dedicated local-only perf packet and any future broader perf-promotion decision."):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("reversible-delivery perf owner drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / SEQUENCING_REL,
+            replace_once(
+                read_text(root / SEQUENCING_REL),
+                "If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.",
+                "If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the shared exact-readback lane.",
+            ),
+        )
+        if not expect_failure(root, "sequencing_marker:If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet."):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("sequencing perf boundary drift case did not fail closed")
             return 1
         case_count += 1
 
