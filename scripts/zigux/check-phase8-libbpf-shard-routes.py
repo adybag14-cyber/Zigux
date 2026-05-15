@@ -119,9 +119,12 @@ REQUIRED_MARKERS = {
         "`/sys/devices/system/cpu/online`",
         "`libbpf_num_possible_cpus()`",
         "online CPU filtering",
+        "per-CPU perf-event-array map updates",
         "`perf_event_open()`",
+        "perf-buffer ring `mmap()` setup",
         "`PERF_EVENT_IOC_ENABLE` enablement",
         "epoll-backed perf FD registration",
+        "poll waits",
         "`standalone timer or clockevent helper behavior`",
         "broader timeout-sensitive routing behavior",
     ],
@@ -187,8 +190,10 @@ REQUIRED_MARKERS = {
     ],
 }
 
+
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
+
 
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
@@ -202,11 +207,13 @@ def collect_missing_markers(root: Path) -> list[str]:
                 missing.append(f"{rel}: {marker}")
     return missing
 
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, []
     return [], collect_missing_markers(root)
+
 
 def fixture_text(rel: str) -> str:
     markers = REQUIRED_MARKERS.get(rel)
@@ -214,21 +221,25 @@ def fixture_text(rel: str) -> str:
         return "# fixture\n"
     return "\n".join(markers) + "\n"
 
+
 def write_fixture_root(root: Path) -> None:
     for rel in REQUIRED_FILES:
         path = root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(fixture_text(rel), encoding="utf-8")
 
+
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_markers == [], case
     assert missing_files == [rel], case
 
+
 def expect_missing_marker(case: str, tmp_root: Path, expected: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [expected], case
+
 
 def mutate_marker(tmp_root: Path, rel: str, marker: str, case: str) -> None:
     path = tmp_root / rel
@@ -237,6 +248,7 @@ def mutate_marker(tmp_root: Path, rel: str, marker: str, case: str) -> None:
     updated = original.replace(marker, replacement)
     assert updated != original, case
     path.write_text(updated, encoding="utf-8")
+
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase8_libbpf_shard_routes_") as tmp_dir_str:
@@ -260,6 +272,7 @@ def run_self_test() -> None:
         "PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST_CASE_COUNT="
         f"{len(REQUIRED_FILES) + sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
     )
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -300,6 +313,7 @@ def main() -> int:
         f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
     )
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
