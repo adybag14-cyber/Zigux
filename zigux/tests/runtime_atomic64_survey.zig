@@ -16,6 +16,20 @@ const RoadmapGapSummary = struct {
     next_gate: []const u8,
 };
 
+const DeliveryEvidence = struct {
+    id: []const u8,
+    kind: []const u8,
+    path: []const u8,
+    why_now: []const u8,
+};
+
+const OwnershipEntry = struct {
+    surface: []const u8,
+    role: []const u8,
+    owner: []const u8,
+    boundary: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -32,6 +46,8 @@ const Manifest = struct {
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
     roadmap_gap_summary: RoadmapGapSummary,
+    delivery_evidence_catalog: []const DeliveryEvidence,
+    ownership_map: []const OwnershipEntry,
     gaps: []const Gap,
 };
 
@@ -57,6 +73,20 @@ fn expectSurveyedCommitMarker(text: []const u8, commit: []const u8) !void {
     var marker_buffer: [96]u8 = undefined;
     const marker = try std.fmt.bufPrint(&marker_buffer, "`PHASE9_SURVEYED_COMMIT={s}`", .{commit});
     try expectContains(text, marker);
+}
+
+fn findDeliveryEvidence(entries: []const DeliveryEvidence, id: []const u8) ?DeliveryEvidence {
+    for (entries) |entry| {
+        if (std.mem.eql(u8, entry.id, id)) return entry;
+    }
+    return null;
+}
+
+fn findOwnershipEntry(entries: []const OwnershipEntry, surface: []const u8) ?OwnershipEntry {
+    for (entries) |entry| {
+        if (std.mem.eql(u8, entry.surface, surface)) return entry;
+    }
+    return null;
 }
 
 fn findGap(gaps: []const Gap, id: []const u8) ?Gap {
@@ -131,6 +161,49 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
         "keep the direct atomic64 starter packet explicit, treat the visible shared loader-facing reminder packet as review-only evidence, and leave the broader runtime-substrate blocker explicit",
         manifest.roadmap_gap_summary.next_gate,
     );
+    try std.testing.expectEqual(@as(usize, 12), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);
+
+    const sample_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-atomic64-sample") orelse return error.MissingSampleEntry;
+    try std.testing.expectEqualStrings("sample_starter", sample_entry.kind);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64.zig", sample_entry.path);
+    try expectContains(sample_entry.why_now, "`lib/atomic64_test.c`");
+    try expectContains(sample_entry.why_now, "selftest-hook contract");
+
+    const loader_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-atomic64-loader-scaffold") orelse return error.MissingLoaderEntry;
+    try std.testing.expectEqualStrings("runtime_loader_scaffold", loader_entry.kind);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", loader_entry.path);
+    try expectContains(loader_entry.why_now, "prepared counter-summary snapshot replay");
+    try expectContains(loader_entry.why_now, "release-without-substrate rollback");
+
+    const make_route_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-atomic64-family-make-route") orelse return error.MissingMakeRouteEntry;
+    try std.testing.expectEqualStrings("review_route", make_route_entry.kind);
+    try std.testing.expectEqualStrings("zigux/Makefile", make_route_entry.path);
+    try expectContains(make_route_entry.why_now, "make -C zigux phase9-runtime-atomic64-test");
+
+    const shared_build_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-atomic64-shared-build-boundary") orelse return error.MissingSharedBuildEntry;
+    try std.testing.expectEqualStrings("validation", shared_build_entry.kind);
+    try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", shared_build_entry.path);
+    try expectContains(shared_build_entry.why_now, "phase9-runtime-atomic64-loader-tests");
+
+    const module_slice_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-atomic64-module-slice-note") orelse return error.MissingModuleSliceEntry;
+    try std.testing.expectEqualStrings("review_note", module_slice_entry.kind);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-atomic64-module-slice.md", module_slice_entry.path);
+    try expectContains(module_slice_entry.why_now, "prepared counter-summary snapshot replay");
+
+    const manifest_owner = findOwnershipEntry(manifest.ownership_map, "zigux/tests/runtime_atomic64_manifest.json") orelse return error.MissingManifestOwner;
+    try std.testing.expectEqualStrings("packet_truth_manifest", manifest_owner.role);
+    try std.testing.expectEqualStrings("P9-L04", manifest_owner.owner);
+
+    const shared_owner = findOwnershipEntry(manifest.ownership_map, "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md") orelse return error.MissingSharedOwner;
+    try std.testing.expectEqualStrings("shared_owner_map", shared_owner.role);
+    try std.testing.expectEqualStrings("P9-L11", shared_owner.owner);
+
+    const build_owner = findOwnershipEntry(manifest.ownership_map, "zigux/tests/phase9_build.zig") orelse return error.MissingBuildOwner;
+    try std.testing.expectEqualStrings("shared_build_bundle", build_owner.role);
+    try std.testing.expectEqualStrings("P9-L11", build_owner.owner);
+    try expectContains(build_owner.boundary, "phase9-runtime-atomic64-sample-tests");
+    try expectContains(build_owner.boundary, "phase9-runtime-loader-shared-tests");
 
     const build_gap = findGap(manifest.gaps, "phase9-build-gate") orelse return error.MissingBuildGap;
     try std.testing.expectEqualStrings("visible_review_only_packet", build_gap.status);
