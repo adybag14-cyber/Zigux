@@ -449,7 +449,7 @@ def build_fixture(root: Path, surveyed_commit: str) -> None:
     write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS + [surveyed_commit]) + "\n")
     write(root / REQUIRED_FILES["modem_control_split"], "\n".join(MODEM_CONTROL_SPLIT_MARKERS) + "\n")
     write(root / REQUIRED_FILES["poll_retry_split"], "\n".join(POLL_RETRY_SPLIT_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["sysrq_helper"], "\n".join(SYSRQ_HELPERS_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["sysrq_helper"], "\n".join(SYSRQ_HELPER_MARKERS) + "\n")
     write(root / REQUIRED_FILES["makefile"], "\n".join(MAKEFILE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["workflow"], "\n".join(WORKFLOW_MARKERS) + "\n")
 
