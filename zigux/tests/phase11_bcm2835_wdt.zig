@@ -49,7 +49,7 @@ test "phase11 bcm2835 watchdog replay keeps platform handoff readiness and power
     });
     try std.testing.expectEqualStrings(bcm2835_wdt.anchor_path, ready.anchor);
     try std.testing.expect(ready.parent_attached);
-    try std.testing.expect(!ready.parent_supplies_pm_base);
+    try std.testing.expect(ready.parent_supplies_pm_base);
     try std.testing.expect(ready.pm_base_required);
     try std.testing.expect(ready.pm_base_handoff_ready);
     try std.testing.expect(ready.timeout_init_requested);
