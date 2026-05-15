@@ -63,6 +63,8 @@ REQUIRED_TEST_FSMOUNT_GAP_NOTE_MARKERS = [
     "PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
     "PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
     "PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey",
+    "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    "PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold",
 ]
 
 REQUIRED_PERF_SECTION_MARKERS = [
@@ -140,6 +142,8 @@ BASELINE_TEST_FSMOUNT_GAP_NOTE = "\n".join(
         "- `PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey`",
         f"- `PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE={TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE}`",
         "- `PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix`",
+        "- `PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+        "- `PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold`",
         "",
     ]
 )
@@ -177,6 +181,8 @@ SELF_TEST_CASES = [
     "test_fsmount_gap_note_shared_matrix_anchor_drift",
     "test_fsmount_gap_note_local_wrapper_drift",
     "test_fsmount_gap_note_linux_style_wrapper_drift",
+    "test_fsmount_gap_note_validation_entrypoint_drift",
+    "test_fsmount_gap_note_threshold_posture_drift",
     "perf_gate_anchor_drift",
     "perf_replay_path_drift",
     "perf_benchmark_command_status_drift",
@@ -564,6 +570,28 @@ def run_self_test() -> int:
                 "PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-gap-survey",
             ),
             "missing_test_fsmount_gap_note_marker:PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey",
+        ),
+        (
+            "test_fsmount_gap_note_validation_entrypoint_drift",
+            BASELINE_MATRIX,
+            BASELINE_KPROBE_GAP_NOTE,
+            replace_once(
+                BASELINE_TEST_FSMOUNT_GAP_NOTE,
+                "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+                "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig",
+            ),
+            "missing_test_fsmount_gap_note_marker:PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+        ),
+        (
+            "test_fsmount_gap_note_threshold_posture_drift",
+            BASELINE_MATRIX,
+            BASELINE_KPROBE_GAP_NOTE,
+            replace_once(
+                BASELINE_TEST_FSMOUNT_GAP_NOTE,
+                "PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold",
+                "PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=shared_ci_perf_promoted",
+            ),
+            "missing_test_fsmount_gap_note_marker:PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold",
         ),
         (
             "perf_gate_anchor_drift",
