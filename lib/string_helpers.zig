@@ -642,3 +642,76 @@ pub fn strreplace(buf: []u8, old: u8, new: u8) usize {
     }
     return buf.len;
 }
+
+test "kasprintfStrarray keeps sentinel ownership stable for empty and populated arrays" {
+    var empty = try kasprintfStrarray(std.testing.allocator, "dev", 0);
+    defer empty.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), empty.names.len);
+    try std.testing.expectEqual(empty_kasprintf_strarray_null_terminated.ptr, empty.names_null_terminated.ptr);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), empty.cArray()[0]);
+
+    var result = try kasprintfStrarray(std.testing.allocator, "tty\x00ignored", 3);
+    try std.testing.expectEqual(@as(usize, 3), result.names.len);
+    try std.testing.expectEqual(@as(usize, 4), result.names_null_terminated.len);
+    try std.testing.expectEqualStrings("tty-0", result.names[0]);
+    try std.testing.expectEqualStrings("tty-1", result.names[1]);
+    try std.testing.expectEqualStrings("tty-2", result.names[2]);
+
+    const c_array = result.cArray();
+    try std.testing.expectEqualStrings("tty-0", std.mem.span(c_array[0].?));
+    try std.testing.expectEqualStrings("tty-1", std.mem.span(c_array[1].?));
+    try std.testing.expectEqualStrings("tty-2", std.mem.span(c_array[2].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), c_array[3]);
+
+    result.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(usize, 0), result.names.len);
+    try std.testing.expectEqual(empty_kasprintf_strarray_null_terminated.ptr, result.names_null_terminated.ptr);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), result.cArray()[0]);
+
+    kfreeStrarray(std.testing.allocator, &result);
+    try std.testing.expectEqual(@as(usize, 0), result.names.len);
+    try std.testing.expectEqual(empty_kasprintf_strarray_null_terminated.ptr, result.names_null_terminated.ptr);
+}
+
+test "stringGetSize reports rounded units and truncates destination buffers safely" {
+    var rendered = [_]u8{0} ** 32;
+    const rendered_len = stringGetSize(1024, 1024, STRING_UNITS_2, rendered[0..], 0);
+    try std.testing.expectEqual(@as(usize, 8), rendered_len);
+    try std.testing.expectEqualStrings("1.00 MiB", rendered[0..cStringLen(rendered[0..])]);
+
+    var truncated = [_]u8{ 'x', 'x', 'x', 'x', 'x' };
+    const truncated_len = stringGetSize(1536, 1, STRING_UNITS_2 | STRING_UNITS_NO_BYTES, truncated[0..], truncated.len);
+    try std.testing.expectEqual(@as(usize, 7), truncated_len);
+    try std.testing.expectEqualStrings("1.50", truncated[0..cStringLen(truncated[0..])]);
+    try std.testing.expectEqual(@as(u8, 0), truncated[4]);
+}
+
+test "string escape and unescape preserve bounded output and invalid escape fallbacks" {
+    var escaped = [_]u8{0} ** 16;
+    const escaped_len = stringEscapeMem("A\n\x1b", escaped[0..], 0, ESCAPE_SPACE | ESCAPE_SPECIAL, null);
+    try std.testing.expectEqual(@as(usize, 5), escaped_len);
+    try std.testing.expectEqualStrings("A\\n\\e", escaped[0..escaped_len]);
+
+    var unescaped = [_]u8{0} ** 16;
+    const unescaped_len = stringUnescape("A\\n\\e", unescaped[0..], 0, UNESCAPE_ALL_MASK);
+    try std.testing.expectEqual(@as(usize, 3), unescaped_len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'A', '\n', '\x1b' }, unescaped[0..unescaped_len]);
+    try std.testing.expectEqual(@as(u8, 0), unescaped[unescaped_len]);
+
+    var invalid = [_]u8{ 'x', 'x' };
+    const invalid_len = stringUnescape("\\q", invalid[0..], invalid.len, UNESCAPE_ALL_MASK);
+    try std.testing.expectEqual(@as(usize, 1), invalid_len);
+    try std.testing.expectEqualStrings("\\", invalid[0..cStringLen(invalid[0..])]);
+}
+
+test "memcpyAndPad and strreplace respect logical bounds" {
+    var padded = [_]u8{ '#', '#', '#', '#', '#' };
+    memcpyAndPad(padded[0..], "zig", 5, '.');
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'z', 'i', 'g', '.', '.' }, padded[0..]);
+
+    var text = [_]u8{ 'a', '-', 'b', 0, '-' };
+    const logical_len = strreplace(text[0..], '-', '_');
+    try std.testing.expectEqual(@as(usize, 3), logical_len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 'b', 0, '-' }, text[0..]);
+}
