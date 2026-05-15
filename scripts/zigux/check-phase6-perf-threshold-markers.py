@@ -24,6 +24,7 @@ BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
 CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
+HEXDUMP_PERF_PATH = Path("zigux/tests/phase6_hexdump_perf.zig")
 HEXDUMP_MATRIX_PATH = Path("zigux/tests/phase6_hexdump_perf_matrix.zig")
 PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -138,9 +139,9 @@ REQUIRED_SNIPPETS = {
         "- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet, `16B-plain-g1`, `32B-ascii-g2`, `16B-ascii-g4`, and `16B-ascii-g8`, with helper-local caps of `175`, `550`, `550`, and `600`",
     ],
     PHASE6_BUILD_PATH.as_posix(): [
-        'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
-        'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
-        'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
+        "const base64_perf_step = b.step(\"phase6-base64-perf\", \"Run Phase 6 base64 perf gate\");",
+        "const checksum_perf_step = b.step(\"phase6-checksum-perf\", \"Run Phase 6 checksum perf gate\");",
+        "const hexdump_perf_step = b.step(\"phase6-hexdump-perf\", \"Run Phase 6 hexdump perf gate\");",
     ],
     MAKEFILE_PATH.as_posix(): [
         "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
@@ -153,28 +154,34 @@ REQUIRED_SNIPPETS = {
         "- name: Run Phase 6 hexdump perf gate",
     ],
     BASE64_VECTORS_PATH.as_posix(): [
-        '.{ .label = "STD_PAD", .payload = perf_payload, .padding = true, .variant_name = "std", .reference_kind = "std_padded", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
-        '.{ .label = "URLSAFE_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "urlsafe", .reference_kind = "urlsafe_no_pad", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
-        '.{ .label = "IMAP_PAD", .payload = perf_payload, .padding = true, .variant_name = "imap", .reference_kind = "imap_padded", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
-        '.{ .label = "IMAP_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "imap", .reference_kind = "imap_no_pad", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
+        ".{ .label = \"STD_PAD\", .payload = perf_payload, .padding = true, .variant_name = \"std\", .reference_kind = \"std_padded\", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },",
+        ".{ .label = \"URLSAFE_NO_PAD\", .payload = perf_payload, .padding = false, .variant_name = \"urlsafe\", .reference_kind = \"urlsafe_no_pad\", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },",
+        ".{ .label = \"IMAP_PAD\", .payload = perf_payload, .padding = true, .variant_name = \"imap\", .reference_kind = \"imap_padded\", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },",
+        ".{ .label = \"IMAP_NO_PAD\", .payload = perf_payload, .padding = false, .variant_name = \"imap\", .reference_kind = \"imap_no_pad\", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },",
     ],
     BASE64_PERF_PATH.as_posix(): [
-        '.{ .label = "IMAP_PAD", .variant_name = "imap", .reference_kind = "imap_padded", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
-        '.{ .label = "IMAP_NO_PAD", .variant_name = "imap", .reference_kind = "imap_no_pad", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
+        ".{ .label = \"IMAP_PAD\", .variant_name = \"imap\", .reference_kind = \"imap_padded\", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },",
+        ".{ .label = \"IMAP_NO_PAD\", .variant_name = \"imap\", .reference_kind = \"imap_no_pad\", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },",
     ],
     CHECKSUM_VECTORS_PATH.as_posix(): [
-        '.{ .label = "64", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },',
-        '.{ .label = "1501", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },',
+        ".{ .label = \"64\", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },",
+        ".{ .label = \"1501\", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },",
     ],
     CHECKSUM_PERF_PATH.as_posix(): [
-        '.{ .label = "64", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },',
-        '.{ .label = "1501", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },',
+        ".{ .label = \"64\", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },",
+        ".{ .label = \"1501\", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },",
+    ],
+    HEXDUMP_PERF_PATH.as_posix(): [
+        "const fixtures = @import(\"phase6_hexdump_vectors\");",
+        "for (fixtures.perf_cases) |case| {",
+        "const result = try runPerfCase(case, io);",
+        "try std.testing.expect(slowdown_pct <= case.max_slowdown_pct);",
     ],
     HEXDUMP_MATRIX_PATH.as_posix(): [
-        '.{ .label = "16B-plain-g1", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175, .expected_length = 47 },',
-        '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550, .expected_length = 113 },',
-        '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550, .expected_length = 53 },',
-        '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600, .expected_length = 51 },',
+        ".{ .label = \"16B-plain-g1\", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175, .expected_length = 47 },",
+        ".{ .label = \"32B-ascii-g2\", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550, .expected_length = 113 },",
+        ".{ .label = \"16B-ascii-g4\", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550, .expected_length = 53 },",
+        ".{ .label = \"16B-ascii-g8\", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600, .expected_length = 51 },",
     ],
 }
 
@@ -299,6 +306,7 @@ def validate_paths(repo_root: Path) -> None:
         CHECKSUM_VECTORS_PATH.as_posix(),
         CHECKSUM_PERF_PATH.as_posix(),
         HEXDUMP_VECTORS_PATH.as_posix(),
+        HEXDUMP_PERF_PATH.as_posix(),
         HEXDUMP_MATRIX_PATH.as_posix(),
         PHASE6_BUILD_PATH.as_posix(),
         MAKEFILE_PATH.as_posix(),
@@ -411,9 +419,15 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
+            HEXDUMP_PERF_PATH,
+            "try std.testing.expect(slowdown_pct <= case.max_slowdown_pct);",
+            "try std.testing.expect(slowdown_pct <= case.max_slowdown_pct + 1);",
+        )
+        assert_failure(
+            root,
             PHASE6_BUILD_PATH,
-            'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
-            'const checksum_perf_step = b.step("phase6-checksum-perf-missing", "Run Phase 6 checksum perf gate");',
+            "const checksum_perf_step = b.step(\"phase6-checksum-perf\", \"Run Phase 6 checksum perf gate\");",
+            "const checksum_perf_step = b.step(\"phase6-checksum-perf-missing\", \"Run Phase 6 checksum perf gate\");",
         )
         assert_failure(
             root,
