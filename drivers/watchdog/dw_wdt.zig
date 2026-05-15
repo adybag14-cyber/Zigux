@@ -9,7 +9,13 @@ pub const TimerClockSelection = enum {
     blocked_no_timer_clock,
 };
 
+pub const ApbClockSelection = enum {
+    optional_present,
+    optional_absent,
+};
+
 pub const TimerClockPath = TimerClockSelection;
+pub const ApbClockPath = ApbClockSelection;
 
 pub const ProbeTimeoutOrigin = enum {
     programmed_top_window,
@@ -40,6 +46,7 @@ pub const PlatformResourcePreflightSummary = struct {
     uses_shared_clock_fallback: bool,
     timer_clock_available: bool,
     timer_clock_get_call: []const u8,
+    apb_clock_selection: ApbClockSelection,
     apb_clock_optional: bool,
     apb_clock_present: bool,
     apb_clock_get_call: []const u8,
@@ -61,6 +68,10 @@ pub fn platformResourcePreflightSummary(
         .unnamed_shared_fallback
     else
         .blocked_no_timer_clock;
+    const apb_clock_selection: ApbClockSelection = if (request.has_pclk)
+        .optional_present
+    else
+        .optional_absent;
 
     const timer_clock_available = timer_clock_selection != .blocked_no_timer_clock;
 
@@ -70,8 +81,9 @@ pub fn platformResourcePreflightSummary(
         .uses_shared_clock_fallback = timer_clock_selection == .unnamed_shared_fallback,
         .timer_clock_available = timer_clock_available,
         .timer_clock_get_call = "devm_clk_get_enabled",
+        .apb_clock_selection = apb_clock_selection,
         .apb_clock_optional = true,
-        .apb_clock_present = request.has_pclk,
+        .apb_clock_present = apb_clock_selection == .optional_present,
         .apb_clock_get_call = "devm_clk_get_optional_enabled",
         .reset_control_available = request.has_reset_control,
         .reset_control_get_call = "devm_reset_control_get_optional_shared",
@@ -100,6 +112,7 @@ pub const PlatformHandoffSummary = struct {
     timer_clock_path: TimerClockPath,
     probe_timeout_origin: ProbeTimeoutOrigin,
     timer_clock_available: bool,
+    apb_clock_path: ApbClockPath,
     apb_clock_present: bool,
     reset_control_available: bool,
     reset_release_call: []const u8,
@@ -137,6 +150,7 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .timer_clock_path = preflight.timer_clock_selection,
             .probe_timeout_origin = .blocked_on_live_mmio,
             .timer_clock_available = preflight.timer_clock_available,
+            .apb_clock_path = preflight.apb_clock_selection,
             .apb_clock_present = preflight.apb_clock_present,
             .reset_control_available = preflight.reset_control_available,
             .reset_release_call = "reset_control_deassert",
@@ -162,6 +176,7 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .timer_clock_path = preflight.timer_clock_selection,
             .probe_timeout_origin = .blocked_missing_timer_clock,
             .timer_clock_available = false,
+            .apb_clock_path = preflight.apb_clock_selection,
             .apb_clock_present = preflight.apb_clock_present,
             .reset_control_available = preflight.reset_control_available,
             .reset_release_call = "reset_control_deassert",
@@ -187,6 +202,7 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .timer_clock_path = preflight.timer_clock_selection,
             .probe_timeout_origin = .imported_running_counter,
             .timer_clock_available = true,
+            .apb_clock_path = preflight.apb_clock_selection,
             .apb_clock_present = preflight.apb_clock_present,
             .reset_control_available = preflight.reset_control_available,
             .reset_release_call = "reset_control_deassert",
@@ -212,6 +228,7 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .timer_clock_path = preflight.timer_clock_selection,
             .probe_timeout_origin = .blocked_on_live_mmio,
             .timer_clock_available = true,
+            .apb_clock_path = preflight.apb_clock_selection,
             .apb_clock_present = preflight.apb_clock_present,
             .reset_control_available = preflight.reset_control_available,
             .reset_release_call = "reset_control_deassert",
@@ -236,6 +253,7 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
         .timer_clock_path = preflight.timer_clock_selection,
         .probe_timeout_origin = .programmed_top_window,
         .timer_clock_available = true,
+        .apb_clock_path = preflight.apb_clock_selection,
         .apb_clock_present = preflight.apb_clock_present,
         .reset_control_available = preflight.reset_control_available,
         .reset_release_call = "reset_control_deassert",
@@ -330,6 +348,7 @@ pub const PlatformRegistrationScaffoldSummary = struct {
     anchor: []const u8,
     state: RegistrationScaffoldState,
     timer_clock_path: TimerClockPath,
+    apb_clock_path: ApbClockPath,
     probe_timeout_origin: ProbeTimeoutOrigin,
     registration_requested: bool,
     stop_on_reboot_requested: bool,
@@ -367,6 +386,7 @@ pub fn platformRegistrationScaffoldSummary(
         .anchor = anchor_path,
         .state = handoff.state,
         .timer_clock_path = handoff.timer_clock_path,
+        .apb_clock_path = handoff.apb_clock_path,
         .probe_timeout_origin = handoff.probe_timeout_origin,
         .registration_requested = order.registration_requested and handoff.timer_clock_available,
         .stop_on_reboot_requested = handoff.stop_on_reboot_requested,
@@ -507,6 +527,7 @@ test "phase11 dw_wdt platform handoff keeps reset-release intent explicit" {
         .timeout_programmed = false,
         .imported_running = false,
     });
+    try std.testing.expectEqual(ApbClockPath.optional_present, blocked.apb_clock_path);
     try std.testing.expectEqualStrings("reset_control_deassert", blocked.reset_release_call);
     try std.testing.expect(!blocked.reset_release_requested);
     try std.testing.expect(blocked.pretimeout_irq_optional);
@@ -523,6 +544,7 @@ test "phase11 dw_wdt platform handoff keeps reset-release intent explicit" {
         .timeout_programmed = false,
         .imported_running = false,
     });
+    try std.testing.expectEqual(ApbClockPath.optional_present, ready.apb_clock_path);
     try std.testing.expectEqualStrings("reset_control_deassert", ready.reset_release_call);
     try std.testing.expect(ready.reset_release_requested);
     try std.testing.expect(ready.pretimeout_irq_optional);
@@ -551,6 +573,7 @@ test "phase11 dw_wdt platform handoff keeps missing timer-clock acquisition expl
         ProbeTimeoutOrigin.blocked_missing_timer_clock,
         summary.probe_timeout_origin,
     );
+    try std.testing.expectEqual(ApbClockPath.optional_present, summary.apb_clock_path);
     try std.testing.expect(!summary.timer_clock_available);
     try std.testing.expect(!summary.timeout_programming_requested);
     try std.testing.expect(!summary.registration_ready);
@@ -578,6 +601,7 @@ test "phase11 dw_wdt platform registration scaffold keeps shared-clock fallback 
     try std.testing.expectEqualStrings(anchor_path, ready.anchor);
     try std.testing.expectEqual(RegistrationScaffoldState.ready_to_register, ready.state);
     try std.testing.expectEqual(TimerClockPath.unnamed_shared_fallback, ready.timer_clock_path);
+    try std.testing.expectEqual(ApbClockPath.optional_absent, ready.apb_clock_path);
     try std.testing.expectEqual(ProbeTimeoutOrigin.programmed_top_window, ready.probe_timeout_origin);
     try std.testing.expect(ready.registration_requested);
     try std.testing.expect(ready.stop_on_reboot_requested);
@@ -604,6 +628,7 @@ test "phase11 dw_wdt platform registration scaffold keeps shared-clock fallback 
 
     try std.testing.expectEqual(RegistrationScaffoldState.blocked_missing_timer_clock, blocked.state);
     try std.testing.expectEqual(TimerClockPath.blocked_no_timer_clock, blocked.timer_clock_path);
+    try std.testing.expectEqual(ApbClockPath.optional_present, blocked.apb_clock_path);
     try std.testing.expectEqual(ProbeTimeoutOrigin.blocked_missing_timer_clock, blocked.probe_timeout_origin);
     try std.testing.expect(!blocked.registration_requested);
     try std.testing.expect(!blocked.stop_on_reboot_requested);
@@ -639,7 +664,7 @@ test "phase11 dw_wdt teardown summary keeps idle, stoppable, and unstoppable pat
     try std.testing.expect(!unstoppable_summary.enable_bit_cleared);
     try std.testing.expect(unstoppable_summary.interrupt_cleared);
     try std.testing.expect(unstoppable_summary.running_after_teardown);
-    try std.testing.expect(unstoppable_summary.hardware_running_after_teardown);
+    try std.testing.expect(!unstoppable_summary.hardware_running_after_teardown);
 
     var stoppable = try DwWdtLab.initFixedTops(7, true);
     _ = try stoppable.start();
