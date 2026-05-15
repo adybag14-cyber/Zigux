@@ -52,6 +52,10 @@ REQUIRED_SHARED_SMOKE_SURFACES = [
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
     "zigux/tests/phase14_end_to_end_smoke_survey.zig",
     "zigux/tests/phase14_workqueue_reviewability.zig",
+    "zigux/tests/phase14_workqueue_bridge.zig",
+    "zigux/tests/phase14_skbuff_bridge.zig",
+    "zigux/tests/phase14_ring_buffer_survey.zig",
+    "zigux/tests/phase14_rcu_tree_survey.zig",
 ]
 REQUIRED_ANCHOR_MANIFESTS = [
     "zigux/tests/phase14_workqueue_bridge_manifest.json",
@@ -887,6 +891,36 @@ def run_self_test() -> int:
         write_text(
             root / SMOKE_MANIFEST_PATH,
             good_smoke_manifest_text().replace(
+                '"zigux/tests/phase14_workqueue_bridge.zig"',
+                '"zigux/tests/phase14_workqueue_bridge_drift.zig"',
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "missing shared smoke surface zigux/tests/phase14_workqueue_bridge.zig",
+            "self-test expected missing manifest workqueue-bridge shared surface failure",
+        )
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
+
+        write_text(
+            root / SMOKE_MANIFEST_PATH,
+            good_smoke_manifest_text().replace(
+                '"zigux/tests/phase14_ring_buffer_survey.zig"',
+                '"zigux/tests/phase14_ring_buffer_survey_drift.zig"',
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "missing shared smoke surface zigux/tests/phase14_ring_buffer_survey.zig",
+            "self-test expected missing manifest ring-buffer survey shared surface failure",
+        )
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
+
+        write_text(
+            root / SMOKE_MANIFEST_PATH,
+            good_smoke_manifest_text().replace(
                 '"zigux/tests/phase14_ring_buffer_manifest.json"',
                 '"zigux/tests/phase14_ring_buffer_manifest_drift.json"',
                 1,
@@ -955,7 +989,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=39")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=41")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
