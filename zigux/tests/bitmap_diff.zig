@@ -2,6 +2,7 @@ const std = @import("std");
 
 const bitmap_diff_source = @embedFile("bitmap_diff.zig");
 const manifest_source = @embedFile("phase4_bitmap_diff_manifest.json");
+const phase4_perf_baseline_manifest_source = @embedFile("phase4_perf_baseline_manifest.json");
 
 const Manifest = struct {
     lane_key: []const u8,
@@ -279,6 +280,26 @@ fn expectBlobShaShape(value: []const u8) !void {
         const is_digit = byte >= '0' and byte <= '9';
         const is_lower_hex = byte >= 'a' and byte <= 'f';
         try std.testing.expect(is_digit or is_lower_hex);
+    }
+}
+
+fn expectOrderedMarkersInSection(
+    haystack: []const u8,
+    section_header: []const u8,
+    section_footer: []const u8,
+    expected_markers: []const []const u8,
+) !void {
+    const section_start = std.mem.indexOf(u8, haystack, section_header) orelse
+        return error.MissingOrderedMarkerSectionHeader;
+    const section_end = std.mem.indexOfPos(u8, haystack, section_start, section_footer) orelse
+        return error.MissingOrderedMarkerSectionFooter;
+    const section = haystack[section_start..section_end];
+
+    var cursor: usize = 0;
+    for (expected_markers) |marker| {
+        const offset = std.mem.indexOfPos(u8, section, cursor, marker) orelse
+            return error.MissingOrderedSectionMarker;
+        cursor = offset + marker.len;
     }
 }
 
@@ -904,6 +925,72 @@ test "bitmap diff gate keeps rollback governance explicit" {
     try expectMarker(
         bitmap_diff_source,
         ".threshold_posture = \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\",",
+    );
+}
+
+test "bitmap diff gate keeps the local-only perf-baseline governance explicit" {
+    try expectMarker(
+        phase4_perf_baseline_manifest_source,
+        "\"decision_owner\": \"Validation and Perf Team\"",
+    );
+    try expectOrderedMarkersInSection(
+        phase4_perf_baseline_manifest_source,
+        "\"decision_owner\": \"Validation and Perf Team\"",
+        "\"shared_ci_perf_promotion_status\": \"pending\"",
+        &.{
+            "\"coordination_owners\": [",
+            "\"ABI and Runtime Team\"",
+            "\"Shared Subsystems Pod\"",
+        },
+    );
+    try expectMarker(
+        phase4_perf_baseline_manifest_source,
+        "\"shared_ci_perf_promotion_status\": \"pending\"",
+    );
+    try expectMarker(
+        phase4_perf_baseline_manifest_source,
+        "\"local_only_posture_note\": \"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\"",
+    );
+    try expectOrderedMarkersInSection(
+        phase4_perf_baseline_manifest_source,
+        "\"surface\": \"zigux/tests/bitmap_diff.zig\"",
+        "\"atomic64\": {",
+        &.{
+            "\"gate_owner\": \"Shared Subsystems Pod\"",
+            "\"gate_rollback_owner\": \"Shared Subsystems Pod\"",
+            "\"threshold_posture\": \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\"",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        phase4_perf_baseline_manifest_source,
+        "\"bitmap\": {",
+        "\"promotion_decision\": {",
+        &.{
+            "\"benchmark_command\": \"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\"",
+            "\"acceptable_limit_status\": \"approved_local_only\"",
+            "\"acceptable_limit_metric\": \"median_elapsed_ns\"",
+            "\"acceptable_limit_iterations\": 4",
+            "\"acceptable_limit_sample_count\": 7",
+            "\"acceptable_limit_max_elapsed_ns\": 12288",
+            "\"iterations\": 1",
+            "\"checksum\": 5216946504564592253",
+            "\"final_first_zero\": 109",
+            "\"iterations\": 4",
+            "\"checksum\": 7942141539243507472",
+            "\"final_first_zero\": 109",
+        },
+    );
+    try expectMarker(
+        phase4_perf_baseline_manifest_source,
+        "\"id\": \"phase4-perf-baseline-bitmap-command\"",
+    );
+    try expectMarker(
+        phase4_perf_baseline_manifest_source,
+        "\"id\": \"phase4-perf-baseline-bitmap-acceptable-limit\"",
+    );
+    try expectMarker(
+        phase4_perf_baseline_manifest_source,
+        "\"id\": \"phase4-perf-baseline-shared-promotion-decision\"",
     );
 }
 
