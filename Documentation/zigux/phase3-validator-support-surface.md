@@ -68,6 +68,10 @@ Phase 3 ABI and runtime tranche.
 - treat `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`,
   and `run-phase3-checks.py` as shipped helper entrypoints on current `master`,
   not as historical-only references
+- keep the shared validator fail-closed on the manifest-backed focused ABI gate
+  plus the paired `dev_t` starter companions whenever this note or the ABI
+  manifest moves, instead of assuming those already-landed boundary anchors are
+  still covered indirectly by the broader packet
 - keep `Documentation/zigux/phase3-validator-support-surface.md` paired with
   `scripts/zigux/validate-phase3-validator-support-surface.py`,
   `scripts/zigux/validate-phase3-linux-zigux-header-governance.py`,
