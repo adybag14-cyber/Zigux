@@ -54,6 +54,17 @@ pub fn byteValue(comptime label: []const u8, comptime actual: u8, comptime expec
     }
 }
 
+pub fn u32Value(comptime label: []const u8, comptime actual: u32, comptime expected: u32) void {
+    comptime {
+        if (actual != expected) {
+            @compileError(std.fmt.comptimePrint(
+                "{s} expected u32 value {d}, found {d}",
+                .{ label, expected, actual },
+            ));
+        }
+    }
+}
+
 fn assertThreeU32FieldLayout(
     comptime T: type,
     comptime first: []const u8,
@@ -103,6 +114,17 @@ pub fn assertInteropPolicyLayout() !void {
     fieldType(abi.InteropPolicy, "allocator_mode", u8);
     fieldType(abi.InteropPolicy, "unsafe_scope", u8);
     fieldType(abi.InteropPolicy, "reserved", u8);
+}
+
+pub fn assertNotifierBlockLayout() !void {
+    try size(abi.NotifierBlock, 24);
+    try alignment(abi.NotifierBlock, 8);
+    try offset(abi.NotifierBlock, "notifier_call", 0);
+    try offset(abi.NotifierBlock, "next", 8);
+    try offset(abi.NotifierBlock, "priority", 16);
+    fieldType(abi.NotifierBlock, "notifier_call", usize);
+    fieldType(abi.NotifierBlock, "next", usize);
+    fieldType(abi.NotifierBlock, "priority", i32);
 }
 
 pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() !void {
@@ -165,6 +187,12 @@ pub fn assertInteropPolicyModeValues() void {
     );
 }
 
+pub fn assertNotifierResultValues() void {
+    u32Value("notifier_result.done", @intFromEnum(abi.NotifierResult.done), abi.NOTIFIER_DONE);
+    u32Value("notifier_result.ok", @intFromEnum(abi.NotifierResult.ok), abi.NOTIFIER_OK);
+    u32Value("notifier_result.stop", @intFromEnum(abi.NotifierResult.stop), abi.NOTIFIER_STOP);
+}
+
 const CompatibilityAliasLayout = extern struct {
     first: u32,
     second: u16,
@@ -183,9 +211,11 @@ test "phase3 layout assertions cover canonical bindings" {
     try assertBoundaryHeaderLayout();
     try assertExportStatusLayout();
     try assertInteropPolicyLayout();
+    try assertNotifierBlockLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout();
     assertInteropPolicyModeValues();
+    assertNotifierResultValues();
 }
