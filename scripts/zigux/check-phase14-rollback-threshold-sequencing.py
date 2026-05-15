@@ -27,8 +27,9 @@ STATUS_BUCKET = "study_only"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 SMOKE_NOTE_SHARED_GUARD_MARKER = (
     "- `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, "
+    f"`{TESTS_README_CHECKER_PATH} --self-test`, "
     "`scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and "
-    "`scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside "
+    "`scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the four live checker invocations inside "
     "`make -C zigux phase14-validate`, while `scripts/zigux/validate-phase14.py` continues to rerun "
     f"`{TESTS_README_CHECKER_PATH}` inside that same validator-first route. That keeps all four dedicated Phase 14 "
     "drift guards on the shared contract path without implying a separate tests-readme make target that current `master` "
@@ -55,11 +56,12 @@ ROLLBACK_TRIGGER_MARKERS = [
 ]
 PARKED_NEXT_STEP_MARKER = (
     "Keep this core-adjacent lane parked unless a fresh Phase 14 validator-local or checker-local drift appears. "
-    "Current `master` already carries the restored scripts-root reminder and the validator exactness follow-through, "
+    "Current `master` already carries the restored scripts-root reminder, the validator exactness follow-through, "
+    "and the lane-narrowing update in `Documentation/zigux/phase14-core-boundary-traceability.md`, "
     "so the next same-lane reread should compare `scripts/zigux/README.md`, `scripts/zigux/validate-phase14.py`, "
-    "`Documentation/zigux/phase14-release-boundary-survey.md`, and `zigux/tests/phase14_end_to_end_smoke_manifest.json` "
-    "only when a new already-landed shared-packet marker needs dedicated checker coverage. All four anchor packets "
-    "remain parked on blocked or governance-only posture, so no anchor-local reopen is justified from this lane unless "
+    "`Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, "
+    "and `zigux/tests/phase14_end_to_end_smoke_manifest.json` only when a new already-landed shared-packet marker needs dedicated checker coverage. "
+    "All four anchor packets remain parked on blocked or governance-only posture, so no anchor-local reopen is justified from this lane unless "
     "a new shared-packet mismatch appears."
 )
 STALE_NEXT_STEP_MARKERS = [
