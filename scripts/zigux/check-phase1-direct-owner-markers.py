@@ -12,6 +12,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 
 REQUIRED_FILES = [
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
@@ -21,6 +22,10 @@ REQUIRED_FILES = [
 DOCS_ROOT_MARKERS = [
     "- `scripts/zigux/check-phase1-direct-owner-markers.py` also remains part of the live Phase 1 reminder packet beside `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` instead of leaving the helper-family owner map implicit from the lane note alone.",
     "- `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py` keep that owner-map replay explicit too: the self-test replays the bounded exact-count logic, while the live route guards the shipped Phase 1 direct-owner markers without widening the counted reminder packet.",
+]
+
+REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches that same Phase 1 companion packet, does the checklist still say clearly that `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test` replays the bounded checker logic while `python3 scripts/zigux/check-phase1-installer-companion-checks.py` guards the shipped Phase 1 reminder surfaces without widening the counted docs-root packet line that `scripts/zigux/validate-phase1.py` enforces?",
 ]
 
 DIRECT_OWNER_MARKERS = [
@@ -98,6 +103,15 @@ def collect_exact_count_markers(text: str, label: str, markers: list[str], *, ls
     return missing
 
 
+def collect_substring_count_markers(text: str, label: str, markers: list[str]) -> list[str]:
+    missing: list[str] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count != 1:
+            missing.append(f"{label}:{marker}:expected=1:actual={count}")
+    return missing
+
+
 def collect_manifest_next_safe_step_issues(root: Path) -> list[str]:
     manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
     try:
@@ -123,11 +137,19 @@ def collect_manifest_next_safe_step_issues(root: Path) -> list[str]:
 
 def collect_missing_markers(root: Path) -> list[str]:
     docs_root = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
+    review_checklist = (root / "Documentation/zigux/review-checklist.md").read_text(encoding="utf-8")
     lane_note = (root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md").read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
     missing: list[str] = []
     missing.extend(collect_exact_count_markers(docs_root, "phase1_direct_owner_docs_root", DOCS_ROOT_MARKERS))
+    missing.extend(
+        collect_substring_count_markers(
+            review_checklist,
+            "phase1_direct_owner_review_checklist",
+            REVIEW_CHECKLIST_MARKERS,
+        )
+    )
     missing.extend(collect_exact_count_markers(lane_note, "phase1_direct_owner_marker", DIRECT_OWNER_MARKERS))
     missing.extend(
         collect_exact_count_markers(
@@ -159,22 +181,18 @@ def collect_missing_markers(root: Path) -> list[str]:
 
 
 def make_fixture_root(root: Path) -> None:
+    for rel in REQUIRED_FILES:
+        path = root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("{}\n" if path.suffix == ".json" else "\n", encoding="utf-8")
+
     docs_root = root / "Documentation/zigux/README.md"
-    docs_root.parent.mkdir(parents=True, exist_ok=True)
-    docs_root.write_text(
-        "\n".join(
-            [
-                "# Zigux Documentation",
-                "",
-                *DOCS_ROOT_MARKERS,
-            ]
-        )
-        + "\n",
-        encoding="utf-8",
-    )
+    docs_root.write_text("\n".join(["# Zigux Documentation", "", *DOCS_ROOT_MARKERS]) + "\n", encoding="utf-8")
+
+    review_checklist = root / "Documentation/zigux/review-checklist.md"
+    review_checklist.write_text("\n".join(REVIEW_CHECKLIST_MARKERS) + "\n", encoding="utf-8")
 
     lane_note = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
-    lane_note.parent.mkdir(parents=True, exist_ok=True)
     lane_note.write_text(
         "\n".join(
             [
@@ -200,11 +218,9 @@ def make_fixture_root(root: Path) -> None:
     )
 
     makefile = root / "zigux/Makefile"
-    makefile.parent.mkdir(parents=True, exist_ok=True)
     makefile.write_text("\n".join(MAKEFILE_MARKERS) + "\n", encoding="utf-8")
 
     workflow = root / ".github/workflows/zigux-bootstrap.yml"
-    workflow.parent.mkdir(parents=True, exist_ok=True)
     workflow.write_text(
         "\n".join(
             [
@@ -222,7 +238,6 @@ def make_fixture_root(root: Path) -> None:
     )
 
     manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(
         json.dumps(
             {
@@ -255,6 +270,7 @@ def run_self_test() -> None:
         case_count += 1
 
         docs_root = root / "Documentation/zigux/README.md"
+        review_checklist = root / "Documentation/zigux/review-checklist.md"
         lane_note = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
         makefile = root / "zigux/Makefile"
         workflow = root / ".github/workflows/zigux-bootstrap.yml"
@@ -262,6 +278,11 @@ def run_self_test() -> None:
 
         docs_root.unlink()
         assert collect_missing_files(root) == ["Documentation/zigux/README.md"]
+        case_count += 1
+
+        make_fixture_root(root)
+        review_checklist.unlink()
+        assert collect_missing_files(root) == ["Documentation/zigux/review-checklist.md"]
         case_count += 1
 
         make_fixture_root(root)
@@ -319,6 +340,30 @@ def run_self_test() -> None:
                 docs_root,
                 docs_root_text,
                 "phase1_direct_owner_docs_root",
+                marker,
+                marker + "\n" + marker,
+                2,
+            )
+            case_count += 1
+
+        make_fixture_root(root)
+        review_checklist_text = review_checklist.read_text(encoding="utf-8")
+        for marker in REVIEW_CHECKLIST_MARKERS:
+            expect_missing_exact_count(
+                root,
+                review_checklist,
+                review_checklist_text,
+                "phase1_direct_owner_review_checklist",
+                marker,
+                "",
+                0,
+            )
+            case_count += 1
+            expect_missing_exact_count(
+                root,
+                review_checklist,
+                review_checklist_text,
+                "phase1_direct_owner_review_checklist",
                 marker,
                 marker + "\n" + marker,
                 2,
@@ -652,7 +697,7 @@ def main() -> int:
     print(f"PHASE1_DIRECT_OWNER_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_DIRECT_OWNER_REQUIRED_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(DIRECT_OWNER_MARKERS) + len(CURRENT_REPO_REALITY_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS) + len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(EXPECTED_MANIFEST_NEXT_SAFE_STEPS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(DIRECT_OWNER_MARKERS) + len(CURRENT_REPO_REALITY_MARKERS) + len(COMPANION_MARKERS) + len(NEXT_STEP_MARKERS) + len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(EXPECTED_MANIFEST_NEXT_SAFE_STEPS)}"
     )
     return 0
 
