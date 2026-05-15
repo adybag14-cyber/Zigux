@@ -41,3 +41,33 @@ test "phase11 hvc sysrq handoff keeps live execution out of scope" {
     try std.testing.expect(snapshot.invokes_sysrq_handler);
     try std.testing.expect(snapshot.keeps_live_sysrq_execution_out_of_scope);
 }
+
+test "phase11 hvc sysrq handoff falls back to literal bytes when no target vterm is present" {
+    const snapshot = summarizeSysrqHandoff(.{
+        .target_vtermno = null,
+        .byte = 'x',
+        .toggles_sysrq_mode = false,
+        .invokes_sysrq_handler = true,
+        .is_kernel_console = true,
+    });
+
+    try std.testing.expect(!snapshot.toggles_sysrq_mode);
+    try std.testing.expect(!snapshot.invokes_sysrq_handler);
+    try std.testing.expect(snapshot.falls_back_to_literal);
+    try std.testing.expect(snapshot.keeps_live_sysrq_execution_out_of_scope);
+}
+
+test "phase11 hvc sysrq handoff keeps non-kernel consoles on the literal fallback path" {
+    const snapshot = summarizeSysrqHandoff(.{
+        .target_vtermno = 7,
+        .byte = 0x0f,
+        .toggles_sysrq_mode = true,
+        .invokes_sysrq_handler = true,
+        .is_kernel_console = false,
+    });
+
+    try std.testing.expect(snapshot.toggles_sysrq_mode);
+    try std.testing.expect(!snapshot.invokes_sysrq_handler);
+    try std.testing.expect(snapshot.falls_back_to_literal);
+    try std.testing.expect(snapshot.keeps_live_sysrq_execution_out_of_scope);
+}
