@@ -188,6 +188,21 @@ test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact
     );
 }
 
+test "phase 8 perf-buffer poll helper keeps impossible post-wait buffer states rejected" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.TimeoutObservationHasReadyBuffer,
+        perf_buffer_poll.summarizePoll(0, .timed_out, &.{.{ .error_code = -5 }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.InterruptedObservationHasReadyBuffer,
+        perf_buffer_poll.summarizePoll(-1, .interrupted, &.{.{ .ready = true }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.FailedObservationHasBufferState,
+        perf_buffer_poll.summarizePoll(5, .{ .failed = -11 }, &.{.{ .error_code = -32 }}),
+    );
+}
+
 test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {
     const ready_execution = try perf_buffer_poll.summarizePollExecutionFromWaitResult(
         12,
