@@ -48,7 +48,7 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 4. `make -C zigux phase12`
 
-If `zig` is unavailable on `PATH`, keep the shipped degraded-workflow bundle plus that same smoke-first order explicit through the Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped PMO surface.
+If `zig` is unavailable on `PATH`, keep the shipped degraded-workflow bundle plus that same smoke-first order explicit through the Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped PMO surface.
 
 Keep the degraded-workflow checker pair explicit beside that same order too:
 - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
