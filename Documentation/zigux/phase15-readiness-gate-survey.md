@@ -67,7 +67,7 @@ Readiness here means:
 ## Remaining Gaps
 
 - `phase15-deep-core-status-change-blocker`: the parity-scorecard and stay-in-C governance packet still do not carry enough reviewed evidence to justify a freeze-map status change for the deep-core anchors
-- `phase15-shared-summaries-scripts-root-validator-route-drift`: the only live non-readiness drift remains the scripts-root `phase15-validate` undercount in `scripts/zigux/README.md` plus `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and that bounded repair belongs to shared-summary lane `P15-Y06`, not the `P15-L01` readiness lane
+- `phase15-shared-summaries-scripts-root-validator-route-drift`: the only live non-readiness drift remains the scripts-root `phase15-validate` undercount in `scripts/zigux/README.md` plus `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and that bounded repair belongs to shared-summary lane `P15-Y07`, not the `P15-L01` readiness lane
 - until those gaps change, the Phase 15 packet stays in governance maintenance mode only
 - `phase15-docs-root-summary-alignment` remains a required truthfulness check whenever broad Phase 15 summaries move, and `python3 scripts/zigux/check-phase15-docs-readme-alignment.py` is now the dedicated docs-root guard for that reread
 
