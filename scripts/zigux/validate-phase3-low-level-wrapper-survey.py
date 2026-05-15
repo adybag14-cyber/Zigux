@@ -32,6 +32,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_BOUNDARY_GAP=no-new-kernel-style-low-level-family-landed-beyond-current-atomic-barrier-and-direct-mmio-packet",
+    "PHASE3_SHARED_CONSUMER_RULE=consumer-only-policy-and-unsafe-drift-inside-the-focused-low-level-wrapper-replay-stays-with-the-adjacent-owner-packet",
     "PHASE3_NEXT_BOUNDED_STEP=keep-this-lane-limited-to-packet-local-survey-validator-or-build-surface-repairs-for-atomic-barrier-and-direct-mmio-ownership-only",
 )
 
@@ -274,6 +275,7 @@ def run_self_test() -> int:
 
         bad_cases = [
             (SURVEY_REL, REQUIRED_SURVEY_MARKERS[0], "missing_survey_marker"),
+            (SURVEY_REL, REQUIRED_SURVEY_MARKERS[10], "missing_survey_marker"),
             (SURVEY_REL, REQUIRED_SURVEY_SNIPPETS[0], "missing_survey_snippet"),
             (SURVEY_REL, REQUIRED_SURVEY_SNIPPETS[-1], "missing_survey_snippet"),
             (BUILD_REL, REQUIRED_BUILD_SNIPPETS[0], "missing_build_snippet"),
