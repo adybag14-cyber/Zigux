@@ -369,6 +369,25 @@ test "summarizeOnlineCpuRouting reports the first online CPU that outgrows the b
     );
 }
 
+test "summarizeOnlineCpuRouting keeps sparse missing-slot routing non-claiming when no buffer table exists" {
+    const summary = summarizeOnlineCpuRouting(
+        &.{ false, false, true, false, true },
+        0,
+        &.{},
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), summary.online_cpu_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.selected_cpu_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.routed_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 2), summary.first_routed_cpu_index);
+    try std.testing.expectEqual(@as(?usize, 2), summary.next_online_cpu_index);
+    try std.testing.expectEqual(@as(?usize, 0), summary.missing_buffer_index);
+    try std.testing.expectEqual(
+        OnlineCpuRoutingDisposition.missing_buffer_slot,
+        summary.disposition,
+    );
+}
+
 test "summarizeOnlineCpuRouting reports the first routed online CPU whose fd slot is empty" {
     const summary = summarizeOnlineCpuRouting(
         &.{ false, true, false, true, true },
