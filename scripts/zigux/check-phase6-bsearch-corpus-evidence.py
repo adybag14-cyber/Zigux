@@ -25,7 +25,7 @@ SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 
 
-FIXTURE_BASELINE = """const std = @import(\"std\");
+FIXTURE_BASELINE = """const std = @import("std");
 
 pub const representative_ascending_values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
 pub const representative_descending_values = [_]u32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
@@ -35,10 +35,10 @@ pub const representative_hit_queries = [_]u32{ 3, 21, 24, 39, 45 };
 pub const representative_miss_queries = [_]u32{ 1, 10, 26, 44, 50 };
 
 pub const sorted_symbols = [_][]const u8{
-    \"do_exit\",
-    \"kfree\",
-    \"kmalloc\",
-    \"schedule\",
+    "do_exit",
+    "kfree",
+    "kmalloc",
+    "schedule",
 };
 
 pub const RawRecord = extern struct {
@@ -71,7 +71,7 @@ pub fn rawQuerySeed(index: usize) u32 {
     return representative_miss_queries[index % representative_miss_queries.len];
 }
 
-test \"phase 6 bsearch vectors stay deterministic, sorted, and duplicate-aware\" {
+test "phase 6 bsearch vectors stay deterministic, sorted, and duplicate-aware" {
     try std.testing.expectEqual(@as(usize, 15), representative_ascending_values.len);
     try std.testing.expectEqual(@as(usize, 15), representative_descending_values.len);
     try std.testing.expectEqual(@as(usize, 15), representative_duplicate_values.len);
@@ -101,8 +101,25 @@ REQUIRED_SNIPPETS = {
         "pub fn equalRangeMutable(",
         "pub fn bsearchEqualRange(",
         "pub fn bsearchEqualRangeMutable(",
+        'test "search keeps native and C comparator pointer support"',
+        'test "range helpers keep native and C comparator pointer support"',
+        'test "searchMutable preserves write-through aliases"',
+        'test "raw search helpers keep pointer and mutable contracts"',
+        'test "raw range helpers keep native and C comparator pointer support"',
+        'test "raw comparator aliases accept native and C calling conventions"',
+        'test "C ABI comparators accept c_int return types with non-canonical signs"',
+        'test "typed and raw helpers support heterogeneous keys"',
+        'test "phase 6 bsearch keeps representative lookup work inside a binary-search budget"',
+        'test "phase 6 bsearch keeps descending lookup work inside a binary-search budget"',
+        'test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget"',
+        'test "phase 6 bsearch bounded typed and raw equality probes stay inside a binary-search budget"',
+        'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers"',
         'test "equalRange wrappers keep direct duplicate-span views"',
         'test "bsearchEqualRange wrappers keep raw duplicate-span views"',
+        'test "bsearch keeps comparison counts within a binary-search perf gate for hits and misses"',
+        'test "lower and upper bounds keep comparison counts inside a binary-search perf gate"',
+        'test "raw lower and upper bounds keep comparison counts inside a binary-search perf gate"',
+        'test "bsearch on an empty slice performs no comparisons"',
     ],
     TEST_PATH.as_posix(): [
         'const fixtures = @import("fixtures/phase6_bsearch_vectors.zig");',
@@ -535,6 +552,36 @@ def run_self_test() -> None:
         assert_failure(
             root,
             HELPER_PATH.as_posix(),
+            'test "searchMutable preserves write-through aliases"',
+            'test "searchMutable drift"',
+        )
+        assert_failure(
+            root,
+            HELPER_PATH.as_posix(),
+            'test "C ABI comparators accept c_int return types with non-canonical signs"',
+            'test "C ABI comparator drift"',
+        )
+        assert_failure(
+            root,
+            HELPER_PATH.as_posix(),
+            'test "typed and raw helpers support heterogeneous keys"',
+            'test "heterogeneous key drift"',
+        )
+        assert_failure(
+            root,
+            HELPER_PATH.as_posix(),
+            'test "bsearch keeps comparison counts within a binary-search perf gate for hits and misses"',
+            'test "bsearch perf gate drift"',
+        )
+        assert_failure(
+            root,
+            HELPER_PATH.as_posix(),
+            'test "bsearch on an empty slice performs no comparisons"',
+            'test "bsearch empty drift"',
+        )
+        assert_failure(
+            root,
+            HELPER_PATH.as_posix(),
             'test "equalRange wrappers keep direct duplicate-span views"',
             'test "equalRange wrappers drift"',
         )
@@ -543,12 +590,6 @@ def run_self_test() -> None:
             TEST_PATH.as_posix(),
             'const values = fixtures.representative_ascending_values;',
             'const values = drift.representative_ascending_values;',
-        )
-        assert_failure(
-            root,
-            TEST_PATH.as_posix(),
-            'const duplicates = fixtures.representative_duplicate_values;',
-            'const duplicates = fixtures.representative_duplicate_drift;',
         )
         assert_failure(
             root,
