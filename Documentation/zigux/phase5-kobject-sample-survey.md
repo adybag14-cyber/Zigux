@@ -76,6 +76,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or one of its dir
 - does the packet still keep the one-time `init()` rule explicit so a second `init()` returns `InvalidLifecycleTransition` without advancing `register_runs` or `exit_runs`?
 - do `runSingleInitBoundaryReplay()`, `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()` still describe the same bounded ownership-and-lifetime packet across the sample root, focused test, manifest, dedicated survey replay, and shared Phase 5 build route?
 - if a reminder surface mentions `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig`, did a fresh reread confirm whether the current public tree still carries those files instead of treating a connector-local `404` as repo absence?
+- if `zigux/tests/README.md` is refreshed for this sample packet, does it keep `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` framed as current public-tree-backed companion evidence rather than falling back to older gap wording?
 - shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too: `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
 - keep the directly reviewable packet explicit instead of collapsing back to the older narrower packet unless fresh repo readback truly drops the dedicated survey or shared build routes again
 
@@ -93,6 +94,7 @@ This note still does not claim:
 Leave this lane parked unless a fresh kobject reread changes one bounded fact inside the same packet:
 
 - authenticated contents readback starts returning `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` too, so the note can drop the connector-flakiness warning and treat the broader packet as both public-tree-backed and connector-readable
+- the shared tests-root reminder still describes `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig` as gaps and needs one more lane-local truthfulness repair
 - another shared reminder surface still undercounts the dedicated kobject survey replay or shared Phase 5 build route and needs one more lane-local truthfulness repair
 
 Do not widen that follow-up into sample behavior unless the sample-root file, focused test, manifest-backed contract, dedicated survey replay, or shared build route actually changes.
