@@ -65,7 +65,7 @@ test "phase13 landlock ruleset keeps matched-rule replacement planning pre-rb_re
 
 test "phase13 landlock ruleset manifest records the bounded security helper packet" {
     try expectContains(manifest_text, "\"lane_key\": \"P13-Y03\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-13\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-15\"");
     try expectContains(manifest_text, "\"anchor\": \"security/landlock/ruleset.c\"");
     try expectContains(manifest_text, "\"current_phase13_build_present\": false");
     try expectContains(manifest_text, "\"current_ruleset_zig_present\": true");
