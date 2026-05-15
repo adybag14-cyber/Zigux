@@ -123,10 +123,13 @@ def run_self_test() -> None:
         run_check(fixture_root)
 
         required_cases = [
+            (FILES["note"], MARKERS["note"][2]),
             (FILES["note"], MARKERS["note"][3]),
+            (FILES["note"], MARKERS["note"][4]),
             (FILES["note"], MARKERS["note"][5]),
             (FILES["note"], MARKERS["note"][6]),
             (FILES["note"], MARKERS["note"][7]),
+            (FILES["note"], MARKERS["note"][8]),
             (FILES["note"], MARKERS["note"][9]),
             (FILES["note"], MARKERS["note"][10]),
             (FILES["note"], MARKERS["note"][11]),
@@ -134,11 +137,14 @@ def run_self_test() -> None:
             (FILES["note"], "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`"),
             (FILES["note"], "`Documentation/zigux/phase11-hvc-console-slice.md`"),
             (FILES["note"], "`drivers/tty/hvc/hvc_console.zig`"),
+            (FILES["note"], "`drivers/tty/hvc/hvc_console_sysrq.zig`"),
             (FILES["closure_note"], MARKERS["closure_note"][2]),
+            (FILES["closure_note"], MARKERS["closure_note"][3]),
             (FILES["closure_note"], MARKERS["closure_note"][4]),
             (FILES["closure_note"], MARKERS["closure_note"][5]),
             (FILES["closure_note"], MARKERS["closure_note"][6]),
             (FILES["closure_note"], MARKERS["closure_note"][7]),
+            (FILES["lane_note"], MARKERS["lane_note"][1]),
             (FILES["lane_note"], MARKERS["lane_note"][2]),
             (FILES["lane_note"], MARKERS["lane_note"][3]),
             (FILES["lane_note"], MARKERS["lane_note"][4]),
