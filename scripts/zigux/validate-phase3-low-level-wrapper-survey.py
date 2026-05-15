@@ -180,7 +180,9 @@ REFERENCE_MARKERS = (
     (DOCS_ROOT_REL, "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     (DOCS_ROOT_REL, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     (SCRIPTS_README_REL, "validate-phase3-low-level-wrapper-survey.py"),
+    (SCRIPTS_README_REL, "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     (TESTS_README_REL, "validate-phase3-low-level-wrapper-survey.py"),
+    (TESTS_README_REL, "zigux/tests/phase3_low_level_wrappers.zig"),
     (MAKEFILE_REL, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     (MAKEFILE_REL, "phase3-low-level-wrappers-test:"),
     (MAKEFILE_REL, "phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"),
@@ -747,6 +749,46 @@ def run_self_test() -> int:
             return 1
 
         _write(root, ABI_MANIFEST_REL, "\n".join(grouped_markers[ABI_MANIFEST_REL]) + "\n")
+        _write(
+            root,
+            SCRIPTS_README_REL,
+            (root / SCRIPTS_README_REL).read_text(encoding="utf-8").replace(
+                "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue
+            == "missing_reference:scripts/zigux/README.md:Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing scripts-root low-level survey reference failure")
+            return 1
+
+        _write(root, SCRIPTS_README_REL, "\n".join(grouped_markers[SCRIPTS_README_REL]) + "\n")
+        _write(
+            root,
+            TESTS_README_REL,
+            (root / TESTS_README_REL).read_text(encoding="utf-8").replace(
+                "zigux/tests/phase3_low_level_wrappers.zig",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue
+            == "missing_reference:zigux/tests/README.md:zigux/tests/phase3_low_level_wrappers.zig"
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing tests-root low-level replay reference failure")
+            return 1
+
+        _write(root, TESTS_README_REL, "\n".join(grouped_markers[TESTS_README_REL]) + "\n")
         _write(
             root,
             SURVEY_REL,
