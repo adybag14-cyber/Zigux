@@ -42,6 +42,7 @@ TESTS_README_MARKERS = (
     "scripts/zigux/generate-phase3-check-wrappers.py --check",
     "scripts/zigux/run-phase3-checks.py --self-test",
     "scripts/zigux/phase3_catalog.py --audit-doc-sync",
+    "scripts/zigux/phase3_catalog.py --slug-sanity",
     "make -C zigux phase3-selftest",
 )
 TESTS_README_PHASE3_REMINDER_PREFIX = (
@@ -390,6 +391,26 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_CATALOG_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected tests README wrapper-check drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        broken_path.write_text(
+            _read(broken_path).replace(
+                "scripts/zigux/phase3_catalog.py --slug-sanity",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: "
+            "scripts/zigux/phase3_catalog.py --slug-sanity "
+            "(expected 1, found 0)"
+        )
+        if expected not in issues:
+            print("PHASE3_CATALOG_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected tests README slug-sanity drift was not reported")
             return 1
 
         _populate_repo(root)
