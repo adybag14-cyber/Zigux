@@ -4,6 +4,7 @@
   "repo_evidence": {
     "phase15_validator_script_present": true,
     "phase15_docs_readme_checker_present": true,
+    "phase15_shared_summary_checker_selftest_present": true,
     "phase15_validate_target_present": true,
     "phase15_test_target_present": true,
     "shared_ci_phase15_present": true,
