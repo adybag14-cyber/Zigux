@@ -234,6 +234,38 @@ test "phase 8 perf-buffer poll helper rejects inconsistent processing accounting
     );
 }
 
+test "phase 8 perf-buffer poll helper keeps ready-buffer processing budget failures explicit" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ReadyBufferProcessingExceedsObservedEvents,
+        perf_buffer_poll.summarizePollExecution(
+            5,
+            .{ .ready_events = 1 },
+            &.{.{ .ready = true }},
+            &.{
+                .{ .records_processed = 1 },
+                .{ .records_processed = 2 },
+            },
+        ),
+    );
+
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ReadyBufferProcessingExceedsReadyCount,
+        perf_buffer_poll.summarizePollExecution(
+            5,
+            .{ .ready_events = 3 },
+            &.{
+                .{ .ready = true },
+                .{},
+                .{ .error_code = -32 },
+            },
+            &.{
+                .{ .records_processed = 1 },
+                .{ .records_processed = 2 },
+            },
+        ),
+    );
+}
+
 test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {
     const buffer_fds = [_]?i32{ 9, null, 21 };
 
