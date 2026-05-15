@@ -99,6 +99,8 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(slice_note, "PHASE7_STATUS=starter_landed");
     try expectContains(slice_note, "expanded starter packet");
     try expectContains(slice_note, "Current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample");
+    try expectContains(slice_note, "leading whitespace skipping that stops at the first NUL");
+    try expectContains(slice_note, "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting");
     try expectNotContains(slice_note, "restored starter packet");
     try expectNotContains(slice_note, "missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
 
@@ -111,6 +113,8 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
+    try expectContains(helper_tests, "phase 7 string helpers starter covers whitespace trimming and prefix skipping");
+    try expectContains(helper_tests, "phase 7 string helpers starter formats bounded sizes with three significant figures");
     try expectContains(helper_tests, "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
@@ -119,6 +123,8 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     defer allocator.free(survey);
     try expectContains(survey, "phase 7 string helpers survey keeps the expanded starter packet truthful");
     try expectContains(survey, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(survey, "leading whitespace skipping that stops at the first NUL");
+    try expectContains(survey, "phase 7 string helpers starter formats bounded sizes with three significant figures");
     try expectNotContains(survey, "Documentation/zigux/review-checklist.md");
     try expectNotContains(survey, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
     try expectNotContains(survey, "zigux/tests/phase7_build.zig");
