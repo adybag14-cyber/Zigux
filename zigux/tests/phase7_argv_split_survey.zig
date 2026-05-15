@@ -223,7 +223,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_lane_note, "Documentation/zigux/phase7-argv-split-slice.md");
     try expectContains(helper_lane_note, "PHASE7_ARGV_SPLIT_LANE=P7-L09");
     try expectContains(helper_lane_note, "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09");
-    try expectContains(helper_lane_note, "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.");
+    try expectContains(helper_lane_note, "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, checker, or reminder drift.");
 
     try expectContains(docs_root, "Documentation/zigux/phase7-argv-split-slice.md");
     try expectContains(docs_root, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample");
