@@ -13,6 +13,7 @@ VERSION_RE = re.compile(r"^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(?:-dev
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 FALLBACK_MIN_VERSION = "0.16.0"
+EXPECTED_SELF_TEST_CASE_COUNT = 29
 
 
 @dataclass(frozen=True, order=True)
@@ -304,6 +305,7 @@ def run_self_test() -> int:
         "zig version command returned empty output",
     )
 
+    assert case_count == EXPECTED_SELF_TEST_CASE_COUNT
     print("ZIG_TOOLCHAIN_SELF_TEST=pass")
     print(f"ZIG_TOOLCHAIN_SELF_TEST_CASE_COUNT={case_count}")
     return 0
