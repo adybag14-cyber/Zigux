@@ -22,6 +22,7 @@ const Manifest = struct {
     roadmap_requirement: []const u8,
     anchor: []const u8,
     current_approval_state: []const u8,
+    directly_coupled_evidence_surfaces: []const []const u8,
     ownership_evidence_fields: []const []const u8,
     trigger_conditions: []const []const u8,
     required_review_packet_fields: []const []const u8,
@@ -60,6 +61,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
+    try std.testing.expectEqual(@as(usize, 6), manifest.directly_coupled_evidence_surfaces.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.ownership_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.trigger_conditions.len);
     try std.testing.expectEqual(@as(usize, 22), manifest.required_review_packet_fields.len);
@@ -67,6 +69,12 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
     try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.directly_coupled_evidence_surfaces[0]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", manifest.directly_coupled_evidence_surfaces[1]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.directly_coupled_evidence_surfaces[2]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", manifest.directly_coupled_evidence_surfaces[3]);
+    try std.testing.expectEqualStrings("Documentation/zigux/review-checklist.md", manifest.directly_coupled_evidence_surfaces[4]);
+    try std.testing.expectEqualStrings("zigux/tests/phase15_build.zig", manifest.directly_coupled_evidence_surfaces[5]);
     try std.testing.expectEqualStrings("owner", manifest.ownership_evidence_fields[0]);
     try std.testing.expectEqualStrings("required approver set", manifest.ownership_evidence_fields[1]);
     try std.testing.expectEqualStrings("rollback owner", manifest.ownership_evidence_fields[2]);
@@ -269,6 +277,8 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "PHASE15_LANE_KEY=P15-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-14`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "exact branch-head parity is not recorded") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Documentation/zigux/freeze-map.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Documentation/zigux/phase15-freeze-map-governance.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "no Architecture Council approval is currently recorded for a freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current review-process evidence is limited to named `owner`, `required approver set`, `rollback owner`, evidence archive, blocker-disposition, automatic-return-to-blocked-trigger, benchmark-notes, replay-command, rollback-threshold, retained-discussion-state, reopen-trigger, trigger-specific-evidence-refresh, `parity scorecard link or blocker record`, and indefinite-C-policy records") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires") != null);
