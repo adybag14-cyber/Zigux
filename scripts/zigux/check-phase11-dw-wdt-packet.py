@@ -76,6 +76,7 @@ MARKERS = {
         'test "phase11 dw_wdt verify keeps imported-running handoff and shared-clock fallback explicit" {',
         'test "phase11 dw_wdt verify keeps continued-heartbeat teardown and remove failure modes explicit" {',
         'test "phase11 dw_wdt verify keeps reset-backed teardown and remove cleanup distinct" {',
+        'test "phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit" {',
         "dw_wdt.RegistrationScaffoldState.blocked_missing_drvdata",
         "dw_wdt.TimerClockPath.blocked_no_timer_clock",
         "dw_wdt.ProbeTimeoutOrigin.blocked_missing_timer_clock",
