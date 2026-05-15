@@ -157,6 +157,7 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").writeText if False else None
         (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
             json.dumps(
                 {
@@ -173,6 +174,25 @@ def run_self_test() -> int:
         )
         issues = validate_fixture(root)
         assert "fixture:status:'open'" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": ["scripts/zigux/genksyms.zig"],
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert "fixture:zig_test_files:['scripts/zigux/genksyms.zig']" in issues
         case_count += 1
 
         build_self_test_root(root)
