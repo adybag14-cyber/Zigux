@@ -17,6 +17,8 @@ Key entrypoints
   * `zig build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig`
   * `make -C zigux phase4-runtime-atomic64-diff-survey`
   * `zigux/tests/bitmap_diff.zig`
+  * `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig`
+  * `make -C zigux phase4-bitmap-diff`
   * `zigux/tests/phase4_bitmap_live_helper_replay.zig`
   * `zigux/tests/phase4_bitmap_diff_manifest.json`
   * `zigux/tests/phase4_bitmap_diff_survey.zig`
