@@ -36,6 +36,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view");
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown");
     try expectContains(slice_note, "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit");
+    try expectContains(slice_note, "bounded memcpy-and-pad behavior that truncates long copies, pads short ones, and stays inside the provided source slice");
     try expectContains(slice_note, "in-place replacement behavior that stops at the first NUL");
     try expectContains(slice_note, "`stringEscapeMem()` keeps append-limited and dictionary-mode output accounting inside caller-owned storage");
     try expectContains(slice_note, "`stringEscapeMemAnyNp()`, `stringEscapeStr()`, and `stringEscapeStrAnyNp()` keep any-NP and first-NUL-bounded string-wrapper escaping inside caller-owned storage");
@@ -196,11 +197,13 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(survey, "leading whitespace skipping that stops at the first NUL");
     try expectContains(survey, "phase 7 string helpers starter formats bounded sizes with three significant figures");
     try expectContains(survey, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
-    try expectContains(survey, "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes");
-    try expectContains(survey, "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result");
-    try expectContains(survey, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
-    try expectContains(survey, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
+    try expectContains(survey, "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent");
     try expectContains(survey, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
+    try expectContains(survey, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
+    try expectContains(survey, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
+    try expectNotContains(survey, "Documentation/zigux/review-checklist.md");
+    try expectNotContains(survey, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
+    try expectNotContains(survey, "zigux/tests/phase7_build.zig");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
