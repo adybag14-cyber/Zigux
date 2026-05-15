@@ -164,8 +164,10 @@ BOUNDARY_NOTE_NEXT_STEP_MARKERS = {
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py": 1,
 }
 
+
 def load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def load_manifest(path: Path) -> list[str] | str:
     try:
@@ -177,6 +179,7 @@ def load_manifest(path: Path) -> list[str] | str:
         return "invalid ABI manifest files list"
     return files
 
+
 def extract_section(text: str, heading: str, next_heading: str | None) -> str | None:
     if heading not in text:
         return None
@@ -186,6 +189,7 @@ def extract_section(text: str, heading: str, next_heading: str | None) -> str | 
     elif next_heading is None and "\n## " in section:
         section = section.split("\n## ", 1)[0]
     return section
+
 
 def replace_in_section(text: str, heading: str, next_heading: str | None, old: str, new: str = "") -> str:
     prefix, marker, suffix = text.partition(heading)
@@ -197,6 +201,7 @@ def replace_in_section(text: str, heading: str, next_heading: str | None, old: s
         section, next_marker, tail = suffix.partition(next_heading)
     return prefix + marker + section.replace(old, new, 1) + next_marker + tail
 
+
 def check_marker_counts(section: str | None, marker_counts: dict[str, int], label: str, missing_message: str) -> list[str]:
     if section is None:
         return [missing_message]
@@ -207,11 +212,13 @@ def check_marker_counts(section: str | None, marker_counts: dict[str, int], labe
             issues.append(f"{label} marker count drift: {marker} (expected {expected_count}, found {actual_count})")
     return issues
 
+
 def expand_marker_counts(marker_counts: dict[str, int]) -> list[str]:
     expanded: list[str] = []
     for marker, count in marker_counts.items():
         expanded.extend([marker] * count)
     return expanded
+
 
 def validate_text(text: str) -> list[str]:
     issues = [f"missing marker: {marker}" for marker in REQUIRED_MARKERS if marker not in text]
@@ -220,11 +227,13 @@ def validate_text(text: str) -> list[str]:
     issues.extend(check_marker_counts(extract_section(text, "## Shared reminder", None), SHARED_REMINDER_MARKERS, "shared reminder", "missing shared reminder section"))
     return issues
 
+
 def validate_boundary_note_text(text: str) -> list[str]:
     issues: list[str] = []
     issues.extend(check_marker_counts(extract_section(text, "## Current landed surface", "## Next bounded step"), BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS, "boundary note current surface", "boundary note missing section: ## Current landed surface"))
     issues.extend(check_marker_counts(extract_section(text, "## Next bounded step", "## Non-goals"), BOUNDARY_NOTE_NEXT_STEP_MARKERS, "boundary note next-step", "boundary note missing section: ## Next bounded step"))
     return issues
+
 
 def validate_manifest(repo_root: Path) -> list[str]:
     manifest_path = repo_root / ABI_MANIFEST_PATH
@@ -239,6 +248,7 @@ def validate_manifest(repo_root: Path) -> list[str]:
             issues.append(f"missing ABI manifest entry: {rel_path}")
     return issues
 
+
 def validate_repo(repo_root: Path) -> list[str]:
     note_path = repo_root / NOTE_PATH
     if not note_path.is_file():
@@ -252,9 +262,11 @@ def validate_repo(repo_root: Path) -> list[str]:
     issues.extend(validate_manifest(repo_root))
     return issues
 
+
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
 
 def sample_note_text() -> str:
     current_packet_lines = expand_marker_counts(CURRENT_PACKET_MARKERS)
@@ -267,6 +279,7 @@ def sample_note_text() -> str:
     sample += "\n## Non-goals\n- stub\n"
     sample += "\n## Shared reminder\n" + "\n".join(shared_reminder_lines)
     return sample
+
 
 def sample_boundary_note_text() -> str:
     next_step_markers = [
@@ -285,10 +298,12 @@ def sample_boundary_note_text() -> str:
     sample += "\n## Non-goals\n- stub\n"
     return sample
 
+
 def sample_manifest_text(files: list[str] | None = None) -> str:
     manifest_files = list(MANIFEST_REQUIRED_FILES) if files is None else files
     payload = {"phase": "Phase 3", "status": "active", "slice": "abi-substrate-skeleton", "file_count": len(manifest_files), "files": manifest_files}
     return json.dumps(payload, indent=2) + "\n"
+
 
 def run_self_test() -> int:
     note_sample = sample_note_text()
@@ -342,6 +357,16 @@ def run_self_test() -> int:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected boundary-note current-surface drift was not reported")
         return 1
+    issues = validate_boundary_note_text(boundary_sample.replace("zigux/uapi/version.zig", "", 1))
+    if not any("zigux/uapi/version.zig" in issue for issue in issues):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected boundary-note current-surface version companion drift was not reported")
+        return 1
+    issues = validate_boundary_note_text(boundary_sample.replace("zigux/uapi/dev_t.zig", "", 1))
+    if not any("zigux/uapi/dev_t.zig" in issue for issue in issues):
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print("expected boundary-note current-surface dev_t companion drift was not reported")
+        return 1
     issues = validate_boundary_note_text(boundary_sample.replace("scripts/zigux/check-phase3-abi.py", "", 1))
     if not any("scripts/zigux/check-phase3-abi.py" in issue for issue in issues):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
@@ -378,6 +403,7 @@ def run_self_test() -> int:
     print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, default=Path("."), help="repository root that contains Documentation/zigux/")
@@ -392,6 +418,7 @@ def main() -> int:
         return 1
     print(f"validated {args.repo_root / NOTE_PATH}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
