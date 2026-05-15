@@ -160,8 +160,12 @@ test "phase13 landlock syscalls manifest records the bounded syscall helper pack
     try expectContains(manifest_text, "\"preexisting_phase13_landlock_syscalls_reviewability_present\": true");
     try expectContains(manifest_text, "\"id\": \"phase13-build-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-landlock-syscalls-helper-starter\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-landlock-syscalls-slice-note\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-landlock-syscalls-governance-note\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-landlock-syscalls-survey-note\"");
     try expectContains(manifest_text, "\"id\": \"phase13-landlock-syscalls-direct-test-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-landlock-syscalls-reviewability-gate\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-landlock-syscalls-manifest\"");
     try expectContains(manifest_text, "\"id\": \"phase13-landlock-live-fd-installation\"");
     try expectContains(manifest_text, "\"id\": \"phase13-landlock-live-credential-state\"");
     try expectContains(manifest_text, "\"id\": \"phase13-landlock-live-ruleset-state\"");
@@ -173,4 +177,6 @@ test "phase13 landlock syscalls manifest records the bounded syscall helper pack
     try expectContains(manifest_text, "create-ruleset planning");
     try expectContains(manifest_text, "anon_inode_getfd()");
     try expectContains(manifest_text, "ruleset_fops");
+    try expectContains(manifest_text, "fixture-free posture");
+    try expectContains(manifest_text, "packet inventory stays fail-closed");
 }
