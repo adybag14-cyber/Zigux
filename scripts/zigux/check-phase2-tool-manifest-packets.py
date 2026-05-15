@@ -508,7 +508,7 @@ PHASE2_REVIEW_NOTES_EXACT_COUNTS = {
     PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS[0]: 1,
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 28
+EXPECTED_SELF_TEST_CASE_COUNT = 31
 
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -926,22 +926,23 @@ def run_self_test() -> int:
         )
         case_count += 1
 
-        build_self_test_root(root)
-        closure_doc = root / PHASE2_CLOSURE_DOC_RELATIVE_PATH
-        closure_doc.write_text(
-            closure_doc.read_text(encoding="utf-8").replace(
-                f"- {PHASE2_CLOSURE_PACKET_MARKERS[1]}\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_root(root)
-        assert (
-            f"missing_marker:{PHASE2_CLOSURE_DOC_RELATIVE_PATH}:closure_packet:{PHASE2_CLOSURE_PACKET_MARKERS[1]}"
-            in issues
-        )
-        case_count += 1
+        for marker_index in (0, 1, 2, 3):
+            build_self_test_root(root)
+            closure_doc = root / PHASE2_CLOSURE_DOC_RELATIVE_PATH
+            closure_doc.write_text(
+                closure_doc.read_text(encoding="utf-8").replace(
+                    f"- {PHASE2_CLOSURE_PACKET_MARKERS[marker_index]}\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            issues = validate_root(root)
+            assert (
+                f"missing_marker:{PHASE2_CLOSURE_DOC_RELATIVE_PATH}:closure_packet:{PHASE2_CLOSURE_PACKET_MARKERS[marker_index]}"
+                in issues
+            )
+            case_count += 1
 
         build_self_test_root(root)
         closure_doc = root / PHASE2_CLOSURE_DOC_RELATIVE_PATH
