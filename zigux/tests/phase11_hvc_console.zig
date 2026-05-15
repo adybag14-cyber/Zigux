@@ -75,6 +75,31 @@ test "phase11 hvc console keeps notifier handoff boundaries reviewable" {
     try std.testing.expect(targetless.keeps_live_notifier_execution_out_of_scope);
 }
 
+test "phase11 hvc console keeps hangup-disconnect teardown boundaries reviewable" {
+    const active_hangup = console.summarizeHangupDisconnect(.{
+        .tty_resize_cancelled = true,
+        .stale_count_short_circuit = false,
+        .buffered_write_cleared = true,
+        .notifier_hangup_boundary = true,
+    });
+    const stale_hangup = console.summarizeHangupDisconnect(.{
+        .tty_resize_cancelled = true,
+        .stale_count_short_circuit = true,
+        .buffered_write_cleared = true,
+        .notifier_hangup_boundary = true,
+    });
+
+    try std.testing.expect(active_hangup.tty_resize_cancelled);
+    try std.testing.expect(!active_hangup.stale_count_short_circuit);
+    try std.testing.expect(active_hangup.buffered_write_cleared);
+    try std.testing.expect(active_hangup.notifier_hangup_boundary);
+
+    try std.testing.expect(stale_hangup.tty_resize_cancelled);
+    try std.testing.expect(stale_hangup.stale_count_short_circuit);
+    try std.testing.expect(!stale_hangup.buffered_write_cleared);
+    try std.testing.expect(!stale_hangup.notifier_hangup_boundary);
+}
+
 test "phase11 hvc console keeps remove-path teardown ordering reviewable" {
     const attached_remove = console.summarizeRemoveHandoff(.{
         .console_lock_slot_cleared = true,
