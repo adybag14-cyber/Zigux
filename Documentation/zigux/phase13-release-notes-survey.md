@@ -16,6 +16,7 @@ The current Phase 13 packet stays centered on four roadmap-owned helper families
 
 Broad summaries should keep the active shared-helper release handle visible through:
 - `Documentation/zigux/README.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
