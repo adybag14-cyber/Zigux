@@ -214,6 +214,7 @@ def run_self_test() -> int:
             (EXEC_CMD_SOURCE_PATH, 'test "execCmdInit and setArgvExecPath propagate the expected environment keys" {'),
             (EXEC_CMD_SOURCE_PATH, 'test "setupPathWithPwd reuses the logical PWD only when the injected identities match" {'),
             (EXEC_CMD_SOURCE_PATH, 'test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {'),
+            (EXEC_CMD_SOURCE_PATH, 'test "buildDeferredExecvCall keeps the execv handoff pure and launch-free" {'),
         )
         for rel_path, marker in mutations:
             case_root = Path(tmp) / f"case_{cases}"
