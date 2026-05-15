@@ -184,6 +184,7 @@ test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery p
             saw_io_map_recovery = true;
             try std.testing.expectEqualStrings("landed_on_master", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recoveryEventBufferOwnershipSummary()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recoveryRequestQueueRestoreSummary()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recoveryHostScanSummary()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-repeated-rollback-gate")) {
@@ -237,6 +238,7 @@ test "phase12 virtio scsi survey note stays aligned with the bounded queue-and-r
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "captureIoQueueMapSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryQueuePlan()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryEventBufferOwnershipSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryRequestQueueRestoreSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryHostScanSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_virtio_scsi_repeated_rollback_gate.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "second-cycle rollback contract") != null);
