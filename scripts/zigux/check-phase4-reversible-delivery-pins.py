@@ -15,6 +15,9 @@ NOTE_REL = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 MAKEFILE_REL = Path("zigux/Makefile")
 CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SEQUENCING_REL = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
+PERF_CHECKER_REL = Path("scripts/zigux/check-phase4-perf-baseline-packet.py")
+PERF_MANIFEST_REL = Path("zigux/tests/phase4_perf_baseline_manifest.json")
+PERF_SURVEY_REL = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 
 REQUIRED_STATUS_MARKERS = [
     "PHASE4_REVERSIBLE_DELIVERY_STATUS=shared_evidence_packet_landed",
@@ -26,6 +29,9 @@ REQUIRED_STATUS_MARKERS = [
     "PHASE4_REVERSIBLE_DELIVERY_MAKEFILE_BLOB_SHA=",
     "PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=",
     "PHASE4_REVERSIBLE_DELIVERY_SEQUENCING_NOTE_BLOB_SHA=",
+    "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_CHECKER_BLOB_SHA=",
+    "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_MANIFEST_BLOB_SHA=",
+    "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA=",
     "PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true",
     "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=",
 ]
@@ -35,6 +41,9 @@ REQUIRED_PROSE_MARKERS = [
     "`zigux/Makefile`",
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/phase4-validation-lane-sequencing.md`",
+    "`scripts/zigux/check-phase4-perf-baseline-packet.py`",
+    "`zigux/tests/phase4_perf_baseline_manifest.json`",
+    "`zigux/tests/phase4_perf_baseline_survey.zig`",
     "repair the shared exact-readback packet first.",
     "repair the dedicated local-only perf packet first.",
 ]
@@ -45,9 +54,15 @@ SELF_TEST_CASES = [
     "missing_makefile_file",
     "missing_review_checklist_file",
     "missing_sequencing_note_file",
+    "missing_local_perf_checker_file",
+    "missing_local_perf_manifest_file",
+    "missing_local_perf_survey_file",
     "makefile_blob_pin_drift",
     "review_checklist_blob_pin_drift",
     "sequencing_note_blob_pin_drift",
+    "local_perf_checker_blob_pin_drift",
+    "local_perf_manifest_blob_pin_drift",
+    "local_perf_survey_blob_pin_drift",
     "missing_checker_presence_marker",
 ]
 
@@ -77,9 +92,20 @@ def validate_root(root: Path) -> list[str]:
     makefile_path = root / MAKEFILE_REL
     checklist_path = root / CHECKLIST_REL
     sequencing_path = root / SEQUENCING_REL
+    perf_checker_path = root / PERF_CHECKER_REL
+    perf_manifest_path = root / PERF_MANIFEST_REL
+    perf_survey_path = root / PERF_SURVEY_REL
 
     failures: list[str] = []
-    for path in (note_path, makefile_path, checklist_path, sequencing_path):
+    for path in (
+        note_path,
+        makefile_path,
+        checklist_path,
+        sequencing_path,
+        perf_checker_path,
+        perf_manifest_path,
+        perf_survey_path,
+    ):
         if not path.exists():
             failures.append(f"missing_file:{path.relative_to(root).as_posix()}")
     if failures:
@@ -114,6 +140,27 @@ def validate_root(root: Path) -> list[str]:
     )
     if expected_sequencing_line not in note_text:
         failures.append(f"sequencing_note_blob_pin:{expected_sequencing_line}")
+
+    expected_perf_checker_line = (
+        "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_CHECKER_BLOB_SHA="
+        + git_blob_sha1(perf_checker_path.read_bytes())
+    )
+    if expected_perf_checker_line not in note_text:
+        failures.append(f"local_perf_checker_blob_pin:{expected_perf_checker_line}")
+
+    expected_perf_manifest_line = (
+        "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_MANIFEST_BLOB_SHA="
+        + git_blob_sha1(perf_manifest_path.read_bytes())
+    )
+    if expected_perf_manifest_line not in note_text:
+        failures.append(f"local_perf_manifest_blob_pin:{expected_perf_manifest_line}")
+
+    expected_perf_survey_line = (
+        "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA="
+        + git_blob_sha1(perf_survey_path.read_bytes())
+    )
+    if expected_perf_survey_line not in note_text:
+        failures.append(f"local_perf_survey_blob_pin:{expected_perf_survey_line}")
 
     exact_case_count_line = (
         "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT="
@@ -160,10 +207,47 @@ def build_fixture_tree(root: Path) -> None:
             ]
         ),
     )
+    write_text(
+        root / PERF_CHECKER_REL,
+        "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                'print("phase4 perf packet")',
+                "",
+            ]
+        ),
+    )
+    write_text(
+        root / PERF_MANIFEST_REL,
+        "\n".join(
+            [
+                "{",
+                '  "lane_key": "P4-L20"',
+                "}",
+                "",
+            ]
+        ),
+    )
+    write_text(
+        root / PERF_SURVEY_REL,
+        "\n".join(
+            [
+                'const std = @import("std");',
+                "",
+                'test "phase4 perf baseline survey fixture" {',
+                "    _ = std.testing.allocator;",
+                "}",
+                "",
+            ]
+        ),
+    )
 
     makefile_sha = git_blob_sha1((root / MAKEFILE_REL).read_bytes())
     checklist_sha = git_blob_sha1((root / CHECKLIST_REL).read_bytes())
     sequencing_sha = git_blob_sha1((root / SEQUENCING_REL).read_bytes())
+    perf_checker_sha = git_blob_sha1((root / PERF_CHECKER_REL).read_bytes())
+    perf_manifest_sha = git_blob_sha1((root / PERF_MANIFEST_REL).read_bytes())
+    perf_survey_sha = git_blob_sha1((root / PERF_SURVEY_REL).read_bytes())
     write_text(
         root / NOTE_REL,
         "\n".join(
@@ -180,11 +264,14 @@ def build_fixture_tree(root: Path) -> None:
                 f"- `PHASE4_REVERSIBLE_DELIVERY_MAKEFILE_BLOB_SHA={makefile_sha}`",
                 f"- `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA={checklist_sha}`",
                 f"- `PHASE4_REVERSIBLE_DELIVERY_SEQUENCING_NOTE_BLOB_SHA={sequencing_sha}`",
+                f"- `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_CHECKER_BLOB_SHA={perf_checker_sha}`",
+                f"- `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_MANIFEST_BLOB_SHA={perf_manifest_sha}`",
+                f"- `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA={perf_survey_sha}`",
                 "- `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
                 f"- `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}`",
                 "",
                 "## Current Packet",
-                "- `scripts/zigux/check-phase4-reversible-delivery-pins.py` keeps the `zigux/Makefile`, `Documentation/zigux/review-checklist.md`, and `Documentation/zigux/phase4-validation-lane-sequencing.md` blob pins exact inside this handoff note.",
+                "- `scripts/zigux/check-phase4-reversible-delivery-pins.py` keeps the `zigux/Makefile`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` blob pins exact inside this handoff note.",
                 "",
                 "## Review Rules",
                 "- If the rollback-owner map drifts, repair the shared exact-readback packet first.",
@@ -239,6 +326,30 @@ def run_self_test() -> int:
         if not expect_failure(root, f"missing_file:{SEQUENCING_REL.as_posix()}"):
             print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
             print("missing sequencing note case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        (root / PERF_CHECKER_REL).unlink()
+        if not expect_failure(root, f"missing_file:{PERF_CHECKER_REL.as_posix()}"):
+            print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
+            print("missing local perf checker case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        (root / PERF_MANIFEST_REL).unlink()
+        if not expect_failure(root, f"missing_file:{PERF_MANIFEST_REL.as_posix()}"):
+            print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
+            print("missing local perf manifest case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        (root / PERF_SURVEY_REL).unlink()
+        if not expect_failure(root, f"missing_file:{PERF_SURVEY_REL.as_posix()}"):
+            print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
+            print("missing local perf survey case did not fail closed")
             return 1
         case_count += 1
         build_fixture_tree(root)
@@ -310,6 +421,78 @@ def run_self_test() -> int:
         case_count += 1
         build_fixture_tree(root)
 
+        note_text = read_text(note_path)
+        perf_checker_text = read_text(root / PERF_CHECKER_REL)
+        drifted_perf_checker_sha = git_blob_sha1(
+            (perf_checker_text + "# drift\n").encode("utf-8")
+        )
+        note_path.write_text(
+            replace_once(
+                note_text,
+                "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_CHECKER_BLOB_SHA="
+                + git_blob_sha1(perf_checker_text.encode("utf-8")),
+                f"PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_CHECKER_BLOB_SHA={drifted_perf_checker_sha}",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            "local_perf_checker_blob_pin:PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_CHECKER_BLOB_SHA=",
+        ):
+            print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
+            print("local perf checker blob pin drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        note_text = read_text(note_path)
+        perf_manifest_text = read_text(root / PERF_MANIFEST_REL)
+        drifted_perf_manifest_sha = git_blob_sha1(
+            (perf_manifest_text + "# drift\n").encode("utf-8")
+        )
+        note_path.write_text(
+            replace_once(
+                note_text,
+                "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_MANIFEST_BLOB_SHA="
+                + git_blob_sha1(perf_manifest_text.encode("utf-8")),
+                f"PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_MANIFEST_BLOB_SHA={drifted_perf_manifest_sha}",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            "local_perf_manifest_blob_pin:PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_MANIFEST_BLOB_SHA=",
+        ):
+            print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
+            print("local perf manifest blob pin drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        note_text = read_text(note_path)
+        perf_survey_text = read_text(root / PERF_SURVEY_REL)
+        drifted_perf_survey_sha = git_blob_sha1(
+            (perf_survey_text + "// drift\n").encode("utf-8")
+        )
+        note_path.write_text(
+            replace_once(
+                note_text,
+                "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA="
+                + git_blob_sha1(perf_survey_text.encode("utf-8")),
+                f"PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA={drifted_perf_survey_sha}",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            "local_perf_survey_blob_pin:PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA=",
+        ):
+            print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
+            print("local perf survey blob pin drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
         note_path.write_text(
             replace_once(
                 read_text(note_path),
@@ -365,7 +548,7 @@ def main() -> int:
         return 1
 
     print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK=pass")
-    print("PHASE4_REVERSIBLE_DELIVERY_PIN_FILE_COUNT=4")
+    print("PHASE4_REVERSIBLE_DELIVERY_PIN_FILE_COUNT=7")
     return 0
 
 
