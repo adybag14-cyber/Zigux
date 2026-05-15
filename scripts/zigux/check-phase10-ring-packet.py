@@ -194,6 +194,24 @@ EXPECTED_GAPS = {
     "phase10-virtio-ring-slice-note": "starter_landed",
     "phase10-ring-lab-driver-bridge": "blocked_on_risky_transport",
 }
+EXPECTED_GAP_DESTINATIONS = {
+    "phase10-build-gate": "zigux/tests/phase10_build.zig",
+    "phase10-virtio-core-lab-starter": "drivers/virtio/virtio.zig",
+    "phase10-virtio-ring-survey-gate": "zigux/tests/phase10_virtio_ring_survey.zig",
+    "phase10-virtio-ring-survey-note": "Documentation/zigux/phase10-virtio-ring-survey.md",
+    "phase10-virtqueue-shape-helper": "drivers/virtio/virtio_ring.zig",
+    "phase10-used-buffer-polling-helper": "drivers/virtio/virtio_ring.zig",
+    "phase10-callback-enable-helper": "drivers/virtio/virtio_ring.zig",
+    "phase10-callback-delay-helper": "drivers/virtio/virtio_ring.zig",
+    "phase10-notify-prepare-helper": "drivers/virtio/virtio_ring.zig",
+    "phase10-notification-data-summary-helper": "drivers/virtio/virtio_ring.zig",
+    "phase10-broken-queue-poll-guard": "drivers/virtio/virtio_ring.zig",
+    "phase10-queue-reset-helper": "drivers/virtio/virtio_ring.zig",
+    "phase10-queue-reset-readiness-helper": "drivers/virtio/virtio_ring.zig",
+    "phase10-ring-verify-replay": "drivers/virtio/virtio_ring_verify.zig",
+    "phase10-virtio-ring-slice-note": "Documentation/zigux/phase10-virtio-ring-slice.md",
+    "phase10-ring-lab-driver-bridge": "drivers/virtio/virtio_mmio.zig",
+}
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -241,6 +259,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             continue
         if gap.get("status") != status:
             missing_markers.append(f"manifest:gap_status:{gap_id}={gap.get('status')!r}")
+        expected_destination = EXPECTED_GAP_DESTINATIONS[gap_id]
+        if gap.get("zigux_destination") != expected_destination:
+            missing_markers.append(
+                f"manifest:gap_destination:{gap_id}={gap.get('zigux_destination')!r}"
+            )
 
     return missing_files, missing_markers
 
@@ -276,7 +299,14 @@ def build_fixture() -> dict[str, str]:
             "architecture_council_reopen_required": True,
             "architecture_council_reopen_attached": False,
             "survey_summary": EXPECTED_SUMMARY,
-            "gaps": [{"id": gap_id, "status": status} for gap_id, status in EXPECTED_GAPS.items()],
+            "gaps": [
+                {
+                    "id": gap_id,
+                    "status": status,
+                    "zigux_destination": EXPECTED_GAP_DESTINATIONS[gap_id],
+                }
+                for gap_id, status in EXPECTED_GAPS.items()
+            ],
         },
         indent=2,
     ) + "\n"
@@ -405,6 +435,28 @@ def run_self_test() -> int:
         run_manifest_case(
             lambda manifest: manifest["gaps"].__setitem__(2, {"id": "phase10-virtio-ring-survey-gate", "status": "starter_landed"}),
             "manifest:gap_status:phase10-virtio-ring-survey-gate='starter_landed'",
+        )
+        run_manifest_case(
+            lambda manifest: manifest["gaps"].__setitem__(
+                4,
+                {
+                    "id": "phase10-virtqueue-shape-helper",
+                    "status": "contents_bridge_gap",
+                    "zigux_destination": "drivers/virtio/virtio_ring_drift.zig",
+                },
+            ),
+            "manifest:gap_destination:phase10-virtqueue-shape-helper='drivers/virtio/virtio_ring_drift.zig'",
+        )
+        run_manifest_case(
+            lambda manifest: manifest["gaps"].__setitem__(
+                15,
+                {
+                    "id": "phase10-ring-lab-driver-bridge",
+                    "status": "blocked_on_risky_transport",
+                    "zigux_destination": "drivers/virtio/virtio_probe_bridge.zig",
+                },
+            ),
+            "manifest:gap_destination:phase10-ring-lab-driver-bridge='drivers/virtio/virtio_probe_bridge.zig'",
         )
         run_manifest_case(
             lambda manifest: manifest.__setitem__("allowed_evidence_kinds", ["driver_local_lab_slices"]),
