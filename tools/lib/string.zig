@@ -782,3 +782,31 @@ test "strnchr honors count and C-string boundaries" {
     try std.testing.expectEqual(@as(?usize, 2), strnchr(&cstr, cstr.len, 0));
     try std.testing.expectEqual(@as(?usize, null), strnchr(&cstr, 2, 0));
 }
+
+pub fn strnchrNul(buf: []const u8, count: usize, needle: u8) usize {
+    const scan_len = @min(count, buf.len);
+    var idx: usize = 0;
+    while (idx < scan_len) : (idx += 1) {
+        const ch = buf[idx];
+        if (ch == needle or ch == 0) {
+            return idx;
+        }
+    }
+    return scan_len;
+}
+
+pub fn strnchrnul(buf: []const u8, count: usize, needle: u8) usize {
+    return strnchrNul(buf, count, needle);
+}
+
+test "strnchrNul returns the first match, NUL, or count boundary" {
+    try std.testing.expectEqual(@as(usize, 1), strnchrNul("abcd", 4, 'b'));
+    try std.testing.expectEqual(@as(usize, 4), strnchrNul("abcd", 4, 'z'));
+    try std.testing.expectEqual(@as(usize, 2), strnchrNul("abcd", 2, 'z'));
+
+    const cstr = [_]u8{ 'a', 'b', 0, 'c', 'b' };
+    try std.testing.expectEqual(@as(usize, 1), strnchrNul(&cstr, cstr.len, 'b'));
+    try std.testing.expectEqual(@as(usize, 2), strnchrNul(&cstr, cstr.len, 'c'));
+    try std.testing.expectEqual(@as(usize, 2), strnchrNul(&cstr, cstr.len, 0));
+    try std.testing.expectEqual(@as(usize, 2), strnchrnul(&cstr, cstr.len, 'z'));
+}
