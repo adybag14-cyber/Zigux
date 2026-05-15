@@ -7,7 +7,7 @@ fn readRepoFile(path: []const u8) ![]u8 {
         io,
         path,
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
 }
 
