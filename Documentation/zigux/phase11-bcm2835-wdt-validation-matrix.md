@@ -6,7 +6,7 @@ It keeps the current starter packet honest while now including dedicated registr
 ## Status
 
 - `PHASE11_BCM2835_WDT_STATUS=survey_gate_truthful`
-- archival packet identity remains `P11-L08`, with current continuity tracked through `P11-L12`
+- archival packet identity and current continuity both remain `P11-L08`
 - scope: keep the current reviewable bcm2835 starter honest about timeout bounds, probe-summary ownership, runtime register modeling, restart or poweroff intent, explicit platform-registration scaffolding, compile-local verify coverage, dedicated survey-gate coverage, and the manifest-backed reminder packet, without claiming live platform registration or full platform-backed closure
 - this matrix refresh rechecked the directly readable driver, dedicated replay, registration-scaffold replay, verify helper, dedicated survey gate, manifest, slice note, teardown note, and bcm2835-only reminder notes on current `master`; it did not rerun a broader shared Phase 11 build from a writable checkout in this environment
 
