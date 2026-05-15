@@ -226,7 +226,7 @@ pub fn platformHandoffSummary(request: PlatformHandoffRequest) PlatformHandoffSu
             .restart_priority_value = default_restart_priority,
             .registration_ready = false,
             .blocked_on_live_platform_registration = true,
-            .blocked_on_live_mmio = true,
+            .blocked_onLive_mmio = true,
         };
     }
 
@@ -684,4 +684,21 @@ test "phase11 dw_wdt remove summary clears interrupts while distinguishing reset
     try std.testing.expect(!stoppable_summary.running_after_remove);
     try std.testing.expect(!stoppable_summary.interrupt_pending_after_remove);
     try std.testing.expect(!stoppable_summary.remove_leaves_hardware_running);
+}
+
+test "phase11 dw_wdt remove summary keeps idle removal distinct from reset-backed shutdown" {
+    var idle = try DwWdtLab.initFixedTops(7, true);
+    try idle.setInterruptPending(true);
+    const summary = idle.removeSummary();
+
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expect(summary.debugfs_clear_requested);
+    try std.testing.expect(summary.unregister_device_requested);
+    try std.testing.expect(summary.reset_control_available);
+    try std.testing.expect(!summary.reset_assert_requested);
+    try std.testing.expect(!summary.hardware_running_before_remove);
+    try std.testing.expect(!summary.hardware_running_after_remove);
+    try std.testing.expect(!summary.running_after_remove);
+    try std.testing.expect(!summary.interrupt_pending_after_remove);
+    try std.testing.expect(!summary.remove_leaves_hardware_running);
 }
