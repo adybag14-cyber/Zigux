@@ -50,6 +50,7 @@ HEADER_HELPERS = (
 )
 REQUIRED_BOUNDARY_MARKERS = {
     "keep canonical and future-compatible constructors as thin named relays over the canonical header and starter UAPI ownership": 1,
+    "keep compatible and canonical acceptance checks as thin named relays over the current-ABI-version and size predicates rather than re-encoding starter compatibility policy in a second home": 1,
     "aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally": 1,
 }
 
@@ -180,6 +181,7 @@ live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`
 `zigux_boundary_header_is_compatible()`
 `zigux_boundary_header_is_canonical()`
 keep canonical and future-compatible constructors as thin named relays over the canonical header and starter UAPI ownership
+keep compatible and canonical acceptance checks as thin named relays over the current-ABI-version and size predicates rather than re-encoding starter compatibility policy in a second home
 aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally
 """
     issues = validate_text(sample_note, sample_header)
@@ -310,6 +312,23 @@ aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` o
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected whole-header canonical helper drift was not reported")
+        return 1
+
+    broken = validate_text(
+        sample_note.replace(
+            "keep compatible and canonical acceptance checks as thin named relays over the current-ABI-version and size predicates rather than re-encoding starter compatibility policy in a second home\n",
+            "",
+            1,
+        ),
+        sample_header,
+    )
+    expected = (
+        "boundary marker count drift: keep compatible and canonical acceptance checks as thin named relays over the current-ABI-version and size predicates rather than re-encoding starter compatibility policy in a second home "
+        "(expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected whole-header boundary wording drift was not reported")
         return 1
 
     broken = validate_text(sample_note.replace(sample_blob, "deadbeef", 1), sample_header)
