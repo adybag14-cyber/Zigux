@@ -36,7 +36,7 @@ MARKERS = {
         "* dedicated HVC archival packet self-test and live checker: `python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-survey-packet.py`",
         "* dedicated HVC archival replay routes: `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` and `make -C zigux phase11-hvc-survey`",
         "* aggregate wrapper: `make -C zigux phase11`",
-        "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; keep that landed bounded DesignWare packet explicit beside the shared reminder stack while platform-registration scaffolding remains the next same-lane follow-through, and do not widen the compile-local teardown or restart proofs into broader hardware-backed closure",
+        "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; keep that surviving DesignWare continuity packet explicit beside the shared reminder stack while platform-registration scaffolding remains the next same-lane follow-through, and do not reintroduce removed DesignWare survey, slice, teardown, validation-matrix, manifest, or direct replay surfaces as shared evidence until current direct reads materialize them again",
         "* the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `drivers/tty/hvc/hvc_console.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep those landed bounded replay surfaces explicit in shared summaries without widening them into notifier, khvcd, or host-backed execution closure",
     ],
     "closure_note": [
@@ -49,8 +49,7 @@ MARKERS = {
         "* the shared `zigux/tests/fixtures/phase11_build_inventory.json` records the shared test inventory, the dedicated HVC replay split, and the explicit shared replay markers beside `zigux/tests/phase11_build.zig`",
         "* there is no shared `make -C zigux phase11-validate` target on `master`",
         "* no landed shared `validate-phase11.py`",
-        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-        "`zigux/tests/phase11_dw_wdt_manifest.json`",
+        "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; keep that smaller current-master packet explicit beside the shared closure surface while platform-registration scaffolding remains the next same-lane follow-through instead of reintroducing removed survey-era surfaces or collapsing the lane back to scaffold-only continuity",
     ],
     "lane_note": [
         "# Phase 11 Driver Lane Sequencing",
@@ -59,8 +58,8 @@ MARKERS = {
         "`zigux/tests/fixtures/phase11_build_inventory.json` anchor",
         "Current `master` now directly materializes `zigux/tests/phase11_build.zig` and `zigux/tests/fixtures/phase11_build_inventory.json`, so the shared sequencing lane should keep those anchors explicit as landed bounded replay evidence together with the shipped `make -C zigux phase11-contract` route instead of preserving older fallback-only wording.",
         "there is no shared `validate-phase11.py`, the shared `zigux/tests/fixtures/phase11_build_inventory.json` is materialized and should stay explicit beside `zigux/tests/phase11_build.zig`",
-        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-        "`zigux/tests/phase11_dw_wdt_manifest.json`",
+        "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "do not reintroduce the older DesignWare survey, slice, teardown, validation-matrix, manifest, survey-gate, or direct replay files as landed packet evidence until current direct reads materialize them again",
     ],
 }
 
@@ -70,14 +69,18 @@ FORBIDDEN_MARKERS = {
         "* direct GitHub contents reads can still return 404 for `zigux/tests/phase11_build.zig`",
         "* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
         "* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, so treat them as landed bounded replay evidence even when the direct contents bridge still 404s",
+        "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; keep that landed bounded DesignWare packet explicit beside the shared reminder stack while platform-registration scaffolding remains the next same-lane follow-through, and do not widen the compile-local teardown or restart proofs into broader hardware-backed closure",
     ],
     "closure_note": [
         "* no landed shared `zigux/tests/fixtures/phase11_build_inventory.json`",
         "* direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
+        "* DesignWare continuity on current `master` now stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; keep that landed bounded packet explicit beside the shared closure surface while platform-registration scaffolding remains the next same-lane follow-through instead of collapsing the lane back to scaffold-only continuity",
     ],
     "lane_note": [
         "no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
         "the contents bridge still materializes `zigux/tests/fixtures/phase11_build_inventory.json`",
+        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+        "`zigux/tests/phase11_dw_wdt_manifest.json`",
     ],
 }
 
@@ -142,8 +145,10 @@ def run_self_test() -> None:
 
         required_cases = [(FILES["note"], marker) for marker in MARKERS["note"]] + [
             (FILES["note"], "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`"),
-            (FILES["note"], "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`"),
-            (FILES["note"], "`zigux/tests/phase11_dw_wdt_manifest.json`"),
+            (FILES["note"], "`scripts/zigux/check-phase11-dw-wdt-packet.py`"),
+            (FILES["note"], "`drivers/watchdog/dw_wdt.zig`"),
+            (FILES["note"], "`drivers/watchdog/dw_wdt_verify.zig`"),
+            (FILES["note"], "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`"),
             (FILES["note"], "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`"),
             (FILES["note"], "`Documentation/zigux/phase11-hvc-console-survey.md`"),
             (FILES["note"], "`Documentation/zigux/phase11-hvc-console-slice.md`"),
@@ -167,7 +172,6 @@ def run_self_test() -> None:
             (FILES["closure_note"], MARKERS["closure_note"][7]),
             (FILES["closure_note"], MARKERS["closure_note"][8]),
             (FILES["closure_note"], MARKERS["closure_note"][9]),
-            (FILES["closure_note"], MARKERS["closure_note"][10]),
             (FILES["lane_note"], MARKERS["lane_note"][0]),
             (FILES["lane_note"], MARKERS["lane_note"][1]),
             (FILES["lane_note"], MARKERS["lane_note"][2]),
@@ -193,10 +197,14 @@ def run_self_test() -> None:
             ("note", FORBIDDEN_MARKERS["note"][1]),
             ("note", FORBIDDEN_MARKERS["note"][2]),
             ("note", FORBIDDEN_MARKERS["note"][3]),
+            ("note", FORBIDDEN_MARKERS["note"][4]),
             ("closure_note", FORBIDDEN_MARKERS["closure_note"][0]),
             ("closure_note", FORBIDDEN_MARKERS["closure_note"][1]),
+            ("closure_note", FORBIDDEN_MARKERS["closure_note"][2]),
             ("lane_note", FORBIDDEN_MARKERS["lane_note"][0]),
             ("lane_note", FORBIDDEN_MARKERS["lane_note"][1]),
+            ("lane_note", FORBIDDEN_MARKERS["lane_note"][2]),
+            ("lane_note", FORBIDDEN_MARKERS["lane_note"][3]),
         ]
 
         for idx, (label, marker) in enumerate(forbidden_cases, start=1):
