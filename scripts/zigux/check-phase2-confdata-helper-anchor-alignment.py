@@ -18,7 +18,7 @@ CONFDATA_MANIFEST = (
 CONFDATA_SURVEY = ROOT / "Documentation" / "zigux" / "phase2-confdata-bridge-survey.md"
 
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_SELF_TEST_CASE_COUNT = 8
+EXPECTED_SELF_TEST_CASE_COUNT = 11
 
 SELFTEST_CONFDATA_HELPER_ANCHORS = (
     "confdata bridge parses bounded config states",
@@ -308,6 +308,57 @@ def run_self_test() -> int:
         assert (
             "CONFDATA_HELPER_ANCHOR_SURVEY_MISSING_MARKER",
             "`20` helper-local tests covering the current bridge-local edge cases.",
+        ) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CONFDATA_SURVEY)
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                "`confdata_cases` packet with 13 fixture cases:",
+                "`confdata_cases` packet with 12 fixture cases:",
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "CONFDATA_HELPER_ANCHOR_SURVEY_MISSING_MARKER",
+            "`confdata_cases` packet with 13 fixture cases:",
+        ) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CONFDATA_SURVEY)
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.",
+                "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, records the same packet, and names the helper-local anchor list for the bridge tests.",
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "CONFDATA_HELPER_ANCHOR_SURVEY_MISSING_MARKER",
+            "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.",
+        ) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CONFDATA_SURVEY)
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                "`scripts/zigux/check-kconfig-bridge.py` gate plus the direct `zig test scripts/zigux/kconfig/confdata_bridge.zig` replay",
+                "`scripts/zigux/check-kconfig-bridge.py` gate plus the shared confdata replay",
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "CONFDATA_HELPER_ANCHOR_SURVEY_MISSING_MARKER",
+            "`scripts/zigux/check-kconfig-bridge.py` gate plus the direct `zig test scripts/zigux/kconfig/confdata_bridge.zig` replay",
         ) in issues
         checks_run += 1
 
