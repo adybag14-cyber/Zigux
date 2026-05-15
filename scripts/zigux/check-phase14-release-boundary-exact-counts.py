@@ -18,6 +18,7 @@ DOCS_ROOT_CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 ROLLBACK_CHECKER_PATH = "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
 PHASE14_SECTION_HEADING = "## Phase 14: Core-Adjacent Bounded Internals"
+SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
 TESTS_README_PACKET_ANCHOR = "  * `zigux/tests/phase14_build.zig`"
 
@@ -36,6 +37,12 @@ FREEZE_IN_C_ANCHORS = [
 STUDY_ONLY_ANCHORS = [
     "`kernel/workqueue.c`",
     "`kernel/trace/ring_buffer.c`",
+]
+SCRIPTS_README_EXACT_LINE_MARKERS = [
+    "- `Documentation/zigux/phase14-release-boundary-survey.md`",
+    "- `zigux/tests/phase14_workqueue_reviewability.zig`",
+    "- `make -C zigux phase14-test`",
+    "- `make -C zigux phase14`",
 ]
 TESTS_README_PACKET_LINES = [
     "  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
@@ -124,6 +131,10 @@ MANIFEST_REQUIRED_SURFACES = [
     ROLLBACK_CHECKER_PATH,
     CHECKER_PATH,
     "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "zigux/tests/phase14_workqueue_reviewability.zig",
+    "Documentation/zigux/phase14-release-boundary-survey.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
 ]
@@ -264,6 +275,7 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
         root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
         root / "Documentation/zigux/freeze-map.md",
         root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md",
+        root / SCRIPTS_README_PATH,
         root / TESTS_README_PATH,
         root / "zigux/tests/phase14_end_to_end_smoke_manifest.json",
     ]
@@ -280,16 +292,24 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
     survey_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
     freeze_map_path = root / "Documentation/zigux/freeze-map.md"
     roadmap_path = root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md"
+    scripts_readme_path = root / SCRIPTS_README_PATH
     tests_readme_path = root / TESTS_README_PATH
 
     release_text = read_text(release_path)
     survey_text = read_text(survey_path)
     freeze_map_text = read_text(freeze_map_path)
     roadmap_text = read_text(roadmap_path)
+    scripts_readme_text = read_text(scripts_readme_path)
     tests_readme_text = read_text(tests_readme_path)
 
     require_exact_count(errors, release_path.relative_to(root).as_posix(), release_text, RELEASE_BOUNDARY_MARKERS)
     require_exact_count(errors, survey_path.relative_to(root).as_posix(), survey_text, SURVEY_EXACT_COUNT_MARKERS)
+    require_exact_line_count(
+        errors,
+        scripts_readme_path.relative_to(root).as_posix(),
+        scripts_readme_text,
+        SCRIPTS_README_EXACT_LINE_MARKERS,
+    )
     require_exact_line_count(
         errors,
         tests_readme_path.relative_to(root).as_posix(),
@@ -336,6 +356,19 @@ def good_release_boundary_text() -> str:
 
 def good_survey_text() -> str:
     return "\n".join(f"- `{marker}`" for marker in SURVEY_EXACT_COUNT_MARKERS) + "\n"
+
+
+def good_scripts_readme_text() -> str:
+    return "\n".join(
+        [
+            "# scripts/zigux",
+            "Phase 14 notes",
+            "- `Documentation/zigux/phase14-release-boundary-survey.md`",
+            "- `zigux/tests/phase14_workqueue_reviewability.zig`",
+            "- `make -C zigux phase14-test`",
+            "- `make -C zigux phase14`",
+        ]
+    ) + "\n"
 
 
 def good_tests_readme_text() -> str:
@@ -422,6 +455,7 @@ def run_self_test() -> int:
         root = Path(tmpdir)
         write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
         write(root, "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+        write(root, SCRIPTS_README_PATH, good_scripts_readme_text())
         write(root, TESTS_README_PATH, good_tests_readme_text())
         write(root, "Documentation/zigux/freeze-map.md", good_freeze_map_text())
         write(root, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md", good_roadmap_text())
@@ -432,6 +466,38 @@ def run_self_test() -> int:
             for error in errors:
                 print(f"- {error}", file=sys.stderr)
             return 1
+
+        write(
+            root,
+            SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                "- `Documentation/zigux/phase14-release-boundary-survey.md`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            "self-test expected missing scripts-readme release-boundary marker failure",
+        )
+        write(root, SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write(
+            root,
+            SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                "- `make -C zigux phase14-test`\n",
+                "- `make -C zigux phase14-test`\n- `make -C zigux phase14-test`\n",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "make -C zigux phase14-test",
+            "self-test expected duplicate scripts-readme test-route marker failure",
+        )
+        write(root, SCRIPTS_README_PATH, good_scripts_readme_text())
 
         write(
             root,
@@ -670,9 +736,15 @@ def run_self_test() -> int:
                 {
                     "shared_smoke_surfaces": [
                         DOCS_ROOT_CHECKER_PATH,
+                        TESTS_README_CHECKER_PATH,
                         ROLLBACK_CHECKER_PATH,
                         CHECKER_PATH,
                         "scripts/zigux/validate-phase14.py",
+                        "zigux/tests/README.md",
+                        "zigux/tests/phase14_workqueue_reviewability.zig",
+                        "Documentation/zigux/phase14-release-boundary-survey.md",
+                        "zigux/Makefile",
+                        ".github/workflows/zigux-bootstrap.yml",
                     ],
                     "anchor_packets": [{}, {}, {}, {}],
                     "compile_shards": EXPECTED_COMPILE_SHARDS,
@@ -680,6 +752,8 @@ def run_self_test() -> int:
                         "status_bucket": "study_only",
                         "rollback_owner": "Repo Tooling Pod",
                     },
+                    "smoke_commands": EXPECTED_SMOKE_COMMANDS,
+                    "smoke_shard_commands": EXPECTED_SMOKE_SHARD_COMMANDS,
                 },
                 indent=2,
             )
@@ -687,8 +761,45 @@ def run_self_test() -> int:
         )
         expect_contains(
             check(root, source_text=MARKER),
-            TESTS_README_CHECKER_PATH,
-            "self-test expected missing tests-readme checker manifest surface failure",
+            "scripts/zigux/README.md",
+            "self-test expected missing scripts-readme manifest surface failure",
+        )
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+
+        write(
+            root,
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            json.dumps(
+                {
+                    "shared_smoke_surfaces": [
+                        DOCS_ROOT_CHECKER_PATH,
+                        TESTS_README_CHECKER_PATH,
+                        ROLLBACK_CHECKER_PATH,
+                        CHECKER_PATH,
+                        "scripts/zigux/validate-phase14.py",
+                        "scripts/zigux/README.md",
+                        "zigux/tests/README.md",
+                        "zigux/tests/phase14_workqueue_reviewability.zig",
+                        "zigux/Makefile",
+                        ".github/workflows/zigux-bootstrap.yml",
+                    ],
+                    "anchor_packets": [{}, {}, {}, {}],
+                    "compile_shards": EXPECTED_COMPILE_SHARDS,
+                    "productization": {
+                        "status_bucket": "study_only",
+                        "rollback_owner": "Repo Tooling Pod",
+                    },
+                    "smoke_commands": EXPECTED_SMOKE_COMMANDS,
+                    "smoke_shard_commands": EXPECTED_SMOKE_SHARD_COMMANDS,
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            "self-test expected missing release-boundary manifest surface failure",
         )
         write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
 
@@ -741,7 +852,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=21")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
