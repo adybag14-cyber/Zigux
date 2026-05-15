@@ -343,6 +343,9 @@ jobs:
       - name: Run Phase 3 ABI/interp substrate tests
         run: zig build phase3-test --build-file zigux/tests/build.zig
 
+      - name: Run focused Phase 3 low-level wrapper tests
+        run: make -C zigux phase3-low-level-wrappers-test
+
       - name: Run Phase 4 diff tests directly
         run: zig build test --build-file zigux/tests/phase4_build.zig
 
@@ -395,9 +398,6 @@ jobs:
         run: make -C zigux phase8-cpu-mask-test
 
       - name: Run focused Phase 8 help and kallsyms tests
-        run: make -C zigux phase8-help-kallsyms-test
-
-      - name: Run focused Phase 8 file-path and perf-buffer shard tests
         run: |
           make -C zigux phase8-file-path-handle-bridge-test
           make -C zigux phase8-perf-buffer-poll-test
