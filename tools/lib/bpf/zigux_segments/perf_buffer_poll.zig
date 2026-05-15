@@ -773,6 +773,10 @@ test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result an
         PollError.WaitResultDisagreesWithExecutionOutcome,
         resolvePollExecutionResultFromWaitResult(0, ready_execution),
     );
+    try std.testing.expectError(
+        PollError.WaitResultDisagreesWithReadyEventCount,
+        resolvePollExecutionResultFromWaitResult(3, ready_execution),
+    );
 
     const failed_execution = try summarizePollExecutionFromWaitResult(5, -5, &.{}, &.{});
     try std.testing.expectError(
