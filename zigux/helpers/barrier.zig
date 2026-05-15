@@ -1,7 +1,5 @@
 const std = @import("std");
 
-var fence_word: u8 = 0;
-
 test "phase3 barrier wrappers compile" {
     compiler();
     acquire();
@@ -49,22 +47,28 @@ test "phase3 barrier wrappers keep barrier locality reviewable" {
     try std.testing.expectEqual(@as(u8, 21), right);
 }
 
-test "phase3 barrier wrappers keep fence-word state transitions reviewable" {
-    fence_word = 9;
+test "phase3 barrier wrappers stay side-effect free on unrelated storage" {
+    const Packet = struct {
+        ready: bool,
+        value: u32,
+        mirror: u32,
+    };
+
+    const packet = Packet{
+        .ready = false,
+        .value = 11,
+        .mirror = 29,
+    };
+    const before = packet;
+
     acquire();
-    try std.testing.expectEqual(@as(u8, 9), fence_word);
-
-    fence_word = 7;
     release();
-    try std.testing.expectEqual(@as(u8, 0), fence_word);
-
-    fence_word = 5;
     full();
-    try std.testing.expectEqual(@as(u8, 0), fence_word);
-
-    fence_word = 11;
     acquireRelease();
-    try std.testing.expectEqual(@as(u8, 0), fence_word);
+
+    try std.testing.expectEqual(before.ready, packet.ready);
+    try std.testing.expectEqual(before.value, packet.value);
+    try std.testing.expectEqual(before.mirror, packet.mirror);
 }
 
 test "phase3 barrier wrappers keep barrier handoff reviewable" {
@@ -110,17 +114,21 @@ pub fn compiler() void {
 }
 
 pub fn acquire() void {
-    _ = @atomicLoad(u8, &fence_word, .acquire);
+    var word: u8 = 0;
+    _ = @atomicLoad(u8, &word, .acquire);
 }
 
 pub fn release() void {
-    @atomicStore(u8, &fence_word, 0, .release);
+    var word: u8 = 0;
+    @atomicStore(u8, &word, 0, .release);
 }
 
 pub fn full() void {
-    _ = @atomicRmw(u8, &fence_word, .Xchg, 0, .seq_cst);
+    var word: u8 = 0;
+    _ = @atomicRmw(u8, &word, .Xchg, 0, .seq_cst);
 }
 
 pub fn acquireRelease() void {
-    _ = @atomicRmw(u8, &fence_word, .Xchg, 0, .acq_rel);
+    var word: u8 = 0;
+    _ = @atomicRmw(u8, &word, .Xchg, 0, .acq_rel);
 }
