@@ -26,6 +26,12 @@
     "deep_core_status_change_ready": false,
     "tests_root_validator_routes_explicit": true
   },
+  "future_target_companions": [
+    "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+    "zigux/tests/phase14_workqueue_bridge_manifest.json",
+    "Documentation/zigux/phase14-ring-buffer-survey.md",
+    "zigux/tests/phase14_ring_buffer_manifest.json"
+  ],
   "adjacent_lane_boundaries": [
     {
       "lane_family": "shared-summaries",
