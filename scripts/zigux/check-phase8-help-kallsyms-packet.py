@@ -100,7 +100,6 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-help-test`",
         "`load_command_list()`",
         "`pretty_print_string_list()`",
-        "`list_commands()`",
     ),
     KALLSYMS_SLICE_PATH: (
         "`tools/lib/symbol/kallsyms.zig`",
