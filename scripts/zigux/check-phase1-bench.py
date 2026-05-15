@@ -153,6 +153,7 @@ REQUIRED_STRING_SOURCE_MARKERS = [
 REQUIRED_RBTREE_SOURCE_MARKERS = [
     'rbtree.findAdd(&find_add_entries[3].node, &find_add_root, cmpNode)',
     'rbtree.find(&wanted, &duplicate_root, cmpKey)',
+    'duplicate_checksum +%= @as(u64, @intFromBool(rbtree.find(&missing, &duplicate_root, cmpKey) == null));',
     'rbtree.findFirst(&wanted, &duplicate_root, cmpKey)',
     'rbtree.nextMatch(&wanted, cursor, cmpKey)',
     'rbtree.erase(&duplicate_mutation_entries[2].node, &duplicate_mutation_root);',
@@ -539,6 +540,16 @@ def run_self_test() -> None:
     ]))
     assert kind == 'missing_rbtree_source_markers'
     assert payload == ['duplicate_checksum +%= entry.serial + 107;']
+    cases += 1
+
+    kind, payload = validate_bench_source('\n'.join([
+        *REQUIRED_BITMAP_SOURCE_MARKERS,
+        *REQUIRED_FIND_BIT_SOURCE_MARKERS,
+        *REQUIRED_STRING_SOURCE_MARKERS,
+        *[marker for marker in REQUIRED_RBTREE_SOURCE_MARKERS if marker != 'duplicate_checksum +%= @as(u64, @intFromBool(rbtree.find(&missing, &duplicate_root, cmpKey) == null));'],
+    ]))
+    assert kind == 'missing_rbtree_source_markers'
+    assert payload == ['duplicate_checksum +%= @as(u64, @intFromBool(rbtree.find(&missing, &duplicate_root, cmpKey) == null));']
     cases += 1
 
     kind, payload = validate_bench_source('\n'.join([
