@@ -71,8 +71,8 @@ test "phase5 kretprobe manifest records the restored direct replay packet" {
     try std.testing.expect(std.mem.indexOf(u8, recovery_check.expected, "recovered duration 60") != null);
 
     const phase9_boundary_check = manifestById(manifest, "phase9-boundary") orelse return error.MissingExactCheck;
-    try std.testing.expect(std.mem.indexOf(u8, phase9_boundary_check.expected, "missing shared phase5_build route") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase9_boundary_check.expected, "directly readable shared phase5_build route") == null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_boundary_check.expected, "returned public-tree-backed phase5_build companion route") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_boundary_check.expected, "missing shared phase5_build route") == null);
 }
 
 test "phase5 kretprobe survey note and manifest stay aligned with the restored packet" {
@@ -93,6 +93,8 @@ test "phase5 kretprobe survey note and manifest stay aligned with the restored p
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kretprobe_example_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kretprobe_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "public-tree reread") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current public-tree-backed companion evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runRetargetReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runLifecycleGuardReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runOwnershipReplay") != null);
@@ -104,7 +106,7 @@ test "phase5 kretprobe survey note and manifest stay aligned with the restored p
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/README.md") != null);
 
     const prompt = manifest.review_prompts[1];
-    try std.testing.expect(std.mem.indexOf(u8, prompt, "missing shared phase5_build route") != null);
-    try std.testing.expect(std.mem.indexOf(u8, prompt, "directly readable shared phase5_build route") == null);
+    try std.testing.expect(std.mem.indexOf(u8, prompt, "returned public-tree-backed phase5_build companion route") != null);
+    try std.testing.expect(std.mem.indexOf(u8, prompt, "missing shared phase5_build route") == null);
     try std.testing.expect(std.mem.indexOf(u8, prompt, "next bounded follow-through") != null);
 }
