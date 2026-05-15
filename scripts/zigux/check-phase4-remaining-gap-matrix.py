@@ -18,6 +18,9 @@ PERF_SECTION_FOOTER = "## Review Rules"
 KPROBE_BOOTSTRAP_CI_POSTURE = (
     "reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow"
 )
+KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR = (
+    "Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix"
+)
 TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE = (
     "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"
 )
@@ -51,6 +54,7 @@ REQUIRED_KPROBE_GAP_NOTE_MARKERS = [
     "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey",
     "PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey",
     f"PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE={KPROBE_BOOTSTRAP_CI_POSTURE}",
+    f"PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR={KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR}",
     "PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig",
 ]
 
@@ -121,6 +125,7 @@ BASELINE_KPROBE_GAP_NOTE = "\n".join(
         "- `PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey`",
         "- `PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey`",
         f"- `PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE={KPROBE_BOOTSTRAP_CI_POSTURE}`",
+        f"- `PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR={KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR}`",
         "- `PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig`",
         "",
     ]
@@ -156,6 +161,7 @@ SELF_TEST_CASES = [
     "kprobe_next_step_drift",
     "kprobe_gap_note_local_lab_replay_drift",
     "kprobe_gap_note_bootstrap_ci_posture_drift",
+    "kprobe_gap_note_shared_matrix_anchor_drift",
     "kprobe_gap_note_validation_entrypoint_drift",
     "test_fsmount_c_anchor_drift",
     "test_fsmount_replay_path_drift",
@@ -387,6 +393,17 @@ def run_self_test() -> int:
             ),
             BASELINE_TEST_FSMOUNT_GAP_NOTE,
             f"missing_kprobe_gap_note_marker:PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE={KPROBE_BOOTSTRAP_CI_POSTURE}",
+        ),
+        (
+            "kprobe_gap_note_shared_matrix_anchor_drift",
+            BASELINE_MATRIX,
+            replace_once(
+                BASELINE_KPROBE_GAP_NOTE,
+                KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR,
+                "Documentation/zigux/phase4-validation-matrix.md#drifted-anchor",
+            ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
+            f"missing_kprobe_gap_note_marker:PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR={KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR}",
         ),
         (
             "kprobe_gap_note_validation_entrypoint_drift",
