@@ -8,11 +8,35 @@ pub const SampleStage = enum(u8) {
     exited,
 };
 
+pub const SampleFocus = enum {
+    descriptor_anchor,
+    symbol_retargeting,
+    entry_and_return_flow,
+    lifecycle_guards,
+    ownership_and_lifetime,
+    recovery_and_exit_rejections,
+};
+
+pub const sample_review_focus = [_]SampleFocus{
+    .descriptor_anchor,
+    .symbol_retargeting,
+    .entry_and_return_flow,
+    .lifecycle_guards,
+    .ownership_and_lifetime,
+    .recovery_and_exit_rejections,
+};
+
 pub const SampleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     requires_runtime_substrate: bool,
     provides_selfcheck: bool,
+};
+
+pub const ReviewContract = struct {
+    focus: []const SampleFocus,
+    default_symbol_name: []const u8,
+    maxactive_budget: usize,
 };
 
 pub const Snapshot = struct {
@@ -93,6 +117,14 @@ pub const KretprobeExampleSample = struct {
             .anchor = "samples/kprobes/kretprobe_example.c",
             .requires_runtime_substrate = false,
             .provides_selfcheck = true,
+        };
+    }
+
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = &sample_review_focus,
+            .default_symbol_name = default_symbol_name,
+            .maxactive_budget = maxactive_budget,
         };
     }
 
@@ -329,6 +361,22 @@ test "phase5 kretprobe descriptor stays non-runtime and reviewable" {
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", descriptor.anchor);
     try std.testing.expect(!descriptor.requires_runtime_substrate);
     try std.testing.expect(descriptor.provides_selfcheck);
+}
+
+test "phase5 kretprobe review contract keeps the bounded focus order explicit" {
+    const contract = KretprobeExampleSample.reviewContract();
+    const expected_focus = [_]SampleFocus{
+        .descriptor_anchor,
+        .symbol_retargeting,
+        .entry_and_return_flow,
+        .lifecycle_guards,
+        .ownership_and_lifetime,
+        .recovery_and_exit_rejections,
+    };
+
+    try std.testing.expectEqualSlices(SampleFocus, &expected_focus, contract.focus);
+    try std.testing.expectEqualStrings(KretprobeExampleSample.default_symbol_name, contract.default_symbol_name);
+    try std.testing.expectEqual(@as(usize, 20), contract.maxactive_budget);
 }
 
 test "phase5 kretprobe anchor replay keeps the bounded return-probe cues explicit" {
