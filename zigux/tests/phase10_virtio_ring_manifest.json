@@ -1,5 +1,5 @@
 {
-  "lane_key": "P10-L10",
+  "lane_key": "P10-L07",
   "phase": "Phase 10",
   "surveyed_commit": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
   "anchor": "drivers/virtio/virtio_ring.c",
@@ -26,7 +26,7 @@
   ],
   "architecture_council_reopen_required": true,
   "architecture_council_reopen_attached": false,
-  "freeze_boundary_owner_lane": "P10-L10",
+  "freeze_boundary_owner_lane": "P10-L11",
   "study_only_anchors": [
     "kernel/workqueue.c",
     "kernel/trace/ring_buffer.c"
