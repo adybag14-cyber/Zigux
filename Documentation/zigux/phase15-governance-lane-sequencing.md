@@ -4,11 +4,11 @@ This note records how the current Phase 15 governance packet is split so Archite
 
 ## Status
 - `PHASE15_STATUS=lane_sequencing_note_landed`
-- `PHASE15_LANE_KEY=P15-Y06`
+- `PHASE15_LANE_KEY=P15-Y07`
 - `PHASE15_SLICE=governance-lane-owner-map-maintenance-refresh`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-15`
-- historical continuity for this parked maintenance surface still points back to `P15-L06`, but the current shared owner-map refresh is tracked under `P15-Y06`
+- historical continuity for this parked maintenance surface still points back to `P15-L06`, but the current shared owner-map refresh is tracked under `P15-Y07`
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the current Phase 15 packet remains maintenance-mode governance only
 
