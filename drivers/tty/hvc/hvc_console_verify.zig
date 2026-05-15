@@ -269,6 +269,22 @@ test "hvc_console verify keeps targetless unregister requests sanitized" {
     try std.testing.expect(summary.edge.keeps_live_notifier_execution_out_of_scope);
 }
 
+test "hvc_console verify keeps targeted unregister requests explicit" {
+    const summary = summarizeNotifierUnregisterTiming(.{
+        .target_present = true,
+        .notifier_registered = true,
+        .unregister_requested = true,
+    });
+
+    try std.testing.expect(summary.edge.target_present);
+    try std.testing.expect(summary.edge.notifier_registered);
+    try std.testing.expect(!summary.edge.targetless_no_unregister_edge);
+    try std.testing.expect(summary.edge.unregister_requested);
+    try std.testing.expect(!summary.unregister_stays_false);
+    try std.testing.expect(!summary.targetless_unregister_request_sanitized);
+    try std.testing.expect(summary.edge.keeps_live_notifier_execution_out_of_scope);
+}
+
 test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks" {
     const summary = summarizeTargetlessSysrqDispatch(.{
         .target_vtermno = null,
