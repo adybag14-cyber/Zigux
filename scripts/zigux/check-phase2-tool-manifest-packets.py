@@ -508,7 +508,7 @@ PHASE2_REVIEW_NOTES_EXACT_COUNTS = {
     PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS[0]: 1,
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -988,6 +988,34 @@ def run_self_test() -> int:
         tool_manifest.unlink()
         issues = validate_root(root)
         assert "missing_file:phase2_tool_manifest" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        artifact_tools_manifest = root / "zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
+        artifact_tools_manifest.unlink()
+        issues = validate_root(root)
+        assert "missing_file:phase2_artifact_tools_manifest" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        genksyms_bridge_manifest = root / "zigux/tests/fixtures/genksyms_bridge/manifest.json"
+        genksyms_bridge_manifest.unlink()
+        issues = validate_root(root)
+        assert "missing_file:genksyms_bridge_manifest" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        conf_manifest = root / "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json"
+        conf_manifest.unlink()
+        issues = validate_root(root)
+        assert "missing_file:conf_manifest" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        confdata_manifest = root / "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"
+        confdata_manifest.unlink()
+        issues = validate_root(root)
+        assert "missing_file:confdata_manifest" in issues
         case_count += 1
 
     assert case_count == EXPECTED_SELF_TEST_CASE_COUNT
