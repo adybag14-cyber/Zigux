@@ -15,6 +15,7 @@ MARKER = "PHASE12_CHECK_PACKET=release_readiness_packet"
 RELEASE_READINESS_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 ROADMAP_PATH = "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md"
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -42,6 +43,11 @@ RELEASE_READINESS_MARKERS = [
 REVIEW_CHECKLIST_MARKERS = [
     "avoid implying a broader shared `check-phase12-*.py` family, focused-libbpf-only replay, or cross-build replay, while keeping the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` checker plus the shipped `make -C zigux phase12-validate` route explicit as support-bundle evidence rather than as a second direct replay route",
     "if the change touches that same shared Phase 12 complex-driver packet after the shipped validator-first support bundle changes, do `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/Makefile`, and `make -C zigux phase12-validate` keep the dedicated support checker plus the shipped validator-first support route explicit as support-bundle evidence instead of treating them as a second direct replay route or as an absent shared surface?",
+]
+
+FREEZE_MAP_MARKERS = [
+    "the shared Phase 12 PMO release packet also stays release-planning-only beside `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`",
+    "queueing, throughput, rollback, and recovery wording there, in the shipped validator-first `make -C zigux phase12-validate` support bundle, and in the smoke-first shared replay packet must stay bounded to driver-local review evidence, lab-only reversible-delivery scaffolding, and shared anti-overlap notes without implying active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -120,6 +126,7 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
         RELEASE_READINESS_PATH,
         SCRIPTS_README_PATH,
         REVIEW_CHECKLIST_PATH,
+        FREEZE_MAP_PATH,
         ROADMAP_PATH,
         BUILD_ONLY_CHECKER_PATH,
         MAKEFILE_PATH,
@@ -147,6 +154,12 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
         REVIEW_CHECKLIST_PATH,
         read_text(root / REVIEW_CHECKLIST_PATH),
         REVIEW_CHECKLIST_MARKERS,
+    )
+    require_exact_count(
+        errors,
+        FREEZE_MAP_PATH,
+        read_text(root / FREEZE_MAP_PATH),
+        FREEZE_MAP_MARKERS,
     )
     require_exact_count(
         errors,
@@ -204,6 +217,17 @@ def good_review_checklist_text() -> str:
             "",
             "- avoid implying a broader shared `check-phase12-*.py` family, focused-libbpf-only replay, or cross-build replay, while keeping the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` checker plus the shipped `make -C zigux phase12-validate` route explicit as support-bundle evidence rather than as a second direct replay route?",
             "- if the change touches that same shared Phase 12 complex-driver packet after the shipped validator-first support bundle changes, do `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/Makefile`, and `make -C zigux phase12-validate` keep the dedicated support checker plus the shipped validator-first support route explicit as support-bundle evidence instead of treating them as a second direct replay route or as an absent shared surface?",
+            "",
+        ]
+    )
+
+
+def good_freeze_map_text() -> str:
+    return "\n".join(
+        [
+            "# Zigux Freeze Map",
+            "",
+            "- the shared Phase 12 PMO release packet also stays release-planning-only beside `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`: queueing, throughput, rollback, and recovery wording there, in the shipped validator-first `make -C zigux phase12-validate` support bundle, and in the smoke-first shared replay packet must stay bounded to driver-local review evidence, lab-only reversible-delivery scaffolding, and shared anti-overlap notes without implying active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`",
             "",
         ]
     )
@@ -274,6 +298,7 @@ def run_self_test() -> int:
     try:
         write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
         write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
+        write_text(tmp_root / FREEZE_MAP_PATH, good_freeze_map_text())
         write_text(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
         write_text(tmp_root / ROADMAP_PATH, good_roadmap_text())
         write_text(tmp_root / BUILD_ONLY_CHECKER_PATH, "#!/usr/bin/env python3\n")
@@ -408,6 +433,22 @@ def run_self_test() -> int:
             check(tmp_root, source_text=MARKER),
             "support-bundle evidence rather than as a second direct replay route",
             "missing review-checklist marker",
+        )
+
+        write_text(tmp_root / FREEZE_MAP_PATH, good_freeze_map_text())
+        write_text(
+            tmp_root / FREEZE_MAP_PATH,
+            good_freeze_map_text().replace(
+                FREEZE_MAP_MARKERS[0],
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            FREEZE_MAP_MARKERS[0],
+            "missing freeze-map marker",
         )
 
         write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
