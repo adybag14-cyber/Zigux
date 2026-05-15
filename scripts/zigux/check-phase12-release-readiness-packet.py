@@ -31,6 +31,7 @@ ROADMAP_ANCHORS = [
 RELEASE_READINESS_MARKERS = [
     "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
     "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+    "`zigux/tests/phase12_build.zig` wires `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` into the active `smoke` and `test` steps",
     "The broader shared-summary packet is now aligned on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, `zigux/tests/README.md` does the same in its Phase 12 inventory, and `scripts/zigux/README.md` now carries a dedicated Phase 12 flow block naming `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and the shipped validator-first then smoke-first routes.",
     "`scripts/zigux/check-build-only-phase12-surface.py` now matches that shipped support-checker-plus-validate-route reminder too, so `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and this readiness note can stay parked together until another shared reminder surface actually drifts, rather than reopening driver-local, fallback-catalog, or verify-shard wording first.",
     "The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
@@ -183,6 +184,7 @@ def good_release_readiness_text() -> str:
             "- support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
             "",
             "## Current Release Reading",
+            "- `zigux/tests/phase12_build.zig` wires `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` into the active `smoke` and `test` steps, with the `smoke` step already running the `virtio_net` syntax lab beside the shipped `virtio_scsi` packet.",
             "- The broader shared-summary packet is now aligned on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, `zigux/tests/README.md` does the same in its Phase 12 inventory, and `scripts/zigux/README.md` now carries a dedicated Phase 12 flow block naming `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and the shipped validator-first then smoke-first routes.",
             "- `scripts/zigux/check-build-only-phase12-surface.py` now matches that shipped support-checker-plus-validate-route reminder too, so `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and this readiness note can stay parked together until another shared reminder surface actually drifts, rather than reopening driver-local, fallback-catalog, or verify-shard wording first.",
             "- The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
@@ -308,6 +310,22 @@ def run_self_test() -> int:
         case_count += 1
         expect_contains(
             check(tmp_root, source_text=MARKER),
+            "`zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`",
+            "missing rollback-lab gate marker",
+        )
+
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
+        write_text(
+            tmp_root / RELEASE_READINESS_PATH,
+            good_release_readiness_text().replace(
+                RELEASE_READINESS_MARKERS[3],
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
             "The broader shared-summary packet is now aligned on current `master`",
             "missing broader-shared-summary marker",
         )
@@ -316,7 +334,7 @@ def run_self_test() -> int:
         write_text(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
-                RELEASE_READINESS_MARKERS[3],
+                RELEASE_READINESS_MARKERS[4],
                 "",
                 1,
             ),
@@ -332,7 +350,7 @@ def run_self_test() -> int:
         write_text(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
-                RELEASE_READINESS_MARKERS[5],
+                RELEASE_READINESS_MARKERS[6],
                 "",
                 1,
             ),
@@ -348,7 +366,7 @@ def run_self_test() -> int:
         write_text(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
-                RELEASE_READINESS_MARKERS[6],
+                RELEASE_READINESS_MARKERS[7],
                 "",
                 1,
             ),
