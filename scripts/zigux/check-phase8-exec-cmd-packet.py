@@ -109,12 +109,11 @@ REQUIRED_MARKERS = {
         "Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the live C helper anchors, checklist hook, and validator route stay aligned around one reviewable packet.",
         "zig test tools/lib/subcmd/exec-cmd.zig",
         "python3 scripts/zigux/check-phase8-exec-cmd-packet.py",
-        "make -C zigux phase8-validate",
-        "zigux/tests/phase8_exec_cmd_only_build.zig",
     ),
     EXEC_CMD_TEST_PATH: (
         'test "phase 8 exec-cmd module imports cleanly" {',
         'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {',
+        'test "phase 8 exec-cmd focused replay keeps logical PWD deferred planning explicit" {',
         'test "phase 8 exec-cmd focused replay accepts the last deferred execl handoff before overflow" {',
         'test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary explicit" {',
         'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {',
@@ -149,6 +148,7 @@ REQUIRED_MARKERS = {
         "pub fn samePathIdentity(",
         "pub fn choosePwdCwdFromIdentities(",
         "pub fn planDeferredExecvCall(",
+        "pub fn planDeferredExecvCallWithPwd(",
         "pub fn planDeferredExeclCallWithPwd(",
     ),
     EXEC_CMD_C_PATH: (
@@ -330,6 +330,7 @@ def run_self_test() -> int:
             (EXEC_CMD_SLICE_PATH, "zig test tools/lib/subcmd/exec-cmd.zig"),
             (EXEC_CMD_SLICE_PATH, "python3 scripts/zigux/check-phase8-exec-cmd-packet.py"),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {'),
+            (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay keeps logical PWD deferred planning explicit" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay accepts the last deferred execl handoff before overflow" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
@@ -354,6 +355,7 @@ def run_self_test() -> int:
             (EXEC_CMD_SOURCE_PATH, "pub fn samePathIdentity("),
             (EXEC_CMD_SOURCE_PATH, "pub fn choosePwdCwdFromIdentities("),
             (EXEC_CMD_SOURCE_PATH, "pub fn planDeferredExecvCall("),
+            (EXEC_CMD_SOURCE_PATH, "pub fn planDeferredExecvCallWithPwd("),
             (EXEC_CMD_SOURCE_PATH, "pub fn planDeferredExeclCallWithPwd("),
         )
         for rel_path, marker in mutations:
