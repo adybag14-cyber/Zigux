@@ -113,7 +113,10 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-exec-cmd-test",
         "make -C zigux phase8-help-kallsyms-test",
         "make -C zigux phase8-kallsyms-test",
+        "make -C zigux phase8-cpu-mask-test",
         "make -C zigux phase8-file-path-handle-bridge-test",
+        "make -C zigux phase8-libbpf-segments-test",
+        "make -C zigux phase8-perf-buffer-poll-test",
         "make -C zigux phase8-validate",
     ),
     TESTS_README_PATH: (
@@ -373,6 +376,27 @@ def run_self_test() -> None:
             "scripts/zigux/check-phase8-help-kallsyms-packet.py",
             "scripts/zigux/check-phase8-help-packet.py",
             f"{SCRIPTS_README_PATH}: scripts/zigux/check-phase8-help-kallsyms-packet.py",
+        ),
+        (
+            "scripts_readme_cpu_mask_test_route_marker",
+            SCRIPTS_README_PATH,
+            "make -C zigux phase8-cpu-mask-test",
+            "make -C zigux phase8-cpu-mask-review",
+            f"{SCRIPTS_README_PATH}: make -C zigux phase8-cpu-mask-test",
+        ),
+        (
+            "scripts_readme_libbpf_segments_test_route_marker",
+            SCRIPTS_README_PATH,
+            "make -C zigux phase8-libbpf-segments-test",
+            "make -C zigux phase8-libbpf-segments-review",
+            f"{SCRIPTS_README_PATH}: make -C zigux phase8-libbpf-segments-test",
+        ),
+        (
+            "scripts_readme_perf_buffer_poll_test_route_marker",
+            SCRIPTS_README_PATH,
+            "make -C zigux phase8-perf-buffer-poll-test",
+            "make -C zigux phase8-perf-buffer-poll-review",
+            f"{SCRIPTS_README_PATH}: make -C zigux phase8-perf-buffer-poll-test",
         ),
         (
             "docs_root_libbpf_segment_gate_marker",
