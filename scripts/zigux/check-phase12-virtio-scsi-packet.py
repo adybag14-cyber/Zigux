@@ -282,6 +282,22 @@ def run_self_test() -> int:
         case_count += 1
 
         seed_fixture_tree(root)
+        write_text(
+            root / REPLAY_PATH,
+            "const std = @import(\"std\");\n"
+            "test \"phase12 packet replay\" {\n"
+            "    try std.testing.expect(std.mem.indexOf(u8, \"\\\"lane_key\\\": \\\"P12-L12\\\"\", \"\\\"lane_key\\\": \\\"P12-L12\\\"\") != null);\n"
+            "    try std.testing.expect(std.mem.indexOf(u8, \"\\\"surveyed_commit\\\": \\\"stale_commit\\\"\", \"\\\"surveyed_commit\\\": \\\"stale_commit\\\"\") != null);\n"
+            "}\n",
+        )
+        assert_only(
+            validate(root),
+            ["replay:surveyed_commit_mismatch:unresolved_on_master"],
+            "surveyed_commit_drift_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
         write_text(root / BUILD_PATH, "const std = @import(\"std\");\n")
         assert_only(
             validate(root),
