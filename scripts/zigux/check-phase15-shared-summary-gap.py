@@ -106,6 +106,7 @@ FILE_MARKERS = {
     ),
     SCRIPTS_README_REL: (
         "Phase 15 flow",
+        REVIEW_PROCESS_MARKER,
         SURVEY_MARKER,
         READINESS_MARKER,
         HANDOFF_MARKER,
@@ -235,6 +236,7 @@ def _seed(root: Path) -> None:
             (
                 "# scripts",
                 "Phase 15 flow",
+                REVIEW_PROCESS_MARKER,
                 SURVEY_MARKER,
                 READINESS_MARKER,
                 HANDOFF_MARKER,
@@ -406,6 +408,16 @@ def run_self_test() -> int:
             validate(root),
             [f"{REVIEW_CHECKLIST_REL}:missing:{REVIEW_CHECKLIST_REOPEN_TRIGGER_MARKER}"],
             "review_checklist_missing_reopen_trigger_wording",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / SCRIPTS_README_REL
+        _write(path, _read(path).replace(REVIEW_PROCESS_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{SCRIPTS_README_REL}:missing:{REVIEW_PROCESS_MARKER}"],
+            "scripts_readme_missing_review_process",
         )
         _seed(root)
         case_count += 1
