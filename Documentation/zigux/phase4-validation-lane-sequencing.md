@@ -91,6 +91,8 @@ The parked starter lanes own only the current absent-starter evidence for:
 - `zigux/tests/phase4_test_fsmount_manifest.json`
 - `zigux/tests/phase4_test_fsmount_survey.zig`
 
+Both packet-local manifests currently still advertise `"lane_key": "P4-L19"` as the shared parked-gap coordination label. Treat that label as historical grouping only, not as permission to batch kprobe and `test_fsmount` follow-through into the same repair.
+
 Keep starter-gap follow-through inside those parked packets: the current Linux anchor, the current replay path, the local survey wrapper, the direct validation entrypoint, the owner and rollback-owner wording, the reviewability-only threshold posture, and the next bounded evidence step while `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` remain absent on current `master`.
 
 Do not use a parked starter-gap lane to reopen shared exact-readback inventory, the local perf approval packet, or the shipped atomic64 or bitmap gate wording by itself.
@@ -100,6 +102,7 @@ Do not use a parked starter-gap lane to reopen shared exact-readback inventory, 
 When a Phase 4 validation change is proposed, choose the narrowest owner first.
 
 - If a change only repairs one starter-gap survey note, one starter-gap manifest, one starter-gap survey gate, one direct validation entrypoint reminder, or one parked next-step handoff, keep it inside that single parked starter packet.
+- Even while both parked starter-gap manifests still carry `P4-L19`, reopen only the one parked packet that drifted; do not repair the sibling parked packet in the same run unless the shared exact-readback lane needs a later post-publication catch-up.
 - If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.
 - If a change only refreshes how the shipped rollback-readiness packet, the reversible-delivery handoff, the shared review checklist, the host-side artifact-diff tooling packet, the rollback-owner map, the validator-first route, and adjacent parked packets are described together, keep it in the shared exact-readback lane.
 - If a shared reminder surface needs one perf-local or starter-gap cue, point to that exact packet instead of restating packet-local behavior from memory.
@@ -113,7 +116,7 @@ Use this note to keep future Phase 4 follow-through bounded:
 
 - reopen the shared exact-readback lane only for one rollback-owner, current-head readback, host-side artifact-diff tooling, workflow-route, cross-packet sequencing, reversible-delivery, or review-checklist repair across the already landed shared Phase 4 packet
 - reopen the dedicated perf lane only for one checker, manifest, survey, benchmark-command, acceptable-limit, or local-only policy truthfulness repair
-- reopen a parked starter-gap lane only for one packet-local note, manifest, survey gate, wrapper, entrypoint, owner-map, or next-step truthfulness repair
+- reopen a parked starter-gap lane only for one packet-local note, manifest, survey gate, wrapper, entrypoint, owner-map, or next-step truthfulness repair, even while the packet-local status blocks still share the historical `P4-L19` coordination label
 - update the directly coupled packet first when packet-local behavior changes, then refresh shared exact-readback wording only after that packet-local state is directly readable on current `master`
 
 This keeps Phase 4 aligned with the roadmap's validation-first rollback packet while preventing shared note maintenance from turning back into overlapping perf-policy or starter-gap work.
