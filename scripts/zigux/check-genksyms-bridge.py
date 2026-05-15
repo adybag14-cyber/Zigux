@@ -295,7 +295,7 @@ EXPECTED_GENKSYMS_MANIFEST = {
 EXPECTED_WORKFLOW_LINES = [
     "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
-    "run: zig test scripts/zigux/genksyms.zig",
+    "run: python3 scripts/zigux/validate-phase2.py",
 ]
 
 EXPECTED_MAKEFILE_LINES = [
@@ -360,8 +360,8 @@ def expected_survey_case_marker() -> str:
 def expected_survey_version_marker() -> str:
     return (
         "The external `version_expected.json` and "
-        "`version_then_missing_long_reference_argument_expected.json` packets now prove the "
-        "same version-side-effect request and parse-failure behavior as the helper-local "
+        "`version_then_missing_long_reference_argument_expected.json` packets now prove "
+        "the same version-side-effect request and parse-failure behavior as the helper-local "
         "anchors already covered in `scripts/zigux/genksyms.zig`, so the helper-local and "
         "external bridge packets are aligned on both bounded version paths."
     )
@@ -372,7 +372,7 @@ EXPECTED_SURVEY_MARKERS = [
     expected_survey_version_marker(),
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 30
+EXPECTED_SELF_TEST_CASE_COUNT = 32
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -725,8 +725,13 @@ def run_self_test() -> int:
         payload.pop()
         write_text(root / GENKSYMS_CASES_REL, json.dumps(payload, indent=2) + "\n")
         issues = validate_root(root)
-        assert "genksyms_cases:case_count:expected=24:actual=23" in issues
-        assert "genksyms_cases:names:expected=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'version_then_missing_long_reference_argument', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'missing_dump_types_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument', 'too_many_reference_files']:actual=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'version_then_missing_long_reference_argument', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'missing_dump_types_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument']" in issues
+        expected_names = [case["name"] for case in EXPECTED_GENKSYMS_CASES]
+        actual_names = [case["name"] for case in payload]
+        assert (
+            f"genksyms_cases:case_count:expected={len(EXPECTED_GENKSYMS_CASES)!r}:actual={len(payload)!r}"
+            in issues
+        )
+        assert f"genksyms_cases:names:expected={expected_names!r}:actual={actual_names!r}" in issues
         case_count += 1
 
         build_self_test_root(root)
@@ -810,6 +815,18 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[2]}:count=0:expected=1" in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8") + EXPECTED_WORKFLOW_LINES[2] + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"line_count:{WORKFLOW_REL}:{EXPECTED_WORKFLOW_LINES[2]}:count=2:expected=1" in issues
         )
         case_count += 1
 
@@ -1038,6 +1055,22 @@ def run_self_test() -> int:
         assert f"missing_marker:{VALIDATE_PHASE2_REL}:{EXPECTED_PHASE2_VALIDATOR_MARKERS[3]}" in issues
         assert (
             f"exact_count:{VALIDATE_PHASE2_REL}:{EXPECTED_PHASE2_VALIDATOR_MARKERS[3]}:count=0:expected=1"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        validate_phase2_path = root / VALIDATE_PHASE2_REL
+        validate_phase2_path.write_text(
+            validate_phase2_path.read_text(encoding="utf-8").replace(
+                EXPECTED_PHASE2_VALIDATOR_MARKERS[5] + "\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"missing_marker:{VALIDATE_PHASE2_REL}:{EXPECTED_PHASE2_VALIDATOR_MARKERS[5]}" in issues
+        assert (
+            f"exact_count:{VALIDATE_PHASE2_REL}:{EXPECTED_PHASE2_VALIDATOR_MARKERS[5]}:count=0:expected=1"
             in issues
         )
         case_count += 1
