@@ -107,6 +107,25 @@ pub fn requestedExtraBytes(header_value: Header) ?u32 {
     return uapi_version.evaluateHeader(header_value).requestedExtraBytes();
 }
 
+pub fn validateDeviceNumber(
+    major_id: u32,
+    minor_id: u32,
+    facility: abi.Facility,
+) abi.ExportStatus {
+    uapi_dev_t.validate(major_id, minor_id) catch |err| return deviceEncodeStatus(err, facility);
+    return ok(facility);
+}
+
+pub fn validateDeviceRange(
+    major_id: u32,
+    first_minor: u32,
+    count: u32,
+    facility: abi.Facility,
+) abi.ExportStatus {
+    uapi_dev_t.validateRange(major_id, first_minor, count) catch |err| return deviceEncodeStatus(err, facility);
+    return ok(facility);
+}
+
 pub fn encodeDeviceNumber(
     major_id: u32,
     minor_id: u32,
@@ -282,6 +301,9 @@ test "phase3 export shim evaluation keeps compatibility evidence and status toge
 }
 
 test "phase3 export shim keeps dev_t starter relay status explicit" {
+    const valid_number = validateDeviceNumber(42, 7, .drivers);
+    try std.testing.expect(isOk(valid_number));
+
     const encoded = encodeDeviceNumber(42, 7, .drivers);
     try std.testing.expect(isOk(encoded.status));
     try std.testing.expectEqual((@as(u32, 42) << uapi_dev_t.minor_bits) | 7, encoded.value);
@@ -289,6 +311,9 @@ test "phase3 export shim keeps dev_t starter relay status explicit" {
     const decoded = decodeDeviceNumber(encoded.value);
     try std.testing.expectEqual(@as(u32, 42), decoded.major);
     try std.testing.expectEqual(@as(u32, 7), decoded.minor);
+
+    const valid_range = validateDeviceRange(42, 7, 4, .helpers);
+    try std.testing.expect(isOk(valid_range));
 
     const range_last = lastDeviceNumberInRange(42, 7, 4, .helpers);
     try std.testing.expect(isOk(range_last.status));
@@ -302,13 +327,28 @@ test "phase3 export shim keeps dev_t starter relay status explicit" {
     try std.testing.expectEqual(@as(u32, 6), masked.major);
     try std.testing.expectEqual(@as(u32, 8), masked.minor);
 
+    const bad_minor = validateDeviceNumber(42, uapi_dev_t.minor_mask + 1, .kernel);
+    try std.testing.expect(!isOk(bad_minor));
+    try std.testing.expectEqual(@as(i32, -22), bad_minor.code);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), bad_minor.flags);
+
     const bad_major = encodeDeviceNumber(uapi_dev_t.major_max + 1, 0, .kernel);
     try std.testing.expect(!isOk(bad_major.status));
     try std.testing.expectEqual(@as(i32, -22), bad_major.status.code);
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), bad_major.status.flags);
 
+    const invalid_range_start = validateDeviceRange(42, uapi_dev_t.minor_mask + 1, 0, .kernel);
+    try std.testing.expect(!isOk(invalid_range_start));
+    try std.testing.expectEqual(@as(i32, -22), invalid_range_start.code);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_range_start.flags);
+
     const exhausted = lastDeviceNumberInRange(42, uapi_dev_t.minor_mask - 1, 3, .helpers);
     try std.testing.expect(!isOk(exhausted.status));
     try std.testing.expectEqual(@as(i32, -34), exhausted.status.code);
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), exhausted.status.flags);
+
+    const exhausted_range = validateDeviceRange(42, uapi_dev_t.minor_mask - 1, 3, .helpers);
+    try std.testing.expect(!isOk(exhausted_range));
+    try std.testing.expectEqual(@as(i32, -34), exhausted_range.code);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), exhausted_range.flags);
 }
