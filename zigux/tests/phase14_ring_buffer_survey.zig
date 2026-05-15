@@ -113,6 +113,7 @@ test "phase14 ring-buffer survey manifest records the current study-only packet"
     try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
     try std.testing.expectEqualStrings("study_only", manifest.study_only_governance.status_bucket);
     try std.testing.expectEqualStrings("", manifest.study_only_governance.ready_next_gap);
+    try std.testing.expectEqualStrings("same_packet_truthfulness_repairs_only", manifest.study_only_governance.lane_reopen_scope);
     try std.testing.expectEqualStrings("phase14-ring-buffer-zig-port-blocker", manifest.study_only_governance.blocked_gap);
     try std.testing.expectEqualStrings("phase14-ring-buffer-maintenance-handoff", manifest.study_only_governance.last_closed_followup);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
@@ -121,7 +122,12 @@ test "phase14 ring-buffer survey manifest records the current study-only packet"
     try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase14_build.zig --summary all", manifest.maintenance_handoff.replay_before_trusting[1]);
     try std.testing.expectEqualStrings("make -C zigux phase14", manifest.maintenance_handoff.replay_before_trusting[2]);
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.reopen_conditions[0], "dedicated survey note, manifest, or Zig survey gate drift") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.reopen_conditions[1], "shared smoke or core traceability packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.reopen_conditions[2], "reserve or commit publication") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "ring-buffer-local") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "phase14-end-to-end-smoke-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "phase14-core-boundary-traceability.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.study_only_governance.why_now, "maintenance-mode handoff") != null);
     try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
     try std.testing.expect(hasChecklistEntry(manifest.decision_checklist, "reserve-commit-publication"));
@@ -160,6 +166,8 @@ test "phase14 ring-buffer survey note keeps the parked study-only posture explic
     try std.testing.expect(std.mem.indexOf(u8, note, "current lane posture: `maintenance_mode`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zig test zigux/tests/phase14_ring_buffer_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-maintenance-handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "shared smoke or core traceability packet reintroduces a ring-buffer-specific owner-label or ready-next mismatch") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "genuinely narrower stay-in-C evidence appears around reserve or commit publication") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "ring-buffer-local") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "kernel/trace/ring_buffer.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "run the dedicated ring-buffer survey replay") != null);
