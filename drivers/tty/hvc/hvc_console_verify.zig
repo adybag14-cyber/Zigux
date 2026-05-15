@@ -20,7 +20,9 @@ pub const VerifyRemoveHandoffSummary = struct {
     keeps_live_remove_execution_out_of_scope: bool,
 };
 
-pub fn summarizeRemoveWhenTtyAlreadyAbsent(request: VerifyRemoveHandoffRequest) VerifyRemoveHandoffSummary {
+pub fn summarizeRemoveWhenTtyAlreadyAbsent(
+    request: VerifyRemoveHandoffRequest,
+) VerifyRemoveHandoffSummary {
     return .{
         .tty_present = request.tty_present,
         .tty_already_absent = !request.tty_present,
@@ -44,13 +46,22 @@ pub const CleanupPrerequisiteRequest = struct {
     port_reference_drop_timing: bool,
 };
 
+pub const CleanupTrigger = enum {
+    final_close_only,
+    hangup_only,
+    final_close_and_hangup,
+};
+
 pub const CleanupPrerequisiteSummary = struct {
     cleanup: console.CleanupHandoffSummary,
     drops_tty_port_reference: bool,
     hangup_or_final_close_seen: bool,
+    trigger: CleanupTrigger,
 };
 
-pub fn summarizeCleanupPrerequisites(request: CleanupPrerequisiteRequest) !CleanupPrerequisiteSummary {
+pub fn summarizeCleanupPrerequisites(
+    request: CleanupPrerequisiteRequest,
+) !CleanupPrerequisiteSummary {
     if (!request.final_close_seen and !request.hangup_seen) {
         return error.CleanupRequiresFinalCloseOrHangup;
     }
@@ -60,11 +71,18 @@ pub fn summarizeCleanupPrerequisites(request: CleanupPrerequisiteRequest) !Clean
         .cleanup_time_tty_port_ownership = request.cleanup_time_tty_port_ownership,
         .port_reference_drop_timing = request.port_reference_drop_timing,
     });
+    const trigger: CleanupTrigger = if (request.final_close_seen and request.hangup_seen)
+        .final_close_and_hangup
+    else if (request.final_close_seen)
+        .final_close_only
+    else
+        .hangup_only;
 
     return .{
         .cleanup = cleanup,
         .drops_tty_port_reference = cleanup.port_reference_drop_timing,
         .hangup_or_final_close_seen = request.final_close_seen or request.hangup_seen,
+        .trigger = trigger,
     };
 }
 
@@ -79,7 +97,9 @@ pub const NotifierUnregisterTimingSummary = struct {
     unregister_stays_false: bool,
 };
 
-pub fn summarizeNotifierUnregisterTiming(request: NotifierUnregisterTimingRequest) NotifierUnregisterTimingSummary {
+pub fn summarizeNotifierUnregisterTiming(
+    request: NotifierUnregisterTimingRequest,
+) NotifierUnregisterTimingSummary {
     const edge = console.summarizeTargetlessNotifierEdge(.{
         .target_present = request.target_present,
         .notifier_registered = request.notifier_registered,
@@ -107,7 +127,9 @@ pub const TargetlessSysrqDispatchSummary = struct {
     targetless_dispatch_without_notifier: bool,
 };
 
-pub fn summarizeTargetlessSysrqDispatch(request: TargetlessSysrqDispatchRequest) TargetlessSysrqDispatchSummary {
+pub fn summarizeTargetlessSysrqDispatch(
+    request: TargetlessSysrqDispatchRequest,
+) TargetlessSysrqDispatchSummary {
     const handoff = sysrq.summarizeSysrqHandoff(.{
         .target_vtermno = request.target_vtermno,
         .byte = request.byte,
@@ -119,7 +141,8 @@ pub fn summarizeTargetlessSysrqDispatch(request: TargetlessSysrqDispatchRequest)
     return .{
         .handoff = handoff,
         .notifier_callback_implied = request.notifier_callback_implied and handoff.invokes_sysrq_handler,
-        .targetless_dispatch_without_notifier = request.target_vtermno == null and !request.notifier_callback_implied,
+        .targetless_dispatch_without_notifier = request.target_vtermno == null and
+            !request.notifier_callback_implied,
     };
 }
 
@@ -163,6 +186,7 @@ test "hvc_console verify keeps cleanup prerequisite failures explicit" {
     try std.testing.expect(summary.cleanup.cleanup_time_tty_port_ownership);
     try std.testing.expect(summary.drops_tty_port_reference);
     try std.testing.expect(summary.hangup_or_final_close_seen);
+    try std.testing.expectEqual(CleanupTrigger.final_close_only, summary.trigger);
 }
 
 test "hvc_console verify keeps hangup-only cleanup prerequisites explicit" {
@@ -179,6 +203,24 @@ test "hvc_console verify keeps hangup-only cleanup prerequisites explicit" {
     try std.testing.expect(summary.cleanup.port_reference_drop_timing);
     try std.testing.expect(summary.drops_tty_port_reference);
     try std.testing.expect(summary.hangup_or_final_close_seen);
+    try std.testing.expectEqual(CleanupTrigger.hangup_only, summary.trigger);
+}
+
+test "hvc_console verify keeps combined cleanup trigger explicit" {
+    const summary = try summarizeCleanupPrerequisites(.{
+        .final_close_seen = true,
+        .hangup_seen = true,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expect(summary.cleanup.tty_port_release_handoff);
+    try std.testing.expect(summary.cleanup.cleanup_time_tty_port_ownership);
+    try std.testing.expect(summary.cleanup.port_reference_drop_timing);
+    try std.testing.expect(summary.drops_tty_port_reference);
+    try std.testing.expect(summary.hangup_or_final_close_seen);
+    try std.testing.expectEqual(CleanupTrigger.final_close_and_hangup, summary.trigger);
 }
 
 test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces" {
