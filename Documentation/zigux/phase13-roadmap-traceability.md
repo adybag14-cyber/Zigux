@@ -53,6 +53,8 @@ Keep the current `libfs` mapping explicit through:
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
+The shared owner-map note `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` currently keeps this roadmap anchor on survey lane `P13-L04` with verification alias `P13-L03`, so roadmap-to-repo follow-through should stay inside that helper-local libfs packet rather than reusing the devres, Landlock, or adjacent notifier reminder lanes.
+
 Current `master` materializes the dedicated `libfs` survey note, the helper-local `fs/libfs.zig` starter, the direct libfs replay, the direct reviewability replay, the manifest-backed helper packet, and the stable validator-first make routes for the `fs/libfs.c` roadmap anchor. If direct companions such as `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, or `zigux/tests/phase13_libfs_addressability.zig` cannot be materialized on current `master`, record them as repo-reality gaps rather than presenting them here as shipped repo evidence.
 
 That bounded `libfs` packet still covers positive-entry classification, simple-directory emptiness planning, negative-dentry lookup shaping, simple transaction acquire, publish, and release planning, addressability planning, plus offset seek, readdir, rename, and rename-exchange planning without claiming live dcache entry insertion, inode lifetime management, page-cache-backed filesystem state, or broader filesystem registration. The dedicated survey note plus the shipped helper-local libfs packet should stay visible here as roadmap-to-repo evidence, and any still-missing slice or shared-build companions should stay recorded as repo reality until current `master` materializes them again, but they still support the shared Phase 13 packet rather than creating an extra replay step or a closure claim.
@@ -72,6 +74,8 @@ Keep the current `devres` mapping explicit through:
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
+The shared owner-map note `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` currently keeps this roadmap anchor on survey lane `P13-L01` with scheduled follow-through split `P13-L05` plus `P13-L06`, so the traceability note should keep routing devres follow-up through that MMIO-safety packet instead of borrowing libfs, Landlock, or adjacent notifier reminder lanes.
+
 Current `master` materializes the dedicated devres slice note, the dedicated survey note, the helper-local `lib/devres.zig` starter, the manifest-backed packet, the direct devres replay, the direct reviewability replay, the adjacent coherent-DMA boundary replay, the dedicated boundary-evidence replay, the dedicated packet-alignment checker, and the stable validator-first make routes for the `lib/devres.c` roadmap anchor. If older direct companions such as `zigux/tests/phase13_build.zig` or `scripts/zigux/check-phase13-devres-packet.py` cannot be materialized on current `master`, record them as repo-reality gaps rather than presenting them here as shipped repo evidence.
 
 That bounded `devres` packet still covers managed ioremap lifetime planning, exact `devm_iounmap()` pointer matching, pure `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()` wrapper planning, translated-resource `devm_of_iomap()` handoff, detach-time arch WC token bookkeeping, and the current helper-source dma/scatterlist boundary proof: `lib/devres.zig` still carries no `dmam_*`, `dma_map_*`, `dma_unmap_*`, `dma_sync_*`, `dma_mmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `scatterlist`, `sg_table`, or `sg_*` ownership markers. Keep that exact helper-source readback explicit so the adjacent coherent-DMA shard stays framed as boundary evidence instead of shipped DMA-backed parity. The dedicated devres notes, helper-local starter, manifest-backed packet, direct replays, and checker should stay visible here as roadmap-to-repo evidence, while the still-missing shared-build companion stays recorded as repo reality until current `master` materializes it again; the adjacent coherent-DMA shard and the dedicated boundary-evidence replay still support the shared Phase 13 packet rather than creating extra replay steps or a closure claim.
@@ -88,6 +92,8 @@ Keep the current `landlock/ruleset` mapping explicit through:
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
+
+The shared owner-map note `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` currently keeps this roadmap anchor on survey lane `P13-L09` with verification alias `P13-L11`, so roadmap-to-repo follow-through should stay inside that ruleset ownership packet rather than borrowing the syscall governance or adjacent notifier reminder lanes.
 
 Current `master` materializes the dedicated ownership note, the dedicated slice note, the dedicated survey note, the helper-local `security/landlock/ruleset.zig` starter, the direct replay, the manifest-backed packet, the dedicated packet checker, and the stable validator-first make routes for the `landlock/ruleset` lane. If the older shared `zigux/tests/phase13_build.zig` route cannot be materialized on current `master`, record that direct path as a repo-reality gap rather than presenting it here as shipped repo evidence.
 
@@ -106,6 +112,8 @@ Keep the current `landlock/syscalls` mapping explicit through:
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
+
+The shared owner-map note `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` currently keeps this roadmap anchor on survey lane `P13-L17` with scheduled follow-through split `P13-Y04` plus `P13-L13`, so roadmap-to-repo follow-through should stay inside that syscall packet rather than collapsing back into the ruleset ownership note or broader shared reminder surfaces.
 
 Current `master` materializes the dedicated governance note, the dedicated slice note, the dedicated survey note, the helper-local `security/landlock/syscalls.zig` starter, the direct syscall replay, the dedicated reviewability replay, the manifest-backed packet, and the stable validator-first make routes for the `landlock/syscalls` lane. If the older shared `zigux/tests/phase13_build.zig` route cannot be materialized on current `master`, record that direct path as a repo-reality gap rather than presenting it here as shipped repo evidence.
 
