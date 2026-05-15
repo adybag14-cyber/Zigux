@@ -119,6 +119,10 @@ test "phase10 virtio core survey manifest records the roadmap-facing core packet
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "status_show` review surface starts at `0x00000000\\n`, reaches `0x0000000f\\n`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`features_show`-style device, driver, and negotiated bitstrings") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10_virtio_core_interrupt_compound_ack.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "combined queue-used plus config-change acknowledgement path") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10_virtio_core_survey_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "\"phase10-virtio-core-survey-tests\"") != null);
@@ -129,10 +133,12 @@ test "phase10 virtio core survey manifest records the roadmap-facing core packet
     var blocked_count: usize = 0;
     var saw_driver_id_helper = false;
     var saw_driver_id_coverage_helper = false;
+    var saw_core_lab_gate = false;
     var saw_slice_note_gap = false;
     var saw_survey_gate = false;
     var saw_survey_note = false;
     var saw_lab_validation_evidence = false;
+    var saw_interrupt_compound_ack_gate = false;
     var saw_dual_bridge = false;
     var saw_probe_remove_blocker = false;
 
@@ -160,6 +166,13 @@ test "phase10 virtio core survey manifest records the roadmap-facing core packet
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_driver_id.zig", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-core-lab-gate")) {
+            saw_core_lab_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_core.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "status_show transition from 0x00000000 to 0x0000000f") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "features_show-style bitstrings") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase10-virtio-core-slice-note")) {
             saw_slice_note_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -181,6 +194,14 @@ test "phase10 virtio core survey manifest records the roadmap-facing core packet
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-core-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lab-only driver validation evidence") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "direct phase10_virtio_core attribute-summary replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "direct phase10_virtio_core_interrupt_compound_ack replay") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase10-interrupt-compound-ack-gate")) {
+            saw_interrupt_compound_ack_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "combined queue-used plus config-change acknowledgement") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase10-core-dual-implementation-bridge")) {
             saw_dual_bridge = true;
@@ -205,10 +226,12 @@ test "phase10 virtio core survey manifest records the roadmap-facing core packet
     try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_driver_id_helper);
     try std.testing.expect(saw_driver_id_coverage_helper);
+    try std.testing.expect(saw_core_lab_gate);
     try std.testing.expect(saw_slice_note_gap);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_lab_validation_evidence);
+    try std.testing.expect(saw_interrupt_compound_ack_gate);
     try std.testing.expect(saw_dual_bridge);
     try std.testing.expect(saw_probe_remove_blocker);
 }
