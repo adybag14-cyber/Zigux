@@ -30,7 +30,7 @@ Fresh repo-first inspection on 2026-05-14 confirmed these same-lane facts:
 
 - `samples/kfifo/bytestream-example.c` remains the Linux anchor for this slice.
 - `samples/zigux/bytestream_fifo.zig` is directly readable on current `master`.
-- that sample file still makes the non-runtime idiom explicit through `BytestreamFifoSample.descriptor()`, `StorageBacking.embedded_fixed_buffer`, `reviewContract().focus`, `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle.
+- that sample file still makes the non-runtime idiom explicit through `BytestreamFifoSample.descriptor()`, `StorageBacking.embedded_fixed_buffer`, `reviewContract().focus`, `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `runRemainingCapacityReplay()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle.
 - the shared Phase 5 guide in `Documentation/zigux/phase5-sample-review-guide.md` and the sample-root summary in `samples/zigux/README.md` already keep this anchor routed through the survey note and the broader bytestream packet wording instead of pretending the sample stands alone.
 - authenticated GitHub contents reads in this environment still did not recover these companion paths:
   - `zigux/tests/phase5_bytestream_fifo.zig`
@@ -67,7 +67,8 @@ The directly readable sample still keeps these cues visible on current `master`:
 - ordered enqueue, drain, and refill behavior stays explicit through `runAnchorReplay()`
 - non-destructive preview behavior stays explicit through `previewInto()`
 - full queued-state capture stays explicit through `snapshotInto()`
-- rollover and split-window behavior stay explicit through `runWrappedPreviewReplay()`, `visibleSpanSummary()`, and `usesWrappedStorageWindow()`
+- rollover and split-window behavior stay explicit through `runWrappedPreviewReplay()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`
+- remaining-capacity and occupancy boundaries stay explicit through `runRemainingCapacityReplay()`, `available()`, and `occupancySummary()`
 - helper-boundary behavior stays explicit at empty, short-drain, full-capacity, skip-at-capacity, and reset edges
 - ownership and lifetime stay explicit through the `cold`, `initialized`, `replay_complete`, and `exited` stages
 - docs should keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample
