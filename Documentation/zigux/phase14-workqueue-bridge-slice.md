@@ -9,7 +9,7 @@
 
 - `kernel/workqueue_bridge.zig` keeps the Phase 14 workqueue study packet boundary-map only and review-first.
 - `zigux/tests/phase14_workqueue_bridge.zig` keeps the bridge descriptor, boundary areas, manifest-backed gap inventory, and blocked-maintenance posture aligned.
-- `zigux/tests/phase14_workqueue_reviewability.zig` keeps the shared smoke packet, the workqueue survey note, and this slice note from drifting apart.
+- `zigux/tests/phase14_workqueue_reviewability.zig` keeps the shared smoke packet, the core boundary traceability note, the shared review checklist, the workqueue survey note, and this slice note from drifting apart.
 - `zigux/tests/phase14_workqueue_bridge_manifest.json` records the current lane key, surveyed commit, explicit blocked-maintenance handoff, landed gap ids, and the blocked live-execution boundary.
 - `Documentation/zigux/phase14-workqueue-bridge-survey.md` carries the broader roadmap framing for the blocked-maintenance packet.
 - `zigux/tests/phase14_build.zig`, `make -C zigux phase14-test`, and `make -C zigux phase14` keep the bounded workqueue bridge packet wired into the Phase 14 validation routes without implying a deep-core port.
@@ -39,4 +39,4 @@
 
 ## Next bounded step
 
-Keep this lane in blocked maintenance and reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, and `Documentation/zigux/phase14-workqueue-bridge-survey.md` together before touching any broader Phase 14 shared reminder surface.
+Keep this lane in blocked maintenance and reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, `Documentation/zigux/phase14-workqueue-bridge-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, and `Documentation/zigux/review-checklist.md` together before touching any broader Phase 14 shared reminder surface.
