@@ -118,6 +118,8 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-file-path-handle-bridge-test",
         "make -C zigux phase8-libbpf-segments-test",
         "make -C zigux phase8-perf-buffer-poll-test",
+        "`make -C zigux phase8-test`",
+        "`make -C zigux phase8`",
         "make -C zigux phase8-validate",
     ),
     TESTS_README_PATH: (
@@ -395,6 +397,20 @@ def run_self_test() -> None:
             f"{SCRIPTS_README_PATH}: make -C zigux phase8-cpu-mask-test",
         ),
         (
+            "scripts_readme_phase8_test_route_marker",
+            SCRIPTS_README_PATH,
+            "`make -C zigux phase8-test`",
+            "`make -C zigux phase8-review`",
+            f"{SCRIPTS_README_PATH}: `make -C zigux phase8-test`",
+        ),
+        (
+            "scripts_readme_phase8_aggregate_route_marker",
+            SCRIPTS_README_PATH,
+            "`make -C zigux phase8`",
+            "`make -C zigux phase8-shared`",
+            f"{SCRIPTS_README_PATH}: `make -C zigux phase8`",
+        ),
+        (
             "docs_root_libbpf_segment_gate_marker",
             DOCS_ROOT_PATH,
             "`scripts/zigux/check-phase8-libbpf-segment-gate.py`",
@@ -665,7 +681,7 @@ def run_self_test() -> None:
             LIBBPF_MANIFEST_PATH,
             '"slug": "map-reuse-compatibility", "status": "starter_landed"',
             '"slug": "map-reuse-compatibility", "status": "ready_next"',
-            f"{LIBBPF_MANIFEST_PATH}: \"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
+            f'{LIBBPF_MANIFEST_PATH}: "slug": "map-reuse-compatibility", "status": "starter_landed"',
         ),
         (
             "exec_cmd_slice_phase8_slice_marker",
@@ -700,21 +716,21 @@ def run_self_test() -> None:
             BRIDGE_TEST_PATH,
             '"zigux/tests/phase8_build.zig"',
             '"zigux/tests/phase8_bridge_build.zig"',
-            f"{BRIDGE_TEST_PATH}: \"zigux/tests/phase8_build.zig\"",
+            f'{BRIDGE_TEST_PATH}: "zigux/tests/phase8_build.zig"',
         ),
         (
             "bridge_focused_build_test_name_marker",
             BRIDGE_BUILD_PATH,
             '"phase8-file-path-handle-bridge-tests"',
             '"phase8-file-path-handle-bridge-shard-tests"',
-            f"{BRIDGE_BUILD_PATH}: \"phase8-file-path-handle-bridge-tests\"",
+            f'{BRIDGE_BUILD_PATH}: "phase8-file-path-handle-bridge-tests"',
         ),
         (
             "phase8_build_bridge_test_name_marker",
             PHASE8_BUILD_PATH,
             '"phase8-file-path-handle-bridge-tests"',
             '"phase8-file-path-handle-bridge-shard-tests"',
-            f"{PHASE8_BUILD_PATH}: \"phase8-file-path-handle-bridge-tests\"",
+            f'{PHASE8_BUILD_PATH}: "phase8-file-path-handle-bridge-tests"',
         ),
     ]
 
