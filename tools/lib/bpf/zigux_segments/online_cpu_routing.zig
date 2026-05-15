@@ -350,6 +350,26 @@ test "summarizeOnlineCpuRouting keeps requested subsets explicit without inventi
     );
 }
 
+test "summarizeOnlineCpuRouting treats oversized requests as complete once all online CPUs are routed" {
+    const summary = summarizeOnlineCpuRouting(
+        &.{ false, true, false, true },
+        5,
+        &.{ 11, 17, 29 },
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), summary.online_cpu_count);
+    try std.testing.expectEqual(@as(usize, 5), summary.requested_cpu_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.selected_cpu_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.routed_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 1), summary.first_routed_cpu_index);
+    try std.testing.expectEqual(@as(?usize, null), summary.next_online_cpu_index);
+    try std.testing.expectEqual(@as(?usize, null), summary.missing_buffer_index);
+    try std.testing.expectEqual(
+        OnlineCpuRoutingDisposition.complete,
+        summary.disposition,
+    );
+}
+
 test "summarizeOnlineCpuRouting reports the first online CPU that outgrows the buffer table" {
     const summary = summarizeOnlineCpuRouting(
         &.{ true, false, true, true },
