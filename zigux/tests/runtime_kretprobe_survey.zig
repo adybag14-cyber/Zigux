@@ -360,6 +360,18 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
 
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader keeps unavailable substrate and lifecycle guards explicit\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try loader.releaseWithoutSubstrate();",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try std.testing.expectError(error.InvalidLoaderState, loader.requestRuntimeLoad());",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "test \"runtime kretprobe loader bridges the shared request lifecycle without widening registration claims\"",
     );
     try expectContains(
