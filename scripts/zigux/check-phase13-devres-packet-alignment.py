@@ -130,6 +130,11 @@ DMA_REPLAY_MARKERS = [
     '"blocked_on_live_scatterlist_state"',
     'adjacent coherent-DMA evidence shard',
     'helper-only DMA/scatterlist boundary',
+    'DMA mapping helpers',
+    '`sg_table` lifecycle control',
+    'no DMA mapping helpers',
+    'DMA mapping ownership',
+    'no `sg_table` lifecycle control',
 ]
 
 
@@ -358,6 +363,22 @@ def run_self_test() -> int:
             validate(root),
             ['replay:missing_marker:miss.warns_on_release_miss'],
             'replay_missing_release_miss_marker_failed',
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / DMA_REPLAY_PATH,
+            '\n'.join(
+                marker
+                for marker in DMA_REPLAY_MARKERS
+                if marker != 'DMA mapping helpers'
+            ) + '\n',
+        )
+        assert_only(
+            validate(root),
+            ['dma_replay:missing_marker:DMA mapping helpers'],
+            'dma_replay_missing_dma_mapping_marker_failed',
         )
         case_count += 1
 
