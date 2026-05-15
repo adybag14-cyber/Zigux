@@ -287,6 +287,12 @@ REQUIRED_EXACT_LINES = {
     ],
 }
 
+EXACT_COUNT_MARKERS = {
+    "Documentation/zigux/README.md": {
+        "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results": 1,
+    },
+}
+
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
@@ -304,6 +310,14 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         for line in lines:
             if line not in text_lines:
                 missing_markers.append(f"{rel}: {line}")
+    for rel, expected_counts in EXACT_COUNT_MARKERS.items():
+        text = (root / rel).read_text(encoding="utf-8")
+        for marker, expected in expected_counts.items():
+            actual = text.count(marker)
+            if actual > 0 and actual != expected:
+                missing_markers.append(
+                    f"{rel}: expected {expected} occurrence(s) of {marker!r}, found {actual}"
+                )
     return [], missing_markers
 
 
@@ -564,8 +578,24 @@ def run_self_test() -> None:
             expect_missing_marker(tmp_root, expected)
             write_fixture_tree(tmp_root)
 
+        docs_root_path = tmp_root / "Documentation/zigux/README.md"
+        docs_root_marker = (
+            "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer "
+            "view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results"
+        )
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8") + docs_root_marker + "\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/README.md: expected 1 occurrence(s) of "
+            "'`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer "
+            "view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results', found 2",
+        )
+
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={1 + len(cases)}")
+    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={2 + len(cases)}")
 
 
 def main() -> int:
