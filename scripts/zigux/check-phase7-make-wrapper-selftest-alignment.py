@@ -87,8 +87,11 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase7-helper-lane-sequencing.md` remains the dedicated",
         "`zigux/tests/README.md` is also a shared-control reminder surface owned by",
         "For `string_helpers`, those shared no-sample reminders should also keep the ownership-focus packet explicit:",
+        "first-NUL trimming and prefix skipping stop at the exported C-string boundary",
         "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
+        "append-limited escape accounting stays inside caller storage",
         "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
+        "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
     ],
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
         "PHASE7_SHARED_CONTROL_LANE=P7-Y05",
@@ -322,6 +325,19 @@ def run_self_test() -> None:
         remove_marker(
             tmp_root,
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "first-NUL trimming and prefix skipping stop at the exported C-string boundary",
+            "missing_shared_note_first_nul_boundary_marker",
+        )
+        expect_missing_marker(
+            "missing_shared_note_first_nul_boundary_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: first-NUL trimming and prefix skipping stop at the exported C-string boundary",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
             "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
             "missing_shared_note_terminator_only_marker",
         )
@@ -329,6 +345,32 @@ def run_self_test() -> None:
             "missing_shared_note_terminator_only_marker",
             tmp_root,
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "append-limited escape accounting stays inside caller storage",
+            "missing_shared_note_escape_accounting_marker",
+        )
+        expect_missing_marker(
+            "missing_shared_note_escape_accounting_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: append-limited escape accounting stays inside caller storage",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
+            "missing_shared_note_bounded_write_marker",
+        )
+        expect_missing_marker(
+            "missing_shared_note_bounded_write_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
         )
         write_fixture_root(tmp_root)
 
@@ -514,7 +556,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=18")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=23")
 
 
 
