@@ -9,12 +9,40 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const virtio_net_transmit_recycle_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net_transmit_recycle.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const virtio_net_queue_resume_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net_queue_resume.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase12_virtio_net_module = b.createModule(.{
         .root_source_file = b.path("phase12_virtio_net.zig"),
         .target = target,
         .optimize = optimize,
     });
     phase12_virtio_net_module.addImport("virtio_net", virtio_net_module);
+    const phase12_virtio_net_transmit_recycle_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_transmit_recycle.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase12_virtio_net_transmit_recycle_module.addImport(
+        "virtio_net_transmit_recycle",
+        virtio_net_transmit_recycle_module,
+    );
+    const phase12_virtio_net_queue_resume_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_queue_resume.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase12_virtio_net_queue_resume_module.addImport(
+        "virtio_net_queue_resume",
+        virtio_net_queue_resume_module,
+    );
     const phase12_virtio_net_survey_module = b.createModule(.{
         .root_source_file = b.path("phase12_virtio_net_survey.zig"),
         .target = target,
@@ -55,6 +83,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase12_virtio_scsi_repeated_replan_module.addImport("virtio_scsi", virtio_scsi_module);
+    const phase12_virtio_scsi_repeated_rollback_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_scsi_repeated_rollback_gate.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase12_virtio_scsi_repeated_rollback_module.addImport("virtio_scsi", virtio_scsi_module);
     const phase12_virtio_scsi_packet_module = b.createModule(.{
         .root_source_file = b.path("phase12_virtio_scsi_packet.zig"),
         .target = target,
@@ -98,6 +132,14 @@ pub fn build(b: *std.Build) void {
         .name = "phase12-cross-virtio-net-tests",
         .root_module = phase12_virtio_net_module,
     });
+    const phase12_virtio_net_transmit_recycle_tests = b.addTest(.{
+        .name = "phase12-cross-virtio-net-transmit-recycle-tests",
+        .root_module = phase12_virtio_net_transmit_recycle_module,
+    });
+    const phase12_virtio_net_queue_resume_tests = b.addTest(.{
+        .name = "phase12-cross-virtio-net-queue-resume-tests",
+        .root_module = phase12_virtio_net_queue_resume_module,
+    });
     const phase12_virtio_net_survey_tests = b.addTest(.{
         .name = "phase12-cross-virtio-net-survey-tests",
         .root_module = phase12_virtio_net_survey_module,
@@ -121,6 +163,10 @@ pub fn build(b: *std.Build) void {
     const phase12_virtio_scsi_repeated_replan_tests = b.addTest(.{
         .name = "phase12-cross-virtio-scsi-repeated-replan-gate-tests",
         .root_module = phase12_virtio_scsi_repeated_replan_module,
+    });
+    const phase12_virtio_scsi_repeated_rollback_tests = b.addTest(.{
+        .name = "phase12-cross-virtio-scsi-repeated-rollback-gate-tests",
+        .root_module = phase12_virtio_scsi_repeated_rollback_module,
     });
     const phase12_virtio_scsi_packet_tests = b.addTest(.{
         .name = "phase12-cross-virtio-scsi-packet-tests",
@@ -149,12 +195,15 @@ pub fn build(b: *std.Build) void {
 
     const cross_step = b.step("cross", "Compile the bounded Phase 12 packet for approved non-native musl targets");
     cross_step.dependOn(&phase12_virtio_net_tests.step);
+    cross_step.dependOn(&phase12_virtio_net_transmit_recycle_tests.step);
+    cross_step.dependOn(&phase12_virtio_net_queue_resume_tests.step);
     cross_step.dependOn(&phase12_virtio_net_survey_tests.step);
     cross_step.dependOn(&phase12_virtio_net_syntax_lab_tests.step);
     cross_step.dependOn(&phase12_virtio_scsi_tests.step);
     cross_step.dependOn(&phase12_virtio_scsi_survey_tests.step);
     cross_step.dependOn(&phase12_virtio_scsi_syntax_lab_tests.step);
     cross_step.dependOn(&phase12_virtio_scsi_repeated_replan_tests.step);
+    cross_step.dependOn(&phase12_virtio_scsi_repeated_rollback_tests.step);
     cross_step.dependOn(&phase12_virtio_scsi_packet_tests.step);
     cross_step.dependOn(&phase12_nvme_pci_tests.step);
     cross_step.dependOn(&phase12_nvme_pci_survey_tests.step);
