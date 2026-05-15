@@ -31,6 +31,7 @@ RUNTIME_EVIDENCE_SUFFIX = (
 
 REQUIRED_FILES = [
     "drivers/net/virtio_net.zig",
+    "drivers/net/virtio_net_transmit_recycle.zig",
     "drivers/scsi/virtio_scsi.zig",
     "drivers/nvme/host/pci.zig",
     "drivers/nvme/host/pci_verify.zig",
@@ -46,6 +47,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase12-nvme-pci-slice.md",
     "Documentation/zigux/phase12-nvme-pci-survey.md",
     "zigux/tests/phase12_virtio_net.zig",
+    "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
     "zigux/tests/phase12_virtio_net_syntax_lab.zig",
     "zigux/tests/phase12_virtio_net_survey.zig",
     "zigux/tests/phase12_virtio_net_manifest.json",
@@ -97,6 +99,13 @@ REQUIRED_MARKERS = {
         "- `scripts/zigux/validate-phase12.py`",
         "- `make -C zigux phase12-validate`",
         "shared-tree current-master survey companions",
+    ],
+    "Documentation/zigux/phase12-virtio-net-survey.md": [
+        "`PHASE12_STATUS=starter-present-transmit-recycle-followup`",
+        "current `master` now also carries `drivers/net/virtio_net_transmit_recycle.zig`",
+        "summarizeTransmitRecycle()",
+        "current `master` now carries `zigux/tests/phase12_virtio_net_transmit_recycle.zig`",
+        "still does not claim live DMA-safe receive ownership",
     ],
     "Documentation/zigux/phase12-virtio-scsi-survey.md": [
         "`PHASE12_STATUS=starter-present-queue-submit-completion-and-recovery-survey`",
@@ -150,6 +159,23 @@ REQUIRED_MARKERS = {
         "b.step(\"test\", \"Run Phase 12 virtio packet tests\")",
         "test_step.dependOn(&run_repeated_rollback_tests.step);",
     ],
+    "zigux/tests/phase12_virtio_net_manifest.json": [
+        "\"lane_key\": \"P12-L04\"",
+        "\"phase\": \"Phase 12\"",
+        "\"anchor\": \"drivers/net/virtio_net.c\"",
+        "\"preexisting_phase12_survey_note_present\": true",
+        "\"phase12-virtio-net-transmit-recycle-followup\"",
+        "\"phase12-virtio-net-runtime-data-path\"",
+        "\"blocked_on_dma_transport_runtime\"",
+    ],
+    "zigux/tests/phase12_virtio_net_survey.zig": [
+        "phase12 virtio net survey manifest keeps the bounded transmit-recycle packet truthful",
+        "phase12 virtio net survey note stays aligned with the bounded transmit-recycle follow-up",
+        "phase12 virtio net survey gate keeps present lane files explicit",
+        "Documentation/zigux/phase12-virtio-net-survey.md",
+        "drivers/net/virtio_net_transmit_recycle.zig",
+        "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
+    ],
     "zigux/tests/phase12_virtio_scsi_manifest.json": [
         "\"lane_key\": \"P12-L13\"",
         "\"phase\": \"Phase 12\"",
@@ -194,6 +220,11 @@ REQUIRED_MARKERS = {
         "PHASE12_VALIDATOR_SELF_TEST=pass",
         RAW_GITHUB_COVERAGE_PATH,
         VIRTIO_SCSI_FALLBACK_PATH,
+        "Documentation/zigux/phase12-virtio-net-survey.md",
+        "drivers/net/virtio_net_transmit_recycle.zig",
+        "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
+        "zigux/tests/phase12_virtio_net_manifest.json",
+        "zigux/tests/phase12_virtio_net_survey.zig",
         "Documentation/zigux/phase12-virtio-scsi-survey.md",
         "zigux/tests/phase12_virtio_scsi_manifest.json",
         "zigux/tests/phase12_virtio_scsi_survey.zig",
@@ -213,12 +244,13 @@ REQUIRED_MARKERS = {
 
 FIXTURE_OVERRIDES = {
     "drivers/net/virtio_net.zig": "// fixture\n",
+    "drivers/net/virtio_net_transmit_recycle.zig": "// fixture\n",
     "drivers/scsi/virtio_scsi.zig": "// fixture\n",
     "drivers/nvme/host/pci.zig": "// fixture\n",
     "drivers/nvme/host/pci_verify.zig": "// fixture\n",
     "Documentation/zigux/phase12-release-closure-checklist.md": "# fixture\n",
     "Documentation/zigux/phase12-virtio-net-survey.md": "\n".join(
-        REQUIRED_MARKERS["Documentation/zigux/phase12-nvme-pci-survey.md"]
+        REQUIRED_MARKERS["Documentation/zigux/phase12-virtio-net-survey.md"]
     )
     + "\n",
     "Documentation/zigux/phase12-virtio-scsi-slice.md": "# fixture\n",
@@ -235,9 +267,13 @@ FIXTURE_OVERRIDES = {
     )
     + "\n",
     "zigux/tests/phase12_virtio_net.zig": "// fixture\n",
+    "zigux/tests/phase12_virtio_net_transmit_recycle.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_net_syntax_lab.zig": "// fixture\n",
-    "zigux/tests/phase12_virtio_net_survey.zig": "// fixture\n",
-    "zigux/tests/phase12_virtio_net_manifest.json": "{}\n",
+    "zigux/tests/phase12_virtio_net_survey.zig": "\n".join(
+        f"// {marker}" for marker in REQUIRED_MARKERS["zigux/tests/phase12_virtio_net_survey.zig"]
+    )
+    + "\n",
+    "zigux/tests/phase12_virtio_net_manifest.json": "{\n  \"lane_key\": \"P12-L04\",\n  \"phase\": \"Phase 12\",\n  \"anchor\": \"drivers/net/virtio_net.c\",\n  \"survey_summary\": {\n    \"preexisting_phase12_survey_note_present\": true\n  },\n  \"gaps\": [\n    {\n      \"id\": \"phase12-virtio-net-transmit-recycle-followup\",\n      \"status\": \"landed_on_master\"\n    },\n    {\n      \"id\": \"phase12-virtio-net-runtime-data-path\",\n      \"status\": \"blocked_on_dma_transport_runtime\"\n    }\n  ]\n}\n",
     "zigux/tests/phase12_virtio_scsi.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_syntax_lab.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig": "// fixture\n",
@@ -395,6 +431,8 @@ def mutate_runtime_evidence_blob(tmp_root: Path) -> None:
 
 def run_self_test() -> None:
     missing_file_cases = [
+        ("missing_phase12_virtio_net_transmit_recycle_driver", "drivers/net/virtio_net_transmit_recycle.zig"),
+        ("missing_phase12_virtio_net_transmit_recycle_test", "zigux/tests/phase12_virtio_net_transmit_recycle.zig"),
         ("missing_phase12_nvme_driver", "drivers/nvme/host/pci.zig"),
         ("missing_phase12_nvme_verify_shard", "drivers/nvme/host/pci_verify.zig"),
         (
@@ -475,6 +513,34 @@ def run_self_test() -> None:
             "- `zigux/Makefile`",
             "- `zigux/Makefile-missing`",
             f"{RAW_GITHUB_COVERAGE_PATH}: - `zigux/Makefile`",
+        ),
+        (
+            "missing_virtio_net_survey_status_marker",
+            "Documentation/zigux/phase12-virtio-net-survey.md",
+            "`PHASE12_STATUS=starter-present-transmit-recycle-followup`",
+            "`PHASE12_STATUS=starter-present-missing`",
+            "Documentation/zigux/phase12-virtio-net-survey.md: `PHASE12_STATUS=starter-present-transmit-recycle-followup`",
+        ),
+        (
+            "missing_virtio_net_manifest_lane_key_marker",
+            "zigux/tests/phase12_virtio_net_manifest.json",
+            "\"lane_key\": \"P12-L04\"",
+            "\"lane_key\": \"P12-L99\"",
+            "zigux/tests/phase12_virtio_net_manifest.json: \"lane_key\": \"P12-L04\"",
+        ),
+        (
+            "missing_virtio_net_manifest_runtime_gap_marker",
+            "zigux/tests/phase12_virtio_net_manifest.json",
+            "\"blocked_on_dma_transport_runtime\"",
+            "\"runtime_gap_missing\"",
+            "zigux/tests/phase12_virtio_net_manifest.json: \"blocked_on_dma_transport_runtime\"",
+        ),
+        (
+            "missing_virtio_net_survey_gate_marker",
+            "zigux/tests/phase12_virtio_net_survey.zig",
+            "phase12 virtio net survey gate keeps present lane files explicit",
+            "phase12 virtio net survey gate keeps lane files explicit",
+            "zigux/tests/phase12_virtio_net_survey.zig: phase12 virtio net survey gate keeps present lane files explicit",
         ),
         (
             "missing_virtio_scsi_fallback_validate_route_marker",
@@ -575,6 +641,20 @@ def run_self_test() -> None:
             "scripts/zigux/validate-phase12.py: --self-test",
         ),
         (
+            "missing_validator_virtio_net_survey_note_marker",
+            "scripts/zigux/validate-phase12.py",
+            "Documentation/zigux/phase12-virtio-net-survey.md",
+            "Documentation/zigux/phase12-virtio-net-survey-missing.md",
+            "scripts/zigux/validate-phase12.py: Documentation/zigux/phase12-virtio-net-survey.md",
+        ),
+        (
+            "missing_validator_virtio_net_manifest_marker",
+            "scripts/zigux/validate-phase12.py",
+            "zigux/tests/phase12_virtio_net_manifest.json",
+            "zigux/tests/phase12_virtio_net_manifest_missing.json",
+            "scripts/zigux/validate-phase12.py: zigux/tests/phase12_virtio_net_manifest.json",
+        ),
+        (
             "missing_validator_raw_github_coverage_marker",
             "scripts/zigux/validate-phase12.py",
             RAW_GITHUB_COVERAGE_PATH,
@@ -671,8 +751,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 shipped packet, the shared release-readiness "
-            "fallback note, the virtio_scsi survey packet, the raw-coverage companion, "
-            "the release-closure companion, the dedicated support checkers, and the bounded "
+            "fallback note, the bounded virtio_net starter-plus-transmit-recycle survey "
+            "packet, the virtio_scsi survey packet, the raw-coverage companion, the "
+            "release-closure companion, the dedicated support checkers, and the bounded "
             "NVMe starter, verifier shard, direct replay, survey packet, and manifest surfaces."
         )
     )
