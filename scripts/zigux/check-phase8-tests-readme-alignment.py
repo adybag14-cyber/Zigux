@@ -43,6 +43,8 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`make -C zigux phase8-libbpf-segments-test`",
         "`make -C zigux phase8-perf-buffer-poll-test`",
+        "`make -C zigux phase8-test`",
+        "`make -C zigux phase8`",
     ),
     TESTS_README_PATH: (
         "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
@@ -207,6 +209,8 @@ def run_self_test() -> int:
             (SCRIPTS_README_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
             (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-libbpf-segment-gate.py`"),
             (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-libbpf-shard-routes.py`"),
+            (SCRIPTS_README_PATH, "`make -C zigux phase8-test`"),
+            (SCRIPTS_README_PATH, "`make -C zigux phase8`"),
             (SEQUENCING_PATH, "make -C zigux phase8-perf-buffer-poll-test"),
             (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
             (MAKEFILE_PATH, "phase8-cpu-mask-test:"),
