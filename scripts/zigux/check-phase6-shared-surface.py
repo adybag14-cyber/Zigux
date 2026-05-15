@@ -22,6 +22,7 @@ BSEARCH_SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 CHECKSUM_SLICE_PATH = Path("Documentation/zigux/phase6-checksum-slice.md")
 HEXDUMP_SLICE_PATH = Path("Documentation/zigux/phase6-hexdump-slice.md")
 HEXDUMP_PERF_REFRESH_PATH = Path("Documentation/zigux/phase6-hexdump-perf-refresh.md")
+TESTS_README_PATH = Path("zigux/tests/README.md")
 PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
@@ -233,6 +234,18 @@ REQUIRED_PERF_SURVEY_SNIPPETS = [
     "* hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
 ]
 
+REQUIRED_TESTS_README_SNIPPETS = [
+    "* `zigux/tests/phase6_build.zig`",
+    "* `zigux/tests/phase6_helper_parity_manifest.json`",
+    "* `Documentation/zigux/phase6-helper-parity-catalog.md`",
+    "* `Documentation/zigux/phase6-perf-gate-survey.md`",
+    "* `scripts/zigux/check-phase6-shared-surface.py`",
+    "* `zigux/tests/phase6_base64.zig`",
+    "* `zigux/tests/phase6_bsearch.zig`",
+    "* `scripts/zigux/check-phase6-checksum-c-parity.py`",
+    "* current public-tree-backed Phase 6 checksum packet: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+]
+
 REQUIRED_BUILD_SNIPPETS = [
     'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
     "checksum_perf_step.dependOn(&run_checksum_perf.step);",
@@ -438,6 +451,7 @@ def validate_paths(repo_root: Path) -> None:
         CHECKSUM_SLICE_PATH.as_posix(),
         HEXDUMP_SLICE_PATH.as_posix(),
         HEXDUMP_PERF_REFRESH_PATH.as_posix(),
+        TESTS_README_PATH.as_posix(),
         PHASE6_BUILD_PATH.as_posix(),
         MAKEFILE_PATH.as_posix(),
         WORKFLOW_PATH.as_posix(),
@@ -485,6 +499,7 @@ def run_checks(repo_root: Path) -> None:
     require_snippets(repo_root / CHECKSUM_SLICE_PATH, REQUIRED_CHECKSUM_SLICE_SNIPPETS)
     require_snippets(repo_root / HEXDUMP_SLICE_PATH, REQUIRED_HEXDUMP_SLICE_SNIPPETS)
     require_snippets(repo_root / PERF_SURVEY_PATH, REQUIRED_PERF_SURVEY_SNIPPETS)
+    require_snippets(repo_root / TESTS_README_PATH, REQUIRED_TESTS_README_SNIPPETS)
     require_snippets(repo_root / PHASE6_BUILD_PATH, REQUIRED_BUILD_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
     require_snippets(repo_root / WORKFLOW_PATH, REQUIRED_WORKFLOW_SNIPPETS)
@@ -538,6 +553,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / CHECKSUM_SLICE_PATH, "\n".join(REQUIRED_CHECKSUM_SLICE_SNIPPETS + [""]))
     write(root / HEXDUMP_SLICE_PATH, "\n".join(REQUIRED_HEXDUMP_SLICE_SNIPPETS + [""]))
     write(root / PERF_SURVEY_PATH, "\n".join(REQUIRED_PERF_SURVEY_SNIPPETS + [""]))
+    write(root / TESTS_README_PATH, "\n".join(REQUIRED_TESTS_README_SNIPPETS + [""]))
     write(root / PHASE6_BUILD_PATH, "\n".join(REQUIRED_BUILD_SNIPPETS + [""]))
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS + [""]))
     write(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_SNIPPETS + [""]))
@@ -718,6 +734,12 @@ def run_self_test() -> None:
             PERF_SURVEY_PATH,
             "`32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`",
             "`32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 425`",
+        )
+        assert_failure(
+            root,
+            TESTS_README_PATH,
+            "* current public-tree-backed Phase 6 checksum packet: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+            "* current public-tree-backed Phase 6 checksum packet: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         )
         assert_failure(
             root,
