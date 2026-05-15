@@ -90,6 +90,57 @@ pub fn build(b: *std.Build) void {
     bsearch_test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);
     bsearch_test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);
 
+    const checksum_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/checksum.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const checksum_vectors_module = b.createModule(.{
+        .root_source_file = b.path("fixtures/phase6_checksum_vectors.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const checksum_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_checksum.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    checksum_root_module.addImport("checksum", checksum_module);
+    checksum_root_module.addImport("phase6_checksum_vectors", checksum_vectors_module);
+
+    const checksum_tests = b.addTest(.{
+        .name = "phase6-checksum-tests",
+        .root_module = checksum_root_module,
+    });
+    const run_checksum_tests = b.addRunArtifact(checksum_tests);
+
+    const checksum_test_step = b.step("phase6-checksum-test", "Run Phase 6 checksum helper tests");
+    checksum_test_step.dependOn(&run_checksum_tests.step);
+
+    const checksum_perf_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_checksum_perf.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    checksum_perf_root_module.addImport("checksum", checksum_module);
+    checksum_perf_root_module.addImport("phase6_checksum_vectors", checksum_vectors_module);
+
+    const checksum_perf_tests = b.addTest(.{
+        .name = "phase6-checksum-perf-tests",
+        .root_module = checksum_perf_root_module,
+    });
+    const run_checksum_perf_tests = b.addRunArtifact(checksum_perf_tests);
+
+    const checksum_perf = b.addExecutable(.{
+        .name = "phase6-checksum-perf",
+        .root_module = checksum_perf_root_module,
+    });
+    const run_checksum_perf = b.addRunArtifact(checksum_perf);
+
+    const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");
+    checksum_perf_step.dependOn(&run_checksum_perf_tests.step);
+    checksum_perf_step.dependOn(&run_checksum_perf.step);
+
     const hexdump_module = b.createModule(.{
         .root_source_file = b.path("../../lib/hexdump.zig"),
         .target = target,
@@ -150,6 +201,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_bsearch_tests.step);
     test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);
     test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);
+    test_step.dependOn(&run_checksum_tests.step);
     test_step.dependOn(&run_hexdump_tests.step);
 
     const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");
