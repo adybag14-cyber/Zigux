@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -161,12 +162,6 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`make -C zigux phase8-libbpf-segments-test`",
     ],
-    MANIFEST_PATH: [
-        '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
-        '"slug": "map-reuse-compatibility", "status": "starter_landed"',
-        '"slug": "perf-buffer-online-cpu-routing", "status": "deferred_high_risk"',
-        '"slug": "perf-buffer-poll-bookkeeping", "status": "starter_landed"',
-    ],
     ONLINE_CPU_ROUTING_HELPER_PATH: [
         "pub fn advanceOnlineCpuCursor(",
         "pub fn summarizeNextOnlineCpuRoute(",
@@ -190,10 +185,36 @@ REQUIRED_MARKERS = {
     ],
 }
 
+EXPECTED_MANIFEST_SEGMENTS = {
+    "fdinfo-map-info-helpers": {
+        "status": "starter_landed",
+        "kind": "helper_first",
+    },
+    "map-reuse-compatibility": {
+        "status": "starter_landed",
+        "kind": "helper_first",
+    },
+    "perf-buffer-online-cpu-routing": {
+        "status": "deferred_high_risk",
+        "kind": "interrupt_routing",
+    },
+    "perf-buffer-poll-bookkeeping": {
+        "status": "starter_landed",
+        "kind": "helper_adjacent",
+    },
+}
+
+EXPECTED_ROUTING_WHY_NOW_MARKERS = [
+    "online_cpu_routing.zig",
+    "cursor and routing-summary helper",
+]
+
+
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
-def collect_missing_markers(root: Path) -> list[str]:
+
+def collect_missing_text_markers(root: Path) -> list[str]:
     missing: list[str] = []
     for rel, markers in REQUIRED_MARKERS.items():
         path = root / rel
@@ -205,17 +226,121 @@ def collect_missing_markers(root: Path) -> list[str]:
                 missing.append(f"{rel}: {marker}")
     return missing
 
+
+def collect_manifest_problems(root: Path) -> list[str]:
+    path = root / MANIFEST_PATH
+    if not path.exists():
+        return []
+
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"{MANIFEST_PATH}: invalid_json:{exc.lineno}:{exc.colno}"]
+
+    segments = manifest.get("segments")
+    if not isinstance(segments, list):
+        return [f"{MANIFEST_PATH}: segments:not_a_list"]
+
+    by_slug = {
+        segment.get("slug"): segment
+        for segment in segments
+        if isinstance(segment, dict) and isinstance(segment.get("slug"), str)
+    }
+
+    problems: list[str] = []
+    for slug, expected_fields in EXPECTED_MANIFEST_SEGMENTS.items():
+        segment = by_slug.get(slug)
+        if segment is None:
+            problems.append(f"{MANIFEST_PATH}: missing_segment:{slug}")
+            continue
+        for field, expected_value in expected_fields.items():
+            actual_value = segment.get(field)
+            if actual_value != expected_value:
+                problems.append(
+                    f"{MANIFEST_PATH}: segment:{slug}:{field}:{actual_value!r}:{expected_value!r}"
+                )
+
+    routing_segment = by_slug.get("perf-buffer-online-cpu-routing")
+    if isinstance(routing_segment, dict):
+        why_now = routing_segment.get("why_now")
+        if not isinstance(why_now, str):
+            problems.append(f"{MANIFEST_PATH}: segment:perf-buffer-online-cpu-routing:why_now:not_a_string")
+        else:
+            for marker in EXPECTED_ROUTING_WHY_NOW_MARKERS:
+                if marker not in why_now:
+                    problems.append(
+                        f"{MANIFEST_PATH}: segment:perf-buffer-online-cpu-routing:why_now:{marker}"
+                    )
+
+    return problems
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, []
-    return [], collect_missing_markers(root)
+    missing_markers = collect_missing_text_markers(root)
+    missing_markers.extend(collect_manifest_problems(root))
+    return [], missing_markers
+
 
 def fixture_text(rel: str) -> str:
+    if rel == MANIFEST_PATH:
+        return (
+            json.dumps(
+                {
+                    "lane_key": "P8-L15",
+                    "phase": "Phase 8",
+                    "surveyed_commit": "0123456789abcdef0123456789abcdef01234567",
+                    "anchor": "tools/lib/bpf/libbpf.c",
+                    "segments": [
+                        {
+                            "slug": "fdinfo-map-info-helpers",
+                            "status": "starter_landed",
+                            "kind": "helper_first",
+                            "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+                            "why_now": "fixture",
+                        },
+                        {
+                            "slug": "map-reuse-compatibility",
+                            "status": "starter_landed",
+                            "kind": "helper_first",
+                            "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+                            "why_now": "fixture",
+                        },
+                        {
+                            "slug": "perf-buffer-online-cpu-routing",
+                            "status": "deferred_high_risk",
+                            "kind": "interrupt_routing",
+                            "zigux_destination": "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
+                            "why_now": (
+                                "The broader online-CPU routing path still combines sysfs reads, "
+                                "perf_event_open setup, mmap-backed ring state, map updates, epoll registration, "
+                                "and timeout-sensitive polling, but current master already carries the bounded "
+                                "online-CPU cursor and routing-summary helper in online_cpu_routing.zig, so the "
+                                "setup-side packet stays deferred without pretending that helper-local routing "
+                                "evidence is absent."
+                            ),
+                        },
+                        {
+                            "slug": "perf-buffer-poll-bookkeeping",
+                            "status": "starter_landed",
+                            "kind": "helper_adjacent",
+                            "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+                            "why_now": "fixture",
+                        },
+                    ],
+                },
+                indent=2,
+            )
+            + "\n"
+        )
+
     markers = REQUIRED_MARKERS.get(rel)
     if markers is None:
         return "# fixture\n"
     return "\n".join(markers) + "\n"
+
 
 def write_fixture_root(root: Path) -> None:
     for rel in REQUIRED_FILES:
@@ -223,25 +348,38 @@ def write_fixture_root(root: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(fixture_text(rel), encoding="utf-8")
 
+
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_markers == [], case
     assert missing_files == [rel], case
+
 
 def expect_missing_marker(case: str, tmp_root: Path, expected: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [expected], case
 
+
 def mutate_marker(tmp_root: Path, rel: str, marker: str, case: str) -> None:
     path = tmp_root / rel
     original = path.read_text(encoding="utf-8")
-    replacement = "::drift::"
-    updated = original.replace(marker, replacement)
+    updated = original.replace(marker, "::drift::", 1)
     assert updated != original, case
     path.write_text(updated, encoding="utf-8")
 
+
+def mutate_manifest(tmp_root: Path, mutator) -> None:
+    path = tmp_root / MANIFEST_PATH
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    mutator(manifest)
+    path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
 def run_self_test() -> None:
+    text_case_count = len(REQUIRED_FILES) + sum(len(markers) for markers in REQUIRED_MARKERS.values())
+    manifest_case_count = 2
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase8_libbpf_shard_routes_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
@@ -258,11 +396,45 @@ def run_self_test() -> None:
                 expect_missing_marker(f"marker::{rel}::{marker}", tmp_root, f"{rel}: {marker}")
                 write_fixture_root(tmp_root)
 
+        def break_status(manifest: dict) -> None:
+            for segment in manifest["segments"]:
+                if segment["slug"] == "map-reuse-compatibility":
+                    segment["status"] = "ready_next"
+                    return
+            raise AssertionError("missing segment")
+
+        mutate_manifest(tmp_root, break_status)
+        expect_missing_marker(
+            "manifest::status",
+            tmp_root,
+            f"{MANIFEST_PATH}: segment:map-reuse-compatibility:status:'ready_next':'starter_landed'",
+        )
+        write_fixture_root(tmp_root)
+
+        def break_routing_why_now(manifest: dict) -> None:
+            for segment in manifest["segments"]:
+                if segment["slug"] == "perf-buffer-online-cpu-routing":
+                    segment["why_now"] = (
+                        "The broader online-CPU routing path still combines sysfs reads, but current "
+                        "master already carries the bounded online-CPU cursor and helper evidence "
+                        "in online_cpu_routing.zig."
+                    )
+                    return
+            raise AssertionError("missing segment")
+
+        mutate_manifest(tmp_root, break_routing_why_now)
+        expect_missing_marker(
+            "manifest::routing_why_now",
+            tmp_root,
+            f"{MANIFEST_PATH}: segment:perf-buffer-online-cpu-routing:why_now:cursor and routing-summary helper",
+        )
+
     print("PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST=pass")
     print(
         "PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST_CASE_COUNT="
-        f"{len(REQUIRED_FILES) + sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+        f"{text_case_count + manifest_case_count}"
     )
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -300,9 +472,10 @@ def main() -> int:
     print(f"PHASE8_LIBBPF_SHARD_ROUTE_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE8_LIBBPF_SHARD_ROUTE_MARKER_COUNT="
-        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values()) + len(EXPECTED_MANIFEST_SEGMENTS) + len(EXPECTED_ROUTING_WHY_NOW_MARKERS)}"
     )
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
