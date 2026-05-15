@@ -30,9 +30,12 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "kfreeStrarray()");
     try expectContains(slice_note, "memcpy_and_pad()");
     try expectContains(slice_note, "leading whitespace skipping that stops at the first NUL");
+    try expectContains(slice_note, "newline-aware sysfs equality");
+    try expectContains(slice_note, "bounded null-sentinel table matching through the first NULL entry");
     try expectContains(slice_note, "bounded string escaping across space, special, null, octal, hex, append-limited dictionary mode, and string-wrapper mode");
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view");
     try expectContains(slice_note, "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit");
+    try expectContains(slice_note, "in-place replacement behavior that stops at the first NUL");
     try expectContains(slice_note, "`stringEscapeMem()` keeps append-limited and dictionary-mode output accounting inside caller-owned storage");
     try expectContains(slice_note, "`stringEscapeMemAnyNp()`, `stringEscapeStr()`, and `stringEscapeStrAnyNp()` keep any-NP and first-NUL-bounded string-wrapper escaping inside caller-owned storage");
     try expectContains(slice_note, "`kstrdupAndReplace()` returns caller-owned duplicated storage, applies replacements only inside the duplicated exported prefix, and leaves the source slice unchanged");
@@ -42,6 +45,12 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
+    try expectContains(manifest, "\"sysfsStreq\"");
+    try expectContains(manifest, "\"sysfs_streq\"");
+    try expectContains(manifest, "\"matchString\"");
+    try expectContains(manifest, "\"match_string\"");
+    try expectContains(manifest, "\"sysfsMatchString\"");
+    try expectContains(manifest, "\"__sysfs_match_string\"");
     try expectContains(manifest, "\"string_get_size\"");
     try expectContains(manifest, "\"stringEscapeMem\"");
     try expectContains(manifest, "\"string_escape_mem\"");
@@ -56,6 +65,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "\"memcpyAndPad\"");
     try expectContains(manifest, "\"memcpy_and_pad\"");
     try expectContains(manifest, "\"strreplace\"");
+    try expectContains(manifest, "newline-aware sysfs string equality");
+    try expectContains(manifest, "null-sentinel table matching through the first NULL entry");
     try expectContains(manifest, "bounded sequential string-array allocation with NULL-terminated pointer views");
     try expectContains(manifest, "\"ownership_focus\": [");
     try expectContains(manifest, "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit");
@@ -63,11 +74,18 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "stringEscapeMemAnyNp(), stringEscapeStr(), and stringEscapeStrAnyNp() keep any-NP and first-NUL-bounded string-wrapper escaping explicit without widening beyond caller-owned storage");
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
+    try expectContains(manifest, "in-place replacement inside the exported C-string prefix");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 
     const helper = try readRepoFile(allocator, "lib/string_helpers.zig");
     defer allocator.free(helper);
+    try expectContains(helper, "pub fn sysfsStreq");
+    try expectContains(helper, "pub fn sysfs_streq");
+    try expectContains(helper, "pub fn matchString");
+    try expectContains(helper, "pub fn match_string");
+    try expectContains(helper, "pub fn sysfsMatchString");
+    try expectContains(helper, "pub fn __sysfs_match_string");
     try expectContains(helper, "pub const KasprintfStrarrayResult = struct {");
     try expectContains(helper, "pub fn kasprintfStrarray");
     try expectContains(helper, "pub fn kasprintf_strarray");
@@ -92,6 +110,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     defer allocator.free(helper_tests);
     try expectContains(helper_tests, "phase 7 string helpers starter covers whitespace trimming and prefix skipping");
     try expectContains(helper_tests, "phase 7 string helpers starter formats bounded sizes with three significant figures");
+    try expectContains(helper_tests, "phase 7 string helpers starter keeps sysfs matching newline aware");
+    try expectContains(helper_tests, "phase 7 string helpers starter matches tables through the first null entry");
     try expectContains(helper_tests, "phase 7 string helpers starter keeps exact-fit, terminator-only, and zero-capacity unescape destinations reviewable");
     try expectContains(helper_tests, "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes");
     try expectContains(helper_tests, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
@@ -102,6 +122,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
     try expectContains(helper_tests, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(helper_tests, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
+    try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
+    try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectContains(helper_tests, "const zero_written = string_helpers.string_get_size(42, 0, string_helpers.STRING_UNITS_10, &zero_buf, 0);");
     try expectContains(helper_tests, "const zero_capacity_len = string_helpers.stringUnescape(\"\\n\", &zero_capacity, 0, string_helpers.UNESCAPE_SPACE);");
     try expectContains(helper_tests, "const duplicated = try string_helpers.kstrdupAndReplace(std.testing.allocator, &source, '/', '_');");
