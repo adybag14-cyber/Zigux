@@ -92,10 +92,18 @@ pub const NotifierUnregisterTimingRequest = struct {
     unregister_requested: bool,
 };
 
+pub const NotifierUnregisterTimingState = enum {
+    idle_no_unregister,
+    targetless_no_unregister_edge,
+    targetless_unregister_request_sanitized,
+    targeted_unregister_request,
+};
+
 pub const NotifierUnregisterTimingSummary = struct {
     edge: console.TargetlessNotifierEdgeSummary,
     unregister_stays_false: bool,
     targetless_unregister_request_sanitized: bool,
+    state: NotifierUnregisterTimingState,
 };
 
 pub fn summarizeNotifierUnregisterTiming(
@@ -106,6 +114,14 @@ pub fn summarizeNotifierUnregisterTiming(
         .notifier_registered = request.notifier_registered,
         .unregister_requested = request.unregister_requested,
     });
+    const state: NotifierUnregisterTimingState = if (request.unregister_requested and request.target_present)
+        .targeted_unregister_request
+    else if (request.unregister_requested)
+        .targetless_unregister_request_sanitized
+    else if (edge.targetless_no_unregister_edge)
+        .targetless_no_unregister_edge
+    else
+        .idle_no_unregister;
 
     return .{
         .edge = edge,
@@ -113,6 +129,7 @@ pub fn summarizeNotifierUnregisterTiming(
         .targetless_unregister_request_sanitized = request.unregister_requested and
             !request.target_present and
             !edge.unregister_requested,
+        .state = state,
     };
 }
 
@@ -245,12 +262,17 @@ test "hvc_console verify keeps notifier unregister timing false for never-regist
     try std.testing.expect(!never_registered.edge.targetless_no_unregister_edge);
     try std.testing.expect(never_registered.unregister_stays_false);
     try std.testing.expect(!never_registered.targetless_unregister_request_sanitized);
+    try std.testing.expectEqual(NotifierUnregisterTimingState.idle_no_unregister, never_registered.state);
 
     try std.testing.expect(targetless_registered.edge.notifier_registered);
     try std.testing.expect(targetless_registered.edge.targetless_no_unregister_edge);
     try std.testing.expect(!targetless_registered.edge.unregister_requested);
     try std.testing.expect(targetless_registered.unregister_stays_false);
     try std.testing.expect(!targetless_registered.targetless_unregister_request_sanitized);
+    try std.testing.expectEqual(
+        NotifierUnregisterTimingState.targetless_no_unregister_edge,
+        targetless_registered.state,
+    );
     try std.testing.expect(targetless_registered.edge.keeps_live_notifier_execution_out_of_scope);
 }
 
@@ -266,6 +288,10 @@ test "hvc_console verify keeps targetless unregister requests sanitized" {
     try std.testing.expect(!summary.edge.unregister_requested);
     try std.testing.expect(summary.unregister_stays_false);
     try std.testing.expect(summary.targetless_unregister_request_sanitized);
+    try std.testing.expectEqual(
+        NotifierUnregisterTimingState.targetless_unregister_request_sanitized,
+        summary.state,
+    );
     try std.testing.expect(summary.edge.keeps_live_notifier_execution_out_of_scope);
 }
 
@@ -282,6 +308,10 @@ test "hvc_console verify keeps targeted unregister requests explicit" {
     try std.testing.expect(summary.edge.unregister_requested);
     try std.testing.expect(!summary.unregister_stays_false);
     try std.testing.expect(!summary.targetless_unregister_request_sanitized);
+    try std.testing.expectEqual(
+        NotifierUnregisterTimingState.targeted_unregister_request,
+        summary.state,
+    );
     try std.testing.expect(summary.edge.keeps_live_notifier_execution_out_of_scope);
 }
 
