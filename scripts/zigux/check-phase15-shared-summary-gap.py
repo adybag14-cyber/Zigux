@@ -31,6 +31,7 @@ REQUIRED_FILES = (
     DOCS_ALIGNMENT_CHECKER_REL,
 )
 
+REVIEW_PROCESS_MARKER = "Documentation/zigux/phase15-architecture-council-review-process.md"
 SURVEY_MARKER = "Documentation/zigux/phase15-parity-scorecard-survey.md"
 PARITY_SCORECARD_MARKER = "Documentation/zigux/phase15-parity-scorecard.md"
 INDEFINITE_C_POLICY_MARKER = "Documentation/zigux/phase15-indefinite-c-policy.md"
@@ -57,6 +58,7 @@ FILE_MARKERS = {
         "Phase 15 notes",
         FREEZE_MAP_REL,
         FREEZE_MAP_GOVERNANCE_REL,
+        REVIEW_PROCESS_MARKER,
         SURVEY_MARKER,
         PARITY_SCORECARD_MARKER,
         INDEFINITE_C_POLICY_MARKER,
@@ -159,6 +161,7 @@ def _seed(root: Path) -> None:
                 "Phase 15 notes",
                 FREEZE_MAP_REL,
                 FREEZE_MAP_GOVERNANCE_REL,
+                REVIEW_PROCESS_MARKER,
                 SURVEY_MARKER,
                 PARITY_SCORECARD_MARKER,
                 INDEFINITE_C_POLICY_MARKER,
@@ -205,6 +208,7 @@ def _seed(root: Path) -> None:
     )
     _write(root / FREEZE_MAP_REL, "# freeze map\n")
     _write(root / FREEZE_MAP_GOVERNANCE_REL, "# freeze map governance\n")
+    _write(root / REVIEW_PROCESS_MARKER, "# review process\n")
     _write(root / "Documentation/zigux/phase15-parity-scorecard-survey.md", "# survey\n")
     _write(root / "Documentation/zigux/phase15-parity-scorecard.md", "# parity scorecard\n")
     _write(root / "Documentation/zigux/phase15-indefinite-c-policy.md", "# indefinite c policy\n")
@@ -293,6 +297,16 @@ def run_self_test() -> int:
             validate(root),
             [f"{DOCS_README_REL}:missing:{FREEZE_MAP_GOVERNANCE_REL}"],
             "docs_readme_missing_freeze_map_governance",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace(REVIEW_PROCESS_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{DOCS_README_REL}:missing:{REVIEW_PROCESS_MARKER}"],
+            "docs_readme_missing_review_process",
         )
         _seed(root)
         case_count += 1
@@ -419,11 +433,11 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Check that the current Phase 15 shared summaries keep the freeze-map governance packet, the parity-scorecard survey, "
-            "the dedicated parity-scorecard and indefinite-C policy surfaces, readiness and handoff reminders, the review-process "
-            "handoff checker, the scripts-root blocker-evidence marker, the lane-sequencing note, the docs-root and scripts-root "
-            "alignment checkers, the replay-build surface, the validator-route packet, the manifest reminders, the lane-owner "
-            "alignment surface, and the replay-route packet explicit."
+            "Check that the current Phase 15 shared summaries keep the freeze-map governance packet, the review-process "
+            "survey marker, the parity-scorecard survey, the dedicated parity-scorecard and indefinite-C policy surfaces, "
+            "readiness and handoff reminders, the review-process handoff checker, the scripts-root blocker-evidence marker, "
+            "the lane-sequencing note, the docs-root and scripts-root alignment checkers, the replay-build surface, the "
+            "validator-route packet, the manifest reminders, the lane-owner alignment surface, and the replay-route packet explicit."
         )
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
