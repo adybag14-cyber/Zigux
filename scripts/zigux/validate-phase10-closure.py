@@ -25,6 +25,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
     "Documentation/zigux/phase10-virtio-ring-slice.md",
     "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "zigux/Makefile",
@@ -65,6 +66,23 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "Documentation/zigux/phase10-closure-evidence.md",
     "zigux/tests/phase10_closure_manifest.json",
+    "make -C zigux phase10-test",
+    "make -C zigux phase10",
+]
+
+SCRIPTS_README_MARKERS = [
+    "scripts/zigux/check-phase10-harness-coverage.py",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "scripts/zigux/validate-phase10.py",
+    "scripts/zigux/validate-phase10-closure.py",
+    "zigux/tests/phase10_closure_manifest.json",
+    "Documentation/zigux/phase10-virtio-core-slice.md",
+    "Documentation/zigux/phase10-virtio-ring-slice.md",
+    "Documentation/zigux/phase10-virtio-input-slice.md",
+    "Documentation/zigux/phase10-virtio-input-module-slice.md",
+    "Documentation/zigux/phase10-virtio-mmio-slice.md",
+    "zigux/tests/phase10_build.zig",
+    "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
     "make -C zigux phase10",
 ]
@@ -130,6 +148,7 @@ MARKER_SETS = {
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": LANE_MARKERS,
     "Documentation/zigux/phase10-virtio-mmio-survey.md": MMIO_SURVEY_MARKERS,
     "Documentation/zigux/review-checklist.md": REVIEW_CHECKLIST_MARKERS,
+    "scripts/zigux/README.md": SCRIPTS_README_MARKERS,
     "zigux/tests/phase10_closure_manifest.json": MANIFEST_MARKERS,
     "zigux/tests/phase10_virtio_ring_manifest.json": TRANSPORT_MANIFEST_MARKERS,
     "zigux/tests/phase10_virtio_input_manifest.json": TRANSPORT_MANIFEST_MARKERS,
@@ -142,6 +161,7 @@ MARKER_LABELS = {
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "lane",
     "Documentation/zigux/phase10-virtio-mmio-survey.md": "mmio-survey",
     "Documentation/zigux/review-checklist.md": "review",
+    "scripts/zigux/README.md": "scripts-readme",
     "zigux/tests/phase10_closure_manifest.json": "manifest",
     "zigux/tests/phase10_virtio_ring_manifest.json": "ring-manifest",
     "zigux/tests/phase10_virtio_input_manifest.json": "input-manifest",
@@ -434,6 +454,7 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "\n".join(MMIO_SURVEY_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-ring-slice.md": "# Phase 10 virtio_ring Slice\n",
         "Documentation/zigux/review-checklist.md": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
+        "scripts/zigux/README.md": "\n".join(SCRIPTS_README_MARKERS) + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": (
             "#!/usr/bin/env python3\n"
             "import sys\n"
@@ -532,14 +553,6 @@ def run_self_test() -> int:
             "Documentation/zigux/phase10-virtio-ring-slice.md",
             "phase10-closure-self-test:missing_ring_slice_file_not_detected",
         )
-        write_fixture(root)
-
-        makefile = root / "zigux/Makefile"
-        makefile.write_text(
-            makefile.read_text(encoding="utf-8").replace("phase10-validate:\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_marker_missing(root, "make:phase10-validate:", "phase10-closure-self-test:missing_make_marker_not_detected")
         write_fixture(root)
 
         closure = root / "Documentation/zigux/phase10-closure-evidence.md"
@@ -714,6 +727,29 @@ def run_self_test() -> int:
             root,
             "review:zigux/tests/phase10_closure_manifest.json",
             "phase10-closure-self-test:missing_review_marker_not_detected",
+        )
+        write_fixture(root)
+
+        scripts_readme = root / "scripts/zigux/README.md"
+        scripts_readme.write_text(
+            scripts_readme.read_text(encoding="utf-8").replace("Documentation/zigux/phase10-virtio-input-module-slice.md\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            "scripts-readme:Documentation/zigux/phase10-virtio-input-module-slice.md",
+            "phase10-closure-self-test:missing_scripts_readme_input_module_slice_not_detected",
+        )
+        write_fixture(root)
+
+        scripts_readme.write_text(
+            scripts_readme.read_text(encoding="utf-8").replace("zigux/tests/phase10_build.zig\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            "scripts-readme:zigux/tests/phase10_build.zig",
+            "phase10-closure-self-test:missing_scripts_readme_phase10_build_not_detected",
         )
         write_fixture(root)
 
@@ -1044,7 +1080,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=39")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=41")
     return 0
 
 
