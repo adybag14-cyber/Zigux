@@ -137,7 +137,7 @@ test "runtime kretprobe sample keeps selftest-complete summary explicit across c
     try std.testing.expectEqual(@as(usize, 1), before_exit.selftest_runs);
     try std.testing.expect(!before_exit.entry_timestamp_armed);
 
-    try module.exit();
+    _ = try module.exit();
 
     const after_exit = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
@@ -152,6 +152,48 @@ test "runtime kretprobe sample keeps selftest-complete summary explicit across c
     try std.testing.expectEqual(before_exit.last_duration_ns, after_exit.last_duration_ns);
     try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);
     try std.testing.expectEqual(before_exit.entry_timestamp_armed, after_exit.entry_timestamp_armed);
+}
+
+test "runtime kretprobe module gate keeps a retargeted symbol fixed across selftest and exit" {
+    var module = sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+
+    const cold = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.cold, cold.stage);
+    try std.testing.expectEqualStrings("do_sys_openat2", cold.symbol_name);
+    try std.testing.expectEqual(@as(usize, 0), cold.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.exit_runs);
+
+    try module.init();
+    const initialized = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized.stage);
+    try std.testing.expectEqualStrings("do_sys_openat2", initialized.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.exit_runs);
+
+    const selftest_summary = try module.runSelftest();
+    try std.testing.expectEqualStrings("do_sys_openat2", selftest_summary.symbol_name);
+
+    const before_exit = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_exit.stage);
+    try std.testing.expectEqualStrings("do_sys_openat2", before_exit.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);
+
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings("do_sys_openat2", exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.selftest_runs);
+
+    const after_exit = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, after_exit.stage);
+    try std.testing.expectEqualStrings("do_sys_openat2", after_exit.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.retargetSymbol("do_execve"));
 }
 
 test "runtime kretprobe sample preserves summary state across failed exit until the active probe drains" {
