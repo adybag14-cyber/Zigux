@@ -196,6 +196,50 @@ test "phase3 abi keeps policy helper decoding aligned with interop policy bytes"
     try std.testing.expect(allocator_policy.permitsGlobalFallbackInteropPolicy(arena_raw_policy));
     try std.testing.expect(!allocator_policy.permitsGlobalFallbackInteropPolicy(reserved_policy));
     try std.testing.expect(!allocator_policy.recognizesInteropPolicy(unknown_policy));
+    try std.testing.expectEqual(
+        allocator_policy.InitFlow.caller_prepared,
+        allocator_policy.initFlowFor(.caller_provided),
+    );
+    try std.testing.expectEqual(
+        allocator_policy.InitFlow.helper_owned,
+        allocator_policy.initFlowFor(.kernel_heap),
+    );
+    try std.testing.expectEqual(
+        allocator_policy.InitFlow.helper_owned_with_reset,
+        allocator_policy.initFlowFor(.arena),
+    );
+    try std.testing.expect(!allocator_policy.initializesOwnedState(.caller_provided));
+    try std.testing.expect(allocator_policy.initializesOwnedState(.kernel_heap));
+    try std.testing.expect(allocator_policy.initializesOwnedState(.arena));
+    try std.testing.expect(!allocator_policy.initializesOwnedStateByte(abi.ALLOC_CALLER_PROVIDED));
+    try std.testing.expect(allocator_policy.initializesOwnedStateByte(abi.ALLOC_KERNEL_HEAP));
+    try std.testing.expect(allocator_policy.initializesOwnedStateByte(abi.ALLOC_ARENA));
+    try std.testing.expect(!allocator_policy.initializesOwnedStateByte(9));
+    try std.testing.expect(!allocator_policy.initializesOwnedStatePolicyBytes(abi.ALLOC_CALLER_PROVIDED, 0));
+    try std.testing.expect(allocator_policy.initializesOwnedStatePolicyBytes(abi.ALLOC_KERNEL_HEAP, 0));
+    try std.testing.expect(allocator_policy.initializesOwnedStatePolicyBytes(abi.ALLOC_ARENA, 0));
+    try std.testing.expect(!allocator_policy.initializesOwnedStatePolicyBytes(abi.ALLOC_ARENA, 1));
+    try std.testing.expect(!allocator_policy.initializesOwnedStateInteropPolicy(caller_abort_policy));
+    try std.testing.expect(allocator_policy.initializesOwnedStateInteropPolicy(heap_bug_policy));
+    try std.testing.expect(allocator_policy.initializesOwnedStateInteropPolicy(arena_raw_policy));
+    try std.testing.expect(!allocator_policy.initializesOwnedStateInteropPolicy(reserved_policy));
+    try std.testing.expect(!allocator_policy.initializesOwnedStateInteropPolicy(unknown_policy));
+    try std.testing.expect(!allocator_policy.requiresResetOnInit(.caller_provided));
+    try std.testing.expect(!allocator_policy.requiresResetOnInit(.kernel_heap));
+    try std.testing.expect(allocator_policy.requiresResetOnInit(.arena));
+    try std.testing.expect(!allocator_policy.requiresResetOnInitByte(abi.ALLOC_CALLER_PROVIDED));
+    try std.testing.expect(!allocator_policy.requiresResetOnInitByte(abi.ALLOC_KERNEL_HEAP));
+    try std.testing.expect(allocator_policy.requiresResetOnInitByte(abi.ALLOC_ARENA));
+    try std.testing.expect(!allocator_policy.requiresResetOnInitByte(9));
+    try std.testing.expect(!allocator_policy.requiresResetOnInitPolicyBytes(abi.ALLOC_CALLER_PROVIDED, 0));
+    try std.testing.expect(!allocator_policy.requiresResetOnInitPolicyBytes(abi.ALLOC_KERNEL_HEAP, 0));
+    try std.testing.expect(allocator_policy.requiresResetOnInitPolicyBytes(abi.ALLOC_ARENA, 0));
+    try std.testing.expect(!allocator_policy.requiresResetOnInitPolicyBytes(abi.ALLOC_ARENA, 1));
+    try std.testing.expect(!allocator_policy.requiresResetOnInitInteropPolicy(caller_abort_policy));
+    try std.testing.expect(!allocator_policy.requiresResetOnInitInteropPolicy(heap_bug_policy));
+    try std.testing.expect(allocator_policy.requiresResetOnInitInteropPolicy(arena_raw_policy));
+    try std.testing.expect(!allocator_policy.requiresResetOnInitInteropPolicy(reserved_policy));
+    try std.testing.expect(!allocator_policy.requiresResetOnInitInteropPolicy(unknown_policy));
 
     try std.testing.expect(narrow_unsafe.permitsNoUnsafeInteropPolicy(caller_abort_policy));
     try std.testing.expect(!narrow_unsafe.permitsNoUnsafeInteropPolicy(heap_bug_policy));
