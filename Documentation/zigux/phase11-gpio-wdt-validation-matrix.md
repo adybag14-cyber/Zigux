@@ -31,6 +31,7 @@ The visible starter keeps these code-backed review surfaces explicit:
 
 - `descriptorRequestSummary()`
 - `platformDrvdataCheckpointSummary()`
+- `watchdogDrvdataCheckpointSummary()`
 - `nowayoutPolicySummary()`
 - `probeSummary()`
 - `registrationHandoffSummary()`
@@ -62,6 +63,7 @@ This gpio-local matrix does not treat those archived references as proof that th
 - descriptor preflight boundary: the visible starter now exposes `descriptorRequestSummary()`, so the exact `devm_gpiod_get()` flag choice and the early probe-ordering boundary are code-backed again without claiming live descriptor acquisition.
 - timeout-property bookkeeping: the visible starter keeps the required `hw_margin_ms` boundary explicit through `probeSummary()` and `platformDrvdataCheckpointSummary()`, but there is still no dedicated timeout-only replay surface yet.
 - platform-drvdata checkpoint: `platformDrvdataCheckpointSummary()` plus the still-visible focused `phase11_gpio_wdt_platform_drvdata.zig` replay keep the early `platform_set_drvdata()` ordering boundary explicit while staying outside the missing shared `phase11_build.zig` route.
+- watchdog-drvdata checkpoint: `watchdogDrvdataCheckpointSummary()` keeps the bounded `watchdog_set_drvdata()` ownership handoff explicit in the visible starter without claiming live watchdog-core registration execution.
 - stop-policy and failure-mode surface: the visible starter now exposes `nowayoutPolicySummary()`, `requestStop()`, and `registerDeviceFailureSummary()` so the watchdog-core stop-policy split and the bounded registration failure surface are code-backed without promoting them into live watchdog-core registration or hardware-backed execution.
 - registration handoff and register-device request surface: the visible starter now exposes `registrationHandoffSummary()`, `registrationPlanSummary()`, and `registerDeviceCallSummary()` without claiming platform-driver registration or watchdog-core side effects are currently replayable.
 - teardown surface: `summarizeTeardown()` plus `Documentation/zigux/phase11-gpio-wdt-teardown-note.md` keep the bounded teardown handoff explicit without claiming live reboot hooks, remove hooks, or reboot-backed shutdown execution.
