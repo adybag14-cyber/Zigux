@@ -125,6 +125,48 @@ test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping be
     try std.testing.expectEqual(@as(?usize, 1), processing_failure.execution.first_process_error_index);
 }
 
+test "phase 8 perf-buffer poll helper rejects inconsistent processing-failure bookkeeping before return shaping" {
+    const missing_error = perf_buffer_poll.PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 2,
+            .ready_count = 2,
+            .first_ready_index = 0,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 1,
+        .completed_ready_buffer_count = 0,
+        .processed_record_count = 0,
+        .first_process_error_index = 0,
+        .first_process_error = null,
+    };
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.InconsistentProcessingFailureSummary,
+        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(2, missing_error),
+    );
+
+    const missing_index = perf_buffer_poll.PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 2,
+            .ready_count = 2,
+            .first_ready_index = 0,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 1,
+        .completed_ready_buffer_count = 0,
+        .processed_record_count = 0,
+        .first_process_error_index = null,
+        .first_process_error = -11,
+    };
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.InconsistentProcessingFailureSummary,
+        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(2, missing_index),
+    );
+}
+
 test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {
     const buffer_fds = [_]?i32{ 9, null, 21 };
 
