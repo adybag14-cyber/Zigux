@@ -355,6 +355,7 @@ SELF_TEST_REMOVALS = [
     (PHASE9_BUILD_PATH, "test_step.dependOn(&run_runtime_trace_events_loader_substrate_drift_tests.step);", 1),
     (PHASE9_BUILD_PATH, "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);", 1),
     (PHASE9_BUILD_PATH, "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);", 1),
+    (PHASE9_BUILD_PATH, "test_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);", 1),
     (RUNTIME_LOADER_SELFTEST_COMPLETE_EXIT_PARITY_PATH, "phase 9 runtime loader keeps selftest-complete prepared snapshots stable even if later live state would look exited across all shipped pilot families", 1),
     (RUNTIME_LOADER_LIFECYCLE_BOUNDARY_GUARD_PATH, "phase 9 runtime loader lifecycle boundary guard keeps manifest lifecycle summary aligned with the shared registration boundary", 1),
     (ALLOCATOR_INIT_FLOW_PATH, "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs", 1),
