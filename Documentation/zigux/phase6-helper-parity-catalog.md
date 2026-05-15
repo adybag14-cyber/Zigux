@@ -51,8 +51,9 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - still-present direct C parity scaffolding: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
 - direct local focused replay route: `zig build test --build-file zigux/tests/phase6_build.zig`
 - direct local perf rerun route: `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`
+- direct Linux-style perf rerun route: `make -C zigux phase6-checksum-perf`
 - exact current-file evidence: `lib/checksum.zig` now covers one's-complement add/subtract, block add/subtract, fold and unfold, replacement helpers, seeded `partial()` and `compute()` paths, and IPv4 plus IPv6 pseudo-header accumulation; `zigux/tests/phase6_checksum.zig` now replays fixture-backed compute parity, split-composition, seeded partials, KUnit-inspired carry discipline, random-prefix coverage, and pseudo-header cases; and `zigux/tests/phase6_checksum_perf.zig` now keeps two helper-local slowdown cases, `64` and `1501`, each capped at `max_slowdown_pct = 150` with `reps = 20_000` and `4_000`
-- current review posture: the checksum helper-owned packet is directly readable on current `master`, while the broader shared route inventory stays partially blocked only because the Linux-style wrapper surfaces and bootstrap workflow still lag those direct checksum build routes
+- current review posture: the checksum helper-owned packet is directly readable on current `master`, while the broader shared route inventory stays partially blocked only because the aggregate wrappers and bootstrap workflow still lag the restored checksum perf wrapper
 
 ### hexdump
 - roadmap anchor: `lib/hexdump.c`
@@ -77,6 +78,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 ### Reviewable on current `master`
 - `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
 - `make -C zigux phase6-bsearch-test`
+- `make -C zigux phase6-checksum-perf`
 - `make -C zigux phase6-hexdump-test`
 - `make -C zigux phase6-hexdump-review`
 - `make -C zigux phase6-hexdump-perf`
@@ -87,10 +89,9 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - `make -C zigux phase6-base64-c-parity`
 - `make -C zigux phase6-checksum-c-parity`
 - `make -C zigux phase6-base64-perf`
-- `make -C zigux phase6-checksum-perf`
 - `make -C zigux phase6-perf`
 - `make -C zigux phase6-validate`
 - `make -C zigux phase6`
-- current blocked-route posture: the helper-local checksum replay and slowdown gate are now directly readable through `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, and `zigux/tests/phase6_build.zig`, but the Linux-style wrapper inventory in `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` still treats `phase6-checksum-perf` as documentary shared-route evidence
-- current perf-route posture: the aggregate `phase6-perf` route should still be read as inventory evidence because the current `zigux/Makefile` readback exposes only the wrapper name instead of a committed target body, while the direct base64 and checksum build steps in `zigux/tests/phase6_build.zig` remain the authoritative helper-local slowdown gates on current `master`
-- current shared-lane posture: the broader `phase6-base64-perf`, `phase6-checksum-perf`, `phase6-validate`, `phase6-perf`, and `phase6` wrappers remain part of the shared route inventory, but the directly readable base64 and checksum build steps in `zigux/tests/phase6_build.zig` now carry the current helper-local perf gates while the Linux-style wrapper surfaces continue to lag
+- current blocked-route posture: the helper-local checksum replay and slowdown gate are now directly readable through `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, and `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now exposes a committed `phase6-checksum-perf` target body, but the bootstrap workflow plus the aggregate `phase6-validate`, `phase6-perf`, and `phase6` route inventory still lag that restored checksum wrapper
+- current perf-route posture: the aggregate `phase6-perf` route should still be read as inventory evidence because the current `zigux/Makefile` readback exposes only the wrapper name instead of a committed target body, while the direct base64 and checksum build steps in `zigux/tests/phase6_build.zig` plus the committed `phase6-checksum-perf` Linux-style route remain the authoritative helper-local slowdown gates on current `master`
+- current shared-lane posture: the broader `phase6-base64-perf`, `phase6-validate`, `phase6-perf`, and `phase6` wrappers remain part of the shared route inventory, but the directly readable base64 and checksum build steps in `zigux/tests/phase6_build.zig` plus the committed `phase6-checksum-perf` Linux-style route now carry the current helper-local perf gates while the remaining wrapper surfaces continue to lag
