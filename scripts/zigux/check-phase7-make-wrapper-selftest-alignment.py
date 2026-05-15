@@ -43,6 +43,12 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-build-wiring.py",
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+        "explicit ownership-focus packet visible",
+        "first-NUL trimming and prefix skipping stop at the exported C-string boundary",
+        "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
+        "append-limited escape accounting stays inside caller storage",
+        "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
+        "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
     ],
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
         "`PHASE7_LANE_KEY=P7-Y05`",
@@ -74,6 +80,9 @@ REQUIRED_MARKERS = {
         "`zigux/tests/README.md` now lists the landed `zigux/tests/phase7_rbtree.zig` replay beside the shared build bundle",
         "`Documentation/zigux/phase7-helper-lane-sequencing.md` remains the dedicated",
         "`zigux/tests/README.md` is also a shared-control reminder surface owned by",
+        "For `string_helpers`, those shared no-sample reminders should also keep the ownership-focus packet explicit:",
+        "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
+        "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
     ],
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
         "PHASE7_SHARED_CONTROL_LANE=P7-Y05",
@@ -85,8 +94,13 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "PHASE7_STATUS=starter_landed",
-        "restored starter packet",
+        "expanded string-helpers starter packet",
+        "scope: keep the Phase 7 string-helpers lane limited to the expanded starter packet and the no-sample review boundary",
         "current `master` now carries both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
+        "The current starter replay also keeps these ownership-focused boundaries explicit:",
+        "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit",
+        "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
+        "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
     ],
     "samples/zigux/README.md": [
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
@@ -104,9 +118,11 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_rbtree.zig",
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
-        "\"current_master_state\": \"restored_starter_packet\"",
+        "\"current_master_state\": \"expanded_starter_packet\"",
         "\"lib/string_helpers.zig\"",
         "\"zigux/tests/phase7_string_helpers.zig\"",
+        "\"ownership_focus\": [",
+        "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
     ],
     "zigux/Makefile": [
         "scripts/zigux/check-phase7-make-wrapper.py --self-test",
@@ -148,6 +164,7 @@ def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
+
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
     for rel, markers in REQUIRED_MARKERS.items():
@@ -156,6 +173,7 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
     return missing
+
 
 
 def collect_count_mismatches(root: Path) -> list[str]:
@@ -169,11 +187,13 @@ def collect_count_mismatches(root: Path) -> list[str]:
     return mismatches
 
 
+
 def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, [], []
     return [], collect_missing_markers(root), collect_count_mismatches(root)
+
 
 
 def write_fixture_root(tmp_root: Path) -> None:
@@ -189,12 +209,22 @@ def write_fixture_root(tmp_root: Path) -> None:
         encoding="utf-8",
     )
 
+    makefile_path = tmp_root / "zigux/Makefile"
+    makefile_path.write_text(
+        makefile_path.read_text(encoding="utf-8")
+        + "phase7-test:\n"
+        + "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all\n",
+        encoding="utf-8",
+    )
+
+
 
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers, count_mismatches = validate(tmp_root)
     assert missing_files == [], case
     assert count_mismatches == [], case
     assert missing_markers == [marker], case
+
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -204,11 +234,13 @@ def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     assert missing_files == [rel], case
 
 
+
 def expect_count_mismatch(case: str, tmp_root: Path, mismatch: str) -> None:
     missing_files, missing_markers, count_mismatches = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [], case
     assert count_mismatches == [mismatch], case
+
 
 
 def remove_marker(tmp_root: Path, rel: str, marker: str, case: str) -> None:
@@ -217,6 +249,7 @@ def remove_marker(tmp_root: Path, rel: str, marker: str, case: str) -> None:
     updated = text.replace(marker, "", 1)
     assert updated != text, case
     path.write_text(updated, encoding="utf-8")
+
 
 
 def run_self_test() -> None:
@@ -257,13 +290,52 @@ def run_self_test() -> None:
         remove_marker(
             tmp_root,
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-            "`zigux/tests/README.md` now lists the landed `zigux/tests/phase7_rbtree.zig` replay beside the shared build bundle",
-            "missing_rbtree_route_present_marker",
+            "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
+            "missing_shared_note_terminator_only_marker",
         )
         expect_missing_marker(
-            "missing_rbtree_route_present_marker",
+            "missing_shared_note_terminator_only_marker",
             tmp_root,
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `zigux/tests/README.md` now lists the landed `zigux/tests/phase7_rbtree.zig` replay beside the shared build bundle",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "Documentation/zigux/review-checklist.md",
+            "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
+            "missing_review_checklist_terminator_only_marker",
+        )
+        expect_missing_marker(
+            "missing_review_checklist_terminator_only_marker",
+            tmp_root,
+            "Documentation/zigux/review-checklist.md: exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-string-helpers-slice.md",
+            "expanded string-helpers starter packet",
+            "missing_expanded_slice_marker",
+        )
+        expect_missing_marker(
+            "missing_expanded_slice_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-string-helpers-slice.md: expanded string-helpers starter packet",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-string-helpers-slice.md",
+            "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit",
+            "missing_slice_terminator_only_marker",
+        )
+        expect_missing_marker(
+            "missing_slice_terminator_only_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-string-helpers-slice.md: exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit",
         )
         write_fixture_root(tmp_root)
 
@@ -282,27 +354,27 @@ def run_self_test() -> None:
 
         remove_marker(
             tmp_root,
-            "Documentation/zigux/phase7-string-helpers-slice.md",
-            "current `master` now carries both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
-            "missing_restored_pair_marker",
+            "zigux/tests/phase7_string_helpers_manifest.json",
+            "\"current_master_state\": \"expanded_starter_packet\"",
+            "missing_manifest_state",
         )
         expect_missing_marker(
-            "missing_restored_pair_marker",
+            "missing_manifest_state",
             tmp_root,
-            "Documentation/zigux/phase7-string-helpers-slice.md: current `master` now carries both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
+            "zigux/tests/phase7_string_helpers_manifest.json: \"current_master_state\": \"expanded_starter_packet\"",
         )
         write_fixture_root(tmp_root)
 
         remove_marker(
             tmp_root,
             "zigux/tests/phase7_string_helpers_manifest.json",
-            "\"current_master_state\": \"restored_starter_packet\"",
-            "missing_manifest_state",
+            "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
+            "missing_manifest_ownership_marker",
         )
         expect_missing_marker(
-            "missing_manifest_state",
+            "missing_manifest_ownership_marker",
             tmp_root,
-            "zigux/tests/phase7_string_helpers_manifest.json: \"current_master_state\": \"restored_starter_packet\"",
+            "zigux/tests/phase7_string_helpers_manifest.json: kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
         )
         write_fixture_root(tmp_root)
 
@@ -410,7 +482,8 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=14")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=16")
+
 
 
 def main() -> int:
