@@ -44,7 +44,8 @@ MARKERS = {
         "* `PHASE11_CLOSURE_STATUS=shared_packet_truthful`",
         "`scripts/zigux/check-phase11-build-inventory.py`",
         "`zigux/tests/fixtures/phase11_build_inventory.json`",
-        "* direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
+        "* direct GitHub contents reads now materialize `zigux/tests/phase11_build.zig`",
+        "* direct GitHub contents reads now materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
         "* the shared `zigux/tests/fixtures/phase11_build_inventory.json` records the shared test inventory, the dedicated HVC replay split, and the explicit shared replay markers beside `zigux/tests/phase11_build.zig`",
         "* there is no shared `make -C zigux phase11-validate` target on `master`",
         "* no landed shared `validate-phase11.py`",
@@ -56,7 +57,7 @@ MARKERS = {
         "shared sequencing lane `P11-Y06`",
         "`scripts/zigux/check-phase11-build-inventory.py`",
         "`zigux/tests/fixtures/phase11_build_inventory.json` anchor",
-        "the contents bridge still materializes `zigux/tests/fixtures/phase11_build_inventory.json`",
+        "Current `master` now directly materializes `zigux/tests/phase11_build.zig` and `zigux/tests/fixtures/phase11_build_inventory.json`, so the shared sequencing lane should keep those anchors explicit as landed bounded replay evidence together with the shipped `make -C zigux phase11-contract` route instead of preserving older fallback-only wording.",
         "there is no shared `validate-phase11.py`, the shared `zigux/tests/fixtures/phase11_build_inventory.json` is materialized and should stay explicit beside `zigux/tests/phase11_build.zig`",
         "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
         "`zigux/tests/phase11_dw_wdt_manifest.json`",
@@ -72,9 +73,11 @@ FORBIDDEN_MARKERS = {
     ],
     "closure_note": [
         "* no landed shared `zigux/tests/fixtures/phase11_build_inventory.json`",
+        "* direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
     ],
     "lane_note": [
         "no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
+        "the contents bridge still materializes `zigux/tests/fixtures/phase11_build_inventory.json`",
     ],
 }
 
@@ -164,6 +167,7 @@ def run_self_test() -> None:
             (FILES["closure_note"], MARKERS["closure_note"][7]),
             (FILES["closure_note"], MARKERS["closure_note"][8]),
             (FILES["closure_note"], MARKERS["closure_note"][9]),
+            (FILES["closure_note"], MARKERS["closure_note"][10]),
             (FILES["lane_note"], MARKERS["lane_note"][0]),
             (FILES["lane_note"], MARKERS["lane_note"][1]),
             (FILES["lane_note"], MARKERS["lane_note"][2]),
@@ -190,7 +194,9 @@ def run_self_test() -> None:
             ("note", FORBIDDEN_MARKERS["note"][2]),
             ("note", FORBIDDEN_MARKERS["note"][3]),
             ("closure_note", FORBIDDEN_MARKERS["closure_note"][0]),
+            ("closure_note", FORBIDDEN_MARKERS["closure_note"][1]),
             ("lane_note", FORBIDDEN_MARKERS["lane_note"][0]),
+            ("lane_note", FORBIDDEN_MARKERS["lane_note"][1]),
         ]
 
         for idx, (label, marker) in enumerate(forbidden_cases, start=1):
