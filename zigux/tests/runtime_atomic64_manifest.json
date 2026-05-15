@@ -77,6 +77,12 @@
       "why_now": "The allocator/init-flow replay keeps the shared handoff packet reviewable beside the atomic64-local sample and survey gates."
     },
     {
+      "id": "runtime-loader-selftest-complete-exit-parity",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_loader_selftest_complete_exit_parity.zig",
+      "why_now": "The shared selftest-complete versus later exit replay keeps prepared selftest-hook evidence and shared release-state synchronization reviewable beside the atomic64-local packet."
+    },
+    {
       "id": "runtime-atomic64-shared-build-boundary",
       "kind": "validation",
       "path": "zigux/tests/phase9_build.zig",
