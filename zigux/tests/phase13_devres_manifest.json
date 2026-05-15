@@ -15,6 +15,7 @@
     "preexisting_phase13_devres_test_present": true,
     "preexisting_phase13_devres_slice_present": true,
     "preexisting_phase13_devres_reviewability_present": true,
+    "preexisting_phase13_devres_boundary_evidence_present": true,
     "preexisting_phase13_devres_survey_present": true,
     "preexisting_phase13_devres_dma_coherent_present": true
   },
@@ -45,7 +46,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-devres-survey.md",
-      "why_now": "The survey note now keeps the current helper-first MMIO packet, the adjacent coherent-DMA evidence shard, the helper-only DMA/scatterlist boundary, and the blocked live-state boundaries explicit in `P13-L01` terms."
+      "why_now": "The survey note now keeps the current helper-first MMIO packet, the adjacent coherent-DMA evidence shard, the direct boundary-evidence replay, the helper-only DMA/scatterlist boundary, and the blocked live-state boundaries explicit in `P13-L01` terms."
     },
     {
       "id": "phase13-devres-test-gate",
@@ -59,7 +60,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
-      "why_now": "The dedicated reviewability gate is present on current master and keeps the manifest-backed `P13-L01` MMIO packet honest, including the adjacent coherent-DMA evidence summary, the helper-only DMA/scatterlist boundary, and the blocked live-state boundaries."
+      "why_now": "The dedicated reviewability gate is present on current master and keeps the manifest-backed `P13-L01` MMIO packet honest, including the direct boundary-evidence replay, the adjacent coherent-DMA evidence summary, the helper-only DMA/scatterlist boundary, and the blocked live-state boundaries."
+    },
+    {
+      "id": "phase13-devres-boundary-evidence-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_devres_boundary_evidence.zig",
+      "why_now": "The direct boundary-evidence replay is present on current master and keeps the region-bookkeeping, translated-resource, and arch-memtype blocked live-state boundaries explicit beside the helper-first MMIO packet without widening into live side effects."
     },
     {
       "id": "phase13-devres-iounmap-planner",
