@@ -380,6 +380,34 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader rejects shared selftest-hook drift before any live registration claim\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "const initialized_plan = try RuntimeKretprobeLoader.planFor(&module);",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "initialized_shared_plan.provides_selftest_hook = false;",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "runtime_loader.prepareRequest(initialized_shared_plan),",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "const selftest_plan = try RuntimeKretprobeLoader.planFor(&module);",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "selftest_shared_plan.provides_selftest_hook = false;",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "runtime_loader.prepareRequest(selftest_shared_plan),",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "test \"runtime kretprobe loader rejects prepared shared approved-family anchor and symbol drift before any live registration claim\"",
     );
     try expectContains(
