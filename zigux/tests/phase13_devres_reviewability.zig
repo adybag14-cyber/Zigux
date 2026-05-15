@@ -36,6 +36,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_live_mmio_state") or
         std.mem.eql(u8, status, "blocked_on_live_device_tree_state") or
         std.mem.eql(u8, status, "blocked_on_live_arch_memtype_state") or
+        std.mem.eql(u8, status, "blocked_on_live_dma_state") or
         std.mem.eql(u8, status, "blocked_on_live_scatterlist_state");
 }
 
@@ -88,7 +89,7 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_boundary_evidence_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);
-    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -122,6 +123,7 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_arch_phys_wc_add()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase13_devres_boundary_evidence.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "direct boundary-evidence replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase13-devres-live-dma-mappings") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live release-region mutation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live arch memtype state transitions") != null);
     try std.testing.expect(std.mem.indexOf(u8, boundary_replay, "phase13 devres boundary evidence keeps the manifest-backed blocked surfaces explicit") != null);
@@ -153,7 +155,8 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try expectGap(manifest, "phase13-devres-live-release-region-mutation", "blocked_on_live_mmio_state", "lib/devres.zig", "release_mem_region()");
     try expectGap(manifest, "phase13-devres-live-device-tree-walk", "blocked_on_live_device_tree_state", "lib/devres.zig", "OF node traversal");
     try expectGap(manifest, "phase13-devres-live-arch-memtype-state", "blocked_on_live_arch_memtype_state", "lib/devres.zig", "mutating real memtype state");
+    try expectGap(manifest, "phase13-devres-live-dma-mappings", "blocked_on_live_dma_state", "lib/devres.zig", "`dma_map_*`");
 
     try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 6), blocked_count);
+    try std.testing.expectEqual(@as(usize, 7), blocked_count);
 }
