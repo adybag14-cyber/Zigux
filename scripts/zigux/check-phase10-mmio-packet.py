@@ -83,7 +83,7 @@ MARKERS = {
         "input registration lifecycle parity",
     ],
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
-        "`P10-L10` MMIO lane owns MMIO helper footing, the risky-transport freeze boundary, and MMIO-local transport posture evidence:",
+        "`P10-L11` MMIO lane owns MMIO helper footing, the risky-transport freeze boundary, and MMIO-local transport posture evidence:",
         "Documentation/zigux/phase10-virtio-mmio-survey.md",
         "zigux/tests/phase10_virtio_mmio_manifest.json",
         "scripts/zigux/check-phase10-mmio-packet.py",
@@ -217,7 +217,7 @@ MARKERS = {
     ],
     "zigux/tests/phase10_virtio_mmio_survey.zig": [
         'test "phase10 virtio mmio survey manifest records the landed identity-backed packet" {',
-        'try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);',
+        'try std.testing.expectEqualStrings("P10-L11", manifest.lane_key);',
         'try std.testing.expectEqual(@as(usize, 11), manifest.survey_summary.preexisting_phase10_test_files);',
         'try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);',
         'try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);',
@@ -282,7 +282,7 @@ MARKERS = {
 }
 
 MANIFEST_SCALARS = {
-    "lane_key": "P10-L10",
+    "lane_key": "P10-L11",
     "phase": "Phase 10",
     "surveyed_commit": "84f90e23ad1c28ae345905d5293a8c5395f37d43",
     "anchor": "drivers/virtio/virtio_mmio.c",
@@ -400,7 +400,7 @@ def build_fixture() -> dict[str, str]:
         fixture[rel_path] = "\n".join(markers) + "\n"
     fixture["zigux/tests/phase10_virtio_mmio_manifest.json"] = json.dumps(
         {
-            "lane_key": "P10-L10",
+            "lane_key": "P10-L11",
             "phase": "Phase 10",
             "surveyed_commit": "84f90e23ad1c28ae345905d5293a8c5395f37d43",
             "anchor": "drivers/virtio/virtio_mmio.c",
