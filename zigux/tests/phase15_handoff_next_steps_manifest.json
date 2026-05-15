@@ -3,7 +3,7 @@
   "continuity_mode": "lane_family_owner_map",
   "owner_map_anchor": "Documentation/zigux/phase15-governance-lane-sequencing.md",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-14",
+  "surveyed_commit": "current-master-readback-2026-05-15",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
