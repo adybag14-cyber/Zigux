@@ -22,6 +22,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase7-make-wrapper.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "scripts/zigux/check-phase7-build-wiring.py",
+    "scripts/zigux/check-phase7-cmdline-packet.py",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "zigux/tests/README.md",
@@ -99,6 +100,8 @@ REQUIRED_MARKERS = {
         "`python3 scripts/zigux/check-phase7-make-wrapper.py`",
         "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
         "`python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
+        "python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+        "`python3 scripts/zigux/check-phase7-cmdline-packet.py`",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "`python3 scripts/zigux/check-phase7-argv-split-packet.py`",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -154,7 +157,7 @@ REQUIRED_MARKERS = {
         "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
         "PHASE7_RBTREE_LANE=P7-L13",
         "`P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift;",
-        "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
+        "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, checker, or same-slice reminder drift;",
         "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
         "`P7-L13` owns only rbtree helper-local parity, traversal, manifest, fixture, checker, or reminder drift;",
     ],
@@ -169,6 +172,7 @@ REQUIRED_MARKERS = {
     "scripts/zigux/README.md": [
         "scripts/zigux/validate-phase7.py",
         "scripts/zigux/check-phase7-build-wiring.py",
+        "scripts/zigux/check-phase7-cmdline-packet.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "lib/string_helpers.zig",
@@ -299,6 +303,8 @@ REQUIRED_EXACT_LINES = {
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py",
     ],
 }
 
@@ -383,6 +389,10 @@ def run_self_test() -> None:
 
         (tmp_root / "zigux/tests/phase7_string_helpers_manifest.json").unlink()
         expect_missing_file(tmp_root, "zigux/tests/phase7_string_helpers_manifest.json")
+        write_fixture_tree(tmp_root)
+
+        (tmp_root / "scripts/zigux/check-phase7-cmdline-packet.py").unlink()
+        expect_missing_file(tmp_root, "scripts/zigux/check-phase7-cmdline-packet.py")
         write_fixture_tree(tmp_root)
 
         cases = [
@@ -531,10 +541,28 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
             ),
             (
+                "phase7 make-wrapper note cmdline self-test route",
+                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+                "python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+            ),
+            (
+                "phase7 make-wrapper note live cmdline route",
+                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+                "`python3 scripts/zigux/check-phase7-cmdline-packet.py`",
+                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `python3 scripts/zigux/check-phase7-cmdline-packet.py`",
+            ),
+            (
                 "phase7 make-wrapper note live build-wiring route",
                 "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
                 "`python3 scripts/zigux/check-phase7-build-wiring.py`",
                 "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `python3 scripts/zigux/check-phase7-build-wiring.py`",
+            ),
+            (
+                "helper-lane sequencing cmdline owner marker",
+                "Documentation/zigux/phase7-helper-lane-sequencing.md",
+                "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, checker, or same-slice reminder drift;",
+                "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, checker, or same-slice reminder drift;",
             ),
             (
                 "helper-lane sequencing argv lane marker",
@@ -565,6 +593,24 @@ def run_self_test() -> None:
                 "zigux/Makefile",
                 "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py\n",
                 "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
+            ),
+            (
+                "makefile cmdline checker self-test route",
+                "zigux/Makefile",
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+                "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+            ),
+            (
+                "makefile cmdline checker live route",
+                "zigux/Makefile",
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py\n",
+                "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py",
+            ),
+            (
+                "scripts readme cmdline checker marker",
+                "scripts/zigux/README.md",
+                "scripts/zigux/check-phase7-cmdline-packet.py",
+                "scripts/zigux/README.md: scripts/zigux/check-phase7-cmdline-packet.py",
             ),
             (
                 "string helper sample boundary expanded packet marker",
