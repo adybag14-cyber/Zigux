@@ -40,6 +40,7 @@
     "scripts/zigux/check-phase7-make-wrapper.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "scripts/zigux/check-phase7-build-wiring.py",
+    "scripts/zigux/check-phase7-cmdline-packet.py",
     "zigux/tests/README.md",
     "zigux/tests/phase7_build.zig",
     "zigux/tests/phase7_cmdline.zig",
@@ -111,7 +112,7 @@
       "status": "parked",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_cmdline_manifest.json",
-      "why_now": "The machine-readable manifest packet keeps the landed helper, survey, fixture, and shared validation surfaces auditable from one current Phase 7 record instead of leaving them implicit in the surrounding docs and survey gate."
+      "why_now": "The machine-readable manifest packet keeps the landed helper, survey, fixture, dedicated checker, and shared validation surfaces auditable from one current Phase 7 record instead of leaving them implicit in the surrounding docs and survey gate."
     },
     {
       "id": "phase7-cmdline-survey-gate",
