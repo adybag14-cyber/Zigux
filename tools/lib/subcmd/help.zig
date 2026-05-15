@@ -582,6 +582,41 @@ test "loadCommandListsFromSource keeps exec-path priority and removes duplicates
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
 
+test "writeCommandSectionsForTerminal suppresses the exec-path heading when only PATH commands remain" {
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.addCmdName("report", 6);
+    try other_cmds.addCmdName("stat", 4);
+    other_cmds.sort();
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try writeCommandSectionsForTerminal(
+        &rendered.writer,
+        "perf",
+        "/ignored",
+        main_cmds,
+        other_cmds,
+        null,
+        "24",
+        null,
+    );
+
+    const other_rule = [_]u8{'-'} ** 43;
+    const expected = std.fmt.comptimePrint(
+        "perf available from elsewhere on your $PATH\n{s}\n" ++
+            " report stat\n" ++
+            "\n",
+        .{other_rule[0..]},
+    );
+
+    try std.testing.expectEqualStrings(expected, rendered.writer.buffered());
+}
+
 test "writeCommandSectionsForTerminal keeps the shared longest-name layout stable across both sections" {
     var main_cmds = CmdNames.init(std.testing.allocator);
     defer main_cmds.deinit();
