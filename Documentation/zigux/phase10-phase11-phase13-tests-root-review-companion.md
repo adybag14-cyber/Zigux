@@ -160,6 +160,7 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `scripts/zigux/validate-phase13-release.py`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `zigux/tests/README.md`
 - `zigux/helpers/notifier_chain_view.zig`
 - `zigux/bindings/notifier_abi.zig`
 - `include/zigux/abi.h`
