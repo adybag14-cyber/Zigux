@@ -77,6 +77,14 @@ EXPECTED_COMPILE_SHARDS = [
         "coverage": "focused_and_full_bundle",
     },
 ]
+RELEASE_BOUNDARY_FALLBACK_MARKER = (
+    "attached-toolchain replay fallback: `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`, "
+    "`ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`, and "
+    "`ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14` remain the release-facing fallback when "
+    "neither the repo-local `.zig-toolchain` candidate nor the shell's default `zig` binary is available, so "
+    "the same bounded smoke-shard, full-bundle, and combined replay routes stay usable without inventing a "
+    "separate environment-only command packet"
+)
 RELEASE_BOUNDARY_MARKERS = [
     "PHASE14_RELEASE_BOUNDARY=present",
     "PHASE14_SHARED_REPLAY_PRESENT=yes",
@@ -91,6 +99,7 @@ RELEASE_BOUNDARY_MARKERS = [
     "`net/core/skbuff.c`: remains blocked from active delivery",
     "PHASE14_SHARED_SMOKE_GATE_COUNT=1",
     "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0",
+    RELEASE_BOUNDARY_FALLBACK_MARKER,
 ]
 SURVEY_EXACT_COUNT_MARKERS = [
     "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
@@ -484,6 +493,39 @@ def run_self_test() -> int:
 
         write(
             root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace(
+                f"- {RELEASE_BOUNDARY_FALLBACK_MARKER}\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "attached-toolchain replay fallback:",
+            "self-test expected missing attached-toolchain fallback failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace(
+                f"- {RELEASE_BOUNDARY_FALLBACK_MARKER}\n",
+                f"- {RELEASE_BOUNDARY_FALLBACK_MARKER}\n"
+                f"- {RELEASE_BOUNDARY_FALLBACK_MARKER}\n",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "attached-toolchain replay fallback:",
+            "self-test expected duplicate attached-toolchain fallback failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
             "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
             good_survey_text().replace("- `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`\n", "", 1),
         )
@@ -653,7 +695,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=17")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
