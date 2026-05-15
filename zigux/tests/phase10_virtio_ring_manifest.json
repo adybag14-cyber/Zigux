@@ -148,10 +148,10 @@
     },
     {
       "id": "phase10-virtio-ring-slice-note",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
-      "why_now": "The slice note exists, but it still names absent ring helper, verify, replay, checker, and survey-gate files as shipped packet evidence."
+      "why_now": "The directly readable slice note keeps the missing ring helper, verify, replay, checker, and survey-gate surfaces explicit without overstating queue-local wrapper progress on current master."
     },
     {
       "id": "phase10-ring-lab-driver-bridge",
