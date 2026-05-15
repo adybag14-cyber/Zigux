@@ -108,6 +108,7 @@ ABI_SLICE_CURRENT_GAP_MARKERS = {
     "Documentation/zigux/phase3-boundary-lane-sequencing.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "Documentation/zigux/phase3-validator-support-surface.md": 1,
+    "direct `phase3_abi` replay": 1,
     "zigux/tests/phase3_export_uapi_layout_build.zig": 1,
     "zigux/tests/phase3_export_uapi_layout.zig": 1,
     "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
@@ -739,6 +740,26 @@ def run_self_test() -> int:
         if expected_abi_slice_marker_missing not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing ABI slice layout-build marker was not reported")
+            return 1
+        case_count += 1
+        _write(root / abi_slice_note_rel, _abi_slice_note_stub())
+
+        _write(
+            root / abi_slice_note_rel,
+            _read(root / abi_slice_note_rel).replace(
+                "- `direct `phase3_abi` replay`\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_abi_slice_direct_replay_missing = (
+            "Phase 3 ABI slice current gap marker count drift: "
+            "direct `phase3_abi` replay (expected 1, found 0)"
+        )
+        if expected_abi_slice_direct_replay_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing ABI slice direct replay phrase was not reported")
             return 1
         case_count += 1
         _write(root / abi_slice_note_rel, _abi_slice_note_stub())
