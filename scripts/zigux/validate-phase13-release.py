@@ -16,6 +16,9 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase13-release-coordination-matrix.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-contributor-workflow-guide.md",
+    "Documentation/zigux/phase13-libfs-survey.md",
+    "Documentation/zigux/phase13-devres-slice.md",
+    "Documentation/zigux/phase13-devres-survey.md",
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
     "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
     "Documentation/zigux/phase13-landlock-ruleset-slice.md",
@@ -141,6 +144,39 @@ REQUIRED_MARKERS = {
         "Current `master` also materializes the adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig`",
         "still does not materialize these direct Phase 13 companions:",
         "older `scripts/zigux/check-phase13-devres-packet.py`",
+    ],
+    "Documentation/zigux/phase13-libfs-survey.md": [
+        "# Phase 13 libfs Survey",
+        "`PHASE13_SLICE=libfs-helper-filesystem-boundary-survey`",
+        "`fs/libfs.zig`",
+        "`Documentation/zigux/phase13-libfs-survey.md`",
+        "`zigux/tests/phase13_libfs.zig`",
+        "`zigux/tests/phase13_libfs_reviewability.zig`",
+        "`zigux/tests/phase13_libfs_manifest.json`",
+        "`zigux/tests/phase13_build.zig`",
+        "direct helper-local replay packet rather than part of a wider shared Phase 13 build route.",
+    ],
+    "Documentation/zigux/phase13-devres-slice.md": [
+        "# Phase 13 devres Slice",
+        "pure helper-first foothold anchored to `lib/devres.c`.",
+        "`lib/devres.zig`",
+        "`Documentation/zigux/phase13-devres-survey.md`",
+        "`zigux/tests/phase13_devres.zig`",
+        "`zigux/tests/phase13_devres_reviewability.zig`",
+        "`zigux/tests/phase13_devres_dma_coherent.zig`",
+        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+        "The next honest bounded step in this same lane is to keep the packet truthfulness reviewable",
+    ],
+    "Documentation/zigux/phase13-devres-survey.md": [
+        "# Phase 13 devres Survey",
+        "`PHASE13_SLICE=devres-helper-mmio-safety-survey`",
+        "`Documentation/zigux/phase13-devres-slice.md`",
+        "`zigux/tests/phase13_devres_manifest.json`",
+        "`zigux/tests/phase13_devres_boundary_evidence.zig`",
+        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+        "`zigux/tests/phase13_build.zig` is absent on current `master`.",
+        "helper-only DMA/scatterlist boundary",
+        "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
     ],
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
         "# Phase 13 Shared Helper Lane Sequencing",
@@ -339,6 +375,45 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+        (root / "Documentation/zigux/phase13-libfs-survey.md").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase13-libfs-survey.md"],
+            "missing_libfs_survey_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-libfs-survey.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-libfs-survey.md"]) + "\n",
+        )
+        case_count += 1
+
+        (root / "Documentation/zigux/phase13-devres-slice.md").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase13-devres-slice.md"],
+            "missing_devres_slice_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-devres-slice.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-devres-slice.md"]) + "\n",
+        )
+        case_count += 1
+
+        (root / "Documentation/zigux/phase13-devres-survey.md").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase13-devres-survey.md"],
+            "missing_devres_survey_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-devres-survey.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-devres-survey.md"]) + "\n",
+        )
+        case_count += 1
+
         (root / "scripts/zigux/check-phase13-notifier-priority-signal.py").unlink()
         assert_only(
             validate(root),
@@ -417,6 +492,78 @@ def run_self_test() -> int:
 
         write_text(
             root,
+            "Documentation/zigux/phase13-libfs-survey.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-libfs-survey.md"]
+                if marker != "`zigux/tests/phase13_libfs_manifest.json`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-libfs-survey.md:`zigux/tests/phase13_libfs_manifest.json`"
+            ],
+            "missing_libfs_manifest_anchor_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-libfs-survey.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-libfs-survey.md"]) + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-devres-slice.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-devres-slice.md"]
+                if marker != "`scripts/zigux/check-phase13-devres-packet-alignment.py`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-devres-slice.md:`scripts/zigux/check-phase13-devres-packet-alignment.py`"
+            ],
+            "missing_devres_slice_checker_anchor_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-devres-slice.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-devres-slice.md"]) + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-devres-survey.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-devres-survey.md"]
+                if marker != "helper-only DMA/scatterlist boundary"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-devres-survey.md:helper-only DMA/scatterlist boundary"
+            ],
+            "missing_devres_survey_dma_boundary_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-devres-survey.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-devres-survey.md"]) + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
             "Documentation/zigux/README.md",
             "\n".join(
                 marker
@@ -428,8 +575,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/README.md:"
-                "`Documentation/zigux/phase13-landlock-ruleset-slice.md`"
+                "missing_marker:Documentation/zigux/README.md:`Documentation/zigux/phase13-landlock-ruleset-slice.md`"
             ],
             "missing_docs_root_ruleset_slice_marker_failed",
         )
@@ -449,8 +595,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/README.md:"
-                "`Documentation/zigux/phase13-release-coordination-matrix.md`"
+                "missing_marker:Documentation/zigux/README.md:`Documentation/zigux/phase13-release-coordination-matrix.md`"
             ],
             "missing_docs_root_release_coordination_matrix_marker_failed",
         )
@@ -470,8 +615,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/README.md:"
-                "`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`"
+                "missing_marker:Documentation/zigux/README.md:`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`"
             ],
             "missing_docs_root_contributor_surface_sync_marker_failed",
         )
@@ -491,8 +635,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/README.md:"
-                "`zigux/tests/phase13_devres_boundary_evidence.zig`"
+                "missing_marker:Documentation/zigux/README.md:`zigux/tests/phase13_devres_boundary_evidence.zig`"
             ],
             "missing_docs_root_devres_boundary_evidence_marker_failed",
         )
@@ -513,8 +656,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/README.md:"
-                "`Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`"
+                "missing_marker:Documentation/zigux/README.md:`Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`"
             ],
             "missing_docs_root_gap_sequence_marker_failed",
         )
@@ -534,8 +676,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-slice.md:"
-                "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`"
+                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-slice.md:`zigux/tests/phase13_landlock_syscalls_reviewability.zig`"
             ],
             "missing_syscalls_reviewability_anchor_failed",
         )
@@ -559,8 +700,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:"
-                "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`"
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`"
             ],
             "missing_tests_root_review_companion_handle_failed",
         )
@@ -584,8 +724,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:"
-                "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:"
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:"
             ],
             "missing_devres_guard_phrase_failed",
         )
@@ -610,8 +749,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:"
-                "Current `master` no longer frames shipped `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, or `zigux/helpers/notifier_chain_view.zig` as missing in `scripts/zigux/README.md`."
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Current `master` no longer frames shipped `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, or `zigux/helpers/notifier_chain_view.zig` as missing in `scripts/zigux/README.md`."
             ],
             "missing_release_notes_scripts_readme_alignment_failed",
         )
@@ -636,8 +774,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:"
-                "Broad summaries should also keep the paired Landlock ownership, ruleset-slice, ruleset-survey, syscall-governance, and syscall-survey notes explicit inside that same release handle through:"
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Broad summaries should also keep the paired Landlock ownership, ruleset-slice, ruleset-survey, syscall-governance, and syscall-survey notes explicit inside that same release handle through:"
             ],
             "missing_release_notes_landlock_slice_phrase_failed",
         )
@@ -662,8 +799,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:"
-                "shared-summary reread target: `scripts/zigux/README.md`, `zigux/tests/README.md`, this matrix, the docs-root Phase 13 companions, and the tests-root companion note are the shared surfaces to reread together;"
+                "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:shared-summary reread target: `scripts/zigux/README.md`, `zigux/tests/README.md`, this matrix, the docs-root Phase 13 companions, and the tests-root companion note are the shared surfaces to reread together;"
             ],
             "missing_release_coordination_reread_target_failed",
         )
@@ -688,8 +824,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:"
-                "Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle."
+                "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle."
             ],
             "missing_stable_replay_handle_failed",
         )
@@ -715,8 +850,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:"
-                "the shipped `Documentation/zigux/phase13-landlock-ruleset-slice.md` and `Documentation/zigux/phase13-landlock-ruleset-survey.md` notes,"
+                "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:the shipped `Documentation/zigux/phase13-landlock-ruleset-slice.md` and `Documentation/zigux/phase13-landlock-ruleset-survey.md` notes,"
             ],
             "missing_contributor_workflow_ruleset_slice_phrase_failed",
         )
@@ -741,8 +875,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-governance.md:"
-                "Current `master` materializes a small `security/landlock/syscalls.zig` helper starter."
+                "missing_marker:Documentation/zigux/phase13-landlock-syscalls-governance.md:Current `master` materializes a small `security/landlock/syscalls.zig` helper starter."
             ],
             "missing_syscalls_helper_anchor_failed",
         )
@@ -767,8 +900,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md:"
-                "keep the shipped broader Phase 13 tests-root guide in `zigux/tests/README.md` explicit as shared packet evidence"
+                "missing_marker:Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md:keep the shipped broader Phase 13 tests-root guide in `zigux/tests/README.md` explicit as shared packet evidence"
             ],
             "missing_shipped_tests_root_phrase_failed",
         )
@@ -794,8 +926,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:"
-                "Current `master` also materializes the dedicated Phase 13 packet summary in `zigux/tests/README.md`, so keep that broader tests-root guide aligned with the contributor workflow guide and shared-helper sequencing note as shipped Phase 13 review evidence instead of framing it as a pending shared-surface follow-up."
+                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:Current `master` also materializes the dedicated Phase 13 packet summary in `zigux/tests/README.md`, so keep that broader tests-root guide aligned with the contributor workflow guide and shared-helper sequencing note as shipped Phase 13 review evidence instead of framing it as a pending shared-surface follow-up."
             ],
             "missing_materialized_tests_root_phrase_failed",
         )
@@ -821,8 +952,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_marker:scripts/zigux/README.md:"
-                "while the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`."
+                "missing_marker:scripts/zigux/README.md:while the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`."
             ],
             "missing_scripts_readme_notifier_shard_phrase_failed",
         )
