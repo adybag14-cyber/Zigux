@@ -104,7 +104,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase13_build.zig`",
         "`zigux/tests/phase13_devres_boundary_evidence.zig`",
         "repo-reality gaps rather than independently shipped current-`master` evidence.",
-        "Broad summaries should also keep the paired Landlock ownership, ruleset-survey, syscall-governance, and syscall-survey notes explicit inside that same release handle through:",
+        "Broad summaries should also keep the paired Landlock ownership, ruleset-slice, ruleset-survey, syscall-governance, and syscall-survey notes explicit inside that same release handle through:",
         "Broad summaries should also keep the shipped devres packet-truthfulness guard explicit through:",
         "Broad summaries should also keep the current devres checker label explicit: older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift.",
         "Broad summaries should also keep the currently materialized manifest-backed helper anchors explicit through:",
@@ -134,7 +134,7 @@ REQUIRED_MARKERS = {
         "Use this guide when a change touches the active Phase 13 shared-helper packet",
         "Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle.",
         "current `master` materializes the bounded `libfs` foothold",
-        "the shipped `Documentation/zigux/phase13-landlock-ruleset-survey.md` note,",
+        "the shipped `Documentation/zigux/phase13-landlock-ruleset-slice.md` and `Documentation/zigux/phase13-landlock-ruleset-survey.md` notes,",
         "the shipped `Documentation/zigux/phase13-landlock-syscalls-slice.md` and `Documentation/zigux/phase13-landlock-syscalls-survey.md` notes,",
         "the shipped `zigux/tests/phase13_landlock_ruleset.zig` and `zigux/tests/phase13_landlock_ruleset_manifest.json` direct ruleset replay pair,",
         "the shipped `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` direct syscall replay packet,",
@@ -624,6 +624,32 @@ def run_self_test() -> int:
 
         write_text(
             root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]
+                if marker
+                != "Broad summaries should also keep the paired Landlock ownership, ruleset-slice, ruleset-survey, syscall-governance, and syscall-survey notes explicit inside that same release handle through:"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:"
+                "Broad summaries should also keep the paired Landlock ownership, ruleset-slice, ruleset-survey, syscall-governance, and syscall-survey notes explicit inside that same release handle through:"
+            ],
+            "missing_release_notes_landlock_slice_phrase_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-release-notes-survey.md"]) + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
             "Documentation/zigux/phase13-release-coordination-matrix.md",
             "\n".join(
                 marker
@@ -666,6 +692,33 @@ def run_self_test() -> int:
                 "Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle."
             ],
             "missing_stable_replay_handle_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-contributor-workflow-guide.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-contributor-workflow-guide.md"])
+            + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-contributor-workflow-guide.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-contributor-workflow-guide.md"]
+                if marker
+                != "the shipped `Documentation/zigux/phase13-landlock-ruleset-slice.md` and `Documentation/zigux/phase13-landlock-ruleset-survey.md` notes,"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:"
+                "the shipped `Documentation/zigux/phase13-landlock-ruleset-slice.md` and `Documentation/zigux/phase13-landlock-ruleset-survey.md` notes,"
+            ],
+            "missing_contributor_workflow_ruleset_slice_phrase_failed",
         )
         write_text(
             root,
