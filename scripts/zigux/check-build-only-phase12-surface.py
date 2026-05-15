@@ -141,7 +141,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "`make -C zigux phase12-smoke`",
     "`make -C zigux phase12`",
     "while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`",
-    "and the still-absent direct `phase12_nvme_pci` and `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
+    "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
     "support-bundle evidence rather than as a second direct replay route",
 ]
 
@@ -180,7 +180,7 @@ TESTS_README_MARKERS = [
     "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
     "`scripts/zigux/check-phase12-release-readiness-packet.py`",
     "while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`",
-    "the still-absent direct `phase12_nvme_pci` and `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
+    "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
     "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
     "`make -C zigux phase12-smoke`",
     "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
@@ -678,6 +678,30 @@ def run_self_test() -> int:
         expect_failure(base, f"release_coordination_matrix:{RELEASE_COORDINATION_MATRIX_MARKERS[7]}")
 
         write_fixture_tree(base)
+        review_checklist_path = base / REVIEW_CHECKLIST_PATH
+        review_checklist_path.write_text(
+            review_checklist_path.read_text(encoding="utf-8").replace(
+                REVIEW_CHECKLIST_MARKERS[7],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"review_checklist:{REVIEW_CHECKLIST_MARKERS[7]}")
+
+        write_fixture_tree(base)
+        tests_readme_path = base / TESTS_README_PATH
+        tests_readme_path.write_text(
+            tests_readme_path.read_text(encoding="utf-8").replace(
+                TESTS_README_MARKERS[16],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"tests_readme:{TESTS_README_MARKERS[16]}")
+
+        write_fixture_tree(base)
         build_path = base / PHASE12_BUILD_PATH
         build_path.write_text(
             build_path.read_text(encoding="utf-8").replace(
@@ -702,7 +726,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=7:actual=6")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=9")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=11")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
