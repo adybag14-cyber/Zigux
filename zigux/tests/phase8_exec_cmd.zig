@@ -117,9 +117,16 @@ test "phase 8 exec-cmd deferred boundary note still matches the live C helper an
     const helper = try readRepoFile("tools/lib/subcmd/exec-cmd.zig");
     defer std.testing.allocator.free(helper);
 
-    try std.testing.expect(std.mem.indexOf(u8, slice, "`execv_cmd()`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice, "`execvp()`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice, "`execl_cmd()`") != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        slice,
+        "direct `execvp()` parity, `execv_cmd()` ownership, or process-launch behavior",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        slice,
+        "any ownership of `execl_cmd()` or the direct varargs launch path",
+    ) != null);
     try std.testing.expect(std.mem.indexOf(u8, helper, "pub fn buildDeferredExecvCall(") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper, "pub fn buildDeferredExeclCall(") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper, "pub fn planDeferredExeclCallWithPwd(") != null);
