@@ -58,6 +58,7 @@ publication surface.
 - `modules.builtin`
 - module install-root state
 - `depmod` script or manifest state
+- depmod alias publication state
 
 Those publication surfaces remain blocked boundaries rather than landed Phase 9
 runtime-module delivery evidence.
