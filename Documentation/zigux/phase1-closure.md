@@ -103,6 +103,7 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 - `scripts/zigux/install-zig.py`
 - `scripts/zigux/check-phase1-installer-review-surfaces.py`
 - `scripts/zigux/check-phase1-installer-companion-checks.py`
+- `scripts/zigux/check-phase1-string-review-packet.py`
 - `scripts/zigux/validate-phase1.py`
 - `scripts/zigux/validate-phase1-closure.py`
 - `scripts/zigux/check-phase1-parity.py`
@@ -126,9 +127,11 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 - `python3 scripts/zigux/install-zig.py --self-test`
 - `python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`
 - `python3 scripts/zigux/check-phase1-installer-companion-checks.py`
+- `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`
+- `python3 scripts/zigux/check-phase1-string-review-packet.py`
 - `python3 scripts/zigux/validate-phase1-closure.py`
 
-Reviewers should treat drift across those packet summaries, the committed helper, parity, and benchmark fixtures, the shared C harness, the shared tests-root entrypoints, the bootstrap workflow replay, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, and the validator-first plus Linux-style replay routes as a closure regression even when the helper code itself is unchanged.
+Reviewers should treat drift across those packet summaries, the committed helper, parity, and benchmark fixtures, the shared C harness, the shared tests-root entrypoints, the bootstrap workflow replay, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, the dedicated string-review checker packet, and the validator-first plus Linux-style replay routes as a closure regression even when the helper code itself is unchanged.
 
 ## Find Bit Review Rule
 
