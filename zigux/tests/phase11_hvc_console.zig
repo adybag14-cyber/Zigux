@@ -132,3 +132,22 @@ test "phase11 hvc console keeps remove-path teardown ordering reviewable" {
     try std.testing.expect(!detached_remove.tty_kref_put_release);
     try std.testing.expect(!detached_remove.keep_irq_until_hangup);
 }
+
+test "phase11 hvc console keeps incomplete remove ownership out of slot-release claims" {
+    const summary = console.summarizeRemoveHandoff(.{
+        .console_lock_slot_cleared = true,
+        .vtermno_and_cons_ops_released = false,
+        .tty_port_put_ordered = true,
+        .tty_vhangup_follow_through = false,
+        .tty_kref_put_release = false,
+        .keep_irq_until_hangup = true,
+    });
+
+    try std.testing.expect(summary.console_lock_slot_cleared);
+    try std.testing.expect(!summary.vtermno_and_cons_ops_released);
+    try std.testing.expect(!summary.slot_release_ownership);
+    try std.testing.expect(summary.tty_port_put_ordered);
+    try std.testing.expect(!summary.tty_vhangup_follow_through);
+    try std.testing.expect(!summary.tty_kref_put_release);
+    try std.testing.expect(summary.keep_irq_until_hangup);
+}
