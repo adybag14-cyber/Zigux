@@ -1,7 +1,6 @@
 const std = @import("std");
 const Io = std.Io;
 const abi = @import("abi_bindings");
-const notifier_abi = @import("notifier_abi");
 
 fn writeQuoted(writer: anytype, text: []const u8) !void {
     try writer.writeByte('"');
@@ -61,32 +60,32 @@ fn writeDevT(writer: anytype) !void {
 }
 
 fn writeNotifierChain(writer: anytype) !void {
-    const single = notifier_abi.NotifierBlock{
+    const single = abi.NotifierBlock{
         .notifier_call = 0,
         .next = 0,
         .priority = 7,
     };
-    const descending_third = notifier_abi.NotifierBlock{
+    const descending_third = abi.NotifierBlock{
         .notifier_call = 0,
         .next = 0,
         .priority = -4,
     };
-    const descending_second = notifier_abi.NotifierBlock{
+    const descending_second = abi.NotifierBlock{
         .notifier_call = 0,
         .next = @intFromPtr(&descending_third),
         .priority = 8,
     };
-    const descending_first = notifier_abi.NotifierBlock{
+    const descending_first = abi.NotifierBlock{
         .notifier_call = 0,
         .next = @intFromPtr(&descending_second),
         .priority = 8,
     };
-    const rising_second = notifier_abi.NotifierBlock{
+    const rising_second = abi.NotifierBlock{
         .notifier_call = 0,
         .next = 0,
         .priority = 5,
     };
-    const rising_first = notifier_abi.NotifierBlock{
+    const rising_first = abi.NotifierBlock{
         .notifier_call = 0,
         .next = @intFromPtr(&rising_second),
         .priority = 3,
@@ -94,13 +93,13 @@ fn writeNotifierChain(writer: anytype) !void {
 
     try writeQuoted(writer, "notifier_chain");
     try writer.writeAll(":{\"empty_ok\":");
-    try writer.print("{d}", .{@intFromBool(notifier_abi.chainHasNonincreasingPriority(null))});
+    try writer.print("{d}", .{@intFromBool(abi.chainHasNonincreasingPriority(null))});
     try writer.writeAll(",\"single_ok\":");
-    try writer.print("{d}", .{@intFromBool(notifier_abi.chainHasNonincreasingPriority(&single))});
+    try writer.print("{d}", .{@intFromBool(abi.chainHasNonincreasingPriority(&single))});
     try writer.writeAll(",\"descending_ok\":");
-    try writer.print("{d}", .{@intFromBool(notifier_abi.chainHasNonincreasingPriority(&descending_first))});
+    try writer.print("{d}", .{@intFromBool(abi.chainHasNonincreasingPriority(&descending_first))});
     try writer.writeAll(",\"rising_ok\":");
-    try writer.print("{d}", .{@intFromBool(notifier_abi.chainHasNonincreasingPriority(&rising_first))});
+    try writer.print("{d}", .{@intFromBool(abi.chainHasNonincreasingPriority(&rising_first))});
     try writer.writeByte('}');
 }
 
@@ -134,9 +133,9 @@ pub fn main(init: std.process.Init) !void {
             abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED,
             abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
             abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
-            @intFromEnum(notifier_abi.NotifierResult.done),
-            @intFromEnum(notifier_abi.NotifierResult.ok),
-            @intFromEnum(notifier_abi.NotifierResult.stop),
+            @intFromEnum(abi.NotifierResult.done),
+            @intFromEnum(abi.NotifierResult.ok),
+            @intFromEnum(abi.NotifierResult.stop),
         },
     );
 
@@ -175,7 +174,7 @@ pub fn main(init: std.process.Init) !void {
         abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary,
     );
     try writer.writeByte(',');
-    try writeStruct(writer, "notifier_block", notifier_abi.NotifierBlock);
+    try writeStruct(writer, "notifier_block", abi.NotifierBlock);
     try writer.writeAll("}}\n");
     try stdout_writer.interface.flush();
 }
