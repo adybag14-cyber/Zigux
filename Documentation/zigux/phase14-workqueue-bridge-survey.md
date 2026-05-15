@@ -78,7 +78,7 @@ This survey slice does not claim:
 ## Gates
 
 1. run the dedicated Phase 14 build
-- `zig build test --build-file zigux/tests/phase14_build.zig`
+- `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 - `make -C zigux phase14-test`
 
 2. run the convenience target
