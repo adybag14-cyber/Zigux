@@ -630,6 +630,30 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_file:{PHASE12_REPEATED_ROLLBACK_PATH}")
 
         write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_MARKERS[16],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[16]}")
+
+        write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
+        docs_root_path.writeText(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_MARKERS[14],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[14]}")
+
+        write_fixture_tree(base)
         sequencing_path = base / RELEASE_SEQUENCING_PATH
         sequencing_path.write_text(
             sequencing_path.read_text(encoding="utf-8").replace(
@@ -726,7 +750,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=7:actual=6")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=11")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=13")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
