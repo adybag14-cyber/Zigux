@@ -116,6 +116,46 @@ test "platform handoff keeps timeout-programming registration state explicit whe
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
 
+test "platform handoff keeps imported-running registration state explicit" {
+    const summary = dw_wdt.platformHandoffSummary(.{
+        .has_named_tclk = false,
+        .has_shared_clock = true,
+        .has_pclk = false,
+        .has_reset_control = true,
+        .has_pretimeout_irq = true,
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = true,
+    });
+
+    try std.testing.expectEqual(
+        dw_wdt.RegistrationScaffoldState.import_running_state_then_register,
+        summary.state,
+    );
+    try std.testing.expectEqual(
+        dw_wdt.TimerClockPath.unnamed_shared_fallback,
+        summary.timer_clock_path,
+    );
+    try std.testing.expectEqual(
+        dw_wdt.ProbeTimeoutOrigin.imported_running_counter,
+        summary.probe_timeout_origin,
+    );
+    try std.testing.expect(summary.timer_clock_available);
+    try std.testing.expect(!summary.apb_clock_present);
+    try std.testing.expect(summary.reset_control_available);
+    try std.testing.expect(summary.reset_release_requested);
+    try std.testing.expect(summary.pretimeout_irq_optional);
+    try std.testing.expect(summary.pretimeout_irq_present);
+    try std.testing.expectEqualStrings("platform_get_irq_optional", summary.pretimeout_irq_call);
+    try std.testing.expect(!summary.timeout_programming_requested);
+    try std.testing.expect(summary.imported_running_state);
+    try std.testing.expect(summary.stop_on_reboot_requested);
+    try std.testing.expectEqual(dw_wdt.default_restart_priority, summary.restart_priority_value);
+    try std.testing.expect(summary.registration_ready);
+    try std.testing.expect(summary.blocked_on_live_platform_registration);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
 test "registration order summary keeps blocked registration explicit when drvdata is missing" {
     const summary = dw_wdt.registrationOrderSummary(.{
         .drvdata_published = false,
@@ -131,6 +171,28 @@ test "registration order summary keeps blocked registration explicit when drvdat
     try std.testing.expect(!summary.imports_running_state_before_register);
     try std.testing.expect(!summary.programs_timeout_before_register);
     try std.testing.expect(!summary.registration_requested);
+    try std.testing.expect(summary.blocked_on_live_platform_registration);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
+test "registration order summary keeps imported-running registration distinct from timeout programming" {
+    const summary = dw_wdt.registrationOrderSummary(.{
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = true,
+    });
+
+    try std.testing.expectEqual(
+        dw_wdt.RegistrationScaffoldState.import_running_state_then_register,
+        summary.state,
+    );
+    try std.testing.expect(summary.publishes_drvdata_before_register);
+    try std.testing.expect(summary.imports_running_state_before_register);
+    try std.testing.expect(!summary.programs_timeout_before_register);
+    try std.testing.expect(summary.stop_on_reboot_requested);
+    try std.testing.expectEqual(dw_wdt.default_restart_priority, summary.restart_priority_value);
+    try std.testing.expectEqualStrings("watchdog_register_device", summary.register_call);
+    try std.testing.expect(summary.registration_requested);
     try std.testing.expect(summary.blocked_on_live_platform_registration);
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
