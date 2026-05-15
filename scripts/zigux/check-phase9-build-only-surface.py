@@ -658,7 +658,7 @@ def run_self_test() -> int:
             f"missing_marker:{RUNTIME_LOADER_CONTRACT_PATH}:{RUNTIME_LOADER_CONTRACT_TEST_MARKER}",
         )
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         contract_path = base / RUNTIME_LOADER_CONTRACT_PATH
         contract = contract_path.read_text(encoding="utf-8")
         contract_path.write_text(
