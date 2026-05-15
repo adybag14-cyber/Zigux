@@ -239,6 +239,10 @@ Phase 10 flow
   * `zigux/tests/phase12_virtio_scsi.zig`
   * `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
   * `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`
+  * `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`
+  * `zigux/tests/phase12_virtio_scsi_packet.zig`
+  * `zigux/tests/phase12_virtio_scsi_manifest.json`
+  * `zigux/tests/phase12_virtio_scsi_survey.zig`
   * `Documentation/zigux/phase12-virtio-scsi-slice.md`
   * `Documentation/zigux/phase12-virtio-scsi-survey.md`
   * `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
