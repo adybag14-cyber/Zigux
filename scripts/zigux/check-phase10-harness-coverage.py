@@ -611,6 +611,21 @@ def run_self_test() -> int:
         )
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`drivers/virtio/virtio_input_probe_preflight.zig`",
+                "`drivers/virtio/virtio_input_probe_preflight_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_input_probe_preflight_surface",
+            root,
+            "doc_readme:`drivers/virtio/virtio_input_probe_preflight.zig`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
         scripts_readme_path = root / "scripts/zigux/README.md"
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
@@ -832,7 +847,7 @@ def run_self_test() -> int:
         expect_missing_file("checker_file", root, "scripts/zigux/check-phase10-tests-readme-core-surfaces.py")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=30")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
