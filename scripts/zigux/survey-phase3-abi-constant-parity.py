@@ -35,6 +35,12 @@ REQUIRED_CONSTANTS = (
     ("ZIGUX_UNSAFE_RAW_POINTER_BRIDGE", "UNSAFE_RAW_POINTER_BRIDGE", "unsafe_scope_raw_pointer_bridge", 2),
 )
 
+REQUIRED_NOTIFIER_CONSTANTS = (
+    ("ZIGUX_NOTIFIER_DONE", "NOTIFIER_DONE", "notifier_done", 0),
+    ("ZIGUX_NOTIFIER_OK", "NOTIFIER_OK", "notifier_ok", 1),
+    ("ZIGUX_NOTIFIER_STOP", "NOTIFIER_STOP", "notifier_stop", 2),
+)
+
 REQUIRED_FAMILY_CONSTANTS = (
     (
         "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
@@ -78,6 +84,13 @@ REQUIRED_FAMILY_TYPE_MARKERS = (
     (
         "struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary {",
         "pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = extern struct {",
+    ),
+)
+
+REQUIRED_NOTIFIER_TYPE_MARKERS = (
+    (
+        "struct zigux_notifier_block {",
+        "pub const NotifierBlock = extern struct {",
     ),
 )
 
@@ -130,6 +143,7 @@ REQUIRED_C_HEADER_HELPER_MARKERS = (
     ".size = (uint32_t)sizeof(zigux_boundary_header),",
     ".abi_version = (uint16_t)ZIGUX_ABI_VERSION,",
     ".flags = flags,",
+    "static inline int zigux_notifier_chain_has_nonincreasing_priority(",
 )
 
 REQUIRED_LINUX_HEADER_HELPER_MARKERS = (
@@ -145,6 +159,8 @@ REQUIRED_BINDING_HELPER_MARKERS = (
     ".size = @sizeOf(BoundaryHeader),",
     ".abi_version = ABI_VERSION,",
     ".flags = flags,",
+    "pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {",
+    "pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {",
 )
 
 HEADER_DEFINE_RE = re.compile(r"^#define\s+(?P<name>[A-Z0-9_]+)\s+(?P<value>[0-9xa-fA-F]+)U?$")
@@ -256,17 +272,20 @@ def validate_constant_parity(
     expected_path: Path,
     linux_header_path: Path = DEFAULT_LINUX_HEADER,
 ) -> list[str]:
+    type_markers = REQUIRED_FAMILY_TYPE_MARKERS + REQUIRED_NOTIFIER_TYPE_MARKERS
+    constant_markers = REQUIRED_CONSTANTS + REQUIRED_NOTIFIER_CONSTANTS + REQUIRED_FAMILY_CONSTANTS
+
     issues = [
         *collect_duplicate_header_constants(header_path),
         *collect_duplicate_binding_constants(bindings_path),
         *collect_duplicate_exact_markers(
             header_path,
-            tuple(header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS),
+            tuple(header_marker for header_marker, _ in type_markers),
             "duplicate_header_type_marker",
         ),
         *collect_duplicate_exact_markers(
             bindings_path,
-            tuple(binding_marker for _, binding_marker in REQUIRED_FAMILY_TYPE_MARKERS),
+            tuple(binding_marker for _, binding_marker in type_markers),
             "duplicate_binding_type_marker",
         ),
         *collect_missing_markers(header_path, REQUIRED_C_HEADER_HELPER_MARKERS, "missing_header_helper_marker"),
@@ -319,7 +338,7 @@ def validate_constant_parity(
     elif fixture_version != expected_version:
         issues.append(f"{expected_path}:wrong_expected_value:abi_version:{fixture_version}")
 
-    for header_name, binding_name, json_key, expected_value in REQUIRED_CONSTANTS + REQUIRED_FAMILY_CONSTANTS:
+    for header_name, binding_name, json_key, expected_value in constant_markers:
         header_value = header_constants.get(header_name)
         if header_value is None:
             issues.append(f"{header_path}:missing_header_constant:{header_name}")
@@ -345,7 +364,7 @@ def validate_constant_parity(
 
     header_source = header_path.read_text(encoding="utf-8")
     bindings_source = bindings_path.read_text(encoding="utf-8")
-    for header_marker, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS:
+    for header_marker, bindings_marker in type_markers:
         if header_marker not in header_source:
             issues.append(f"{header_path}:missing_header_type_marker:{header_marker}")
         if bindings_marker not in bindings_source:
@@ -374,12 +393,14 @@ def reset_self_test_files(
     harness: Path,
     expected: Path,
 ) -> None:
+    type_markers = REQUIRED_FAMILY_TYPE_MARKERS + REQUIRED_NOTIFIER_TYPE_MARKERS
+    constant_markers = REQUIRED_CONSTANTS + REQUIRED_NOTIFIER_CONSTANTS + REQUIRED_FAMILY_CONSTANTS
+
     header.write_text(
         "\n".join(
             [f"#define {REQUIRED_ABI_VERSION[0]} {REQUIRED_ABI_VERSION[2]}U"]
-            + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS]
-            + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_FAMILY_CONSTANTS]
-            + [header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS]
+            + [f"#define {header_name} {value}U" for header_name, _, _, value in constant_markers]
+            + [header_marker for header_marker, _ in type_markers]
             + list(REQUIRED_C_HEADER_HELPER_MARKERS)
         )
         + "\n",
@@ -394,9 +415,8 @@ def reset_self_test_files(
     bindings.write_text(
         "\n".join(
             [f"pub const {REQUIRED_ABI_VERSION[1]}: u16 = {REQUIRED_ABI_VERSION[2]};"]
-            + [f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_CONSTANTS]
-            + [f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_FAMILY_CONSTANTS]
-            + [binding_marker for _, binding_marker in REQUIRED_FAMILY_TYPE_MARKERS]
+            + [f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in constant_markers]
+            + [binding_marker for _, binding_marker in type_markers]
             + list(REQUIRED_BINDING_HELPER_MARKERS)
         )
         + "\n",
@@ -406,9 +426,7 @@ def reset_self_test_files(
     layout_assert.write_text(layout_assert_text(), encoding="utf-8", newline="\n")
     dump.write_text(
         "\n".join(
-            ['// "abi_version":']
-            + [f'// "{json_key}":' for _, _, json_key, _ in REQUIRED_CONSTANTS]
-            + [f'// "{json_key}":' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
+            ['// "abi_version":'] + [f'// "{json_key}":' for _, _, json_key, _ in constant_markers]
         )
         + "\n",
         encoding="utf-8",
@@ -416,9 +434,7 @@ def reset_self_test_files(
     )
     harness.write_text(
         "\n".join(
-            ['/* "abi_version": */']
-            + [f'/* "{json_key}": */' for _, _, json_key, _ in REQUIRED_CONSTANTS]
-            + [f'/* "{json_key}": */' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
+            ['/* "abi_version": */'] + [f'/* "{json_key}": */' for _, _, json_key, _ in constant_markers]
         )
         + "\n",
         encoding="utf-8",
@@ -428,10 +444,7 @@ def reset_self_test_files(
         json.dumps(
             {
                 "abi_version": REQUIRED_ABI_VERSION[2],
-                "constants": {
-                    **{json_key: value for _, _, json_key, value in REQUIRED_CONSTANTS},
-                    **{json_key: value for _, _, json_key, value in REQUIRED_FAMILY_CONSTANTS},
-                },
+                "constants": {json_key: value for _, _, json_key, value in constant_markers},
             }
         ),
         encoding="utf-8",
@@ -441,6 +454,8 @@ def reset_self_test_files(
 
 def run_self_test() -> int:
     case_count = 0
+    constant_markers = REQUIRED_CONSTANTS + REQUIRED_NOTIFIER_CONSTANTS + REQUIRED_FAMILY_CONSTANTS
+
     with tempfile.TemporaryDirectory(prefix="phase3_abi_constant_parity_") as tmp_dir_str:
         root = Path(tmp_dir_str)
         header = root / "include" / "zigux" / "abi.h"
@@ -460,9 +475,7 @@ def run_self_test() -> int:
 
         dump.write_text(
             "\n".join(
-                ['// \\"abi_version\\":']
-                + [f'// \\"{json_key}\\":' for _, _, json_key, _ in REQUIRED_CONSTANTS]
-                + [f'// \\"{json_key}\\":' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
+                ['// \\"abi_version\\":'] + [f'// \\"{json_key}\\":' for _, _, json_key, _ in constant_markers]
             )
             + "\n",
             encoding="utf-8",
@@ -470,9 +483,7 @@ def run_self_test() -> int:
         )
         harness.write_text(
             "\n".join(
-                ['/* \\"abi_version\\": */']
-                + [f'/* \\"{json_key}\\": */' for _, _, json_key, _ in REQUIRED_CONSTANTS]
-                + [f'/* \\"{json_key}\\": */' for _, _, json_key, _ in REQUIRED_FAMILY_CONSTANTS]
+                ['/* \\"abi_version\\": */'] + [f'/* \\"{json_key}\\": */' for _, _, json_key, _ in constant_markers]
             )
             + "\n",
             encoding="utf-8",
@@ -523,12 +534,12 @@ def run_self_test() -> int:
 
         reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
         header.write_text(
-            header.read_text(encoding="utf-8").replace(REQUIRED_FAMILY_TYPE_MARKERS[0][0] + "\n", "", 1),
+            header.read_text(encoding="utf-8").replace((REQUIRED_FAMILY_TYPE_MARKERS + REQUIRED_NOTIFIER_TYPE_MARKERS)[0][0] + "\n", "", 1),
             encoding="utf-8",
             newline="\n",
         )
         issues = validate_constant_parity(header, bindings, layout_assert, dump, harness, expected, linux_header)
-        assert f"{header}:missing_header_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[0][0]}" in issues
+        assert f"{header}:missing_header_type_marker:{(REQUIRED_FAMILY_TYPE_MARKERS + REQUIRED_NOTIFIER_TYPE_MARKERS)[0][0]}" in issues
         case_count += 1
 
         reset_self_test_files(header, linux_header, bindings, layout_assert, dump, harness, expected)
