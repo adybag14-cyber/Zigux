@@ -75,8 +75,10 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     try expectContains(manifest, "\"shared_loader_shared_tests_route_present\": true");
     try expectContains(manifest, "\"shared_phase9_bundle_route_present\": true");
     try expectContains(manifest, "\"dedicated_validate_phase9_present\": false");
+    try expectContains(manifest, "\"review_checklist_cross_phase_non_owner_boundary_present\": true");
     try expectContains(manifest, "\"current_honest_gate\": \"make -C zigux phase9-runtime-loader-shared-tests\"");
     try expectContains(manifest, "\"surface\": \"zigux/tests/runtime_loader_gap_survey.zig\"");
+    try expectContains(manifest, "\"surface\": \"scripts/zigux/check-phase9-review-checklist-phase-boundaries.py\"");
     try expectContains(manifest, "\"surface\": \"samples/zigux/runtime_trace_events_loader.zig\"");
     try expectContains(manifest, "\"surface\": \"zigux/tests/runtime_trace_events_loader_substrate_drift.zig\"");
     try expectContains(manifest, "\"next_sample_local_parity_gap\": \"none on current master;");
@@ -86,6 +88,7 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     try expectContains(manifest, "\"owner\": \"P9-L11\"");
     try expectContains(manifest, "\"id\": \"runtime-loader-publication-metadata\"");
     try expectContains(manifest, "\"id\": \"runtime-trace-events-prepared-substrate-drift-proof\"");
+    try expectMissing(manifest, "\"id\": \"runtime-loader-checklist-cross-phase-non-owner-reminder\"");
     try expectContains(manifest, "\"status\": \"blocked_on_runtime_substrate\"");
     try expectContains(manifest, "\"status\": \"starter_landed\"");
 }
