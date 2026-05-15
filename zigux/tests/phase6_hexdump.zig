@@ -60,6 +60,29 @@ fn assertLengthCase(case: fixtures.LengthCase) !void {
     );
 }
 
+fn assertExactFitPerfCase(case: fixtures.PerfCase) !void {
+    var actual: [test_hexdump_buf_size]u8 = [_]u8{fixtures.fill_char} ** test_hexdump_buf_size;
+    var expected: [test_hexdump_buf_size]u8 = undefined;
+
+    const required = fixtures.expectedLength(case.len, case.rowsize, case.groupsize, case.ascii);
+    const written = hexdump.hexDumpToBuffer(
+        fixtures.data_b[0..case.len],
+        case.rowsize,
+        case.groupsize,
+        actual[0 .. required + 1],
+        case.ascii,
+    );
+    const want = fixtures.prepareExpectedLine(expected[0..], case.len, case.rowsize, case.groupsize, case.ascii);
+
+    try std.testing.expectEqual(required, written);
+    try std.testing.expectEqual(required, hexdump.hexDumpLineLength(case.len, case.rowsize, case.groupsize, case.ascii));
+    try std.testing.expectEqualSlices(u8, want, std.mem.sliceTo(actual[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), actual[required]);
+    for (actual[required + 1 ..]) |byte| {
+        try std.testing.expectEqual(fixtures.fill_char, byte);
+    }
+}
+
 test "phase 6 hexdump helper packet replays the serialized parity matrix" {
     for (fixtures.parity_cases) |case| {
         try assertParityCase(case);
@@ -75,6 +98,12 @@ test "phase 6 hexdump helper packet preserves the overflow contract" {
 test "phase 6 hexdump helper packet preserves the curated length matrix" {
     for (fixtures.length_cases) |case| {
         try assertLengthCase(case);
+    }
+}
+
+test "phase 6 hexdump perf cases also pin the exact-fit full-buffer boundary" {
+    for (fixtures.perf_cases) |case| {
+        try assertExactFitPerfCase(case);
     }
 }
 
