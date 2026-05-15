@@ -38,16 +38,6 @@ test "phase 7 getOption and getOptions preserve Linux-style range parsing" {
     try std.testing.expectEqualStrings("", rest);
     try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 3, 4, 5, 8 }, &values);
 
-    var plus_values = [_]i32{ 0, 0, 0 };
-    const plus_rest = cmdline.getOptions("+7", plus_values.len, &plus_values);
-    try std.testing.expectEqualStrings("", plus_rest);
-    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 7, 0 }, &plus_values);
-
-    var plus_validate = [_]i32{0};
-    const plus_validate_rest = cmdline.getOptions("+7", 0, &plus_validate);
-    try std.testing.expectEqualStrings("", plus_validate_rest);
-    try std.testing.expectEqual(@as(i32, 1), plus_validate[0]);
-
     var single = [_]i32{ 0, 0, 0 };
     const single_rest = cmdline.getOptions("1-1", single.len, &single);
     try std.testing.expectEqualStrings("", single_rest);
@@ -88,9 +78,9 @@ test "phase 7 getOption keeps incomplete hex prefixes aligned with Linux simple_
 
     var plus_hex_rest: []const u8 = "+0x";
     var plus_hex_value: i32 = -1;
-    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&plus_hex_rest, &plus_hex_value));
+    try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&plus_hex_rest, &plus_hex_value));
     try std.testing.expectEqual(@as(i32, 0), plus_hex_value);
-    try std.testing.expectEqualStrings("x", plus_hex_rest);
+    try std.testing.expectEqualStrings("+0x", plus_hex_rest);
 
     var negative_hex_rest: []const u8 = "-0x";
     var negative_hex_value: i32 = -1;
@@ -105,8 +95,8 @@ test "phase 7 getOption keeps incomplete hex prefixes aligned with Linux simple_
 
     var validate = [_]i32{0};
     const validate_rest = cmdline.getOptions("+0x,7", 0, &validate);
-    try std.testing.expectEqualStrings("x,7", validate_rest);
-    try std.testing.expectEqual(@as(i32, 1), validate[0]);
+    try std.testing.expectEqualStrings("+0x,7", validate_rest);
+    try std.testing.expectEqual(@as(i32, 0), validate[0]);
 }
 
 test "phase 7 getOption and getOptions preserve oversized wrap semantics" {
@@ -177,28 +167,28 @@ test "phase 7 getOption and getOptions preserve oversized wrap semantics" {
     try std.testing.expectEqual(@as(i32, 2), overflow_validate_only[0]);
 }
 
-test "phase 7 getOption preserves validator-only numeric acceptance" {
+test "phase 7 getOption preserves validator-only numeric acceptance without explicit leading plus" {
     var plain: []const u8 = "7";
     try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&plain, null));
     try std.testing.expectEqualStrings("", plain);
 
-    var comma: []const u8 = "+9,tail";
-    try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&comma, null));
-    try std.testing.expectEqualStrings("tail", comma);
+    var plus: []const u8 = "+9,tail";
+    try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&plus, null));
+    try std.testing.expectEqualStrings("+9,tail", plus);
 
     var range: []const u8 = "5-8";
     try std.testing.expectEqual(@as(u8, 3), cmdline.getOption(&range, null));
     try std.testing.expectEqualStrings("-8", range);
 }
 
-test "phase 7 memparse preserves suffix scaling, leading plus, and stop index semantics" {
+test "phase 7 memparse preserves suffix scaling, leading-plus rejection, and stop index semantics" {
     var index: usize = 0;
     try std.testing.expectEqual(@as(u64, 64 * 1024), cmdline.memparse("64K,panic", &index));
     try std.testing.expectEqual(@as(usize, 3), index);
     try std.testing.expectEqual(@as(u64, 1 << 30), cmdline.memparse("1G", &index));
     try std.testing.expectEqual(@as(usize, 2), index);
-    try std.testing.expectEqual(@as(u64, 1024), cmdline.memparse("+1K", &index));
-    try std.testing.expectEqual(@as(usize, 3), index);
+    try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("+1K", &index));
+    try std.testing.expectEqual(@as(usize, 0), index);
     try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("0xK", &index));
     try std.testing.expectEqual(@as(usize, 1), index);
     try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("K", &index));
@@ -213,8 +203,8 @@ test "phase 7 memparse saturates oversized unsigned prefixes before applying suf
     try std.testing.expectEqual(std.math.maxInt(u64), cmdline.memparse("18446744073709551616", &index));
     try std.testing.expectEqual(@as(usize, 20), index);
 
-    try std.testing.expectEqual(std.math.maxInt(u64), cmdline.memparse("+18446744073709551616", &index));
-    try std.testing.expectEqual(@as(usize, 21), index);
+    try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("+18446744073709551616", &index));
+    try std.testing.expectEqual(@as(usize, 0), index);
 }
 
 test "phase 7 memparse keeps saturated prefixes aligned when size suffixes still apply" {
@@ -223,8 +213,8 @@ test "phase 7 memparse keeps saturated prefixes aligned when size suffixes still
     try std.testing.expectEqual(@as(u64, std.math.maxInt(u64)) << 10, cmdline.memparse("18446744073709551616K", &index));
     try std.testing.expectEqual(@as(usize, 21), index);
 
-    try std.testing.expectEqual(@as(u64, std.math.maxInt(u64)) << 20, cmdline.memparse("+18446744073709551616M", &index));
-    try std.testing.expectEqual(@as(usize, 22), index);
+    try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("+18446744073709551616M", &index));
+    try std.testing.expectEqual(@as(usize, 0), index);
 }
 
 test "phase 7 parseOptionStr matches only exact bare options" {
