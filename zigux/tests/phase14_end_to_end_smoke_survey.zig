@@ -151,12 +151,16 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     );
     try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.productization.rollback_owner);
     try std.testing.expect(std.mem.indexOf(u8, manifest.productization.transfer_rationale, "ZAR runtime research") != null);
-    try std.testing.expectEqual(@as(usize, 19), manifest.shared_smoke_surfaces.len);
+    try std.testing.expectEqual(@as(usize, 23), manifest.shared_smoke_surfaces.len);
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-release-boundary-exact-counts.py"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/tests/phase14_workqueue_reviewability.zig"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/tests/phase14_workqueue_bridge.zig"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/tests/phase14_skbuff_bridge.zig"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/tests/phase14_ring_buffer_survey.zig"));
+    try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/tests/phase14_rcu_tree_survey.zig"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/tests/README.md"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, "zigux/Makefile"));
     try std.testing.expect(hasString(manifest.shared_smoke_surfaces, ".github/workflows/zigux-bootstrap.yml"));
@@ -348,6 +352,10 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "scripts/zigux/check-phase14-release-boundary-exact-counts.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "phase14-workqueue-reviewability-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "phase14_workqueue_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "zigux/tests/phase14_workqueue_bridge.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "zigux/tests/phase14_skbuff_bridge.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "zigux/tests/phase14_ring_buffer_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "zigux/tests/phase14_rcu_tree_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "zigux/tests/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "Documentation/zigux/phase14-release-boundary-survey.md") != null);
