@@ -361,15 +361,15 @@ pub fn stringGetSize(size: u64, blk_size: u64, units: u32, buf: []u8, len: usize
     }
 
     var decimals = if (scaled == 0) @as(usize, 0) else stringGetSizeFractionDigits(scaled);
-    const fraction_factor = stringGetSizeFractionFactor(decimals);
     var fraction: u128 = 0;
 
-    if (decimals > 0 and scaled > 0) {
+    if (scaled > 0) {
+        const fraction_factor = stringGetSizeFractionFactor(decimals);
         fraction = (remainder * fraction_factor + (divisor / 2)) / divisor;
         if (fraction == fraction_factor) {
             scaled += 1;
             fraction = 0;
-            if (scaled >= divisor and unit_index + 1 < string_units_2.len) {
+            if (decimals > 0 and scaled >= divisor and unit_index + 1 < string_units_2.len) {
                 scaled = 1;
                 unit_index += 1;
             }
