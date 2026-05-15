@@ -82,6 +82,9 @@ HELPER_MARKERS = [
 REVIEWABILITY_MARKERS = [
     EXPECTED_COMMIT,
     'preexisting_phase13_devres_boundary_evidence_present',
+    'try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_boundary_evidence_present);',
+    'preexisting_phase13_devres_dma_coherent_present',
+    'try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);',
     '"phase13-devres-boundary-evidence-gate"',
     'try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);',
     'try std.testing.expectEqual(@as(usize, 11), starter_landed_count);',
@@ -258,6 +261,42 @@ def run_self_test() -> int:
             validate(root),
             ['helper:missing_marker:.releases_region_on_remap_failure = true'],
             'helper_missing_marker_failed',
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / REVIEWABILITY_PATH,
+            '\n'.join(
+                marker
+                for marker in REVIEWABILITY_MARKERS
+                if marker != 'try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_boundary_evidence_present);'
+            ) + '\n',
+        )
+        assert_only(
+            validate(root),
+            [
+                'reviewability:missing_marker:try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_boundary_evidence_present);'
+            ],
+            'reviewability_missing_boundary_summary_assertion_failed',
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / REVIEWABILITY_PATH,
+            '\n'.join(
+                marker
+                for marker in REVIEWABILITY_MARKERS
+                if marker != 'try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);'
+            ) + '\n',
+        )
+        assert_only(
+            validate(root),
+            [
+                'reviewability:missing_marker:try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);'
+            ],
+            'reviewability_missing_dma_summary_assertion_failed',
         )
         case_count += 1
 
