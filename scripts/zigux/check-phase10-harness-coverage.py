@@ -74,6 +74,25 @@ EXPECTED_READY_TRANSPORT_FOLLOWUPS = {
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
 }
 
+EXPECTED_LAB_VALIDATION_EVIDENCE = [
+    "zigux/tests/phase10_build.zig",
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+    "scripts/zigux/check-phase10-harness-coverage.py",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+]
+
+EXPECTED_FOCUSED_HARNESS_REPLAYS = {
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig": [
+        "phase10 core compound-ack replay"
+    ]
+}
+
+EXPECTED_TEST_LIST_MARKERS = [
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+]
+
+EXPECTED_TEST_COUNT = 17
+
 SCRIPTS_README_MARKERS = [
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
@@ -148,11 +167,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             if not isinstance(evidence, list):
                 missing.append("manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence")
             else:
-                for path in [
-                    "zigux/tests/phase10_build.zig",
-                    "scripts/zigux/check-phase10-harness-coverage.py",
-                    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
-                ]:
+                for path in EXPECTED_LAB_VALIDATION_EVIDENCE:
                     if path not in evidence:
                         missing.append(
                             "manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:"
@@ -166,6 +181,34 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         for marker in EXACT_CHECK_MARKERS:
             if marker not in exact_checks:
                 missing.append(f"manifest:exact_checks:{marker}")
+
+    tests = manifest.get("tests")
+    if not isinstance(tests, list):
+        missing.append("manifest:tests")
+    else:
+        for marker in EXPECTED_TEST_LIST_MARKERS:
+            if marker not in tests:
+                missing.append(f"manifest:tests:{marker}")
+
+    actual_test_count = manifest.get("test_count")
+    if actual_test_count != EXPECTED_TEST_COUNT:
+        missing.append(f"manifest:test_count={actual_test_count!r}")
+    elif isinstance(tests, list) and len(tests) != EXPECTED_TEST_COUNT:
+        missing.append(f"manifest:tests:length={len(tests)!r}")
+
+    focused_harness_replays = manifest.get("focused_harness_replays")
+    if not isinstance(focused_harness_replays, dict):
+        missing.append("manifest:focused_harness_replays")
+    else:
+        for path, expected in EXPECTED_FOCUSED_HARNESS_REPLAYS.items():
+            actual = focused_harness_replays.get(path)
+            if actual != expected:
+                missing.append(
+                    "manifest:focused_harness_replays:"
+                    + path
+                    + "="
+                    + repr(actual)
+                )
 
     ready_transport_followups = manifest.get("ready_transport_followups")
     if not isinstance(ready_transport_followups, dict):
@@ -225,18 +268,34 @@ def write_fixture(root: Path) -> None:
             {
                 "phase": "Phase 10",
                 "tranche": "virtio-lab-bundle",
-                "test_count": 16,
+                "test_count": EXPECTED_TEST_COUNT,
                 "roadmap_parity_scoreboard": {
                     "lab_only_driver_validation": {
-                        "evidence": [
-                            "zigux/tests/phase10_build.zig",
-                            "scripts/zigux/check-phase10-harness-coverage.py",
-                            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
-                        ]
+                        "evidence": EXPECTED_LAB_VALIDATION_EVIDENCE
                     }
                 },
                 "exact_checks": EXACT_CHECK_MARKERS,
                 "ready_transport_followups": EXPECTED_READY_TRANSPORT_FOLLOWUPS,
+                "focused_harness_replays": EXPECTED_FOCUSED_HARNESS_REPLAYS,
+                "tests": [
+                    "zigux/tests/phase10_virtio_core.zig",
+                    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+                    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+                    "zigux/tests/phase10_virtio_core_survey.zig",
+                    "zigux/tests/phase10_virtio_driver_id.zig",
+                    "zigux/tests/phase10_virtio_ring.zig",
+                    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+                    "zigux/tests/phase10_virtio_ring_survey.zig",
+                    "zigux/tests/phase10_virtio_input.zig",
+                    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
+                    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+                    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+                    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+                    "zigux/tests/phase10_virtio_input_status_drain.zig",
+                    "zigux/tests/phase10_virtio_input_survey.zig",
+                    "zigux/tests/phase10_virtio_mmio.zig",
+                    "zigux/tests/phase10_virtio_mmio_survey.zig",
+                ],
                 "blocked_transport_gaps": {
                     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
                     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
@@ -437,12 +496,13 @@ def run_self_test() -> int:
         manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
             "zigux/tests/phase10_build.zig",
             "scripts/zigux/check-phase10-harness-coverage.py",
+            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
         ]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             "manifest_checker_evidence",
             root,
-            "manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+            "manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
         )
         write_fixture(root)
 
@@ -455,6 +515,40 @@ def run_self_test() -> int:
             "manifest_exact_checks",
             root,
             "manifest:exact_checks:python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["focused_harness_replays"] = {}
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_compound_ack_replay",
+            root,
+            "manifest:focused_harness_replays:zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig=None",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["tests"] = [
+            path
+            for path in manifest["tests"]
+            if path != "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_tests_core_compound_ack",
+            root,
+            "manifest:tests:zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["test_count"] = 16
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_test_count",
+            root,
+            "manifest:test_count=16",
         )
         write_fixture(root)
 
@@ -520,7 +614,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
