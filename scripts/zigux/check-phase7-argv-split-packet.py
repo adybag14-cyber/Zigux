@@ -145,6 +145,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_argv_split_manifest.json",
         "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
         "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too",
+        "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
         "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
         "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
@@ -152,6 +153,8 @@ REQUIRED_MARKERS = {
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
         "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
+        "phase 7 argvFree on a non-blank result restores the canonical blank sentinels",
+        "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
         "phase 7 argvSplit deinit clears exported storage and argv views",
         "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
         "argvFree on one live non-blank result does not disturb another caller-owned split result",
@@ -267,7 +270,19 @@ MISSING_MARKER_CASES = [
     ),
     (
         "zigux/tests/phase7_argv_split_survey.zig",
+        "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
+    ),
+    (
+        "zigux/tests/phase7_argv_split_survey.zig",
         "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
+    ),
+    (
+        "zigux/tests/phase7_argv_split_survey.zig",
+        "phase 7 argvFree on a non-blank result restores the canonical blank sentinels",
+    ),
+    (
+        "zigux/tests/phase7_argv_split_survey.zig",
+        "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
     ),
     (
         "zigux/tests/phase7_argv_split_manifest.json",
@@ -292,6 +307,7 @@ MISSING_MARKER_CASES = [
         "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, checker, or reminder drift.",
     ),
 ]
+
 
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
