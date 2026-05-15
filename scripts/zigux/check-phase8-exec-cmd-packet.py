@@ -109,6 +109,8 @@ REQUIRED_MARKERS = {
         "Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the live C helper anchors, checklist hook, and validator route stay aligned around one reviewable packet.",
         "zig test tools/lib/subcmd/exec-cmd.zig",
         "python3 scripts/zigux/check-phase8-exec-cmd-packet.py",
+        "make -C zigux phase8-validate",
+        "zigux/tests/phase8_exec_cmd_only_build.zig",
     ),
     EXEC_CMD_TEST_PATH: (
         'test "phase 8 exec-cmd module imports cleanly" {',
