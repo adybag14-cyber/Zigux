@@ -4,9 +4,10 @@
 Fail-closed checker for the current Phase 14 rollback-owner packet.
 
 This lane stays narrow on purpose: it verifies the shared smoke manifest,
-smoke note, release-boundary note, review checklist, and local make route
-around the current study-only rollback posture on `master` without reopening
-older missing notes or anchor-local survey ownership.
+smoke note, release-boundary note, shared cross-anchor traceability note,
+review checklist, and local make route around the current study-only
+rollback posture on `master` without reopening older missing notes or
+anchor-local survey ownership.
 """
 
 from __future__ import annotations
@@ -81,6 +82,12 @@ RELEASE_BOUNDARY_FALLBACK_MARKER = (
     "bounded smoke-shard, full-bundle, and combined replay routes stay usable without inventing a separate "
     "environment-only command packet"
 )
+CORE_TRACEABILITY_MARKERS = [
+    "- rollback owner: `Repo Tooling Pod`",
+    "- rollback threshold: `0` tolerated same-packet drifts across anchor-local manifests, anchor-local survey notes, the compile shard matrix, and shared replay wiring",
+    "- fallback path: rerun `make -C zigux phase14-validate` before reopening any anchor-local or shared follow-up",
+    "Same-phase bounded-internal follow-up should stay only in the existing workqueue and ring-buffer lanes, while skbuff and RCU remain Phase 15-governed freeze-in-C evidence rather than bounded-internal next-step lanes.",
+]
 SELF_TEST_ANCHOR_PACKETS = [
     {
         "lane_key": "P14-L04",
@@ -118,6 +125,7 @@ ROOT = Path.cwd()
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 SMOKE_NOTE_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 RELEASE_BOUNDARY_PATH = Path("Documentation/zigux/phase14-release-boundary-survey.md")
+CORE_TRACEABILITY_PATH = Path("Documentation/zigux/phase14-core-boundary-traceability.md")
 CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
@@ -158,6 +166,7 @@ def check(root: Path) -> list[str]:
         MANIFEST_PATH,
         SMOKE_NOTE_PATH,
         RELEASE_BOUNDARY_PATH,
+        CORE_TRACEABILITY_PATH,
         CHECKLIST_PATH,
         MAKEFILE_PATH,
     ]:
@@ -245,6 +254,13 @@ def check(root: Path) -> list[str]:
         if marker not in release_boundary:
             errors.append(
                 f"missing marker in {RELEASE_BOUNDARY_PATH.as_posix()}: {marker}"
+            )
+
+    core_traceability = read_text(root, CORE_TRACEABILITY_PATH)
+    for marker in CORE_TRACEABILITY_MARKERS:
+        if marker not in core_traceability:
+            errors.append(
+                f"missing marker in {CORE_TRACEABILITY_PATH.as_posix()}: {marker}"
             )
 
     for packet in anchor_packets:
@@ -355,6 +371,10 @@ def current_release_boundary_text() -> str:
     ) + "\n"
 
 
+def current_core_traceability_text() -> str:
+    return "\n".join(CORE_TRACEABILITY_MARKERS) + "\n"
+
+
 def current_checklist_text() -> str:
     return (
         "if the change touches the shared Phase 14 smoke packet\n"
@@ -388,6 +408,7 @@ def run_self_test() -> int:
         write(root, MANIFEST_PATH, current_manifest_text())
         write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
         write(root, RELEASE_BOUNDARY_PATH, current_release_boundary_text())
+        write(root, CORE_TRACEABILITY_PATH, current_core_traceability_text())
         write(root, CHECKLIST_PATH, current_checklist_text())
         write(root, MAKEFILE_PATH, current_makefile_text())
 
@@ -570,6 +591,24 @@ def run_self_test() -> int:
 
         write(
             root,
+            CORE_TRACEABILITY_PATH,
+            current_core_traceability_text().replace(
+                CORE_TRACEABILITY_MARKERS[-1] + "\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            CORE_TRACEABILITY_PATH.as_posix() in error
+            and CORE_TRACEABILITY_MARKERS[-1] in error
+            for error in check(root)
+        ):
+            print("self-test expected core-traceability rollback split failure", file=sys.stderr)
+            return 1
+        write(root, CORE_TRACEABILITY_PATH, current_core_traceability_text())
+
+        write(
+            root,
             MAKEFILE_PATH,
             current_makefile_text().replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test\n",
@@ -637,7 +676,7 @@ def run_self_test() -> int:
         write(root, MAKEFILE_PATH, current_makefile_text())
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=18")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
