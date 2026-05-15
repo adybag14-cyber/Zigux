@@ -57,3 +57,18 @@ test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewab
         .port_reference_drop_timing = true,
     }));
 }
+
+test "phase11 hvc console keeps final-close cleanup distinct from hangup cleanup" {
+    const final_close_cleanup = try console.summarizeCleanupHandoff(.{
+        .final_close = true,
+        .hangup_seen = false,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = false,
+    });
+
+    try std.testing.expect(final_close_cleanup.cleanup.tty_port_release_handoff);
+    try std.testing.expect(final_close_cleanup.cleanup.cleanup_time_tty_port_ownership);
+    try std.testing.expect(!final_close_cleanup.drops_tty_port_reference);
+    try std.testing.expect(!final_close_cleanup.hangup_cleanup_boundary);
+}
