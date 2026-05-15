@@ -206,8 +206,18 @@ def run_self_test() -> None:
             path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
             expect_failure(case_root, marker)
 
+        missing_file_cases = list(FILES.values())
+        for idx, relative_path in enumerate(missing_file_cases, start=1):
+            case_root = tmpdir / f"missing_file_{idx}"
+            shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
+            (case_root / relative_path).unlink()
+            expect_failure(case_root, relative_path)
+
         print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-        print(f"PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT={len(required_cases) + len(forbidden_cases)}")
+        print(
+            "PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT="
+            f"{len(required_cases) + len(forbidden_cases) + len(missing_file_cases)}"
+        )
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
