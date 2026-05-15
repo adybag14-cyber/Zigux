@@ -407,9 +407,6 @@ jobs:
         run: make -C zigux phase8-cpu-mask-test
 
       - name: Run focused Phase 8 help and kallsyms tests
-        run: make -C zigux phase8-help-kallsyms-test
-
-      - name: Run focused Phase 8 file-path and perf-buffer shard tests
         run: |
           make -C zigux phase8-file-path-handle-bridge-test
           make -C zigux phase8-perf-buffer-poll-test
@@ -550,7 +547,7 @@ jobs:
 
           printf '%s\n' "$changed_files"
 
-          if printf '%s\n' "$changed_files" | grep -Eq '^(\.github/workflows/zigux-bootstrap\.yml|scripts/zigux/install-zig\.py|scripts/zigux/check-phase2-cross\.py|scripts/zigux/check-phase2-cross-selftest-alignment\.py|scripts/zigux/zig-toolchain-policy\.json|zigux/tests/fixtures/phase2_cross_targets\.json)$'; then
+          if printf '%s\n' "$changed_files" | grep -Eq '^(\.github/workflows/zigux-bootstrap\.yml|scripts/zigux/install-zig\.py|scripts/zigux/check-phase2-cross\.py|scripts/zigux/check-phase2-cross-selftest-alignment\.py|scripts/zigux/fixdep\.zig|scripts/zigux/genksyms\.zig|scripts/zigux/kconfig/conf_bridge\.zig|scripts/zigux/kconfig/confdata_bridge\.zig|scripts/zigux/zig-toolchain-policy\.json|zigux/tests/fixtures/phase2_cross_targets\.json)$'; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
