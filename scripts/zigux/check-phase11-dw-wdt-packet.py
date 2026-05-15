@@ -91,6 +91,10 @@ MARKERS = {
         '"WDOG_CONTROL_REG_OFFSET"',
         'test "phase11 dw_wdt verify keeps unregistered teardown hooks distinct from watchdog unregister"',
         'test "phase11 dw_wdt verify keeps inactive registered teardown hooks explicit"',
+        'test "phase11 dw_wdt verify keeps ready restart distinct from restart-priority registration"',
+        'test "phase11 dw_wdt verify keeps remove teardown heartbeat continuation explicit"',
+        'test "phase11 dw_wdt verify keeps remove teardown reset-backed shutdown explicit"',
+        'test "phase11 dw_wdt verify keeps idle remove distinct from running teardown"',
     ],
     "registration_scaffold": [
         'test "platform handoff stays blocked when drvdata publication is missing"',
