@@ -587,6 +587,27 @@ test "phase13 devres rejects memtype planning when the release record cannot be 
     }));
 }
 
+test "phase13 devres turns successful WC reservation bookkeeping into detach cleanup planning" {
+    const outcome = try devres.DevresHelperLab.planArchIoReserveMemtypeWc(.{
+        .start = 0x7600,
+        .size = 0x200,
+        .release_record_allocated = true,
+        .reserve_result = 0,
+    });
+
+    switch (outcome) {
+        .reserved => |plan| {
+            try std.testing.expect(plan.should_release_on_detach);
+            const cleanup = devres.DevresHelperLab.planArchIoFreeMemtypeWc(plan.start, plan.size);
+            try std.testing.expectEqualStrings("lib/devres.c", cleanup.anchor);
+            try std.testing.expectEqual(@as(u64, 0x7600), cleanup.start);
+            try std.testing.expectEqual(@as(u64, 0x200), cleanup.size);
+            try std.testing.expect(cleanup.releases_wc_memtype);
+        },
+        .err => return error.UnexpectedFailure,
+    }
+}
+
 test "phase13 devres retains phys WC release tokens on successful token add" {
     const outcome = try devres.DevresHelperLab.planArchPhysWcAdd(.{
         .start = 0x7300,
@@ -638,6 +659,26 @@ test "phase13 devres rejects phys WC token planning when the release record cann
         .release_record_allocated = false,
         .token_result = 0,
     }));
+}
+
+test "phase13 devres turns successful phys WC token bookkeeping into detach cleanup planning" {
+    const outcome = try devres.DevresHelperLab.planArchPhysWcAdd(.{
+        .start = 0x7800,
+        .size = 0x80,
+        .release_record_allocated = true,
+        .token_result = 11,
+    });
+
+    switch (outcome) {
+        .added => |plan| {
+            try std.testing.expect(plan.should_remove_on_detach);
+            const cleanup = devres.DevresHelperLab.planArchPhysWcDel(plan.token);
+            try std.testing.expectEqualStrings("lib/devres.c", cleanup.anchor);
+            try std.testing.expectEqual(@as(i32, 11), cleanup.token);
+            try std.testing.expect(cleanup.removes_wc_token);
+        },
+        .err => return error.UnexpectedFailure,
+    }
 }
 
 test "phase13 devres manifest records the current helper-local mmio survey packet" {
