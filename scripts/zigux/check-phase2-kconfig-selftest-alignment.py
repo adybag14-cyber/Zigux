@@ -120,7 +120,7 @@ EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 26
 EXPECTED_CONF_CASE_COUNT = 16
 EXPECTED_CONFDATA_CASE_COUNT = 13
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_SELF_TEST_CASE_COUNT = 12
+EXPECTED_SELF_TEST_CASE_COUNT = 13
 
 
 def under_root(root: Path, path: Path) -> Path:
@@ -319,13 +319,13 @@ def build_self_test_root(root: Path) -> None:
     checker_source = "\n".join(
         [
             "REQUIRED_CONF_CASE_MODES = [",
-            *[f'    \"{name}\",' for name in ("oldaskconfig", "syncconfig", "oldconfig", "allnoconfig", "allyesconfig", "allmodconfig", "alldefconfig", "randconfig", "defconfig", "savedefconfig", "listnewconfig", "helpnewconfig", "olddefconfig", "yes2modconfig", "mod2yesconfig", "mod2noconfig")],
+            *[f'    "{name}",' for name in ("oldaskconfig", "syncconfig", "oldconfig", "allnoconfig", "allyesconfig", "allmodconfig", "alldefconfig", "randconfig", "defconfig", "savedefconfig", "listnewconfig", "helpnewconfig", "olddefconfig", "yes2modconfig", "mod2yesconfig", "mod2noconfig")],
             "]",
             "REQUIRED_CONFDATA_CASES = [",
-            *[f'    \"{name}\",' for name in ("sample", "escaped_strings", "escaped_control_sequences", "trailing_escaped_backslash", "sample_crlf", "explicit_n_tristate", "final_trailing_carriage_return", "final_unterminated_unset_comment", "uppercase_tristate", "non_config_lines", "empty_config_symbol_names", "last_state_transitions", "duplicate_malformed_quoted_assignment")],
+            *[f'    "{name}",' for name in ("sample", "escaped_strings", "escaped_control_sequences", "trailing_escaped_backslash", "sample_crlf", "explicit_n_tristate", "final_trailing_carriage_return", "final_unterminated_unset_comment", "uppercase_tristate", "non_config_lines", "empty_config_symbol_names", "last_state_transitions", "duplicate_malformed_quoted_assignment")],
             "]",
             "REQUIRED_CONFDATA_HELPER_ANCHORS = [",
-            *[f'    \"anchor_{index}\",' for index in range(EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT)],
+            *[f'    "anchor_{index}",' for index in range(EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT)],
             "]",
             f"EXPECTED_SELF_TEST_CASE_COUNT = {EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT}",
             "",
@@ -369,6 +369,7 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
+        build_self_test_root(root)
         write_text(under_root(root, PHASE2_VALIDATOR), replace_once(read_text(under_root(root, PHASE2_VALIDATOR)), VALIDATOR_MARKERS[1], ""))
         assert ("MISSING_VALIDATOR_MARKERS", VALIDATOR_MARKERS[1]) in collect_issues(root)
         checks_run += 1
@@ -399,6 +400,13 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(under_root(root, MAKEFILE), read_text(under_root(root, MAKEFILE)) + MAKEFILE_LINES[3] + "\n")
         assert ("DUPLICATE_MAKEFILE_HOOKS", f"{MAKEFILE_LINES[3]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(read_text(under_root(root, KCONFIG_BRIDGE_CASES)))
+        payload["conf_cases"].pop()
+        write_text(under_root(root, KCONFIG_BRIDGE_CASES), json.dumps(payload, indent=2) + "\n")
+        assert any(code == "KCONFIG_CASE_PACKET_NAME_MISMATCH" or code == "KCONFIG_CHECKER_CONF_CASE_COUNT_MISMATCH" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
