@@ -98,6 +98,19 @@ TRACE_EVENTS_SUBSTRATE_DRIFT_PREPARED_PLAN_MARKER = "error.PreparedPlanDrift"
 TRACE_EVENTS_SUBSTRATE_DRIFT_SELFTEST_HOOK_EXPLICIT_MARKER = (
     "try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(shared_request.plan));"
 )
+RUNTIME_LOADER_CONTRACT_TEST_MARKER = (
+    'test "shared runtime loader contract keeps registration-summary, publication, and depmod surfaces outside the request contract"'
+)
+RUNTIME_LOADER_CONTRACT_MODINFO_MARKER = '"modinfo"'
+RUNTIME_LOADER_CONTRACT_MODULE_ALIAS_MARKER = '"module_alias"'
+RUNTIME_LOADER_CONTRACT_MODULES_ALIAS_PATH_MARKER = '"modules_alias_path"'
+RUNTIME_LOADER_CONTRACT_MODULE_INSTALL_ROOT_MARKER = '"module_install_root"'
+RUNTIME_LOADER_CONTRACT_MODULES_ORDER_PATH_MARKER = '"modules_order_path"'
+RUNTIME_LOADER_CONTRACT_MODULES_BUILTIN_PATH_MARKER = '"modules_builtin_path"'
+RUNTIME_LOADER_CONTRACT_MODULE_SYMVERS_PATH_MARKER = '"module_symvers_path"'
+RUNTIME_LOADER_CONTRACT_DEPMOD_SCRIPT_MARKER = '"depmod_script"'
+RUNTIME_LOADER_CONTRACT_DEPMOD_MANIFEST_MARKER = '"depmod_manifest"'
+RUNTIME_LOADER_CONTRACT_DEPMOD_ALIASES_MARKER = '"depmod_aliases"'
 OWNER_MAP_MARKERS = [
     "- `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet.",
     "- `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, focused top-bit companion replay, and survey gate packet.",
@@ -221,6 +234,22 @@ REQUIRED_MARKERS = {
         "runtime_trace_events_loader_substrate_drift.zig",
         "\"phase9-runtime-bitmap-top-bit-tests\"",
         "runtime_bitmap_top_bit_contract.zig",
+    ],
+    RUNTIME_LOADER_CONTRACT_PATH: [
+        RUNTIME_LOADER_CONTRACT_TEST_MARKER,
+        "keepsPublicationBoundaryExplicit()",
+        "keepsDepmodBoundaryExplicit()",
+        "keepsReviewOnlyControlBoundaryExplicit()",
+        RUNTIME_LOADER_CONTRACT_MODINFO_MARKER,
+        RUNTIME_LOADER_CONTRACT_MODULE_ALIAS_MARKER,
+        RUNTIME_LOADER_CONTRACT_MODULES_ALIAS_PATH_MARKER,
+        RUNTIME_LOADER_CONTRACT_MODULE_INSTALL_ROOT_MARKER,
+        RUNTIME_LOADER_CONTRACT_MODULES_ORDER_PATH_MARKER,
+        RUNTIME_LOADER_CONTRACT_MODULES_BUILTIN_PATH_MARKER,
+        RUNTIME_LOADER_CONTRACT_MODULE_SYMVERS_PATH_MARKER,
+        RUNTIME_LOADER_CONTRACT_DEPMOD_SCRIPT_MARKER,
+        RUNTIME_LOADER_CONTRACT_DEPMOD_MANIFEST_MARKER,
+        RUNTIME_LOADER_CONTRACT_DEPMOD_ALIASES_MARKER,
     ],
     ALLOCATOR_INIT_FLOW_PATH: [
         "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs",
@@ -602,6 +631,30 @@ def run_self_test() -> int:
         expect_failure(
             base,
             "missing_marker:zigux/tests/README.md:`zigux/tests/runtime_loader_gap_survey.zig`",
+        )
+
+        write_fixture_tree(base)
+        contract_path = base / RUNTIME_LOADER_CONTRACT_PATH
+        contract = contract_path.read_text(encoding="utf-8")
+        contract_path.write_text(
+            contract.replace(RUNTIME_LOADER_CONTRACT_TEST_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{RUNTIME_LOADER_CONTRACT_PATH}:{RUNTIME_LOADER_CONTRACT_TEST_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        contract_path = base / RUNTIME_LOADER_CONTRACT_PATH
+        contract = contract_path.read_text(encoding="utf-8")
+        contract_path.write_text(
+            contract.replace(RUNTIME_LOADER_CONTRACT_MODULE_SYMVERS_PATH_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{RUNTIME_LOADER_CONTRACT_PATH}:{RUNTIME_LOADER_CONTRACT_MODULE_SYMVERS_PATH_MARKER}",
         )
 
         write_fixture_tree(base)
