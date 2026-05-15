@@ -179,6 +179,7 @@ REQUIRED_MARKERS = {
     ],
     REVIEW_CHECKLIST_PATH: [
         "`scripts/zigux/check-phase9-build-only-surface.py`",
+        "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`",
         "without overstating missing shared-loader paths as shipped current-`master` evidence",
         "the owner of the exact shared-loader target list, convenience-target names, and repo-reality blocker posture",
         "workflow-backed `make -C zigux phase9` route",
@@ -549,6 +550,18 @@ def run_self_test() -> int:
         checklist_path = base / REVIEW_CHECKLIST_PATH
         checklist = checklist_path.read_text(encoding="utf-8")
         checklist_path.write_text(
+            checklist.replace("`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:Documentation/zigux/review-checklist.md:`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`",
+        )
+
+        write_fixture_tree(base)
+        checklist_path = base / REVIEW_CHECKLIST_PATH
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
             checklist.replace("no-dedicated-`validate-phase9.py` posture", "", 1),
             encoding="utf-8",
         )
@@ -645,7 +658,7 @@ def run_self_test() -> int:
             f"missing_marker:{RUNTIME_LOADER_CONTRACT_PATH}:{RUNTIME_LOADER_CONTRACT_TEST_MARKER}",
         )
 
-        write_fixture_tree(base)
+        write_fixtureTree(base)
         contract_path = base / RUNTIME_LOADER_CONTRACT_PATH
         contract = contract_path.read_text(encoding="utf-8")
         contract_path.write_text(
