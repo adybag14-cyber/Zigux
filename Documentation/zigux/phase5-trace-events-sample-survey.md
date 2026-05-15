@@ -54,7 +54,7 @@ Aligned reminder surfaces in this run:
 
 Those surfaces already keep the landed trace-events packet explicit, keep the selected-string plus `iter=%d` replay positioned as the approved formatting idiom cue instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet. They do not need this survey note to promote `zigux/tests/phase5_build.zig` back into direct proof while the authenticated-contents reread still misses that path.
 
-The tests-root shared reminder stays inventory-aligned in this run:
+The tests-root shared reminder is only inventory-aligned in this run:
 
 - `zigux/tests/README.md` names `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
 - it also keeps the current shared-build gap explicit through `zigux/tests/phase5_build.zig`
