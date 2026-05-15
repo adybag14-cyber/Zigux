@@ -48,7 +48,7 @@ MAKE_MARKERS = [
 SURVEY_MARKERS = [
     "`PHASE10_STATUS=parked`",
     "`PHASE10_SLICE=virtio-input-survey`",
-    "`PHASE10_LANE_KEY=P10-L22`",
+    "`PHASE10_LANE_KEY=P10-L13`",
     "keep the current `virtio_input` packet fail-closed around the landed lab-only driver validation evidence while risky transport remains blocked and the adjacent shared build-graph follow-through stays parked in `P10-L15`",
     "drivers/virtio/virtio_input.zig",
     "drivers/virtio/virtio_input_probe_preflight.zig",
@@ -68,7 +68,7 @@ SURVEY_MARKERS = [
 ]
 
 LANE_NOTE_MARKERS = [
-    "`P10-L22`",
+    "`P10-L13`",
     "`Documentation/zigux/phase10-virtio-input-survey.md`",
     "`zigux/tests/phase10_virtio_input_manifest.json`",
     "`drivers/virtio/virtio_input.zig`",
@@ -286,7 +286,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing.append(f"teardown:{marker}")
 
     manifest = load_manifest(root, TRANSPORT_MANIFEST_FILES["input_manifest"])
-    if manifest.get("lane_key") != "P10-L22":
+    if manifest.get("lane_key") != "P10-L13":
         missing.append(f"manifest:lane_key={manifest.get('lane_key')}")
     if manifest.get("phase") != "Phase 10":
         missing.append(f"manifest:phase={manifest.get('phase')}")
@@ -385,7 +385,7 @@ def write_fixture(root: Path) -> None:
         + "\n",
         TRANSPORT_MANIFEST_FILES["input_manifest"]: json.dumps(
             build_transport_manifest(
-                "P10-L22",
+                "P10-L13",
                 "drivers/virtio/virtio_input.c",
                 "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
                 {
