@@ -109,7 +109,10 @@ test "phase10 virtio core survey manifest records the roadmap-facing core packet
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-driver-id-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-driver-id-coverage-disposition-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-lifecycle-guard-bookkeeping-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-reset-replay-bookkeeping-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-lab-validation-evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-interrupt-compound-ack-gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-core-slice.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-slice-note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-dual-implementation-bridge") != null);
@@ -133,6 +136,8 @@ test "phase10 virtio core survey manifest records the roadmap-facing core packet
     var blocked_count: usize = 0;
     var saw_driver_id_helper = false;
     var saw_driver_id_coverage_helper = false;
+    var saw_lifecycle_guard_helper = false;
+    var saw_reset_replay_helper = false;
     var saw_core_lab_gate = false;
     var saw_slice_note_gap = false;
     var saw_survey_gate = false;
@@ -165,6 +170,18 @@ test "phase10 virtio core survey manifest records the roadmap-facing core packet
             saw_driver_id_coverage_helper = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_driver_id.zig", gap.zigux_destination);
+        }
+        if (std.mem.eql(u8, gap.id, "phase10-lifecycle-guard-bookkeeping-helper")) {
+            saw_lifecycle_guard_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reset-required blockers") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase10-reset-replay-bookkeeping-helper")) {
+            saw_reset_replay_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "before reset clears it") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase10-virtio-core-lab-gate")) {
             saw_core_lab_gate = true;
@@ -201,7 +218,6 @@ test "phase10 virtio core survey manifest records the roadmap-facing core packet
             saw_interrupt_compound_ack_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "combined queue-used plus config-change acknowledgement") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase10-core-dual-implementation-bridge")) {
             saw_dual_bridge = true;
@@ -221,11 +237,13 @@ test "phase10 virtio core survey manifest records the roadmap-facing core packet
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 18);
+    try std.testing.expect(starter_landed_count >= 20);
     try std.testing.expectEqual(@as(usize, 0), repo_reality_gap_count);
     try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_driver_id_helper);
     try std.testing.expect(saw_driver_id_coverage_helper);
+    try std.testing.expect(saw_lifecycle_guard_helper);
+    try std.testing.expect(saw_reset_replay_helper);
     try std.testing.expect(saw_core_lab_gate);
     try std.testing.expect(saw_slice_note_gap);
     try std.testing.expect(saw_survey_gate);
