@@ -142,6 +142,9 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, roadm
 
     try expectContains(review_process, "named owner for the lane");
     try expectContains(review_process, "required approver set");
+    try expectContains(review_process, "automatic return-to-blocked trigger");
+    try expectContains(review_process, "trigger-specific evidence refresh");
+    try expectContains(review_process, "reopen triggers");
     try expectContains(review_process, "rollback threshold");
     try expectContains(review_process, "`retired_from_active_discussion`");
 
