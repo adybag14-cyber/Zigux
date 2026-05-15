@@ -26,7 +26,7 @@ For this anchor, the repo still exposes the sample-root port itself in `samples/
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-14 confirmed these same-lane facts:
+Fresh repo-first inspection on 2026-05-15 confirmed these same-lane facts:
 
 - `samples/kfifo/bytestream-example.c` remains the Linux anchor for this slice.
 - `samples/zigux/bytestream_fifo.zig` is directly readable on current `master`.
@@ -54,7 +54,7 @@ Until a bounded runtime substrate exists, the approved Phase 5 `kfifo` idiom sho
 - keep the Linux anchor path explicit through a descriptor or note
 - keep ownership and lifetime boundaries visible through explicit initialization, replay, reset, and teardown states
 - keep non-destructive preview and snapshot behavior explicit so reviewers can inspect queued state without inferring hidden mutation
-- keep rollover and queue-shape cues explicit through `visibleSpanSummary()` and `usesWrappedStorageWindow()`
+- keep rollover and queue-shape cues explicit through `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`
 - keep helper-boundary behavior explicit at empty, short-drain, full, overflow, skip-at-capacity, and reset edges
 - keep procfs, user-copy, locking, and module-registration claims out of scope unless a later runtime lane lands the required substrate first
 
@@ -73,9 +73,9 @@ The directly readable sample still keeps these cues visible on current `master`:
 - ownership and lifetime stay explicit through the `cold`, `initialized`, `replay_complete`, and `exited` stages
 - docs should keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample
 
-## Exact checks verified on 2026-05-14
+## Exact checks verified on 2026-05-15
 
-Fresh direct readback of `samples/zigux/bytestream_fifo.zig` on 2026-05-14 shows eight in-file `test` blocks on current `master`. Those directly readable checks cover:
+Fresh direct readback of `samples/zigux/bytestream_fifo.zig` on 2026-05-15 shows eight in-file `test` blocks on current `master`. Those directly readable checks cover:
 
 - descriptor, Linux anchor, and review packet markers stay aligned: `bytestream_fifo`, `samples/kfifo/bytestream-example.c`, `requires_runtime_substrate = false`, `provides_selfcheck = true`, `StorageBacking.embedded_fixed_buffer`, the ten-item `reviewContract().focus` order, and the four non-goals all match the current sample packet
 - `runAnchorReplay()` still proves the bounded FIFO replay body exactly: `"hello"` drains first, `{ 0, 1 }` is requeued, `skipByte()` removes `2`, `peekByte()` then sees `3`, `previewInto()` reports `copied = 8`, `total_visible = 32`, and `truncated = true`, `snapshotInto()` captures the full 32-byte queue, the fill range remains `20` through `42`, and the final drained sequence is `[3, 4, 5, 6, 7, 8, 9, 0, 1, 20..42]`
@@ -83,6 +83,7 @@ Fresh direct readback of `samples/zigux/bytestream_fifo.zig` on 2026-05-14 shows
 - full-capacity and wraparound edges stay explicit: a fully packed queue rejects `pushByte(255)`, skipping one byte opens a single slot, the refill push succeeds, and the queue-shape helpers flip from a single visible span to `first_window_len = 31`, `second_window_len = 1`, and `usesWrappedStorageWindow() = true`
 - queue-shape replay helpers remain truthful: `runPreviewBoundaryReplay()` still yields snapshot prefix `{ 2, 3, 4, 5 }`, preview prefix `{ 2, 3, 4, 5, 6, 7, 8, 9 }`, `head_index = 7`, `tail_index = 17`, `total_visible = 10`, `first_window_len = 10`, `second_window_len = 0`, and `wraps = false`, while `runWrappedPreviewReplay()` still yields drained prefix `"hell"`, refill values `{ 200, 201, 202, 203 }`, snapshot prefix `{ 'o', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }`, preview prefix `{ 'o', 0, 1, 2, 3, 4, 5, 6 }`, `head_index = 4`, `tail_index = 4`, `total_visible = 32`, `first_window_len = 28`, `second_window_len = 4`, and `wraps = true`
 - occupancy helper checks still hold across lifecycle states: `occupancySummary()` reports `(used=0, available=32, empty=true, full=false, wrapped_window=false)` when cold, `(used=5, available=27)` after enqueuing `"hello"`, full-and-not-wrapped at capacity before a skip, wrapped-and-full after the skip-plus-refill case, and empty again after reset and exit
+- writable-span helper checks now stay explicit too: `writableSpanSummary()` reports `tail_index = 0`, `total_available = 32`, `first_window_len = 32`, `second_window_len = 0`, and `wraps = false` at cold and initialized boundaries; after `runPreviewBoundaryReplay()` it shifts to `tail_index = 17`, `total_available = 22`, `first_window_len = 15`, `second_window_len = 7`, and `wraps = true`; after `runWrappedPreviewReplay()` it settles at `tail_index = 4`, `total_available = 0`, `first_window_len = 0`, `second_window_len = 0`, and `wraps = false`
 - ownership and lifetime guards remain explicit: replay helpers reject `.cold`, `init()` rejects a second call, queue-shape replays reject the `.replay_complete` stage, `exit()` clears the queue and moves to `.exited`, post-exit replay attempts still fail closed, and `reset()` clears queue contents without rewinding stage or the `init_runs` and `exit_runs` bookkeeping counters
 - does that same helper-facing packet still keep the bounded helper contract explicit: empty-queue peek and skip return `null`, empty enqueue copies `0` bytes, skip-at-capacity returns `0`, `pop-after-reset` returning `null`, draining a three-byte destination from the queued string `"hello"` yields `"hel"`, leaves the remaining prefix `"lo"` queued in order, and follow-up drain on the now-empty queue returns `0`
 - `runPreviewBoundaryReplay()` keeps preview truncation stay non-destructive: truncated preview stays non-destructive, `snapshotInto()` still begins with `[2,3,4,5]`, `previewInto()` copies `[2,3,4,5,6,7,8,9]`, reports `10` visible bytes, leaves the queued data intact, and the preview truncation boundary plus preview-boundary replay also held with `snapshot_prefix = {2, 3, 4, 5}`, `preview_prefix = {2, 3, 4, 5, 6, 7, 8, 9}`, `preview_total_visible = 10`, and `queue_len_after_preview = 10`
@@ -148,7 +149,7 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig` or one of its dir
 - does `BytestreamFifoSample.descriptor()` still name `samples/kfifo/bytestream-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - does the sample still keep `StorageBacking.embedded_fixed_buffer` explicit so the roadmap-backed idiom remains a bounded fixed-buffer ring instead of an implied allocation-backed runtime queue?
 - does `reviewContract().focus` still keep the cue order explicit for `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `remaining_capacity`, `queue_shape_boundaries`, `helper_boundaries`, `reset_and_replay`, and `ownership_and_lifetime`?
-- do `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, and `usesWrappedStorageWindow()` still keep preview, rollover, and queue-shape evidence visible from the sample file itself?
+- do `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()` still keep preview, rollover, queue-shape, and writable-span evidence visible from the sample file itself?
 - if a shared Phase 5 doc, README, or checklist mentions `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, or `zigux/tests/phase5_build.zig`, did a fresh reread confirm whether that mention is grounded in authenticated connector readback, public-tree blob readback, or both?
 - do the docs still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
 
