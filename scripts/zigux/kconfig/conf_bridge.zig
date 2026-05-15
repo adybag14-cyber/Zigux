@@ -746,6 +746,31 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
 }
 
+test "conf bridge emits deterministic randconfig packet ordering" {
+    var capture = try TestCapture.init(std.testing.allocator, 256);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .randconfig,
+        .kconfig = "Kconfig",
+        .config = "rand/.config",
+        .arch = "x86_64",
+        .silent = true,
+        .allconfig = "allrandom.config",
+        .seed = 0xC0FFEE,
+        .probability = "15:25",
+    });
+
+    try std.testing.expectEqualStrings(
+        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"randconfig\"," ++
+            "\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--randconfig\",\"Kconfig\"]," ++
+            "\"env\":{\"ARCH\":\"x86_64\",\"KCONFIG_CONFIG\":\"rand/.config\"," ++
+            "\"KCONFIG_ALLCONFIG\":\"allrandom.config\",\"KCONFIG_SEED\":\"0xC0FFEE\"," ++
+            "\"KCONFIG_PROBABILITY\":\"15:25\"}}\n",
+        capture.list.items,
+    );
+}
+
 test "conf bridge omits randconfig allconfig sentinel without explicit override" {
     var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
