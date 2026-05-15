@@ -4,7 +4,7 @@ This bounded Phase 11 module slice keeps the archived `P11-L04` gpio watchdog re
 
 ## Review Packet
 
-Current direct contents reads now show the visible starter at `drivers/watchdog/gpio_wdt.zig` and the directly coupled main replay at `zigux/tests/phase11_gpio_wdt.zig`, but this lane still stays review-first because the shared Phase 11 build route is not visible yet.
+Current direct contents reads now show the visible starter at `drivers/watchdog/gpio_wdt.zig`, the directly coupled main replay at `zigux/tests/phase11_gpio_wdt.zig`, and the focused timeout-property, platform-drvdata, and watchdog-drvdata replays, but this lane still stays review-first because the shared Phase 11 build route is not visible yet.
 
 The visible `gpio_wdt_lab` starter currently exports these code-backed review surfaces:
 
@@ -20,6 +20,12 @@ The visible `gpio_wdt_lab` starter currently exports these code-backed review su
 - `registerDeviceCallSummary()`
 - `registerDeviceFailureSummary()`
 - `summarizeTeardown()`
+
+The same archived packet also keeps these focused replay shards directly visible on current `master`:
+
+- `zigux/tests/phase11_gpio_wdt_timeout_property.zig`
+- `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`
+- `zigux/tests/phase11_gpio_wdt_watchdog_drvdata.zig`
 
 The same archived packet keeps bounded start, ping, stop, failure-mode, and teardown posture explicit without claiming live GPIO descriptor acquisition, live watchdog-core registration, live reboot hooks, or hardware-backed validation.
 
