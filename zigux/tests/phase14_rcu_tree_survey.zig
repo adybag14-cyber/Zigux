@@ -163,7 +163,7 @@ test "phase 14 rcu tree survey manifest records the current freeze-boundary pack
     try std.testing.expect(manifest.survey_summary.rollback_threshold_checklist_present);
     try std.testing.expect(manifest.survey_summary.rollback_threshold_freeze_map_rule_present);
 
-    try std.testing.expectEqual(@as(usize, 8), manifest.decision_checklist.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.decision_checklist.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     var landed_count: usize = 0;
@@ -426,9 +426,17 @@ test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist and 
     try std.testing.expectEqualStrings("call_rcu_core", checklist[6].anchor_symbols[1]);
     try std.testing.expectEqualStrings("rcu_do_batch", checklist[6].anchor_symbols[2]);
 
-    try std.testing.expectEqualStrings("cpu-hotplug-callback-migration", checklist[7].id);
-    try std.testing.expectEqualStrings("rcutree_prepare_cpu", checklist[7].anchor_symbols[0]);
-    try std.testing.expectEqualStrings("rcutree_offline_cpu", checklist[7].anchor_symbols[1]);
-    try std.testing.expectEqualStrings("rcutree_migrate_callbacks", checklist[7].anchor_symbols[2]);
-    try std.testing.expect(contains(checklist[7].rationale, "callback migration"));
+    try std.testing.expectEqualStrings("public-wait-and-callback-barrier", checklist[7].id);
+    try std.testing.expectEqualStrings("synchronize_rcu", checklist[7].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("get_state_synchronize_rcu", checklist[7].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("poll_state_synchronize_rcu", checklist[7].anchor_symbols[2]);
+    try std.testing.expectEqualStrings("rcu_barrier", checklist[7].anchor_symbols[3]);
+    try std.testing.expect(contains(checklist[7].rationale, "polling-cookie visibility"));
+    try std.testing.expect(contains(checklist[7].rationale, "callback-drain guarantees"));
+
+    try std.testing.expectEqualStrings("cpu-hotplug-callback-migration", checklist[8].id);
+    try std.testing.expectEqualStrings("rcutree_prepare_cpu", checklist[8].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("rcutree_offline_cpu", checklist[8].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("rcutree_migrate_callbacks", checklist[8].anchor_symbols[2]);
+    try std.testing.expect(contains(checklist[8].rationale, "callback migration"));
 }
