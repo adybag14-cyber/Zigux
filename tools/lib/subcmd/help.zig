@@ -85,18 +85,37 @@ pub const CmdNames = struct {
     }
 
     pub fn excludeCmds(self: *CmdNames, excludes: CmdNames) void {
-        var write_index: usize = 0;
-        for (self.names.items, 0..) |entry, read_index| {
-            if (excludes.isInCmdList(entry.name)) {
-                self.allocator.free(entry.name);
-                continue;
-            }
+        if (self.names.items.len == 0 or excludes.names.items.len == 0) return;
 
+        var read_index: usize = 0;
+        var write_index: usize = 0;
+        var exclude_index: usize = 0;
+
+        while (read_index < self.names.items.len and exclude_index < excludes.names.items.len) {
+            switch (std.mem.order(u8, self.names.items[read_index].name, excludes.names.items[exclude_index].name)) {
+                .lt => {
+                    if (write_index != read_index) {
+                        self.names.items[write_index] = self.names.items[read_index];
+                    }
+                    read_index += 1;
+                    write_index += 1;
+                },
+                .eq => {
+                    self.allocator.free(self.names.items[read_index].name);
+                    read_index += 1;
+                    exclude_index += 1;
+                },
+                .gt => exclude_index += 1,
+            }
+        }
+
+        while (read_index < self.names.items.len) : (read_index += 1) {
             if (write_index != read_index) {
                 self.names.items[write_index] = self.names.items[read_index];
             }
             write_index += 1;
         }
+
         self.names.items.len = write_index;
     }
 };
@@ -452,6 +471,33 @@ test "addCmdName keeps an owned clipped copy" {
     try std.testing.expectEqual(@as(usize, 1), cmds.count());
     try std.testing.expectEqualStrings("report", cmds.names.items[0].name);
     try std.testing.expect(@intFromPtr(cmds.names.items[0].name.ptr) != @intFromPtr(source[0..].ptr));
+}
+
+test "excludeCmds keeps sorted survivor order when excludes repeat and skip ahead" {
+    var cmds = CmdNames.init(std.testing.allocator);
+    defer cmds.deinit();
+    try cmds.addCmdName("annotate", 8);
+    try cmds.addCmdName("diff", 4);
+    try cmds.addCmdName("report", 6);
+    try cmds.addCmdName("stat", 4);
+    try cmds.addCmdName("trace", 5);
+    cmds.sort();
+
+    var excludes = CmdNames.init(std.testing.allocator);
+    defer excludes.deinit();
+    try excludes.addCmdName("annotate", 8);
+    try excludes.addCmdName("annotate", 8);
+    try excludes.addCmdName("record", 6);
+    try excludes.addCmdName("stat", 4);
+    try excludes.addCmdName("top", 3);
+    excludes.sort();
+
+    cmds.excludeCmds(excludes);
+
+    try std.testing.expectEqual(@as(usize, 3), cmds.count());
+    try std.testing.expectEqualStrings("diff", cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("report", cmds.names.items[1].name);
+    try std.testing.expectEqualStrings("trace", cmds.names.items[2].name);
 }
 
 test "splitPathEntries preserves empty segments" {
