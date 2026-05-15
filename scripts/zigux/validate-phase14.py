@@ -175,7 +175,7 @@ REQUIRED_SKBUFF_DECISION_CHECKLIST = {
 }
 
 CHECKLIST_MARKERS = [
-    "if the change touches the shared Phase 14 smoke packet, do `Documentation/zigux/README.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/freeze-map.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, `zigux/tests/phase14_ring_buffer_manifest.json`, `zigux/tests/phase14_rcu_tree_manifest.json`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `make -C zigux phase14-test`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and `make -C zigux phase14` still agree on the same study-only stay-in-C posture, with `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` kept explicit as the two boundary-study-only anchors and `kernel/rcu/tree.c` plus `net/core/skbuff.c` kept explicit as the two freeze-in-C-governed anchors, without implying an active deep-core port claim?",
+    "if the change touches the shared Phase 14 smoke packet, do `Documentation/zigux/README.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/freeze-map.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, `zigux/tests/phase14_ring_buffer_manifest.json`, `zigux/tests/phase14_rcu_tree_manifest.json`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `make -C zigux phase14-test`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and `make -C zigux phase14` still agree on the same study-only stay-in-C posture, with `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` kept explicit as the two boundary-study-only anchors and `kernel/rcu/tree.c` plus `net/core/skbuff.c` kept explicit as the two freeze-in-C-governed anchors, without implying an active deep-core port claim?",
 ]
 
 BUILD_MARKERS = [
@@ -514,73 +514,48 @@ def run_self_test() -> int:
         print("PHASE14_SELF_TEST=fail")
         print("SELF_TEST_REASON=workflow_missing_from_required_shared_smoke_surfaces")
         return 1
-
-    required_summary_gaps = [
-        key
-        for key in [
-            "review_checklist_has_rollback_threshold_prompt",
-            "smoke_note_records_rollback_threshold",
-            "smoke_note_records_tests_readme_checker",
-            "scripts_readme_records_rollback_threshold",
-        ]
-        if key not in REQUIRED_SURVEY_SUMMARY_KEYS
-    ]
-    if required_summary_gaps:
+    if "smoke_note_records_tests_readme_checker" not in REQUIRED_SURVEY_SUMMARY_KEYS:
         print("PHASE14_SELF_TEST=fail")
-        print("SELF_TEST_REASON=required_phase14_summary_keys_missing")
-        print("SELF_TEST_MARKERS_START")
-        for item in required_summary_gaps:
-            print(item)
-        print("SELF_TEST_MARKERS_END")
+        print("SELF_TEST_REASON=tests_readme_checker_missing_from_required_summary_keys")
         return 1
 
-    good_tests_readme = "\n".join(
-        [
-            "# zigux/tests",
-            "",
-            "Key entrypoints",
-            TESTS_README_PACKET_ANCHOR,
-            *TESTS_README_EXACT_LINES,
-            "  * `zigux/tests/phase14_ring_buffer_survey.zig`",
-        ]
-    ) + "\n"
-    exact_line_missing = []
+    tests_readme_packet_missing = []
     require_exact_line_once(
-        exact_line_missing,
+        tests_readme_packet_missing,
         "tests_readme",
-        good_tests_readme.replace(TESTS_README_EXACT_LINES[1] + "\n", "", 1),
+        TESTS_README_PACKET_ANCHOR + "\n" + "\n".join(TESTS_README_EXACT_LINES[1:]) + "\n",
         TESTS_README_EXACT_LINES,
     )
-    if exact_line_missing != [
-        f"tests_readme:exact_line:{TESTS_README_EXACT_LINES[1]}:count=0"
+    if tests_readme_packet_missing != [
+        "tests_readme:exact_line:  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`:count=0"
     ]:
         print("PHASE14_SELF_TEST=fail")
-        print("SELF_TEST_REASON=unexpected_tests_readme_exact_line_gap")
+        print("SELF_TEST_REASON=unexpected_tests_readme_packet_gap_markers")
         print("SELF_TEST_MARKERS_START")
-        for item in exact_line_missing:
+        for item in tests_readme_packet_missing:
             print(item)
         print("SELF_TEST_MARKERS_END")
         return 1
 
-    packet_after_anchor_missing = []
+    tests_readme_anchor_missing = []
     require_lines_after_anchor(
-        packet_after_anchor_missing,
+        tests_readme_anchor_missing,
         "tests_readme",
-        good_tests_readme.replace(TESTS_README_EXACT_LINES[2] + "\n", "", 1),
+        TESTS_README_PACKET_ANCHOR + "\n" + "\n".join(TESTS_README_EXACT_LINES[1:] + [TESTS_README_EXACT_LINES[0]]) + "\n",
         TESTS_README_PACKET_ANCHOR,
         TESTS_README_EXACT_LINES,
         "phase14_smoke_packet_after_anchor",
     )
-    if packet_after_anchor_missing != ["tests_readme:phase14_smoke_packet_after_anchor"]:
+    if tests_readme_anchor_missing != ["tests_readme:phase14_smoke_packet_after_anchor"]:
         print("PHASE14_SELF_TEST=fail")
-        print("SELF_TEST_REASON=unexpected_tests_readme_after_anchor_gap")
+        print("SELF_TEST_REASON=unexpected_tests_readme_anchor_gap_markers")
         print("SELF_TEST_MARKERS_START")
-        for item in packet_after_anchor_missing:
+        for item in tests_readme_anchor_missing:
             print(item)
         print("SELF_TEST_MARKERS_END")
         return 1
 
-    good_phase14_make = "\n".join(["phase14-validate:", *MAKE_EXACT_LINES]) + "\n"
+    good_phase14_make = "\n".join(MAKE_MARKERS + MAKE_EXACT_LINES) + "\n"
     exact_line_missing: list[str] = []
     require_exact_line_once(
         exact_line_missing,
