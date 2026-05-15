@@ -14,6 +14,9 @@ MATRIX_REL = Path("Documentation/zigux/phase4-validation-matrix.md")
 TEST_FSMOUNT_GAP_NOTE_REL = Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md")
 PERF_SECTION_HEADER = "### `Phase 4 perf thresholds`"
 PERF_SECTION_FOOTER = "## Review Rules"
+KPROBE_BOOTSTRAP_CI_POSTURE = (
+    "reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow"
+)
 TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE = (
     "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"
 )
@@ -25,6 +28,7 @@ REQUIRED_MARKERS = [
     "* current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`",
     "* explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`",
     "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
+    f"* bootstrap-CI posture: `{KPROBE_BOOTSTRAP_CI_POSTURE}`",
     "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
     "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`\n* survey owner: `Validation and Perf Team`",
     "* rollback owner: `Validation and Perf Team`\n* current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, explicit local lab replay marker, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and the shared exact-readback packet at `Documentation/zigux/phase4-gate-evidence.md` plus `scripts/zigux/check-phase4-gate-evidence.py` now keep that same adjacent survey note, manifest, replay command, explicit local lab replay marker, direct validation entrypoint, and local survey wrapper machine-checkable without claiming a shipped Zig starter",
@@ -67,6 +71,7 @@ BASELINE_MATRIX = "\n".join(
         "* current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`",
         "* explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`",
         "* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
+        f"* bootstrap-CI posture: `{KPROBE_BOOTSTRAP_CI_POSTURE}`",
         "* validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
         "* survey owner: `Validation and Perf Team`",
         "* rollback owner: `Validation and Perf Team`",
@@ -119,6 +124,7 @@ SELF_TEST_CASES = [
     "kprobe_replay_path_drift",
     "kprobe_local_lab_replay_drift",
     "kprobe_wrapper_drift",
+    "kprobe_bootstrap_ci_posture_drift",
     "kprobe_validation_entrypoint_drift",
     "kprobe_owner_drift",
     "kprobe_rollback_owner_drift",
@@ -253,6 +259,16 @@ def run_self_test() -> int:
             ),
             BASELINE_TEST_FSMOUNT_GAP_NOTE,
             "missing_marker:* dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
+        ),
+        (
+            "kprobe_bootstrap_ci_posture_drift",
+            replace_once(
+                BASELINE_MATRIX,
+                f"* bootstrap-CI posture: `{KPROBE_BOOTSTRAP_CI_POSTURE}`",
+                "* bootstrap-CI posture: `shared_phase4_test_and_bootstrap_workflow_promoted`",
+            ),
+            BASELINE_TEST_FSMOUNT_GAP_NOTE,
+            f"missing_marker:* bootstrap-CI posture: `{KPROBE_BOOTSTRAP_CI_POSTURE}`",
         ),
         (
             "kprobe_validation_entrypoint_drift",
