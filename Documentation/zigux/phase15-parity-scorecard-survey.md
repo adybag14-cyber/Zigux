@@ -9,7 +9,7 @@ This document records the bounded Phase 15 governance lane around surveying the 
 - `PHASE15_SLICE=parity-tracking-gap-vs-roadmap-refresh`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one survey-grade note that compares the roadmap's parity-scorecard requirement against the live scorecard note, machine-readable JSON, and dedicated Zig guard without widening into new deep-core implementation or shared-summary follow-through
-- survey rechecked against current `master` on 2026-05-14; the dedicated parity-scorecard packet now carries dated readback marker `current-master-readback-2026-05-14`
+- survey rechecked against current `master` on 2026-05-15; the dedicated parity-scorecard packet now carries dated readback marker `current-master-readback-2026-05-15`
 - product boundary:
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `zigux/tests/phase15_parity_scorecard.json`
@@ -20,11 +20,11 @@ This document records the bounded Phase 15 governance lane around surveying the 
 
 The roadmap's Phase 15 packet requires a parity scorecard so the freeze-in-C anchors stay reviewable through explicit ownership, blocker posture, and replay evidence.
 
-The honest same-lane question on current `master` is no longer whether Zigux lacks a parity scorecard. It is whether the roadmap-facing survey still describes the live parity-accounting packet truthfully after the dedicated scorecard note, JSON companion, and Zig guard all landed and were later refreshed.
+The honest same-lane question on current `master` is no longer whether Zigux lacks a parity scorecard. It is whether the roadmap-facing survey still describes the live parity-accounting packet truthfully after the dedicated scorecard note, JSON companion, and dedicated Zig guard all landed and were later refreshed.
 
 ## Current master readback
 
-The 2026-05-14 reread shows these dedicated parity-scorecard surfaces present on current `master`:
+The 2026-05-15 reread shows these dedicated parity-scorecard surfaces present on current `master`:
 
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `zigux/tests/phase15_parity_scorecard.json`
@@ -32,10 +32,10 @@ The 2026-05-14 reread shows these dedicated parity-scorecard surfaces present on
 
 Those three surfaces still agree on the dedicated parity-scorecard packet shape:
 
-- lane key: `P15-Y03`
+- lane key: `P15-L03`
 - slice: `parity-scorecard-baseline`
 - provenance mode: `dated_master_readback`
-- surveyed commit marker: `current-master-readback-2026-05-14`
+- surveyed commit marker: `current-master-readback-2026-05-15`
 - posture: `blocked_posture_accounting_not_port_readiness`
 
 The live machine-readable metrics now cover:
@@ -66,10 +66,9 @@ The dedicated scorecard note, machine-readable JSON companion, and dedicated Zig
 The previously open same-lane gap was survey truthfulness only:
 
 - this survey note had still been filed under older verification metadata
-- it had still reported a 2026-05-11 reread after the dedicated scorecard packet moved to the 2026-05-14 dated-readback posture
-- it had still claimed `zigux/tests/phase15_parity_scorecard.zig` was not present on `master`
-- it had still claimed the broader reporting packet was mispointing at a nonexistent Zig replay surface even though the dedicated Zig guard now exists beside the JSON companion
-- it had underreported the current scorecard metrics by omitting the governance-only blocker aggregate that now splits the blocked anchors between pure Phase 15 governance evidence and Phase 14-coupled bridge evidence
+- it had still reported a 2026-05-14 reread after the dedicated scorecard packet moved to the 2026-05-15 dated-readback posture
+- it had still claimed the dedicated parity-scorecard packet belonged to `P15-Y03` even though the live scorecard note, JSON companion, and Zig guard still agree on `P15-L03`
+- it had underreported the current scorecard metrics by omitting the governance-only blocker aggregate that splits the blocked anchors between pure Phase 15 governance evidence and Phase 14-coupled bridge evidence
 
 That survey-local truthfulness gap is now closed. The product gap stays closed too: the parity-scorecard requirement is satisfied, and this survey has been refreshed to match the current dedicated scorecard packet instead of lagging behind it.
 
@@ -80,7 +79,7 @@ The honest bounded Phase 15 statement on current `master` is:
 - the roadmap-required parity scorecard is landed as a note plus machine-readable JSON plus dedicated Zig guard
 - no Architecture Council approval is recorded for any freeze-map status change
 - all four freeze-in-C anchors remain blocked from a direct Zigux port claim
-- the dedicated parity-scorecard packet now belongs to `P15-Y03`
+- the dedicated parity-scorecard packet now belongs to `P15-L03`
 - this survey lane should stay parked unless roadmap-versus-repo truthfulness drifts again
 
 ## Recorded gaps
