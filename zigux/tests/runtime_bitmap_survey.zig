@@ -230,6 +230,11 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(sample_root_summary_entry.why_now, "separate Phase 9 runtime bitmap family");
     try expectContains(sample_root_summary_entry.why_now, "top-bit companion replay");
     try expectContains(sample_root_summary_entry.why_now, "phase9-runtime-loader-shared-tests");
+    const top_bit_companion_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-bitmap-top-bit-companion") orelse return error.MissingTopBitCompanionEntry;
+    try std.testing.expectEqualStrings("validation", top_bit_companion_entry.kind);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_top_bit_contract.zig", top_bit_companion_entry.path);
+    try expectContains(top_bit_companion_entry.why_now, "highest-valid-bit contract");
+    try expectContains(top_bit_companion_entry.why_now, "bounded runtime bitmap packet");
     const survey_note_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-bitmap-survey-note") orelse return error.MissingSurveyNote;
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-bitmap-survey.md", survey_note_entry.path);
     const module_slice_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-bitmap-module-slice-note") orelse return error.MissingModuleSliceNote;
@@ -305,7 +310,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(top_bit_contract_source, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.selftest_complete, snapshot.stage);");
     try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 1), snapshot.selftest_runs);");
     try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 0), snapshot.exit_runs);");
-    try expectContains(top_bit_contract_source, "try expect(destination.isSet(top_bit));");
+    try expectContains(top_bit_contract_source, "try std.testing.expect(destination.isSet(top_bit));");
     try expectContains(top_bit_contract_source, "BitRangeOutOfBounds");
     try expectContains(top_bit_contract_source, "InvalidLifecycleTransition");
 
