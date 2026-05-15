@@ -124,10 +124,11 @@ still route that focused ABI gate through
 `make -C zigux phase3`, and `Documentation/zigux/phase3-abi-slice.md` instead
 of naming the checker directly, keep
 `scripts/zigux/validate-phase3-linux-zigux-header-governance.py` explicit in
-the validator-support packet even though the current broad
-`scripts/zigux/README.md` and `zigux/tests/README.md` reminders still route
-header-governance context through the paired survey and next-step notes instead
-of naming that validator directly, keep the canonical `include/zigux/dev_t.h`
+the validator-support packet because the current broad
+`scripts/zigux/README.md` now names that validator directly while
+`zigux/tests/README.md` still routes header-governance context through the
+paired survey and next-step notes instead of naming that validator directly,
+keep the canonical `include/zigux/dev_t.h`
 plus `zigux/uapi/version.zig` starter-companion split explicit here whenever
 this validator-support packet names the dedicated header-family survey and
 next-step note, keep `zigux/bindings/dev_t.zig` explicit beside
