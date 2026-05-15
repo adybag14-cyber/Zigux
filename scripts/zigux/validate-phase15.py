@@ -192,7 +192,7 @@ READINESS_SURVEY_MARKERS = [
     "python3 scripts/zigux/check-phase15-shared-summary-gap.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
-    "shared-summary lane `P15-Y06`",
+    "shared-summary lane `P15-Y07`",
     "zigux/tests/README.md",
     "zigux/Makefile",
     "`make -C zigux phase15` packet still matches the current no-approval-yet maintenance-mode blocker posture",
@@ -204,8 +204,9 @@ READINESS_SURVEY_MARKERS = [
 
 LANE_SEQUENCING_MARKERS = [
     "PHASE15_STATUS=lane_sequencing_note_landed",
-    "PHASE15_LANE_KEY=P15-Y06",
+    "PHASE15_LANE_KEY=P15-Y07",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
+    "historical continuity for this parked maintenance surface still points back to `P15-L06`, but the current shared owner-map refresh is tracked under `P15-Y07`",
     "- `freeze-map-governance`: owns `Documentation/zigux/freeze-map.md`",
     "- `review-process`: owns `Documentation/zigux/phase15-architecture-council-review-process.md`",
     "- `parity-scorecard-survey`: owns `Documentation/zigux/phase15-parity-scorecard-survey.md`",
@@ -218,7 +219,6 @@ LANE_SEQUENCING_MARKERS = [
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
     "make -C zigux phase15",
-    "shared-summaries` truthfulness repair only",
 ]
 
 READINESS_MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
