@@ -8,7 +8,7 @@ This document records the parked Phase 15 handoff lane for the remaining governa
 - `PHASE15_OWNER_MAP_ANCHOR=Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `PHASE15_SLICE=handoff-next-steps-survey`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-14`
+- `PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-15`
 - stable continuity for this parked maintenance surface now follows the shared `handoff-next-steps` lane family recorded in `Documentation/zigux/phase15-governance-lane-sequencing.md` instead of a single scheduled lane key.
 - no Architecture Council approval is currently recorded for a freeze-map status change.
 - current review-process evidence is still limited to named `phase`, `current status bucket`, `required approver set`, `validation gate summary`, `parity scorecard link or blocker record`, and `indefinite-C policy link or non-applicability note` fields instead of a shipped status-change approval packet.
