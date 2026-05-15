@@ -188,10 +188,10 @@ test "phase 7 memparse preserves suffix scaling, leading plus, and stop index se
 test "phase 7 memparse keeps saturated prefixes aligned when size suffixes still apply" {
     var index: usize = 0;
 
-    try std.testing.expectEqual(std.math.maxInt(u64) << 10, cmdline.memparse("18446744073709551616K", &index));
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(u64)) << 10, cmdline.memparse("18446744073709551616K", &index));
     try std.testing.expectEqual(@as(usize, 21), index);
 
-    try std.testing.expectEqual(std.math.maxInt(u64) << 20, cmdline.memparse("+18446744073709551616M", &index));
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(u64)) << 20, cmdline.memparse("+18446744073709551616M", &index));
     try std.testing.expectEqual(@as(usize, 22), index);
 }
 
