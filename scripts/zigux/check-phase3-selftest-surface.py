@@ -57,6 +57,7 @@ HEADER_FAMILY_SURVEY_CURRENT_PACKET_MARKER_COUNTS = {
     "include/zigux/dev_t.h": 1,
     "zigux/bindings/abi.zig": 1,
     "zigux/bindings/dev_t.zig": 1,
+    "zigux/bindings/notifier_abi.zig": 1,
     "zigux/uapi/version.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
     "zigux/tests/phase3_abi_dump.zig": 1,
@@ -78,6 +79,7 @@ HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS = {
     "zigux/uapi/dev_t.zig": 1,
     "zigux/bindings/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
+    "zigux/bindings/notifier_abi.zig": 1,
     "zigux/tests/phase3_abi_dump.zig": 1,
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c": 1,
     "zigux/tests/fixtures/phase3_abi/expected.json": 1,
@@ -651,6 +653,21 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         survey_path.write_text(
+            _read(survey_path).replace("zigux/bindings/notifier_abi.zig", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey current packet marker count drift: "
+            "zigux/bindings/notifier_abi.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-family survey notifier binding drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
             _replace_in_section(
                 _read(survey_path),
                 HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX,
@@ -667,6 +684,26 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected header-family survey shared-reminder dev_t companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _replace_in_section(
+                _read(survey_path),
+                HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX,
+                None,
+                "zigux/bindings/notifier_abi.zig",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "zigux/bindings/notifier_abi.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-family survey shared-reminder notifier binding drift was not reported")
             return 1
 
         _populate_repo(root)
