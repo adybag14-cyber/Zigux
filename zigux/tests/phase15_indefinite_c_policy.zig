@@ -124,6 +124,7 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, roadm
     try expectContains(policy_note, "decision record ID, the lane owner, the required approver set, and the rollback owner");
     try expectContains(policy_note, "automatic return-to-blocked trigger");
     try expectContains(policy_note, "retired_from_active_discussion");
+    try expectContains(policy_note, "retained discussion state that closes the packet as `retired_from_active_discussion` when active review ends without a status change, the trigger-specific evidence refresh, and the named reopen-trigger catalog item or items that justify later reopening");
     try expectContains(policy_note, "named reopen-trigger catalog item");
     try expectContains(policy_note, "trigger-specific evidence refresh");
     try expectContains(policy_note, "## Maintenance-Mode Handoff");
@@ -149,13 +150,14 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, roadm
     try expectContains(parity_scorecard, "keep the anchor frozen until");
 
     const recordkeeping = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-recordkeeping") orelse return error.MissingRequirement;
-    try std.testing.expectEqual(@as(usize, 19), recordkeeping.required_terms.len);
+    try std.testing.expectEqual(@as(usize, 20), recordkeeping.required_terms.len);
     try std.testing.expectEqualStrings("lane owner", recordkeeping.required_terms[3]);
     try std.testing.expectEqualStrings("required approver set", recordkeeping.required_terms[6]);
     try std.testing.expectEqualStrings("rollback owner", recordkeeping.required_terms[7]);
     try std.testing.expectEqualStrings("automatic return-to-blocked trigger", recordkeeping.required_terms[13]);
     try std.testing.expectEqualStrings("retained discussion state", recordkeeping.required_terms[14]);
     try std.testing.expectEqualStrings("reopen triggers", recordkeeping.required_terms[15]);
+    try std.testing.expectEqualStrings("trigger-specific evidence refresh", recordkeeping.required_terms[16]);
 
     const exception_path = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-exception-path") orelse return error.MissingRequirement;
     try std.testing.expectEqual(@as(usize, 3), exception_path.required_terms.len);
