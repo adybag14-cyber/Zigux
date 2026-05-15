@@ -859,6 +859,53 @@ test "rbtree replaceNode copies victim links over dirty replacement nodes" {
     try std.testing.expectEqual(@as(?*Node, &root_entry.node), next(&replacement.node));
 }
 
+test "rbtree replaceNodeCached keeps singleton cached roots aligned over dirty replacement nodes" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var lone = Entry{ .key = 10 };
+    var replacement = Entry{ .key = 10 };
+    var stale_parent = Node.init();
+    var stale_left = Node.init();
+    var stale_right = Node.init();
+    var root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, &lone.node), addCached(&lone.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &lone.node), firstCached(&root));
+    try std.testing.expectEqual(@as(?*Node, &lone.node), first(&root.root));
+
+    replacement.node.parent = &stale_parent;
+    replacement.node.left = &stale_left;
+    replacement.node.right = &stale_right;
+    replacement.node.color = .red;
+
+    replaceNodeCached(&lone.node, &replacement.node, &root);
+
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), root.root.node);
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), firstCached(&root));
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), first(&root.root));
+    try std.testing.expectEqual(@as(?*Node, null), replacement.node.parent);
+    try std.testing.expectEqual(@as(?*Node, null), replacement.node.left);
+    try std.testing.expectEqual(@as(?*Node, null), replacement.node.right);
+    try std.testing.expectEqual(lone.node.color, replacement.node.color);
+    try std.testing.expect(!emptyNode(&lone.node));
+
+    clearNode(&lone.node);
+    try std.testing.expect(emptyNode(&lone.node));
+    try std.testing.expectEqual(@as(?*Node, null), next(&lone.node));
+    try std.testing.expectEqual(@as(?*Node, null), prev(&lone.node));
+}
+
 test "rbtree linked helpers track leftmost and neighbour links" {
     const Entry = struct {
         key: i32,
