@@ -18,6 +18,8 @@ BARRIER_HELPER_PATH = Path("zigux/helpers/barrier.zig")
 MMIO_HELPER_PATH = Path("zigux/helpers/mmio.zig")
 LOW_LEVEL_TEST_PATH = Path("zigux/tests/phase3_low_level_wrappers.zig")
 LOW_LEVEL_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
+LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
+LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 TEST_BUILD_PATH = Path("zigux/tests/build.zig")
 HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+([A-Z0-9_]+)\b")
 HEADER_STRUCT_RE = re.compile(r"^\s*struct\s+([A-Za-z_][A-Za-z0-9_]*)\b")
@@ -60,6 +62,8 @@ REPO_FILES = (
     MMIO_HELPER_PATH,
     LOW_LEVEL_BUILD_PATH,
     LOW_LEVEL_TEST_PATH,
+    LAYOUT_BUILD_PATH,
+    LAYOUT_TEST_PATH,
     TEST_BUILD_PATH,
     Path("zigux/tests/README.md"),
     Path("zigux/tests/phase3_abi.zig"),
@@ -115,6 +119,8 @@ MAKE_MARKERS = (
     "$(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
     "$(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+    "phase3-export-uapi-layout-test:",
+    "$(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "$(PYTHON) scripts/zigux/check-phase3-selftest-surface.py",
     "$(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "$(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py",
@@ -548,10 +554,36 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        layout_test_rel = LAYOUT_TEST_PATH
+        _write(root / low_level_build_rel, "# restored\n")
+        (root / layout_test_rel).unlink()
+        issues = validate_repo(root)
+        expected_layout_test_missing = (
+            f"missing repo file: {layout_test_rel.as_posix()}"
+        )
+        if expected_layout_test_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing export-uapi layout replay was not reported")
+            return 1
+        case_count += 1
+
+        layout_build_rel = LAYOUT_BUILD_PATH
+        _write(root / layout_test_rel, "# restored\n")
+        (root / layout_build_rel).unlink()
+        issues = validate_repo(root)
+        expected_layout_build_missing = (
+            f"missing repo file: {layout_build_rel.as_posix()}"
+        )
+        if expected_layout_build_missing not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing export-uapi layout build anchor was not reported")
+            return 1
+        case_count += 1
+
         low_level_note_rel = Path(
             "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
         )
-        _write(root / low_level_build_rel, "# restored\n")
+        _write(root / layout_build_rel, "# restored\n")
         (root / low_level_note_rel).unlink()
         issues = validate_repo(root)
         expected_low_level_note_missing = (
@@ -812,6 +844,42 @@ def run_self_test() -> int:
         if expected_export_uapi_selftest_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
             print("expected missing export-uapi self-test make marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / "zigux/Makefile",
+            _read(root / "zigux/Makefile").replace(
+                "phase3-export-uapi-layout-test:\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_layout_target_marker = "missing make marker: phase3-export-uapi-layout-test:"
+        if expected_layout_target_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing export-uapi layout target was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
+        _write(
+            root / "zigux/Makefile",
+            _read(root / "zigux/Makefile").replace(
+                "$(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_layout_build_marker = (
+            "missing make marker: $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"
+        )
+        if expected_layout_build_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing export-uapi layout build command was not reported")
             return 1
         case_count += 1
 
