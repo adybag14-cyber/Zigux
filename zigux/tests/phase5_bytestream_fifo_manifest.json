@@ -57,9 +57,19 @@
       "expected": "available() reports 32 at cold, initialized, replay-complete, reset, and exited boundaries, 27 after enqueueing \"hello\", 22 after the preview-boundary setup, 0 at full capacity, and 1 immediately after skip-at-capacity"
     },
     {
+      "id": "occupancy-summary-boundary",
+      "kind": "capacity_accounting",
+      "expected": "occupancySummary() reports (used=0, available=32, empty=true, full=false, wrapped_window=false) when cold and again after reset and exit, (used=5, available=27, empty=false, full=false, wrapped_window=false) after enqueueing \"hello\", (used=32, available=0, empty=false, full=true, wrapped_window=false) at full capacity before a skip, and (used=32, available=0, empty=false, full=true, wrapped_window=true) after the skip-plus-refill wraparound case"
+    },
+    {
       "id": "wrapped-storage-window-boundary",
       "kind": "queue_shape",
       "expected": "visibleSpanSummary() keeps the bounded split cues explicit with {0,0} at cold, initialized, replay-complete, reset, and exited boundaries, {5,0} after enqueueing \"hello\", {32,0} at full capacity, {31,0} immediately after skip-at-capacity, and {31,1} once the refill rollover wraps the bounded ring window, while usesWrappedStorageWindow() stays false at cold, initialized, reset, preview-boundary, replay-complete, and full-capacity states, then flips true only after the skip-at-capacity plus refill rollover cue makes the bounded ring window wrap; runWrappedPreviewReplay() keeps that wrapped preview non-destructive too by draining \"hell\", refilling {200,201,202,203}, leaving snapshotInto() to begin with ['o',0,1,2,3,4,5,6,7,8,9,10], keeping previewInto() at ['o',0,1,2,3,4,5,6], still reporting 32 visible bytes, leaving queue_len_after_preview at 32, available_after_preview at 0, and preserving the wrapped {28,4} split"
+    },
+    {
+      "id": "writable-span-boundary",
+      "kind": "queue_shape",
+      "expected": "writableSpanSummary() reports tail_index=0, total_available=32, first_window_len=32, second_window_len=0, and wraps=false at cold and initialized boundaries, tail_index=17, total_available=22, first_window_len=15, second_window_len=7, and wraps=true after runPreviewBoundaryReplay(), and tail_index=4, total_available=0, first_window_len=0, second_window_len=0, and wraps=false after runWrappedPreviewReplay()"
     },
     {
       "id": "non-destructive-snapshot",
