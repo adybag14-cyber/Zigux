@@ -1,1 +1,1 @@
-{"counts":{"set":3,"unset":0},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"Y"},{"name":"CONFIG_BETA","kind":"tristate","value":"M"},{"name":"CONFIG_DEBUG","kind":"tristate","value":"N"}]}
+{"counts":{"set":6,"unset":0},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"Y"},{"name":"CONFIG_BETA","kind":"tristate","value":"M"},{"name":"CONFIG_DEBUG","kind":"tristate","value":"N"},{"name":"CONFIG_GAMMA","kind":"tristate","value":"Y"},{"name":"CONFIG_DELTA","kind":"tristate","value":"M"},{"name":"CONFIG_EPSILON","kind":"tristate","value":"N"}]}
