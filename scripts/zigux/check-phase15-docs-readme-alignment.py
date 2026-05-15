@@ -24,6 +24,7 @@ DOCS_README_MARKERS = (
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_build.zig",
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
     "make -C zigux phase15",
@@ -96,6 +97,16 @@ def run_self_test() -> int:
             validate(root),
             ["docs_readme:missing:Documentation/zigux/phase15-parity-scorecard.md"],
             "docs_missing_scorecard",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace("zigux/tests/phase15_build.zig\n", "", 1))
+        _assert_only(
+            validate(root),
+            ["docs_readme:missing:zigux/tests/phase15_build.zig"],
+            "docs_missing_build_surface",
         )
         _seed(root)
         case_count += 1
