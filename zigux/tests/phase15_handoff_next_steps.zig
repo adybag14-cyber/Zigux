@@ -83,6 +83,8 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(std.mem.eql(u8, "shared-summaries", manifest.adjacent_lane_boundaries[0].lane_family));
     try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[0].why_out_of_scope, "docs-root and checklist reminders are already aligned") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[0].why_out_of_scope, "parity-scorecard-survey reminder repairs stay here") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[0].why_out_of_scope, "scripts-root `phase15-validate` route sentence in `scripts/zigux/README.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[0].why_out_of_scope, "`zigux/tests/README.md` stays governed by the sequencing-marker plus replay-route packet") != null);
     try std.testing.expect(std.mem.eql(u8, "review-process", manifest.adjacent_lane_boundaries[1].lane_family));
     try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[1].why_out_of_scope, "Review-field wording") != null);
     try std.testing.expect(std.mem.eql(u8, "parity-scorecard-survey", manifest.adjacent_lane_boundaries[2].lane_family));
@@ -114,6 +116,8 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "sequencing-marker plus replay-route packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "shared-summary lane parked unless drift actually reappears") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "shared-summary repair lands") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "docs-readme and shared-summary checker runs inside `phase15-validate`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "outside that already-open scripts-root repair") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[3], "shared build wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[3], "parity-scorecard blocker edits") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[3], "readiness-validator ownership") != null);
@@ -189,10 +193,14 @@ test "phase 15 handoff note keeps the parked trigger catalog explicit" {
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared-summary follow-through for the parity-scorecard-survey reminder now belongs to the checker-backed `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "remaining shared-summary follow-through should now be read through `scripts/zigux/check-phase15-shared-summary-gap.py`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "the checker-backed shared-summary follow-through now lives in the docs-root, checklist, and scripts-root parity-scorecard-survey reminder packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "scripts-root `phase15-validate` route sentence still undercounts the shipped validator-first route") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "reopened shared-summary drift is already narrowed to the scripts-root `phase15-validate` route sentence in `scripts/zigux/README.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "active bounded shared-summary repair is the scripts-root `phase15-validate` route sentence in `scripts/zigux/README.md`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Keep the dedicated handoff packet parked after this queue refresh") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "If the roadmap's future-target prep changes") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "If shared-summary drift appears again, start with `python3 scripts/zigux/check-phase15-shared-summary-gap.py`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "keep the shared-summary lane parked unless drift actually reappears on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "outside that already-open scripts-root repair") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_handoff_next_steps_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
 }
