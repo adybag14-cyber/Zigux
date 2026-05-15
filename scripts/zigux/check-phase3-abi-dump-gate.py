@@ -125,7 +125,7 @@ REQUIRED_REPLAY_CONSTANT_KEYS = (
     "unsafe_scope_raw_pointer_bridge",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied",
-    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_window_flag_window_applied",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped",
     "notifier_done",
     "notifier_ok",
