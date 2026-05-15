@@ -226,6 +226,16 @@ test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
     var acq_rel_value: u32 = 7;
     try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire));
     try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
+    const acq_rel_mismatch = compareExchange(
+        u32,
+        &acq_rel_value,
+        7,
+        15,
+        .acq_rel,
+        .acquire,
+    );
+    try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);
+    try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
 
     var weak_release_value: u32 = 13;
     var attempts: usize = 0;
@@ -243,6 +253,23 @@ test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
 }
 
 test "phase3 atomic wrappers keep compare-exchange failure orderings reviewable" {
+    var release_success_value: u32 = 23;
+    try std.testing.expectEqual(
+        @as(?u32, null),
+        compareExchange(u32, &release_success_value, 23, 29, .release, .monotonic),
+    );
+    try std.testing.expectEqual(@as(u32, 29), release_success_value);
+    const release_mismatch = compareExchange(
+        u32,
+        &release_success_value,
+        23,
+        31,
+        .release,
+        .monotonic,
+    );
+    try std.testing.expectEqual(@as(?u32, 29), release_mismatch);
+    try std.testing.expectEqual(@as(u32, 29), release_success_value);
+
     var seq_cst_value: u32 = 41;
     const seq_cst_mismatch = compareExchange(u32, &seq_cst_value, 17, 23, .seq_cst, .acquire);
     try std.testing.expectEqual(@as(?u32, 41), seq_cst_mismatch);
