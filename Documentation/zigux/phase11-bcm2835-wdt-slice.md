@@ -7,7 +7,7 @@ It exists to make the explicit validation plan truthful now that the packet incl
 
 - `PHASE11_BCM2835_WDT_SLICE_STATUS=registration_scaffold_landed`
 - roadmap phase: `Phase 11`
-- continuity tracked through `P11-L12`
+- continuity remains with `P11-L08`
 - Linux anchor: `drivers/watchdog/bcm2835_wdt.c`
 - bounded packet: starter driver, compile-local verify helper, dedicated replay, dedicated registration-scaffold replay, dedicated survey gate, manifest, survey note, teardown note, validation matrix, and this slice note
 
