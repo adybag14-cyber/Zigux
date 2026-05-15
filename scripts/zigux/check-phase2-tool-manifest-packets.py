@@ -356,6 +356,21 @@ SCRIPTS_PHASE2_STALE_NARROW_HELPER_SUMMARY_MARKER = (
     "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` "
     "instead of being implied as missing current-`master` surfaces."
 )
+SCRIPTS_PHASE2_STALE_FULL_HELPER_SUMMARY_WITHOUT_CONFDATA_HELPER_MARKER = (
+    "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, "
+    "`validate-phase2-closure.py`, `check-phase2-toolchain-pin-scope.py`, "
+    "`check-phase2-tests-readme-alignment.py`, `check-phase2-kconfig-readme-alignment.py`, "
+    "`check-phase2-tool-manifest-packets.py`, `check-phase2-fixdep-gate.py`, "
+    "`check-fixdep-diff.py`, `check-genksyms-bridge.py`, `check-phase2-cross.py`, "
+    "`check-phase2-cross-selftest-alignment.py`, "
+    "`check-phase2-kconfig-selftest-alignment.py`, and `check-kconfig-bridge.py` are the live "
+    "shared scripts-root Phase 2 helpers on current `master`; the broader `phase2-toolchain`, "
+    "`phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` "
+    "route inventory plus the dedicated fixdep, genksyms, manifest, cross-target, and bridge "
+    "checker packet should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
+    "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` "
+    "instead of being implied as missing current-`master` surfaces."
+)
 SCRIPTS_PHASE2_TOOL_MANIFEST_TOP_LEVEL_HELPER_LIST_MARKER = (
     "`check-phase2-tests-readme-alignment.py` - `check-phase2-tool-manifest-packets.py` - "
     "`check-phase2-fixdep-gate.py`"
@@ -371,13 +386,13 @@ SCRIPTS_PHASE2_FULL_HELPER_SUMMARY_MARKER = (
     "`check-phase2-tool-manifest-packets.py`, `check-phase2-fixdep-gate.py`, "
     "`check-fixdep-diff.py`, `check-genksyms-bridge.py`, `check-phase2-cross.py`, "
     "`check-phase2-cross-selftest-alignment.py`, "
-    "`check-phase2-kconfig-selftest-alignment.py`, and `check-kconfig-bridge.py` are the live "
-    "shared scripts-root Phase 2 helpers on current `master`; the broader `phase2-toolchain`, "
-    "`phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` "
-    "route inventory plus the dedicated fixdep, genksyms, manifest, cross-target, and bridge "
-    "checker packet should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
-    "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` "
-    "instead of being implied as missing current-`master` surfaces."
+    "`check-phase2-kconfig-selftest-alignment.py`, `check-phase2-confdata-helper-anchor-alignment.py`, "
+    "and `check-kconfig-bridge.py` are the live shared scripts-root Phase 2 helpers on current `master`; "
+    "the broader `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, "
+    "and `phase2` route inventory plus the dedicated fixdep, genksyms, manifest, cross-target, confdata-helper-anchor, "
+    "and bridge checker packet should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
+    "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of being implied as "
+    "missing current-`master` surfaces."
 )
 SCRIPTS_PHASE2_TOOL_MANIFEST_MARKER = (
     "`check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` "
@@ -462,6 +477,7 @@ EXACT_FILE_MARKER_COUNTS = {
         SCRIPTS_PHASE2_KCONFIG_TOP_LEVEL_HELPER_LIST_MARKER: 1,
         SCRIPTS_PHASE2_TOOL_MANIFEST_MARKER: 1,
         SCRIPTS_PHASE2_STALE_NARROW_HELPER_SUMMARY_MARKER: 0,
+        SCRIPTS_PHASE2_STALE_FULL_HELPER_SUMMARY_WITHOUT_CONFDATA_HELPER_MARKER: 0,
         SCRIPTS_PHASE2_FULL_HELPER_SUMMARY_MARKER: 1,
     },
     "zigux/tests/README.md": {
@@ -491,7 +507,7 @@ PHASE2_REVIEW_NOTES_EXACT_COUNTS = {
     PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS[0]: 1,
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -746,6 +762,27 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             f"exact_count:scripts/zigux/README.md:{SCRIPTS_PHASE2_STALE_NARROW_HELPER_SUMMARY_MARKER}:count=1:expected=0"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        scripts_readme = root / "scripts/zigux/README.md"
+        scripts_readme.write_text(
+            scripts_readme.read_text(encoding="utf-8").replace(
+                SCRIPTS_PHASE2_FULL_HELPER_SUMMARY_MARKER,
+                SCRIPTS_PHASE2_STALE_FULL_HELPER_SUMMARY_WITHOUT_CONFDATA_HELPER_MARKER,
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"missing_marker:scripts/zigux/README.md:{SCRIPTS_PHASE2_FULL_HELPER_SUMMARY_MARKER}"
+            in issues
+        )
+        assert (
+            f"exact_count:scripts/zigux/README.md:{SCRIPTS_PHASE2_STALE_FULL_HELPER_SUMMARY_WITHOUT_CONFDATA_HELPER_MARKER}:count=1:expected=0"
             in issues
         )
         case_count += 1
