@@ -39,13 +39,13 @@ REQUIRED_PANIC_SNIPPETS = (
     "pub fn actionForInteropPolicy(policy: abi.InteropPolicy) ?Action {",
     "pub fn canReturnInteropPolicyBytes(mode: u8, reserved: u8) bool {",
     "pub fn canReturnInteropPolicy(policy: abi.InteropPolicy) bool {",
-    'try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicyBytes(2, 1));',
-    'try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicyBytes(2, 1));',
-    'try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));',
-    'try std.testing.expect(!recognizesInteropPolicy(reserved_policy));',
-    'try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicy(reserved_policy));',
-    'try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));',
-    'try std.testing.expect(!canReturnInteropPolicy(reserved_policy));',
+    "try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicyBytes(2, 1));",
+    "try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicyBytes(2, 1));",
+    "try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));",
+    "try std.testing.expect(!recognizesInteropPolicy(reserved_policy));",
+    "try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicy(reserved_policy));",
+    "try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!canReturnInteropPolicy(reserved_policy));",
 )
 
 REQUIRED_ALLOCATOR_SNIPPETS = (
@@ -69,27 +69,31 @@ REQUIRED_ALLOCATOR_SNIPPETS = (
     "pub fn requiresResetOnInitPolicyBytes(mode: u8, reserved: u8) bool {",
     "pub fn requiresResetOnInitInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn requiresResetOnInitByte(mode: u8) bool {",
-    'test "phase3 allocator policy keeps init ownership explicit" {',
-    'try std.testing.expectEqual(InitFlow.caller_prepared, initFlowFor(.caller_provided));',
-    'try std.testing.expect(initializesOwnedState(.kernel_heap));',
-    'try std.testing.expect(requiresResetOnInit(.arena));',
-    'try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));',
-    'try std.testing.expect(!recognizesInteropPolicyBytes(2, 1));',
-    'try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));',
-    'try std.testing.expect(requiresExplicitCallerByte(0));',
-    'try std.testing.expect(!requiresExplicitCallerByte(9));',
-    'try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));',
-    'try std.testing.expect(permitsGlobalFallbackByte(1));',
-    'try std.testing.expect(!permitsGlobalFallbackByte(9));',
-    'try std.testing.expect(initializesOwnedStateByte(1));',
-    'try std.testing.expect(!initializesOwnedStatePolicyBytes(2, 1));',
-    'try std.testing.expect(initializesOwnedStateInteropPolicy(heap_policy));',
-    'try std.testing.expect(requiresResetOnInitByte(2));',
-    'try std.testing.expect(requiresResetOnInitInteropPolicy(arena_policy));',
-    'try std.testing.expect(!recognizesInteropPolicy(reserved_policy));',
-    'try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(reserved_policy));',
-    'try std.testing.expect(!requiresExplicitCallerInteropPolicy(reserved_policy));',
-    'try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));',
+    "test \"phase3 allocator policy keeps init ownership explicit\" {",
+    "try std.testing.expectEqual(InitFlow.caller_prepared, initFlowFor(.caller_provided));",
+    "try std.testing.expect(initializesOwnedState(.kernel_heap));",
+    "try std.testing.expect(requiresResetOnInit(.arena));",
+    "try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));",
+    "try std.testing.expect(!recognizesInteropPolicyBytes(2, 1));",
+    "try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));",
+    "try std.testing.expect(requiresExplicitCallerByte(0));",
+    "try std.testing.expect(!requiresExplicitCallerByte(9));",
+    "try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));",
+    "try std.testing.expect(permitsGlobalFallbackByte(1));",
+    "try std.testing.expect(!permitsGlobalFallbackByte(9));",
+    "try std.testing.expect(initializesOwnedStateByte(1));",
+    "try std.testing.expect(!initializesOwnedStatePolicyBytes(2, 1));",
+    "try std.testing.expect(initializesOwnedStateInteropPolicy(heap_policy));",
+    "try std.testing.expect(!initializesOwnedStateInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!initializesOwnedStateInteropPolicy(unknown_policy));",
+    "try std.testing.expect(requiresResetOnInitByte(2));",
+    "try std.testing.expect(requiresResetOnInitInteropPolicy(arena_policy));",
+    "try std.testing.expect(!requiresResetOnInitInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!requiresResetOnInitInteropPolicy(unknown_policy));",
+    "try std.testing.expect(!recognizesInteropPolicy(reserved_policy));",
+    "try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!requiresExplicitCallerInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));",
 )
 
 REQUIRED_NARROW_SNIPPETS = (
@@ -119,55 +123,70 @@ REQUIRED_NARROW_SNIPPETS = (
     "pub fn writeValueAtInteropPolicyBytes(",
     "pub fn writeValueAtInteropPolicy(",
     "pub fn writeValueAtByte(",
-    'try std.testing.expect(permitsRawPointerBridgeByte(2));',
-    'try std.testing.expect(!permitsRawPointerBridgePolicyBytes(2, 1));',
-    'try std.testing.expect(!recognizesInteropPolicy(reserved_policy));',
-    'try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromInteropPolicy(reserved_policy));',
-    'try std.testing.expect(!permitsNoUnsafeInteropPolicy(reserved_policy));',
-    'try std.testing.expect(!permitsVolatileMmioInteropPolicy(reserved_policy));',
-    'try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));',
-    'const scoped_mut_slice = try sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, raw_policy);',
-    'const scoped_mut_slice_bytes = try sliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 0);',
-    'const scoped_direct_mut_slice = try sliceAtByte(u32, bridge_addr, bridge_values.len, 2);',
-    'const scoped_mut_ptr = try pointerAtInteropPolicy(u32, bridge_addr, @sizeOf(u32), raw_policy);',
-    'const scoped_ptr = try constPointerAtInteropPolicy(u32, bridge_addr, raw_policy);',
-    'const scoped_direct_const_byte_ptr = try constPointerAtByte(u32, second_addr, 2);',
-    'try std.testing.expectEqual(@as(u32, 47), scoped_direct_const_byte_ptr.*);',
-    'const scoped_odd_slice = try constSliceAtInteropPolicy(u16, odd_bridge_addr, 1, raw_policy);',
-    'const scoped_odd_direct_ptr = try constPointerAtByte(u16, odd_bridge_addr, 2);',
-    'try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_direct_ptr.*);',
-    'try writeValueAtInteropPolicy(u32, bridge_addr, 65, raw_policy);',
-    'try writeValueAtByte(u32, second_addr, 73, 2);',
-    'try std.testing.expectEqual(@as(u32, 73), bridge_values[1]);',
-    'try writeValueAtByte(u16, odd_bridge_addr, 0x1357, 2);',
-    'try std.testing.expectEqual(@as(u16, 0x1357), scoped_odd_ptr.*);',
-    'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, none_policy));',
-    'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 1));',
-    'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtByte(u32, bridge_addr, bridge_values.len, 0));',
-    'try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafeInteropPolicy(reserved_policy));',
-    'try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioInteropPolicy(reserved_policy));',
-    'try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(reserved_policy));',
+    "try std.testing.expect(permitsRawPointerBridgeByte(2));",
+    "try std.testing.expect(!permitsRawPointerBridgePolicyBytes(2, 1));",
+    "try std.testing.expect(!recognizesInteropPolicy(reserved_policy));",
+    "try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!permitsNoUnsafeInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!permitsVolatileMmioInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));",
+    "const scoped_mut_slice = try sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, raw_policy);",
+    "const scoped_mut_slice_bytes = try sliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 0);",
+    "const scoped_direct_mut_slice = try sliceAtByte(u32, bridge_addr, bridge_values.len, 2);",
+    "const scoped_mut_ptr = try pointerAtInteropPolicy(u32, bridge_addr, @sizeOf(u32), raw_policy);",
+    "const scoped_ptr = try constPointerAtInteropPolicy(u32, bridge_addr, raw_policy);",
+    "const scoped_direct_const_byte_ptr = try constPointerAtByte(u32, second_addr, 2);",
+    "try std.testing.expectEqual(@as(u32, 47), scoped_direct_const_byte_ptr.*);",
+    "const scoped_odd_slice = try constSliceAtInteropPolicy(u16, odd_bridge_addr, 1, raw_policy);",
+    "const scoped_odd_direct_ptr = try constPointerAtByte(u16, odd_bridge_addr, 2);",
+    "try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_direct_ptr.*);",
+    "try writeValueAtInteropPolicy(u32, bridge_addr, 65, raw_policy);",
+    "try writeValueAtByte(u32, second_addr, 73, 2);",
+    "try std.testing.expectEqual(@as(u32, 73), bridge_values[1]);",
+    "try writeValueAtByte(u16, odd_bridge_addr, 0x1357, 2);",
+    "try std.testing.expectEqual(@as(u16, 0x1357), scoped_odd_ptr.*);",
+    "try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, none_policy));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, sliceAtByte(u32, bridge_addr, bridge_values.len, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafeInteropPolicy(reserved_policy));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioInteropPolicy(reserved_policy));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(reserved_policy));",
 )
 
 REQUIRED_LOW_LEVEL_POLICY_BYTE_SNIPPETS = (
-    'try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), allocator_policy.modeFromByte(0));',
-    'try std.testing.expectEqual(@as(?abi.AllocatorMode, null), allocator_policy.modeFromByte(9));',
-    'try std.testing.expect(allocator_policy.recognizesByte(0));',
-    'try std.testing.expect(!allocator_policy.recognizesByte(9));',
-    'try std.testing.expect(allocator_policy.requiresExplicitCallerByte(0));',
-    'try std.testing.expect(!allocator_policy.requiresExplicitCallerByte(1));',
-    'try std.testing.expect(!allocator_policy.permitsGlobalFallbackByte(0));',
-    'try std.testing.expect(allocator_policy.permitsGlobalFallbackByte(1));',
-    'try std.testing.expectEqual(@as(?abi.PanicMode, .abort), panic_policy.modeFromByte(0));',
-    'try std.testing.expectEqual(@as(?abi.PanicMode, null), panic_policy.modeFromByte(9));',
-    'try std.testing.expect(panic_policy.recognizesByte(2));',
-    'try std.testing.expect(!panic_policy.recognizesByte(9));',
-    'try std.testing.expectEqual(@as(?panic_policy.Action, .warn_and_return), panic_policy.actionForByte(2));',
-    'try std.testing.expectEqual(@as(?panic_policy.Action, null), panic_policy.actionForByte(9));',
-    'try std.testing.expect(panic_policy.mustAbortByte(0));',
-    'try std.testing.expect(panic_policy.mustBugCheckByte(1));',
-    'try std.testing.expect(panic_policy.canReturnByte(2));',
-    'try std.testing.expect(!panic_policy.canReturnByte(9));',
+    "try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), allocator_policy.modeFromByte(0));",
+    "try std.testing.expectEqual(@as(?abi.AllocatorMode, null), allocator_policy.modeFromByte(9));",
+    "try std.testing.expect(allocator_policy.recognizesByte(0));",
+    "try std.testing.expect(!allocator_policy.recognizesByte(9));",
+    "try std.testing.expect(allocator_policy.requiresExplicitCallerByte(0));",
+    "try std.testing.expect(!allocator_policy.requiresExplicitCallerByte(1));",
+    "try std.testing.expect(!allocator_policy.permitsGlobalFallbackByte(0));",
+    "try std.testing.expect(allocator_policy.permitsGlobalFallbackByte(1));",
+    "try std.testing.expectEqual(allocator_policy.InitFlow.caller_prepared, allocator_policy.initFlowFor(.caller_provided));",
+    "try std.testing.expectEqual(allocator_policy.InitFlow.helper_owned, allocator_policy.initFlowFor(.kernel_heap));",
+    "try std.testing.expectEqual(allocator_policy.InitFlow.helper_owned_with_reset, allocator_policy.initFlowFor(.arena));",
+    "try std.testing.expect(!allocator_policy.initializesOwnedState(.caller_provided));",
+    "try std.testing.expect(allocator_policy.initializesOwnedState(.kernel_heap));",
+    "try std.testing.expect(allocator_policy.initializesOwnedState(.arena));",
+    "try std.testing.expect(initializesOwnedStateByte(1));",
+    "try std.testing.expect(!allocator_policy.initializesOwnedStateInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!allocator_policy.initializesOwnedStateInteropPolicy(unknown_policy));",
+    "try std.testing.expect(!allocator_policy.requiresResetOnInit(.caller_provided));",
+    "try std.testing.expect(!allocator_policy.requiresResetOnInit(.kernel_heap));",
+    "try std.testing.expect(allocator_policy.requiresResetOnInit(.arena));",
+    "try std.testing.expect(requiresResetOnInitByte(2));",
+    "try std.testing.expect(!allocator_policy.requiresResetOnInitInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!allocator_policy.requiresResetOnInitInteropPolicy(unknown_policy));",
+    "try std.testing.expectEqual(@as(?abi.PanicMode, .abort), panic_policy.modeFromByte(0));",
+    "try std.testing.expectEqual(@as(?abi.PanicMode, null), panic_policy.modeFromByte(9));",
+    "try std.testing.expect(panic_policy.recognizesByte(2));",
+    "try std.testing.expect(!panic_policy.recognizesByte(9));",
+    "try std.testing.expectEqual(@as(?panic_policy.Action, .warn_and_return), panic_policy.actionForByte(2));",
+    "try std.testing.expectEqual(@as(?panic_policy.Action, null), panic_policy.actionForByte(9));",
+    "try std.testing.expect(panic_policy.mustAbortByte(0));",
+    "try std.testing.expect(panic_policy.mustBugCheckByte(1));",
+    "try std.testing.expect(panic_policy.canReturnByte(2));",
+    "try std.testing.expect(!panic_policy.canReturnByte(9));",
 )
 
 REQUIRED_FOCUSED_REPLAY_SNIPPETS = (
@@ -335,7 +354,7 @@ def run_self_test() -> int:
             "\n".join(
                 snippet
                 for snippet in REQUIRED_NARROW_SNIPPETS
-                if snippet != 'try writeValueAtByte(u32, second_addr, 73, 2);'
+                if snippet != "try writeValueAtByte(u32, second_addr, 73, 2);"
             )
             + "\n",
         )
@@ -349,7 +368,7 @@ def run_self_test() -> int:
             "\n".join(
                 snippet
                 for snippet in REQUIRED_PANIC_SNIPPETS
-                if snippet != 'try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));'
+                if snippet != "try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));"
             )
             + "\n",
         )
@@ -380,7 +399,7 @@ def run_self_test() -> int:
             "\n".join(
                 snippet
                 for snippet in REQUIRED_ALLOCATOR_SNIPPETS
-                if snippet != 'try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));'
+                if snippet != "try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));"
             )
             + "\n",
         )
@@ -414,13 +433,47 @@ def run_self_test() -> int:
             "\n".join(
                 snippet
                 for snippet in REQUIRED_ALLOCATOR_SNIPPETS
-                if snippet != 'try std.testing.expect(initializesOwnedStateInteropPolicy(heap_policy));'
+                if snippet != "try std.testing.expect(initializesOwnedStateInteropPolicy(heap_policy));"
             )
             + "\n",
         )
         issues = validate(root)
         assert (
             "missing_allocator_snippet:try std.testing.expect(initializesOwnedStateInteropPolicy(heap_policy));"
+            in issues
+        )
+
+        _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS) + "\n")
+        _write(
+            root,
+            ALLOCATOR_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_ALLOCATOR_SNIPPETS
+                if snippet != "try std.testing.expect(!initializesOwnedStateInteropPolicy(reserved_policy));"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_allocator_snippet:try std.testing.expect(!initializesOwnedStateInteropPolicy(reserved_policy));"
+            in issues
+        )
+
+        _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS) + "\n")
+        _write(
+            root,
+            ALLOCATOR_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_ALLOCATOR_SNIPPETS
+                if snippet != "try std.testing.expect(!requiresResetOnInitInteropPolicy(unknown_policy));"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_allocator_snippet:try std.testing.expect(!requiresResetOnInitInteropPolicy(unknown_policy));"
             in issues
         )
 
@@ -439,7 +492,7 @@ def run_self_test() -> int:
             "\n".join(
                 snippet
                 for snippet in REQUIRED_LOW_LEVEL_POLICY_BYTE_SNIPPETS
-                if snippet != 'try std.testing.expect(panic_policy.mustBugCheckByte(1));'
+                if snippet != "try std.testing.expect(panic_policy.mustBugCheckByte(1));"
             )
             + "\n",
         )
@@ -457,7 +510,7 @@ def run_self_test() -> int:
         assert f"missing_mmio_consumer_snippet:{REQUIRED_MMIO_CONSUMER_SNIPPETS[-1]}" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=19")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
