@@ -169,6 +169,7 @@ TEXT_MARKERS = {
         "- name: Run Phase 11 shared replay contract checker",
         "- name: Check Phase 11 shared summary surfaces",
         "- name: Run Phase 11 watchdog and console tests",
+        "- name: Run dedicated Phase 11 hvc survey replay",
     ],
 }
 
