@@ -312,6 +312,27 @@ test "phase11 dw_wdt verify keeps restart failure modes explicit" {
     try std.testing.expectEqual(RestartFailureState.restart_ready, ready.state);
 }
 
+test "phase11 dw_wdt verify keeps ready restart distinct from restart-priority registration" {
+    const ready_without_priority = summarizeRestartFailureMode(.{
+        .drvdata_ready = true,
+        .timeout_image_ready = true,
+        .restart_priority_registered = false,
+        .reset_pulse_available = true,
+    });
+
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", ready_without_priority.anchor);
+    try std.testing.expectEqualStrings("dw_wdt_restart", ready_without_priority.restart_call);
+    try std.testing.expectEqualStrings("watchdog_set_restart_priority", ready_without_priority.restart_priority_call);
+    try std.testing.expect(ready_without_priority.restart_requested);
+    try std.testing.expect(ready_without_priority.writes_timeout_range);
+    try std.testing.expect(ready_without_priority.writes_control);
+    try std.testing.expect(!ready_without_priority.restart_priority_registered);
+    try std.testing.expect(ready_without_priority.expects_reset_pulse);
+    try std.testing.expect(!ready_without_priority.keeps_missing_drvdata_explicit);
+    try std.testing.expect(!ready_without_priority.keeps_missing_timeout_image_explicit);
+    try std.testing.expectEqual(RestartFailureState.restart_ready, ready_without_priority.state);
+}
+
 test "phase11 dw_wdt verify keeps missing-drvdata restart failures explicit" {
     const blocked_drvdata = summarizeRestartFailureMode(.{
         .drvdata_ready = false,
