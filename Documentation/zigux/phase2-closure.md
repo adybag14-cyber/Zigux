@@ -17,6 +17,8 @@ This note records the bounded Phase 2 toolchain, build-check, and kbuild-facing 
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json`
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
+- shared toolchain checker self-test: `python3 scripts/zigux/check-zig-toolchain.py --self-test`
+- shared toolchain checker gate: `python3 scripts/zigux/check-zig-toolchain.py`
 - shared validator gate: `python3 scripts/zigux/validate-phase2.py`
 - closure validator gate: `python3 scripts/zigux/validate-phase2-closure.py`
 - shared tests README alignment self-test: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`
