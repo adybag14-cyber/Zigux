@@ -139,6 +139,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase1-installer-review-surfaces.py",
     "scripts/zigux/check-phase1-installer-companion-checks.py",
     "scripts/zigux/check-phase1-direct-owner-markers.py",
+    "scripts/zigux/check-phase1-string-review-packet.py",
     "scripts/zigux/check-phase1-parity.py",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/validate-phase1.py",
@@ -684,6 +685,12 @@ def run_self_test() -> None:
         direct_owner_checker_path = root / "scripts/zigux/check-phase1-direct-owner-markers.py"
         direct_owner_checker_path.unlink()
         assert collect_missing_files(root) == ["scripts/zigux/check-phase1-direct-owner-markers.py"]
+        case_count += 1
+        make_fixture_root(root)
+
+        string_review_checker_path = root / "scripts/zigux/check-phase1-string-review-packet.py"
+        string_review_checker_path.unlink()
+        assert collect_missing_files(root) == ["scripts/zigux/check-phase1-string-review-packet.py"]
         case_count += 1
         make_fixture_root(root)
 
