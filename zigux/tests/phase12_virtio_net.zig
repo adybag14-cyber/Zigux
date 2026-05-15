@@ -383,6 +383,58 @@ test "phase12 virtio net control queue recovery plan keeps dirty control-state r
     try std.testing.expectEqual(@as(u16, 6), plan.command_count);
 }
 
+test "phase12 virtio net control queue payload shape keeps reset-window payload sizing reviewable" {
+    var lab = virtio_net.VirtioNetProbeLab.init();
+    try std.testing.expectError(error.TransportNotResetting, lab.planControlQueuePayloadShape(.{}));
+
+    _ = lab.captureProbeSnapshot(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = true,
+    });
+    _ = try lab.summarizeQueueTopology(.{
+        .requested_queue_pairs = 4,
+        .device_queue_pairs = 2,
+        .has_control_vq = true,
+        .has_rss = true,
+        .uses_hash_report = true,
+        .uses_udp_tunnel_headers = true,
+    });
+    _ = try lab.freezeForReset();
+
+    const summary = try lab.planControlQueuePayloadShape(.{
+        .receive_mode_payload_bytes = 4,
+        .hash_report_payload_bytes = 8,
+        .mac_entries = 2,
+        .vlan_entries = 3,
+        .rss_table_entries = 4,
+        .rss_hash_key_bytes = 16,
+    });
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", summary.anchor);
+    try std.testing.expect(summary.control_vq_present);
+    try std.testing.expectEqual(@as(?u16, 4), summary.control_queue_index);
+    try std.testing.expect(summary.requires_receive_mode_payload);
+    try std.testing.expect(summary.requires_hash_report_payload);
+    try std.testing.expect(summary.requires_mac_table_payload);
+    try std.testing.expect(summary.requires_vlan_filter_payload);
+    try std.testing.expect(summary.requires_rss_config_payload);
+    try std.testing.expectEqual(@as(u16, 4), summary.receive_mode_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 8), summary.hash_report_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 12), summary.mac_table_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 6), summary.vlan_filter_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 24), summary.rss_config_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 2), summary.fixed_payload_command_count);
+    try std.testing.expectEqual(@as(u16, 3), summary.variable_payload_command_count);
+    try std.testing.expectEqual(@as(u32, 54), summary.total_payload_bytes);
+    try std.testing.expectEqual(@as(u32, 24), summary.largest_payload_bytes);
+
+    _ = try lab.restoreAfterReset();
+    try std.testing.expectError(error.TransportNotResetting, lab.planControlQueuePayloadShape(.{}));
+}
+
 test "phase12 virtio net recovery replay requires a fresh probe and only reuses replanned refill state" {
     var lab = virtio_net.VirtioNetProbeLab.init();
 
