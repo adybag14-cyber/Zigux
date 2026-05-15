@@ -111,6 +111,15 @@ REQUIRED_MARKERS = {
         "oversized symbol names now truncate to `KSYM_NAME_LEN`",
         "weak-object `V` and `v` classes still follow the current C header contract",
     ),
+    KALLSYMS_HELPER_PATH: (
+        "pub const KSYM_NAME_LEN: usize = 512;",
+        "pub fn parseLine(line: []const u8) ?ParsedSymbol {",
+        "pub fn kallsymsParse(",
+        'test "weak object symbol classes keep the current C helper classification" {',
+        'test "parseLine truncates oversized names without keeping a parser-local error surface" {',
+        'test "chunked parsing bounds oversized line buffering to the current helper window" {',
+        'test "reader, path, and callback wrappers preserve raw carriage returns before newline" {',
+    ),
     HELP_TEST_PATH: (
         'test "phase 8 help slice note keeps helper-first output-stable tooling posture and non-goals explicit"',
         'test "phase 8 help command-source and terminal layers stay aligned with the current help.c slice"',
@@ -261,6 +270,22 @@ def run_self_test() -> int:
             (
                 KALLSYMS_SLICE_PATH,
                 "oversized symbol names now truncate to `KSYM_NAME_LEN`",
+            ),
+            (
+                KALLSYMS_HELPER_PATH,
+                "pub fn parseLine(line: []const u8) ?ParsedSymbol {",
+            ),
+            (
+                KALLSYMS_HELPER_PATH,
+                'test "weak object symbol classes keep the current C helper classification" {',
+            ),
+            (
+                KALLSYMS_HELPER_PATH,
+                'test "chunked parsing bounds oversized line buffering to the current helper window" {',
+            ),
+            (
+                KALLSYMS_HELPER_PATH,
+                'test "reader, path, and callback wrappers preserve raw carriage returns before newline" {',
             ),
             (
                 HELP_TEST_PATH,
