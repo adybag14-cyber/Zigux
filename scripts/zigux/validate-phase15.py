@@ -327,8 +327,11 @@ def _validate_phase15_governance_manifests(root: Path, missing: list[str]) -> No
     posture = parity_scorecard.get("posture")
     if not isinstance(posture, dict):
         missing.append("phase15_parity_scorecard:posture")
-    elif posture.get("architecture_council_status_change_approval_recorded") is not False:
-        missing.append("phase15_parity_scorecard:posture.architecture_council_status_change_approval_recorded")
+    else:
+        if posture.get("architecture_council_status_change_approval_recorded") is not False:
+            missing.append("phase15_parity_scorecard:posture.architecture_council_status_change_approval_recorded")
+        if posture.get("scorecard_role") != "blocked_posture_accounting_not_port_readiness":
+            missing.append("phase15_parity_scorecard:posture.scorecard_role")
 
     metrics = parity_scorecard.get("metrics")
     if not isinstance(metrics, dict):
@@ -415,7 +418,7 @@ def _phase15_freeze_map_manifest_fixture() -> dict:
     return {
         "lane_key": "P15-L04",
         "phase": "Phase 15",
-        "surveyed_commit": "current-master-readback-2026-05-11",
+        "surveyed_commit": "current-master-readback-2026-05-15",
         "surveyed_commit_mode": "dated_master_readback",
         "anchor": "Documentation/zigux/freeze-map.md",
         "freeze_in_c_targets": EXPECTED_FREEZE_IN_C_TARGETS,
@@ -451,8 +454,11 @@ def _phase15_freeze_map_manifest_fixture() -> dict:
 
 def _phase15_parity_scorecard_fixture() -> dict:
     return {
-        "surveyed_commit": "current-master-readback-2026-05-11",
-        "posture": {"architecture_council_status_change_approval_recorded": False},
+        "surveyed_commit": "current-master-readback-2026-05-15",
+        "posture": {
+            "architecture_council_status_change_approval_recorded": False,
+            "scorecard_role": "blocked_posture_accounting_not_port_readiness",
+        },
         "metrics": {
             "active_freeze_in_c_anchor_count": len(EXPECTED_FREEZE_IN_C_TARGETS),
             "blocked_status_change_anchor_count": EXPECTED_BLOCKED_STATUS_CHANGE_COUNT,
@@ -512,6 +518,7 @@ def _phase15_parity_scorecard_fixture() -> dict:
                         "Documentation/zigux/freeze-map.md",
                         "Documentation/zigux/phase15-freeze-map-governance.md",
                         "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+                        "Documentation/zigux/phase14-core-boundary-traceability.md",
                     ],
                 },
             },
@@ -623,6 +630,13 @@ def run_self_test() -> int:
         _assert_result(*validate(root), [], [], "baseline")
         case_count += 1
 
+        parity_manifest = json.loads(_read(root, PARITY_SCORECARD_REL))
+        parity_manifest["posture"].pop("scorecard_role", None)
+        _write(root, PARITY_SCORECARD_REL, json.dumps(parity_manifest, indent=2) + "\n")
+        _assert_result(*validate(root), [], ["phase15_parity_scorecard:posture.scorecard_role"], "parity_scorecard_role")
+        _seed_fixture_tree(root)
+        case_count += 1
+
         make_text = _read(root, "zigux/Makefile")
         marker = "scripts/zigux/check-phase15-docs-readme-alignment.py --self-test"
         _write(root, "zigux/Makefile", make_text.replace(marker + "\n", "", 1))
@@ -720,7 +734,7 @@ def main() -> int:
             + len(LANE_SEQUENCING_MARKERS)
             + len(READINESS_BOOL_FIELDS)
             + len(READINESS_CHECKERS)
-            + 11
+            + 12
         )
     )
     print("PHASE15_REMAINING_BLOCKERS=phase15-deep-core-status-change-blocker")
