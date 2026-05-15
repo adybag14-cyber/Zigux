@@ -18,6 +18,7 @@ FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_closure_manifest.json",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "zigux/tests/README.md",
 ]
 
@@ -79,6 +80,16 @@ SCRIPTS_README_MARKERS = [
     "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
 ]
 
+TESTS_ROOT_COMPANION_MARKERS = [
+    "`scripts/zigux/check-phase10-harness-coverage.py`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`Documentation/zigux/phase10-virtio-core-slice.md`",
+    "`Documentation/zigux/phase10-virtio-ring-slice.md`",
+    "`Documentation/zigux/phase10-virtio-input-slice.md`",
+    "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
+    "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
+]
+
 TESTS_README_MARKERS = [
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
@@ -105,6 +116,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     missing: list[str] = []
     checks = [
         ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
+        (
+            "tests_root_companion",
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            TESTS_ROOT_COMPANION_MARKERS,
+        ),
         ("make", "zigux/Makefile", MAKE_MARKERS),
         ("workflow", ".github/workflows/zigux-bootstrap.yml", WORKFLOW_MARKERS),
         ("build", "zigux/tests/phase10_build.zig", BUILD_MARKERS),
@@ -153,6 +169,10 @@ def write_fixture(root: Path) -> None:
     text_files = {
         "Documentation/zigux/phase10-virtio-mmio-slice.md": "fixture\n",
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "fixture\n",
+        "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(
+            TESTS_ROOT_COMPANION_MARKERS
+        )
+        + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
         "scripts/zigux/check-phase10-mmio-packet.py": "fixture\n",
@@ -333,6 +353,40 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        tests_root_companion_path = (
+            root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
+        )
+        original_tests_root_companion = tests_root_companion_path.read_text(encoding="utf-8")
+        tests_root_companion_path.write_text(
+            original_tests_root_companion.replace(
+                "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
+                "`Documentation/zigux/phase10-virtio-input-module-slice-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_root_companion_input_module_slice",
+            root,
+            "tests_root_companion:`Documentation/zigux/phase10-virtio-input-module-slice.md`",
+        )
+        tests_root_companion_path.write_text(original_tests_root_companion, encoding="utf-8")
+
+        tests_root_companion_path.write_text(
+            original_tests_root_companion.replace(
+                "`scripts/zigux/check-phase10-harness-coverage.py`",
+                "`scripts/zigux/check-phase10-harness-coverage-missing.py`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_root_companion_harness_checker",
+            root,
+            "tests_root_companion:`scripts/zigux/check-phase10-harness-coverage.py`",
+        )
+        tests_root_companion_path.write_text(original_tests_root_companion, encoding="utf-8")
+
         manifest_path = root / "zigux/tests/phase10_closure_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -385,7 +439,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -412,5 +466,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(SCRIPTS_README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
+    f"{len(SCRIPTS_README_MARKERS) + len(TESTS_ROOT_COMPANION_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
 )
