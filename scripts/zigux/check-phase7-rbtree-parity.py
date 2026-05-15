@@ -152,6 +152,41 @@ REQUIRED_MARKERS = {
         "phase 7 rbtree postorder traversal matches committed parity fixture",
         "phase 7 rbtree cleared detached nodes stop postorder traversal",
     ],
+    # Fail closed on the concrete alias exercise points, not just the alias
+    # names, so the parked rbtree packet keeps its Linux-style wrapper surface
+    # actively covered.
+    "lib/rbtree.zig": [
+        "pub const NodeLinked",
+        "pub const RootLinked",
+        "pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node",
+        "pub fn addLinked",
+        "pub fn eraseCached(node: *Node, root: *RootCached) ?*Node",
+        "pub fn eraseLinked",
+        "pub fn clearLinkedNode",
+        "pub fn eraseInit",
+        "pub fn rb_find(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node",
+        "pub fn rb_find_first(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node",
+        "pub fn rb_next_match(key: anytype, node: *const Node, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node",
+        "pub fn rb_erase_init(node: *Node, root: *Root) void",
+        "pub fn replaceNodeCached",
+        "pub fn rb_replace_node(victim: *Node, new: *Node, root: *Root) void",
+        "pub fn firstPostorder",
+        "pub fn rb_first_postorder(root: *const Root) ?*Node",
+        "pub fn nextPostorder",
+        "pub fn rb_next_postorder(node: ?*const Node) ?*Node",
+        'test "rbtree primary Linux-style aliases mirror traversal and duplicate-search helpers"',
+        'test "rbtree linked helpers track leftmost and neighbour links"',
+        'test "rbtree eraseInit clears detached nodes after erase"',
+        'test "rbtree replaceNode keeps displaced nodes non-empty until cleared"',
+        'test "rbtree postorder and empty node helpers behave"',
+        "const alias_first_match = rb_find_first(duplicate_key, &duplicate_root, cmp) orelse return error.TestUnexpectedResult;",
+        "cursor = rb_next_match(duplicate_key, cursor, cmp) orelse break;",
+        "rb_erase_init(&replacement.node, &replace_root);",
+        "var postorder_cursor = rb_first_postorder(&postorder_root);",
+        "try std.testing.expectEqual(@as(?*Node, null), rb_next_postorder(null));",
+        "try std.testing.expectEqual(@as(?*Node, null), nextPostorder(null));",
+        "try std.testing.expectEqual(@as(?*Node, null), nextPostorder(&detached));",
+    ],
 }
 
 
@@ -183,7 +218,6 @@ def write_fixture_root(tmp_root: Path) -> None:
             "zigux/tests/phase7_rbtree_manifest.json": "{}\n",
             "zigux/tests/fixtures/phase7_rbtree.json": "{}\n",
             "zigux/tests/fixtures/phase7_rbtree_c_harness.c": "/* fixture */\n",
-            "lib/rbtree.zig": "// fixture\n",
         }
     )
     for rel in REQUIRED_FILES:
@@ -429,6 +463,41 @@ def run_self_test() -> None:
             "phase 7 rbtree cleared detached nodes stop postorder traversal",
             "",
             "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree cleared detached nodes stop postorder traversal",
+        ),
+        (
+            "helper_impl_alias_find_first_marker",
+            "lib/rbtree.zig",
+            "const alias_first_match = rb_find_first(duplicate_key, &duplicate_root, cmp) orelse return error.TestUnexpectedResult;",
+            "",
+            "lib/rbtree.zig: const alias_first_match = rb_find_first(duplicate_key, &duplicate_root, cmp) orelse return error.TestUnexpectedResult;",
+        ),
+        (
+            "helper_impl_alias_next_match_marker",
+            "lib/rbtree.zig",
+            "cursor = rb_next_match(duplicate_key, cursor, cmp) orelse break;",
+            "",
+            "lib/rbtree.zig: cursor = rb_next_match(duplicate_key, cursor, cmp) orelse break;",
+        ),
+        (
+            "helper_impl_alias_erase_init_marker",
+            "lib/rbtree.zig",
+            "rb_erase_init(&replacement.node, &replace_root);",
+            "",
+            "lib/rbtree.zig: rb_erase_init(&replacement.node, &replace_root);",
+        ),
+        (
+            "helper_impl_alias_first_postorder_marker",
+            "lib/rbtree.zig",
+            "var postorder_cursor = rb_first_postorder(&postorder_root);",
+            "",
+            "lib/rbtree.zig: var postorder_cursor = rb_first_postorder(&postorder_root);",
+        ),
+        (
+            "helper_impl_alias_next_postorder_marker",
+            "lib/rbtree.zig",
+            "try std.testing.expectEqual(@as(?*Node, null), rb_next_postorder(null));",
+            "",
+            "lib/rbtree.zig: try std.testing.expectEqual(@as(?*Node, null), rb_next_postorder(null));",
         ),
     ]
 
