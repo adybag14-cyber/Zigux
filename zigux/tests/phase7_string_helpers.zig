@@ -204,6 +204,30 @@ test "phase 7 string helpers starter escapes bounded memory across flag families
     try std.testing.expectEqualSlices(u8, "\\x0", &truncated);
 }
 
+test "phase 7 string helpers starter keeps append-limited octal dictionary escapes reviewable" {
+    var octal_dst = [_]u8{0} ** 16;
+    const octal_written = string_helpers.stringEscapeMem(
+        "AZ",
+        &octal_dst,
+        0,
+        string_helpers.ESCAPE_OCTAL | string_helpers.ESCAPE_APPEND | string_helpers.ESCAPE_NAP,
+        "Z",
+    );
+    try std.testing.expectEqual(@as(usize, 5), octal_written);
+    try std.testing.expectEqualSlices(u8, "A\\132", octal_dst[0..octal_written]);
+
+    var alias_dst = [_]u8{0} ** 16;
+    const alias_written = string_helpers.string_escape_mem(
+        "AZ",
+        &alias_dst,
+        0,
+        string_helpers.ESCAPE_OCTAL | string_helpers.ESCAPE_APPEND | string_helpers.ESCAPE_NAP,
+        "Z",
+    );
+    try std.testing.expectEqual(@as(usize, 5), alias_written);
+    try std.testing.expectEqualSlices(u8, "A\\132", alias_dst[0..alias_written]);
+}
+
 test "phase 7 string helpers starter builds sequential string arrays and sentinel views" {
     var result = try string_helpers.kasprintfStrarray(std.testing.allocator, "phase7-helper", 3);
     defer result.deinit(std.testing.allocator);
