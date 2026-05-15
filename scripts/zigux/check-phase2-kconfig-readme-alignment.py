@@ -14,7 +14,8 @@ CURRENT_BOOTSTRAP_HELPERS_SNIPPET = (
     "- `check-phase2-tool-manifest-packets.py` - `check-phase2-fixdep-gate.py` "
     "- `check-fixdep-diff.py` - `check-genksyms-bridge.py` - `check-phase2-cross.py` "
     "- `check-phase2-cross-selftest-alignment.py` - `check-phase2-kconfig-selftest-alignment.py` "
-    "- `check-kconfig-bridge.py` - `validate-phase2.py` - `validate-phase2-closure.py` "
+    "- `check-phase2-confdata-helper-anchor-alignment.py` - `check-kconfig-bridge.py` "
+    "- `validate-phase2.py` - `validate-phase2-closure.py` "
     "- `check-phase2-toolchain-pin-scope.py` - `validate-phase3.py`"
 )
 CURRENT_PHASE2_LIVE_SENTENCE = (
@@ -23,10 +24,11 @@ CURRENT_PHASE2_LIVE_SENTENCE = (
     "`check-phase2-tests-readme-alignment.py`, `check-phase2-kconfig-readme-alignment.py`, "
     "`check-phase2-tool-manifest-packets.py`, `check-phase2-fixdep-gate.py`, "
     "`check-fixdep-diff.py`, `check-genksyms-bridge.py`, `check-phase2-cross.py`, "
-    "`check-phase2-cross-selftest-alignment.py`, `check-phase2-kconfig-selftest-alignment.py`, and "
-    "`check-kconfig-bridge.py` are the live shared scripts-root Phase 2 helpers on current `master`; the broader "
-    "`phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, "
-    "and `phase2` route inventory plus the dedicated fixdep, genksyms, manifest, cross-target, "
+    "`check-phase2-cross-selftest-alignment.py`, `check-phase2-kconfig-selftest-alignment.py`, "
+    "`check-phase2-confdata-helper-anchor-alignment.py`, and `check-kconfig-bridge.py` are the live "
+    "shared scripts-root Phase 2 helpers on current `master`; the broader `phase2-toolchain`, "
+    "`phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` route "
+    "inventory plus the dedicated fixdep, genksyms, manifest, cross-target, confdata-helper-anchor, "
     "and bridge checker packet should stay documented through "
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
     "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` "
@@ -36,11 +38,12 @@ CURRENT_PHASE2_KCONFIG_SENTENCE = (
     "- `check-phase2-kconfig-readme-alignment.py --self-test` and "
     "`check-phase2-kconfig-readme-alignment.py` keep this scripts index honest by requiring the "
     "live Phase 2 summary to name `check-phase2-tests-readme-alignment.py`, "
+    "`check-phase2-confdata-helper-anchor-alignment.py`, "
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
     "`Documentation/zigux/phase2-closure.md`, `zigux/Makefile`, and the Linux-style "
-    "`phase2-kconfig` route while keeping the dedicated kconfig bridge checker packet "
-    "documented through the shared Phase 2 reminder surface instead of implying that stack is "
-    "missing on current `master`."
+    "`phase2-kconfig` route while keeping the dedicated kconfig bridge checker packet and the "
+    "confdata helper-anchor review surface documented through the shared Phase 2 reminder surface "
+    "instead of implying that stack is missing on current `master`."
 )
 PHASE2_TESTS_ALIGNMENT_SENTENCE = (
     "Phase 2 flow - `check-phase2-tests-readme-alignment.py` keeps `zigux/tests/README.md`, "
@@ -100,6 +103,7 @@ FORBIDDEN_MARKERS = (
 
 EXACT_MARKER_COUNTS = {
     "`check-kconfig-bridge.py`": 2,
+    "`check-phase2-confdata-helper-anchor-alignment.py`": 3,
 }
 
 
@@ -165,6 +169,13 @@ def run_self_test() -> int:
     ) in issues
     checks_run += 1
 
+    issues = collect_issues(current_text + "\n`check-phase2-confdata-helper-anchor-alignment.py`\n")
+    assert (
+        "EXACT_MARKER_COUNT_MISMATCH",
+        "`check-phase2-confdata-helper-anchor-alignment.py`:actual=4:expected=3",
+    ) in issues
+    checks_run += 1
+
     for snippet in REQUIRED_SNIPPETS:
         issues = collect_issues(current_text.replace(snippet, "", 1))
         assert ("REQUIRED_SNIPPET_COUNT_MISMATCH", f"{snippet}:actual=0:expected=1") in issues
@@ -186,7 +197,7 @@ def run_self_test() -> int:
         assert issues == []
         checks_run += 1
 
-    expected_self_test_case_count = 3 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_MARKERS)
+    expected_self_test_case_count = 4 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_MARKERS)
     if checks_run != expected_self_test_case_count:
         print("PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST=fail")
         print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
