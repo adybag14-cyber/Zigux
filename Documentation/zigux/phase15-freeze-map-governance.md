@@ -11,29 +11,12 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and freeze-map gate, the shared validator-first route already shipped for the current governance packet, and one bounded maintenance follow-up that keeps the current freeze anchor set, blocker evidence, required approver sets, shared governance provenance, and maintenance-mode handoff aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, per-anchor evidence-archive reporting posture, and an anchor-by-anchor deep-core blocker survey that compares roadmap posture against current repo reality
 - survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-15` on 2026-05-15 after a fresh live reread confirmed the freeze anchor set and blocker posture still match current repo reality while the prior dated marker `current-master-readback-2026-05-14` no longer represented the latest survey date
 - exact branch-head parity is not recorded for this packet; the parked freeze-map governance note now uses an explicit dated readback marker instead of stale exact-head provenance while keeping the same freeze anchor set and blocker posture
-- product boundary:
+- direct lane-owned boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
-  - `Documentation/zigux/README.md`
-  - `Documentation/zigux/review-checklist.md`
-  - `Documentation/zigux/phase15-parity-scorecard.md`
-  - `Documentation/zigux/phase15-architecture-council-review-process.md`
-  - `Documentation/zigux/phase15-indefinite-c-policy.md`
-  - `scripts/zigux/README.md`
-  - `scripts/zigux/validate-phase15.py`
-  - `scripts/zigux/check-phase15-docs-readme-alignment.py`
-  - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
-  - `scripts/zigux/check-phase15-review-process-handoff.py`
-  - `scripts/zigux/check-phase15-shared-summary-gap.py`
-  - `zigux/tests/README.md`
-  - `zigux/tests/phase15_build.zig`
-  - `zigux/tests/phase15_parity_scorecard.zig`
-  - `zigux/tests/phase15_parity_scorecard.json`
   - `zigux/tests/phase15_freeze_map_manifest.json`
   - `zigux/tests/phase15_freeze_map_governance.zig`
-  - `make -C zigux phase15-validate`
-  - `make -C zigux phase15-test`
-  - `make -C zigux phase15`
+- adjacent Phase 15 parity-scorecard, review-process, indefinite-C-policy, readiness, handoff, and shared-summary surfaces still inform this lane's truthfulness checks, but they remain neighboring packet inputs rather than lane-owned boundary files here
 
 ## Why this slice exists
 
@@ -43,7 +26,7 @@ The live repo now carries much more than the original freeze-map starter: the pa
 
 Shared Phase 15 readback already corrected the packet to the newer exact head and kept the current freeze anchor set and blocker dispositions explicit, but a later compare-against-master check showed that exact-head marker has now fallen behind live `master` even though the actual freeze anchor set and blocker survey still remain the same.
 
-The honest bounded step is therefore truthfulness maintenance, not expansion: keep the same freeze-map-specific lane record, preserve the current freeze anchor set and blocker posture, keep the compact roadmap-versus-repo blocker crosswalk, and convert the stale exact-head claim into an explicit dated readback marker while the central policy note stays aligned with the later governance artifacts' closeout, reopen, evidence-archive, required-approver-set, and maintenance-handoff rules.
+The honest bounded step is therefore truthfulness maintenance, not expansion: keep the same freeze-map-specific lane record, preserve the current freeze anchor set and blocker posture, keep the compact roadmap-versus-repo blocker crosswalk, convert the stale exact-head claim into an explicit dated readback marker, and keep the lane boundary consistent with the newer sequencing note instead of re-owning adjacent parity-scorecard, policy, or shared-summary packet surfaces.
 
 ## Landed governance rules
 
@@ -113,7 +96,7 @@ The current lane state is:
 - landed `phase15-freeze-map-maintenance-handoff`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight: Zigux keeps the same reviewable governance rule for the freeze map, the same current stay-in-C policy family, the same parity-scorecard lane-owner and rollback-owner records, the same machine-checkable scorecard manifest, the same shared validator-first route, the same per-anchor required-approver-set inventory and evidence-archive reporting posture already expected by the broader Phase 15 packet, the same compact crosswalk that says which blocker comes straight from the roadmap freeze and which current repo evidence still keeps each deep-core anchor parked, and an explicit maintenance-mode handoff that says when the packet may reopen and which replay route should be rerun before trusting it again.
+This keeps the lane tight: Zigux keeps the same reviewable governance rule for the freeze map, the same current stay-in-C policy family, the same adjacent parity-scorecard lane-owner and rollback-owner records, the same shared validator-first route, the same per-anchor required-approver-set inventory and evidence-archive reporting posture already expected by the broader Phase 15 packet, the same compact crosswalk that says which blocker comes straight from the roadmap freeze and which current repo evidence still keeps each deep-core anchor parked, and an explicit maintenance-mode handoff that says when the packet may reopen and which replay route should be rerun before trusting it again.
 
 The only new maintenance claim is truthfulness: the parked note now records the current 2026-05-15 dated readback, the full shared Linux-style `phase15-validate`, `phase15-test`, and `phase15` wrapper routes, including the docs-root alignment checker and shared-summary gap checker that the shipped validator-first packet already runs, and the current shared owner-map reuse of skbuff lane P14-L11 instead of implying a stale separate shared-lane label still covered skbuff evidence.
 
