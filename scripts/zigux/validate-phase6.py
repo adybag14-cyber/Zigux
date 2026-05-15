@@ -147,9 +147,11 @@ REQUIRED_MANIFEST_EXACT_CHECKS = {
     "python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test",
     "python3 scripts/zigux/check-phase6-present-entrypoints.py",
     "make -C zigux phase6-bsearch-test",
+    "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-hexdump-review",
     "make -C zigux phase6-hexdump-perf",
     "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
+    "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
 }
 
 REQUIRED_PACKET_SUMMARY = {
@@ -191,7 +193,7 @@ WORKFLOW_ABSENT_MARKERS = (
     "make -C zigux phase6-validate",
 )
 
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 8
 
 
 def read_text(path: Path) -> str:
@@ -491,6 +493,40 @@ def run_self_test() -> None:
                 raise
         else:
             raise ValidationError("self-test expected base64 perf exact-check failure did not occur")
+
+        scaffold_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"] = [
+            check
+            for check in manifest["exact_checks"]
+            if check != "make -C zigux phase6-checksum-perf"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        try:
+            run_validation(root)
+        except ValidationError as exc:
+            if "make -C zigux phase6-checksum-perf" not in str(exc):
+                raise
+        else:
+            raise ValidationError("self-test expected checksum make-route exact-check failure did not occur")
+
+        scaffold_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"] = [
+            check
+            for check in manifest["exact_checks"]
+            if check != "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        try:
+            run_validation(root)
+        except ValidationError as exc:
+            if "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig" not in str(exc):
+                raise
+        else:
+            raise ValidationError("self-test expected checksum perf exact-check failure did not occur")
 
         scaffold_repo(root)
         makefile_path = root / MAKEFILE_PATH
