@@ -26,8 +26,8 @@ same checker family:
 - `python3 scripts/zigux/check-phase7-build-wiring.py`
 
 The same parked packet also depends on the dedicated survey, sample-boundary,
-and direct summarized test routes staying explicit beside that shared validator
-surface:
+helper-local direct build-step, and direct summarized test routes staying
+explicit beside that shared validator surface:
 
 - `make -C zigux phase7-string-helpers-survey`
 - `make -C zigux phase7-string-helpers-sample-boundary`
@@ -35,6 +35,10 @@ surface:
 - `make -C zigux phase7-argv-split-survey`
 - `make -C zigux phase7-rbtree-survey`
 - `make -C zigux phase7-test`
+- `zig build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all`
+- `zig build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all`
+- `zig build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all`
+- `zig build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all`
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
 Current `master` keeps this shared Phase 7 control surface route-present rather
@@ -46,7 +50,10 @@ beside the other helper-local packets. Treat `make -C zigux phase7-validate`,
 zigux/tests/phase7_build.zig --summary all`, and `make -C zigux phase7` as
 shared bundle reminders rather than evidence that the full four-helper packet is
 green on current `master`; this shared note still does not claim a fully passing
-all-helper bundle.
+all-helper bundle. Treat the direct `zig build phase7-*-test --build-file
+zigux/tests/phase7_build.zig --summary all` routes as route-present focused
+helper-local adapters exposed by the shared build graph rather than as a claim
+that the parked shared bundle is newly all-green.
 
 The older string-helpers missing-pair reminder and the older missing-rbtree
 replay reminder are no longer the live blocker for this shared note. Keep
@@ -112,9 +119,10 @@ parked `string_helpers`, `cmdline`, `argv_split`, and `rbtree` bundle does not
 drift back toward per-slice ad hoc checks or a false all-green shared status.
 
 `make -C zigux phase7-validate`, the dedicated survey and sample-boundary
-replays, `make -C zigux phase7-test`, and `make -C zigux phase7` remain the
-Linux-style review routes for this shared control surface while the bundle stays
-parked.
+replays, the direct `zig build phase7-*-test --build-file
+zigux/tests/phase7_build.zig --summary all` adapters, `make -C zigux phase7-test`,
+and `make -C zigux phase7` remain the Linux-style review routes for this shared
+control surface while the bundle stays parked.
 
 this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`,
 `lib/argv_split.zig`, `lib/rbtree.zig`, or the landed
