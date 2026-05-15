@@ -134,6 +134,21 @@ pub fn extractArgv0Path(allocator: std.mem.Allocator, argv0: ?[]const u8) !?Extr
     };
 }
 
+pub fn captureArgv0Path(
+    allocator: std.mem.Allocator,
+    state: *ExecCmdState,
+    argv0: ?[]const u8,
+) !?[]const u8 {
+    var extracted = (try extractArgv0Path(allocator, argv0)) orelse {
+        try setArgv0Path(allocator, state, null);
+        return null;
+    };
+    defer extracted.deinit(allocator);
+
+    try setArgv0Path(allocator, state, extracted.argv0_path);
+    return extracted.command_name;
+}
+
 pub fn makeNonrelativePath(allocator: std.mem.Allocator, cwd: []const u8, path: []const u8) ![]u8 {
     if (isAbsolutePath(path)) {
         return allocator.dupe(u8, path);
@@ -569,6 +584,30 @@ test "extractArgv0Path splits command names from directory prefixes" {
     try std.testing.expectEqualStrings("perf", bare.command_name);
 
     try std.testing.expectEqual(@as(?ExtractArgv0Result, null), try extractArgv0Path(std.testing.allocator, ""));
+}
+
+test "captureArgv0Path keeps argv0-derived state aligned with the returned command name" {
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    const command = (try captureArgv0Path(std.testing.allocator, &state, "/tmp/perf")) orelse unreachable;
+    try std.testing.expectEqualStrings("perf", command);
+    try std.testing.expectEqualStrings("/tmp", state.argv0_path.?);
+
+    const bare_command = (try captureArgv0Path(std.testing.allocator, &state, "perf")) orelse unreachable;
+    try std.testing.expectEqualStrings("perf", bare_command);
+    try std.testing.expectEqual(@as(?[]u8, null), state.argv0_path);
+}
+
+test "captureArgv0Path clears stale argv0 state when argv0 is absent" {
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try setArgv0Path(std.testing.allocator, &state, "/old/path");
+    try std.testing.expectEqualStrings("/old/path", state.argv0_path.?);
+
+    try std.testing.expectEqual(@as(?[]const u8, null), try captureArgv0Path(std.testing.allocator, &state, null));
+    try std.testing.expectEqual(@as(?[]u8, null), state.argv0_path);
 }
 
 test "makeNonrelativePath keeps root and trailing-slash cwd joins stable" {
