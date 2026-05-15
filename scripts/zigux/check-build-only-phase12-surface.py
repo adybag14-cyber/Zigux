@@ -54,6 +54,9 @@ PHASE12_NVME_PCI_RAW_GITHUB_FALLBACK_MAP_PATH = (
 )
 PHASE12_NVME_PCI_SLICE_PATH = "Documentation/zigux/phase12-nvme-pci-slice.md"
 PHASE12_NVME_PCI_SURVEY_NOTE_PATH = "Documentation/zigux/phase12-nvme-pci-survey.md"
+PHASE12_NVME_PCI_REOPEN_GOVERNANCE_PATH = (
+    "Documentation/zigux/phase12-nvme-pci-reopen-governance.md"
+)
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
@@ -102,6 +105,7 @@ REQUIRED_FILES = [
     PHASE12_NVME_PCI_RAW_GITHUB_FALLBACK_MAP_PATH,
     PHASE12_NVME_PCI_SLICE_PATH,
     PHASE12_NVME_PCI_SURVEY_NOTE_PATH,
+    PHASE12_NVME_PCI_REOPEN_GOVERNANCE_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
@@ -235,6 +239,7 @@ RELEASE_SEQUENCING_MARKERS = [
     "Current `master` now also ships the degraded-workflow `make -C zigux phase12-validate` route",
     "The active smoke-first direct shard set is `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig`",
     "`Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` as machine-checkable driver-local rollback-lab companions for the same bounded `virtio_scsi` packet",
+    "`Documentation/zigux/phase12-nvme-pci-reopen-governance.md` owner-map companion outside the wired shared release route",
 ]
 
 RELEASE_COORDINATION_MATRIX_MARKERS = [
@@ -260,6 +265,7 @@ RELEASE_CLOSURE_CHECKLIST_MARKERS = [
 
 COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS = [
     "`PHASE12_LANE=complex-driver-shared-release-packet`",
+    "driver-local NVMe reopen companion: `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`",
     "Treat the current `virtio_net` family as a starter-present direct-replay packet",
     "`drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` are now present on `master`",
     "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
@@ -675,6 +681,10 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_file:{PHASE12_NVME_PCI_SURVEY_NOTE_PATH}")
 
         write_fixture_tree(base)
+        (base / PHASE12_NVME_PCI_REOPEN_GOVERNANCE_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_NVME_PCI_REOPEN_GOVERNANCE_PATH}")
+
+        write_fixture_tree(base)
         (base / PHASE12_NVME_PCI_DRIVER_PATH).unlink()
         expect_failure(base, f"missing_file:{PHASE12_NVME_PCI_DRIVER_PATH}")
 
@@ -747,6 +757,18 @@ def run_self_test() -> int:
         expect_failure(base, f"release_sequencing:{RELEASE_SEQUENCING_MARKERS[10]}")
 
         write_fixture_tree(base)
+        sequencing_path = base / RELEASE_SEQUENCING_PATH
+        sequencing_path.write_text(
+            sequencing_path.read_text(encoding="utf-8").replace(
+                RELEASE_SEQUENCING_MARKERS[11],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"release_sequencing:{RELEASE_SEQUENCING_MARKERS[11]}")
+
+        write_fixture_tree(base)
         coordination_path = base / RELEASE_COORDINATION_MATRIX_PATH
         coordination_path.write_text(
             coordination_path.read_text(encoding="utf-8").replace(
@@ -769,6 +791,21 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, f"release_coordination_matrix:{RELEASE_COORDINATION_MATRIX_MARKERS[7]}")
+
+        write_fixture_tree(base)
+        complex_driver_lane_path = base / COMPLEX_DRIVER_LANE_SEQUENCING_PATH
+        complex_driver_lane_path.write_text(
+            complex_driver_lane_path.read_text(encoding="utf-8").replace(
+                COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[1],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"complex_driver_lane_sequencing:{COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[1]}",
+        )
 
         write_fixture_tree(base)
         review_checklist_path = base / REVIEW_CHECKLIST_PATH
@@ -831,7 +868,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=7:actual=6")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=25")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=28")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
