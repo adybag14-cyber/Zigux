@@ -36,9 +36,9 @@ SEQUENCING_MARKER = "Documentation/zigux/phase15-governance-lane-sequencing.md"
 CHECKER_MARKER = "scripts/zigux/check-phase15-shared-summary-gap.py"
 DOCS_ALIGNMENT_CHECKER_MARKER = "scripts/zigux/check-phase15-docs-readme-alignment.py"
 ALIGNMENT_CHECKER_MARKER = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
+HANDOFF_CHECKER_MARKER = "scripts/zigux/check-phase15-review-process-handoff.py"
 LANE_OWNER_ALIGNMENT_MARKER = "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
 VALIDATE_MARKER = "scripts/zigux/validate-phase15.py"
-HANDOFF_CHECKER_MARKER = "scripts/zigux/check-phase15-review-process-handoff.py"
 HANDOFF_MANIFEST_MARKER = "zigux/tests/phase15_handoff_next_steps_manifest.json"
 READINESS_MANIFEST_MARKER = "zigux/tests/phase15_readiness_gate_manifest.json"
 PHASE15_VALIDATE_ROUTE = "`make -C zigux phase15-validate`"
@@ -56,6 +56,7 @@ FILE_MARKERS = {
         HANDOFF_MARKER,
         SEQUENCING_MARKER,
         ALIGNMENT_CHECKER_MARKER,
+        HANDOFF_CHECKER_MARKER,
         LANE_OWNER_ALIGNMENT_MARKER,
         PHASE15_VALIDATE_ROUTE,
         PHASE15_TEST_ROUTE,
@@ -150,6 +151,7 @@ def _seed(root: Path) -> None:
                 HANDOFF_MARKER,
                 SEQUENCING_MARKER,
                 ALIGNMENT_CHECKER_MARKER,
+                HANDOFF_CHECKER_MARKER,
                 LANE_OWNER_ALIGNMENT_MARKER,
                 PHASE15_VALIDATE_ROUTE,
                 PHASE15_TEST_ROUTE,
@@ -309,6 +311,16 @@ def run_self_test() -> int:
             validate(root),
             [f"{DOCS_README_REL}:missing:{ALIGNMENT_CHECKER_MARKER}"],
             "docs_readme_missing_alignment_checker",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace(HANDOFF_CHECKER_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{DOCS_README_REL}:missing:{HANDOFF_CHECKER_MARKER}"],
+            "docs_readme_missing_handoff_checker",
         )
         _seed(root)
         case_count += 1
@@ -550,9 +562,9 @@ def main() -> int:
         description=(
             "Check that the current Phase 15 shared summaries keep the parity-scorecard survey, "
             "the dedicated parity-scorecard and indefinite-C policy surfaces, readiness and handoff "
-            "reminders, the lane-sequencing note, the docs-root and scripts-root alignment checkers, "
-            "the validator-route packet, the manifest reminders, the lane-owner alignment surface, and "
-            "the replay-route packet explicit."
+            "reminders, the review-process handoff checker, the lane-sequencing note, the docs-root "
+            "and scripts-root alignment checkers, the validator-route packet, the manifest reminders, "
+            "the lane-owner alignment surface, and the replay-route packet explicit."
         )
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
