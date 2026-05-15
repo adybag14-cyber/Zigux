@@ -15,10 +15,11 @@ REQUIRED_FILES = (
     ABI_SLICE_NOTE_PATH,
     Path("Documentation/zigux/phase3-abi-bindings-survey.md"),
     Path("Documentation/zigux/phase3-bindings-governance.md"),
+    Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
-    Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
     Path("Documentation/zigux/phase3-kernel-export-shim-governance.md"),
     Path("Documentation/zigux/phase3-linux-zigux-header-governance.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
@@ -68,6 +69,7 @@ REQUIRED_MANIFEST_ENTRIES = (
     Path("Documentation/zigux/phase3-abi-bindings-survey.md"),
     Path("Documentation/zigux/phase3-bindings-governance.md"),
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
+    Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"),
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
     Path("Documentation/zigux/phase3-kernel-export-shim-governance.md"),
     Path("include/zigux/abi.h"),
@@ -449,6 +451,21 @@ def run_self_test() -> int:
         case_count += 1
         _write(root / phase3_catalog_rel)
 
+        policy_unsafe_survey_rel = Path(
+            "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
+        )
+        (root / policy_unsafe_survey_rel).unlink()
+        issues = validate_repo(root)
+        expected_policy_unsafe_survey_missing = (
+            f"missing repo file: {policy_unsafe_survey_rel.as_posix()}"
+        )
+        if expected_policy_unsafe_survey_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing policy-and-unsafe survey note was not reported")
+            return 1
+        case_count += 1
+        _write(root / policy_unsafe_survey_rel)
+
         low_level_wrapper_survey_rel = Path(
             "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
         )
@@ -463,6 +480,21 @@ def run_self_test() -> int:
             return 1
         case_count += 1
         _write(root / low_level_wrapper_survey_rel)
+
+        export_uapi_survey_rel = Path(
+            "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
+        )
+        (root / export_uapi_survey_rel).unlink()
+        issues = validate_repo(root)
+        expected_export_uapi_survey_missing = (
+            f"missing repo file: {export_uapi_survey_rel.as_posix()}"
+        )
+        if expected_export_uapi_survey_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing export/UAPI survey note was not reported")
+            return 1
+        case_count += 1
+        _write(root / export_uapi_survey_rel)
 
         abi_bindings_survey_rel = Path("Documentation/zigux/phase3-abi-bindings-survey.md")
         (root / abi_bindings_survey_rel).unlink()
