@@ -76,7 +76,7 @@
   "gaps": [
     {
       "id": "phase7-rbtree-build-gate",
-      "status": "starter_landed",
+      "status": "parked",
       "current_replay_status": "route_present_on_master",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_build.zig",
@@ -84,42 +84,42 @@
     },
     {
       "id": "phase7-rbtree-helper",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "runtime_leaf_helper",
       "zigux_destination": "lib/rbtree.zig",
       "why_now": "The roadmap names lib/rbtree.zig directly, and the live helper already carries the bounded duplicate-range search, linked-node ownership, cached-leftmost erase and replacement, clearNode and eraseInit reset, and postorder leaf-library surface."
     },
     {
       "id": "phase7-rbtree-dedicated-tests",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_rbtree.zig",
       "why_now": "A dedicated Phase 7 gate keeps the shared rbtree starter surface reviewable around duplicate-key range traversal, detached-node ownership, clearNode handoff, cached-leftmost erase state, eraseInit reset, and traversal stability without widening into subsystem policy."
     },
     {
       "id": "phase7-rbtree-parity-fixture-layer",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "validation",
       "zigux_destination": "zigux/tests/fixtures/phase7_rbtree.json",
       "why_now": "The committed parity fixture layer keeps the bounded ordered and duplicate-key rbtree comparisons reviewable from one source instead of leaving the parity checker entirely inline."
     },
     {
       "id": "phase7-rbtree-slice-note",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase7-rbtree-slice.md",
       "why_now": "The slice note records the bounded product surface, parity packet, and non-goals so this Phase 7 lane stays tied to reusable leaf-library reviewability instead of drifting into broader tree variants."
     },
     {
       "id": "phase7-rbtree-survey-gate",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_rbtree_survey.zig",
       "why_now": "A machine-checked survey gate keeps the roadmap anchor, committed parity packet, manifest record, and shared ownership-review surfaces explicit without reopening rbtree behavior growth."
     },
     {
       "id": "phase7-rbtree-parity-checker",
-      "status": "starter_landed",
+      "status": "parked",
       "kind": "validation",
       "zigux_destination": "scripts/zigux/check-phase7-rbtree-parity.py",
       "why_now": "The dedicated parity checker is already part of the parked Phase 7 review surface, so the manifest should record that fail-closed validation hook instead of leaving it implicit in surrounding docs and scripts indexes."
