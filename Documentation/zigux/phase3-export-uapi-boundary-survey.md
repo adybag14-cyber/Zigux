@@ -14,7 +14,7 @@ This note records the current export shim and starter UAPI boundary evidence tha
 - `PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig`
 - `PHASE3_UAPI_DEV_T_BLOB_SHA=884a64c4a0d16b36cc0c97384b45486485be8029`
 - `PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h`
-- `PHASE3_DEV_T_HEADER_BLOB_SHA=07656c97320edf4f3b68ac33c7cd307e08598615`
+- `PHASE3_DEV_T_HEADER_BLOB_SHA=516865418f8bf70cb37c8fb44097e850eec4a984`
 - `PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h`
 - `PHASE3_LINUX_ZIGUX_H_BLOB_SHA=6ca555f450d674aaf13cb617e364c76ee921a954`
 - `PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
