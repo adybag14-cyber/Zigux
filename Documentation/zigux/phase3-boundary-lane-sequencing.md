@@ -98,7 +98,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `zigux/Makefile`
 - shared anti-overlap owner-map packet, lane `P3-X12` (legacy aliases `P3-Y10` and `P3-X10`):
   - `Documentation/zigux/phase3-boundary-lane-sequencing.md`
-- shared closure and lane-state packet, lane `P3-X11`:
+- shared closure and lane-state packet, lane `P3-X11` (older saved closure key `P3-Y11`):
   - `Documentation/zigux/phase3-boundary-lane-sequencing.md`
 
 ## Ownership split
@@ -108,7 +108,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 - starter UAPI owns the bounded `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions plus the survey wording that explains they are still exercised through the shared Phase 3 build, dump, and interop routes
 - Linux-facing aggregation-header ownership stays with `include/linux/zigux.h` and its dedicated governance note; it does not own canonical ABI layout or the starter UAPI companion wording
 - Zigux-owned ABI header family owns `include/zigux/abi.h`, `include/zigux/dev_t.h`, and the curated binding mirrors plus the dedicated next-step note that keeps same-family syntax, layout-survey, and truthfulness follow-through bounded
-- policy and unsafe owns panic-mode, allocator-mode, unsafe-scope, and MMIO interop-policy admission drift, including the typed and byte-policy relays that decide whether callers may cross into the narrow unsafe surface
+- policy and unsafe owns panic-mode, allocator-mode, unsafe-scope bytes, typed policy relays, MMIO interop-policy admission drift, including the typed and byte-policy relays that decide whether callers may cross into the narrow unsafe surface
 - low-level wrapper owns direct MMIO ranges and read or write behavior, width coverage, alignment rules, odd offsets, atomic behavior, barrier behavior, and the focused replay wording that proves those direct low-level helpers
 - validator-support owns shared scripts-root, docs-sync, self-test, catalog, wrapper-generation, and runner-route truthfulness for the current Phase 3 packet, including the dedicated Linux-facing header-governance checker plus the shared ABI-and-bindings reminder notes that keep that validator-support inventory fail-closed, without claiming helper, kernel, or header behavior on its own
 
@@ -129,4 +129,4 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 
 ## Current bounded rule
 
-This note is the shared substrate owner map only. `P3-X12` owns shared anti-overlap routing corrections when this note's packet map or live lane handoff drifts, and `P3-X11` stays reserved for shared closure, ledger, or lane-state corrections after the routing split already matches the live packet lanes. Legacy schedule aliases `P3-Y10` and the older saved-note key `P3-X10` now collapse into `P3-X12` for current `master`; they are reminders to reopen this shared owner-map packet only, not separate live packet owners. Neither shared lane should reopen packet-local helpers, surveys, validators, manifests, or headers on its own. It does not claim a new helper family, another replay tranche, or broader kernel-port progress. Future Phase 3 follow-up should reopen one packet only using the split above.
+This note is the shared substrate owner map only. `P3-X12` owns shared anti-overlap routing corrections when this note's packet map or live lane handoff drifts, and `P3-X11` stays reserved for shared closure, ledger, or lane-state corrections after the routing split already matches the live packet lanes. Legacy schedule aliases `P3-Y10` and the older saved-note key `P3-X10` now collapse into `P3-X12` for current `master`; they are reminders to reopen this shared owner-map packet only, not separate live packet owners. The older saved closure key `P3-Y11` now collapses into `P3-X11` for current `master`; it is historical context for the shared closure packet only, not a second live owner. Neither shared lane should reopen packet-local helpers, surveys, validators, manifests, or headers on its own. It does not claim a new helper family, another replay tranche, or broader kernel-port progress. Future Phase 3 follow-up should reopen one packet only using the split above.
