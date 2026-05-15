@@ -931,3 +931,99 @@ test "atomic64 diff wrapper keeps the local perf-baseline survey aligned with th
     try expectMarker(perf_survey_source, "seven monotonic samples");
     try expectMarker(perf_survey_source, "shared CI perf promotion");
 }
+
+const Atomic64Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    roadmap_target_path: []const u8,
+    roadmap_atomic64_diff_present: bool,
+    roadmap_atomic64_wrapper_targets_runtime_diff: bool,
+    live_gate_path: []const u8,
+    live_gate_blob_sha: []const u8,
+    live_gate_line_count: usize,
+    runtime_replay_path: []const u8,
+    runtime_replay_blob_sha: []const u8,
+    runtime_replay_line_count: usize,
+    phase4_build_present: bool,
+    phase4_build_uses_atomic64_wrapper: bool,
+    phase4_build_blob_sha: []const u8,
+    phase4_validator_atomic64_diff_present: bool,
+    phase4_validator_runtime_atomic64_diff_present: bool,
+    phase4_validator_blob_sha: []const u8,
+    phase4_gate_evidence_path: []const u8,
+    phase9_build_present: bool,
+    phase9_build_blob_sha: []const u8,
+    phase4_validation_matrix_atomic64_diff_note_present: bool,
+    phase4_validation_matrix_runtime_atomic64_note_present: bool,
+    phase4_validation_matrix_blob_sha: []const u8,
+    phase4_review_checklist_blob_sha: []const u8,
+    threshold_posture: []const u8,
+    roadmap_gap_summary: []const u8,
+    reversible_delivery_evidence: []const u8,
+    ready_next: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
+};
+
+fn expectBlobShaShape(value: []const u8) !void {
+    try std.testing.expectEqual(@as(usize, 40), value.len);
+    for (value) |byte| {
+        const is_digit = byte >= '0' and byte <= '9';
+        const is_lower_hex = byte >= 'a' and byte <= 'f';
+        try std.testing.expect(is_digit or is_lower_hex);
+    }
+}
+
+test "atomic64 diff wrapper keeps the manifest-backed runtime packet structurally parseable" {
+    const parsed = try std.json.parseFromSlice(
+        Atomic64Manifest,
+        std.testing.allocator,
+        phase4_runtime_atomic64_manifest_source,
+        .{},
+    );
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
+    try std.testing.expectEqualStrings("P4-L02", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 4", manifest.phase);
+    try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", manifest.roadmap_target_path);
+    try std.testing.expect(manifest.roadmap_atomic64_diff_present);
+    try std.testing.expect(manifest.roadmap_atomic64_wrapper_targets_runtime_diff);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.live_gate_path);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.runtime_replay_path);
+    try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.owner);
+    try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.rollback_owner);
+    try std.testing.expect(manifest.phase4_build_present);
+    try std.testing.expect(manifest.phase4_build_uses_atomic64_wrapper);
+    try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
+    try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
+    try std.testing.expect(manifest.phase9_build_present);
+    try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
+    try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
+    try std.testing.expectEqualStrings(
+        "Documentation/zigux/phase4-gate-evidence.md",
+        manifest.phase4_gate_evidence_path,
+    );
+    try std.testing.expectEqualStrings(
+        "threshold_pending_until_runtime_atomic64_scope_widens",
+        manifest.threshold_posture,
+    );
+    try std.testing.expect(manifest.live_gate_line_count > 0);
+    try std.testing.expectEqual(manifest.live_gate_line_count, manifest.runtime_replay_line_count);
+    try expectBlobShaShape(manifest.live_gate_blob_sha);
+    try expectBlobShaShape(manifest.runtime_replay_blob_sha);
+    try expectBlobShaShape(manifest.phase4_build_blob_sha);
+    try expectBlobShaShape(manifest.phase4_validator_blob_sha);
+    try expectBlobShaShape(manifest.phase9_build_blob_sha);
+    try expectBlobShaShape(manifest.phase4_validation_matrix_blob_sha);
+    try expectBlobShaShape(manifest.phase4_review_checklist_blob_sha);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "lib/atomic64_test.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "approved local benchmark commands") != null);
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/runtime_atomic64_diff.zig") != null,
+    );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "rollback-owner matrix") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "approved local benchmark commands") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "correctness-only replay routes") != null);
+}
