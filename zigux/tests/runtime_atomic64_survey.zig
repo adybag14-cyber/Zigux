@@ -255,6 +255,10 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(runtime_atomic64_module, "module.lifecycleSnapshot()");
     try expectContains(runtime_atomic64_module, "sample.ModuleStage.selftest_complete");
     try expectContains(runtime_atomic64_module, "error.InvalidLifecycleTransition");
+    try expectContains(runtime_atomic64_module, "test \"runtime atomic64 sample keeps initialized-stage exit replay explicit at the module boundary\"");
+    try expectContains(runtime_atomic64_module, "const initialized_summary = module.summary();");
+    try expectContains(runtime_atomic64_module, "const exited_summary = module.summary();");
+    try expectContains(runtime_atomic64_module, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());");
 
     try expectContains(survey_note, "`PHASE9_STATUS=active`");
     try expectContains(survey_note, "`PHASE9_SLICE=runtime-atomic64-survey`");
