@@ -1,8 +1,8 @@
 {
   "lane_key": "P12-L08",
   "phase": "Phase 12",
-  "surveyed_commit": "aadaa43e686ef355a946793cd83ce9899309deef",
-  "verified_on": "2026-05-14",
+  "surveyed_commit": "c0270517a3dde4aeb1298a1d717661499e3ce2b0",
+  "verified_on": "2026-05-15",
   "anchor": "drivers/nvme/host/pci.c",
   "roadmap_destinations": [
     "drivers/nvme/host/pci.zig",
@@ -25,25 +25,25 @@
     "dma_safe_abstractions": {
       "required_by_roadmap": true,
       "status": "starter_planner_present_runtime_dma_blocked",
-      "current_surface": "Current master carries a bounded NVMe PCI Zig starter around queue-pair planning, PRP buffer-shape accounting, reset summaries, dropped-backlog retirement review, and frozen queue-restore budgeting, but it still stops before live DMA mapping, PRP or SGL submission, tagset wiring, or transport-backed queue execution.",
+      "current_surface": "Current master carries a bounded NVMe PCI Zig starter around queue-pair planning, PRP buffer-shape accounting, reset summaries, queue-restart review, dropped-backlog retirement review, rollback-gate review, and frozen queue-restore budgeting, but it still stops before live DMA mapping, PRP or SGL submission, tagset wiring, or transport-backed queue execution.",
       "blocked_by": "DMA-safe request ownership, PRP or SGL construction, and runtime queue submission still need later driver-local packets beyond the current starter and review-only replays."
     },
     "queueing_correctness": {
       "required_by_roadmap": true,
       "status": "starter_verifier_direct_test_manifest_and_survey_gate_present_shared_build_unwired",
-      "current_surface": "The bounded starter, verifier shard, direct replay, dedicated survey gate, survey note, and manifest anchor are all present on current master, keeping queue sizing, PRP-shape accounting, reset freeze rules, dropped-backlog retirement, and frozen queue-restore budgeting reviewable without claiming shared build wiring or live queue execution.",
+      "current_surface": "The bounded starter, verifier shard, direct replay, dedicated survey gate, survey note, and manifest anchor are all present on current master, keeping queue sizing, PRP-shape accounting, reset freeze rules, queue-restart review, dropped-backlog retirement, rollback-gate ordering, and frozen queue-restore budgeting reviewable without claiming shared build wiring or live queue execution.",
       "blocked_by": "The shared Phase 12 build route and transport-backed queue execution still remain outside the current packet."
     },
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
       "status": "recovery_budget_summary_and_survey_gate_present_throughput_gate_missing",
-      "current_surface": "The current starter now records reset freeze state, remembered admin depth, PRP span pressure, dropped-backlog retirement conditions, and frozen queue-restore host-DMA budgeting through direct tests, the verifier shard, the survey note, and the survey gate.",
+      "current_surface": "The current starter now records reset freeze state, remembered admin depth, queue-restart numbering, PRP span pressure, dropped-backlog retirement conditions, rollback-gate blockers, and frozen queue-restore host-DMA budgeting through direct tests, the verifier shard, the survey note, and the survey gate.",
       "blocked_by": "No throughput benchmark and no transport-backed reset replay are landed yet."
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
       "status": "driver_local_slice_note_manifest_survey_note_and_survey_gate_present_shared_build_unwired",
-      "current_surface": "The slice note, fallback map, reopen-governance note, survey note, dedicated survey gate, direct replay, verifier shard, and manifest keep the current NVMe packet explicit as a bounded driver-local starter below the shared Phase 12 build route.",
+      "current_surface": "The slice note, fallback map, reopen-governance note, survey note, dedicated survey gate, direct replay, verifier shard, and manifest keep the current NVMe packet explicit as a bounded driver-local starter around queue planning, PRP-shape accounting, reset bookkeeping, queue restart review, dropped-backlog retirement, and rollback-gate review below the shared Phase 12 build route.",
       "blocked_by": "The shared Phase 12 build route still does not wire the NVMe direct replay into the smoke-first packet."
     }
   },
@@ -67,14 +67,14 @@
       "status": "landed_on_master",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci.zig",
-      "why_now": "Current master already carries a direct replay that exercises bounded queue planning, dropped-backlog retirement state, and PRP-shape accounting without claiming shared build wiring."
+      "why_now": "Current master already carries a direct replay that exercises bounded queue planning, queue-restart review, dropped-backlog retirement state, rollback-gate ordering, and PRP-shape accounting without claiming shared build wiring."
     },
     {
       "id": "phase12-nvme-manifest-anchor",
       "status": "landed_on_master",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_manifest.json",
-      "why_now": "The manifest now records lane ownership, the landed slice note, and the still-blocked shared-build surface while the survey gate keeps the support packet machine-checkable."
+      "why_now": "The manifest now records lane ownership, the current queue-restart and rollback-gate survey surface, the landed slice note, and the still-blocked shared-build surface while the survey gate keeps the support packet machine-checkable."
     },
     {
       "id": "phase12-nvme-shared-build-route",
@@ -95,14 +95,14 @@
       "status": "survey_present",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "why_now": "The survey note now records the bounded starter, verifier shard, slice note, direct replay, dedicated survey gate, manifest anchor, and still-blocked shared-build plus runtime boundaries without pretending the broader packet is already wired."
+      "why_now": "The survey note now records the bounded starter, verifier shard, slice note, direct replay, dedicated survey gate, manifest anchor, and current queue-restart plus rollback-gate review while the broader shared-build plus runtime boundaries remain blocked."
     },
     {
       "id": "phase12-nvme-survey-gate",
       "status": "survey_present",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_survey.zig",
-      "why_now": "A dedicated survey gate now keeps the survey note, slice note, manifest, and present-file boundary machine-checkable while the shared build wiring remains missing."
+      "why_now": "A dedicated survey gate now keeps the survey note, manifest, and present-file boundary machine-checkable while queue-restart and rollback-gate markers stay explicit and the shared build wiring remains missing."
     }
   ]
 }
