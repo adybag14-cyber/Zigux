@@ -191,3 +191,28 @@ test "phase 5 trace-events sample makes ownership and teardown boundaries explic
     try std.testing.expect(replay.callback_after_exit_rejected);
     try std.testing.expect(replay.unregister_after_exit_rejected);
 }
+
+test "phase 5 trace-events sample keeps the public review contract explicit" {
+    const review_contract = sample.TraceEventsReferenceSample.reviewContract();
+    const expected_focus = [_]sample.SampleFocus{
+        .payload_shape,
+        .string_selection,
+        .formatted_message,
+        .conditional_event_families,
+        .function_callback_registration,
+        .ownership_and_lifetime,
+    };
+    const expected_strings = [_][]const u8{
+        "Mother Goose",
+        "Snoopy",
+        "Gandalf",
+        "Frodo",
+        "One ring to rule them all",
+    };
+
+    try std.testing.expectEqualSlices(sample.SampleFocus, &expected_focus, review_contract.focus);
+    try std.testing.expectEqual(@as(usize, expected_strings.len), review_contract.modulo_selected_strings.len);
+    for (expected_strings, 0..) |expected_string, index| {
+        try std.testing.expectEqualStrings(expected_string, review_contract.modulo_selected_strings[index]);
+    }
+}
