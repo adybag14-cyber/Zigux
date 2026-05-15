@@ -138,150 +138,34 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
         .{ .path = "tools/lib/bpf/ringbuf.c", .lines = 684 },
     };
     const expected_segments = [_]ExpectedSegment{
-        .{
-            .id = "P8-L15-S01",
-            .slug = "logging-version-and-errno",
-            .status = "starter_landed",
-            .kind = "helper_first",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/logging.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c:233-364",
-                "tools/lib/bpf/libbpf_utils.c:31-84",
-            },
-        },
-        .{
-            .id = "P8-L15-S02",
-            .slug = "pin-path-helpers",
-            .status = "starter_landed",
-            .kind = "helper_first",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/pin_path.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c:2538-2565",
-                "tools/lib/bpf/libbpf.c:9054-9352",
-            },
-        },
-        .{
-            .id = "P8-L15-S03",
-            .slug = "cpu-mask-parsing",
-            .status = "starter_landed",
-            .kind = "helper_first",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/cpu_mask.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c:14379-14480",
-            },
-        },
-        .{
-            .id = "P8-L15-S04",
-            .slug = "type-name-helpers",
-            .status = "starter_landed",
-            .kind = "helper_first",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/type_names.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c: exported attach, link, map, and program type string tables",
-            },
-        },
-        .{
-            .id = "P8-L15-S05",
-            .slug = "fdinfo-map-info-helpers",
-            .status = "starter_landed",
-            .kind = "helper_first",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing",
-            },
-        },
-        .{
-            .id = "P8-L15-S06",
-            .slug = "map-reuse-compatibility",
-            .status = "starter_landed",
-            .kind = "helper_first",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks",
-            },
-        },
-        .{
-            .id = "P8-L15-S07",
-            .slug = "file-path-and-handle-bridge",
-            .status = "deferred_high_risk",
-            .kind = "resource_boundary",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c: bpf_object_prepare_token() and bpf_object__reuse_map() handle-bridging paths",
-            },
-        },
-        .{
-            .id = "P8-L15-S08",
-            .slug = "perf-buffer-online-cpu-routing",
-            .status = "deferred_high_risk",
-            .kind = "interrupt_routing",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c: perf_buffer__new() online-CPU routing and perf_event setup",
-            },
-        },
-        .{
-            .id = "P8-L15-S09",
-            .slug = "skeleton-population",
-            .status = "blocked_on_object_model",
-            .kind = "object_adjacent",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/skeleton.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c:14482-14771",
-            },
-        },
-        .{
-            .id = "P8-L15-S10",
-            .slug = "object-and-elf-loader",
-            .status = "deferred_high_risk",
-            .kind = "core_loader",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/object_loader.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c:1514-2065",
-                "tools/lib/bpf/libbpf.c:3705-4514",
-            },
-        },
-        .{
-            .id = "P8-L15-S11",
-            .slug = "btf-relocation-and-program-load",
-            .status = "deferred_high_risk",
-            .kind = "verifier_facing",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/relocation.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c:3325-3609",
-                "tools/lib/bpf/libbpf.c:4572-9049",
-            },
-        },
-        .{
-            .id = "P8-L15-S12",
-            .slug = "perf-buffer-poll-bookkeeping",
-            .status = "starter_landed",
-            .kind = "helper_adjacent",
-            .zigux_destination = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-            .anchor_ranges = &[_][]const u8{
-                "tools/lib/bpf/libbpf.c: perf_buffer__poll() wait-result classification and ordered process_records bookkeeping",
-            },
-        },
+        .{ .id = "P8-L15-S01", .slug = "logging-version-and-errno", .status = "starter_landed", .kind = "helper_first", .zigux_destination = "tools/lib/bpf/zigux_segments/logging.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c:233-364", "tools/lib/bpf/libbpf_utils.c:31-84", }, },
+        .{ .id = "P8-L15-S02", .slug = "pin-path-helpers", .status = "starter_landed", .kind = "helper_first", .zigux_destination = "tools/lib/bpf/zigux_segments/pin_path.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c:2538-2565", "tools/lib/bpf/libbpf.c:9054-9352", }, },
+        .{ .id = "P8-L15-S03", .slug = "cpu-mask-parsing", .status = "starter_landed", .kind = "helper_first", .zigux_destination = "tools/lib/bpf/zigux_segments/cpu_mask.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c:14379-14480", }, },
+        .{ .id = "P8-L15-S04", .slug = "type-name-helpers", .status = "starter_landed", .kind = "helper_first", .zigux_destination = "tools/lib/bpf/zigux_segments/type_names.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c: exported attach, link, map, and program type string tables", }, },
+        .{ .id = "P8-L15-S05", .slug = "fdinfo-map-info-helpers", .status = "starter_landed", .kind = "helper_first", .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing", }, },
+        .{ .id = "P8-L15-S06", .slug = "map-reuse-compatibility", .status = "starter_landed", .kind = "helper_first", .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks", }, },
+        .{ .id = "P8-L15-S07", .slug = "file-path-and-handle-bridge", .status = "deferred_high_risk", .kind = "resource_boundary", .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c: bpf_object_prepare_token() and bpf_object__reuse_map() handle-bridging paths", }, },
+        .{ .id = "P8-L15-S08", .slug = "perf-buffer-online-cpu-routing", .status = "deferred_high_risk", .kind = "interrupt_routing", .zigux_destination = "tools/lib/bpf/zigux_segments/online_cpu_routing.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c: perf_buffer__new() online-CPU routing and perf_event setup", }, },
+        .{ .id = "P8-L15-S09", .slug = "skeleton-population", .status = "blocked_on_object_model", .kind = "object_adjacent", .zigux_destination = "tools/lib/bpf/zigux_segments/skeleton.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c:14482-14771", }, },
+        .{ .id = "P8-L15-S10", .slug = "object-and-elf-loader", .status = "deferred_high_risk", .kind = "core_loader", .zigux_destination = "tools/lib/bpf/zigux_segments/object_loader.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c:1514-2065", "tools/lib/bpf/libbpf.c:3705-4514", }, },
+        .{ .id = "P8-L15-S11", .slug = "btf-relocation-and-program-load", .status = "deferred_high_risk", .kind = "verifier_facing", .zigux_destination = "tools/lib/bpf/zigux_segments/relocation.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c:3325-3609", "tools/lib/bpf/libbpf.c:4572-9049", }, },
+        .{ .id = "P8-L15-S12", .slug = "perf-buffer-poll-bookkeeping", .status = "starter_landed", .kind = "helper_adjacent", .zigux_destination = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c: perf_buffer__poll() wait-result classification and ordered process_records bookkeeping", }, },
     };
 
     try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
-    try std.testing.expectEqualStrings("17fd5f8e2b234738428770e192346d040aff13ce", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("37d0ccdc93587eab8eed84de29ad9d659c623aea", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 14771), manifest.survey_summary.libbpf_c_lines);
     try std.testing.expect(manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase8_libbpf_note_present);
-    try expectCompanionFilesEqual(
-        manifest.survey_summary.companion_c_files,
-        expected_companion_files[0..],
-    );
+    try expectCompanionFilesEqual(manifest.survey_summary.companion_c_files, expected_companion_files[0..]);
     try expectSegmentsEqual(manifest.segments, expected_segments[0..]);
     try std.testing.expectEqual(@as(usize, 7), countSegmentsWithStatus(manifest.segments, "starter_landed"));
     try std.testing.expectEqual(@as(usize, 4), countSegmentsWithStatus(manifest.segments, "deferred_high_risk"));
     try std.testing.expectEqual(@as(usize, 1), countSegmentsWithStatus(manifest.segments, "blocked_on_object_model"));
 
-    const routing = findSegmentBySlug(manifest.segments, "perf-buffer-online-cpu-routing") orelse
-        return error.MissingRoutingSegment;
+    const routing = findSegmentBySlug(manifest.segments, "perf-buffer-online-cpu-routing") orelse return error.MissingRoutingSegment;
     try expectContains(routing.why_now, "online_cpu_routing.zig");
     try expectContains(routing.why_now, "cursor and routing-summary helper");
 }
@@ -298,28 +182,13 @@ test "phase 8 libbpf survey note keeps the current landed count and helper-local
     );
     defer std.testing.allocator.free(phase8_note);
 
-    try expectContains(
-        phase8_note,
-        "The manifest currently records twelve bounded segments: seven landed helper or helper-adjacent slices and five deferred or blocked follow-ons.",
-    );
-    try expectContains(
-        phase8_note,
-        "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
-    );
-    try expectContains(
-        phase8_note,
-        "current `master` also carries helper-local routing evidence in `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
-    );
+    try expectContains(phase8_note, "The manifest currently records twelve bounded segments: seven landed helper or helper-adjacent slices and five deferred or blocked follow-ons.");
+    try expectContains(phase8_note, "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.");
+    try expectContains(phase8_note, "current `master` also carries helper-local routing evidence in `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`");
     try expectContains(phase8_note, "advanceOnlineCpuCursor()");
     try expectContains(phase8_note, "summarizeOnlineCpuRouting()");
-    try expectContains(
-        phase8_note,
-        "The real current gap is now survey truthfulness about the already-landed checker packet and helper-local routing evidence, not a missing checker rule or docs-root summary.",
-    );
-    try expectContains(
-        phase8_note,
-        "That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit",
-    );
+    try expectContains(phase8_note, "The real current gap is now survey truthfulness about the already-landed checker packet and helper-local routing evidence, not a missing checker rule or docs-root summary.");
+    try expectContains(phase8_note, "That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit");
     try expectContains(phase8_note, "standalone timer or clockevent helper behavior");
     try expectContains(phase8_note, "broader timeout-sensitive routing behavior");
 }
