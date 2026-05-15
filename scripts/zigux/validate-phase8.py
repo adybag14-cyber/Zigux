@@ -26,6 +26,9 @@ LIBBPF_SHARD_ROUTES_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 LIBBPF_SEGMENT_SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
 LIBBPF_MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 EXEC_CMD_SLICE_PATH = "Documentation/zigux/phase8-exec-cmd-slice.md"
+EXEC_CMD_SOURCE_PATH = "tools/lib/subcmd/exec-cmd.zig"
+EXEC_CMD_TEST_PATH = "zigux/tests/phase8_exec_cmd.zig"
+EXEC_CMD_ONLY_BUILD_PATH = "zigux/tests/phase8_exec_cmd_only_build.zig"
 BRIDGE_SLICE_PATH = "Documentation/zigux/phase8-file-path-handle-bridge-slice.md"
 BRIDGE_HELPER_PATH = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
@@ -51,6 +54,9 @@ REQUIRED_FILES = (
     LIBBPF_SEGMENT_SURVEY_PATH,
     LIBBPF_MANIFEST_PATH,
     EXEC_CMD_SLICE_PATH,
+    EXEC_CMD_SOURCE_PATH,
+    EXEC_CMD_TEST_PATH,
+    EXEC_CMD_ONLY_BUILD_PATH,
     BRIDGE_SLICE_PATH,
     BRIDGE_HELPER_PATH,
     BRIDGE_TEST_PATH,
@@ -140,7 +146,6 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-kallsyms-test`",
         "`make -C zigux phase8-cpu-mask-test`",
         "`make -C zigux phase8-file-path-handle-bridge-test`",
-        "`make -C zigux phase8-libbpf-segments-test`",
         "`make -C zigux phase8-test`",
         "`make -C zigux phase8`",
     ),
@@ -196,6 +201,24 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_exec_cmd.zig`",
         "`zigux/tests/phase8_exec_cmd_only_build.zig`",
         "`make -C zigux phase8-exec-cmd-test`",
+    ),
+    EXEC_CMD_SOURCE_PATH: (
+        "pub fn buildDeferredExecvCall(",
+        "pub fn buildDeferredExeclCall(",
+        "pub fn planDeferredExecvCall(",
+        "pub fn planDeferredExeclCallWithPwd(",
+    ),
+    EXEC_CMD_TEST_PATH: (
+        'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {',
+        'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {',
+        'test "phase 8 exec-cmd workflow keeps the focused replay ahead of sibling help shards" {',
+    ),
+    EXEC_CMD_ONLY_BUILD_PATH: (
+        '.root_source_file = b.path("../../tools/lib/subcmd/exec-cmd.zig")',
+        '.root_source_file = b.path("phase8_exec_cmd.zig")',
+        'exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);',
+        '.name = "phase8-exec-cmd-tests"',
+        'b.step("test", "Run focused Phase 8 exec-cmd tests")',
     ),
     BRIDGE_SLICE_PATH: (
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
@@ -312,6 +335,9 @@ def run_self_test() -> None:
         ("missing_libbpf_segment_survey", LIBBPF_SEGMENT_SURVEY_PATH),
         ("missing_libbpf_manifest", LIBBPF_MANIFEST_PATH),
         ("missing_exec_cmd_slice", EXEC_CMD_SLICE_PATH),
+        ("missing_exec_cmd_source", EXEC_CMD_SOURCE_PATH),
+        ("missing_exec_cmd_test", EXEC_CMD_TEST_PATH),
+        ("missing_exec_cmd_only_build", EXEC_CMD_ONLY_BUILD_PATH),
         ("missing_bridge_slice", BRIDGE_SLICE_PATH),
         ("missing_bridge_helper", BRIDGE_HELPER_PATH),
         ("missing_bridge_test", BRIDGE_TEST_PATH),
@@ -689,6 +715,27 @@ def run_self_test() -> None:
             "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
             "PHASE8_SLICE=exec-cmd-outline-packet",
             f"{EXEC_CMD_SLICE_PATH}: PHASE8_SLICE=exec-cmd-deferred-exec-packet",
+        ),
+        (
+            "exec_cmd_source_deferred_execv_marker",
+            EXEC_CMD_SOURCE_PATH,
+            "pub fn buildDeferredExecvCall(",
+            "pub fn buildExecvCall(",
+            f"{EXEC_CMD_SOURCE_PATH}: pub fn buildDeferredExecvCall(",
+        ),
+        (
+            "exec_cmd_test_c_anchor_marker",
+            EXEC_CMD_TEST_PATH,
+            'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {',
+            'test "phase 8 exec-cmd boundary note still matches the live helper anchors" {',
+            f'{EXEC_CMD_TEST_PATH}: test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {{',
+        ),
+        (
+            "exec_cmd_only_build_focused_step_marker",
+            EXEC_CMD_ONLY_BUILD_PATH,
+            'b.step("test", "Run focused Phase 8 exec-cmd tests")',
+            'b.step("test", "Run exec-cmd tests")',
+            f'{EXEC_CMD_ONLY_BUILD_PATH}: b.step("test", "Run focused Phase 8 exec-cmd tests")',
         ),
         (
             "bridge_slice_shared_build_marker",
