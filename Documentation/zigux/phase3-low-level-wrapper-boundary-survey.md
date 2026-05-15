@@ -64,6 +64,7 @@ The current helper-and-replay packet shows that the shipped direct wrapper surfa
 - 64-bit direct MMIO coverage in the focused test route
 - direct MMIO width, alignment, and odd-offset behavior in the focused test route
 - helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage in `zigux/helpers/mmio.zig`
+- helper-local MMIO stride-boundary and typed-index coverage in `zigux/helpers/mmio.zig` through `containsOffset`, `containsAccess`, `offsetForIndex`, and `typedOffsetForIndex`
 - non-`seq_cst` ordering coverage and signed atomic edges in the focused test route
 - barrier-locality and handoff replays
 
