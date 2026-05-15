@@ -151,7 +151,7 @@ test "phase13 landlock syscalls keeps release-side helper discipline explicit" {
 }
 
 test "phase13 landlock syscalls manifest records the bounded syscall helper packet" {
-    try expectContains(manifest_text, "\"lane_key\": \"P13-L14\"");
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L17\"");
     try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-15\"");
     try expectContains(manifest_text, "\"anchor\": \"security/landlock/syscalls.c\"");
     try expectContains(manifest_text, "\"preexisting_phase13_build_present\": false");
