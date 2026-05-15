@@ -37,3 +37,30 @@ test "phase10 virtio input manifest keeps the restored replay ids and blocked li
     try expectContains(manifest, "\"status\": \"blocked_on_risky_transport\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-input-registration-lifecycle\"");
 }
+
+test "phase10 virtio input slice companions keep the replay inventory and blocked lifecycle boundary explicit" {
+    const allocator = std.testing.allocator;
+    const slice_note = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-virtio-input-slice.md",
+    );
+    defer allocator.free(slice_note);
+
+    const module_note = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-virtio-input-module-slice.md",
+    );
+    defer allocator.free(module_note);
+
+    try expectContains(slice_note, "scripts/zigux/check-phase10-input-packet.py");
+    try expectContains(slice_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
+    try expectContains(slice_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig");
+    try expectContains(slice_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig");
+    try expectContains(slice_note, "zigux/tests/phase10_virtio_input_status_drain.zig");
+
+    try expectContains(module_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
+    try expectContains(module_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig");
+    try expectContains(module_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig");
+    try expectContains(module_note, "the bounded status-drain helper");
+    try expectContains(module_note, "registration lifecycle closure, freeze, restore, remove, and broader transport-backed lifecycle work remain outside this module slice");
+}
