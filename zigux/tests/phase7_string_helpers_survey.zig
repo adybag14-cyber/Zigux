@@ -44,6 +44,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
+    try expectContains(manifest, "\"lane_key\": \"P7-L04\"");
+    try expectContains(manifest, "\"lane_key_note\": \"P7-L04 remains the packet-local helper-slice marker for the expanded string-helpers starter packet. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with the separate Phase 7 shared-control lanes.\"");
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
     try expectContains(manifest, "\"sysfsStreq\"");
     try expectContains(manifest, "\"sysfs_streq\"");
@@ -54,6 +56,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "\"string_get_size\"");
     try expectContains(manifest, "\"stringEscapeMem\"");
     try expectContains(manifest, "\"string_escape_mem\"");
+    try expectContains(manifest, "\"stringEscapeMemAnyNp\"");
     try expectContains(manifest, "\"string_escape_mem_any_np\"");
     try expectContains(manifest, "\"stringEscapeStr\"");
     try expectContains(manifest, "\"string_escape_str\"");
@@ -75,6 +78,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
     try expectContains(manifest, "in-place replacement inside the exported C-string prefix");
+    try expectContains(manifest, "\"next_bounded_step\": \"Keep the expanded starter packet truthful across the slice note, helper-local manifest, dedicated survey, and dedicated no-string-sample boundary replay, then take the next helper-local string_helpers expansion only if the remaining non-goals still read the same way everywhere.\"");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 
@@ -141,4 +145,61 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(sample_boundary, "phase 7 string helper boundary keeps the exact current sample inventory and no string sample");
     try expectContains(sample_boundary, "phase 7 string helper boundary keeps the lane-local helper packet aligned without claiming shared control surfaces");
     try expectNotContains(sample_boundary, "current shared reminders aligned");
+}
+
+test "phase 7 string helper boundary keeps the lane-local helper packet aligned without claiming shared control surfaces" {
+    const allocator = std.testing.allocator;
+
+    const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-string-helpers-slice.md");
+    defer allocator.free(slice_note);
+    try expectContains(slice_note, "PHASE7_STATUS=starter_landed");
+    try expectContains(slice_note, "expanded starter packet");
+    try expectContains(slice_note, "leading whitespace skipping that stops at the first NUL");
+    try expectContains(slice_note, "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting");
+    try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view");
+    try expectContains(slice_note, "allocator-backed duplicate-and-replace behavior that rewrites only the exported C-string prefix and leaves the source buffer untouched");
+    try expectNotContains(slice_note, "restored starter packet");
+    try expectNotContains(slice_note, "missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
+
+    const helper = try readRepoFile(allocator, "lib/string_helpers.zig");
+    defer allocator.free(helper);
+    try expectContains(helper, "pub const KasprintfStrarrayResult = struct {");
+    try expectContains(helper, "pub fn kasprintfStrarray");
+    try expectContains(helper, "pub fn kfreeStrarray");
+    try expectContains(helper, "pub fn kstrdupAndReplace");
+    try expectContains(helper, "pub fn stringEscapeMem");
+    try expectContains(helper, "pub fn stringEscapeStrAnyNp");
+    try expectContains(helper, "pub fn memcpyAndPad");
+    try expectContains(helper, "pub fn strreplace");
+
+    const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
+    defer allocator.free(helper_tests);
+    try expectContains(helper_tests, "phase 7 string helpers starter covers whitespace trimming and prefix skipping");
+    try expectContains(helper_tests, "phase 7 string helpers starter formats bounded sizes with three significant figures");
+    try expectContains(helper_tests, "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes");
+    try expectContains(helper_tests, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
+    try expectContains(helper_tests, "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent");
+    try expectContains(helper_tests, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
+    try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
+    try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
+
+    const survey = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_survey.zig");
+    defer allocator.free(survey);
+    try expectContains(survey, "phase 7 string helpers survey keeps the expanded starter packet truthful");
+    try expectContains(survey, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(survey, "leading whitespace skipping that stops at the first NUL");
+    try expectContains(survey, "phase 7 string helpers starter formats bounded sizes with three significant figures");
+    try expectContains(survey, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
+    try expectContains(survey, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
+
+    const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
+    defer allocator.free(manifest);
+    try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
+    try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_sample_boundary.zig\"");
+    try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_survey.zig\"");
+    try expectContains(manifest, "\"bounded sequential string-array allocation with NULL-terminated pointer views\"");
+    try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
+    try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
+    try expectNotContains(manifest, "missing_review_surfaces");
+    try expectNotContains(manifest, "missing_on_master");
 }
