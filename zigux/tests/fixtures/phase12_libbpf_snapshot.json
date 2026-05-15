@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-Y04",
   "phase": "Phase 12",
-  "surveyed_commit": "e6b1a0e361fe11926c1e788fc93da66e92db9669",
+  "surveyed_commit": "73fd6d9707ecd3fd9e8b3370688805087a9ff6c2",
   "snapshot_scope": "parked Phase 12 libbpf note packet on current master",
   "tracked_file_count": 4,
   "supporting_notes": [
@@ -33,7 +33,7 @@
     },
     {
       "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
-      "blob_sha": "49c60e6e6ec46770e0815a00bd687a8091553ef8"
+      "blob_sha": "f6294c12a8b2cdc90a57577cb017940c84257f30"
     }
   ]
 }
