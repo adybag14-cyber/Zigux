@@ -16,6 +16,7 @@ active Phase 3 ABI and interop packet.
 - `zigux/tests/phase3_abi_dump.zig`
 - `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
 - `zigux/tests/fixtures/phase3_abi/expected.json`
+- `scripts/zigux/validate-phase3-abi-header-family-survey.py`
 - `scripts/zigux/validate-phase3-export-uapi-survey.py`
 - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
 - `scripts/zigux/survey-phase3-abi-constant-parity.py`
@@ -33,8 +34,7 @@ active Phase 3 ABI and interop packet.
 - treat `zigux/bindings/abi.zig`, `zigux/bindings/dev_t.zig`,
   `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, and
   `zigux/uapi/dev_t.zig` as the current implementation-facing companions for
-  that header-family boundary while the starter UAPI surface remains a bounded
-  version-plus-dev_t pair
+  that header-family boundary while the starter UAPI surface remains a bounded version-plus-dev_t pair
 
 ## Non-goals
 
