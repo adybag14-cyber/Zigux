@@ -47,6 +47,7 @@ REQUIRED_MARKERS = {
         "keep stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path",
         "keep copied-buffer ownership so later source mutation does not affect split results",
         "non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact",
+        "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`, including shared empty-sentinel teardown beside another blank caller",
         "exported storage and argv views resetting back to the canonical empty sentinels after teardown",
         "allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns",
         "zigux/tests/phase7_argv_split_survey.zig",
@@ -127,10 +128,10 @@ REQUIRED_MARKERS = {
         "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on a non-blank result restores the canonical blank sentinels",
+        "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
         "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
         "phase 7 argvSplit deinit clears exported storage and argv views",
         "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
-        "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
         "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
@@ -269,6 +270,10 @@ MISSING_MARKER_CASES = [
         "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
     ),
     (
+        "zigux/tests/phase7_argv_split.zig",
+        "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
+    ),
+    (
         "zigux/tests/phase7_argv_split_survey.zig",
         "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
     ),
@@ -290,6 +295,10 @@ MISSING_MARKER_CASES = [
     ),
     (
         "zigux/tests/phase7_argv_split_manifest.json",
+        "blank-input sentinel reuse stays stable across argvFree and deinit, including shared empty-sentinel teardown beside another blank caller",
+    ),
+    (
+        "zigux/tests/phase7_argv_split_manifest.json",
         "canonical blank sentinels, repeatable teardown, and a null-terminated argv view",
     ),
     (
@@ -305,6 +314,10 @@ MISSING_MARKER_CASES = [
     (
         "Documentation/zigux/phase7-helper-lane-sequencing.md",
         "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, checker, or reminder drift.",
+    ),
+    (
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`, including shared empty-sentinel teardown beside another blank caller",
     ),
 ]
 
