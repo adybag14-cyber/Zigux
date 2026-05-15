@@ -90,6 +90,14 @@ fn writeNotifierChain(writer: anytype) !void {
         .next = @intFromPtr(&rising_second),
         .priority = 3,
     };
+    const zero_increase = abi.ChainPriorityIncrease{
+        .previous_index = 0,
+        .current_index = 0,
+        .previous_priority = 0,
+        .current_priority = 0,
+    };
+    const rising_increase = abi.firstChainPriorityIncrease(&rising_first);
+    const increase = rising_increase orelse zero_increase;
 
     try writeQuoted(writer, "notifier_chain");
     try writer.writeAll(":{\"empty_ok\":");
@@ -100,7 +108,17 @@ fn writeNotifierChain(writer: anytype) !void {
     try writer.print("{d}", .{@intFromBool(abi.chainHasNonincreasingPriority(&descending_first))});
     try writer.writeAll(",\"rising_ok\":");
     try writer.print("{d}", .{@intFromBool(abi.chainHasNonincreasingPriority(&rising_first))});
-    try writer.writeByte('}');
+    try writer.writeAll(",\"rising_first_increase\":{\"found\":");
+    try writer.print("{d}", .{@intFromBool(rising_increase != null)});
+    try writer.writeAll(",\"previous_index\":");
+    try writer.print("{d}", .{increase.previous_index});
+    try writer.writeAll(",\"current_index\":");
+    try writer.print("{d}", .{increase.current_index});
+    try writer.writeAll(",\"previous_priority\":");
+    try writer.print("{d}", .{increase.previous_priority});
+    try writer.writeAll(",\"current_priority\":");
+    try writer.print("{d}", .{increase.current_priority});
+    try writer.writeAll("}}");
 }
 
 pub fn main(init: std.process.Init) !void {
@@ -149,6 +167,8 @@ pub fn main(init: std.process.Init) !void {
     try writeStruct(writer, "export_status", abi.ExportStatus);
     try writer.writeByte(',');
     try writeStruct(writer, "interop_policy", abi.InteropPolicy);
+    try writer.writeByte(',');
+    try writeStruct(writer, "notifier_chain_priority_increase", abi.ChainPriorityIncrease);
     try writer.writeByte(',');
     try writeStruct(
         writer,
