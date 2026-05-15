@@ -24,6 +24,65 @@ fn writeStruct(writer: anytype, comptime name: []const u8, comptime T: type) !vo
     try writer.writeAll("}}");
 }
 
+fn writeHeaderState(writer: anytype, header: abi.BoundaryHeader) !void {
+    const current_abi = header.abi_version == abi.ABI_VERSION;
+    const compatible_size = header.size >= @sizeOf(abi.BoundaryHeader);
+    const canonical_size = header.size == @sizeOf(abi.BoundaryHeader);
+    const compatible = current_abi and compatible_size;
+    const canonical = current_abi and canonical_size;
+    const extends_boundary = compatible and !canonical;
+    const requested_extra_bytes: u32 = if (extends_boundary)
+        header.size - @sizeOf(abi.BoundaryHeader)
+    else
+        0;
+
+    try writer.writeByte('{');
+    try writeQuoted(writer, "size");
+    try writer.writeByte(':');
+    try writer.print("{d}", .{header.size});
+    try writer.writeAll(",\"abi_version\":");
+    try writer.print("{d}", .{header.abi_version});
+    try writer.writeAll(",\"flags\":");
+    try writer.print("{d}", .{header.flags});
+    try writer.writeAll(",\"current_abi\":");
+    try writer.print("{d}", .{@intFromBool(current_abi)});
+    try writer.writeAll(",\"compatible_size\":");
+    try writer.print("{d}", .{@intFromBool(compatible_size)});
+    try writer.writeAll(",\"canonical_size\":");
+    try writer.print("{d}", .{@intFromBool(canonical_size)});
+    try writer.writeAll(",\"compatible\":");
+    try writer.print("{d}", .{@intFromBool(compatible)});
+    try writer.writeAll(",\"canonical\":");
+    try writer.print("{d}", .{@intFromBool(canonical)});
+    try writer.writeAll(",\"extends_boundary\":");
+    try writer.print("{d}", .{@intFromBool(extends_boundary)});
+    try writer.writeAll(",\"requested_extra_bytes\":");
+    try writer.print("{d}", .{requested_extra_bytes});
+    try writer.writeByte('}');
+}
+
+fn writeUapiBoundaryHeader(writer: anytype) !void {
+    const flags: u16 = 0x22;
+    const canonical_header = abi.defaultHeader(flags);
+    var future_compatible = abi.defaultHeader(flags);
+    future_compatible.size += 16;
+    var mismatched_version = abi.defaultHeader(flags);
+    mismatched_version.abi_version += 1;
+
+    try writeQuoted(writer, "uapi_boundary_header");
+    try writer.writeAll(":{\"header_size\":");
+    try writer.print("{d}", .{@sizeOf(abi.BoundaryHeader)});
+    try writer.writeAll(",\"abi_version\":");
+    try writer.print("{d}", .{abi.ABI_VERSION});
+    try writer.writeAll(",\"canonical_header\":");
+    try writeHeaderState(writer, canonical_header);
+    try writer.writeAll(",\"future_compatible\":");
+    try writeHeaderState(writer, future_compatible);
+    try writer.writeAll(",\"mismatched_version\":");
+    try writeHeaderState(writer, mismatched_version);
+    try writer.writeByte('}');
+}
+
 fn writeDevT(writer: anytype) !void {
     const minor_bits: u5 = 20;
     const minor_mask: u32 = 1_048_575;
@@ -151,13 +210,15 @@ pub fn main(init: std.process.Init) !void {
             abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED,
             abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
             abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
-            @intFromEnum(abi.NotifierResult.done),
-            @intFromEnum(abi.NotifierResult.ok),
-            @intFromEnum(abi.NotifierResult.stop),
+            abi.NOTIFIER_DONE,
+            abi.NOTIFIER_OK,
+            abi.NOTIFIER_STOP,
         },
     );
 
     try writer.writeAll("},");
+    try writeUapiBoundaryHeader(writer);
+    try writer.writeByte(',');
     try writeDevT(writer);
     try writer.writeByte(',');
     try writeNotifierChain(writer);
