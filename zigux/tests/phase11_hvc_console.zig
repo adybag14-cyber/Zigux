@@ -74,3 +74,36 @@ test "phase11 hvc console keeps notifier handoff boundaries reviewable" {
     try std.testing.expect(targetless.targetless_no_unregister_edge);
     try std.testing.expect(targetless.keeps_live_notifier_execution_out_of_scope);
 }
+
+test "phase11 hvc console keeps remove-path teardown ordering reviewable" {
+    const attached_remove = console.summarizeRemoveHandoff(.{
+        .console_lock_slot_cleared = true,
+        .vtermno_and_cons_ops_released = true,
+        .tty_port_put_ordered = true,
+        .tty_vhangup_follow_through = true,
+        .tty_kref_put_release = true,
+        .keep_irq_until_hangup = true,
+    });
+    const detached_remove = console.summarizeRemoveHandoff(.{
+        .console_lock_slot_cleared = true,
+        .vtermno_and_cons_ops_released = true,
+        .tty_port_put_ordered = true,
+        .tty_vhangup_follow_through = false,
+        .tty_kref_put_release = false,
+        .keep_irq_until_hangup = false,
+    });
+
+    try std.testing.expect(attached_remove.console_lock_slot_cleared);
+    try std.testing.expect(attached_remove.vtermno_and_cons_ops_released);
+    try std.testing.expect(attached_remove.tty_port_put_ordered);
+    try std.testing.expect(attached_remove.tty_vhangup_follow_through);
+    try std.testing.expect(attached_remove.tty_kref_put_release);
+    try std.testing.expect(attached_remove.keep_irq_until_hangup);
+
+    try std.testing.expect(detached_remove.console_lock_slot_cleared);
+    try std.testing.expect(detached_remove.vtermno_and_cons_ops_released);
+    try std.testing.expect(detached_remove.tty_port_put_ordered);
+    try std.testing.expect(!detached_remove.tty_vhangup_follow_through);
+    try std.testing.expect(!detached_remove.tty_kref_put_release);
+    try std.testing.expect(!detached_remove.keep_irq_until_hangup);
+}
