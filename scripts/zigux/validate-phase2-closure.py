@@ -164,13 +164,15 @@ PHASE2_VALIDATION_COMMAND_SPECS = (
 PHASE2_VALIDATOR_MARKERS = (
     'PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER = (',
     'KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"',
+    'PHASE2_CONFDATA_HELPER_ANCHOR_ALIGNMENT_CHECKER = (',
     'PHASE2_TOOL_MANIFEST_PACKET_CHECKER = (',
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py",',
     '"scripts/zigux/check-kconfig-bridge.py",',
+    '"scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py",',
     '"zigux/tests/fixtures/phase2_tool_manifest.json",',
     '"zigux/tests/fixtures/phase2_artifact_tools_manifest.json",',
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 26",
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 36",
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28",
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37",
 )
 
 EXPECTED_FIXDEP_CASES = (
@@ -452,7 +454,7 @@ EXPECTED_CONFDATA_MANIFEST = {
     ],
 }
 
-SELF_TEST_CHECK_COUNT = 24
+SELF_TEST_CHECK_COUNT = 26
 
 
 def require_files(paths: list[Path]) -> list[str]:
@@ -752,13 +754,23 @@ def run_self_test_checks() -> list[str]:
         ),
         (
             "validator_markers_missing_command_count",
-            validate_required_markers(" ".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 26"), PHASE2_VALIDATOR_MARKERS, "phase2_validator"),
-            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 26"],
+            validate_required_markers(" ".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28"), PHASE2_VALIDATOR_MARKERS, "phase2_validator"),
+            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28"],
         ),
         (
             "validator_markers_missing_required_count",
-            validate_required_markers(" ".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 36"), PHASE2_VALIDATOR_MARKERS, "phase2_validator"),
-            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 36"],
+            validate_required_markers(" ".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37"), PHASE2_VALIDATOR_MARKERS, "phase2_validator"),
+            ["phase2_validator:missing:PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37"],
+        ),
+        (
+            "validator_markers_missing_confdata_checker_decl",
+            validate_required_markers(" ".join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != 'PHASE2_CONFDATA_HELPER_ANCHOR_ALIGNMENT_CHECKER = ('), PHASE2_VALIDATOR_MARKERS, "phase2_validator"),
+            ['phase2_validator:missing:PHASE2_CONFDATA_HELPER_ANCHOR_ALIGNMENT_CHECKER = ('],
+        ),
+        (
+            "validator_markers_missing_confdata_checker_path",
+            validate_required_markers(' '.join(marker for marker in PHASE2_VALIDATOR_MARKERS if marker != '"scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py",'), PHASE2_VALIDATOR_MARKERS, "phase2_validator"),
+            ['phase2_validator:missing:"scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py",'],
         ),
         ("command_count_ok", [] if len(build_validation_commands()) == len(PHASE2_VALIDATION_COMMAND_SPECS) else ["command_count_mismatch"], []),
     ]
