@@ -117,7 +117,7 @@ The dedicated governance note, the shipped slice note, the shipped survey note, 
 When a shared contributor-facing summary mentions Phase 13, it should keep these expectations visible:
 - the packet is still active rather than closed
 - the owner split is explicit
-- the compact release-coordination companion stays explicit beside the contributor workflow and release-summary notes
+- the shared contributor-sync note and compact release-coordination companion stay explicit beside the contributor workflow, release-summary, and tests-root companion notes
 - notifier evidence is adjacent support, not a fifth helper slice
 - the guidance stays inside helper, docs, checklist, and truthfulness work unless a new roadmap-approved surface lands
 
