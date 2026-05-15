@@ -535,6 +535,92 @@ fn expectLengthSweepRoundTrip(variant: Variant, padding: bool) !void {
     }
 }
 
+fn expectWrapperRoundTripSweep(variant: Variant, padding: bool) !void {
+    var payload: [33]u8 = undefined;
+    for (&payload, 0..) |*byte, idx| {
+        byte.* = @as(u8, @intCast((idx * 91 + 7) % 256));
+    }
+
+    var encoded_buf: [paddedChars(payload.len)]u8 = [_]u8{0xaa} ** paddedChars(payload.len);
+    var decoded_buf: [payload.len]u8 = [_]u8{0xdd} ** payload.len;
+
+    for (0..(payload.len + 1)) |len| {
+        @memset(encoded_buf[0..], 0xaa);
+        const encoded = try encodeSlice(encoded_buf[0..], payload[0..len], padding, variant);
+        try std.testing.expectEqual(chars(len, padding), encoded.len);
+        if (encoded.len < encoded_buf.len) {
+            try std.testing.expectEqual(@as(u8, 0xaa), encoded_buf[encoded.len]);
+        }
+
+        const alloc_encoded = try encodeAlloc(std.testing.allocator, payload[0..len], padding, variant);
+        defer std.testing.allocator.free(alloc_encoded);
+        try std.testing.expectEqualSlices(u8, encoded, alloc_encoded);
+
+        @memset(decoded_buf[0..], 0xdd);
+        const decoded = try decodeSlice(decoded_buf[0..], encoded, padding, variant);
+        try std.testing.expectEqual(len, decoded.len);
+        try std.testing.expectEqualSlices(u8, payload[0..len], decoded);
+        if (decoded.len < decoded_buf.len) {
+            try std.testing.expectEqual(@as(u8, 0xdd), decoded_buf[decoded.len]);
+        }
+
+        const alloc_decoded = try decodeAlloc(std.testing.allocator, encoded, padding, variant);
+        defer std.testing.allocator.free(alloc_decoded);
+        try std.testing.expectEqualSlices(u8, payload[0..len], alloc_decoded);
+    }
+}
+
+fn expectStdWrapperRoundTripSweep(padding: bool) !void {
+    var payload: [33]u8 = undefined;
+    for (&payload, 0..) |*byte, idx| {
+        byte.* = @as(u8, @intCast((idx * 57 + 29) % 256));
+    }
+
+    var direct_encoded_buf: [paddedChars(payload.len)]u8 = [_]u8{0xbb} ** paddedChars(payload.len);
+    var slice_encoded_buf: [paddedChars(payload.len)]u8 = [_]u8{0xcc} ** paddedChars(payload.len);
+    var direct_decoded_buf: [payload.len]u8 = [_]u8{0xee} ** payload.len;
+    var slice_decoded_buf: [payload.len]u8 = [_]u8{0xff} ** payload.len;
+
+    for (0..(payload.len + 1)) |len| {
+        @memset(direct_encoded_buf[0..], 0xbb);
+        const direct_encoded_len = try encodeStd(direct_encoded_buf[0..], payload[0..len], padding);
+        try std.testing.expectEqual(chars(len, padding), direct_encoded_len);
+        if (direct_encoded_len < direct_encoded_buf.len) {
+            try std.testing.expectEqual(@as(u8, 0xbb), direct_encoded_buf[direct_encoded_len]);
+        }
+
+        @memset(slice_encoded_buf[0..], 0xcc);
+        const slice_encoded = try encodeStdSlice(slice_encoded_buf[0..], payload[0..len], padding);
+        try std.testing.expectEqualSlices(u8, direct_encoded_buf[0..direct_encoded_len], slice_encoded);
+        if (slice_encoded.len < slice_encoded_buf.len) {
+            try std.testing.expectEqual(@as(u8, 0xcc), slice_encoded_buf[slice_encoded.len]);
+        }
+
+        const alloc_encoded = try encodeStdAlloc(std.testing.allocator, payload[0..len], padding);
+        defer std.testing.allocator.free(alloc_encoded);
+        try std.testing.expectEqualSlices(u8, direct_encoded_buf[0..direct_encoded_len], alloc_encoded);
+
+        @memset(direct_decoded_buf[0..], 0xee);
+        const direct_decoded_len = try decodeStd(direct_decoded_buf[0..], slice_encoded, padding);
+        try std.testing.expectEqual(len, direct_decoded_len);
+        try std.testing.expectEqualSlices(u8, payload[0..len], direct_decoded_buf[0..direct_decoded_len]);
+        if (direct_decoded_len < direct_decoded_buf.len) {
+            try std.testing.expectEqual(@as(u8, 0xee), direct_decoded_buf[direct_decoded_len]);
+        }
+
+        @memset(slice_decoded_buf[0..], 0xff);
+        const slice_decoded = try decodeStdSlice(slice_decoded_buf[0..], slice_encoded, padding);
+        try std.testing.expectEqualSlices(u8, payload[0..len], slice_decoded);
+        if (slice_decoded.len < slice_decoded_buf.len) {
+            try std.testing.expectEqual(@as(u8, 0xff), slice_decoded_buf[slice_decoded.len]);
+        }
+
+        const alloc_decoded = try decodeStdAlloc(std.testing.allocator, slice_encoded, padding);
+        defer std.testing.allocator.free(alloc_decoded);
+        try std.testing.expectEqualSlices(u8, payload[0..len], alloc_decoded);
+    }
+}
+
 test "base64 standard encoding matches Linux-style padded output" {
     var out: [8]u8 = undefined;
     const written = try encode(out[0..], "hi", true, .std);
@@ -591,7 +677,7 @@ test "base64 urlsafe encoding swaps the variant alphabet and omits padding when 
 
 test "base64 imap decoding accepts comma as the variant-specific 63rd symbol" {
     var out: [8]u8 = undefined;
-    const written = try decode(out[0..], "+,,,", false, .imap);
+    const written = try decode(out[0..], "+,,," , false, .imap);
     try std.testing.expectEqual(@as(usize, 3), written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xfb, 0xff, 0xff }, out[0..written]);
 }
@@ -635,6 +721,20 @@ test "base64 standard convenience wrappers pin the common variant across direct,
     const direct_decoded_len = try decodeStd(direct_decoded_buf[0..], "Zg==", true);
     try std.testing.expectEqualStrings("f", direct_decoded_buf[0..direct_decoded_len]);
     try std.testing.expectEqual(@as(u8, 0xee), direct_decoded_buf[direct_decoded_len]);
+}
+
+test "base64 generic slice and allocator wrappers sweep exact round-trips across variants and padding modes" {
+    try expectWrapperRoundTripSweep(.std, true);
+    try expectWrapperRoundTripSweep(.std, false);
+    try expectWrapperRoundTripSweep(.urlsafe, true);
+    try expectWrapperRoundTripSweep(.urlsafe, false);
+    try expectWrapperRoundTripSweep(.imap, true);
+    try expectWrapperRoundTripSweep(.imap, false);
+}
+
+test "base64 standard wrappers sweep exact round-trips across payload lengths" {
+    try expectStdWrapperRoundTripSweep(true);
+    try expectStdWrapperRoundTripSweep(false);
 }
 
 test "base64 allocator wrappers allocate exact encoded and decoded lengths" {
