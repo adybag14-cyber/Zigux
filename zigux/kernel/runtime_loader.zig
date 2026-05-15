@@ -268,6 +268,42 @@ test "PreparedRequest.requestRuntimeLoad preserves the prepared snapshot on drif
     try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
 }
 
+test "PreparedRequest.requestRuntimeLoad preserves the prepared snapshot on selftest-hook drift" {
+    const stable = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+
+    var request = try prepareRequest(stable);
+    request.plan.provides_selftest_hook = false;
+    try std.testing.expect(!keepsSelftestHookEvidenceConsistent(request.plan));
+    try std.testing.expect(keepsSelftestHookEvidenceConsistent(request.prepared_plan));
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+
+    request.plan = stable;
+    request.plan.init_flow.selftest_runs = 0;
+    try std.testing.expect(!keepsSelftestHookEvidenceConsistent(request.plan));
+    try std.testing.expect(keepsSelftestHookEvidenceConsistent(request.prepared_plan));
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+}
+
 test "PreparedRequest.releaseWithoutSubstrate preserves the pending snapshot on drift" {
     const stable = LoadPlan{
         .module_name = "runtime_bitmap",
