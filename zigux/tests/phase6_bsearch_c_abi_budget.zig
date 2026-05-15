@@ -22,7 +22,7 @@ fn comparisonBudget(len: usize) usize {
     return std.math.log2_int_ceil(usize, len) + 1;
 }
 
-fn compareAscendingC(key: *const CountedKey, item: *const u32) callconv(.c) i32 {
+fn compareAscendingC(key: *const CountedKey, item: *const u32) callconv(.c) c_int {
     key.comparisons.* += 1;
     return switch (std.math.order(key.target, item.*)) {
         .lt => -1,
@@ -31,7 +31,7 @@ fn compareAscendingC(key: *const CountedKey, item: *const u32) callconv(.c) i32 
     };
 }
 
-fn compareDescendingC(key: *const CountedKey, item: *const u32) callconv(.c) i32 {
+fn compareDescendingC(key: *const CountedKey, item: *const u32) callconv(.c) c_int {
     key.comparisons.* += 1;
     return switch (std.math.order(item.*, key.target)) {
         .lt => -1,
@@ -40,7 +40,7 @@ fn compareDescendingC(key: *const CountedKey, item: *const u32) callconv(.c) i32
     };
 }
 
-fn compareOpaqueAscendingC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+fn compareOpaqueAscendingC(key: *const anyopaque, item: *const anyopaque) callconv(.c) c_int {
     const typed_key: *const CountedOpaqueKey = @ptrCast(@alignCast(key));
     const typed_item: *const u32 = @ptrCast(@alignCast(item));
     typed_key.comparisons.* += 1;
@@ -51,7 +51,7 @@ fn compareOpaqueAscendingC(key: *const anyopaque, item: *const anyopaque) callco
     };
 }
 
-fn compareOpaqueDescendingC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+fn compareOpaqueDescendingC(key: *const anyopaque, item: *const anyopaque) callconv(.c) c_int {
     const typed_key: *const CountedOpaqueKey = @ptrCast(@alignCast(key));
     const typed_item: *const u32 = @ptrCast(@alignCast(item));
     typed_key.comparisons.* += 1;
@@ -62,7 +62,7 @@ fn compareOpaqueDescendingC(key: *const anyopaque, item: *const anyopaque) callc
     };
 }
 
-fn compareOpaqueRecordAscendingC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+fn compareOpaqueRecordAscendingC(key: *const anyopaque, item: *const anyopaque) callconv(.c) c_int {
     const typed_key: *const CountedOpaqueKey = @ptrCast(@alignCast(key));
     const typed_item: *const RawRecord = @ptrCast(@alignCast(item));
     typed_key.comparisons.* += 1;
