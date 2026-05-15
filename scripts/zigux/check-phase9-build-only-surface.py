@@ -58,6 +58,9 @@ GAP_SURVEY_DRIFT_MARKER = (
 GAP_SURVEY_NEXT_STEP_MARKER = (
     "If the shared reminder packet already defers correctly to this note, refresh the smallest shipped shared summary that still drifts around the blocked module-metadata and depmod-publication boundary and the stale repo-root loader inventory, starting with `Documentation/zigux/README.md`, then `zigux/tests/README.md`, while keeping `scripts/zigux/README.md` parked unless a later reread shows it reclaiming family-local owner-map detail again."
 )
+PHASE9_GAP_SURVEY_NOTE_TRACE_EVENTS_PROOF_MARKER = (
+    "`zigux/tests/runtime_trace_events_loader_substrate_drift.zig`"
+)
 DEP_MOD_BOUNDARY_MARKER = (
     "the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces"
 )
@@ -156,6 +159,7 @@ REQUIRED_MARKERS = {
         PHASE9_GAP_SURVEY_NOTE_ROUTE_MARKER,
         "There is no dedicated shared `validate-phase9.py`",
         "samples/zigux/runtime_kretprobe_loader.zig",
+        PHASE9_GAP_SURVEY_NOTE_TRACE_EVENTS_PROOF_MARKER,
         PHASE9_GAP_SURVEY_NOTE_BOUNDARY_MARKER,
     ],
     REVIEW_CHECKLIST_PATH: [
@@ -415,6 +419,18 @@ def run_self_test() -> int:
         gap_survey_note_path = base / PHASE9_GAP_SURVEY_NOTE_PATH
         gap_survey_note = gap_survey_note_path.read_text(encoding="utf-8")
         gap_survey_note_path.write_text(
+            gap_survey_note.replace(PHASE9_GAP_SURVEY_NOTE_TRACE_EVENTS_PROOF_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{PHASE9_GAP_SURVEY_NOTE_PATH}:{PHASE9_GAP_SURVEY_NOTE_TRACE_EVENTS_PROOF_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        gap_survey_note_path = base / PHASE9_GAP_SURVEY_NOTE_PATH
+        gap_survey_note = gap_survey_note_path.read_text(encoding="utf-8")
+        gap_survey_note_path.write_text(
             gap_survey_note.replace(PHASE9_GAP_SURVEY_NOTE_BOUNDARY_MARKER, "", 1),
             encoding="utf-8",
         )
@@ -581,7 +597,7 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         build_path = base / PHASE9_BUILD_PATH
         build = build_path.read_text(encoding="utf-8")
-        build_path.write_text(
+        build_path.writeText(
             build.replace("runtime_loader_gap_survey.zig", "", 1),
             encoding="utf-8",
         )
