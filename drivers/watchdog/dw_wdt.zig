@@ -353,6 +353,9 @@ pub const PlatformRegistrationScaffoldSummary = struct {
     registration_requested: bool,
     stop_on_reboot_requested: bool,
     restart_priority_value: i32,
+    apb_clock_optional: bool,
+    apb_clock_present: bool,
+    apb_clock_get_call: []const u8,
     reset_release_ready: bool,
     reset_release_call: []const u8,
     reset_release_requested: bool,
@@ -366,6 +369,13 @@ pub const PlatformRegistrationScaffoldSummary = struct {
 pub fn platformRegistrationScaffoldSummary(
     request: PlatformRegistrationScaffoldRequest,
 ) PlatformRegistrationScaffoldSummary {
+    const preflight = platformResourcePreflightSummary(.{
+        .has_named_tclk = request.has_named_tclk,
+        .has_shared_clock = request.has_shared_clock,
+        .has_pclk = request.has_pclk,
+        .has_reset_control = request.has_reset_control,
+        .has_pretimeout_irq = request.has_pretimeout_irq,
+    });
     const handoff = platformHandoffSummary(.{
         .has_named_tclk = request.has_named_tclk,
         .has_shared_clock = request.has_shared_clock,
@@ -391,6 +401,9 @@ pub fn platformRegistrationScaffoldSummary(
         .registration_requested = order.registration_requested and handoff.timer_clock_available,
         .stop_on_reboot_requested = handoff.stop_on_reboot_requested,
         .restart_priority_value = handoff.restart_priority_value,
+        .apb_clock_optional = preflight.apb_clock_optional,
+        .apb_clock_present = preflight.apb_clock_present,
+        .apb_clock_get_call = preflight.apb_clock_get_call,
         .reset_release_ready = request.has_reset_control,
         .reset_release_call = handoff.reset_release_call,
         .reset_release_requested = handoff.reset_release_requested,
@@ -636,6 +649,9 @@ test "phase11 dw_wdt platform registration scaffold keeps shared-clock fallback 
     try std.testing.expect(ready.registration_requested);
     try std.testing.expect(ready.stop_on_reboot_requested);
     try std.testing.expectEqual(default_restart_priority, ready.restart_priority_value);
+    try std.testing.expect(ready.apb_clock_optional);
+    try std.testing.expect(!ready.apb_clock_present);
+    try std.testing.expectEqualStrings("devm_clk_get_optional_enabled", ready.apb_clock_get_call);
     try std.testing.expect(ready.reset_release_ready);
     try std.testing.expectEqualStrings("reset_control_deassert", ready.reset_release_call);
     try std.testing.expect(ready.reset_release_requested);
@@ -662,6 +678,9 @@ test "phase11 dw_wdt platform registration scaffold keeps shared-clock fallback 
     try std.testing.expectEqual(ProbeTimeoutOrigin.blocked_missing_timer_clock, blocked.probe_timeout_origin);
     try std.testing.expect(!blocked.registration_requested);
     try std.testing.expect(!blocked.stop_on_reboot_requested);
+    try std.testing.expect(blocked.apb_clock_optional);
+    try std.testing.expect(blocked.apb_clock_present);
+    try std.testing.expectEqualStrings("devm_clk_get_optional_enabled", blocked.apb_clock_get_call);
     try std.testing.expect(blocked.pretimeout_irq_optional);
     try std.testing.expect(blocked.pretimeout_irq_present);
     try std.testing.expectEqualStrings("platform_get_irq_optional", blocked.pretimeout_irq_call);
