@@ -81,6 +81,8 @@ SCRIPT_README_MARKERS = [
     "`validate-phase14.py`",
     "Phase 14 flow",
     "`Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
+    "`Documentation/zigux/phase14-core-boundary-traceability.md`",
+    "`Documentation/zigux/phase14-release-boundary-survey.md`",
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/freeze-map.md`",
     "`make -C zigux phase14-validate`",
@@ -518,47 +520,57 @@ def run_self_test() -> int:
         return 1
     if "smoke_note_records_tests_readme_checker" not in REQUIRED_SURVEY_SUMMARY_KEYS:
         print("PHASE14_SELF_TEST=fail")
-        print("SELF_TEST_REASON=tests_readme_checker_missing_from_required_summary_keys")
+        print("SELF_TEST_REASON=tests_readme_checker_missing_from_required_survey_summary_keys")
         return 1
 
-    tests_readme_packet_missing = []
+    good_tests_readme = "\n".join(
+        [TESTS_README_PACKET_ANCHOR] + TESTS_README_EXACT_LINES
+    ) + "\n"
+    exact_line_missing = []
     require_exact_line_once(
-        tests_readme_packet_missing,
+        exact_line_missing,
         "tests_readme",
-        TESTS_README_PACKET_ANCHOR + "\n" + "\n".join(TESTS_README_EXACT_LINES[1:]) + "\n",
+        good_tests_readme.replace(TESTS_README_EXACT_LINES[0] + "\n", "", 1),
         TESTS_README_EXACT_LINES,
     )
-    if tests_readme_packet_missing != [
+    if exact_line_missing != [
         "tests_readme:exact_line:  * `zigux/tests/phase14_end_to_end_smoke_manifest.json`:count=0"
     ]:
         print("PHASE14_SELF_TEST=fail")
-        print("SELF_TEST_REASON=unexpected_tests_readme_packet_gap_markers")
+        print("SELF_TEST_REASON=unexpected_tests_readme_exact_line_gap_markers")
         print("SELF_TEST_MARKERS_START")
-        for item in tests_readme_packet_missing:
+        for item in exact_line_missing:
             print(item)
         print("SELF_TEST_MARKERS_END")
         return 1
 
-    tests_readme_anchor_missing = []
+    missing_after_anchor = []
     require_lines_after_anchor(
-        tests_readme_anchor_missing,
+        missing_after_anchor,
         "tests_readme",
-        TESTS_README_PACKET_ANCHOR + "\n" + "\n".join(TESTS_README_EXACT_LINES[1:] + [TESTS_README_EXACT_LINES[0]]) + "\n",
+        good_tests_readme.replace(
+            TESTS_README_EXACT_LINES[1] + "\n",
+            "",
+            1,
+        ),
         TESTS_README_PACKET_ANCHOR,
         TESTS_README_EXACT_LINES,
         "phase14_smoke_packet_after_anchor",
     )
-    if tests_readme_anchor_missing != ["tests_readme:phase14_smoke_packet_after_anchor"]:
+    if missing_after_anchor != ["tests_readme:phase14_smoke_packet_after_anchor"]:
         print("PHASE14_SELF_TEST=fail")
-        print("SELF_TEST_REASON=unexpected_tests_readme_anchor_gap_markers")
+        print("SELF_TEST_REASON=unexpected_tests_readme_after_anchor_gap_markers")
         print("SELF_TEST_MARKERS_START")
-        for item in tests_readme_anchor_missing:
+        for item in missing_after_anchor:
             print(item)
         print("SELF_TEST_MARKERS_END")
         return 1
 
-    good_phase14_make = "\n".join(MAKE_MARKERS + MAKE_EXACT_LINES) + "\n"
-    exact_line_missing: list[str] = []
+    good_phase14_make = "\n".join(
+        MAKE_MARKERS
+        + MAKE_EXACT_LINES
+    ) + "\n"
+    exact_line_missing = []
     require_exact_line_once(
         exact_line_missing,
         "make",
