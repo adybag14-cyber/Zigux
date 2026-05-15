@@ -9,6 +9,21 @@ pub const OnlineCpuCursor = struct {
     skipped_offline_count: usize,
 };
 
+pub const OnlineCpuSelectionDisposition = enum {
+    auto_all_online,
+    requested_exact,
+    requested_subset,
+    requested_exceeds_online,
+    no_online_cpu,
+};
+
+pub const OnlineCpuSelectionSummary = struct {
+    online_cpu_count: usize,
+    requested_cpu_count: usize,
+    selected_cpu_count: usize,
+    disposition: OnlineCpuSelectionDisposition,
+};
+
 pub const OnlineCpuRouteAttemptDisposition = enum {
     routed_cpu,
     no_more_online_cpu,
@@ -79,6 +94,33 @@ pub fn advanceOnlineCpuCursor(
     };
 }
 
+pub fn summarizeOnlineCpuSelection(
+    online_cpu_mask: []const bool,
+    requested_cpu_count: usize,
+) OnlineCpuSelectionSummary {
+    const online_cpu_count = cpu_mask.countPossibleCpus(online_cpu_mask);
+    const selected_cpu_count = cpu_mask.derivePerfBufferAutoCpuCount(
+        online_cpu_count,
+        requested_cpu_count,
+    );
+
+    return .{
+        .online_cpu_count = online_cpu_count,
+        .requested_cpu_count = requested_cpu_count,
+        .selected_cpu_count = selected_cpu_count,
+        .disposition = if (selected_cpu_count == 0)
+            .no_online_cpu
+        else if (requested_cpu_count == 0)
+            .auto_all_online
+        else if (requested_cpu_count > online_cpu_count)
+            .requested_exceeds_online
+        else if (selected_cpu_count < online_cpu_count)
+            .requested_subset
+        else
+            .requested_exact,
+    };
+}
+
 pub fn summarizeNextOnlineCpuRoute(
     online_cpu_mask: []const bool,
     start_index: usize,
@@ -133,17 +175,12 @@ pub fn summarizeOnlineCpuRouting(
     requested_cpu_count: usize,
     buffer_fds: []const ?i32,
 ) OnlineCpuRoutingSummary {
-    const online_cpu_count = cpu_mask.countPossibleCpus(online_cpu_mask);
-    const selected_cpu_count = cpu_mask.derivePerfBufferAutoCpuCount(
-        online_cpu_count,
-        requested_cpu_count,
-    );
-
-    if (selected_cpu_count == 0) {
+    const selection = summarizeOnlineCpuSelection(online_cpu_mask, requested_cpu_count);
+    if (selection.selected_cpu_count == 0) {
         return .{
-            .online_cpu_count = online_cpu_count,
-            .requested_cpu_count = requested_cpu_count,
-            .selected_cpu_count = selected_cpu_count,
+            .online_cpu_count = selection.online_cpu_count,
+            .requested_cpu_count = selection.requested_cpu_count,
+            .selected_cpu_count = selection.selected_cpu_count,
             .buffer_slot_count = buffer_fds.len,
             .routed_cpu_count = 0,
             .first_routed_cpu_index = null,
@@ -157,7 +194,7 @@ pub fn summarizeOnlineCpuRouting(
     var routed_cpu_count: usize = 0;
     var first_routed_cpu_index: ?usize = null;
 
-    while (routed_cpu_count < selected_cpu_count) {
+    while (routed_cpu_count < selection.selected_cpu_count) {
         const route = summarizeNextOnlineCpuRoute(
             online_cpu_mask,
             cursor_index,
@@ -171,9 +208,9 @@ pub fn summarizeOnlineCpuRouting(
                 cursor_index = route.next_scan_index;
             },
             .missing_buffer_slot => return .{
-                .online_cpu_count = online_cpu_count,
-                .requested_cpu_count = requested_cpu_count,
-                .selected_cpu_count = selected_cpu_count,
+                .online_cpu_count = selection.online_cpu_count,
+                .requested_cpu_count = selection.requested_cpu_count,
+                .selected_cpu_count = selection.selected_cpu_count,
                 .buffer_slot_count = buffer_fds.len,
                 .routed_cpu_count = routed_cpu_count,
                 .first_routed_cpu_index = first_routed_cpu_index orelse route.cpu_index,
@@ -182,9 +219,9 @@ pub fn summarizeOnlineCpuRouting(
                 .disposition = .missing_buffer_slot,
             },
             .missing_buffer_fd => return .{
-                .online_cpu_count = online_cpu_count,
-                .requested_cpu_count = requested_cpu_count,
-                .selected_cpu_count = selected_cpu_count,
+                .online_cpu_count = selection.online_cpu_count,
+                .requested_cpu_count = selection.requested_cpu_count,
+                .selected_cpu_count = selection.selected_cpu_count,
                 .buffer_slot_count = buffer_fds.len,
                 .routed_cpu_count = routed_cpu_count,
                 .first_routed_cpu_index = first_routed_cpu_index orelse route.cpu_index,
@@ -198,18 +235,18 @@ pub fn summarizeOnlineCpuRouting(
 
     const next_cursor = advanceOnlineCpuCursor(online_cpu_mask, cursor_index);
     return .{
-        .online_cpu_count = online_cpu_count,
-        .requested_cpu_count = requested_cpu_count,
-        .selected_cpu_count = selected_cpu_count,
+        .online_cpu_count = selection.online_cpu_count,
+        .requested_cpu_count = selection.requested_cpu_count,
+        .selected_cpu_count = selection.selected_cpu_count,
         .buffer_slot_count = buffer_fds.len,
         .routed_cpu_count = routed_cpu_count,
         .first_routed_cpu_index = first_routed_cpu_index,
-        .next_online_cpu_index = if (selected_cpu_count < online_cpu_count)
+        .next_online_cpu_index = if (selection.selected_cpu_count < selection.online_cpu_count)
             next_cursor.cpu_index
         else
             null,
         .missing_buffer_index = null,
-        .disposition = if (requested_cpu_count != 0 and selected_cpu_count < online_cpu_count)
+        .disposition = if (selection.disposition == .requested_subset)
             .requested_subset
         else
             .complete,
@@ -242,6 +279,38 @@ test "advanceOnlineCpuCursor walks sparse online CPU masks in order" {
     try std.testing.expectEqual(@as(usize, 0), exhausted.skipped_offline_count);
 }
 
+test "summarizeOnlineCpuSelection keeps auto exact subset and oversized requests explicit" {
+    const auto = summarizeOnlineCpuSelection(&.{ true, false, true, true }, 0);
+    try std.testing.expectEqual(@as(usize, 3), auto.online_cpu_count);
+    try std.testing.expectEqual(@as(usize, 3), auto.selected_cpu_count);
+    try std.testing.expectEqual(OnlineCpuSelectionDisposition.auto_all_online, auto.disposition);
+
+    const exact = summarizeOnlineCpuSelection(&.{ false, true, false, true }, 2);
+    try std.testing.expectEqual(@as(usize, 2), exact.online_cpu_count);
+    try std.testing.expectEqual(@as(usize, 2), exact.selected_cpu_count);
+    try std.testing.expectEqual(OnlineCpuSelectionDisposition.requested_exact, exact.disposition);
+
+    const subset = summarizeOnlineCpuSelection(&.{ false, true, true, false, true }, 2);
+    try std.testing.expectEqual(@as(usize, 3), subset.online_cpu_count);
+    try std.testing.expectEqual(@as(usize, 2), subset.selected_cpu_count);
+    try std.testing.expectEqual(OnlineCpuSelectionDisposition.requested_subset, subset.disposition);
+
+    const oversized = summarizeOnlineCpuSelection(&.{ false, true, false, true }, 5);
+    try std.testing.expectEqual(@as(usize, 2), oversized.online_cpu_count);
+    try std.testing.expectEqual(@as(usize, 2), oversized.selected_cpu_count);
+    try std.testing.expectEqual(
+        OnlineCpuSelectionDisposition.requested_exceeds_online,
+        oversized.disposition,
+    );
+}
+
+test "summarizeOnlineCpuSelection keeps empty masks compact and non-claiming" {
+    const empty = summarizeOnlineCpuSelection(&.{ false, false }, 3);
+    try std.testing.expectEqual(@as(usize, 0), empty.online_cpu_count);
+    try std.testing.expectEqual(@as(usize, 0), empty.selected_cpu_count);
+    try std.testing.expectEqual(OnlineCpuSelectionDisposition.no_online_cpu, empty.disposition);
+}
+
 test "summarizeNextOnlineCpuRoute keeps one route attempt explicit below setup-side routing" {
     const first = summarizeNextOnlineCpuRoute(
         &.{ false, true, false, true },
@@ -272,7 +341,7 @@ test "summarizeNextOnlineCpuRoute keeps missing buffer slots and fds explicit" {
     const missing_slot = summarizeNextOnlineCpuRoute(
         &.{ true, false, true },
         2,
-        &.{ 11 },
+        &.{11},
         1,
     );
     try std.testing.expectEqual(
@@ -302,7 +371,7 @@ test "summarizeNextOnlineCpuRoute keeps exhausted online CPU scans compact and n
     const exhausted = summarizeNextOnlineCpuRoute(
         &.{ false, true },
         2,
-        &.{ 11 },
+        &.{11},
         1,
     );
     try std.testing.expectEqual(
