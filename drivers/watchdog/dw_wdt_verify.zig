@@ -145,3 +145,45 @@ test "phase11 dw_wdt verify keeps reset-backed teardown and remove cleanup disti
     try testing.expect(!remove_summary.interrupt_pending_after_remove);
     try testing.expect(!remove_summary.remove_leaves_hardware_running);
 }
+
+test "phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit" {
+    var idle_stop = try dw_wdt.DwWdtLab.initFixedTops(9, true);
+    try idle_stop.setInterruptPending(true);
+    const stop_summary = idle_stop.stopSummary();
+    try testing.expectEqualStrings(dw_wdt.anchor_path, stop_summary.anchor);
+    try testing.expectEqual(dw_wdt.TeardownOutcome.idle_noop, stop_summary.outcome);
+    try testing.expect(idle_stop.reset_control_available);
+    try testing.expect(!stop_summary.stop_requested);
+    try testing.expect(!stop_summary.enable_bit_cleared);
+    try testing.expect(stop_summary.interrupt_cleared);
+    try testing.expect(!stop_summary.running_before_stop);
+    try testing.expect(!stop_summary.running_after_stop);
+    try testing.expect(!stop_summary.hardware_running_after_stop);
+    try testing.expect(!stop_summary.keeps_heartbeat_running);
+
+    var idle_teardown = try dw_wdt.DwWdtLab.initFixedTops(9, true);
+    try idle_teardown.setInterruptPending(true);
+    const teardown_summary = try idle_teardown.teardownSummary();
+    try testing.expectEqual(dw_wdt.TeardownOutcome.idle_noop, teardown_summary.outcome);
+    try testing.expect(!teardown_summary.can_stop);
+    try testing.expect(!teardown_summary.running_before_teardown);
+    try testing.expect(!teardown_summary.stop_invoked);
+    try testing.expect(!teardown_summary.enable_bit_cleared);
+    try testing.expect(teardown_summary.interrupt_cleared);
+    try testing.expect(!teardown_summary.running_after_teardown);
+    try testing.expect(!teardown_summary.hardware_running_after_teardown);
+
+    var idle_remove = try dw_wdt.DwWdtLab.initFixedTops(9, true);
+    try idle_remove.setInterruptPending(true);
+    const remove_summary = idle_remove.removeSummary();
+    try testing.expectEqualStrings(dw_wdt.anchor_path, remove_summary.anchor);
+    try testing.expect(remove_summary.debugfs_clear_requested);
+    try testing.expect(remove_summary.unregister_device_requested);
+    try testing.expect(remove_summary.reset_control_available);
+    try testing.expect(!remove_summary.reset_assert_requested);
+    try testing.expect(!remove_summary.hardware_running_before_remove);
+    try testing.expect(!remove_summary.hardware_running_after_remove);
+    try testing.expect(!remove_summary.running_after_remove);
+    try testing.expect(!remove_summary.interrupt_pending_after_remove);
+    try testing.expect(!remove_summary.remove_leaves_hardware_running);
+}
