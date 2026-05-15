@@ -136,7 +136,29 @@ PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
 EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 26
 EXPECTED_CONF_CASE_COUNT = 16
 EXPECTED_CONFDATA_CASE_COUNT = 13
-EXPECTED_SELF_TEST_CASE_COUNT = 33
+EXPECTED_CONFDATA_HELPER_ANCHORS = (
+    "confdata bridge parses bounded config states",
+    "confdata bridge emits bounded json output",
+    "confdata bridge decodes escaped quoted strings",
+    "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
+    "confdata bridge escapes low control bytes in json output",
+    "confdata bridge accepts CRLF config lines",
+    "confdata bridge preserves trailing carriage return on final unterminated value line",
+    "confdata bridge ignores unterminated unset comment with trailing carriage return",
+    "confdata bridge keeps explicit n assignments as tristate values",
+    "confdata bridge recognizes uppercase tristate assignments",
+    "confdata bridge ignores non-CONFIG lines like upstream confdata",
+    "confdata bridge ignores empty CONFIG symbol names",
+    "confdata bridge ignores malformed unset comments with extra tokens",
+    "confdata bridge keeps trailing escaped backslashes in quoted strings",
+    "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata",
+    "confdata bridge ignores malformed quoted values like upstream confdata",
+    "confdata bridge emits no entries for empty CONFIG symbol names",
+    "confdata bridge keeps only the last assignment for duplicate symbols",
+    "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
+    "confdata bridge keeps only the last state across unset and set transitions",
+)
+EXPECTED_SELF_TEST_CASE_COUNT = 37
 
 
 def read_text(path: Path) -> str:
@@ -217,6 +239,7 @@ def collect_kconfig_checker_issues(root: Path) -> list[tuple[str, str]]:
         (
             "REQUIRED_CONF_CASE_MODES",
             "REQUIRED_CONFDATA_CASES",
+            "REQUIRED_CONFDATA_HELPER_ANCHORS",
             "EXPECTED_SELF_TEST_CASE_COUNT",
         ),
     )
@@ -251,6 +274,20 @@ def collect_kconfig_checker_issues(root: Path) -> list[tuple[str, str]]:
             (
                 "KCONFIG_CHECKER_CONFDATA_CASE_COUNT_MISMATCH",
                 f"actual={len(confdata_cases)}:expected={EXPECTED_CONFDATA_CASE_COUNT}",
+            )
+        )
+
+    confdata_helper_anchors = assignments.get("REQUIRED_CONFDATA_HELPER_ANCHORS")
+    if not isinstance(confdata_helper_anchors, list):
+        issues.append(
+            ("KCONFIG_CHECKER_CONFDATA_HELPER_ANCHOR_LIST_INVALID", repr(confdata_helper_anchors))
+        )
+        confdata_helper_anchors = []
+    elif confdata_helper_anchors != list(EXPECTED_CONFDATA_HELPER_ANCHORS):
+        issues.append(
+            (
+                "KCONFIG_CHECKER_CONFDATA_HELPER_ANCHOR_MISMATCH",
+                f"actual={confdata_helper_anchors!r}:expected={list(EXPECTED_CONFDATA_HELPER_ANCHORS)!r}",
             )
         )
 
@@ -357,6 +394,35 @@ def collect_kconfig_checker_issues(root: Path) -> list[tuple[str, str]]:
                 (
                     "KCONFIG_MANIFEST_CASE_NAME_MISMATCH",
                     f"confdata_manifest:actual={manifest_cases!r}:expected={confdata_cases!r}",
+                )
+            )
+
+        expected_input_packet = [case["input"] for case in EXPECTED_CONFDATA_CASES]
+        manifest_input_packet = confdata_manifest.get("input_packet")
+        if manifest_input_packet != expected_input_packet:
+            issues.append(
+                (
+                    "KCONFIG_MANIFEST_PACKET_MISMATCH",
+                    f"confdata_manifest:input_packet:actual={manifest_input_packet!r}:expected={expected_input_packet!r}",
+                )
+            )
+
+        expected_output_packet = [case["expected"] for case in EXPECTED_CONFDATA_CASES]
+        manifest_expected_packet = confdata_manifest.get("expected_packet")
+        if manifest_expected_packet != expected_output_packet:
+            issues.append(
+                (
+                    "KCONFIG_MANIFEST_PACKET_MISMATCH",
+                    f"confdata_manifest:expected_packet:actual={manifest_expected_packet!r}:expected={expected_output_packet!r}",
+                )
+            )
+
+        manifest_helper_anchors = confdata_manifest.get("helper_local_anchors")
+        if manifest_helper_anchors != list(EXPECTED_CONFDATA_HELPER_ANCHORS):
+            issues.append(
+                (
+                    "KCONFIG_MANIFEST_PACKET_MISMATCH",
+                    f"confdata_manifest:helper_local_anchors:actual={manifest_helper_anchors!r}:expected={list(EXPECTED_CONFDATA_HELPER_ANCHORS)!r}",
                 )
             )
     return issues
@@ -503,6 +569,28 @@ def build_self_test_root(root: Path) -> None:
             '    "last_state_transitions",',
             '    "duplicate_malformed_quoted_assignment",',
             "]",
+            "REQUIRED_CONFDATA_HELPER_ANCHORS = [",
+            '    "confdata bridge parses bounded config states",',
+            '    "confdata bridge emits bounded json output",',
+            '    "confdata bridge decodes escaped quoted strings",',
+            '    "confdata bridge strips backslashes from escaped control sequences like upstream confdata",',
+            '    "confdata bridge escapes low control bytes in json output",',
+            '    "confdata bridge accepts CRLF config lines",',
+            '    "confdata bridge preserves trailing carriage return on final unterminated value line",',
+            '    "confdata bridge ignores unterminated unset comment with trailing carriage return",',
+            '    "confdata bridge keeps explicit n assignments as tristate values",',
+            '    "confdata bridge recognizes uppercase tristate assignments",',
+            '    "confdata bridge ignores non-CONFIG lines like upstream confdata",',
+            '    "confdata bridge ignores empty CONFIG symbol names",',
+            '    "confdata bridge ignores malformed unset comments with extra tokens",',
+            '    "confdata bridge keeps trailing escaped backslashes in quoted strings",',
+            '    "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata",',
+            '    "confdata bridge ignores malformed quoted values like upstream confdata",',
+            '    "confdata bridge emits no entries for empty CONFIG symbol names",',
+            '    "confdata bridge keeps only the last assignment for duplicate symbols",',
+            '    "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",',
+            '    "confdata bridge keeps only the last state across unset and set transitions",',
+            "]",
             f"EXPECTED_SELF_TEST_CASE_COUNT = {EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT}",
             "issues = []",
             "cmd = []",
@@ -585,6 +673,37 @@ def build_self_test_root(root: Path) -> None:
             {
                 "case_count": EXPECTED_CONFDATA_CASE_COUNT,
                 "cases": [case["name"] for case in cases_payload["confdata_cases"]],
+                "input_packet": [
+                    "sample.config",
+                    "escaped_strings.config",
+                    "escaped_control_sequences.config",
+                    "trailing_escaped_backslash.config",
+                    "sample_crlf.config",
+                    "explicit_n_tristate.config",
+                    "final_trailing_carriage_return.config",
+                    "final_unterminated_unset_comment.config",
+                    "uppercase_tristate.config",
+                    "non_config_lines.config",
+                    "empty_config_symbol_names.config",
+                    "last_state_transitions.config",
+                    "duplicate_malformed_quoted_assignment.config",
+                ],
+                "expected_packet": [
+                    "sample_expected.json",
+                    "escaped_strings_expected.json",
+                    "escaped_control_sequences_expected.json",
+                    "trailing_escaped_backslash_expected.json",
+                    "sample_crlf_expected.json",
+                    "explicit_n_tristate_expected.json",
+                    "final_trailing_carriage_return_expected.json",
+                    "final_unterminated_unset_comment_expected.json",
+                    "uppercase_tristate_expected.json",
+                    "non_config_lines_expected.json",
+                    "empty_config_symbol_names_expected.json",
+                    "last_state_transitions_expected.json",
+                    "duplicate_malformed_quoted_assignment_expected.json",
+                ],
+                "helper_local_anchors": list(EXPECTED_CONFDATA_HELPER_ANCHORS),
             },
             indent=2,
         )
@@ -872,6 +991,23 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                '    "confdata bridge keeps only the last state across unset and set transitions",',
+                '    "confdata bridge keeps a renamed last-state helper anchor",',
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert any(
+            code == "KCONFIG_CHECKER_CONFDATA_HELPER_ANCHOR_MISMATCH"
+            for code, _detail in issues
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
         path = resolve_path(root, KCONFIG_BRIDGE_CASES)
         payload = json.loads(path.read_text(encoding="utf-8"))
         payload["conf_cases"].pop()
@@ -963,6 +1099,42 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert any(
             code == "KCONFIG_MANIFEST_CASE_NAME_MISMATCH" and detail.startswith("confdata_manifest:")
+            for code, detail in issues
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CONFDATA_MANIFEST)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["input_packet"][0] = "renamed_sample.config"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(
+            code == "KCONFIG_MANIFEST_PACKET_MISMATCH" and detail.startswith("confdata_manifest:input_packet:")
+            for code, detail in issues
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CONFDATA_MANIFEST)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["expected_packet"][-1] = "renamed_confdata_case_expected.json"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(
+            code == "KCONFIG_MANIFEST_PACKET_MISMATCH" and detail.startswith("confdata_manifest:expected_packet:")
+            for code, detail in issues
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CONFDATA_MANIFEST)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["helper_local_anchors"] = payload["helper_local_anchors"][:-1]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(
+            code == "KCONFIG_MANIFEST_PACKET_MISMATCH" and detail.startswith("confdata_manifest:helper_local_anchors:")
             for code, detail in issues
         )
         checks_run += 1
