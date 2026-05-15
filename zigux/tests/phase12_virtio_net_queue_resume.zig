@@ -25,6 +25,7 @@ test "phase12 virtio net queue resume summary stays anchored to virtio_net.c" {
         summary.disposition,
     );
     try std.testing.expect(!summary.requires_fresh_probe_snapshot);
+    try std.testing.expect(!summary.throughput_guard_active);
 }
 
 test "phase12 virtio net queue resume keeps mergeable replay and throughput guard explicit" {
@@ -50,6 +51,34 @@ test "phase12 virtio net queue resume keeps mergeable replay and throughput guar
     try std.testing.expect(summary.requires_receive_buffer_refill);
     try std.testing.expect(summary.requires_mergeable_buffer_refill);
     try std.testing.expect(summary.requires_fresh_probe_snapshot);
+    try std.testing.expect(summary.throughput_guard_active);
+}
+
+test "phase12 virtio net queue resume keeps control-only rollback markers explicit" {
+    const summary = try virtio_net_queue_resume.summarizeQueueResume(.{
+        .effective_queue_pairs = 2,
+        .receive_queue_count = 2,
+        .transmit_queue_count = 2,
+        .first_control_queue_index = 4,
+        .total_queue_count = 5,
+        .requires_control_queue_restore = true,
+        .requires_receive_mode_sync = true,
+        .requires_hash_report_restore = true,
+    });
+
+    try std.testing.expectEqual(@as(?u16, 4), summary.control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net_queue_resume.QueueResumeCheckpoint.after_control_queue_restore,
+        summary.checkpoint,
+    );
+    try std.testing.expectEqual(
+        virtio_net_queue_resume.QueueResumeScope.data_and_control,
+        summary.scope,
+    );
+    try std.testing.expect(summary.requires_control_queue_restore);
+    try std.testing.expect(summary.restores_receive_mode);
+    try std.testing.expect(summary.restores_hash_report);
+    try std.testing.expect(!summary.requires_fresh_probe_snapshot);
     try std.testing.expect(summary.throughput_guard_active);
 }
 
@@ -86,4 +115,18 @@ test "phase12 virtio net queue resume keeps control replay markers explicit" {
     try std.testing.expect(summary.restores_mac_table);
     try std.testing.expect(summary.restores_vlan_filters);
     try std.testing.expect(summary.restores_rss_config);
+    try std.testing.expect(summary.throughput_guard_active);
+}
+
+test "phase12 virtio net queue resume rejects control-state replay without control restore" {
+    try std.testing.expectError(
+        error.ControlStateRestoreRequiresControlQueue,
+        virtio_net_queue_resume.summarizeQueueResume(.{
+            .effective_queue_pairs = 2,
+            .receive_queue_count = 2,
+            .transmit_queue_count = 2,
+            .total_queue_count = 4,
+            .requires_receive_mode_sync = true,
+        }),
+    );
 }
