@@ -75,6 +75,8 @@ pub const WritableSpanSummary = struct {
 };
 
 pub const PreviewBoundarySummary = struct {
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
     snapshot_prefix: [4]u8,
     preview_prefix: [8]u8,
     preview_total_visible: usize,
@@ -84,6 +86,8 @@ pub const PreviewBoundarySummary = struct {
 };
 
 pub const WrappedPreviewSummary = struct {
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
     drained_prefix: [4]u8,
     refill_values: [4]u8,
     snapshot_prefix: [12]u8,
@@ -95,6 +99,8 @@ pub const WrappedPreviewSummary = struct {
 };
 
 pub const RemainingCapacitySummary = struct {
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
     drained_prefix: [8]u8,
     available_after_init: usize,
     available_after_hello: usize,
@@ -340,7 +346,8 @@ pub const BytestreamFifoSample = struct {
     }
 
     pub fn runPreviewBoundaryReplay(self: *Self) !PreviewBoundarySummary {
-        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+        const stage_before_replay = self.stage();
+        if (stage_before_replay != .initialized) return error.InvalidLifecycleTransition;
 
         self.reset();
 
@@ -365,6 +372,8 @@ pub const BytestreamFifoSample = struct {
         const preview = self.previewInto(preview_prefix[0..]);
 
         return .{
+            .stage_before_replay = stage_before_replay,
+            .stage_after_replay = self.stage(),
             .snapshot_prefix = snapshot_prefix,
             .preview_prefix = preview_prefix,
             .preview_total_visible = preview.total_visible,
@@ -375,7 +384,8 @@ pub const BytestreamFifoSample = struct {
     }
 
     pub fn runWrappedPreviewReplay(self: *Self) !WrappedPreviewSummary {
-        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+        const stage_before_replay = self.stage();
+        if (stage_before_replay != .initialized) return error.InvalidLifecycleTransition;
 
         self.reset();
 
@@ -399,6 +409,8 @@ pub const BytestreamFifoSample = struct {
         const preview = self.previewInto(preview_prefix[0..]);
 
         return .{
+            .stage_before_replay = stage_before_replay,
+            .stage_after_replay = self.stage(),
             .drained_prefix = drained_prefix,
             .refill_values = refill_values,
             .snapshot_prefix = snapshot_prefix,
@@ -411,7 +423,8 @@ pub const BytestreamFifoSample = struct {
     }
 
     pub fn runRemainingCapacityReplay(self: *Self) !RemainingCapacitySummary {
-        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+        const stage_before_replay = self.stage();
+        if (stage_before_replay != .initialized) return error.InvalidLifecycleTransition;
 
         self.reset();
         const available_after_init = self.available();
@@ -435,6 +448,8 @@ pub const BytestreamFifoSample = struct {
         if (self.dequeueSlice(drained_prefix[0..]) != drained_prefix.len) return error.UnexpectedDrainCount;
 
         return .{
+            .stage_before_replay = stage_before_replay,
+            .stage_after_replay = self.stage(),
             .drained_prefix = drained_prefix,
             .available_after_init = available_after_init,
             .available_after_hello = available_after_hello,
@@ -794,6 +809,9 @@ test "bytestream fifo sample keeps remaining-capacity replay explicit" {
     try sample.init();
     const summary = try sample.runRemainingCapacityReplay();
 
+    try std.testing.expectEqual(SampleStage.initialized, summary.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, summary.stage_after_replay);
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
     try std.testing.expectEqualSlices(u8, &.{ 'e', 'l', 'l', 'o', 0, 1, 2, 3 }, summary.drained_prefix[0..]);
     try std.testing.expectEqual(@as(usize, fifo_capacity), summary.available_after_init);
     try std.testing.expectEqual(@as(usize, 27), summary.available_after_hello);
@@ -865,6 +883,9 @@ test "bytestream fifo sample keeps queue-shape review helpers explicit" {
     try std.testing.expect(!sample.usesWrappedStorageWindow());
 
     const preview_boundary = try sample.runPreviewBoundaryReplay();
+    try std.testing.expectEqual(SampleStage.initialized, preview_boundary.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, preview_boundary.stage_after_replay);
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
     try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5 }, preview_boundary.snapshot_prefix[0..]);
     try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, preview_boundary.preview_prefix[0..]);
     try std.testing.expectEqual(@as(usize, 10), preview_boundary.preview_total_visible);
@@ -882,6 +903,9 @@ test "bytestream fifo sample keeps queue-shape review helpers explicit" {
     try std.testing.expect(!sample.usesWrappedStorageWindow());
 
     const wrapped_preview = try sample.runWrappedPreviewReplay();
+    try std.testing.expectEqual(SampleStage.initialized, wrapped_preview.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, wrapped_preview.stage_after_replay);
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
     try std.testing.expectEqualSlices(u8, "hell", wrapped_preview.drained_prefix[0..]);
     try std.testing.expectEqualSlices(u8, &.{ 200, 201, 202, 203 }, wrapped_preview.refill_values[0..]);
     try std.testing.expectEqualSlices(u8, &.{ 'o', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, wrapped_preview.snapshot_prefix[0..]);
