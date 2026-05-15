@@ -93,13 +93,13 @@ REQUIRED_MARKERS = {
         "PHASE7_SHARED_CONTROL_LANE=P7-Y05",
         "PHASE7_HELPER_SEQUENCING_LANE=P7-Y06",
         "PHASE7_SHARED_DOCS_ROOT_LANE=P7-Y08",
-        "`string_helpers` is parked as a landed helper-local packet",
+        "`string_helpers` is restored as a starter helper-local packet",
         "`rbtree` is parked as a landed helper-local packet",
         "`P7-Y05` owns only shared validator, make-wrapper, build-route, tests-root, and shared reminder truthfulness.",
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "PHASE7_STATUS=starter_landed",
-        "expanded string-helpers starter packet",
+        "The current `string_helpers` state on `master` now carries an expanded starter packet",
         "scope: keep the Phase 7 string-helpers lane limited to the expanded starter packet and the no-sample review boundary",
         "current `master` now carries both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`",
         "The current starter replay also keeps these ownership-focused boundaries explicit:",
@@ -334,13 +334,13 @@ def run_self_test() -> None:
         remove_marker(
             tmp_root,
             "Documentation/zigux/phase7-string-helpers-slice.md",
-            "expanded string-helpers starter packet",
+            "The current `string_helpers` state on `master` now carries an expanded starter packet",
             "missing_expanded_slice_marker",
         )
         expect_missing_marker(
             "missing_expanded_slice_marker",
             tmp_root,
-            "Documentation/zigux/phase7-string-helpers-slice.md: expanded string-helpers starter packet",
+            "Documentation/zigux/phase7-string-helpers-slice.md: The current `string_helpers` state on `master` now carries an expanded starter packet",
         )
         write_fixture_root(tmp_root)
 
@@ -360,13 +360,13 @@ def run_self_test() -> None:
         remove_marker(
             tmp_root,
             "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "`string_helpers` is parked as a landed helper-local packet",
+            "`string_helpers` is restored as a starter helper-local packet",
             "missing_string_helpers_lane_state",
         )
         expect_missing_marker(
             "missing_string_helpers_lane_state",
             tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: `string_helpers` is parked as a landed helper-local packet",
+            "Documentation/zigux/phase7-helper-lane-sequencing.md: `string_helpers` is restored as a starter helper-local packet",
         )
         write_fixture_root(tmp_root)
 
