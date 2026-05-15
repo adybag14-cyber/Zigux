@@ -16,15 +16,16 @@ This parked Phase 8 gap note keeps the roadmap-backed command and environment
 control surface reviewable without pretending that the current Zigux packet has
 closed direct process-launch, live environment-read, or terminal-probing parity.
 
-The same shared boundary survey also keeps the current file, path, and handle
-bridge review packet explicit without pretending that the current Zigux packet
-has closed token materialization or capability handoff, map reopen or bpffs
-compatibility closure, or fd close or ownership semantics.
+The same shared boundary survey also keeps the landed helper-local file, path,
+and handle bridge packet plus the still-parked broader bridge boundary explicit
+without pretending that the current Zigux packet has closed token
+materialization or capability handoff, map reopen or bpffs compatibility
+closure, or fd close or ownership semantics.
 
 The note is intentionally narrow:
 - keep the roadmap anchors explicit
 - keep the parked current-tree command and help packet explicit
-- keep the current file-path-and-handle bridge review packet explicit
+- keep the landed helper-local file-path-and-handle bridge packet and the still-parked broader bridge boundary explicit
 - keep the landed bounded perf-buffer poll helper packet explicit
 - keep the shared Phase 8 lane note and validation entrypoint explicit
 - keep the next bounded follow-through step explicit until later Phase 8 work lands
@@ -49,9 +50,9 @@ The bounded evidence packet for that parked command surface remains:
 - `python3 scripts/zigux/validate-phase8.py`
 - `make -C zigux phase8-validate`
 
-The same shared Phase 8 boundary packet also keeps the queued file, path, and
-handle bridge work plus the already-landed bounded perf-buffer poll helper
-reviewable through:
+The same shared Phase 8 boundary packet also keeps the landed helper-local
+file, path, and handle bridge packet, the still-parked broader bridge boundary,
+and the already-landed bounded perf-buffer poll helper reviewable through:
 - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
 - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
 - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
@@ -75,7 +76,8 @@ returned `404` for `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`,
 `zigux/tests/phase8_build.zig`, so treat that landed bridge-plus-build packet as
 mixed-source review evidence rather than uniformly stable contents-route proof.
 
-That queued bridge packet stays helper-first and planning-only: it names
+That same-lane bridge packet now has a landed helper-local core while the
+broader file-path-and-handle resource boundary stays parked: it names
 `mapReuseObservationFromFdinfo()`, `resolveReusePinnedMapAttempt()`, and
 `planTokenPreparation()` as a planning-only gate around a non-empty pinned path
 plus compatible fdinfo-derived map info and a non-empty token path plus a ready
@@ -133,9 +135,9 @@ The product roadmap still names Phase 8 as the first tooling-expansion tranche f
 - `tools/lib/bpf/libbpf.c`
 
 Current `master` still preserves the parked command-and-help reminder packet,
-and it also preserves the bounded file-path-and-handle bridge packet as a
-planning-only gate for file, path, and handle reuse decisions. Even so, the
-same packet still stops short of full process-launch, environment-plumbing,
+and it also preserves the landed helper-local file-path-and-handle bridge packet
+plus the still-parked broader file-path-and-handle resource boundary. Even so,
+the same packet still stops short of full process-launch, environment-plumbing,
 terminal-probing, token handoff, and reopened-handle closure behavior.
 
 This note should therefore remain the truthful bridge between the roadmap target
