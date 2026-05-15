@@ -60,6 +60,7 @@ The current lane state is:
 - landed `phase13-devres-survey-note`
 - landed `phase13-devres-test-gate`
 - landed `phase13-devres-reviewability-gate`
+- landed `phase13-devres-boundary-evidence-gate`
 - landed `phase13-devres-iounmap-planner`
 - landed `phase13-devres-of-iomap-planner`
 - landed `phase13-devres-arch-io-wc-memtype-planner`
@@ -71,7 +72,7 @@ The current lane state is:
 - blocked `phase13-devres-live-arch-memtype-state`
 - blocked `phase13-devres-live-scatterlist-ownership`
 
-This keeps the lane explicit without overstating progress: Zigux has a real helper-first MMIO safety foothold for managed ioremap lifetime planning, exact `devm_iounmap()` matching, pure translated-resource `devm_of_iomap()` handoff, detach-time WC memtype bookkeeping, detach-time WC token bookkeeping, and direct replay plus reviewability guards, but it still does not claim live MMIO mappings, live region reservation, live release-region mutation, live device-tree walking, live arch memtype state transitions, live scatterlist ownership, or `sg_table` lifecycle control, and it still keeps DMA-backed helper ownership outside this helper-local packet.
+This keeps the lane explicit without overstating progress: Zigux has a real helper-first MMIO safety foothold for managed ioremap lifetime planning, exact `devm_iounmap()` matching, pure translated-resource `devm_of_iomap()` handoff, detach-time WC memtype bookkeeping, detach-time WC token bookkeeping, the direct devres replay, the direct boundary-evidence replay, and reviewability guards, but it still does not claim live MMIO mappings, live region reservation, live release-region mutation, live device-tree walking, live arch memtype state transitions, live scatterlist ownership, or `sg_table` lifecycle control, and it still keeps DMA-backed helper ownership outside this helper-local packet.
 
 ## Non-goals
 
