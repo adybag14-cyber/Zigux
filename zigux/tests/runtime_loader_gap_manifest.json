@@ -10,7 +10,7 @@
     "shared_phase9_bundle_route_present": true,
     "shared_lifecycle_boundary_guard_present": true,
     "dedicated_validate_phase9_present": false,
-    "review_checklist_cross_phase_non_owner_boundary_present": false,
+    "review_checklist_cross_phase_non_owner_boundary_present": true,
     "current_honest_gate": "make -C zigux phase9-runtime-loader-shared-tests"
   },
   "lifecycle_boundary_summary": {
@@ -44,12 +44,17 @@
     {
       "surface": "Documentation/zigux/review-checklist.md",
       "kind": "shared_review_checklist",
-      "why_now": "Keeps the reviewer-facing Phase 9 route, no-dedicated-validator posture, and blocked publication boundary explicit while the older cross-phase non-owner reminder is still the smallest same-lane follow-through."
+      "why_now": "Keeps the reviewer-facing Phase 9 route, no-dedicated-validator posture, blocked publication boundary, and older Phase 2 and Phase 3 non-owner reminder explicit."
+    },
+    {
+      "surface": "scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
+      "kind": "shared_review_checklist_checker",
+      "why_now": "Fail-closes the older Phase 2 and Phase 3 non-owner reminder beside the blocked module-metadata and depmod-publication boundary."
     },
     {
       "surface": "zigux/tests/runtime_loader_gap_manifest.json",
       "kind": "packet_truth_manifest",
-      "why_now": "Pins the current shared loader route, its still-blocked publication boundary, the cleared trace-events parity evidence, the focused lifecycle-boundary guard, and the remaining checklist-local cross-phase reminder gap."
+      "why_now": "Pins the current shared loader route, its still-blocked publication boundary, the cleared trace-events parity evidence, the focused lifecycle-boundary guard, and the landed review-checklist non-owner boundary reminder."
     },
     {
       "surface": "zigux/tests/runtime_loader_gap_survey.zig",
@@ -179,13 +184,6 @@
       "kind": "publication_boundary",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
       "why_now": "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, install-root, and `depmod` state remain review-only publication boundaries."
-    },
-    {
-      "id": "runtime-loader-checklist-cross-phase-non-owner-reminder",
-      "status": "review_only_gap",
-      "kind": "shared_reminder_truthfulness",
-      "zigux_destination": "Documentation/zigux/review-checklist.md",
-      "why_now": "The shared checklist still needs the older Phase 2 Kconfig bridge and Phase 3 export-boundary non-owner reminder kept explicit beside the blocked module-metadata and depmod-publication boundary."
     },
     {
       "id": "runtime-trace-events-prepared-substrate-drift-proof",
