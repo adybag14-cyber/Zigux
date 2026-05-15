@@ -96,8 +96,10 @@ REQUIRED_NARROW_SNIPPETS = (
     "pub fn constSliceAtInteropPolicy(",
     "pub fn constPointerAtInteropPolicyBytes(",
     "pub fn constPointerAtInteropPolicy(",
+    "pub fn constPointerAtByte(",
     "pub fn writeValueAtInteropPolicyBytes(",
     "pub fn writeValueAtInteropPolicy(",
+    "pub fn writeValueAtByte(",
     'try std.testing.expect(permitsRawPointerBridgeByte(2));',
     'try std.testing.expect(!permitsRawPointerBridgePolicyBytes(2, 1));',
     'try std.testing.expect(!recognizesInteropPolicy(reserved_policy));',
@@ -110,8 +112,16 @@ REQUIRED_NARROW_SNIPPETS = (
     'const scoped_direct_mut_slice = try sliceAtByte(u32, bridge_addr, bridge_values.len, 2);',
     'const scoped_mut_ptr = try pointerAtInteropPolicy(u32, bridge_addr, @sizeOf(u32), raw_policy);',
     'const scoped_ptr = try constPointerAtInteropPolicy(u32, bridge_addr, raw_policy);',
+    'const scoped_direct_const_byte_ptr = try constPointerAtByte(u32, second_addr, 2);',
+    'try std.testing.expectEqual(@as(u32, 47), scoped_direct_const_byte_ptr.*);',
     'const scoped_odd_slice = try constSliceAtInteropPolicy(u16, odd_bridge_addr, 1, raw_policy);',
+    'const scoped_odd_direct_ptr = try constPointerAtByte(u16, odd_bridge_addr, 2);',
+    'try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_direct_ptr.*);',
     'try writeValueAtInteropPolicy(u32, bridge_addr, 65, raw_policy);',
+    'try writeValueAtByte(u32, second_addr, 73, 2);',
+    'try std.testing.expectEqual(@as(u32, 73), bridge_values[1]);',
+    'try writeValueAtByte(u16, odd_bridge_addr, 0x1357, 2);',
+    'try std.testing.expectEqual(@as(u16, 0x1357), scoped_odd_ptr.*);',
     'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, none_policy));',
     'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 1));',
     'try std.testing.expectError(error.UnsafeScopeDenied, sliceAtByte(u32, bridge_addr, bridge_values.len, 0));',
@@ -288,6 +298,34 @@ def run_self_test() -> int:
         _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
         _write(
             root,
+            NARROW_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_NARROW_SNIPPETS
+                if snippet != "pub fn constPointerAtByte("
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert "missing_narrow_snippet:pub fn constPointerAtByte(" in issues
+
+        _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
+        _write(
+            root,
+            NARROW_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_NARROW_SNIPPETS
+                if snippet != 'try writeValueAtByte(u32, second_addr, 73, 2);'
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert "missing_narrow_snippet:try writeValueAtByte(u32, second_addr, 73, 2);" in issues
+
+        _write(root, NARROW_REL, "\n".join(REQUIRED_NARROW_SNIPPETS) + "\n")
+        _write(
+            root,
             PANIC_REL,
             "\n".join(
                 snippet
@@ -366,7 +404,7 @@ def run_self_test() -> int:
         assert f"missing_mmio_consumer_snippet:{REQUIRED_MMIO_CONSUMER_SNIPPETS[-1]}" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=15")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
