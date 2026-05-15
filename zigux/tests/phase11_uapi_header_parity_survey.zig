@@ -30,6 +30,40 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const BuildInventory = struct {
+    build_test_names: []const []const u8,
+    shared_test_depend_steps: []const []const u8,
+    module_root_source_files: []const ModuleRootSourceFile,
+    module_imports: []const ModuleImport,
+    test_root_modules: []const TestRootModule,
+    forbidden_markers: []const []const u8,
+    dedicated_survey_replays: []const []const u8,
+    shared_split_replays: []const []const u8,
+    shared_adjunct_replays: []const []const u8,
+    shared_replay_markers: []const SharedReplayMarker,
+};
+
+const ModuleRootSourceFile = struct {
+    module: []const u8,
+    path: []const u8,
+};
+
+const ModuleImport = struct {
+    module: []const u8,
+    import_name: []const u8,
+    imported_module: []const u8,
+};
+
+const TestRootModule = struct {
+    @"test": []const u8,
+    root_module: []const u8,
+};
+
+const SharedReplayMarker = struct {
+    path: []const u8,
+    marker: []const u8,
+};
+
 const WatchdogInfo = extern struct {
     options: u32,
     firmware_version: u32,
@@ -234,6 +268,25 @@ test "phase11 shared header parity survey keeps shared replay markers explicit w
     try expectContains(contract, "no shared `validate-phase11.py`");
     try expectContains(contract, "no shared `make -C zigux phase11-validate` target on `master`");
     try expectContains(contract, "The dedicated archival HVC evidence still stays explicit beside that shared route:");
+
+    const build_inventory_json = try readFileAlloc(std.testing.allocator, "zigux/tests/fixtures/phase11_build_inventory.json", 64 * 1024);
+    defer std.testing.allocator.free(build_inventory_json);
+
+    const parsed_inventory = try std.json.parseFromSlice(BuildInventory, std.testing.allocator, build_inventory_json, .{});
+    defer parsed_inventory.deinit();
+
+    const inventory = parsed_inventory.value;
+    try std.testing.expectEqual(@as(usize, 0), inventory.shared_split_replays.len);
+    try std.testing.expectEqual(@as(usize, 0), inventory.shared_adjunct_replays.len);
+    try std.testing.expectEqual(@as(usize, 4), inventory.shared_replay_markers.len);
+    try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_suspend_resume.zig", inventory.shared_replay_markers[0].path);
+    try std.testing.expectEqualStrings(" try std.testing.expect(summary.resume_preserves_timeout_programming);", inventory.shared_replay_markers[0].marker);
+    try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_remove_idle_split.zig", inventory.shared_replay_markers[1].path);
+    try std.testing.expectEqualStrings(" try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);", inventory.shared_replay_markers[1].marker);
+    try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_modem_control_split.zig", inventory.shared_replay_markers[2].path);
+    try std.testing.expectEqualStrings(" try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);", inventory.shared_replay_markers[2].marker);
+    try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_poll_retry_split.zig", inventory.shared_replay_markers[3].path);
+    try std.testing.expectEqualStrings(" try std.testing.expect(dispatch.invokes_sysrq_handler);", inventory.shared_replay_markers[3].marker);
 }
 
 test "phase11 shared header parity survey keeps the exported hvc header declarations explicit" {
