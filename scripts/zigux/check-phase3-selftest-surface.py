@@ -40,7 +40,7 @@ README_PHASE3_MARKER_COUNTS = {
     "zig build phase3-test --build-file zigux/tests/build.zig": 1,
     "make -C zigux phase3-validate": 1,
     "make -C zigux phase3-selftest": 1,
-    "`include/zigux/dev_t.h` plus the narrower `zigux/uapi/version.zig` starter-companion split stay explicit": 1,
+    "`include/zigux/dev_t.h` plus the narrower `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` starter-companion pair stay explicit": 1,
 }
 
 NOTE_POLICY_MARKERS = (
@@ -617,7 +617,7 @@ def run_self_test() -> int:
         _populate_repo(root)
         docs_path.write_text(
             _read(docs_path).replace(
-                "`include/zigux/dev_t.h` plus the narrower `zigux/uapi/version.zig` starter-companion split stay explicit",
+                "`include/zigux/dev_t.h` plus the narrower `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` starter-companion pair stay explicit",
                 "",
                 1,
             ),
@@ -626,7 +626,7 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         expected = (
             "docs README Phase 3 notes marker count drift: "
-            "`include/zigux/dev_t.h` plus the narrower `zigux/uapi/version.zig` starter-companion split stay explicit (expected 1, found 0)"
+            "`include/zigux/dev_t.h` plus the narrower `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` starter-companion pair stay explicit (expected 1, found 0)"
         )
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
