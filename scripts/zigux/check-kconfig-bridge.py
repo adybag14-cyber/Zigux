@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
-CONFDATA_BRIDGE = ROOT / "scripts" / "zigux" / "confdata_bridge.zig"
+CONFDATA_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
 FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
 
 REQUIRED_CONF_HELPER_ANCHORS = [
@@ -523,11 +523,11 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
                     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "defconfig.out", "expected": "savedefconfig_expected.json"},
                     {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "expected": "listnewconfig_expected.json"},
-                    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": true, "expected": "helpnewconfig_expected.json"},
+                    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": True, "expected": "helpnewconfig_expected.json"},
                     {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
                     {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
                     {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
-                    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"}
+                    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"},
                 ],
                 "confdata_cases": [
                     {"name": "sample", "input": "sample.config", "expected": "sample_expected.json"},
@@ -542,8 +542,8 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "non_config_lines", "input": "non_config_lines.config", "expected": "non_config_lines_expected.json"},
                     {"name": "empty_config_symbol_names", "input": "empty_config_symbol_names.config", "expected": "empty_config_symbol_names_expected.json"},
                     {"name": "last_state_transitions", "input": "last_state_transitions.config", "expected": "last_state_transitions_expected.json"},
-                    {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"}
-                ]
+                    {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
+                ],
             },
             indent=2,
         )
@@ -576,28 +576,28 @@ def build_self_test_root(root: Path) -> None:
                     "olddefconfig_expected.json",
                     "yes2modconfig_expected.json",
                     "mod2yesconfig_expected.json",
-                    "mod2noconfig_expected.json"
+                    "mod2noconfig_expected.json",
                 ],
                 "mode_arg_cases": [
                     "defconfig",
-                    "savedefconfig"
+                    "savedefconfig",
                 ],
                 "silent_request_packet": [
-                    "helpnewconfig_expected.json"
+                    "helpnewconfig_expected.json",
                 ],
                 "syncconfig_env_packet": [
-                    "syncconfig_expected.json"
+                    "syncconfig_expected.json",
                 ],
                 "allconfig_sentinel_packet": [
                     "allnoconfig_expected.json",
                     "allyesconfig_expected.json",
-                    "alldefconfig_expected.json"
+                    "alldefconfig_expected.json",
                 ],
                 "allconfig_override_packet": [
                     "allmodconfig_expected.json",
-                    "randconfig_expected.json"
+                    "randconfig_expected.json",
                 ],
-                "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS
+                "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
             },
             indent=2,
         )
@@ -627,7 +627,7 @@ def build_self_test_root(root: Path) -> None:
                     "non_config_lines.config",
                     "empty_config_symbol_names.config",
                     "last_state_transitions.config",
-                    "duplicate_malformed_quoted_assignment.config"
+                    "duplicate_malformed_quoted_assignment.config",
                 ],
                 "expected_packet": [
                     "sample_expected.json",
@@ -642,9 +642,9 @@ def build_self_test_root(root: Path) -> None:
                     "non_config_lines_expected.json",
                     "empty_config_symbol_names_expected.json",
                     "last_state_transitions_expected.json",
-                    "duplicate_malformed_quoted_assignment_expected.json"
+                    "duplicate_malformed_quoted_assignment_expected.json",
                 ],
-                "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS
+                "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS,
             },
             indent=2,
         )
@@ -823,7 +823,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][0]["silent"] = false
+        payload["conf_cases"][0]["silent"] = False
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert ("INVALID_CONF_CASE_SILENT_FIELDS", "oldaskconfig:silent") in issues
