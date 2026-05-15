@@ -67,10 +67,19 @@ pub const LifecycleSnapshot = struct {
     allows_mutation: bool,
 };
 
+pub const AnchorReplayPacket = struct {
+    descriptor: ModuleDescriptor,
+    contract: ReviewContract,
+    summary: RuntimeBitmapSummary,
+    selftest: SelftestSummary,
+    lifecycle: LifecycleSnapshot,
+};
+
 pub const RuntimeBitmapSample = struct {
     const Self = @This();
 
     pub const bitmap_nbits: u32 = bitmap_view.bits_per_long * 2;
+    pub const anchor_bits = [_]u32{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 };
     const backing_word_count: usize = 2;
 
     stage_state: ModuleStage = .cold,
@@ -219,6 +228,19 @@ pub const RuntimeBitmapSample = struct {
         };
     }
 
+    pub fn runAnchorReplay(self: *Self) !AnchorReplayPacket {
+        try self.initWithSetBits(&anchor_bits);
+        const replay_summary = self.summary();
+        const selftest = try self.runSelftest();
+        return .{
+            .descriptor = descriptor(),
+            .contract = reviewContract(),
+            .summary = replay_summary,
+            .selftest = selftest,
+            .lifecycle = self.lifecycleSnapshot(),
+        };
+    }
+
     pub fn exit(self: *Self) !void {
         switch (self.stage()) {
             .initialized, .selftest_complete => {},
@@ -250,9 +272,38 @@ test "runtime bitmap sample review contract keeps bounded starter focus explicit
     }
 }
 
+test "runtime bitmap sample anchor replay keeps descriptor and lifecycle in one sample-owned packet" {
+    var module = RuntimeBitmapSample{};
+    const replay = try module.runAnchorReplay();
+
+    try std.testing.expectEqualStrings("runtime_bitmap", replay.descriptor.name);
+    try std.testing.expectEqualStrings("lib/test_bitmap.c", replay.descriptor.anchor);
+    try std.testing.expectEqual(@as(usize, sample_review_focus.len), replay.contract.focus.len);
+    try std.testing.expectEqual(SampleFocus.descriptor_and_anchor, replay.contract.focus[0]);
+    try std.testing.expectEqual(SampleFocus.summary_replay, replay.contract.focus[1]);
+    try std.testing.expectEqual(SampleFocus.selftest_lifecycle, replay.contract.focus[2]);
+    try std.testing.expectEqualStrings(RuntimeBitmapSample.descriptor().anchor, replay.selftest.anchor);
+    try std.testing.expectEqual(@as(usize, 4), replay.selftest.operation_families.len);
+    try std.testing.expectEqual(OperationFamily.clear_set, replay.selftest.operation_families[0]);
+    try std.testing.expectEqual(OperationFamily.copy, replay.selftest.operation_families[1]);
+    try std.testing.expectEqual(OperationFamily.summary, replay.selftest.operation_families[2]);
+    try std.testing.expectEqual(OperationFamily.lifecycle, replay.selftest.operation_families[3]);
+    try std.testing.expect(replay.selftest.checked_range_mutations);
+    try std.testing.expect(replay.selftest.checked_lifecycle_paths);
+    try std.testing.expectEqual(@as(u32, 0), replay.summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), replay.summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 4), replay.summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, replay.summary.nbits);
+    try std.testing.expectEqual(ModuleStage.selftest_complete, replay.lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), replay.lifecycle.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.lifecycle.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.lifecycle.exit_runs);
+    try std.testing.expect(replay.lifecycle.allows_mutation);
+}
+
 test "runtime bitmap sample review contract stays aligned with the selftest packet" {
     var module = RuntimeBitmapSample{};
-    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });
+    try module.initWithSetBits(&RuntimeBitmapSample.anchor_bits);
 
     const contract = RuntimeBitmapSample.reviewContract();
     const selftest = try module.runSelftest();
@@ -309,7 +360,7 @@ test "runtime bitmap sample lifecycle snapshot keeps counters and mutation guard
 test "runtime bitmap sample keeps bounded view summaries stable" {
     var module = RuntimeBitmapSample{};
 
-    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });
+    try module.initWithSetBits(&RuntimeBitmapSample.anchor_bits);
 
     const summary = module.summary();
     try std.testing.expectEqual(@as(u32, 0), summary.first_set);
