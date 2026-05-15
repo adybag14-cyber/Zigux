@@ -7,7 +7,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_SURVEY_PROVENANCE=connector-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-byte-and-field-asserts-consumed-by-shared-abi-replays`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=434ee85b33b9a2470523c9ae98704743c4944873`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=1a5dfe0dc320c74902912cfaa25165dd8fed54b5`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_PANIC_POLICY_BLOB_SHA=b3da73360a31fedb2e0a5f610320784fff7fa344`
@@ -20,9 +20,9 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_UNSAFE_BLOB_SHA=920cf324c9ef018c0074f420ddaaa8dffc1c2bcf`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
-- `PHASE3_ABI_TEST_BLOB_SHA=1076444cd4682d001302dfb6aa90b8920d4b837c`
+- `PHASE3_ABI_TEST_BLOB_SHA=7768be646d99b8f47b3ac70d677362814a994a63`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
-- `PHASE3_ABI_DUMP_BLOB_SHA=2cf2e2993bc36beedc6fa5c6e15aa88981b5b66b`
+- `PHASE3_ABI_DUMP_BLOB_SHA=5fafea84d9f331d07b15d2fc3c3e607467647c92`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=66fccfddf6c47a9723143628b6c462d824be81d3`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=eb05a0fda1a6a497d92d474d5205be4c625f83ee`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
