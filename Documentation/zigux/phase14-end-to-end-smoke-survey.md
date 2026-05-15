@@ -68,9 +68,9 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`
   - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`
 - compile shard matrix captured in the current shared packet:
-  - `phase14-workqueue-bridge-tests` -> `phase14_workqueue_bridge.zig` -> `full_bundle_only`
+  - `phase14-workqueue-bridge-tests` -> `phase14_workqueue_bridge.zig` -> `full_bundle_only` -> roadmap destination `../../kernel/workqueue_bridge.zig`
   - `phase14-workqueue-reviewability-tests` -> `phase14_workqueue_reviewability.zig` -> `full_bundle_only`
-  - `phase14-skbuff-bridge-tests` -> `phase14_skbuff_bridge.zig` -> `full_bundle_only`
+  - `phase14-skbuff-bridge-tests` -> `phase14_skbuff_bridge.zig` -> `full_bundle_only` -> roadmap destination `../../net/core/skbuff_bridge.zig`
   - `phase14-ring-buffer-survey-tests` -> `phase14_ring_buffer_survey.zig` -> `full_bundle_only`
   - `phase14-rcu-tree-survey-tests` -> `phase14_rcu_tree_survey.zig` -> `full_bundle_only`
   - `phase14-end-to-end-smoke-tests` -> `phase14_end_to_end_smoke_survey.zig` -> `focused_and_full_bundle`
