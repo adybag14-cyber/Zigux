@@ -72,6 +72,15 @@ pub fn summarizeQueueResume(request: QueueResumeRequest) !QueueResumeSummary {
     if (request.requires_control_queue_restore and request.first_control_queue_index == null) {
         return error.ControlQueueIndexRequired;
     }
+
+    const requires_control_state_restore = request.requires_receive_mode_sync or
+        request.requires_hash_report_restore or
+        request.requires_mac_table_sync or
+        request.requires_vlan_filter_sync or
+        request.requires_rss_config_sync;
+    if (requires_control_state_restore and !request.requires_control_queue_restore) {
+        return error.ControlStateRestoreRequiresControlQueue;
+    }
     if (!request.rss_enabled and request.requires_rss_config_sync) {
         return error.RssConfigSyncWithoutRss;
     }
@@ -123,9 +132,8 @@ pub fn summarizeQueueResume(request: QueueResumeRequest) !QueueResumeSummary {
         .restores_mac_table = request.requires_mac_table_sync,
         .restores_vlan_filters = request.requires_vlan_filter_sync,
         .restores_rss_config = request.requires_rss_config_sync,
-        .throughput_guard_active = request.requires_post_reset_probe_replay or
-            request.requires_mergeable_buffer_refill or
-            request.requires_rss_config_sync,
+        .throughput_guard_active = checkpoint != .after_transmit_queue_restore or
+            request.requires_post_reset_probe_replay,
     };
 }
 
@@ -170,6 +178,28 @@ test "summarizeQueueResume keeps mergeable refill gated before probe replay" {
     try std.testing.expect(summary.throughput_guard_active);
 }
 
+test "summarizeQueueResume keeps control-only restore gating throughput before resume" {
+    const summary = try summarizeQueueResume(.{
+        .effective_queue_pairs = 2,
+        .receive_queue_count = 2,
+        .transmit_queue_count = 2,
+        .first_control_queue_index = 4,
+        .total_queue_count = 5,
+        .requires_control_queue_restore = true,
+        .requires_receive_mode_sync = true,
+        .requires_hash_report_restore = true,
+    });
+
+    try std.testing.expectEqual(QueueResumeCheckpoint.after_control_queue_restore, summary.checkpoint);
+    try std.testing.expectEqual(QueueResumeScope.data_and_control, summary.scope);
+    try std.testing.expectEqual(QueueResumeDisposition.resume_after_control_restore, summary.disposition);
+    try std.testing.expect(summary.requires_control_queue_restore);
+    try std.testing.expect(summary.restores_receive_mode);
+    try std.testing.expect(summary.restores_hash_report);
+    try std.testing.expect(!summary.requires_fresh_probe_snapshot);
+    try std.testing.expect(summary.throughput_guard_active);
+}
+
 test "summarizeQueueResume keeps control and rss replay visible before resume" {
     const summary = try summarizeQueueResume(.{
         .effective_queue_pairs = 4,
@@ -209,6 +239,16 @@ test "summarizeQueueResume rejects control restore without an index" {
         .transmit_queue_count = 2,
         .total_queue_count = 5,
         .requires_control_queue_restore = true,
+    }));
+}
+
+test "summarizeQueueResume rejects control-state sync without control restore" {
+    try std.testing.expectError(error.ControlStateRestoreRequiresControlQueue, summarizeQueueResume(.{
+        .effective_queue_pairs = 2,
+        .receive_queue_count = 2,
+        .transmit_queue_count = 2,
+        .total_queue_count = 4,
+        .requires_receive_mode_sync = true,
     }));
 }
 
