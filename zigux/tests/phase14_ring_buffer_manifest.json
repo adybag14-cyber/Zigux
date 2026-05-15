@@ -37,6 +37,11 @@
       "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
       "make -C zigux phase14"
     ],
+    "attached_toolchain_fallback": [
+      "/absolute/path/to/attached-zig/zig test zigux/tests/phase14_ring_buffer_survey.zig",
+      "/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+      "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14"
+    ],
     "reopen_conditions": [
       "the dedicated survey note, manifest, or Zig survey gate drift on surveyed commit, blocked gap, last closed follow-up, or ready-next posture",
       "the directly coupled shared smoke or core traceability packet reintroduces a ring-buffer-specific owner-label or ready-next mismatch",
@@ -212,7 +217,7 @@
       "status": "starter_landed",
       "kind": "maintenance_handoff",
       "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
-      "why_now": "The parked packet now carries explicit replay commands, reopen conditions, and a future truthfulness-only target so later runs can keep the study-only posture disciplined without inventing a new bridge or audit seam."
+      "why_now": "The parked packet now carries explicit replay commands, attached-toolchain fallback examples, reopen conditions, and a future truthfulness-only target so later runs can keep the study-only posture disciplined without inventing a new bridge or audit seam."
     },
     {
       "id": "phase14-ring-buffer-zig-port-blocker",
