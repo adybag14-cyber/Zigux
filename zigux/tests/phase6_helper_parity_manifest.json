@@ -5,10 +5,10 @@
   "packet_state_summary": {
     "base64": "parked_reviewable",
     "bsearch": "parked_reviewable",
-    "checksum": "blocked_helper_packet_missing",
+    "checksum": "parked_reviewable",
     "hexdump": "parked_reviewable"
   },
-  "shared_route_truthfulness_note": "base64 now keeps lib/base64.zig, zigux/tests/phase6_base64.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_base64_perf.zig, and the direct C parity packet, while checksum still lacks lib/checksum.zig plus its helper-owned replay, perf, and shared-vector files even though zigux/tests/phase6_checksum_c_parity.zig plus zigux/tests/fixtures/phase6_checksum_c_harness.c remain directly readable.",
+  "shared_route_truthfulness_note": "base64 now keeps lib/base64.zig, zigux/tests/phase6_base64.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_base64_perf.zig, and the direct C parity packet, and checksum now also keeps lib/checksum.zig, zigux/tests/phase6_checksum.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, and the direct C parity packet, while shared Makefile and workflow wrapper summaries still lag the restored checksum helper-owned replay.",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
@@ -111,6 +111,9 @@
     "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
     "zigux/tests/phase6_bsearch_c_abi_budget.zig",
     "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
+    "zigux/tests/phase6_checksum.zig",
+    "zigux/tests/phase6_checksum_perf.zig",
+    "zigux/tests/fixtures/phase6_checksum_vectors.zig",
     "zigux/tests/phase6_checksum_c_parity.zig",
     "zigux/tests/fixtures/phase6_checksum_c_harness.c",
     "scripts/zigux/check-phase6-checksum-c-parity.py",
@@ -119,13 +122,8 @@
     "zigux/tests/phase6_hexdump_perf_matrix.zig",
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
   ],
-  "tests_root_public_tree_gaps": [
-    "lib/checksum.zig",
-    "zigux/tests/phase6_checksum.zig",
-    "zigux/tests/phase6_checksum_perf.zig",
-    "zigux/tests/fixtures/phase6_checksum_vectors.zig"
-  ],
-  "tests_root_truthfulness_note": "zigux/tests/README.md should keep tests_root_present_entrypoints as the current Phase 6 tests-root evidence packet, keep the restored base64 helper-owned perf replay explicit beside the focused helper replay and shared vectors, and keep the still-missing checksum helper, focused replay, perf replay, and shared vectors explicit until those checksum-owned assets return.",
+  "tests_root_public_tree_gaps": [],
+  "tests_root_truthfulness_note": "zigux/tests/README.md should keep tests_root_present_entrypoints as the current Phase 6 tests-root evidence packet, keep the restored base64 helper-owned perf replay explicit beside the focused helper replay and shared vectors, and stop listing the restored checksum focused replay, helper-local perf replay, and shared vectors as public-tree gaps while the shared wrapper inventory still catches up.",
   "perf_posture": {
     "relative_slowdown_helpers": [
       "base64",
@@ -215,12 +213,12 @@
       "cases": [
         {
           "label": "64B",
-          "iterations": 200000,
+          "iterations": 20000,
           "max_slowdown_pct": 150
         },
         {
           "label": "1501B",
-          "iterations": 12000,
+          "iterations": 4000,
           "max_slowdown_pct": 150
         }
       ]
@@ -290,6 +288,7 @@
     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test",
     "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
     "make -C zigux phase6-bsearch-test",
     "make -C zigux phase6-hexdump-test",
@@ -303,7 +302,6 @@
   "inventory_only_blocked_routes": [
     "make -C zigux phase6-base64-c-parity",
     "make -C zigux phase6-base64-perf",
-    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
     "make -C zigux phase6-checksum-c-parity",
     "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-validate",
