@@ -116,6 +116,8 @@ EXPECTED_TEST_LIST_MARKERS = list(EXPECTED_FOCUSED_HARNESS_REPLAYS.keys())
 EXPECTED_TEST_COUNT = 17
 
 SCRIPTS_README_MARKERS = [
+    "`Documentation/zigux/review-checklist.md`",
+    "`Documentation/zigux/phase10-closure-evidence.md`",
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`zigux/tests/phase10_closure_manifest.json`",
@@ -127,6 +129,7 @@ SCRIPTS_README_MARKERS = [
 ]
 
 TESTS_ROOT_COMPANION_MARKERS = [
+    "`Documentation/zigux/phase10-closure-evidence.md`",
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`Documentation/zigux/phase10-virtio-core-slice.md`",
@@ -412,6 +415,36 @@ def run_self_test() -> int:
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
             original_scripts_readme.replace(
+                "`Documentation/zigux/review-checklist.md`",
+                "`Documentation/zigux/review-checklist-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_review_checklist",
+            root,
+            "scripts_readme:`Documentation/zigux/review-checklist.md`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "`Documentation/zigux/phase10-closure-evidence.md`",
+                "`Documentation/zigux/phase10-closure-evidence-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_closure_evidence",
+            root,
+            "scripts_readme:`Documentation/zigux/phase10-closure-evidence.md`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
                 "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
                 "`scripts/zigux/check-phase10-tests-readme-core-surfaces-removed.py`",
                 1,
@@ -474,6 +507,21 @@ def run_self_test() -> int:
             root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
         )
         original_tests_root_companion = tests_root_companion_path.read_text(encoding="utf-8")
+        tests_root_companion_path.write_text(
+            original_tests_root_companion.replace(
+                "`Documentation/zigux/phase10-closure-evidence.md`",
+                "`Documentation/zigux/phase10-closure-evidence-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_root_companion_closure_evidence",
+            root,
+            "tests_root_companion:`Documentation/zigux/phase10-closure-evidence.md`",
+        )
+        tests_root_companion_path.write_text(original_tests_root_companion, encoding="utf-8")
+
         tests_root_companion_path.write_text(
             original_tests_root_companion.replace(
                 "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
@@ -651,7 +699,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=29")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
