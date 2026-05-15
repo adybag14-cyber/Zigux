@@ -132,6 +132,25 @@ pub const RecoveryRequestQueueRestoreSummary = struct {
     requires_descriptors_ready_before_kick: bool,
 };
 
+pub const RecoveryControlPathGovernanceSummary = struct {
+    anchor: []const u8,
+    control_queue_index: u16,
+    event_queue_index: u16,
+    remembered_request_queues: u16,
+    remembered_poll_queues: u16,
+    remembered_event_buffer_count: u16,
+    requested_depth: ?u32,
+    clamped_queue_depth: ?u32,
+    command_bytes_per_request: ?u32,
+    sense_bytes_per_request: ?u32,
+    recovery_generation: u16,
+    requires_device_ready_before_control_queue_restore: bool,
+    requires_control_queue_restore_before_event_rearm: bool,
+    requires_control_queue_restore_before_tmf: bool,
+    requires_dma_mapping_revalidation_before_control_commands: bool,
+    stays_pre_runtime_only: bool,
+};
+
 pub const RecoveryHostScanSummary = struct {
     anchor: []const u8,
     remembered_request_queues: u16,
@@ -325,6 +344,7 @@ pub const VirtioScsiQueueLab = struct {
     last_io_queue_map_summary: ?IoQueueMapSummary = null,
     frozen_layout: ?QueueLayoutSummary = null,
     frozen_queue_depth_summary: ?QueueDepthSummary = null,
+    frozen_command_buffer_ownership_summary: ?CommandBufferOwnershipSummary = null,
     transport_frozen: bool = false,
     recovery_generation: u16 = 0,
 
@@ -614,6 +634,7 @@ pub const VirtioScsiQueueLab = struct {
         self.transport_frozen = true;
         self.frozen_layout = layout;
         self.frozen_queue_depth_summary = self.last_queue_depth_summary;
+        self.frozen_command_buffer_ownership_summary = self.last_command_buffer_ownership_summary;
 
         return .{
             .anchor = descriptor().anchor,
@@ -745,6 +766,33 @@ pub const VirtioScsiQueueLab = struct {
         };
     }
 
+    pub fn recoveryControlPathGovernanceSummary(self: *const Self) !RecoveryControlPathGovernanceSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        const ownership = self.frozen_command_buffer_ownership_summary;
+        return .{
+            .anchor = descriptor().anchor,
+            .control_queue_index = layout.control_queue_index,
+            .event_queue_index = layout.event_queue_index,
+            .remembered_request_queues = layout.request_queues,
+            .remembered_poll_queues = layout.poll_queues,
+            .remembered_event_buffer_count = layout.event_buffer_count,
+            .requested_depth = if (ownership) |summary| summary.requested_depth else null,
+            .clamped_queue_depth = if (ownership) |summary| summary.clamped_queue_depth else null,
+            .command_bytes_per_request = if (ownership) |summary| summary.command_bytes_per_request else null,
+            .sense_bytes_per_request = if (ownership) |summary| summary.sense_bytes_per_request else null,
+            .recovery_generation = self.recovery_generation,
+            .requires_device_ready_before_control_queue_restore = true,
+            .requires_control_queue_restore_before_event_rearm = true,
+            .requires_control_queue_restore_before_tmf = true,
+            .requires_dma_mapping_revalidation_before_control_commands = if (ownership) |summary| summary.requires_dma_mapping_later else false,
+            .stays_pre_runtime_only = if (ownership) |summary| summary.preserves_pre_registration_scope else true,
+        };
+    }
+
     pub fn recoveryHostScanSummary(self: *const Self) !RecoveryHostScanSummary {
         if (!self.transport_frozen) {
             return error.TransportNotFrozen;
@@ -780,6 +828,7 @@ pub const VirtioScsiQueueLab = struct {
         self.last_control_path_governance_summary = null;
         self.last_io_queue_map_summary = null;
         self.frozen_queue_depth_summary = null;
+        self.frozen_command_buffer_ownership_summary = null;
         self.recovery_generation = try checkedAddU16(self.recovery_generation, 1);
 
         return .{
@@ -806,6 +855,68 @@ pub const VirtioScsiQueueLab = struct {
         return std.math.cast(u32, value) orelse error.QueueCountOverflow;
     }
 };
+
+test "virtio scsi recovery control path governance summary records frozen control queue ownership and ordering" {
+    var lab = VirtioScsiQueueLab.init();
+    _ = try lab.captureControlPathGovernanceSummary(.{
+        .ownership = .{
+            .queue_depth = .{
+                .host_limit = .{
+                    .probe = .{
+                        .num_queues = 5,
+                        .requested_poll_queues = 2,
+                        .cmd_per_lun = 9,
+                        .max_target = 3,
+                        .max_lun = 2,
+                        .max_sectors = 1536,
+                    },
+                    .synthetic_can_queue = 7,
+                },
+                .requested_depth = 11,
+            },
+            .command_bytes = 48,
+            .sense_bytes = 96,
+        },
+    });
+    _ = try lab.freezeForTransportReset();
+
+    const summary = try lab.recoveryControlPathGovernanceSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, control_queue_index), summary.control_queue_index);
+    try std.testing.expectEqual(@as(u16, event_queue_index), summary.event_queue_index);
+    try std.testing.expectEqual(@as(u16, 5), summary.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 2), summary.remembered_poll_queues);
+    try std.testing.expectEqual(@as(u16, event_buffer_count), summary.remembered_event_buffer_count);
+    try std.testing.expectEqual(@as(?u32, 11), summary.requested_depth);
+    try std.testing.expectEqual(@as(?u32, 7), summary.clamped_queue_depth);
+    try std.testing.expectEqual(@as(?u32, 48), summary.command_bytes_per_request);
+    try std.testing.expectEqual(@as(?u32, 96), summary.sense_bytes_per_request);
+    try std.testing.expectEqual(@as(u16, 0), summary.recovery_generation);
+    try std.testing.expect(summary.requires_device_ready_before_control_queue_restore);
+    try std.testing.expect(summary.requires_control_queue_restore_before_event_rearm);
+    try std.testing.expect(summary.requires_control_queue_restore_before_tmf);
+    try std.testing.expect(summary.requires_dma_mapping_revalidation_before_control_commands);
+    try std.testing.expect(summary.stays_pre_runtime_only);
+}
+
+test "virtio scsi recovery control path governance summary rejects invalid timing and missing ownership state" {
+    var lab = VirtioScsiQueueLab.init();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryControlPathGovernanceSummary());
+
+    _ = try lab.planQueueLayout(4, 1);
+    _ = try lab.freezeForTransportReset();
+
+    const summary = try lab.recoveryControlPathGovernanceSummary();
+    try std.testing.expectEqual(@as(?u32, null), summary.requested_depth);
+    try std.testing.expectEqual(@as(?u32, null), summary.clamped_queue_depth);
+    try std.testing.expectEqual(@as(?u32, null), summary.command_bytes_per_request);
+    try std.testing.expectEqual(@as(?u32, null), summary.sense_bytes_per_request);
+    try std.testing.expect(!summary.requires_dma_mapping_revalidation_before_control_commands);
+    try std.testing.expect(summary.stays_pre_runtime_only);
+
+    _ = try lab.restoreAfterTransportReset();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryControlPathGovernanceSummary());
+}
 
 test "virtio scsi recovery request queue restore summary records queue ordering and remembered depth" {
     var lab = VirtioScsiQueueLab.init();
