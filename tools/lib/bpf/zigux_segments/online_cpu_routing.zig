@@ -44,6 +44,7 @@ pub const OnlineCpuRouteAttemptSummary = struct {
 pub const OnlineCpuRoutingDisposition = enum {
     complete,
     requested_subset,
+    requested_exceeds_online,
     no_online_cpu,
     missing_buffer_slot,
     missing_buffer_fd,
@@ -246,10 +247,11 @@ pub fn summarizeOnlineCpuRouting(
         else
             null,
         .missing_buffer_index = null,
-        .disposition = if (selection.disposition == .requested_subset)
-            .requested_subset
-        else
-            .complete,
+        .disposition = switch (selection.disposition) {
+            .requested_subset => .requested_subset,
+            .requested_exceeds_online => .requested_exceeds_online,
+            else => .complete,
+        },
     };
 }
 
@@ -419,7 +421,7 @@ test "summarizeOnlineCpuRouting keeps requested subsets explicit without inventi
     );
 }
 
-test "summarizeOnlineCpuRouting treats oversized requests as complete once all online CPUs are routed" {
+test "summarizeOnlineCpuRouting keeps oversized requests explicit even after all online CPUs are routed" {
     const summary = summarizeOnlineCpuRouting(
         &.{ false, true, false, true },
         5,
@@ -434,7 +436,7 @@ test "summarizeOnlineCpuRouting treats oversized requests as complete once all o
     try std.testing.expectEqual(@as(?usize, null), summary.next_online_cpu_index);
     try std.testing.expectEqual(@as(?usize, null), summary.missing_buffer_index);
     try std.testing.expectEqual(
-        OnlineCpuRoutingDisposition.complete,
+        OnlineCpuRoutingDisposition.requested_exceeds_online,
         summary.disposition,
     );
 }
