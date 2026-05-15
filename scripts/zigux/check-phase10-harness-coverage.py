@@ -84,12 +84,34 @@ EXPECTED_LAB_VALIDATION_EVIDENCE = [
 EXPECTED_FOCUSED_HARNESS_REPLAYS = {
     "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig": [
         "phase10 core compound-ack replay"
-    ]
+    ],
+    "zigux/tests/phase10_virtio_core_reset_queue.zig": [
+        "phase10 core reset-queue replay"
+    ],
+    "zigux/tests/phase10_virtio_driver_id.zig": [
+        "phase10 driver-id review path replay"
+    ],
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
+        "phase10 ring drained-reset reuse replay"
+    ],
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
+        "phase10 input queue-callback-preflight replay"
+    ],
+    "zigux/tests/phase10_virtio_input_status_drain.zig": [
+        "phase10 input status-drain replay"
+    ],
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig": [
+        "phase10 input probe-preflight replay"
+    ],
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig": [
+        "phase10 input registration-preflight replay"
+    ],
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig": [
+        "phase10 input teardown-observation replay"
+    ],
 }
 
-EXPECTED_TEST_LIST_MARKERS = [
-    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
-]
+EXPECTED_TEST_LIST_MARKERS = list(EXPECTED_FOCUSED_HARNESS_REPLAYS.keys())
 
 EXPECTED_TEST_COUNT = 17
 
@@ -204,10 +226,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             actual = focused_harness_replays.get(path)
             if actual != expected:
                 missing.append(
-                    "manifest:focused_harness_replays:"
-                    + path
-                    + "="
-                    + repr(actual)
+                    "manifest:focused_harness_replays:" + path + "=" + repr(actual)
                 )
 
     ready_transport_followups = manifest.get("ready_transport_followups")
@@ -218,10 +237,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             actual = ready_transport_followups.get(path)
             if actual != gap_id:
                 missing.append(
-                    "manifest:ready_transport_followups:"
-                    + path
-                    + "="
-                    + repr(actual)
+                    "manifest:ready_transport_followups:" + path + "=" + repr(actual)
                 )
         for path in sorted(set(ready_transport_followups) - set(EXPECTED_READY_TRANSPORT_FOLLOWUPS)):
             missing.append(
@@ -239,10 +255,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             actual = blocked_transport_gaps.get(path)
             if actual != gap_id:
                 missing.append(
-                    "manifest:blocked_transport_gaps:"
-                    + path
-                    + "="
-                    + repr(actual)
+                    "manifest:blocked_transport_gaps:" + path + "=" + repr(actual)
                 )
 
     return [], missing
@@ -529,6 +542,16 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        del manifest["focused_harness_replays"]["zigux/tests/phase10_virtio_ring_reset_reuse.zig"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_ring_reset_reuse_replay",
+            root,
+            "manifest:focused_harness_replays:zigux/tests/phase10_virtio_ring_reset_reuse.zig=None",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["tests"] = [
             path
             for path in manifest["tests"]
@@ -539,6 +562,20 @@ def run_self_test() -> int:
             "manifest_tests_core_compound_ack",
             root,
             "manifest:tests:zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["tests"] = [
+            path
+            for path in manifest["tests"]
+            if path != "zigux/tests/phase10_virtio_input_status_drain.zig"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_tests_input_status_drain",
+            root,
+            "manifest:tests:zigux/tests/phase10_virtio_input_status_drain.zig",
         )
         write_fixture(root)
 
@@ -614,7 +651,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=27")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
