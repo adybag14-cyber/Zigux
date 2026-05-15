@@ -14,6 +14,21 @@ fn expectPreparedRuntimeSubstrateDriftKeepsPreparedState(
     try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(shared_request.plan, stable_plan));
 }
 
+fn expectReleaseRuntimeSubstrateDriftKeepsWaitingState(
+    loader: *const runtime_trace_events_loader.RuntimeTraceEventsLoader,
+    shared_request: runtime_loader.PreparedRequest,
+    stable_plan: runtime_loader.LoadPlan,
+    pending_plan: runtime_loader.LoadPlan,
+) !void {
+    try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(shared_request.prepared_plan.requires_runtime_substrate);
+    try std.testing.expect(!shared_request.plan.requires_runtime_substrate);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(shared_request.prepared_plan, stable_plan));
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(pending_plan, stable_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(shared_request.plan, stable_plan));
+}
+
 test "phase 9 runtime trace-events loader rejects prepared shared runtime-substrate drift before any local runtime handoff" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
@@ -65,6 +80,61 @@ test "phase 9 runtime trace-events loader rejects initialized-stage prepared sha
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
         shared_request,
         .prepared,
+        shared_request.plan,
+    ));
+}
+
+test "phase 9 runtime trace-events loader keeps shared release drift from desynchronizing waiting runtime-substrate state" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    var loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    const prepared_plan = shared_request.plan;
+    const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
+    try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
+    shared_request.plan.requires_runtime_substrate = false;
+
+    try std.testing.expectError(error.PreparedPlanDrift, loader.releaseSharedWithoutSubstrate(&shared_request));
+    try expectReleaseRuntimeSubstrateDriftKeepsWaitingState(&loader, shared_request, prepared_plan, pending_plan);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        shared_request.plan,
+    ));
+}
+
+test "phase 9 runtime trace-events loader keeps initialized-stage shared release drift from desynchronizing waiting runtime-substrate state" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+
+    var loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    const prepared_plan = shared_request.plan;
+    const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
+    try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
+    shared_request.plan.requires_runtime_substrate = false;
+
+    try std.testing.expectError(error.PreparedPlanDrift, loader.releaseSharedWithoutSubstrate(&shared_request));
+    try expectReleaseRuntimeSubstrateDriftKeepsWaitingState(&loader, shared_request, prepared_plan, pending_plan);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
         shared_request.plan,
     ));
 }
