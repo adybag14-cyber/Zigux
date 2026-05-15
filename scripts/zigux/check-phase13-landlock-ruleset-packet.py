@@ -69,7 +69,7 @@ REQUIRED_CONTRIBUTOR_GUIDE_MARKERS = (
 )
 
 REQUIRED_RELEASE_NOTES_MARKERS = (
-    "Broad summaries should also keep the paired Landlock ownership and syscall-governance notes explicit inside that same release handle through:",
+    "Broad summaries should also keep the paired Landlock ownership, ruleset-slice, ruleset-survey, syscall-governance, and syscall-survey notes explicit inside that same release handle through:",
     "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
     "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
     "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
@@ -124,7 +124,7 @@ REQUIRED_LANE_NOTE_MARKERS = (
 
 REQUIRED_TRACEABILITY_MARKERS = (
     "# Phase 13 Roadmap Traceability",
-    "`landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit.",
+    "`landlock/ruleset` maps to the bounded shared-helper tranche and should keep its ownership boundary explicit through the shipped `Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
     "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
     "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
     "repo-reality gaps rather than presenting them here as shipped repo evidence.",
