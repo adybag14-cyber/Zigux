@@ -9,6 +9,7 @@
 - `PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey`
 - `PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey`
 - `PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow`
+- `PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix`
 - `PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig`
 - `PHASE4_KPROBE_OWNER=Validation and Perf Team`
 - `PHASE4_KPROBE_ROLLBACK_OWNER=Validation and Perf Team`
@@ -26,6 +27,7 @@ The packet is intentionally narrow:
 - keep the explicit local lab replay marker explicit
 - keep the dedicated local survey wrapper explicit
 - keep the explicit bootstrap-CI posture explicit while the starter remains absent
+- keep the shared lab-and-CI matrix anchor explicit beside the parked packet
 - keep the direct validation entrypoint explicit
 - keep ownership and rollback ownership explicit
 - keep the next bounded evidence step explicit until a later Phase 4 lane intentionally
@@ -43,7 +45,8 @@ The bounded evidence packet instead remains:
 - `zig test zigux/tests/phase4_kprobe_example_survey.zig`
 
 That packet keeps the current C anchor, replay path, owner, rollback owner, explicit
-local lab replay marker, dedicated local survey route, explicit bootstrap-CI posture,
+local lab replay marker, dedicated local survey route, the shared `Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix`
+anchor for the broader rollback-ownership packet, the explicit bootstrap-CI posture,
 and direct validation entrypoint measurable while the shared Phase 4 rollback-readiness
 lane remains below starter implementation.
 
