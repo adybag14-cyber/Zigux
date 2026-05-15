@@ -126,10 +126,10 @@
     },
     {
       "id": "phase11-gpio-wdt-drvdata-checkpoint",
-      "status": "note_only_archived",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The current visible starter does not yet expose a dedicated `watchdog_set_drvdata()` checkpoint summary, so this remains note-backed review memory until a smaller same-family follow-up lands."
+      "why_now": "The visible starter now exposes `watchdogDrvdataCheckpointSummary()`, so the bounded `watchdog_set_drvdata()` handoff is code-backed again without claiming live watchdog-core registration execution."
     },
     {
       "id": "phase11-gpio-wdt-reboot-glue-checkpoint",
