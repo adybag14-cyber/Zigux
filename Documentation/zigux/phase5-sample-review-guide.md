@@ -85,7 +85,7 @@ Treat the current Phase 5 packet as landed but intentionally non-runtime:
 * keep the roadmap-backed four-anchor scope explicit even when one or more sample-local files are not directly readable in this run
 * shared docs that describe those anchors should distinguish direct-readback evidence from survey-note-plus-sample evidence and from missing shared-build evidence instead of flattening every sample into the same packet shape
 * when one reminder surface is already aligned, do not smooth over the remaining stale ones; keep the aligned-versus-drifted split explicit so same-lane follow-through can stay one shared surface at a time
-* do not describe `zigux/tests/phase5_build.zig`, `make -C zigux phase5-test`, or `make -C zigux phase5` as current directly readable proof surfaces unless a fresh reread confirms those exact paths again
+* do not describe `zigux/tests/phase5_build.zig` as current directly readable proof surface unless a fresh reread confirms that exact path again, and do not imply shared `make -C zigux phase5-test`, `make -C zigux phase5`, or workflow replay routes because current `zigux/Makefile` exposes neither target and `.github/workflows/zigux-bootstrap.yml` carries no dedicated Phase 5 step
 * do not reopen sample behavior broadly, and do not count runtime-loader or runtime-pilot work as part of the non-runtime Phase 5 packet
 
 ## Shared ownership map
