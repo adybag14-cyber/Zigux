@@ -220,6 +220,20 @@ def run_self_test() -> None:
             raise AssertionError("expected missing manifest marker failure")
 
         write_fixture(tmpdir)
+        manifest_path = tmpdir / ABI_MANIFEST_REL
+        manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8") + MANIFEST_FORBIDDEN[0] + "\n",
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert ABI_MANIFEST_REL.as_posix() in str(exc)
+            assert MANIFEST_FORBIDDEN[0] in str(exc)
+        else:
+            raise AssertionError("expected stale manifest marker failure")
+
+        write_fixture(tmpdir)
         low_level_test_path = tmpdir / LOW_LEVEL_TEST_REL
         low_level_test_path.write_text(
             low_level_test_path.read_text(encoding="utf-8").replace(LOW_LEVEL_TEST_REQUIRED[0] + "\n", ""),
@@ -290,7 +304,7 @@ def run_self_test() -> None:
             raise AssertionError("expected missing low-level build anchor failure")
 
         print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST=pass")
-        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=12")
+        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=13")
     finally:
         shutil.rmtree(tmpdir)
 
