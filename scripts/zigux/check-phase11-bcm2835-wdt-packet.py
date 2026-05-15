@@ -11,8 +11,9 @@ from pathlib import Path
 SCRIPT_PATH = "scripts/zigux/check-phase11-bcm2835-wdt-packet.py"
 
 REQUIRED_FILES = {
-    "manifest": "zigux/tests/phase11_bcm2835_wdt_manifest.json",
+    "driver": "drivers/watchdog/bcm2835_wdt.zig",
     "survey_note": "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
+    "teardown_note": "Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md",
     "validation_matrix": "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
     "shared_contract": "Documentation/zigux/phase11-shared-replay-contract.md",
     "closure_note": "Documentation/zigux/phase11-closure-note.md",
@@ -23,24 +24,63 @@ REQUIRED_FILES = {
 }
 
 SURVEY_NOTE_MARKERS = [
-    "phase11-bcm2835-wdt-tests",
-    "phase11-bcm2835-wdt-verify-tests",
-    "phase11-bcm2835-wdt-survey-tests",
-    "drivers/watchdog/bcm2835_wdt_verify.zig",
-    "the archival survey now carries `P11-L08` packet identity",
+    "PHASE11_BCM2835_WDT_SURVEY_STATUS=survey_gate_landed",
+    "`drivers/watchdog/bcm2835_wdt.zig`",
+    "`drivers/watchdog/bcm2835_wdt_verify.zig`",
+    "`zigux/tests/phase11_bcm2835_wdt.zig`",
+    "`zigux/tests/phase11_bcm2835_wdt_survey.zig`",
+    "`Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md`",
+    "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
+    "archival packet identity remains `P11-L08`",
+]
+
+TEARDOWN_NOTE_MARKERS = [
+    "PHASE11_BCM2835_WDT_TEARDOWN_STATUS=driver_teardown_truthful",
+    "`drivers/watchdog/bcm2835_wdt.zig`",
+    "`drivers/watchdog/bcm2835_wdt_verify.zig`",
+    "`zigux/tests/phase11_bcm2835_wdt.zig`",
+    "`zigux/tests/phase11_bcm2835_wdt_survey.zig`",
+    "`Bcm2835WdtLab.stop()`",
+    "`Bcm2835WdtLab.restart()`",
+    "`Bcm2835WdtLab.poweroff()`",
 ]
 
 VALIDATION_MATRIX_MARKERS = [
-    "phase11-bcm2835-wdt-tests",
-    "phase11-bcm2835-wdt-verify-tests",
-    "phase11-bcm2835-wdt-survey-tests",
-    "drivers/watchdog/bcm2835_wdt_verify.zig",
-    "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L08`",
+    "PHASE11_BCM2835_WDT_STATUS=survey_gate_truthful",
+    "`drivers/watchdog/bcm2835_wdt.zig`",
+    "`drivers/watchdog/bcm2835_wdt_verify.zig`",
+    "`zigux/tests/phase11_bcm2835_wdt.zig`",
+    "`zigux/tests/phase11_bcm2835_wdt_survey.zig`",
+    "`Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md`",
+    "Do not claim `zigux/tests/phase11_bcm2835_wdt_manifest.json` as landed",
 ]
 
-# Keep this checker on the bcm2835-owned packet plus the shared Phase 11 notes
-# that still describe the bounded replay surfaces. Contributor-facing README and
-# checklist wording lives with the separate P11-L18 owner map.
+DRIVER_MARKERS = [
+    'pub const anchor_path = "drivers/watchdog/bcm2835_wdt.c";',
+    "pub fn summarizeProbe(request: ProbeRequest) !ProbeSummary",
+    "pub fn summarizePlatformHandoff(request: PlatformHandoffRequest) !PlatformHandoffSummary",
+    "pub const Bcm2835WdtLab = struct {",
+    "pub fn poweroff(self: *Bcm2835WdtLab, handler_claimed: bool) PoweroffSummary",
+]
+
+TEST_REPLAY_MARKERS = [
+    'test "phase11 bcm2835 watchdog replay keeps timeout helpers explicit"',
+    'test "phase11 bcm2835 watchdog replay keeps probe ownership and poweroff conflict distinct"',
+    'test "phase11 bcm2835 watchdog replay keeps platform handoff readiness and poweroff claim blocking explicit"',
+    'test "phase11 bcm2835 watchdog replay keeps start stop restart and poweroff lifecycle explicit"',
+]
+
+SURVEY_REPLAY_MARKERS = [
+    'test "phase11 bcm2835 survey keeps direct handoff and lifecycle helpers explicit"',
+    'test "phase11 bcm2835 survey keeps survey, teardown, and matrix notes aligned with the direct packet"',
+    'test "phase11 bcm2835 survey keeps the replay and verify helpers reviewable"',
+]
+
+VERIFY_REPLAY_MARKERS = [
+    'test "phase11 bcm2835 watchdog verify keeps PM-base readiness and ownership explicit"',
+    'test "phase11 bcm2835 watchdog verify keeps poweroff ownership distinct"',
+]
+
 SHARED_CONTRACT_MARKERS = [
     "bcm2835, gpio, HVC, and header-boundary notes plus their dedicated `check-phase11-*.py` scripts remain parked as continuity surfaces beside the shared packet",
     "`zigux/tests/phase11_bcm2835_wdt.zig`",
@@ -48,17 +88,17 @@ SHARED_CONTRACT_MARKERS = [
 ]
 
 CLOSURE_NOTE_MARKERS = [
-    "bcm2835, gpio, DesignWare, HVC, and header-boundary continuity still live in their dedicated docs-root notes and `scripts/zigux/check-phase11-*.py` packet checkers",
+    "bcm2835 continuity on current `master` stays bounded to `drivers/watchdog/bcm2835_wdt.zig`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md`, and `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "`zigux/tests/phase11_bcm2835_wdt.zig`",
     "`drivers/watchdog/bcm2835_wdt_verify.zig`",
 ]
 
 LANE_NOTE_MARKERS = [
-    "* bcm2835 lane `P11-L08` owns bcm2835 reminder-note and checker follow-through; keep the landed direct bcm2835 replay files explicit in shared summaries without widening them into broader poweroff or PM closure claims",
+    "* bcm2835 lane continuity stays split: archival packet identity remains `P11-L08`, while the current same-family reminder refreshes run through `P11-L05`",
     "* contributor-note lane `P11-L18` owns the shared contributor-facing wording across `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
 ]
 
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 5
 
 
 class CheckError(RuntimeError):
@@ -80,9 +120,19 @@ def expect_markers(relative_path: str, text: str, markers: list[str]) -> None:
 
 def run_check(root: Path) -> None:
     expect_markers(
+        REQUIRED_FILES["driver"],
+        read_text(root, REQUIRED_FILES["driver"]),
+        DRIVER_MARKERS,
+    )
+    expect_markers(
         REQUIRED_FILES["survey_note"],
         read_text(root, REQUIRED_FILES["survey_note"]),
         SURVEY_NOTE_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["teardown_note"],
+        read_text(root, REQUIRED_FILES["teardown_note"]),
+        TEARDOWN_NOTE_MARKERS,
     )
     expect_markers(
         REQUIRED_FILES["validation_matrix"],
@@ -104,11 +154,21 @@ def run_check(root: Path) -> None:
         read_text(root, REQUIRED_FILES["lane_note"]),
         LANE_NOTE_MARKERS,
     )
-    # Existence checks for the dedicated bcm2835 packet artifacts the shared notes claim.
-    read_text(root, REQUIRED_FILES["manifest"])
-    read_text(root, REQUIRED_FILES["test_replay"])
-    read_text(root, REQUIRED_FILES["survey_replay"])
-    read_text(root, REQUIRED_FILES["verify_replay"])
+    expect_markers(
+        REQUIRED_FILES["test_replay"],
+        read_text(root, REQUIRED_FILES["test_replay"]),
+        TEST_REPLAY_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["survey_replay"],
+        read_text(root, REQUIRED_FILES["survey_replay"]),
+        SURVEY_REPLAY_MARKERS,
+    )
+    expect_markers(
+        REQUIRED_FILES["verify_replay"],
+        read_text(root, REQUIRED_FILES["verify_replay"]),
+        VERIFY_REPLAY_MARKERS,
+    )
 
 
 def write(path: Path, text: str) -> None:
@@ -118,15 +178,16 @@ def write(path: Path, text: str) -> None:
 
 def build_self_test_fixture(root: Path) -> None:
     write(root / SCRIPT_PATH, Path(__file__).read_text(encoding="utf-8"))
-    write(root / REQUIRED_FILES["manifest"], '{\n  "lane_key": "P11-L08"\n}\n')
+    write(root / REQUIRED_FILES["driver"], "\n".join(DRIVER_MARKERS) + "\n")
     write(root / REQUIRED_FILES["survey_note"], "\n".join(SURVEY_NOTE_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["teardown_note"], "\n".join(TEARDOWN_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS) + "\n")
     write(root / REQUIRED_FILES["shared_contract"], "\n".join(SHARED_CONTRACT_MARKERS) + "\n")
     write(root / REQUIRED_FILES["closure_note"], "\n".join(CLOSURE_NOTE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["lane_note"], "\n".join(LANE_NOTE_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["test_replay"], "phase11-bcm2835-wdt-tests\n")
-    write(root / REQUIRED_FILES["survey_replay"], "phase11-bcm2835-wdt-survey-tests\n")
-    write(root / REQUIRED_FILES["verify_replay"], "phase11-bcm2835-wdt-verify-tests\n")
+    write(root / REQUIRED_FILES["test_replay"], "\n".join(TEST_REPLAY_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["survey_replay"], "\n".join(SURVEY_REPLAY_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["verify_replay"], "\n".join(VERIFY_REPLAY_MARKERS) + "\n")
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -147,46 +208,9 @@ def run_self_test() -> None:
         build_self_test_fixture(tmpdir)
         run_check(tmpdir)
 
-        survey_path = tmpdir / REQUIRED_FILES["survey_note"]
-        survey_path.write_text(
-            survey_path.read_text(encoding="utf-8").replace(
-                "phase11-bcm2835-wdt-verify-tests\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "phase11-bcm2835-wdt-verify-tests")
-
-        build_self_test_fixture(tmpdir)
-        survey_path = tmpdir / REQUIRED_FILES["survey_note"]
-        survey_path.write_text(
-            survey_path.read_text(encoding="utf-8").replace(
-                "the archival survey now carries `P11-L08` packet identity\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "the archival survey now carries `P11-L08` packet identity")
-
-        build_self_test_fixture(tmpdir)
-        validation_matrix_path = tmpdir / REQUIRED_FILES["validation_matrix"]
-        validation_matrix_path.write_text(
-            validation_matrix_path.read_text(encoding="utf-8").replace(
-                "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L08`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            tmpdir,
-            "current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L08`",
-        )
-
-        build_self_test_fixture(tmpdir)
-        shared_contract_path = tmpdir / REQUIRED_FILES["shared_contract"]
-        shared_contract_path.write_text(
-            shared_contract_path.read_text(encoding="utf-8").replace(
+        survey_note_path = tmpdir / REQUIRED_FILES["survey_note"]
+        survey_note_path.write_text(
+            survey_note_path.read_text(encoding="utf-8").replace(
                 "`drivers/watchdog/bcm2835_wdt_verify.zig`\n",
                 "",
                 1,
@@ -196,36 +220,47 @@ def run_self_test() -> None:
         expect_failure(tmpdir, "`drivers/watchdog/bcm2835_wdt_verify.zig`")
 
         build_self_test_fixture(tmpdir)
-        closure_note_path = tmpdir / REQUIRED_FILES["closure_note"]
-        closure_note_path.write_text(
-            closure_note_path.read_text(encoding="utf-8").replace(
-                "`zigux/tests/phase11_bcm2835_wdt.zig`\n",
+        teardown_note_path = tmpdir / REQUIRED_FILES["teardown_note"]
+        teardown_note_path.write_text(
+            teardown_note_path.read_text(encoding="utf-8").replace(
+                "`Bcm2835WdtLab.poweroff()`\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, "`zigux/tests/phase11_bcm2835_wdt.zig`")
+        expect_failure(tmpdir, "`Bcm2835WdtLab.poweroff()`")
+
+        build_self_test_fixture(tmpdir)
+        validation_matrix_path = tmpdir / REQUIRED_FILES["validation_matrix"]
+        validation_matrix_path.write_text(
+            validation_matrix_path.read_text(encoding="utf-8").replace(
+                "Do not claim `zigux/tests/phase11_bcm2835_wdt_manifest.json` as landed\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmpdir,
+            "Do not claim `zigux/tests/phase11_bcm2835_wdt_manifest.json` as landed",
+        )
 
         build_self_test_fixture(tmpdir)
         lane_note_path = tmpdir / REQUIRED_FILES["lane_note"]
         lane_note_path.write_text(
             lane_note_path.read_text(encoding="utf-8").replace(
-                "* bcm2835 lane `P11-L08` owns bcm2835 reminder-note and checker follow-through; keep the landed direct bcm2835 replay files explicit in shared summaries without widening them into broader poweroff or PM closure claims\n",
+                "* bcm2835 lane continuity stays split: archival packet identity remains `P11-L08`, while the current same-family reminder refreshes run through `P11-L05`\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, "* bcm2835 lane `P11-L08` owns bcm2835 reminder-note and checker follow-through")
+        expect_failure(tmpdir, "* bcm2835 lane continuity stays split")
 
         build_self_test_fixture(tmpdir)
-        shutil.rmtree((tmpdir / "drivers"), ignore_errors=True)
-        expect_failure(tmpdir, REQUIRED_FILES["verify_replay"])
-
-        build_self_test_fixture(tmpdir)
-        (tmpdir / REQUIRED_FILES["manifest"]).unlink()
-        expect_failure(tmpdir, REQUIRED_FILES["manifest"])
+        (tmpdir / REQUIRED_FILES["driver"]).unlink()
+        expect_failure(tmpdir, REQUIRED_FILES["driver"])
 
         print("PHASE11_BCM2835_WDT_PACKET_SELF_TEST=pass")
         print(f"PHASE11_BCM2835_WDT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
