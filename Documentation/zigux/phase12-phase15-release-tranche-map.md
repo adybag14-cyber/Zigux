@@ -6,7 +6,7 @@ It does not reopen any closed tranche, and it does not invent a new replay route
 
 ## Status
 
-- `RELEASE_PACKET_PROVENANCE=current-master-readback-2026-05-13`
+- `RELEASE_PACKET_PROVENANCE=current-master-readback-2026-05-14`
 - `RELEASE_PACKET_PHASE_COUNT=4`
 - `RELEASE_PACKET_ACTIVE_PHASES=phase12,phase13,phase14,phase15`
 - `RELEASE_PACKET_RELEASE_CLOSED_PHASE_COUNT=0`
@@ -79,19 +79,22 @@ It does not reopen any closed tranche, and it does not invent a new replay route
 ## Phase 15
 
 - status: `parked`
-- release posture: governance maintenance only; no freeze-map status change approved
+- release posture: governance maintenance only; no freeze-map status-change approval currently recorded
 - authoritative notes:
   - `Documentation/zigux/phase15-readiness-gate-survey.md`
-  - `Documentation/zigux/phase15-governance-lane-sequencing.md`
+  - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
+  - `Documentation/zigux/phase15-parity-scorecard-survey.md`
+  - `Documentation/zigux/phase15-parity-scorecard.md`
   - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+  - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - shipped routes:
   - `make -C zigux phase15-validate`
   - `make -C zigux phase15-test`
   - `make -C zigux phase15`
 - boundary:
   - keep the packet in maintenance mode until the blocker posture changes
-  - do not treat parity-scorecard or indefinite-C maintenance as shared-summary backlog
+  - do not treat review-process, parity-scorecard-survey, parity-scorecard, or indefinite-C maintenance as shared-summary backlog or release-unblock evidence
 - next bounded PMO step:
   - wait for a named reopen trigger or a real blocker-posture change; otherwise keep summary work limited to truthfulness repairs
 
