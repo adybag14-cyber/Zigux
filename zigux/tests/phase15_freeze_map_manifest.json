@@ -140,13 +140,13 @@
     {
       "anchor": "kernel/sched/core.c",
       "roadmap_basis": "Phase 15 freeze-in-C anchor that cannot leave the deep-core freeze set until a narrower scheduler seam earns Architecture Council review.",
-      "repo_reality": "Current master still carries only the freeze map and parity-scorecard placeholder packet for scheduler core, with no carried-forward Phase 14 blocker survey and no bounded scheduler seam.",
+      "repo_reality": "Current master still carries the freeze map, the dedicated freeze-map governance packet, and the parity scorecard baseline for scheduler core, but no carried-forward Phase 14 blocker survey and no bounded scheduler seam.",
       "current_blocker": "blocked_no_bounded_scheduler_seam"
     },
     {
       "anchor": "mm/page_alloc.c",
       "roadmap_basis": "Phase 15 freeze-in-C anchor that cannot leave the deep-core freeze set until a narrower allocator seam earns Architecture Council review.",
-      "repo_reality": "Current master still carries only the freeze map and parity-scorecard placeholder packet for page allocator core, with no carried-forward Phase 14 blocker survey and no bounded allocator seam.",
+      "repo_reality": "Current master still carries the freeze map, the dedicated freeze-map governance packet, and the parity scorecard baseline for page allocator core, but no carried-forward Phase 14 blocker survey and no bounded allocator seam.",
       "current_blocker": "blocked_no_bounded_allocator_seam"
     },
     {
