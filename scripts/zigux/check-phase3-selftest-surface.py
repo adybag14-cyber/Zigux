@@ -115,6 +115,7 @@ VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS = {
     "zigux/tests/README.md": 2,
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "Documentation/zigux/review-checklist.md": 1,
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 2,
     "Documentation/zigux/phase3-kernel-export-shim-governance.md": 1,
     "include/zigux/dev_t.h": 2,
@@ -465,6 +466,7 @@ def _populate_repo(root: Path) -> None:
                 "zigux/tests/README.md",
                 "Documentation/zigux/phase3-abi-header-family-survey.md",
                 "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+                "Documentation/zigux/review-checklist.md",
                 "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
                 "Documentation/zigux/phase3-kernel-export-shim-governance.md",
                 "include/zigux/dev_t.h",
@@ -751,6 +753,26 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected validator-support next-step drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
+                "Documentation/zigux/review-checklist.md",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "Documentation/zigux/review-checklist.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support review-checklist drift was not reported")
             return 1
 
         _populate_repo(root)
