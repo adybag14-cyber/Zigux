@@ -121,6 +121,19 @@ REQUIRED_MARKERS = {
         "make -C zigux phase12-smoke",
         "still does not claim live DMA-safe request submission",
     ],
+    "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md": [
+        "`PHASE12_STATUS=active`",
+        "`PHASE12_SLICE=nvme-pci-raw-github-fallback-map`",
+        "`PHASE12_DIRECT_PACKET_ON_MASTER=starter_verifier_slice_note_direct_replay_survey_note_survey_gate_and_manifest_present_shared_build_unwired`",
+        "Current `master` now ships seven bounded NVMe reviewability surfaces:",
+        "- starter shard: `drivers/nvme/host/pci.zig`",
+        "- verifier shard: `drivers/nvme/host/pci_verify.zig`",
+        "- direct replay: `zigux/tests/phase12_nvme_pci.zig`",
+        "- survey gate: `zigux/tests/phase12_nvme_pci_survey.zig`",
+        "- manifest anchor: `zigux/tests/phase12_nvme_pci_manifest.json`",
+        "- `zigux/tests/phase12_build.zig` still does not wire the bounded NVMe direct replay into the shared `phase12-smoke` or `phase12` routes",
+        "- use this file only as a read-only routing inventory; it does not add a new replay surface",
+    ],
     "Documentation/zigux/phase12-nvme-pci-survey.md": [
         "`PHASE12_STATUS=starter-present-slice-note-survey-packet`",
         "`PHASE12_LANE=P12-L08`",
@@ -270,7 +283,10 @@ FIXTURE_OVERRIDES = {
     )
     + "\n",
     VIRTIO_SCSI_FALLBACK_PATH: "\n".join(REQUIRED_MARKERS[VIRTIO_SCSI_FALLBACK_PATH]) + "\n",
-    "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md": "# fixture\n",
+    "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md": "\n".join(
+        REQUIRED_MARKERS["Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"]
+    )
+    + "\n",
     "Documentation/zigux/phase12-nvme-pci-reopen-governance.md": "# fixture\n",
     "Documentation/zigux/phase12-nvme-pci-slice.md": "# fixture\n",
     "Documentation/zigux/phase12-nvme-pci-survey.md": "\n".join(
@@ -305,7 +321,6 @@ FIXTURE_OVERRIDES = {
     "zigux/Makefile": "phase12-validate:\n\t@true\n",
     ".github/workflows/zigux-bootstrap.yml": "name: zigux-bootstrap\n",
 }
-
 
 def git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
@@ -650,6 +665,27 @@ def run_self_test() -> None:
             "phase12 virtio scsi survey gate keeps present lane files explicit",
             "phase12 virtio scsi survey gate keeps lane files explicit",
             "zigux/tests/phase12_virtio_scsi_survey.zig: phase12 virtio scsi survey gate keeps present lane files explicit",
+        ),
+        (
+            "missing_nvme_fallback_status_marker",
+            "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+            "`PHASE12_STATUS=active`",
+            "`PHASE12_STATUS=inactive`",
+            "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md: `PHASE12_STATUS=active`",
+        ),
+        (
+            "missing_nvme_fallback_direct_packet_marker",
+            "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+            "`PHASE12_DIRECT_PACKET_ON_MASTER=starter_verifier_slice_note_direct_replay_survey_note_survey_gate_and_manifest_present_shared_build_unwired`",
+            "`PHASE12_DIRECT_PACKET_ON_MASTER=starter_verifier_missing`",
+            "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md: `PHASE12_DIRECT_PACKET_ON_MASTER=starter_verifier_slice_note_direct_replay_survey_note_survey_gate_and_manifest_present_shared_build_unwired`",
+        ),
+        (
+            "missing_nvme_fallback_shared_build_gap_marker",
+            "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+            "- `zigux/tests/phase12_build.zig` still does not wire the bounded NVMe direct replay into the shared `phase12-smoke` or `phase12` routes",
+            "- `zigux/tests/phase12_build.zig` now wires the bounded NVMe direct replay into the shared `phase12-smoke` and `phase12` routes",
+            "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md: - `zigux/tests/phase12_build.zig` still does not wire the bounded NVMe direct replay into the shared `phase12-smoke` or `phase12` routes",
         ),
         (
             "missing_nvme_survey_lane_marker",
