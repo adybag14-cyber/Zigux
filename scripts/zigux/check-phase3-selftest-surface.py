@@ -23,10 +23,13 @@ README_PHASE3_PREFIX = "Phase 3 notes - "
 README_PHASE3_NEXT_PREFIX = "Phase 5 notes - "
 README_PHASE3_MARKER_COUNTS = {
     "Documentation/zigux/phase3-abi-slice.md": 1,
+    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md": 1,
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md": 1,
     "Documentation/zigux/phase3-validator-support-surface.md": 1,
     "scripts/zigux/validate-phase3.py": 1,
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py": 1,
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py": 1,
     "scripts/zigux/check-phase3-readme-tooling-inventory.py": 1,
@@ -37,6 +40,7 @@ README_PHASE3_MARKER_COUNTS = {
     "zig build phase3-test --build-file zigux/tests/build.zig": 1,
     "make -C zigux phase3-validate": 1,
     "make -C zigux phase3-selftest": 1,
+    "`include/zigux/dev_t.h` plus the narrower `zigux/uapi/version.zig` starter-companion split stay explicit": 1,
 }
 
 NOTE_POLICY_MARKERS = (
@@ -568,6 +572,63 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected docs README section-scoped validator drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        docs_path.write_text(
+            _read(docs_path).replace(
+                "Documentation/zigux/phase3-abi-header-family-survey.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "docs README Phase 3 notes marker count drift: "
+            "Documentation/zigux/phase3-abi-header-family-survey.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected docs README header-family survey drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        docs_path.write_text(
+            _read(docs_path).replace(
+                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "docs README Phase 3 notes marker count drift: "
+            "Documentation/zigux/phase3-abi-h-boundary-next-step.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected docs README next-step note drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        docs_path.write_text(
+            _read(docs_path).replace(
+                "`include/zigux/dev_t.h` plus the narrower `zigux/uapi/version.zig` starter-companion split stay explicit",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "docs README Phase 3 notes marker count drift: "
+            "`include/zigux/dev_t.h` plus the narrower `zigux/uapi/version.zig` starter-companion split stay explicit (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected docs README starter-companion split drift was not reported")
             return 1
 
         _populate_repo(root)
