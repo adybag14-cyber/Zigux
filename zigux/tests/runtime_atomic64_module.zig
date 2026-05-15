@@ -179,6 +179,37 @@ test "runtime atomic64 sample keeps post-selftest bitwise replay explicit at the
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
 }
 
+test "runtime atomic64 sample keeps captured selftest summary replay explicit across later mutation and exit at the module boundary" {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(23);
+
+    const selftest_summary = try module.runSelftest();
+    try std.testing.expectEqual(@as(usize, 5), selftest_summary.operation_families.len);
+    try std.testing.expect(selftest_summary.checked_returning_paths);
+    try std.testing.expect(selftest_summary.checked_bitwise_paths);
+    try std.testing.expect(selftest_summary.checked_guard_paths);
+
+    const add_result = try module.addCounter(9);
+    try std.testing.expectEqual(@as(i64, 23), add_result.previous);
+    try std.testing.expectEqual(@as(i64, 32), add_result.final);
+
+    try module.exit();
+
+    const exited_snapshot = module.lifecycleSnapshot();
+    const exited_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+    try std.testing.expectEqual(@as(i64, 32), exited_summary.counter_snapshot);
+
+    try std.testing.expectEqualStrings("lib/atomic64_test.c", selftest_summary.anchor);
+    try std.testing.expectEqual(sample.OperationFamily.arithmetic, selftest_summary.operation_families[0]);
+    try std.testing.expectEqual(sample.OperationFamily.bitwise, selftest_summary.operation_families[1]);
+    try std.testing.expectEqual(sample.OperationFamily.returning_ops, selftest_summary.operation_families[2]);
+    try std.testing.expectEqual(sample.OperationFamily.swap_ops, selftest_summary.operation_families[3]);
+    try std.testing.expectEqual(sample.OperationFamily.guard_ops, selftest_summary.operation_families[4]);
+}
+
 test "runtime atomic64 sample keeps zero and negative guard-return replay explicit after selftest at the module boundary" {
     var zero_guard = sample.RuntimeAtomic64Sample{};
     try zero_guard.init(0);
