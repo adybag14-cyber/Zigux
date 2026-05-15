@@ -53,6 +53,12 @@ That means the honest current packet is a direct atomic64 sample, module, diff, 
 2. Keep the visible shared-loader reminder packet explicit as review-only evidence instead of treating it as completed live loader binding or proof that the broader runtime substrate already exists.
 3. Keep lifecycle, selftest, and direct counter replay evidence visible without widening into scheduler-facing or workqueue-facing ownership.
 
+## Freeze-Map Governance Evidence
+
+- `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in the study-only bucket, so this packet stays review-only beside that workqueue-facing boundary instead of claiming scheduler or workqueue delivery.
+- No parity scorecard entry or Architecture Council status-change request is attached to this packet on current `master`.
+- Any future freeze-map status change for this family must route through `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-freeze-map-governance.md` instead of being inferred from the landed atomic64 starter, bounded loader scaffold, or visible shared loader-facing reminder packet.
+
 ## Recommended Next Step
 
 Keep the next same-lane move inside one exact atomic64 packet truthfulness repair while the shared-loader reminder packet remains visible review-only evidence and the broader runtime substrate is still blocked.
