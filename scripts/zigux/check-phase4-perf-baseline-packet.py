@@ -132,7 +132,8 @@ SEQUENCING_MARKERS = [
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "zigux/tests/phase4_perf_baseline_manifest.json",
     "zigux/tests/phase4_perf_baseline_survey.zig",
-    "If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.",
+    "If a change only refreshes approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.",
+    "Keep dedicated local perf checker maintenance in that same dedicated perf packet.",
     "Do not use the perf lane to claim shared CI perf approval unless the broader shared packet has intentionally widened and names that policy decision directly.",
 ]
 
@@ -198,7 +199,8 @@ SELF_TEST_CASES = [
     "workflow_survey_route_drift",
     "workflow_checker_route_drift",
     "reversible_delivery_perf_owner_drift",
-    "sequencing_perf_boundary_drift",
+    "sequencing_perf_local_posture_boundary_drift",
+    "sequencing_perf_checker_boundary_drift",
 ]
 
 
@@ -498,7 +500,8 @@ def build_fixture_tree(root: Path) -> None:
                 "scripts/zigux/check-phase4-perf-baseline-packet.py",
                 "zigux/tests/phase4_perf_baseline_manifest.json",
                 "zigux/tests/phase4_perf_baseline_survey.zig",
-                "If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.",
+                "If a change only refreshes approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.",
+                "Keep dedicated local perf checker maintenance in that same dedicated perf packet.",
                 "Do not use the perf lane to claim shared CI perf approval unless the broader shared packet has intentionally widened and names that policy decision directly.",
             ]
         )
@@ -951,13 +954,28 @@ def run_self_test() -> int:
             root / SEQUENCING_REL,
             replace_once(
                 read_text(root / SEQUENCING_REL),
-                "If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.",
-                "If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the shared exact-readback lane.",
+                "If a change only refreshes approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.",
+                "If a change only refreshes approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the shared exact-readback lane.",
             ),
         )
-        if not expect_failure(root, "sequencing_marker:If a change only refreshes the dedicated local perf checker, approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet."):
+        if not expect_failure(root, "sequencing_marker:If a change only refreshes approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet."):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("sequencing perf boundary drift case did not fail closed")
+            print("sequencing perf local-posture boundary drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / SEQUENCING_REL,
+            replace_once(
+                read_text(root / SEQUENCING_REL),
+                "Keep dedicated local perf checker maintenance in that same dedicated perf packet.",
+                "Keep dedicated local perf checker maintenance in the shared exact-readback lane.",
+            ),
+        )
+        if not expect_failure(root, "sequencing_marker:Keep dedicated local perf checker maintenance in that same dedicated perf packet."):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("sequencing perf checker boundary drift case did not fail closed")
             return 1
         case_count += 1
 
