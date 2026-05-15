@@ -89,7 +89,8 @@ The current starter replay also keeps these ownership-focused boundaries explici
 
 - `skipSpaces()`, `trimSpaces()`, and `strim()` stop at the exported C-string boundary and keep caller-provided slices visible
 - exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit
-- `stringEscapeMem()` and `stringEscapeStrAnyNp()` keep append-limited and dictionary-mode output accounting inside caller-owned storage
+- `stringEscapeMem()` keeps append-limited and dictionary-mode output accounting inside caller-owned storage
+- `stringEscapeMemAnyNp()`, `stringEscapeStr()`, and `stringEscapeStrAnyNp()` keep any-NP and first-NUL-bounded string-wrapper escaping inside caller-owned storage
 - `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results
 - `kstrdupAndReplace()` returns caller-owned duplicated storage, applies replacements only inside the duplicated exported prefix, and leaves the source slice unchanged
 - `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries
