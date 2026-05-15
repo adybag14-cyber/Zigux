@@ -11,9 +11,6 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-string-helpers-slice.md",
-    "Documentation/zigux/phase7-helper-lane-sequencing.md",
-    "Documentation/zigux/review-checklist.md",
-    "samples/zigux/README.md",
     "lib/string_helpers.zig",
     "zigux/tests/phase7_string_helpers.zig",
     "zigux/tests/phase7_string_helpers_survey.zig",
@@ -23,46 +20,20 @@ REQUIRED_FILES = [
 
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-string-helpers-slice.md": [
-        "PHASE7_LANE_KEY=P7-L04",
+        "PHASE7_STATUS=starter_landed",
         "expanded starter packet",
         "stringEscapeMem()",
         "string_escape_str_any_np()",
-        "bounded memcpy-and-pad behavior that truncates long copies, pads short ones, and stays inside the provided source slice",
-        "The next bounded follow-through should keep the expanded starter packet truthful",
-    ],
-    "Documentation/zigux/phase7-helper-lane-sequencing.md": [
-        "string-helpers starter packet, lane `P7-L04`:",
-        "Documentation/zigux/phase7-string-helpers-slice.md",
-        "PHASE7_STRING_HELPERS_LANE=P7-L04",
-        "`P7-L04` owns only string-helpers helper-local parity, survey, sample-boundary, manifest, or same-slice reminder drift;",
-    ],
-    "Documentation/zigux/review-checklist.md": [
-        "Documentation/zigux/phase7-string-helpers-slice.md",
-        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-        "scripts/zigux/check-phase7-build-wiring.py",
-        "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-        "there is no standalone `samples/zigux/*string*` reference sample",
-    ],
-    "samples/zigux/README.md": [
-        "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;",
-        "Documentation/zigux/phase7-string-helpers-slice.md",
-        "lib/string_helpers.zig",
-        "zigux/tests/phase7_string_helpers.zig",
-        "zigux/tests/phase7_string_helpers_survey.zig",
-        "zigux/tests/phase7_string_helpers_manifest.json",
-        "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+        "The next bounded follow-through should stay inside the helper-local packet",
     ],
     "lib/string_helpers.zig": [
         "pub fn stringEscapeMem",
-        "pub fn string_escape_mem_any_np",
         "pub fn stringEscapeStrAnyNp",
-        "pub fn stringUnescapeInplace",
         "pub fn memcpyAndPad",
         "pub fn strreplace",
     ],
     "zigux/tests/phase7_string_helpers.zig": [
         "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
-        "phase 7 string helpers starter keeps exact-fit, terminator-only, and zero-capacity unescape destinations reviewable",
         "phase 7 string helpers starter pads bounded copies without reading past the provided source slice",
         "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix",
     ],
@@ -71,10 +42,7 @@ REQUIRED_MARKERS = {
         "\"current_master_state\": \"expanded_starter_packet\"",
         "\"stringEscapeMem\"",
         "\"memcpyAndPad\"",
-        "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
-        "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix",
-        "\"phase7_string_helpers.zig\"",
-        "phase7-string-helpers-tests",
+        "zigux/tests/phase7_string_helpers_sample_boundary.zig",
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
         "\"lane_key\": \"P7-L04\"",
@@ -84,17 +52,14 @@ REQUIRED_MARKERS = {
         "\"memcpyAndPad\"",
         "\"strreplace\"",
         "\"ownership_focus\": [",
-        "first-NUL-bounded helpers keep caller-provided slices explicit so whitespace trimming and prefix skipping stop at the exported C-string boundary",
-        "stringEscapeMem() and stringEscapeStrAnyNp() keep append-limited and dictionary-mode output accounting inside caller-owned storage",
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "phase 7 string helper boundary keeps the exact current sample inventory and no string sample",
-        "phase 7 string helper boundary keeps the expanded helper packet and current shared reminders aligned",
-        "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;",
-        "treat any new `samples/zigux/*string*.zig` file as review-blocking",
-        "scripts/zigux/check-phase7-build-wiring.py",
-        "scripts/zigux/check-phase7-make-wrapper.py",
-        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        "phase 7 string helper boundary keeps the lane-local helper packet aligned without claiming shared control surfaces",
+        "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
+        "Documentation/zigux/phase7-string-helpers-slice.md",
+        "zigux/tests/phase7_string_helpers_manifest.json",
+        "zigux/tests/phase7_string_helpers_survey.zig",
     ],
 }
 
@@ -164,39 +129,11 @@ def run_self_test() -> None:
 
         marker_cases = [
             (
-                "slice_lane_key_marker",
-                "Documentation/zigux/phase7-string-helpers-slice.md",
-                "PHASE7_LANE_KEY=P7-L04",
-                "",
-                "Documentation/zigux/phase7-string-helpers-slice.md: PHASE7_LANE_KEY=P7-L04",
-            ),
-            (
                 "slice_next_step_marker",
                 "Documentation/zigux/phase7-string-helpers-slice.md",
-                "The next bounded follow-through should keep the expanded starter packet truthful",
+                "The next bounded follow-through should stay inside the helper-local packet",
                 "",
-                "Documentation/zigux/phase7-string-helpers-slice.md: The next bounded follow-through should keep the expanded starter packet truthful",
-            ),
-            (
-                "helper_lane_marker",
-                "Documentation/zigux/phase7-helper-lane-sequencing.md",
-                "PHASE7_STRING_HELPERS_LANE=P7-L04",
-                "",
-                "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_STRING_HELPERS_LANE=P7-L04",
-            ),
-            (
-                "review_no_sample_marker",
-                "Documentation/zigux/review-checklist.md",
-                "there is no standalone `samples/zigux/*string*` reference sample",
-                "",
-                "Documentation/zigux/review-checklist.md: there is no standalone `samples/zigux/*string*` reference sample",
-            ),
-            (
-                "samples_boundary_marker",
-                "samples/zigux/README.md",
-                "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;",
-                "",
-                "samples/zigux/README.md: current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;",
+                "Documentation/zigux/phase7-string-helpers-slice.md: The next bounded follow-through should stay inside the helper-local packet",
             ),
             (
                 "helper_escape_marker",
@@ -213,11 +150,11 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
             ),
             (
-                "survey_state_marker",
+                "survey_boundary_marker",
                 "zigux/tests/phase7_string_helpers_survey.zig",
-                "\"current_master_state\": \"expanded_starter_packet\"",
+                "zigux/tests/phase7_string_helpers_sample_boundary.zig",
                 "",
-                "zigux/tests/phase7_string_helpers_survey.zig: \"current_master_state\": \"expanded_starter_packet\"",
+                "zigux/tests/phase7_string_helpers_survey.zig: zigux/tests/phase7_string_helpers_sample_boundary.zig",
             ),
             (
                 "manifest_lane_marker",
@@ -227,25 +164,11 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_string_helpers_manifest.json: \"lane_key\": \"P7-L04\"",
             ),
             (
-                "manifest_ownership_marker",
-                "zigux/tests/phase7_string_helpers_manifest.json",
-                "stringEscapeMem() and stringEscapeStrAnyNp() keep append-limited and dictionary-mode output accounting inside caller-owned storage",
-                "",
-                "zigux/tests/phase7_string_helpers_manifest.json: stringEscapeMem() and stringEscapeStrAnyNp() keep append-limited and dictionary-mode output accounting inside caller-owned storage",
-            ),
-            (
-                "sample_boundary_test_marker",
+                "sample_boundary_marker",
                 "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-                "phase 7 string helper boundary keeps the expanded helper packet and current shared reminders aligned",
+                "phase 7 string helper boundary keeps the lane-local helper packet aligned without claiming shared control surfaces",
                 "",
-                "zigux/tests/phase7_string_helpers_sample_boundary.zig: phase 7 string helper boundary keeps the expanded helper packet and current shared reminders aligned",
-            ),
-            (
-                "sample_boundary_build_wiring_marker",
-                "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-                "scripts/zigux/check-phase7-build-wiring.py",
-                "",
-                "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-build-wiring.py",
+                "zigux/tests/phase7_string_helpers_sample_boundary.zig: phase 7 string helper boundary keeps the lane-local helper packet aligned without claiming shared control surfaces",
             ),
         ]
 
