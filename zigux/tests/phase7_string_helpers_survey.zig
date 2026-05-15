@@ -178,6 +178,8 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(helper_tests, "phase 7 string helpers starter formats bounded sizes with three significant figures");
     try expectContains(helper_tests, "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes");
     try expectContains(helper_tests, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
+    try expectContains(helper_tests, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(helper_tests, "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent");
     try expectContains(helper_tests, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
@@ -190,6 +192,8 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(survey, "leading whitespace skipping that stops at the first NUL");
     try expectContains(survey, "phase 7 string helpers starter formats bounded sizes with three significant figures");
     try expectContains(survey, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
+    try expectContains(survey, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
+    try expectContains(survey, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(survey, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
