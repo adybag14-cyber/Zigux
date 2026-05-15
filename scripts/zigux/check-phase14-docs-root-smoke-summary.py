@@ -20,6 +20,7 @@ CORE_TRACEABILITY_PATH = Path("Documentation/zigux/phase14-core-boundary-traceab
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
+BUILD_PATH = Path("zigux/tests/phase14_build.zig")
 CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 ROLLBACK_CHECKER_PATH = "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
@@ -42,6 +43,12 @@ ATTACHED_TOOLCHAIN_FALLBACK_LINES = [
     "  - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`",
     "  - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`",
 ]
+BRIDGE_BINDING_SURVEY_MARKER = (
+    "- the same packet also keeps the two landed bridge-backed roadmap destinations explicit "
+    "by tying `phase14-workqueue-bridge-tests` to `../../kernel/workqueue_bridge.zig` and "
+    "`phase14-skbuff-bridge-tests` to `../../net/core/skbuff_bridge.zig`, instead of "
+    "letting the matrix collapse to test-root names alone."
+)
 
 DOCS_ROOT_MARKERS = [
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
@@ -84,7 +91,9 @@ SMOKE_SURVEY_MARKERS = [
     RELEASE_BOUNDARY_CHECKER_PATH,
     "scripts/zigux/validate-phase14.py",
     "PHASE14_ANCHOR_PACKET_COUNT=4",
+    "phase14-workqueue-bridge-tests",
     "phase14-workqueue-reviewability-tests",
+    "phase14-skbuff-bridge-tests",
     "phase14-end-to-end-smoke-tests",
     "phase14_workqueue_reviewability.zig",
     "make -C zigux phase14-validate",
@@ -93,6 +102,7 @@ SMOKE_SURVEY_MARKERS = [
     "make -C zigux phase14",
     ATTACHED_TOOLCHAIN_FALLBACK_INTRO,
     ATTACHED_TOOLCHAIN_FALLBACK_CONTEXT,
+    BRIDGE_BINDING_SURVEY_MARKER,
 ]
 
 SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
@@ -101,6 +111,7 @@ SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     ROLLBACK_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
     "PHASE14_ANCHOR_PACKET_COUNT=4",
+    BRIDGE_BINDING_SURVEY_MARKER,
     *ATTACHED_TOOLCHAIN_FALLBACK_LINES,
 ]
 
@@ -146,6 +157,18 @@ MAKEFILE_EXACT_COUNT_MARKERS = [
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH}",
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH} --self-test",
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH}",
+]
+
+BUILD_MARKERS = [
+    '        .name = "phase14-workqueue-bridge-tests",',
+    '        .name = "phase14-skbuff-bridge-tests",',
+]
+
+BUILD_EXACT_LINE_MARKERS = [
+    '        .root_source_file = b.path("../../kernel/workqueue_bridge.zig"),',
+    '        .root_source_file = b.path("../../net/core/skbuff_bridge.zig"),',
+    '    phase14_workqueue_bridge_module.addImport("workqueue_bridge", workqueue_bridge_module);',
+    '    phase14_skbuff_bridge_module.addImport("skbuff_bridge", skbuff_bridge_module);',
 ]
 
 MANIFEST_REQUIRED_SURFACES = [
@@ -252,6 +275,16 @@ def check_text_file(
         require_exact_count(errors, rel_path.as_posix(), text, exact_count_markers)
 
 
+def check_build_file(errors: list[str], root: Path) -> None:
+    path = root / BUILD_PATH
+    if not path.exists():
+        errors.append(f"missing file: {BUILD_PATH.as_posix()}")
+        return
+    text = read_text(path)
+    require_present(errors, BUILD_PATH.as_posix(), text, BUILD_MARKERS)
+    require_exact_line_count(errors, BUILD_PATH.as_posix(), text, BUILD_EXACT_LINE_MARKERS)
+
+
 def check(root: Path) -> list[str]:
     errors: list[str] = []
     if MARKER not in read_text(Path(__file__)):
@@ -299,6 +332,7 @@ def check(root: Path) -> list[str]:
     if not workflow_path.exists():
         errors.append(f"missing file: {WORKFLOW_PATH.as_posix()}")
     check_manifest(errors, root)
+    check_build_file(errors, root)
     return errors
 
 
@@ -315,7 +349,9 @@ def good_smoke_survey_text() -> str:
             f"- `{RELEASE_BOUNDARY_CHECKER_PATH}`",
             "- `scripts/zigux/validate-phase14.py`",
             "- `PHASE14_ANCHOR_PACKET_COUNT=4`",
+            "- `phase14-workqueue-bridge-tests`",
             "- `phase14-workqueue-reviewability-tests`",
+            "- `phase14-skbuff-bridge-tests`",
             "- `phase14-end-to-end-smoke-tests`",
             "- `phase14_workqueue_reviewability.zig`",
             "- `make -C zigux phase14-validate`",
@@ -325,6 +361,7 @@ def good_smoke_survey_text() -> str:
             ATTACHED_TOOLCHAIN_FALLBACK_INTRO,
             *ATTACHED_TOOLCHAIN_FALLBACK_LINES,
             ATTACHED_TOOLCHAIN_FALLBACK_CONTEXT,
+            BRIDGE_BINDING_SURVEY_MARKER,
         ]
     ) + "\n"
 
@@ -388,6 +425,55 @@ def good_manifest_text() -> str:
     )
 
 
+def good_build_text() -> str:
+    return "\n".join(
+        [
+            'const std = @import("std");',
+            "",
+            "pub fn build(b: *std.Build) void {",
+            "    const target = b.standardTargetOptions(.{});",
+            "    const optimize = b.standardOptimizeOption(.{});",
+            "",
+            "    const workqueue_bridge_module = b.createModule(.{",
+            '        .root_source_file = b.path("../../kernel/workqueue_bridge.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            "",
+            "    const skbuff_bridge_module = b.createModule(.{",
+            '        .root_source_file = b.path("../../net/core/skbuff_bridge.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            "",
+            "    const phase14_workqueue_bridge_module = b.createModule(.{",
+            '        .root_source_file = b.path("phase14_workqueue_bridge.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            '    phase14_workqueue_bridge_module.addImport("workqueue_bridge", workqueue_bridge_module);',
+            "",
+            "    const phase14_skbuff_bridge_module = b.createModule(.{",
+            '        .root_source_file = b.path("phase14_skbuff_bridge.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            '    phase14_skbuff_bridge_module.addImport("skbuff_bridge", skbuff_bridge_module);',
+            "",
+            "    const phase14_workqueue_bridge_tests = b.addTest(.{",
+            '        .name = "phase14-workqueue-bridge-tests",',
+            "        .root_module = phase14_workqueue_bridge_module,",
+            "    });",
+            "",
+            "    const phase14_skbuff_bridge_tests = b.addTest(.{",
+            '        .name = "phase14-skbuff-bridge-tests",',
+            "        .root_module = phase14_skbuff_bridge_module,",
+            "    });",
+            "}",
+        ]
+    ) + "\n"
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
@@ -399,6 +485,7 @@ def run_self_test() -> int:
         write_text(root / CORE_TRACEABILITY_PATH, good_core_traceability_text())
         write_text(root / MAKEFILE_PATH, good_makefile_text())
         write_text(root / MANIFEST_PATH, good_manifest_text())
+        write_text(root / BUILD_PATH, good_build_text())
         write_text(root / WORKFLOW_PATH, "name: zigux-bootstrap\n")
 
         if errors := check(root):
@@ -701,6 +788,26 @@ def run_self_test() -> int:
         write_text(root / SMOKE_SURVEY_PATH, good_smoke_survey_text())
 
         write_text(
+            root / SMOKE_SURVEY_PATH,
+            good_smoke_survey_text().replace(
+                BRIDGE_BINDING_SURVEY_MARKER + "\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            f"marker count drift in {SMOKE_SURVEY_PATH.as_posix()}: {BRIDGE_BINDING_SURVEY_MARKER} (expected 1, found 0)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing bridge-binding survey marker failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_survey_text())
+
+        write_text(
             root / CORE_TRACEABILITY_PATH,
             good_core_traceability_text().replace(
                 "  * ready-next gap: none currently recorded\n",
@@ -874,6 +981,42 @@ def run_self_test() -> int:
         write_text(root / MANIFEST_PATH, good_manifest_text())
 
         write_text(
+            root / BUILD_PATH,
+            good_build_text().replace(BUILD_EXACT_LINE_MARKERS[0] + "\n", "", 1),
+        )
+        if not any(
+            f"marker count drift in {BUILD_PATH.as_posix()}: {BUILD_EXACT_LINE_MARKERS[0]} (expected 1, found 0)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing workqueue bridge-path line failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / BUILD_PATH, good_build_text())
+
+        write_text(
+            root / BUILD_PATH,
+            good_build_text().replace(
+                BUILD_EXACT_LINE_MARKERS[-1] + "\n",
+                BUILD_EXACT_LINE_MARKERS[-1] + "\n" + BUILD_EXACT_LINE_MARKERS[-1] + "\n",
+                1,
+            ),
+        )
+        if not any(
+            f"marker count drift in {BUILD_PATH.as_posix()}: {BUILD_EXACT_LINE_MARKERS[-1]} (expected 1, found 2)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected duplicate skbuff bridge-import line failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / BUILD_PATH, good_build_text())
+
+        write_text(
             current_checker_path,
             original_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
         )
@@ -884,7 +1027,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=26")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
