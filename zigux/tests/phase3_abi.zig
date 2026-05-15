@@ -11,6 +11,8 @@ test "phase3 abi keeps shared layout assertions wired into the abi replay" {
     try layout_assert.assertBoundaryHeaderLayout();
     try layout_assert.assertExportStatusLayout();
     try layout_assert.assertInteropPolicyLayout();
+    try layout_assert.assertNotifierBlockLayout();
+    try layout_assert.assertNotifierChainPriorityIncreaseLayout();
     try layout_assert.assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();
     try layout_assert.assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();
     try layout_assert.assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();
@@ -73,6 +75,7 @@ test "phase3 abi keeps exported constants and family markers present" {
     try std.testing.expectEqual(@as(u32, abi.NOTIFIER_DONE), @intFromEnum(abi.NotifierResult.done));
     try std.testing.expectEqual(@as(u32, abi.NOTIFIER_OK), @intFromEnum(abi.NotifierResult.ok));
     try std.testing.expectEqual(@as(u32, abi.NOTIFIER_STOP), @intFromEnum(abi.NotifierResult.stop));
+    layout_assert.assertNotifierResultValues();
 }
 
 test "phase3 abi keeps the notifier chain helper lifted into the shared abi binding" {
