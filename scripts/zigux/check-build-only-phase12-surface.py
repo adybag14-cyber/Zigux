@@ -195,7 +195,7 @@ RELEASE_READINESS_SURVEY_MARKERS = [
     "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
     "`make -C zigux phase12-validate`",
     "`python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`",
-    "`scripts/zigux/check-build-only-phase12-surface.py` still needs the matching reminder-marker sync",
+    "`scripts/zigux/check-build-only-phase12-surface.py` now matches that shipped support-checker-plus-validate-route reminder too",
 ]
 
 RELEASE_SEQUENCING_MARKERS = [
