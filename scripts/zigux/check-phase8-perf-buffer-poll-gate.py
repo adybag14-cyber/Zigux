@@ -87,6 +87,10 @@ REQUIRED_MARKERS = {
         "pub fn resolveBufferFdLookupReturn(",
         "pub fn summarizeBufferWindowLookup(",
         "pub fn resolveBufferWindowLookupReturn(",
+        'test "classifyObservedWaitResult keeps normalized wait outcomes compact before buffer bookkeeping" {',
+        'test "summarizePollFromWaitResult keeps raw wait-result normalization coupled to the bounded buffer summary" {',
+        'test "summarizePollExecutionFromWaitResult keeps raw wait-result normalization coupled to execution bookkeeping" {',
+        'test "summarizePollExecutionResultFromWaitResult keeps timeout interrupt and wait failure returns aligned" {',
         'test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {',
         'test "summarizePollExecution rejects processing more ready buffers than the helper counted as ready" {',
         'test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing accounting summaries" {',
@@ -199,11 +203,11 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{details}")
 
         mutations = (
-            (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
-            (TESTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
-            (TESTS_README_PATH, "`make -C zigux phase8-perf-buffer-poll-test`"),
-            (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
-            (REVIEW_CHECKLIST_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
+            (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
+            (TESTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
+            (TESTS_README_PATH, "`make -C zigux phase8-perf-buffer-poll-test`") ,
+            (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
+            (REVIEW_CHECKLIST_PATH, "`make -C zigux phase8-libbpf-segments-test`") ,
             (SEQUENCING_PATH, "make -C zigux phase8-perf-buffer-poll-test"),
             (SLICE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
             (SLICE_PATH, "python3 scripts/zigux/validate-phase8.py --self-test"),
@@ -221,6 +225,22 @@ def run_self_test() -> int:
             (PACKET_HELPER_PATH, "pub fn resolveBufferFdLookupReturn("),
             (PACKET_HELPER_PATH, "pub fn summarizeBufferWindowLookup("),
             (PACKET_HELPER_PATH, "pub fn resolveBufferWindowLookupReturn("),
+            (
+                PACKET_HELPER_PATH,
+                'test "classifyObservedWaitResult keeps normalized wait outcomes compact before buffer bookkeeping" {',
+            ),
+            (
+                PACKET_HELPER_PATH,
+                'test "summarizePollFromWaitResult keeps raw wait-result normalization coupled to the bounded buffer summary" {',
+            ),
+            (
+                PACKET_HELPER_PATH,
+                'test "summarizePollExecutionFromWaitResult keeps raw wait-result normalization coupled to execution bookkeeping" {',
+            ),
+            (
+                PACKET_HELPER_PATH,
+                'test "summarizePollExecutionResultFromWaitResult keeps timeout interrupt and wait failure returns aligned" {',
+            ),
             (
                 PACKET_HELPER_PATH,
                 'test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {',
