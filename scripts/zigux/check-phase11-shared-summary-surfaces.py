@@ -28,6 +28,7 @@ CONTRACT_MARKERS = [
     "* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, so treat them as landed bounded replay evidence even when the direct contents bridge still 404s",
     "* no shared `validate-phase11.py`",
     "* no shared `make -C zigux phase11-validate` target on `master`",
+    "* the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts together with the materialized build-backed replay files and the landed inventory fixture rather than a broader validator stack",
     "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; platform-registration scaffolding remains the next same-lane follow-through, while the direct teardown and restart proofs stay compile-local and host-free rather than broader hardware-backed closure",
     "* the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `drivers/tty/hvc/hvc_console.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep those landed bounded replay surfaces explicit in shared summaries without widening them into notifier, khvcd, or host-backed execution closure",
 ]
@@ -48,6 +49,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase11_hvc_cleanup.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "`make -C zigux phase11-contract`",
         "`make -C zigux phase11-hvc-survey`",
         "the shared `zigux/tests/fixtures/phase11_build_inventory.json` records the shared test inventory",
         "no landed shared `validate-phase11.py`",
@@ -69,6 +71,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase11_hvc_cleanup.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "`make -C zigux phase11-contract`",
         "`make -C zigux phase11-hvc-survey`",
         "DesignWare lane `P11-L10` owns `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`",
         "Keep the DesignWare lane honest: on current `master` the surviving `P11-L10` platform-registration follow-through still lives in `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; keep that surviving packet explicit beside `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` and the shared Phase 11 reminder stack without reintroducing absent DesignWare survey, manifest, or validation-matrix surfaces as still-shipped evidence, without treating the scaffold as the shared packet anchor, and without widening the compile-local teardown or restart proofs into hardware-backed closure or treating a missing timer clock as registration-ready.",
