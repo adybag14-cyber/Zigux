@@ -20,7 +20,7 @@ truthfulness work without promoting it into a separate shared replay count.
 ## Survey Snapshot
 
 - owner posture: adjacent notifier evidence rather than helper-lane ownership
-- owner-map reminder: `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` keeps `P13-L13` reserved for the `landlock/syscalls` survey-companion follow-through, so this note stays adjacent release-surface evidence instead of claiming that lane id
+- owner-map reminder: `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` keeps adjacent notifier evidence outside the four roadmap-owned helper anchors, so this note stays adjacent release-surface evidence instead of claiming a fifth helper lane
 - surveyed state: `current master` readback refreshed on `2026-05-15`
 - shared-surface reread: `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` now keep this adjacent notifier packet aligned with the shipped `libfs`, `devres`, and Landlock helper packet on current `master`
 - roadmap-adjacent reviewability evidence only
