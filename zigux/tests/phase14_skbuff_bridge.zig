@@ -123,6 +123,9 @@ test "phase14 skbuff survey note keeps the blocker wording explicit" {
 
     try std.testing.expect(std.mem.indexOf(u8, note, "PHASE14_LANE_KEY=P14-L11") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-skbuff-live-ownership-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "sock_wfree") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "tail->destructor") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "tail->sk") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "segs->prev") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "tail->next") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "validate_xmit_skb_list()") != null);
@@ -133,6 +136,7 @@ test "phase14 skbuff survey note keeps the blocker wording explicit" {
     try std.testing.expect(std.mem.indexOf(u8, note, "skb lifetime ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "checksum ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "destructor coordination") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "final sock-owned tail transfer") != null);
 }
 
 test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
@@ -152,6 +156,7 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expectEqual(@as(usize, 9), audit.blocked_live_behaviors.len);
     try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "No smaller review-only skbuff follow-up remains") != null);
     try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "live ownership blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "final sock-owned tail transfer") != null);
     try std.testing.expectEqualStrings("queue-facing-tail-publication", map.areas[4].id);
     try std.testing.expectEqualStrings("segmentation-tail-publication-consumer-contract", audit.checkpoints[8].id);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "skb_mark_not_on_list()") != null);
