@@ -421,6 +421,26 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(module_slice_note, "Do not invent `validate-phase9.py`, a trace-events-only validator, or a cleared runtime-substrate handoff.");
     try expectContains(
         runtime_trace_events_module,
+        "test \"runtime trace-events sample advertises the bounded pilot-module contract\" {",
+    );
+    try expectContains(
+        runtime_trace_events_module,
+        "const descriptor = sample.RuntimeTraceEventsSample.descriptor();",
+    );
+    try expectContains(
+        runtime_trace_events_module,
+        "try std.testing.expectEqualStrings(\"samples/trace_events/trace-events-sample.c\", descriptor.anchor);",
+    );
+    try expectContains(
+        runtime_trace_events_module,
+        "try std.testing.expect(descriptor.requires_runtime_substrate);",
+    );
+    try expectContains(
+        runtime_trace_events_module,
+        "try std.testing.expect(descriptor.provides_selftest_hook);",
+    );
+    try expectContains(
+        runtime_trace_events_module,
         "test \"runtime trace-events sample keeps replay-summary continuity explicit after selftest completion\" {",
     );
     try expectContains(
