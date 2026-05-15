@@ -60,6 +60,12 @@ That means the honest current atomic64 packet is a direct starter plus a visible
 - `Documentation/zigux/phase9-runtime-atomic64-survey.md` and `zigux/tests/runtime_atomic64_manifest.json` keep the packet truthfulness explicit, including the visible shared-loader reminder packet and the still-blocked broader runtime substrate.
 - `samples/zigux/runtime_atomic64_loader.zig` remains a bounded loader scaffold only; it owns the prepared `RuntimeAtomic64LoadSummary` snapshot replay across later counter mutation and later lifecycle changes, the prepared shared selftest-hook drift guard, and the shared-release desynchronization proofs, but it does not currently prove completed runtime-substrate parity.
 
+## Freeze-Map Governance Boundary
+
+- `Documentation/zigux/freeze-map.md` still keeps `kernel/workqueue.c` in the study-only bucket, so this slice stays review-only beside that workqueue-facing boundary instead of claiming scheduler or workqueue parity.
+- No parity scorecard entry or Architecture Council status-change request is attached to this slice on current `master`.
+- Any future freeze-map status change for this family must route through `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-freeze-map-governance.md` instead of being inferred from this family-local packet.
+
 ## Non-goals
 
 - No claim that the real runtime substrate is available.
