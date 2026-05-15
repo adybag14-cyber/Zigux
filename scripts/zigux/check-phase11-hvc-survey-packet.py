@@ -192,8 +192,10 @@ DRIVER_STARTER_MARKERS = [
 VERIFY_HELPER_MARKERS = [
     'test "hvc_console verify keeps remove handoff explicit when tty is already absent" {',
     'test "hvc_console verify keeps cleanup prerequisite failures explicit" {',
+    'test "hvc_console verify keeps hangup-only cleanup prerequisites explicit" {',
     'test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces" {',
     'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks" {',
+    'test "hvc_console verify keeps non-kernel sysrq literal fallback from implying notifier callbacks" {',
 ]
 
 SURVEY_GATE_MARKERS = [
@@ -444,6 +446,8 @@ def run_self_test() -> None:
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[2]),
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[3]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[1]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[2]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[5]),
             (REQUIRED_FILES["survey_note"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["survey_note"], "khvcd sleep-and-reschedule handoff summary"),
             (REQUIRED_FILES["survey_note"], "`__hvc_poll` drain-order summary"),
