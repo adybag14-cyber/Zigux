@@ -104,6 +104,13 @@ EXPECTED_REPEAT_CONTRACT_CASES = [
 EXPECTED_BASE_CONTRACT_CASES = [
     case for case in EXPECTED_CONTRACT_CASES if case not in EXPECTED_REPEAT_CONTRACT_CASES
 ]
+EXPECTED_WORKFLOW_DIRECT_CHECKS = [
+    "artifact_diff_self_test",
+    "contract_self_test",
+    "contract_replay",
+    "determinism_self_test",
+    "determinism_replay",
+]
 EXPECTED_SELF_TEST_CASES = [
     "catalog_shape",
     "phase4_use_marker_round_trip",
@@ -147,6 +154,7 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
     f"- `PHASE4_ARTIFACT_DIFF_CONTRACT_CASES={','.join(EXPECTED_CONTRACT_CASES)}`",
     f"- `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT={len(EXPECTED_SELF_TEST_CASES)}`",
     f"- `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES={','.join(EXPECTED_SELF_TEST_CASES)}`",
+    f"- `PHASE4_ARTIFACT_DIFF_WORKFLOW_DIRECT_CHECKS={','.join(EXPECTED_WORKFLOW_DIRECT_CHECKS)}`",
 ]
 REQUIRED_SURVEY_REPLAY_MARKERS = [
     "- `python3 scripts/zigux/artifact_diff.py --self-test`",
