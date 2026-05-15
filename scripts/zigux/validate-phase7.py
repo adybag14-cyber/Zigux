@@ -286,6 +286,9 @@ REQUIRED_MARKERS = {
         "phase 7 string helpers starter formats bounded sizes with three significant figures",
         "phase 7 string helpers starter unescapes supported escape families and preserves unsupported escapes",
         "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
+        "phase 7 string helpers starter builds sequential string arrays and sentinel views",
+        "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent",
+        "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix",
         "phase 7 string helpers starter pads bounded copies without reading past the provided source slice",
         "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix",
     ],
@@ -652,6 +655,24 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_string_helpers.zig",
                 "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
                 "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
+            ),
+            (
+                "string helper test string-array coverage",
+                "zigux/tests/phase7_string_helpers.zig",
+                "phase 7 string helpers starter builds sequential string arrays and sentinel views",
+                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter builds sequential string arrays and sentinel views",
+            ),
+            (
+                "string helper test kfree teardown coverage",
+                "zigux/tests/phase7_string_helpers.zig",
+                "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent",
+                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent",
+            ),
+            (
+                "string helper test duplicate-and-replace coverage",
+                "zigux/tests/phase7_string_helpers.zig",
+                "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix",
+                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter duplicates and replaces only the exported c-string prefix",
             ),
         ]
 
