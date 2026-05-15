@@ -128,7 +128,7 @@ Phase 8 flow
   * `zigux/tests/phase8_kallsyms.zig`
   * `zigux/tests/phase8_kallsyms_only_build.zig`
   * `zigux/tests/phase8_cpu_mask.zig`
-  * `zigux/tests/phase8_cpu_mask_ONLY_BUILD.zig`
+  * `zigux/tests/phase8_cpu_mask_only_build.zig`
   * `zigux/tests/phase8_logging.zig`
   * `zigux/tests/phase8_pin_path.zig`
   * `zigux/tests/phase8_bpf_type_names.zig`
@@ -241,7 +241,7 @@ Phase 9 flow
   * `zigux/tests/phase3_low_level_wrappers.zig`
   * `zigux/tests/phase3_abi_dump.zig`
   * `zigux/tests/fixtures/phase3_abi/expected.json`
-  * `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
+  * `zigux/tests/phase3_abi/phase3_abi_c_harness.c`
   * `zigux/tests/phase14_build.zig`
   * `zigux/tests/phase14_end_to_end_smoke_manifest.json`
   * `zigux/tests/phase14_workqueue_reviewability.zig`
@@ -262,7 +262,7 @@ Phase 9 flow
   * `zigux/tests/phase15_handoff_next_steps.zig`
   * `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`
   * `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-  * `zigux/tests/phase15_governance_lane_SEQUENCING.zig`
+  * `zigux/tests/phase15_governance_lane_sequencing.zig`
   * `zigux/tests/phase15_readiness_gate.zig`
   * `scripts/zigux/validate-phase3.py`
   * `scripts/zigux/validate_phase3_selftest.py`
