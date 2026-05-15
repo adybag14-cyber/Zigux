@@ -367,6 +367,19 @@ pub fn getValue8(addr: []const Word, offset: usize) u8 {
     return @as(u8, @intCast(value & 0xff));
 }
 
+fn tailByteMask(nbits: usize, clump_offset: usize) u8 {
+    if (clump_offset >= nbits) {
+        return 0;
+    }
+
+    const remaining = nbits - clump_offset;
+    if (remaining >= 8) {
+        return 0xff;
+    }
+
+    return @as(u8, @intCast((@as(usize, 1) << @intCast(remaining)) - 1));
+}
+
 pub fn findNextClump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {
     const next = findNextBit(addr, nbits, offset);
     if (next == nbits) {
@@ -374,7 +387,7 @@ pub fn findNextClump8(clump: *u8, addr: []const Word, nbits: usize, offset: usiz
     }
 
     const clump_offset = next & ~@as(usize, 7);
-    clump.* = getValue8(addr, clump_offset);
+    clump.* = getValue8(addr, clump_offset) & tailByteMask(nbits, clump_offset);
     return clump_offset;
 }
 
@@ -728,6 +741,19 @@ test "clump8 scans keep tail bytes reachable from partial final words" {
 
     var clump: u8 = 0;
     try std.testing.expectEqual(@as(usize, bits_per_long), findFirstClump8(&clump, &bitmap, nbits));
+    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);
+}
+
+test "clump8 scans mask out-of-range bits from partial final bytes" {
+    const nbits = bits_per_long + 5;
+    const bitmap = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 7) };
+
+    var clump: u8 = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long), findFirstClump8(&clump, &bitmap, nbits));
+    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long), findNextClump8(&clump, &bitmap, nbits, bits_per_long));
     try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);
 }
 
