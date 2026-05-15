@@ -57,6 +57,7 @@ REQUIRED_MARKERS = {
         "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
         "`make -C zigux phase11-contract`",
+        "`make -C zigux phase11`",
         "`make -C zigux phase11-hvc-survey`",
         "the shared `zigux/tests/fixtures/phase11_build_inventory.json` records the shared test inventory",
         "no landed shared `validate-phase11.py`",
@@ -122,6 +123,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase11_hvc_cleanup.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "`make -C zigux phase11`",
         "`make -C zigux phase11-hvc-survey`",
     ],
     "tests_companion": [
@@ -136,6 +138,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase11_hvc_cleanup.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
         "`drivers/tty/hvc/hvc_console_sysrq.zig`",
+        "`make -C zigux phase11`",
         "`make -C zigux phase11-hvc-survey`",
         "`make -C zigux phase11-contract`",
     ],
