@@ -115,15 +115,15 @@ The latest full-packet replay snapshot still preserved in the coupled survey gat
 - `pop-after-reset returned null`
 - `cold -> initialized -> replay_complete -> exited`
 
-## Historical packet markers kept for the coupled survey gate
+## Current packet markers kept for the coupled survey gate
 
-Keep these legacy packet markers visible until `zigux/tests/phase5_bytestream_fifo_survey.zig` is refreshed to the current wording:
+Keep these current packet markers visible while `zigux/tests/phase5_bytestream_fifo_survey.zig` remains unreadable through authenticated contents readback in this environment:
 
-- `PHASE5_STATUS=parked`
-- `PHASE5_SLICE=kfifo-reference-sample-starter`
+- `PHASE5_STATUS=verified-split-readback-packet`
+- `PHASE5_SLICE=kfifo-reference-sample-readback`
 - `PHASE5_LANE_KEY=P5-L01`
-- `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea`
-- `samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea|Phase 5`
+- `PHASE5_SURVEYED_COMMIT=9a307725bf8b343e8c0a4b12acdf8e9773afc343`
+- `samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=9a307725bf8b343e8c0a4b12acdf8e9773afc343|Phase 5`
 - `runtime_atomic64.zig`
 - `runtime_atomic64_loader.zig`
 - `runtime_bitmap.zig`
@@ -188,6 +188,6 @@ This survey does not yet claim:
 Leave the bytestream survey packet parked unless a fresh bytestream-local reread changes one of two bounded facts:
 
 - authenticated connector readback for `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig` starts returning again, so the survey note can collapse back to fully direct wording
-- the split between public-tree blob readback and authenticated connector readback stays live and one more bytestream-local truthfulness repair is needed, starting with `zigux/tests/phase5_bytestream_fifo_manifest.json` because its public `surveyed_commit` marker still predates the current survey wording
+- the split between public-tree blob readback and authenticated connector readback stays live and one more bytestream-local truthfulness repair is needed, starting with the smallest stale split-readback marker inside `Documentation/zigux/phase5-kfifo-sample-survey.md` because the manifest's public `surveyed_commit` marker no longer lags the current survey wording
 
 Do not widen that follow-up into runtime work or broader sample behavior unless the sample-root file itself changes.
