@@ -47,18 +47,45 @@ pub fn requiresExplicitCallerByte(mode: u8) bool {
     return requiresExplicitCallerPolicyBytes(mode, 0);
 }
 
+pub fn usesKernelHeap(mode: abi.AllocatorMode) bool {
+    return mode == .kernel_heap;
+}
+
+pub fn usesKernelHeapPolicyBytes(mode: u8, reserved: u8) bool {
+    return modeFromInteropPolicyBytes(mode, reserved) == .kernel_heap;
+}
+
+pub fn usesKernelHeapInteropPolicy(policy: abi.InteropPolicy) bool {
+    return usesKernelHeapPolicyBytes(policy.allocator_mode, policy.reserved);
+}
+
+pub fn usesKernelHeapByte(mode: u8) bool {
+    return usesKernelHeapPolicyBytes(mode, 0);
+}
+
+pub fn usesArena(mode: abi.AllocatorMode) bool {
+    return mode == .arena;
+}
+
+pub fn usesArenaPolicyBytes(mode: u8, reserved: u8) bool {
+    return modeFromInteropPolicyBytes(mode, reserved) == .arena;
+}
+
+pub fn usesArenaInteropPolicy(policy: abi.InteropPolicy) bool {
+    return usesArenaPolicyBytes(policy.allocator_mode, policy.reserved);
+}
+
+pub fn usesArenaByte(mode: u8) bool {
+    return usesArenaPolicyBytes(mode, 0);
+}
+
 pub fn permitsGlobalFallback(mode: abi.AllocatorMode) bool {
-    return switch (mode) {
-        .caller_provided => false,
-        .kernel_heap, .arena => true,
-    };
+    return usesKernelHeap(mode) or usesArena(mode);
 }
 
 pub fn permitsGlobalFallbackPolicyBytes(mode: u8, reserved: u8) bool {
-    return switch (modeFromInteropPolicyBytes(mode, reserved) orelse return false) {
-        .caller_provided => false,
-        .kernel_heap, .arena => true,
-    };
+    const resolved = modeFromInteropPolicyBytes(mode, reserved) orelse return false;
+    return usesKernelHeap(resolved) or usesArena(resolved);
 }
 
 pub fn permitsGlobalFallbackInteropPolicy(policy: abi.InteropPolicy) bool {
@@ -146,6 +173,40 @@ test "phase3 allocator policy stays explicit" {
     try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));
     try std.testing.expect(!requiresExplicitCallerByte(1));
     try std.testing.expect(!requiresExplicitCallerByte(9));
+
+    try std.testing.expect(!usesKernelHeap(.caller_provided));
+    try std.testing.expect(usesKernelHeap(.kernel_heap));
+    try std.testing.expect(!usesKernelHeap(.arena));
+    try std.testing.expect(!usesKernelHeapByte(0));
+    try std.testing.expect(usesKernelHeapByte(1));
+    try std.testing.expect(!usesKernelHeapByte(2));
+    try std.testing.expect(!usesKernelHeapByte(9));
+    try std.testing.expect(!usesKernelHeapPolicyBytes(0, 0));
+    try std.testing.expect(usesKernelHeapPolicyBytes(1, 0));
+    try std.testing.expect(!usesKernelHeapPolicyBytes(2, 0));
+    try std.testing.expect(!usesKernelHeapPolicyBytes(9, 0));
+    try std.testing.expect(!usesKernelHeapPolicyBytes(1, 1));
+    try std.testing.expect(!usesKernelHeapInteropPolicy(caller_policy));
+    try std.testing.expect(usesKernelHeapInteropPolicy(heap_policy));
+    try std.testing.expect(!usesKernelHeapInteropPolicy(arena_policy));
+    try std.testing.expect(!usesKernelHeapInteropPolicy(reserved_policy));
+
+    try std.testing.expect(!usesArena(.caller_provided));
+    try std.testing.expect(!usesArena(.kernel_heap));
+    try std.testing.expect(usesArena(.arena));
+    try std.testing.expect(!usesArenaByte(0));
+    try std.testing.expect(!usesArenaByte(1));
+    try std.testing.expect(usesArenaByte(2));
+    try std.testing.expect(!usesArenaByte(9));
+    try std.testing.expect(!usesArenaPolicyBytes(0, 0));
+    try std.testing.expect(!usesArenaPolicyBytes(1, 0));
+    try std.testing.expect(usesArenaPolicyBytes(2, 0));
+    try std.testing.expect(!usesArenaPolicyBytes(9, 0));
+    try std.testing.expect(!usesArenaPolicyBytes(2, 1));
+    try std.testing.expect(!usesArenaInteropPolicy(caller_policy));
+    try std.testing.expect(!usesArenaInteropPolicy(heap_policy));
+    try std.testing.expect(usesArenaInteropPolicy(arena_policy));
+    try std.testing.expect(!usesArenaInteropPolicy(reserved_policy));
 
     try std.testing.expect(!permitsGlobalFallback(.caller_provided));
     try std.testing.expect(!permitsGlobalFallbackByte(0));
