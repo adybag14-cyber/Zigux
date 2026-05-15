@@ -14,7 +14,7 @@ HELPER_PATH = "fs/libfs.zig"
 REPLAY_PATH = "zigux/tests/phase13_libfs.zig"
 REVIEWABILITY_PATH = "zigux/tests/phase13_libfs_reviewability.zig"
 
-EXPECTED_LANE = "P13-Y01"
+EXPECTED_LANE = "P13-L01"
 EXPECTED_COMMIT = "master-readback-2026-05-15"
 EXPECTED_GAP_COUNT = 13
 EXPECTED_STARTER_COUNT = 10
