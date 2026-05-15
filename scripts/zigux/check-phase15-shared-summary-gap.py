@@ -55,6 +55,9 @@ NO_APPROVAL_MARKER = "no-approval-yet posture"
 DOCS_NO_APPROVAL_MARKER = "no Architecture Council approval is recorded yet"
 DOCS_REOPEN_TRIGGER_MARKER = "named reopen trigger"
 DOCS_BLOCKER_POSTURE_MARKER = "deep-core blocker-posture change"
+REVIEW_CHECKLIST_REOPEN_TRIGGER_MARKER = (
+    "retained discussion state, the current blocker, and reopen triggers explicit"
+)
 
 FILE_MARKERS = {
     DOCS_README_REL: (
@@ -97,6 +100,7 @@ FILE_MARKERS = {
         PHASE15_VALIDATE_ROUTE,
         PHASE15_TEST_ROUTE,
         PHASE15_ROUTE,
+        REVIEW_CHECKLIST_REOPEN_TRIGGER_MARKER,
         NO_APPROVAL_MARKER,
     ),
     SCRIPTS_README_REL: (
@@ -210,6 +214,7 @@ def _seed(root: Path) -> None:
                 PHASE15_VALIDATE_ROUTE,
                 PHASE15_TEST_ROUTE,
                 PHASE15_ROUTE,
+                REVIEW_CHECKLIST_REOPEN_TRIGGER_MARKER,
                 NO_APPROVAL_MARKER,
                 "",
             )
@@ -390,6 +395,16 @@ def run_self_test() -> int:
         _seed(root)
         case_count += 1
 
+        path = root / REVIEW_CHECKLIST_REL
+        _write(path, _read(path).replace(REVIEW_CHECKLIST_REOPEN_TRIGGER_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{REVIEW_CHECKLIST_REL}:missing:{REVIEW_CHECKLIST_REOPEN_TRIGGER_MARKER}"],
+            "review_checklist_missing_reopen_trigger_wording",
+        )
+        _seed(root)
+        case_count += 1
+
         path = root / SCRIPTS_README_REL
         _write(path, _read(path).replace(SURVEY_MARKER + "\n", "", 1))
         _assert_only(
@@ -476,7 +491,8 @@ def main() -> int:
             "survey marker, the parity-scorecard survey, the dedicated parity-scorecard and indefinite-C policy surfaces, "
             "readiness and handoff reminders, the review-process handoff checker, the scripts-root blocker-evidence marker, "
             "the lane-sequencing note, the docs-root and scripts-root alignment checkers, the replay-build surface, the "
-            "validator-route packet, the manifest reminders, the lane-owner alignment surface, and the replay-route packet explicit."
+            "validator-route packet, the review-checklist reopen-trigger wording, the manifest reminders, the lane-owner "
+            "alignment surface, and the replay-route packet explicit."
         )
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
