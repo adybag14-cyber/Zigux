@@ -80,6 +80,7 @@ REQUIRED_MARKERS = {
     ),
     PACKET_HELPER_PATH: (
         "pub fn classifyWaitClass(",
+        "pub fn advanceReadyBufferCursor(",
         "pub fn summarizePollExecutionResultFromWaitResult(",
         "ReadyBufferProcessingExceedsObservedEvents",
         "pub fn summarizeBufferFdLookup(",
@@ -99,12 +100,13 @@ REQUIRED_MARKERS = {
     PACKET_TEST_PATH: (
         'test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit" {',
         'test "phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit" {',
+        'test "phase 8 perf-buffer poll helper keeps ready-buffer cursor traversal explicit" {',
         'test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity" {',
         'test "phase 8 perf-buffer poll helper keeps buffer-state-only ready events explicit below routing parity" {',
-        'test "phase 8 perf-buffer poll helper rejects inconsistent processing accounting summaries before return shaping" {',
-        'test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {',
         'test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {',
         'test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {',
+        'test "phase 8 perf-buffer poll helper rejects inconsistent processing accounting summaries before return shaping" {',
+        'test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {',
         'try expectContains(note, "ready-buffer processing attempts cannot exceed the helper-counted ready buffers");',
         'try expectContains(gate, "\\"ready-buffer processing attempts cannot exceed the helper-counted ready buffers\\"");',
         "perf_buffer_poll.PollReturnDisposition.buffer_state_failed",
@@ -212,6 +214,7 @@ def run_self_test() -> int:
             (MAKEFILE_PATH, "phase8-libbpf-segments-test:"),
             (MAKEFILE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
             (PACKET_HELPER_PATH, "pub fn classifyWaitClass("),
+            (PACKET_HELPER_PATH, "pub fn advanceReadyBufferCursor("),
             (PACKET_HELPER_PATH, "pub fn summarizePollExecutionResultFromWaitResult("),
             (PACKET_HELPER_PATH, "ReadyBufferProcessingExceedsObservedEvents"),
             (PACKET_HELPER_PATH, "pub fn summarizeBufferFdLookup("),
@@ -261,6 +264,10 @@ def run_self_test() -> int:
             (
                 PACKET_TEST_PATH,
                 'test "phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit" {',
+            ),
+            (
+                PACKET_TEST_PATH,
+                'test "phase 8 perf-buffer poll helper keeps ready-buffer cursor traversal explicit" {',
             ),
             (
                 PACKET_TEST_PATH,
