@@ -37,6 +37,14 @@ int main(void)
         .next = (uintptr_t)&rising_second,
         .priority = 3,
     };
+    zigux_notifier_chain_priority_increase rising_increase = {
+        .previous_index = 0U,
+        .current_index = 0U,
+        .previous_priority = 0,
+        .current_priority = 0,
+    };
+    const unsigned rising_found =
+        (unsigned)zigux_notifier_first_chain_priority_increase(&rising_first, &rising_increase);
 
     printf(
         "{"
@@ -79,12 +87,14 @@ int main(void)
         "\"empty_ok\":%u,"
         "\"single_ok\":%u,"
         "\"descending_ok\":%u,"
-        "\"rising_ok\":%u"
+        "\"rising_ok\":%u,"
+        "\"rising_first_increase\":{\"found\":%u,\"previous_index\":%zu,\"current_index\":%zu,\"previous_priority\":%d,\"current_priority\":%d}"
         "},"
         "\"structs\":{"
         "\"boundary_header\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"size\":%zu,\"abi_version\":%zu,\"flags\":%zu}},"
         "\"export_status\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"code\":%zu,\"facility\":%zu,\"flags\":%zu}},"
         "\"interop_policy\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"panic_mode\":%zu,\"allocator_mode\":%zu,\"unsafe_scope\":%zu,\"reserved\":%zu}},"
+        "\"notifier_chain_priority_increase\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"previous_index\":%zu,\"current_index\":%zu,\"previous_priority\":%zu,\"current_priority\":%zu}},"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_view\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"ack_window\":%zu,\"delivery_window\":%zu,\"status\":%zu}},"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_summary\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"applied\":%zu,\"skipped\":%zu,\"delivered\":%zu}},"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view\":{\"size\":%zu,\"align\":%zu,\"offsets\":{\"budget\":%zu,\"window\":%zu,\"flags\":%zu}},"
@@ -129,6 +139,11 @@ int main(void)
         (unsigned)zigux_notifier_chain_has_nonincreasing_priority(&single),
         (unsigned)zigux_notifier_chain_has_nonincreasing_priority(&descending_first),
         (unsigned)zigux_notifier_chain_has_nonincreasing_priority(&rising_first),
+        rising_found,
+        rising_increase.previous_index,
+        rising_increase.current_index,
+        rising_increase.previous_priority,
+        rising_increase.current_priority,
         sizeof(struct zigux_boundary_header),
         _Alignof(struct zigux_boundary_header),
         offsetof(struct zigux_boundary_header, size),
@@ -145,6 +160,12 @@ int main(void)
         offsetof(struct zigux_interop_policy, allocator_mode),
         offsetof(struct zigux_interop_policy, unsafe_scope),
         offsetof(struct zigux_interop_policy, reserved),
+        sizeof(zigux_notifier_chain_priority_increase),
+        _Alignof(zigux_notifier_chain_priority_increase),
+        offsetof(zigux_notifier_chain_priority_increase, previous_index),
+        offsetof(zigux_notifier_chain_priority_increase, current_index),
+        offsetof(zigux_notifier_chain_priority_increase, previous_priority),
+        offsetof(zigux_notifier_chain_priority_increase, current_priority),
         sizeof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view),
         _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view, ack_window),
