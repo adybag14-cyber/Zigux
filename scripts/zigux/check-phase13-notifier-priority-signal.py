@@ -102,6 +102,7 @@ REQUIRED_NOTIFIER_SURVEY_MARKERS = (
     "`zigux/helpers/hlist_view.zig`",
     "Those still-missing helper paths are the nearest `list_head` and `hlist` interop",
     "it keeps the still-missing `list_head` and `hlist` helper surfaces explicit as repo-reality gaps",
+    "reports the first priority increase witness",
 )
 
 REQUIRED_RELEASE_NOTES_MARKERS = (
@@ -211,6 +212,7 @@ REQUIRED_NOTIFIER_HELPER_MARKERS = (
     "pub const ChainView = struct {",
     "pub fn hasNonincreasingPriority(self: ChainView) bool {",
     'test "chain view checks nonincreasing notifier priority" {',
+    "pub fn firstPriorityIncrease(self: ChainView) ?PriorityIncrease {",
 )
 
 REQUIRED_ABI_HEADER_MARKERS = (
@@ -219,6 +221,7 @@ REQUIRED_ABI_HEADER_MARKERS = (
     "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
     "struct zigux_notifier_block {",
     "zigux_notifier_chain_has_nonincreasing_priority(",
+    "zigux_notifier_first_chain_priority_increase(",
 )
 
 REQUIRED_HVC_HEADER_MARKERS = (
@@ -325,6 +328,7 @@ def run_self_test() -> int:
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[6]),
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[7]),
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[9]),
+            ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[11]),
             ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[3]),
             ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[4]),
             ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS[6]),
@@ -351,9 +355,11 @@ def run_self_test() -> int:
             ("tests-readme", TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS[14]),
             ("notifier-bindings", NOTIFIER_BINDINGS_PATH, REQUIRED_NOTIFIER_BINDINGS_MARKERS[0]),
             ("notifier-helper", NOTIFIER_HELPER_PATH, REQUIRED_NOTIFIER_HELPER_MARKERS[1]),
+            ("notifier-helper", NOTIFIER_HELPER_PATH, REQUIRED_NOTIFIER_HELPER_MARKERS[3]),
             ("abi-header", ABI_HEADER_PATH, REQUIRED_ABI_HEADER_MARKERS[1]),
             ("abi-header", ABI_HEADER_PATH, REQUIRED_ABI_HEADER_MARKERS[3]),
             ("abi-header", ABI_HEADER_PATH, REQUIRED_ABI_HEADER_MARKERS[4]),
+            ("abi-header", ABI_HEADER_PATH, REQUIRED_ABI_HEADER_MARKERS[5]),
             ("hvc-header", HVC_HEADER_PATH, REQUIRED_HVC_HEADER_MARKERS[2]),
         )
         for label, rel_path, needle in mutations:
