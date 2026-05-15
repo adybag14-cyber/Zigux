@@ -315,6 +315,7 @@ pub const RemoveHandoffRequest = struct {
 pub const RemoveHandoffSummary = struct {
     console_lock_slot_cleared: bool,
     vtermno_and_cons_ops_released: bool,
+    slot_release_ownership: bool,
     tty_port_put_ordered: bool,
     tty_vhangup_follow_through: bool,
     tty_kref_put_release: bool,
@@ -325,6 +326,7 @@ pub fn summarizeRemoveHandoff(request: RemoveHandoffRequest) RemoveHandoffSummar
     return .{
         .console_lock_slot_cleared = request.console_lock_slot_cleared,
         .vtermno_and_cons_ops_released = request.vtermno_and_cons_ops_released,
+        .slot_release_ownership = request.console_lock_slot_cleared and request.vtermno_and_cons_ops_released,
         .tty_port_put_ordered = request.tty_port_put_ordered,
         .tty_vhangup_follow_through = request.tty_vhangup_follow_through,
         .tty_kref_put_release = request.tty_kref_put_release,
@@ -668,9 +670,29 @@ test "phase11 hvc console keeps remove handoff summary reviewable" {
 
     try std.testing.expect(summary.console_lock_slot_cleared);
     try std.testing.expect(summary.vtermno_and_cons_ops_released);
+    try std.testing.expect(summary.slot_release_ownership);
     try std.testing.expect(summary.tty_port_put_ordered);
     try std.testing.expect(summary.tty_vhangup_follow_through);
     try std.testing.expect(summary.tty_kref_put_release);
+    try std.testing.expect(summary.keep_irq_until_hangup);
+}
+
+test "phase11 hvc console keeps incomplete remove ownership out of handoff summary" {
+    const summary = summarizeRemoveHandoff(.{
+        .console_lock_slot_cleared = true,
+        .vtermno_and_cons_ops_released = false,
+        .tty_port_put_ordered = true,
+        .tty_vhangup_follow_through = false,
+        .tty_kref_put_release = false,
+        .keep_irq_until_hangup = true,
+    });
+
+    try std.testing.expect(summary.console_lock_slot_cleared);
+    try std.testing.expect(!summary.vtermno_and_cons_ops_released);
+    try std.testing.expect(!summary.slot_release_ownership);
+    try std.testing.expect(summary.tty_port_put_ordered);
+    try std.testing.expect(!summary.tty_vhangup_follow_through);
+    try std.testing.expect(!summary.tty_kref_put_release);
     try std.testing.expect(summary.keep_irq_until_hangup);
 }
 
