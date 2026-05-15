@@ -173,6 +173,8 @@ test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {
 
     try std.testing.expect(mmio.allowsInteropPolicy(mmio_policy));
     try std.testing.expect(mmio.allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0));
+    try std.testing.expect(mmio.allowsInteropPolicyByte(@intFromEnum(abi.UnsafeScope.volatile_mmio)));
+    try std.testing.expect(!mmio.allowsInteropPolicyByte(@intFromEnum(abi.UnsafeScope.none)));
     try std.testing.expect(!mmio.allowsInteropPolicy(no_unsafe_policy));
     try std.testing.expect(!mmio.allowsInteropPolicy(raw_pointer_policy));
     try std.testing.expect(!mmio.allowsInteropPolicy(reserved_policy));
