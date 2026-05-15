@@ -128,6 +128,42 @@ pub fn summarizeTtyRegistrationHandoff(request: TtyRegistrationRequest) TtyRegis
     };
 }
 
+pub const AllocSlotSelection = enum {
+    matched_console_slot,
+    empty_console_slot,
+    hotplug_extension,
+};
+
+pub const AllocSlotRequest = struct {
+    matched_registered_console: bool,
+    empty_console_slot_available: bool,
+    hvc_struct_list_linked: bool,
+    rechecks_kernel_console: bool,
+};
+
+pub const AllocSlotSummary = struct {
+    selection: AllocSlotSelection,
+    claims_console_slot: bool,
+    hvc_struct_list_linked: bool,
+    rechecks_kernel_console: bool,
+};
+
+pub fn summarizeAllocSlotHandoff(request: AllocSlotRequest) AllocSlotSummary {
+    const selection: AllocSlotSelection = if (request.matched_registered_console)
+        .matched_console_slot
+    else if (request.empty_console_slot_available)
+        .empty_console_slot
+    else
+        .hotplug_extension;
+
+    return .{
+        .selection = selection,
+        .claims_console_slot = selection != .hotplug_extension,
+        .hvc_struct_list_linked = request.hvc_struct_list_linked,
+        .rechecks_kernel_console = request.rechecks_kernel_console,
+    };
+}
+
 pub const ResizeHandoffRequest = struct {
     tty_present: bool,
     winsize: Winsize,
@@ -486,6 +522,48 @@ test "phase11 hvc console keeps tty-registration handoff summary reviewable" {
     try std.testing.expect(summary.tty_port_linked);
     try std.testing.expect(summary.open_time_irq_request_ready);
     try std.testing.expect(summary.wakeup_after_registration);
+}
+
+test "phase11 hvc console keeps hvc_alloc slot-match handoff reviewable" {
+    const summary = summarizeAllocSlotHandoff(.{
+        .matched_registered_console = true,
+        .empty_console_slot_available = true,
+        .hvc_struct_list_linked = true,
+        .rechecks_kernel_console = true,
+    });
+
+    try std.testing.expectEqual(AllocSlotSelection.matched_console_slot, summary.selection);
+    try std.testing.expect(summary.claims_console_slot);
+    try std.testing.expect(summary.hvc_struct_list_linked);
+    try std.testing.expect(summary.rechecks_kernel_console);
+}
+
+test "phase11 hvc console keeps hvc_alloc empty-slot fallback reviewable" {
+    const summary = summarizeAllocSlotHandoff(.{
+        .matched_registered_console = false,
+        .empty_console_slot_available = true,
+        .hvc_struct_list_linked = true,
+        .rechecks_kernel_console = true,
+    });
+
+    try std.testing.expectEqual(AllocSlotSelection.empty_console_slot, summary.selection);
+    try std.testing.expect(summary.claims_console_slot);
+    try std.testing.expect(summary.hvc_struct_list_linked);
+    try std.testing.expect(summary.rechecks_kernel_console);
+}
+
+test "phase11 hvc console keeps hvc_alloc hotplug extension distinct from console slot claims" {
+    const summary = summarizeAllocSlotHandoff(.{
+        .matched_registered_console = false,
+        .empty_console_slot_available = false,
+        .hvc_struct_list_linked = true,
+        .rechecks_kernel_console = true,
+    });
+
+    try std.testing.expectEqual(AllocSlotSelection.hotplug_extension, summary.selection);
+    try std.testing.expect(!summary.claims_console_slot);
+    try std.testing.expect(summary.hvc_struct_list_linked);
+    try std.testing.expect(summary.rechecks_kernel_console);
 }
 
 test "phase11 hvc console keeps resize handoff summary reviewable" {
