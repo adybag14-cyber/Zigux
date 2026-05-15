@@ -110,6 +110,39 @@ test "phase4 test_fsmount survey keeps the dedicated gap note aligned" {
     );
 }
 
+test "phase4 test_fsmount survey keeps the dedicated gap note replay anchors aligned" {
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "PHASE4_TEST_FSMOUNT_C_ANCHOR=samples/vfs/test-fsmount.c",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "PHASE4_TEST_FSMOUNT_CURRENT_LINUX_REPLAY=make M=samples/vfs",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    );
+}
+
+test "phase4 test_fsmount survey keeps the dedicated gap note ownership aligned" {
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "PHASE4_TEST_FSMOUNT_OWNER=Validation and Perf Team",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "PHASE4_TEST_FSMOUNT_ROLLBACK_OWNER=Validation and Perf Team",
+    );
+}
+
+test "phase4 test_fsmount survey keeps the dedicated gap note reversible-delivery evidence aligned" {
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit bootstrap-CI posture, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface",
+    );
+}
+
 test "phase4 test_fsmount survey keeps shared gate-evidence coverage aligned" {
     try requireRepoMarker(
         "Documentation/zigux/phase4-gate-evidence.md",
