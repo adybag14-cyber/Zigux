@@ -105,9 +105,9 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-Y04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("master-readback-2026-05-13", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("master-readback-2026-05-15", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("security/landlock/syscalls.zig", manifest.roadmap_destinations[0]);
@@ -159,7 +159,7 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase13_landlock_syscalls_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase13_build.zig") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "master-readback-2026-05-13") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "master-readback-2026-05-15") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "planCreateRuleset()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase13_landlock_syscalls_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase13_landlock_syscalls_manifest.json") != null);
