@@ -238,6 +238,25 @@ test "phase 7 string helpers starter reuses the blank string-array sentinel when
     try std.testing.expectEqual(zero.cArray(), zero_alias.cArray());
 }
 
+test "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes" {
+    var first = try string_helpers.kasprintfStrarray(std.testing.allocator, "phase7-helper", 0);
+    var second = try string_helpers.kasprintf_strarray(std.testing.allocator, "phase7-helper", 0);
+    defer second.deinit(std.testing.allocator);
+
+    const second_names_null_terminated_ptr = second.names_null_terminated.ptr;
+    const second_c_array = second.cArray();
+
+    first.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), first.names.len);
+    try std.testing.expectEqual(@as(usize, 1), first.names_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), first.cArray()[0]);
+    try std.testing.expectEqual(@as(usize, 0), second.names.len);
+    try std.testing.expect(second.names_null_terminated.ptr == second_names_null_terminated_ptr);
+    try std.testing.expect(second.cArray() == second_c_array);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), second.cArray()[0]);
+}
+
 test "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result" {
     var first = try string_helpers.kasprintfStrarray(std.testing.allocator, "phase7-first", 2);
     var second = try string_helpers.kasprintfStrarray(std.testing.allocator, "phase7-second", 2);
