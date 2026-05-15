@@ -243,6 +243,8 @@ CLEANUP_REPLAY_MARKERS = [
     'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable" {',
     "try std.testing.expect(hangup_cleanup.drops_tty_port_reference);",
     "try std.testing.expectError(error.CleanupRequiresFinalCloseOrHangup, console.summarizeCleanupHandoff(.{",
+    'test "phase11 hvc console keeps final-close cleanup distinct from hangup cleanup" {',
+    "try std.testing.expect(!final_close_cleanup.hangup_cleanup_boundary);",
 ]
 
 MODEM_CONTROL_SPLIT_MARKERS = [
@@ -506,6 +508,7 @@ def run_self_test() -> None:
             (REQUIRED_FILES["validation_matrix"], "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove-handoff path explicit when the tty is already absent"),
             (REQUIRED_FILES["survey_gate"], 'try std.testing.expect(manifest.survey_summary.hvc_console_test_present);'),
             (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[-1]),
+            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[-2]),
             (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[-1]),
             (REQUIRED_FILES["makefile"], "phase11-hvc-survey:"),
             (REQUIRED_FILES["workflow"], "run: make -C zigux phase11-hvc-survey"),
