@@ -315,7 +315,12 @@ EXACT_COUNT_MARKERS = {
         "make -C zigux phase7-validate": 1,
         "make -C zigux phase7-test": 1,
     },
+    "scripts/zigux/README.md": {
+        "- `check-phase7-argv-split-packet.py`": 1,
+    },
     "Documentation/zigux/README.md": {
+        "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`": 1,
+        "`python3 scripts/zigux/check-phase7-argv-split-packet.py`": 1,
         "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results": 1,
     },
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": {
@@ -325,7 +330,6 @@ EXACT_COUNT_MARKERS = {
         "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results": 1,
     },
 }
-
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
@@ -360,7 +364,8 @@ def write_fixture_tree(tmp_root: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         lines = list(REQUIRED_MARKERS.get(rel, ["fixture"]))
         lines.extend(REQUIRED_EXACT_LINES.get(rel, []))
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        lines.extend(EXACT_COUNT_MARKERS.get(rel, {}).keys())
+        path.write_text("\n".join(dict.fromkeys(lines)) + "\n", encoding="utf-8")
 
 
 def expect_missing_file(tmp_root: Path, rel: str) -> None:
@@ -740,6 +745,41 @@ def run_self_test() -> None:
             remove_once(tmp_root, rel, marker)
             expect_missing_marker(tmp_root, expected)
             write_fixture_tree(tmp_root)
+
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        scripts_readme_path.write_text(
+            scripts_readme_path.read_text(encoding="utf-8") + "- `check-phase7-argv-split-packet.py`\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "scripts/zigux/README.md: expected 1 occurrence(s) of '- `check-phase7-argv-split-packet.py`', found 2",
+        )
+        write_fixture_tree(tmp_root)
+
+        docs_root_path = tmp_root / "Documentation/zigux/README.md"
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8")
+            + "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/README.md: expected 1 occurrence(s) of '`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`', found 2",
+        )
+        write_fixture_tree(tmp_root)
+
+        docs_root_path = tmp_root / "Documentation/zigux/README.md"
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8")
+            + "`python3 scripts/zigux/check-phase7-argv-split-packet.py`\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/README.md: expected 1 occurrence(s) of '`python3 scripts/zigux/check-phase7-argv-split-packet.py`', found 2",
+        )
+        write_fixture_tree(tmp_root)
 
         workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
         workflow_path.write_text(
