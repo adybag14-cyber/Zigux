@@ -120,6 +120,13 @@
       "why_now": "The feature-word selector helper keeps bounded feature-window selection reviewable below risky transport."
     },
     {
+      "id": "phase10-mmio-feature-negotiation-summary-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The feature-negotiation summary keeps selector, device-feature word, and driver-feature posture reviewable before queue lifecycle, IRQ, or DMA work."
+    },
+    {
       "id": "phase10-mmio-config-window-helper",
       "status": "starter_landed",
       "kind": "queue_wrapper",
