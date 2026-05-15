@@ -79,6 +79,8 @@ MARKERS = {
     "verify_file": [
         "pub fn summarizeStopTeardown",
         "pub fn summarizeRestartFailureMode",
+        "pub const RemoveTeardownState",
+        "pub fn summarizeRemoveTeardown",
         'test "phase11 dw_wdt verify keeps stop teardown ownership explicit"',
         'test "phase11 dw_wdt verify keeps inactive and missing-drvdata teardown paths distinct"',
         'test "phase11 dw_wdt verify keeps restart failure modes explicit"',
