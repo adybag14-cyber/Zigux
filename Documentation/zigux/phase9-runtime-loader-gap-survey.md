@@ -106,6 +106,17 @@ and the focused `make -C zigux phase9-runtime-loader-shared-tests`,
 `make -C zigux phase9-test`, and `make -C zigux phase9` replay routes instead
 of leaving that packet blurred into the tail of the Phase 8 flow.
 
+Fresh repo-first inspection also shows `Documentation/zigux/review-checklist.md`
+still keeps the no-dedicated-validator posture, the blocked module-metadata and
+depmod-publication boundary, and the older Phase 8 command and environment cue
+owners explicit, but it does not yet restate that
+`scripts/zigux/kconfig/conf_bridge.zig` and
+`scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface
+bridge references while `rust/exports.c` and `zigux/kernel/export_shim.zig`
+remain Phase 3 export-boundary references. That missing checklist reminder is
+now the smallest same-lane cross-phase follow-through left inside the shared
+loader packet.
+
 Fresh repo-first inspection now also shows
 `zigux/tests/runtime_loader_gap_manifest.json` no longer records any remaining
 sample-local parity gap for trace-events and instead points at
@@ -116,20 +127,25 @@ family-local follow-through.
 
 That means the earlier docs-root undercount and the later tests-root undercount
 are both cleared on current `master`; the remaining same-lane follow-through is
-now future reminder drift around the blocked module-metadata and
-depmod-publication boundary rather than shared packet inventory sync.
+now the review-checklist reminder for the older Phase 2 Kconfig and Phase 3
+export non-owner boundaries, then future reminder drift around the blocked
+module-metadata and depmod-publication boundary rather than shared packet
+inventory sync.
 
 ## Next Bounded Step
 
-Leave this note parked unless `Documentation/zigux/README.md`,
-`scripts/zigux/README.md`, `zigux/tests/README.md`, or
+Leave this note parked unless `Documentation/zigux/review-checklist.md`,
+`Documentation/zigux/README.md`, `scripts/zigux/README.md`,
+`zigux/tests/README.md`, or
 `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` drifts again
 around the shared loader-gap packet, the landed
-`zigux/tests/runtime_trace_events_loader_substrate_drift.zig` proof, or the
-blocked module-metadata and depmod-publication boundary.
+`zigux/tests/runtime_trace_events_loader_substrate_drift.zig` proof, the older
+Phase 2 Kconfig and Phase 3 export non-owner boundaries, or the blocked
+module-metadata and depmod-publication boundary.
 
-When that happens, start with the smallest shared reminder surface that
-regresses, keep the exact owner map and blocked publication boundary deferred
-back to `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, and keep
-future follow-through inside shared reminder truthfulness instead of reopening
+When that happens, start with `Documentation/zigux/review-checklist.md` if the
+older cross-phase non-owner reminder is still missing there; otherwise keep the
+exact owner map and blocked publication boundary deferred back to
+`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, and keep future
+follow-through inside shared reminder truthfulness instead of reopening
 pilot-family behavior, loader implementation, or new checker growth.
