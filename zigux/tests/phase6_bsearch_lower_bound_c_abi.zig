@@ -243,3 +243,89 @@ test "phase 6 bsearch upper-bound c abi record member_size replay stays inside a
         }
     }
 }
+
+test "phase 6 bsearch lower-bound c abi comparator aliases keep empty and singleton insertion edges" {
+    const empty = [_]u32{};
+    const singleton = [_]u32{14};
+    const typed_comparators = [_]bsearch.CComparator(CountedKey, u32){ compareAscendingC, compareDescendingC };
+    const raw_comparators = [_]bsearch.CRawComparator{ compareOpaqueAscendingC, compareOpaqueDescendingC };
+
+    const typed_singleton_back_expected = [_]usize{ 1, 0 };
+    for (typed_comparators, typed_singleton_back_expected) |compare, singleton_back_expected| {
+        var empty_miss_comparisons: usize = 0;
+        const empty_miss_key = CountedKey{ .target = 13, .comparisons = &empty_miss_comparisons };
+        try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(CountedKey, u32, &empty_miss_key, empty[0..], compare));
+        try std.testing.expect(empty_miss_comparisons <= comparisonBudget(empty.len));
+
+        var singleton_hit_comparisons: usize = 0;
+        const singleton_hit_key = CountedKey{ .target = 14, .comparisons = &singleton_hit_comparisons };
+        try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(CountedKey, u32, &singleton_hit_key, singleton[0..], compare));
+        try std.testing.expect(singleton_hit_comparisons <= comparisonBudget(singleton.len));
+
+        var singleton_back_comparisons: usize = 0;
+        const singleton_back_key = CountedKey{ .target = 15, .comparisons = &singleton_back_comparisons };
+        try std.testing.expectEqual(singleton_back_expected, bsearch.lowerBoundIndex(CountedKey, u32, &singleton_back_key, singleton[0..], compare));
+        try std.testing.expect(singleton_back_comparisons <= comparisonBudget(singleton.len));
+    }
+
+    const raw_singleton_back_expected = [_]usize{ 1, 0 };
+    for (raw_comparators, raw_singleton_back_expected) |compare, singleton_back_expected| {
+        var empty_miss_comparisons: usize = 0;
+        const empty_miss_key = CountedOpaqueKey{ .target = 13, .comparisons = &empty_miss_comparisons };
+        try std.testing.expectEqual(@as(usize, 0), bsearch.bsearchLowerBoundIndex(&empty_miss_key, @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compare));
+        try std.testing.expect(empty_miss_comparisons <= comparisonBudget(empty.len));
+
+        var singleton_hit_comparisons: usize = 0;
+        const singleton_hit_key = CountedOpaqueKey{ .target = 14, .comparisons = &singleton_hit_comparisons };
+        try std.testing.expectEqual(@as(usize, 0), bsearch.bsearchLowerBoundIndex(&singleton_hit_key, @ptrCast(singleton[0..].ptr), singleton.len, @sizeOf(u32), compare));
+        try std.testing.expect(singleton_hit_comparisons <= comparisonBudget(singleton.len));
+
+        var singleton_back_comparisons: usize = 0;
+        const singleton_back_key = CountedOpaqueKey{ .target = 15, .comparisons = &singleton_back_comparisons };
+        try std.testing.expectEqual(singleton_back_expected, bsearch.bsearchLowerBoundIndex(&singleton_back_key, @ptrCast(singleton[0..].ptr), singleton.len, @sizeOf(u32), compare));
+        try std.testing.expect(singleton_back_comparisons <= comparisonBudget(singleton.len));
+    }
+}
+
+test "phase 6 bsearch upper-bound c abi comparator aliases keep empty and singleton insertion edges" {
+    const empty = [_]u32{};
+    const singleton = [_]u32{14};
+    const typed_comparators = [_]bsearch.CComparator(CountedKey, u32){ compareAscendingC, compareDescendingC };
+    const raw_comparators = [_]bsearch.CRawComparator{ compareOpaqueAscendingC, compareOpaqueDescendingC };
+
+    const typed_singleton_front_expected = [_]usize{ 0, 1 };
+    for (typed_comparators, typed_singleton_front_expected) |compare, singleton_front_expected| {
+        var empty_miss_comparisons: usize = 0;
+        const empty_miss_key = CountedKey{ .target = 13, .comparisons = &empty_miss_comparisons };
+        try std.testing.expectEqual(@as(usize, 0), bsearch.upperBoundIndex(CountedKey, u32, &empty_miss_key, empty[0..], compare));
+        try std.testing.expect(empty_miss_comparisons <= comparisonBudget(empty.len));
+
+        var singleton_hit_comparisons: usize = 0;
+        const singleton_hit_key = CountedKey{ .target = 14, .comparisons = &singleton_hit_comparisons };
+        try std.testing.expectEqual(@as(usize, 1), bsearch.upperBoundIndex(CountedKey, u32, &singleton_hit_key, singleton[0..], compare));
+        try std.testing.expect(singleton_hit_comparisons <= comparisonBudget(singleton.len));
+
+        var singleton_front_comparisons: usize = 0;
+        const singleton_front_key = CountedKey{ .target = 13, .comparisons = &singleton_front_comparisons };
+        try std.testing.expectEqual(singleton_front_expected, bsearch.upperBoundIndex(CountedKey, u32, &singleton_front_key, singleton[0..], compare));
+        try std.testing.expect(singleton_front_comparisons <= comparisonBudget(singleton.len));
+    }
+
+    const raw_singleton_front_expected = [_]usize{ 0, 1 };
+    for (raw_comparators, raw_singleton_front_expected) |compare, singleton_front_expected| {
+        var empty_miss_comparisons: usize = 0;
+        const empty_miss_key = CountedOpaqueKey{ .target = 13, .comparisons = &empty_miss_comparisons };
+        try std.testing.expectEqual(@as(usize, 0), bsearch.bsearchUpperBoundIndex(&empty_miss_key, @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compare));
+        try std.testing.expect(empty_miss_comparisons <= comparisonBudget(empty.len));
+
+        var singleton_hit_comparisons: usize = 0;
+        const singleton_hit_key = CountedOpaqueKey{ .target = 14, .comparisons = &singleton_hit_comparisons };
+        try std.testing.expectEqual(@as(usize, 1), bsearch.bsearchUpperBoundIndex(&singleton_hit_key, @ptrCast(singleton[0..].ptr), singleton.len, @sizeOf(u32), compare));
+        try std.testing.expect(singleton_hit_comparisons <= comparisonBudget(singleton.len));
+
+        var singleton_front_comparisons: usize = 0;
+        const singleton_front_key = CountedOpaqueKey{ .target = 13, .comparisons = &singleton_front_comparisons };
+        try std.testing.expectEqual(singleton_front_expected, bsearch.bsearchUpperBoundIndex(&singleton_front_key, @ptrCast(singleton[0..].ptr), singleton.len, @sizeOf(u32), compare));
+        try std.testing.expect(singleton_front_comparisons <= comparisonBudget(singleton.len));
+    }
+}
