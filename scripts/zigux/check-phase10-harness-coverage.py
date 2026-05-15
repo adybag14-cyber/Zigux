@@ -57,10 +57,21 @@ MANIFEST_TEXT_MARKERS = [
 ]
 
 EXACT_CHECK_MARKERS = [
+    "python3 scripts/zigux/validate-phase10.py",
+    "python3 scripts/zigux/validate-phase10-closure.py",
+    "make -C zigux phase10-validate",
+    "python3 scripts/zigux/check-phase10-core-packet.py",
+    "python3 scripts/zigux/check-phase10-ring-packet.py",
+    "python3 scripts/zigux/check-phase10-input-packet.py",
+    "python3 scripts/zigux/check-phase10-mmio-packet.py",
+    "python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py",
     "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test",
     "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "python3 scripts/zigux/check-phase10-harness-coverage.py --self-test",
     "python3 scripts/zigux/check-phase10-harness-coverage.py",
+    "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "make -C zigux phase10-test",
+    "make -C zigux phase10",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -696,14 +707,14 @@ def run_self_test() -> int:
         ]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
-            "manifest_exact_checks_direct_core",
+            "manifest_exact_checks_validate_phase10",
             root,
-            "manifest:exact_checks:python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+            "manifest:exact_checks:python3 scripts/zigux/validate-phase10.py",
         )
         expect_missing_marker(
-            "manifest_exact_checks_harness",
+            "manifest_exact_checks_phase10_route",
             root,
-            "manifest:exact_checks:python3 scripts/zigux/check-phase10-harness-coverage.py",
+            "manifest:exact_checks:make -C zigux phase10",
         )
         write_fixture(root)
 
