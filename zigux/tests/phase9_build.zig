@@ -295,11 +295,12 @@ pub fn build(b: *std.Build) void {
     run_runtime_loader_gap_survey_tests.setCwd(b.path("../.."));
     const runtime_loader_shared_tests_step = b.step(
         "phase9-runtime-loader-shared-tests",
-        "Run the focused Phase 9 runtime-loader facade, contract, allocator/init-flow, and loader-gap survey tests",
+        "Run the focused Phase 9 runtime-loader facade, contract, allocator/init-flow, trace-events loader-substrate-drift, and loader-gap survey tests",
     );
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+    runtime_loader_shared_tests_step.dependOn(&run_runtime_trace_events_loader_substrate_drift_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
     const runtime_atomic64_survey_tests = b.addTest(.{
