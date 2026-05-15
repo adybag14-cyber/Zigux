@@ -378,3 +378,28 @@ test "phase 9 runtime atomic64 survey keeps shared selftest-complete exit parity
     try expectContains(phase9_build, "runtime_loader_selftest_complete_exit_parity.zig");
     try expectContains(phase9_build, "\"phase9-runtime-loader-selftest-complete-exit-parity-tests\"");
 }
+
+test "phase 9 runtime atomic64 survey keeps freeze-map governance evidence explicit" {
+    const freeze_map = try readRepoFileAlloc(std.testing.allocator, "Documentation/zigux/freeze-map.md", 64 * 1024);
+    defer std.testing.allocator.free(freeze_map);
+
+    const survey_note = try readRepoFileAlloc(std.testing.allocator, "Documentation/zigux/phase9-runtime-atomic64-survey.md", 32 * 1024);
+    defer std.testing.allocator.free(survey_note);
+
+    const module_slice = try readRepoFileAlloc(std.testing.allocator, "Documentation/zigux/phase9-runtime-atomic64-module-slice.md", 32 * 1024);
+    defer std.testing.allocator.free(module_slice);
+
+    try expectContains(freeze_map, "`kernel/workqueue.c`");
+    try expectContains(freeze_map, "`Documentation/zigux/phase15-architecture-council-review-process.md`");
+    try expectContains(freeze_map, "`Documentation/zigux/phase15-freeze-map-governance.md`");
+
+    try expectContains(survey_note, "`Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in the study-only bucket");
+    try expectContains(survey_note, "No parity scorecard entry or Architecture Council status-change request is attached to this packet on current `master`.");
+    try expectContains(survey_note, "`Documentation/zigux/phase15-architecture-council-review-process.md`");
+    try expectContains(survey_note, "`Documentation/zigux/phase15-freeze-map-governance.md`");
+
+    try expectContains(module_slice, "`Documentation/zigux/freeze-map.md` still keeps `kernel/workqueue.c` in the study-only bucket");
+    try expectContains(module_slice, "No parity scorecard entry or Architecture Council status-change request is attached to this slice on current `master`.");
+    try expectContains(module_slice, "`Documentation/zigux/phase15-architecture-council-review-process.md`");
+    try expectContains(module_slice, "`Documentation/zigux/phase15-freeze-map-governance.md`");
+}
