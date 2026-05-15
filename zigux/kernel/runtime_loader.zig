@@ -1,7 +1,7 @@
 const std = @import("std");
 const contract = @import("runtime_loader_contract.zig");
 
-pub const AllocatorHandoff = contract.AllatorHandoff;
+pub const AllocatorHandoff = contract.AllocatorHandoff;
 pub const HandoffStage = contract.HandoffStage;
 pub const InitFlow = contract.InitFlow;
 pub const LoadPlan = contract.LoadPlan;
