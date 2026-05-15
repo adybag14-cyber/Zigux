@@ -16,6 +16,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const virtio_net_queue_resume_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net_queue_resume.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const virtio_scsi_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/scsi/virtio_scsi.zig"),
         .target = target,
@@ -37,6 +43,16 @@ pub fn build(b: *std.Build) void {
     virtio_net_transmit_recycle_root_module.addImport(
         "virtio_net_transmit_recycle",
         virtio_net_transmit_recycle_module,
+    );
+
+    const virtio_net_queue_resume_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_queue_resume.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_queue_resume_root_module.addImport(
+        "virtio_net_queue_resume",
+        virtio_net_queue_resume_module,
     );
 
     const virtio_net_syntax_root_module = b.createModule(.{
@@ -94,6 +110,13 @@ pub fn build(b: *std.Build) void {
     const run_virtio_net_transmit_recycle_tests = b.addRunArtifact(virtio_net_transmit_recycle_tests);
     run_virtio_net_transmit_recycle_tests.setCwd(b.path("../.."));
 
+    const virtio_net_queue_resume_tests = b.addTest(.{
+        .name = "phase12-virtio-net-queue-resume-tests",
+        .root_module = virtio_net_queue_resume_root_module,
+    });
+    const run_virtio_net_queue_resume_tests = b.addRunArtifact(virtio_net_queue_resume_tests);
+    run_virtio_net_queue_resume_tests.setCwd(b.path("../.."));
+
     const virtio_net_syntax_tests = b.addTest(.{
         .name = "phase12-virtio-net-syntax-lab-tests",
         .root_module = virtio_net_syntax_root_module,
@@ -139,6 +162,7 @@ pub fn build(b: *std.Build) void {
     const smoke_step = b.step("smoke", "Run Phase 12 virtio syntax smoke");
     smoke_step.dependOn(&run_virtio_net_syntax_tests.step);
     smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
+    smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     smoke_step.dependOn(&run_syntax_tests.step);
     smoke_step.dependOn(&run_repeated_replan_tests.step);
     smoke_step.dependOn(&run_repeated_rollback_tests.step);
@@ -147,6 +171,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run Phase 12 virtio packet tests");
     test_step.dependOn(&run_virtio_net_contract_tests.step);
     test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
+    test_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     test_step.dependOn(&run_virtio_net_syntax_tests.step);
     test_step.dependOn(&run_contract_tests.step);
     test_step.dependOn(&run_syntax_tests.step);
