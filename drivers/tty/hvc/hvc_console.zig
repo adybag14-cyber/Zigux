@@ -438,6 +438,41 @@ pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummar
     };
 }
 
+pub const NotifierIrqHelperRequest = struct {
+    irq: c_int,
+    notifier_registered: bool,
+    target_present: bool,
+    hangup_requested: bool,
+    keeps_live_notifier_execution_out_of_scope: bool = true,
+};
+
+pub const NotifierIrqHelperSummary = struct {
+    irq_valid: bool,
+    add_result: c_int,
+    del_surface_visible: bool,
+    hangup_surface_visible: bool,
+    targetless_hangup_short_circuit: bool,
+    keeps_live_notifier_execution_out_of_scope: bool,
+};
+
+pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {
+    const irq_valid = request.irq >= 0;
+    const targetless_hangup_short_circuit = request.notifier_registered and
+        !request.target_present and
+        request.hangup_requested;
+
+    return .{
+        .irq_valid = irq_valid,
+        .add_result = if (irq_valid) 0 else -1,
+        .del_surface_visible = request.notifier_registered,
+        .hangup_surface_visible = request.notifier_registered and
+            request.target_present and
+            request.hangup_requested,
+        .targetless_hangup_short_circuit = targetless_hangup_short_circuit,
+        .keeps_live_notifier_execution_out_of_scope = request.keeps_live_notifier_execution_out_of_scope,
+    };
+}
+
 pub fn hvc_kick() void {}
 
 pub fn __hvc_resize(hp: *HvcStruct, ws: Winsize) void {
@@ -447,7 +482,12 @@ pub fn __hvc_resize(hp: *HvcStruct, ws: Winsize) void {
 
 pub fn notifier_add_irq(hp: *HvcStruct, irq: c_int) c_int {
     _ = hp;
-    return if (irq >= 0) 0 else -1;
+    return summarizeNotifierIrqHelper(.{
+        .irq = irq,
+        .notifier_registered = false,
+        .target_present = false,
+        .hangup_requested = false,
+    }).add_result;
 }
 
 pub fn notifier_del_irq(hp: *HvcStruct, irq: c_int) void {
@@ -815,10 +855,49 @@ test "phase11 hvc console keeps hvc_kick wakeup cue reviewable" {
 }
 
 test "phase11 hvc console keeps notifier irq helper surface reviewable" {
+    const active = summarizeNotifierIrqHelper(.{
+        .irq = 3,
+        .notifier_registered = true,
+        .target_present = true,
+        .hangup_requested = true,
+    });
+    const targetless = summarizeNotifierIrqHelper(.{
+        .irq = 7,
+        .notifier_registered = true,
+        .target_present = false,
+        .hangup_requested = true,
+    });
+    const invalid = summarizeNotifierIrqHelper(.{
+        .irq = -1,
+        .notifier_registered = false,
+        .target_present = false,
+        .hangup_requested = false,
+    });
     const fake_hp: *HvcStruct = @ptrFromInt(1);
 
-    try std.testing.expectEqual(@as(c_int, 0), notifier_add_irq(fake_hp, 3));
-    try std.testing.expectEqual(@as(c_int, -1), notifier_add_irq(fake_hp, -1));
+    try std.testing.expect(active.irq_valid);
+    try std.testing.expectEqual(@as(c_int, 0), active.add_result);
+    try std.testing.expect(active.del_surface_visible);
+    try std.testing.expect(active.hangup_surface_visible);
+    try std.testing.expect(!active.targetless_hangup_short_circuit);
+    try std.testing.expect(active.keeps_live_notifier_execution_out_of_scope);
+
+    try std.testing.expect(targetless.irq_valid);
+    try std.testing.expectEqual(@as(c_int, 0), targetless.add_result);
+    try std.testing.expect(targetless.del_surface_visible);
+    try std.testing.expect(!targetless.hangup_surface_visible);
+    try std.testing.expect(targetless.targetless_hangup_short_circuit);
+    try std.testing.expect(targetless.keeps_live_notifier_execution_out_of_scope);
+
+    try std.testing.expect(!invalid.irq_valid);
+    try std.testing.expectEqual(@as(c_int, -1), invalid.add_result);
+    try std.testing.expect(!invalid.del_surface_visible);
+    try std.testing.expect(!invalid.hangup_surface_visible);
+    try std.testing.expect(!invalid.targetless_hangup_short_circuit);
+    try std.testing.expect(invalid.keeps_live_notifier_execution_out_of_scope);
+
+    try std.testing.expectEqual(active.add_result, notifier_add_irq(fake_hp, 3));
+    try std.testing.expectEqual(invalid.add_result, notifier_add_irq(fake_hp, -1));
 
     notifier_del_irq(fake_hp, 7);
     notifier_hangup_irq(fake_hp, 9);
