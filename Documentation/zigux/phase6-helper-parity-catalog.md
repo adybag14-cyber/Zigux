@@ -8,6 +8,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - surveyed head: `a0f4d7e`
 - shared sequencing note: `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md`
 - shared perf note: `Documentation/zigux/phase6-perf-gate-survey.md`
+- shared helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`
 - shared manifest: `zigux/tests/phase6_helper_parity_manifest.json`
 - shared checker: `scripts/zigux/check-phase6-shared-surface.py`
 
