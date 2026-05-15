@@ -372,6 +372,26 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader keeps the prepared snapshot stable across later sample mutation\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try std.testing.expectEqual(@as(usize, 2), live_summary.nmissed);",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try std.testing.expectEqual(@as(usize, 1), pending_plan.summary.nmissed);",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try std.testing.expectEqual(@as(usize, 12), live_summary.last_retval);",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try std.testing.expectEqual(@as(usize, 42), pending_plan.summary.last_retval);",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "test \"runtime kretprobe loader keeps selftest-complete shared-request snapshots stable across later exit activity\"",
     );
     try expectContains(
