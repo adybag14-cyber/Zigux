@@ -38,6 +38,7 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "bounded buffer-window lookup and mapped-size passthrough");
     try expectContains(note, "`perf_buffer__buffer_fd(buf_idx)` slot lookup classification");
     try expectContains(note, "`perf_buffer__buffer(buf_idx, &buf, &buf_size)` slot lookup classification");
+    try expectContains(note, "ready-buffer processing attempts cannot exceed the helper-counted ready buffers");
     try expectContains(note, "ready-buffer processing attempts cannot exceed observed ready events");
     try expectContains(note, "non-ready wait observations cannot claim record processing");
     try expectContains(note, "reject impossible post-wait buffer state combinations");
@@ -58,6 +59,7 @@ test "phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit" 
     try expectContains(gate, "zigux/tests/phase8_perf_buffer_poll.zig");
     try expectContains(gate, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
     try expectContains(gate, "make -C zigux phase8-perf-buffer-poll-test");
+    try expectContains(gate, "\"ready-buffer processing attempts cannot exceed the helper-counted ready buffers\"");
     try expectContains(
         gate,
         "test \"phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit\" {",
