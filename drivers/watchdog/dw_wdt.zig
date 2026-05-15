@@ -664,7 +664,7 @@ test "phase11 dw_wdt teardown summary keeps idle, stoppable, and unstoppable pat
     try std.testing.expect(!unstoppable_summary.enable_bit_cleared);
     try std.testing.expect(unstoppable_summary.interrupt_cleared);
     try std.testing.expect(unstoppable_summary.running_after_teardown);
-    try std.testing.expect(!unstoppable_summary.hardware_running_after_teardown);
+    try std.testing.expect(unstoppable_summary.hardware_running_after_teardown);
 
     var stoppable = try DwWdtLab.initFixedTops(7, true);
     _ = try stoppable.start();
