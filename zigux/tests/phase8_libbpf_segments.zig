@@ -22,6 +22,13 @@ const Segment = struct {
     why_now: []const u8,
 };
 
+const SegmentationNote = struct {
+    destination: []const u8,
+    landed_scope: []const []const u8,
+    queued_scope: []const []const u8,
+    why_now: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -29,6 +36,7 @@ const Manifest = struct {
     anchor: []const u8,
     survey_summary: SurveySummary,
     segments: []const Segment,
+    segmentation_notes: []const SegmentationNote,
 };
 
 const ExpectedCompanionFile = struct {
@@ -43,6 +51,13 @@ const ExpectedSegment = struct {
     kind: []const u8,
     zigux_destination: []const u8,
     anchor_ranges: []const []const u8,
+};
+
+const ExpectedSegmentationNote = struct {
+    destination: []const u8,
+    landed_scope: []const []const u8,
+    queued_scope: []const []const u8,
+    why_now: []const u8,
 };
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
@@ -79,6 +94,13 @@ fn expectCompanionFilesEqual(
     }
 }
 
+fn expectStringListsEqual(actual: []const []const u8, expected: []const []const u8) !void {
+    try std.testing.expectEqual(expected.len, actual.len);
+    for (expected, actual) |expected_item, actual_item| {
+        try std.testing.expectEqualStrings(expected_item, actual_item);
+    }
+}
+
 fn expectSegmentsEqual(actual: []const Segment, expected: []const ExpectedSegment) !void {
     try std.testing.expectEqual(expected.len, actual.len);
     for (expected, actual) |expected_segment, actual_segment| {
@@ -97,6 +119,19 @@ fn expectSegmentsEqual(actual: []const Segment, expected: []const ExpectedSegmen
     }
 }
 
+fn expectSegmentationNotesEqual(
+    actual: []const SegmentationNote,
+    expected: []const ExpectedSegmentationNote,
+) !void {
+    try std.testing.expectEqual(expected.len, actual.len);
+    for (expected, actual) |expected_note, actual_note| {
+        try std.testing.expectEqualStrings(expected_note.destination, actual_note.destination);
+        try expectStringListsEqual(actual_note.landed_scope, expected_note.landed_scope);
+        try expectStringListsEqual(actual_note.queued_scope, expected_note.queued_scope);
+        try std.testing.expectEqualStrings(expected_note.why_now, actual_note.why_now);
+    }
+}
+
 fn readFileAlloc(
     io: std.Io,
     allocator: std.mem.Allocator,
@@ -106,7 +141,7 @@ fn readFileAlloc(
     return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(limit));
 }
 
-test "phase 8 libbpf manifest records the landed helper packet and deferred routing boundary" {
+test "phase 8 libbpf manifest records the landed helper packet, deferred routing boundary, and segmentation note contract" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -151,6 +186,29 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
         .{ .id = "P8-L15-S11", .slug = "btf-relocation-and-program-load", .status = "deferred_high_risk", .kind = "verifier_facing", .zigux_destination = "tools/lib/bpf/zigux_segments/relocation.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c:3325-3609", "tools/lib/bpf/libbpf.c:4572-9049", }, },
         .{ .id = "P8-L15-S12", .slug = "perf-buffer-poll-bookkeeping", .status = "starter_landed", .kind = "helper_adjacent", .zigux_destination = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig", .anchor_ranges = &[_][]const u8{ "tools/lib/bpf/libbpf.c: perf_buffer__poll() wait-result classification and ordered process_records bookkeeping", }, },
     };
+    const expected_segmentation_notes = [_]ExpectedSegmentationNote{
+        .{
+            .destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+            .landed_scope = &[_][]const u8{
+                "buildProcFdinfoPath() bounded /proc//fdinfo/ pathname shaping",
+                "parseFdinfoLine() field splitting and trimming",
+                "applyFdinfoMapInfoLine() numeric field decoding for map_type/key_size/value_size/max_entries/map_flags/map_extra",
+                "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
+                "summarizeFdinfoMapInfo() bounded completion reporting for the parsed map info packet",
+                "mapReuseObservationFromFdinfo() helper-only conversion from parsed fdinfo metadata into a reusable comparison observation",
+                "resolveReusedMapName() object-name retention for truncated reused-map names",
+                "normalizeObservedReuseMapFlags() devmap readonly-prog normalization for reuse comparison",
+                "summarizeMapReuseCompatibility() mismatch reporting for helper-only reused-map compatibility checks",
+                "isMapReuseCompatible() helper-only reused-map compatibility comparison",
+                "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects",
+            },
+            .queued_scope = &[_][]const u8{
+                "direct procfs reads and descriptor ownership flow",
+                "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
+            },
+            .why_now = "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, and pinned-map reuse planning packet as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor or reopen side effects.",
+        },
+    };
 
     try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
@@ -161,6 +219,7 @@ test "phase 8 libbpf manifest records the landed helper packet and deferred rout
     try std.testing.expect(manifest.survey_summary.preexisting_phase8_libbpf_note_present);
     try expectCompanionFilesEqual(manifest.survey_summary.companion_c_files, expected_companion_files[0..]);
     try expectSegmentsEqual(manifest.segments, expected_segments[0..]);
+    try expectSegmentationNotesEqual(manifest.segmentation_notes, expected_segmentation_notes[0..]);
     try std.testing.expectEqual(@as(usize, 7), countSegmentsWithStatus(manifest.segments, "starter_landed"));
     try std.testing.expectEqual(@as(usize, 4), countSegmentsWithStatus(manifest.segments, "deferred_high_risk"));
     try std.testing.expectEqual(@as(usize, 1), countSegmentsWithStatus(manifest.segments, "blocked_on_object_model"));
