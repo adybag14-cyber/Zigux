@@ -1,8 +1,14 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
 
+pub const InitFlow = enum {
+    caller_prepared,
+    helper_owned,
+    helper_owned_with_reset,
+};
+
 pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.AllocatorMode {
-    const decoded = abi.decodeInteropPolicyBytes(abi.PANIC_ABORT, mode, abi.UNSAFE_NONE, reserved) orelse return null;
+    const decoded = abi.decodeInteropPolicyBytes(@intFromEnum(abi.PanicMode.abort), mode, @intFromEnum(abi.UnsafeScope.none), reserved) orelse return null;
     return decoded.allocator_mode;
 }
 
@@ -24,6 +30,14 @@ pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {
 
 pub fn recognizesByte(mode: u8) bool {
     return recognizesInteropPolicyBytes(mode, 0);
+}
+
+pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {
+    return switch (mode) {
+        .caller_provided => .caller_prepared,
+        .kernel_heap => .helper_owned,
+        .arena => .helper_owned_with_reset,
+    };
 }
 
 pub fn requiresExplicitCaller(mode: abi.AllocatorMode) bool {
@@ -89,6 +103,55 @@ pub fn permitsGlobalFallbackInteropPolicy(policy: abi.InteropPolicy) bool {
 
 pub fn permitsGlobalFallbackByte(mode: u8) bool {
     return permitsGlobalFallbackPolicyBytes(mode, 0);
+}
+
+pub fn initializesOwnedState(mode: abi.AllocatorMode) bool {
+    return switch (initFlowFor(mode)) {
+        .caller_prepared => false,
+        .helper_owned, .helper_owned_with_reset => true,
+    };
+}
+
+pub fn initializesOwnedStatePolicyBytes(mode: u8, reserved: u8) bool {
+    return initializesOwnedState(modeFromInteropPolicyBytes(mode, reserved) orelse return false);
+}
+
+pub fn initializesOwnedStateInteropPolicy(policy: abi.InteropPolicy) bool {
+    return initializesOwnedStatePolicyBytes(policy.allocator_mode, policy.reserved);
+}
+
+pub fn initializesOwnedStateByte(mode: u8) bool {
+    return initializesOwnedStatePolicyBytes(mode, 0);
+}
+
+pub fn requiresResetOnInit(mode: abi.AllocatorMode) bool {
+    return initFlowFor(mode) == .helper_owned_with_reset;
+}
+
+pub fn requiresResetOnInitPolicyBytes(mode: u8, reserved: u8) bool {
+    return requiresResetOnInit(modeFromInteropPolicyBytes(mode, reserved) orelse return false);
+}
+
+pub fn requiresResetOnInitInteropPolicy(policy: abi.InteropPolicy) bool {
+    return requiresResetOnInitPolicyBytes(policy.allocator_mode, policy.reserved);
+}
+
+pub fn requiresResetOnInitByte(mode: u8) bool {
+    return requiresResetOnInitPolicyBytes(mode, 0);
+}
+
+test "phase3 allocator policy keeps init ownership explicit" {
+    try std.testing.expectEqual(InitFlow.caller_prepared, initFlowFor(.caller_provided));
+    try std.testing.expectEqual(InitFlow.helper_owned, initFlowFor(.kernel_heap));
+    try std.testing.expectEqual(InitFlow.helper_owned_with_reset, initFlowFor(.arena));
+
+    try std.testing.expect(!initializesOwnedState(.caller_provided));
+    try std.testing.expect(initializesOwnedState(.kernel_heap));
+    try std.testing.expect(initializesOwnedState(.arena));
+
+    try std.testing.expect(!requiresResetOnInit(.caller_provided));
+    try std.testing.expect(!requiresResetOnInit(.kernel_heap));
+    try std.testing.expect(requiresResetOnInit(.arena));
 }
 
 test "phase3 allocator policy stays explicit" {
@@ -218,4 +281,32 @@ test "phase3 allocator policy stays explicit" {
     try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));
     try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));
     try std.testing.expect(!permitsGlobalFallbackByte(9));
+
+    try std.testing.expect(!initializesOwnedStateByte(0));
+    try std.testing.expect(initializesOwnedStateByte(1));
+    try std.testing.expect(initializesOwnedStateByte(2));
+    try std.testing.expect(!initializesOwnedStateByte(9));
+    try std.testing.expect(!initializesOwnedStatePolicyBytes(0, 0));
+    try std.testing.expect(initializesOwnedStatePolicyBytes(1, 0));
+    try std.testing.expect(initializesOwnedStatePolicyBytes(2, 0));
+    try std.testing.expect(!initializesOwnedStatePolicyBytes(2, 1));
+    try std.testing.expect(!initializesOwnedStateInteropPolicy(caller_policy));
+    try std.testing.expect(initializesOwnedStateInteropPolicy(heap_policy));
+    try std.testing.expect(initializesOwnedStateInteropPolicy(arena_policy));
+    try std.testing.expect(!initializesOwnedStateInteropPolicy(reserved_policy));
+    try std.testing.expect(!initializesOwnedStateInteropPolicy(unknown_policy));
+
+    try std.testing.expect(!requiresResetOnInitByte(0));
+    try std.testing.expect(!requiresResetOnInitByte(1));
+    try std.testing.expect(requiresResetOnInitByte(2));
+    try std.testing.expect(!requiresResetOnInitByte(9));
+    try std.testing.expect(!requiresResetOnInitPolicyBytes(0, 0));
+    try std.testing.expect(!requiresResetOnInitPolicyBytes(1, 0));
+    try std.testing.expect(requiresResetOnInitPolicyBytes(2, 0));
+    try std.testing.expect(!requiresResetOnInitPolicyBytes(2, 1));
+    try std.testing.expect(!requiresResetOnInitInteropPolicy(caller_policy));
+    try std.testing.expect(!requiresResetOnInitInteropPolicy(heap_policy));
+    try std.testing.expect(requiresResetOnInitInteropPolicy(arena_policy));
+    try std.testing.expect(!requiresResetOnInitInteropPolicy(reserved_policy));
+    try std.testing.expect(!requiresResetOnInitInteropPolicy(unknown_policy));
 }
