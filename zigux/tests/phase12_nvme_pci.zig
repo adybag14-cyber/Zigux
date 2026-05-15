@@ -182,3 +182,31 @@ test "phase12 nvme pci rollback gate keeps rollback closure blocked until recove
     try std.testing.expect(ready.queue_numbering_restarted);
     try std.testing.expect(ready.can_clear_rollback_gate);
 }
+
+test "phase12 nvme pci rollback gate keeps queue-number drift visible after parity recovers" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    lab.next_io_queue_id = 9;
+
+    const drift = lab.recoveryRollbackGateSummary();
+    try std.testing.expect(drift.admin_queue_replayed_after_reset);
+    try std.testing.expectEqual(@as(usize, 2), drift.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), drift.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u32, 2), drift.dropped_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 0), drift.remaining_io_host_dma_pages);
+    try std.testing.expect(drift.queue_count_parity_recovered);
+    try std.testing.expect(drift.host_dma_parity_recovered);
+    try std.testing.expect(!drift.queue_numbering_restarted);
+    try std.testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.queue_numbering_restart, drift.rollback_blocker);
+    try std.testing.expect(!drift.can_clear_rollback_gate);
+}
