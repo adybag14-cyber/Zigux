@@ -111,6 +111,52 @@ test "offset readdir planning keeps emit-dots gating and eod handoff explicit" {
     try std.testing.expectEqual(@as(?libfs.OffsetReaddirMode, null), invalid.mode);
 }
 
+test "cursor open and cursor precondition planning stay helper-only and explicit" {
+    const open_ready = libfs.LibfsHelperLab.dcacheDirOpenPlan(true);
+    try std.testing.expectEqualStrings("fs/libfs.c", open_ready.anchor);
+    try std.testing.expectEqual(libfs.CursorOpenStatus.ok, open_ready.status);
+    try std.testing.expect(open_ready.allocates_private_cursor);
+    try std.testing.expect(open_ready.stores_private_cursor);
+    try std.testing.expect(open_ready.zeroes_cursor_position);
+    try std.testing.expect(open_ready.returns_zero);
+
+    const open_oom = libfs.LibfsHelperLab.dcacheDirOpenPlan(false);
+    try std.testing.expectEqual(libfs.CursorOpenStatus.out_of_memory, open_oom.status);
+    try std.testing.expect(!open_oom.allocates_private_cursor);
+    try std.testing.expect(!open_oom.stores_private_cursor);
+    try std.testing.expect(!open_oom.zeroes_cursor_position);
+    try std.testing.expect(!open_oom.returns_zero);
+
+    const blocked = libfs.LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(libfs.dir_offset_first + 2, false, false);
+    try std.testing.expectEqual(libfs.CursorPreconditionStatus.ok, blocked.status);
+    try std.testing.expectEqual(libfs.CursorResumeMode.blocked_on_emit_dots, blocked.mode.?);
+    try std.testing.expect(blocked.returns_zero);
+    try std.testing.expect(!blocked.enters_positive_scan);
+    try std.testing.expect(blocked.keeps_current_pos);
+    try std.testing.expect(!blocked.requires_private_cursor);
+
+    const first_child = libfs.LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(libfs.dir_offset_first, true, false);
+    try std.testing.expectEqual(libfs.CursorResumeMode.resume_at_first_child, first_child.mode.?);
+    try std.testing.expect(first_child.enters_positive_scan);
+    try std.testing.expect(!first_child.requires_private_cursor);
+
+    const missing_cursor = libfs.LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(libfs.dir_offset_first + 3, true, false);
+    try std.testing.expectEqual(libfs.CursorResumeMode.missing_private_cursor, missing_cursor.mode.?);
+    try std.testing.expect(!missing_cursor.enters_positive_scan);
+    try std.testing.expect(missing_cursor.keeps_current_pos);
+    try std.testing.expect(missing_cursor.requires_private_cursor);
+
+    const resumed = libfs.LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(libfs.dir_offset_first + 3, true, true);
+    try std.testing.expectEqual(libfs.CursorResumeMode.resume_from_private_cursor, resumed.mode.?);
+    try std.testing.expect(resumed.enters_positive_scan);
+    try std.testing.expect(!resumed.keeps_current_pos);
+    try std.testing.expect(resumed.requires_private_cursor);
+
+    const invalid = libfs.LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(-1, true, true);
+    try std.testing.expectEqual(libfs.CursorPreconditionStatus.negative_position, invalid.status);
+    try std.testing.expectEqual(@as(?libfs.CursorResumeMode, null), invalid.mode);
+}
+
 test "offset add planning keeps busy-remap and managed-offset boundaries explicit" {
     const ok_plan = libfs.LibfsHelperLab.planSimpleOffsetAdd(0, .{ .allocated = libfs.dir_offset_min + 3 });
     const busy_plan = libfs.LibfsHelperLab.planSimpleOffsetAdd(0, .busy);
@@ -207,7 +253,7 @@ test "offset rename planning keeps managed destinations and sentinel rejection e
     try std.testing.expect(ok_plan.preserves_destination_offset_value);
 
     try std.testing.expectEqual(libfs.OffsetRenameStatus.missing_destination_offset, missing_destination.status);
-    try std.testing.expect(!missing_destination.clears_destination_offset_before_replace);
+    try std.testing.expect(!missing_destination.clears_destination_offsetBeforeReplace);
     try std.testing.expect(!missing_destination.installs_source_at_destination_offset);
 
     try std.testing.expectEqual(libfs.OffsetRenameStatus.reserved_destination_offset, reserved_destination.status);
@@ -250,11 +296,14 @@ test "phase13 libfs manifest records the current helper-first filesystem packet"
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-release-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-publish-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-addressability-helper\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-dcache-cursor-preconditions\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-dcache-cursor-reposition-bookkeeping\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-reviewability-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-build-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-live-dcache-mutation\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-live-inode-state\"");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
+    try expectContains(manifest_text, "\"status\": \"ready_next\"");
     try expectContains(manifest_text, "\"status\": \"blocked_on_shared_build_surface\"");
     try expectContains(manifest_text, "simple directory emptiness");
     try expectContains(manifest_text, "transaction acquire planning");
@@ -267,5 +316,8 @@ test "phase13 libfs manifest records the current helper-first filesystem packet"
     try expectContains(manifest_text, "offset-remove planning");
     try expectContains(manifest_text, "simple_transaction_get()");
     try expectContains(manifest_text, "offset-based rename planning");
+    try expectContains(manifest_text, "dcache_dir_open()");
+    try expectContains(manifest_text, "dcache_readdir()");
+    try expectContains(manifest_text, "hlist_del_init()");
     try expectContains(manifest_text, "live dcache entry insertion");
 }
