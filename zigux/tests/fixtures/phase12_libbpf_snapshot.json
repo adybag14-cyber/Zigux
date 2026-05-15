@@ -21,11 +21,11 @@
   "files": [
     {
       "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-      "blob_sha": "e3516e2cb471ab56a3272061a94adcedd7ec95fa"
+      "blob_sha": "98df4876bf9ba9b5d4747a130e382cd641ca82db"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-      "blob_sha": "b1c3fef97233798e2d1fbede62ef4098ba409d2a"
+      "blob_sha": "18af5ced342dea653e4c540668018527e83e00ee"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
