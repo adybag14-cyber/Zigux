@@ -55,6 +55,10 @@ Phase 12 flow - `validate-phase12.py` checks that the current complex-driver pac
 Phase 3 header-family reminder - `validate-phase3-abi-header-family-survey.py`, `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, and `Documentation/zigux/phase3-abi-h-boundary-next-step.md` keep the canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` starter-companion packet explicit in this broader scripts-root reminder instead of implying a larger exported UAPI family.
 
 Phase 13 flow - keep the shared Phase 13 contributor packet explicit through the shipped contributor and release-surface notes:
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
@@ -71,7 +75,9 @@ Phase 13 flow - keep the shared Phase 13 contributor packet explicit through the
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `scripts/zigux/validate-phase13-release.py`
+- `zigux/tests/README.md`
 - `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
+- `zigux/tests/README.md` stays explicit as the shipped broader Phase 13 tests-root guide, and `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` plus `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` stay explicit as the paired shared companion notes on current `master`, so this scripts-root reminder keeps the broader shared contributor packet reviewable instead of leaving those shared surfaces implicit beside the helper-local packet.
 - `fs/libfs.zig`, `lib/devres.zig`, `security/landlock/ruleset.zig`, and `security/landlock/syscalls.zig` keep the roadmap-backed helper packet explicit, while the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`.
 - `zigux/helpers/notifier_chain_view.zig`, `drivers/tty/hvc/hvc_console.h`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` stay explicit as the current direct evidence set without inventing a broader shared build route.
 - direct slice, survey, manifest, build, notifier, and Landlock tests-root companions that current `master` cannot materialize should stay framed as repo-reality gaps rather than shipped evidence, including `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `scripts/zigux/check-phase13-devres-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig`.
