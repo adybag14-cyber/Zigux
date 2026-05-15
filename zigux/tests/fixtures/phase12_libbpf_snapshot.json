@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-Y04",
   "phase": "Phase 12",
-  "surveyed_commit": "73fd6d9707ecd3fd9e8b3370688805087a9ff6c2",
+  "surveyed_commit": "6726fdd9da4eef55498fb06c38815317a684bcbf",
   "snapshot_scope": "parked Phase 12 libbpf note packet on current master",
   "tracked_file_count": 4,
   "supporting_notes": [
@@ -29,7 +29,7 @@
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-      "blob_sha": "8bbc71557ce734ab3809a262f17f7c6fad12af55"
+      "blob_sha": "d16e7ae7875eb66a68c3697b88e2bfbedeaac0b3"
     },
     {
       "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
