@@ -621,6 +621,26 @@ pub fn kfree_strarray(allocator: std.mem.Allocator, result: *KasprintfStrarrayRe
     kfreeStrarray(allocator, result);
 }
 
+pub fn kstrdupAndReplace(
+    allocator: std.mem.Allocator,
+    src: []const u8,
+    old: u8,
+    new: u8,
+) ![:0]u8 {
+    var duplicated = try allocator.dupeZ(u8, src[0..cStringLen(src)]);
+    _ = strreplace(duplicated[0..duplicated.len], old, new);
+    return duplicated;
+}
+
+pub fn kstrdup_and_replace(
+    allocator: std.mem.Allocator,
+    src: []const u8,
+    old: u8,
+    new: u8,
+) ![:0]u8 {
+    return kstrdupAndReplace(allocator, src, old, new);
+}
+
 pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
     const bounded_count = @min(count, src.len);
     const copy_len = @min(dest.len, bounded_count);
@@ -641,6 +661,16 @@ pub fn strreplace(buf: []u8, old: u8, new: u8) usize {
         if (ch.* == old) ch.* = new;
     }
     return buf.len;
+}
+
+fn runKstrdupAndReplaceWithFailingAllocator(
+    allocator: std.mem.Allocator,
+    src: []const u8,
+    old: u8,
+    new: u8,
+) !void {
+    const duplicated = try kstrdupAndReplace(allocator, src, old, new);
+    allocator.free(duplicated);
 }
 
 test "kasprintfStrarray keeps sentinel ownership stable for empty and populated arrays" {
@@ -703,6 +733,36 @@ test "string escape and unescape preserve bounded output and invalid escape fall
     const invalid_len = stringUnescape("\\q", invalid[0..], invalid.len, UNESCAPE_ALL_MASK);
     try std.testing.expectEqual(@as(usize, 1), invalid_len);
     try std.testing.expectEqualStrings("\\", invalid[0..cStringLen(invalid[0..])]);
+}
+
+test "kstrdupAndReplace duplicates only the exported c-string prefix" {
+    const source = [_]u8{ 'p', 'a', 't', 'h', '/', 'n', 'a', 'm', 'e', 0, '/', 't', 'a', 'i', 'l' };
+    const duplicated = try kstrdupAndReplace(std.testing.allocator, &source, '/', '_');
+    defer std.testing.allocator.free(duplicated);
+
+    try std.testing.expectEqualStrings("path_name", duplicated);
+    try std.testing.expectEqual(@as(u8, 0), duplicated[duplicated.len]);
+    try std.testing.expectEqualSlices(
+        u8,
+        &[_]u8{ 'p', 'a', 't', 'h', '/', 'n', 'a', 'm', 'e', 0, '/', 't', 'a', 'i', 'l' },
+        &source,
+    );
+
+    const unchanged = try kstrdupAndReplace(std.testing.allocator, "phase7", '/', '_');
+    defer std.testing.allocator.free(unchanged);
+    try std.testing.expectEqualStrings("phase7", unchanged);
+
+    const alias = try kstrdup_and_replace(std.testing.allocator, "", 'x', 'y');
+    defer std.testing.allocator.free(alias);
+    try std.testing.expectEqualStrings("", alias);
+}
+
+test "kstrdupAndReplace reports allocation failure cleanly" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKstrdupAndReplaceWithFailingAllocator,
+        .{ "phase7/helper", '/', '_' },
+    );
 }
 
 test "memcpyAndPad and strreplace respect logical bounds" {
