@@ -597,7 +597,7 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         build_path = base / PHASE9_BUILD_PATH
         build = build_path.read_text(encoding="utf-8")
-        build_path.writeText(
+        build_path.write_text(
             build.replace("runtime_loader_gap_survey.zig", "", 1),
             encoding="utf-8",
         )
