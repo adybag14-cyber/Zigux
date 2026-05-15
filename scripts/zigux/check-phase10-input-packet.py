@@ -134,6 +134,7 @@ TEST_MARKERS = {
     ],
     "zigux/tests/phase10_virtio_input_status_drain.zig": [
         'test "phase10 virtio input drains queued status completions without touching suppressed multitouch counters" {',
+        'test "phase10 virtio input zero-completion status drain keeps pending and suppressed counters stable" {',
     ],
     "zigux/tests/phase10_virtio_input_teardown_observation.zig": [
         'test "phase10 virtio input teardown observation keeps identity while resettable runtime state stays explicit" {',
@@ -426,7 +427,7 @@ def run_self_test() -> int:
         build_path = root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
-            original_build.replace('"phase10-virtio-input-verify-tests"', '"phase10-virtio-input-verify-drift"', 1),
+            original_build.replace('\"phase10-virtio-input-verify-tests\"', '\"phase10-virtio-input-verify-drift\"', 1),
             encoding="utf-8",
         )
         expect_missing_marker(root, 'build:"phase10-virtio-input-verify-tests"', "phase10-input-self-test:build_verify")
@@ -532,6 +533,24 @@ def run_self_test() -> int:
             "phase10-input-self-test:survey_gate",
         )
         survey_gate_path.write_text(original_survey_gate, encoding="utf-8")
+        case_count += 1
+
+        status_drain_path = root / "zigux/tests/phase10_virtio_input_status_drain.zig"
+        original_status_drain = status_drain_path.read_text(encoding="utf-8")
+        status_drain_path.write_text(
+            original_status_drain.replace(
+                'test "phase10 virtio input zero-completion status drain keeps pending and suppressed counters stable" {',
+                'test "phase10 virtio input zero-completion drift" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            'phase10_virtio_input_status_drain.zig:test "phase10 virtio input zero-completion status drain keeps pending and suppressed counters stable" {',
+            "phase10-input-self-test:status_drain_zero_completion",
+        )
+        status_drain_path.write_text(original_status_drain, encoding="utf-8")
         case_count += 1
 
         (root / "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig").unlink()
