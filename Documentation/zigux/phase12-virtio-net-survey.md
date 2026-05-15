@@ -4,8 +4,8 @@ This note records the current-master verification result for the bounded Phase 1
 
 ## Status
 
-- `PHASE12_STATUS=starter-present-transmit-recycle-followup`
-- `PHASE12_SLICE=virtio-net-transmit-recycle-followup`
+- `PHASE12_STATUS=starter-present-queue-resume-transmit-recycle-followup`
+- `PHASE12_SLICE=virtio-net-queue-resume-transmit-recycle-followup`
 - `PHASE12_LANE=P12-L04`
 - scope: verify the bounded `virtio_net` Zig starter around probe fallback, queue-topology summary, mergeable receive-buffer planning, receive-refill summary, control-queue recovery sequencing, control-queue payload shaping, queue-reset recovery planning, queue-resume gating, and transmit-recycle disposition reviewability without widening into live DMA, NAPI, XDP, XSK, control-virtqueue runtime commands, RSS table programming, or full `net_device` lifecycle work
 - verified on: `2026-05-15`
