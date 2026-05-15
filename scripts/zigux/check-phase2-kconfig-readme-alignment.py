@@ -104,6 +104,7 @@ FORBIDDEN_MARKERS = (
 EXACT_MARKER_COUNTS = {
     "`check-kconfig-bridge.py`": 2,
     "`check-phase2-confdata-helper-anchor-alignment.py`": 3,
+    "`check-phase2-tool-manifest-packets.py`": 3,
 }
 
 
@@ -145,7 +146,8 @@ def build_base_text() -> str:
     return "\n".join(
         (
             "# scripts/zigux This directory holds Zigux-specific bootstrap and validation helpers.",
-            "Initial responsibilities - Zig toolchain policy checks - bootstrap validation - committed parity fixture generation and checking - future ABI/layout guards - artifact diff helpers for host-side tools Current bootstrap helpers - `check-zig-toolchain.py` - `validate-bootstrap.py` - `install-zig.py` - `check-phase1-installer-review-surfaces.py` - `check-phase1-installer-companion-checks.py` - `validate-phase1.py` - `check-phase1-bench.py` - `validate-phase1-closure.py`" + CURRENT_BOOTSTRAP_HELPERS_SNIPPET,
+            "Initial responsibilities - Zig toolchain policy checks - bootstrap validation - committed parity fixture generation and checking - future ABI/layout guards - artifact diff helpers for host-side tools Current bootstrap helpers - `check-zig-toolchain.py` - `validate-bootstrap.py` - `install-zig.py` - `check-phase1-installer-review-surfaces.py` - `check-phase1-installer-companion-checks.py` - `validate-phase1.py` - `check-phase1-bench.py` - `validate-phase1-closure.py`"
+            + CURRENT_BOOTSTRAP_HELPERS_SNIPPET,
             PHASE2_TESTS_ALIGNMENT_SENTENCE,
             PHASE2_TOOL_MANIFEST_SENTENCE,
             CURRENT_PHASE2_KCONFIG_SENTENCE,
@@ -192,6 +194,22 @@ def run_self_test() -> int:
     ) in issues
     checks_run += 1
 
+    issues = collect_issues(current_text + "\n`check-phase2-tool-manifest-packets.py`\n")
+    assert (
+        "EXACT_MARKER_COUNT_MISMATCH",
+        "`check-phase2-tool-manifest-packets.py`:actual=4:expected=3",
+    ) in issues
+    checks_run += 1
+
+    issues = collect_issues(
+        current_text.replace("`check-phase2-tool-manifest-packets.py`", "", 1)
+    )
+    assert (
+        "EXACT_MARKER_COUNT_MISMATCH",
+        "`check-phase2-tool-manifest-packets.py`:actual=2:expected=3",
+    ) in issues
+    checks_run += 1
+
     for snippet in REQUIRED_SNIPPETS:
         issues = collect_issues(current_text.replace(snippet, "", 1))
         assert ("REQUIRED_SNIPPET_COUNT_MISMATCH", f"{snippet}:actual=0:expected=1") in issues
@@ -213,7 +231,7 @@ def run_self_test() -> int:
         assert issues == []
         checks_run += 1
 
-    expected_self_test_case_count = 6 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_MARKERS)
+    expected_self_test_case_count = 8 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_MARKERS)
     if checks_run != expected_self_test_case_count:
         print("PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST=fail")
         print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
