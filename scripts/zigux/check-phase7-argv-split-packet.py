@@ -73,6 +73,10 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/review-checklist.md": [
         "Documentation/zigux/phase7-argv-split-slice.md",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
+        "zigux/tests/phase7_argv_split_survey.zig",
+        "zigux/tests/phase7_argv_split_manifest.json",
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`",
@@ -213,6 +217,8 @@ MISSING_MARKER_CASES = [
         "make -C zigux phase7-argv-split-survey",
     ),
     ("Documentation/zigux/review-checklist.md", "Documentation/zigux/phase7-argv-split-slice.md"),
+    ("Documentation/zigux/review-checklist.md", "scripts/zigux/check-phase7-argv-split-packet.py"),
+    ("Documentation/zigux/review-checklist.md", "zigux/tests/phase7_argv_split_survey.zig"),
     (
         "samples/zigux/README.md",
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`",
