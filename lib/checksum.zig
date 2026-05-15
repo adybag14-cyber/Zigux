@@ -65,6 +65,10 @@ pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
     return normalize(result);
 }
 
+pub fn tcpUdpMagic(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u16 {
+    return fold(tcpUdpNofold(sum, saddr, daddr, len, proto));
+}
+
 pub fn tcpUdpV6Nofold(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) u32 {
     var result = normalize(sum);
 
@@ -228,6 +232,7 @@ test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
     manual_v4 = add(manual_v4, 17);
     manual_v4 = add(manual_v4, 6);
     try std.testing.expectEqual(normalize(manual_v4), v4_result);
+    try std.testing.expectEqual(fold(v4_result), tcpUdpMagic(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17));
 
     const v6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
     const v6_daddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf };
