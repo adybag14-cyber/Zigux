@@ -62,9 +62,9 @@ Base raw URL prefix:
   - `drivers/scsi/virtio_scsi.zig` -> blob `aef0c4205b7d99f7451ee6011adf63b6ac5220f5`
   - `Documentation/zigux/phase12-virtio-scsi-slice.md` -> blob `346ea74e682322135eeb56ee2532e663f32188b2`
   - `Documentation/zigux/phase12-virtio-scsi-survey.md` -> blob `a1fa942a65be4611e2fe008c84faa628ac8a092a`
-  - `Documentation/zigux/README.md` -> blob `78a2a98c221831105b48986aad48e91d4884a1d4`
-  - `zigux/tests/README.md` -> blob `bf048e32d25df0fb822789e7af1a30d91a3035d4`
-  - `scripts/zigux/README.md` -> blob `4e47c9ed4a7d5c9398f58944237bcd302b49a073`
+  - `Documentation/zigux/README.md` -> blob `37b8d2bc15b2fddda0731fb99518a41641d1a1c8`
+  - `zigux/tests/README.md` -> blob `b3fc43e75c9d80ce60d6823453b24dcea43378ea`
+  - `scripts/zigux/README.md` -> blob `53062c520f8e561a6be2af0217ffed0fe12ff245`
   - `zigux/tests/phase12_build.zig` -> blob `d5746e7fc71d926e8e72310f29bca9c9fcdad5fc`
   - `zigux/tests/phase12_virtio_scsi.zig` -> blob `f829de9b39576c67e81e75fe1e9d849e583db62f`
   - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` -> blob `89173ebd7f2c66d9673375e8d15f32cb645b60db`
@@ -72,7 +72,7 @@ Base raw URL prefix:
   - `zigux/tests/phase12_virtio_scsi_manifest.json` -> blob `6e0ed13c124baa6d2e845cd954ccdf93a148a4ca`
   - `zigux/Makefile` -> blob `3e19e8da0be49eaa7a4f75d29d324648261aad8e`
 - current-master support-material boundary rechecked beside the same packet:
-  - `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `524041f460157539a034f7dd9fd98ec1423d4f6a`
+  - `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `759d9ff404e80310deb603a42212b1b74ec92f76`
   - `scripts/zigux/validate-phase12.py` -> blob `c548ea93121984ab3926c38ab64fbaf1022c0343`
   - `.github/workflows/zigux-bootstrap.yml` -> blob `c345316a52e250a3eaf66b2d0b121a61872117f8`
 - this exact-evidence recheck preserves the existing split: this catalog stays pinned to `ee64eec272a352da1d967999c99bb3c3560c9b97` for direct raw replay, while the blob list above records what the broader current-master packet looked like immediately before this note refresh.
