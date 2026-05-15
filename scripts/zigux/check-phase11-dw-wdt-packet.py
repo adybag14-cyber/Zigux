@@ -92,6 +92,7 @@ MARKERS = {
         'test "registration order summary keeps blocked registration explicit when drvdata is missing"',
         'test "platform registration scaffold summary keeps ready imported-state probe anchors explicit"',
         'test "platform registration scaffold summary keeps blocked timeout-programming branch explicit"',
+        'test "platform registration scaffold summary keeps optional reset-control absence explicit"',
         'test "platform registration scaffold summary keeps missing timer clock block explicit"',
         "platformHandoffSummary",
         "registrationOrderSummary",
