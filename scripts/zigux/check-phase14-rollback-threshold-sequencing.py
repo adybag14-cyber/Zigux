@@ -26,6 +26,10 @@ VALIDATION_GATE = (
 ROLLBACK_OWNER = "Repo Tooling Pod"
 STATUS_BUCKET = "study_only"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
+TESTS_README_MAKEFILE_EXACT_LINES = [
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
+]
 SMOKE_NOTE_SHARED_GUARD_MARKER = (
     "- `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, "
     f"`{TESTS_README_CHECKER_PATH} --self-test`, "
@@ -115,6 +119,7 @@ MAKEFILE_EXACT_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    *TESTS_README_MAKEFILE_EXACT_LINES,
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
@@ -293,6 +298,7 @@ def check(root: Path) -> list[str]:
     makefile = read_text(root, MAKEFILE_PATH)
     for marker in [
         "phase14-validate:",
+        TESTS_README_CHECKER_PATH,
         "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
         "phase14-smoke:",
         "phase14-test:",
@@ -390,6 +396,7 @@ def current_makefile_text() -> str:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+            *TESTS_README_MAKEFILE_EXACT_LINES,
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
@@ -628,6 +635,40 @@ def run_self_test() -> int:
             root,
             MAKEFILE_PATH,
             current_makefile_text().replace(
+                TESTS_README_MAKEFILE_EXACT_LINES[0] + "\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            TESTS_README_MAKEFILE_EXACT_LINES[0] in error
+            for error in check(root)
+        ):
+            print("self-test expected tests-readme self-test route failure", file=sys.stderr)
+            return 1
+        write(root, MAKEFILE_PATH, current_makefile_text())
+
+        write(
+            root,
+            MAKEFILE_PATH,
+            current_makefile_text().replace(
+                TESTS_README_MAKEFILE_EXACT_LINES[1] + "\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            TESTS_README_MAKEFILE_EXACT_LINES[1] in error
+            for error in check(root)
+        ):
+            print("self-test expected tests-readme route failure", file=sys.stderr)
+            return 1
+        write(root, MAKEFILE_PATH, current_makefile_text())
+
+        write(
+            root,
+            MAKEFILE_PATH,
+            current_makefile_text().replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test\n",
                 "",
                 1,
@@ -676,7 +717,7 @@ def run_self_test() -> int:
         write(root, MAKEFILE_PATH, current_makefile_text())
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=19")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
