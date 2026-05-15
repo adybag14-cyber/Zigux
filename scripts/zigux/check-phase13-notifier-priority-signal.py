@@ -10,6 +10,8 @@ from pathlib import Path
 
 SCRIPT_PATH = "scripts/zigux/check-phase13-notifier-priority-signal.py"
 DOCS_ROOT_PATH = "Documentation/zigux/README.md"
+REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+RELEASE_COORDINATION_PATH = "Documentation/zigux/phase13-release-coordination-matrix.md"
 NOTIFIER_SURVEY_PATH = "Documentation/zigux/phase13-notifier-list-survey.md"
 RELEASE_NOTES_PATH = "Documentation/zigux/phase13-release-notes-survey.md"
 TRACEABILITY_PATH = "Documentation/zigux/phase13-roadmap-traceability.md"
@@ -28,6 +30,8 @@ HVC_HEADER_PATH = "drivers/tty/hvc/hvc_console.h"
 REQUIRED_FILES = (
     SCRIPT_PATH,
     DOCS_ROOT_PATH,
+    REVIEW_CHECKLIST_PATH,
+    RELEASE_COORDINATION_PATH,
     NOTIFIER_SURVEY_PATH,
     RELEASE_NOTES_PATH,
     TRACEABILITY_PATH,
@@ -60,6 +64,30 @@ REQUIRED_DOCS_ROOT_MARKERS = (
     "`zigux/helpers/list_view.zig`",
     "`zigux/helpers/hlist_view.zig`",
     "keep the adjacent notifier survey, the landed nonincreasing-priority signal guard",
+)
+
+REQUIRED_REVIEW_CHECKLIST_MARKERS = (
+    "if the change touches the shared Phase 13 contributor packet",
+    "`Documentation/zigux/phase13-release-coordination-matrix.md`",
+    "`Documentation/zigux/phase13-notifier-list-survey.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`scripts/zigux/validate-phase13-release.py`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`include/zigux/abi.h`",
+    "`zigux/helpers/notifier_chain_view.zig`",
+    "`drivers/tty/hvc/hvc_console.h`",
+)
+
+REQUIRED_RELEASE_COORDINATION_MARKERS = (
+    "# Phase 13 Release Coordination Matrix",
+    "adjacent notifier evidence: keep `Documentation/zigux/phase13-notifier-list-survey.md`",
+    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    "`scripts/zigux/validate-phase13-release.py`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`zigux/helpers/notifier_chain_view.zig`",
+    "`include/zigux/abi.h`",
+    "`drivers/tty/hvc/hvc_console.h`",
+    "adjacent release-surface support rather than a fifth helper lane",
 )
 
 REQUIRED_NOTIFIER_SURVEY_MARKERS = (
@@ -214,6 +242,8 @@ def validate(root: Path) -> list[str]:
 
     checks = (
         ("docs-root", DOCS_ROOT_PATH, REQUIRED_DOCS_ROOT_MARKERS),
+        ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS),
+        ("release-coordination", RELEASE_COORDINATION_PATH, REQUIRED_RELEASE_COORDINATION_MARKERS),
         ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS),
         ("release-notes", RELEASE_NOTES_PATH, REQUIRED_RELEASE_NOTES_MARKERS),
         ("traceability", TRACEABILITY_PATH, REQUIRED_TRACEABILITY_MARKERS),
@@ -246,6 +276,8 @@ def write_text(root: Path, rel_path: str, content: str) -> None:
 def make_fixture_root(root: Path) -> None:
     write_text(root, SCRIPT_PATH, Path(__file__).read_text(encoding="utf-8"))
     write_text(root, DOCS_ROOT_PATH, "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
+    write_text(root, REVIEW_CHECKLIST_PATH, "\n".join(REQUIRED_REVIEW_CHECKLIST_MARKERS) + "\n")
+    write_text(root, RELEASE_COORDINATION_PATH, "\n".join(REQUIRED_RELEASE_COORDINATION_MARKERS) + "\n")
     write_text(root, NOTIFIER_SURVEY_PATH, "\n".join(REQUIRED_NOTIFIER_SURVEY_MARKERS) + "\n")
     write_text(root, RELEASE_NOTES_PATH, "\n".join(REQUIRED_RELEASE_NOTES_MARKERS) + "\n")
     write_text(root, TRACEABILITY_PATH, "\n".join(REQUIRED_TRACEABILITY_MARKERS) + "\n")
@@ -285,6 +317,10 @@ def run_self_test() -> int:
         mutations = (
             ("docs-root", DOCS_ROOT_PATH, REQUIRED_DOCS_ROOT_MARKERS[6]),
             ("docs-root", DOCS_ROOT_PATH, REQUIRED_DOCS_ROOT_MARKERS[14]),
+            ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[1]),
+            ("review-checklist", REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS[5]),
+            ("release-coordination", RELEASE_COORDINATION_PATH, REQUIRED_RELEASE_COORDINATION_MARKERS[1]),
+            ("release-coordination", RELEASE_COORDINATION_PATH, REQUIRED_RELEASE_COORDINATION_MARKERS[4]),
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[1]),
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[6]),
             ("notifier-survey", NOTIFIER_SURVEY_PATH, REQUIRED_NOTIFIER_SURVEY_MARKERS[7]),
