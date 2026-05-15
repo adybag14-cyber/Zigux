@@ -2,11 +2,15 @@
 from __future__ import annotations
 
 import argparse
+import json
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 
 CHECK_ZIG_TOOLCHAIN = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
 FIXDEP_GATE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"
@@ -159,7 +163,67 @@ PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_P
 PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37
 ARTIFACT_DIFF_EXPECTED_REQUIRED_TAILS = frozenset(ARTIFACT_DIFF_REQUIRED_RELATIVE_PATHS)
 ARTIFACT_DIFF_EXPECTED_REQUIRED_FILE_COUNT = 2
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 40
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 41
+
+
+def load_pinned_channel(policy_path: Path = TOOLCHAIN_POLICY) -> str | None:
+    if not policy_path.exists():
+        return None
+    try:
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    channel = payload.get("channel")
+    if not isinstance(channel, str) or not channel.strip():
+        return None
+    return channel.strip()
+
+
+def iter_repo_local_zig_candidates(
+    *,
+    root: Path = ROOT,
+    pinned_channel: str | None = None,
+) -> list[Path]:
+    toolchain_root = root / ".zig-toolchain"
+    candidates: list[Path] = []
+
+    def add_candidate(path: Path) -> None:
+        if path not in candidates:
+            candidates.append(path)
+
+    if pinned_channel is not None:
+        pinned_root = toolchain_root / f"zig-x86_64-linux-{pinned_channel}"
+        add_candidate(pinned_root / "zig")
+        add_candidate(pinned_root / "bin" / "zig")
+
+    if toolchain_root.exists():
+        for child in sorted(toolchain_root.iterdir()):
+            add_candidate(child / "zig")
+            add_candidate(child / "bin" / "zig")
+    return candidates
+
+
+def resolve_zig_executable(
+    explicit_zig: str | None = None,
+    *,
+    root: Path = ROOT,
+    policy_path: Path = TOOLCHAIN_POLICY,
+) -> str:
+    if explicit_zig is not None:
+        return explicit_zig
+    env_zig = os.environ.get("ZIG")
+    if env_zig:
+        return env_zig
+    pinned_channel = load_pinned_channel(policy_path)
+    for candidate in iter_repo_local_zig_candidates(
+        root=root,
+        pinned_channel=pinned_channel,
+    ):
+        if candidate.is_file():
+            return str(candidate)
+    return shutil.which("zig") or "zig"
 
 
 def build_python_commands(
@@ -177,9 +241,13 @@ def build_toolchain_validation_commands(
 def build_validation_commands(
     py_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_PY_COMMAND_SPECS,
     direct_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_DIRECT_COMMAND_SPECS,
+    *,
+    zig_executable: str = "zig",
 ) -> list[list[str]]:
     commands = build_python_commands(py_command_specs)
-    commands.extend([[str(part) for part in spec] for spec in direct_command_specs])
+    for spec in direct_command_specs:
+        executable = zig_executable if spec and spec[0] == "zig" else str(spec[0])
+        commands.append([executable, *[str(part) for part in spec[1:]]])
     return commands
 
 
@@ -361,6 +429,15 @@ def run_self_test() -> list[str]:
             "command_inventory_ok",
             collect_command_inventory_issues(),
             [],
+        ),
+        (
+            "command_inventory_resolved_zig_path",
+            build_validation_commands(
+                py_command_specs=(),
+                direct_command_specs=(("zig", "test", ROOT / "scripts" / "zigux" / "fixdep.zig"),),
+                zig_executable="/tmp/pinned-zig",
+            ),
+            [["/tmp/pinned-zig", "test", str(ROOT / "scripts" / "zigux" / "fixdep.zig")]],
         ),
         (
             "command_inventory_missing_kconfig_bridge_gate",
@@ -930,7 +1007,10 @@ def main() -> int:
         print("PHASE2_VALIDATION_MISSING_FILES_END")
         return 1
 
-    commands = build_toolchain_validation_commands() + build_validation_commands()
+    zig_executable = resolve_zig_executable()
+    commands = build_toolchain_validation_commands() + build_validation_commands(
+        zig_executable=zig_executable
+    )
     for command in commands:
         if run(command) != 0:
             print("PHASE2_VALIDATION=fail")
