@@ -310,6 +310,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
         module_slice_note,
         "makes the kretprobe handoff and failure-mode evidence reviewable without claiming loadable-module parity",
     );
+    try expectContains(
+        module_slice_note,
+        "a retargeted probe symbol now stays fixed from `cold` through `initialized`, `selftest_complete`, and `exited`, and late `retargetSymbol()` attempts are rejected after arming so symbol ownership does not drift during lifecycle review",
+    );
 
     try expectContains(phase9_build, "runtime_kretprobe.zig");
     try expectContains(phase9_build, "phase9-runtime-kretprobe-sample-tests");
@@ -428,6 +432,18 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_sample,
+        "test \"runtime kretprobe sample keeps a retargeted symbol fixed across init selftest and exit\"",
+    );
+    try expectContains(
+        runtime_kretprobe_sample,
+        "try std.testing.expectError(error.InvalidLifecycleTransition, module.retargetSymbol(\"vfs_read\"));",
+    );
+    try expectContains(
+        runtime_kretprobe_sample,
+        "try std.testing.expectError(error.InvalidLifecycleTransition, module.retargetSymbol(\"do_execve\"));",
+    );
+    try expectContains(
+        runtime_kretprobe_sample,
         "test \"kretprobe sample preserves initialized-stage failed-exit state until the active probe drains before selftest\"",
     );
     try expectContains(
@@ -451,6 +467,18 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
         "try std.testing.expectEqual(@as(i64, 140), outer.duration_ns);",
     );
 
+    try expectContains(
+        runtime_kretprobe_module,
+        "test \"runtime kretprobe module gate keeps a retargeted symbol fixed across selftest and exit\"",
+    );
+    try expectContains(
+        runtime_kretprobe_module,
+        "try std.testing.expectEqualStrings(\"do_sys_openat2\", before_exit.symbol_name);",
+    );
+    try expectContains(
+        runtime_kretprobe_module,
+        "try std.testing.expectError(error.InvalidLifecycleTransition, module.retargetSymbol(\"do_execve\"));",
+    );
     try expectContains(
         runtime_kretprobe_module,
         "test \"runtime kretprobe sample preserves summary state across failed exit until the active probe drains\"",
