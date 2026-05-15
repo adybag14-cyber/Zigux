@@ -47,6 +47,7 @@ SLICE_MARKERS = [
     "devm_iounmap()",
     "devm_ioremap_uc()",
     "devm_ioremap_wc()",
+    "devm_ioremap_np()",
     "devm_of_iomap()",
     "devm_arch_io_reserve_memtype_wc()",
     "devm_arch_phys_wc_add()",
@@ -55,6 +56,7 @@ SLICE_MARKERS = [
 SURVEY_MARKERS = [
     EXPECTED_COMMIT,
     f"`{EXPECTED_LANE}`",
+    "devm_ioremap_np()",
     "devm_iounmap()",
     "zigux/tests/phase13_devres_boundary_evidence.zig",
     "direct boundary-evidence replay",
@@ -68,9 +70,11 @@ SURVEY_MARKERS = [
 
 HELPER_MARKERS = [
     ".provides_iounmap_call_planning = true",
+    ".provides_ioremap_np_wrapper_planning = true",
     "pub const ManagedIounmapPlan",
     "pub fn planManagedIounmap(",
     ".warns_on_release_miss = !release_matches",
+    "pub fn planManagedIoremapAcquireNp(",
     "pub fn planManagedIoremapResource(",
     ".requests_region = true",
     ".releases_region_on_remap_failure = true",
@@ -82,6 +86,8 @@ HELPER_MARKERS = [
 REPLAY_MARKERS = [
     'phase13 devres release matching stays pointer-exact',
     'phase13 devres plans a managed iounmap call and warns on release misses',
+    'phase13 devres non-posted ioremap wrapper forces the NP lifetime path',
+    'phase13 devres non-posted ioremap wrapper frees the release record on map failure',
     'planManagedIounmap(0x4000, 0x4000)',
     'planManagedIounmap(0x4000, 0x4010)',
     'miss.warns_on_release_miss',
@@ -270,6 +276,38 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         write_text(
+            root / SLICE_PATH,
+            '\n'.join(
+                marker
+                for marker in SLICE_MARKERS
+                if marker != 'devm_ioremap_np()'
+            ) + '\n',
+        )
+        assert_only(
+            validate(root),
+            ['slice:missing_marker:devm_ioremap_np()'],
+            'slice_missing_np_wrapper_marker_failed',
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / HELPER_PATH,
+            '\n'.join(
+                marker
+                for marker in HELPER_MARKERS
+                if marker != 'pub fn planManagedIoremapAcquireNp('
+            ) + '\n',
+        )
+        assert_only(
+            validate(root),
+            ['helper:missing_marker:pub fn planManagedIoremapAcquireNp('],
+            'helper_missing_np_wrapper_marker_failed',
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
             root / HELPER_PATH,
             '\n'.join(
                 marker
@@ -281,6 +319,22 @@ def run_self_test() -> int:
             validate(root),
             ['helper:missing_marker:.releases_region_on_remap_failure = true'],
             'helper_missing_marker_failed',
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / REPLAY_PATH,
+            '\n'.join(
+                marker
+                for marker in REPLAY_MARKERS
+                if marker != 'phase13 devres non-posted ioremap wrapper forces the NP lifetime path'
+            ) + '\n',
+        )
+        assert_only(
+            validate(root),
+            ['replay:missing_marker:phase13 devres non-posted ioremap wrapper forces the NP lifetime path'],
+            'replay_missing_np_wrapper_marker_failed',
         )
         case_count += 1
 
