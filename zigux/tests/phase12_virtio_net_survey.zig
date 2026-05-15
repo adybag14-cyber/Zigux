@@ -251,11 +251,14 @@ test "phase12 virtio net syntax lab keeps payload-shaping and recovery markers e
 
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "phase12 virtio net syntax lab keeps control queue payload shaping separate from runtime commands") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "phase12 virtio net syntax lab keeps rss payload shaping aligned with tunnel-header recovery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "phase12 virtio net syntax lab clears stale control queue and mergeable refill state across a second recovery cycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "planControlQueuePayloadShape") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "controlQueueRecoveryPlan") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "rss_config_payload_bytes") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_hash_report_payload") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_mergeable_buffer_refill") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "mergeable_buffer_refill_required") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "recovery_generation") != null);
 }
 
 test "phase12 virtio net survey gate keeps queue resume replay wired into shared smoke route" {
