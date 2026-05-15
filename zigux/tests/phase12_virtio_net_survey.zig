@@ -242,6 +242,7 @@ test "phase12 virtio net survey gate keeps present lane files explicit" {
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_queue_resume.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_transmit_recycle.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_build.zig"));
 }
 
 test "phase12 virtio net syntax lab keeps payload-shaping and recovery markers explicit" {
@@ -255,4 +256,24 @@ test "phase12 virtio net syntax lab keeps payload-shaping and recovery markers e
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "rss_config_payload_bytes") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_hash_report_payload") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_mergeable_buffer_refill") != null);
+}
+
+test "phase12 virtio net survey gate keeps queue resume replay wired into shared smoke route" {
+    const build_file = try readFileAlloc("zigux/tests/phase12_build.zig", 24 * 1024);
+    defer std.testing.allocator.free(build_file);
+
+    const queue_resume = try readFileAlloc("zigux/tests/phase12_virtio_net_queue_resume.zig", 16 * 1024);
+    defer std.testing.allocator.free(queue_resume);
+
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_queue_resume.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "virtio_net_queue_resume_root_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12-virtio-net-queue-resume-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "run_virtio_net_queue_resume_tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "test_step.dependOn(&run_virtio_net_queue_resume_tests.step);") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, queue_resume, "phase12 virtio net queue resume keeps mergeable replay and throughput guard explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, queue_resume, "phase12 virtio net queue resume keeps control replay markers explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, queue_resume, "throughput_guard_active") != null);
+    try std.testing.expect(std.mem.indexOf(u8, queue_resume, "after_control_queue_restore") != null);
 }
