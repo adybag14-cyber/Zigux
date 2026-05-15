@@ -288,6 +288,24 @@ test "phase 7 string helpers starter reports overflow before sizing the null-ter
     );
 }
 
+test "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix" {
+    const source = [_]u8{ 'd', 'e', 'v', '/', 'n', 'o', 'd', 'e', 0, '/', 't', 'a', 'i', 'l' };
+    const duplicated = try string_helpers.kstrdupAndReplace(std.testing.allocator, &source, '/', '_');
+    defer std.testing.allocator.free(duplicated);
+
+    try std.testing.expectEqualStrings("dev_node", duplicated);
+    try std.testing.expectEqual(@as(u8, 0), duplicated[duplicated.len]);
+    try std.testing.expectEqualSlices(
+        u8,
+        &[_]u8{ 'd', 'e', 'v', '/', 'n', 'o', 'd', 'e', 0, '/', 't', 'a', 'i', 'l' },
+        &source,
+    );
+
+    const alias = try string_helpers.kstrdup_and_replace(std.testing.allocator, "phase7-helper", '-', '_');
+    defer std.testing.allocator.free(alias);
+    try std.testing.expectEqualStrings("phase7_helper", alias);
+}
+
 test "phase 7 string helpers starter pads bounded copies without reading past the provided source slice" {
     var padded = [_]u8{ '#', '#', '#', '#', '#', '#' };
     string_helpers.memcpyAndPad(&padded, "zig", 3, '.');
