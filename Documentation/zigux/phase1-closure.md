@@ -339,6 +339,15 @@ That means `test "bitmap zero-bit binary helpers stay explicit identity operatio
 
 - `PHASE1_BITMAP_ZERO_BIT_BINARY_IDENTITY_REVIEW=helper-local bitmap zero-bit binary identity proof stays explicit through the direct bitmap test anchor so zero-bit windows keep binary helpers in identity or empty-result mode without touching caller-visible storage or inventing overlap, subset, or equality drift`
 
+The helper-local low-level `__bitmap*` alias proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+
+That means `test "bitmap low-level __bitmap aliases mirror the primary helper surface"` stays present and review-visible whenever `__bitmap_weight()`, `__bitmap_or()`, `__bitmap_weighted_or()`, `__bitmap_xor()`, `__bitmap_weighted_xor()`, `__bitmap_and()`, `__bitmap_andnot()`, `__bitmap_complement()`, `__bitmap_replace()`, `__bitmap_equal()`, `__bitmap_intersects()`, `__bitmap_subset()`, `__bitmap_set()`, or `__bitmap_clear()` changes. This helper-local test and the manifest helper anchor list are the bounded proof that the low-level Linux-style `__bitmap*` entry points remain behaviorally locked to the primary helper surface instead of drifting into a second semantics path below the public bitmap alias layer.
+
+- `PHASE1_BITMAP_LOW_LEVEL_ALIAS_REVIEW=helper-local low-level bitmap __bitmap alias proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so the low-level Linux-style __bitmap weight, boolean, mutation, and compare aliases remain behaviorally locked to the primary helper surface`
+
 The helper-local bitmap Linux-style alias proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
@@ -391,7 +400,7 @@ The direct helper-local string copy-and-pad follow-up anchors must also stay rev
 
 - `PHASE1_STRING_STRSCPY_REVIEW=helper-local string copy-and-pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strscpy or strscpyPad fixture keys`
 
-The direct helper-local C-string lookup and counted-search follow-up anchors must also stay review-visible whenever `matchString()`, `match_string()`, or `strnchr()` changes. That means `test "matchString finds C-string matches and preserves first-match order"`, `test "match_string mirrors matchString for empty and matched lists"`, and `test "strnchr honors count and C-string boundaries"` stay present and review-visible. The shared Phase 1 replay still locks replaceChar and the current string fixture keys, but it does not consume dedicated `matchString()`, `match_string()`, or `strnchr()` fixture fields, so these helper-local anchors remain the owning proof that first-match list lookup order, Linux-style lookup alias behavior, and count-limited C-string search stay behaviorally locked on current `master`.
+The direct helper-local C-string lookup and counted-search follow-up anchors must also stay review-visible whenever `matchString()`, `match_string()`, or `strnchr()` changes. That means `test "matchString finds C-string matches and preserves first-match order"`, `test "match_string mirrors matchString for empty and matched lists"`, and `test "strnchr honors count and C-string boundaries"` stay present and review-visible whenever the helper changes. The shared Phase 1 replay still locks replaceChar and the current string fixture keys, but it does not consume dedicated `matchString()`, `match_string()`, or `strnchr()` fixture fields, so these helper-local anchors remain the owning proof that first-match list lookup order, Linux-style lookup alias behavior, and count-limited C-string search stay behaviorally locked on current `master`.
 
 - `PHASE1_STRING_LOOKUP_AND_STRNCHR_REVIEW=helper-local string C-string list lookup and counted-search anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string or strnchr fixture keys`
 
