@@ -184,6 +184,7 @@ REQUIRED_MARKERS = {
         "pub fn advanceOnlineCpuCursor(",
         "pub fn summarizeNextOnlineCpuRoute(",
         "pub fn summarizeOnlineCpuRouting(",
+        'test "summarizeOnlineCpuRouting reports the first routed online CPU whose fd slot is empty" {',
     ],
     PHASE8_BUILD_PATH: [
         '.root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),',
