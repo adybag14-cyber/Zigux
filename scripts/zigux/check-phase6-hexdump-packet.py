@@ -48,6 +48,7 @@ SLICE_NOTE_MARKERS = [
     "lib/hexdump.zig` now also carries direct same-file coverage for the landed `hexToBin`/`hex_to_bin`, `hex2Bin`/`hex2bin`, and `bin2Hex`/`bin2hex` helper parity surface",
     "the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both the empty plain and empty ASCII zero-length rows aligned with the focused replay and the helper's landed empty-input contract",
     "focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable",
+    "exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet, `16B-plain-g1`, `32B-ascii-g2`, `16B-ascii-g4`, and `16B-ascii-g8`, with helper-local caps of `175`, `550`, `550`, and `600`",
     "Keep this slice parked unless a concrete new helper-local parity, fixture, or perf-threshold gap appears in the hexdump packet.",
 ]
 
@@ -145,7 +146,7 @@ FIXTURE_MARKERS = [
     '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
 ]
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 21
 
 
 class CheckError(RuntimeError):
@@ -353,6 +354,18 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "length_cases")
+
+        build_self_test_fixture(tmpdir)
+        slice_note = tmpdir / REQUIRED_FILES["slice_note"]
+        slice_note.write_text(
+            slice_note.read_text(encoding="utf-8").replace(
+                "exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet, `16B-plain-g1`, `32B-ascii-g2`, `16B-ascii-g4`, and `16B-ascii-g8`, with helper-local caps of `175`, `550`, `550`, and `600`",
+                "exact manifest-backed evidence: drifted slowdown packet summary",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "exact manifest-backed evidence")
 
         build_self_test_fixture(tmpdir)
         lane_sequencing = tmpdir / REQUIRED_FILES["lane_sequencing"]
