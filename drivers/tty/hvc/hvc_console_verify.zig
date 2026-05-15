@@ -188,6 +188,28 @@ test "hvc_console verify keeps remove handoff explicit when tty is already absen
     try std.testing.expect(summary.keeps_live_remove_execution_out_of_scope);
 }
 
+test "hvc_console verify keeps attached remove handoff explicit before tty detach" {
+    const summary = summarizeRemoveWhenTtyAlreadyAbsent(.{
+        .tty_present = true,
+        .console_lock_slot_cleared = true,
+        .vtermno_and_cons_ops_released = true,
+        .tty_port_put_ordered = true,
+        .tty_vhangup_follow_through = true,
+        .tty_kref_put_release = true,
+        .keep_irq_until_hangup = true,
+    });
+
+    try std.testing.expect(summary.tty_present);
+    try std.testing.expect(!summary.tty_already_absent);
+    try std.testing.expect(summary.remove_handoff.console_lock_slot_cleared);
+    try std.testing.expect(summary.remove_handoff.slot_release_ownership);
+    try std.testing.expect(summary.remove_handoff.tty_port_put_ordered);
+    try std.testing.expect(summary.remove_handoff.tty_vhangup_follow_through);
+    try std.testing.expect(summary.remove_handoff.tty_kref_put_release);
+    try std.testing.expect(summary.remove_handoff.keep_irq_until_hangup);
+    try std.testing.expect(summary.keeps_live_remove_execution_out_of_scope);
+}
+
 test "hvc_console verify keeps cleanup prerequisite failures explicit" {
     try std.testing.expectError(error.CleanupRequiresFinalCloseOrHangup, summarizeCleanupPrerequisites(.{
         .final_close_seen = false,
