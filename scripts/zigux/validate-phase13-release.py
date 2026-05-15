@@ -271,6 +271,7 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/validate-phase13-release.py`",
         "`zigux/bindings/notifier_abi.zig`",
         "`zigux/helpers/notifier_chain_view.zig`",
+        "`drivers/tty/hvc/hvc_console.h`",
         "while the shipped adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` stay explicit on current `master`.",
         "direct slice, survey, manifest, build, notifier, and Landlock tests-root companions that current `master` cannot materialize should stay framed as repo-reality gaps",
     ],
@@ -936,6 +937,26 @@ def run_self_test() -> int:
             "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"])
             + "\n",
         )
+        case_count += 1
+
+        write_text(
+            root,
+            "scripts/zigux/README.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["scripts/zigux/README.md"]
+                if marker != "`drivers/tty/hvc/hvc_console.h`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:scripts/zigux/README.md:`drivers/tty/hvc/hvc_console.h`"
+            ],
+            "missing_scripts_readme_hvc_notifier_anchor_failed",
+        )
+        write_text(root, "scripts/zigux/README.md", "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"]) + "\n")
         case_count += 1
 
         write_text(
