@@ -327,6 +327,14 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(runtime_bitmap_loader, "try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);");
 
     try expectContains(runtime_bitmap_module, "runtime bitmap module gate replays current lifecycle and selftest behavior directly");
+    try expectContains(runtime_bitmap_module, "const summary_before_selftest = module.summary();");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.initialized, initialized.stage);");
+    try expectContains(runtime_bitmap_module, "const summary_after_selftest = module.summary();");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.selftest_complete, selftested.stage);");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(summary_before_selftest.first_set, summary_after_selftest.first_set);");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(summary_before_selftest.first_zero, summary_after_selftest.first_zero);");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(summary_before_selftest.weight, summary_after_selftest.weight);");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(summary_before_selftest.nbits, summary_after_selftest.nbits);");
     try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.exited, exited.stage);");
     try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);");
     try expectContains(runtime_bitmap_module, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());");
