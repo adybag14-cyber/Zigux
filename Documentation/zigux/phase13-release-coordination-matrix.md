@@ -14,7 +14,8 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - sequencing companion: `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - tests-root companion: `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - release validator: `scripts/zigux/validate-phase13-release.py`
-- shared replay handle: `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
+- stable shared replay handle: `zigux/Makefile` and `make -C zigux phase13-validate`
+- blocked convenience route: `make -C zigux phase13`
 - shared-summary reread target: `scripts/zigux/README.md`, `zigux/tests/README.md`, this matrix, the docs-root Phase 13 companions, and the tests-root companion note are the shared surfaces to reread together; specifically reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Current `master` now keeps the docs-root, workflow, sequencing, tests-root, checklist, shared contributor-sync, tests-root companion, compact PMO coordination packet, and `scripts/zigux/README.md` aligned around the shipped `Documentation/zigux/phase13-libfs-survey.md` plus manifest-backed `libfs` packet, the shipped devres and Landlock packets, and adjacent notifier evidence. The older scripts-root Landlock direct-evidence undercount is no longer present, so the next same-lane shared-summary follow-through should stay parked unless one of those contributor-facing reminder surfaces drifts again.
 
 ## Owner Split
