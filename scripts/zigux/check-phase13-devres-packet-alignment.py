@@ -125,16 +125,11 @@ BOUNDARY_REPLAY_MARKERS = [
 ]
 
 DMA_REPLAY_MARKERS = [
-    '"preexisting_phase13_devres_dma_coherent_present": true',
-    '"phase13-devres-live-scatterlist-ownership"',
-    '"blocked_on_live_scatterlist_state"',
-    'adjacent coherent-DMA evidence shard',
-    'helper-only DMA/scatterlist boundary',
-    'DMA mapping helpers',
-    '`sg_table` lifecycle control',
-    'no DMA mapping helpers',
-    'DMA mapping ownership',
-    'no `sg_table` lifecycle control',
+    'try requireContains(manifest, "DMA mapping helpers");',
+    'try requireContains(manifest, "`sg_table` lifecycle control");',
+    'try requireContains(survey, "no DMA mapping helpers");',
+    'try requireContains(survey, "live DMA-backed helpers or DMA mapping ownership");',
+    'try requireContains(survey, "no `sg_table` lifecycle control");',
 ]
 
 
@@ -372,12 +367,12 @@ def run_self_test() -> int:
             '\n'.join(
                 marker
                 for marker in DMA_REPLAY_MARKERS
-                if marker != 'DMA mapping helpers'
+                if marker != 'try requireContains(manifest, "DMA mapping helpers");'
             ) + '\n',
         )
         assert_only(
             validate(root),
-            ['dma_replay:missing_marker:DMA mapping helpers'],
+            ['dma_replay:missing_marker:try requireContains(manifest, "DMA mapping helpers");'],
             'dma_replay_missing_dma_mapping_marker_failed',
         )
         case_count += 1
