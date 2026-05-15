@@ -61,7 +61,7 @@ REQUIRED_MARKERS = {
         "PHASE7_ARGV_SPLIT_LANE=P7-L09",
         "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
         "scheduled alias note: recurring scheduled lane `P7-Y07` is the older schedule label for this same argv-split packet and must be treated as the same owner, not as a second helper lane",
-        "`argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
+        "`argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, fixture module, and dedicated packet checker still visible",
         "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, checker, or reminder drift.",
     ],
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
@@ -78,6 +78,7 @@ REQUIRED_MARKERS = {
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`",
         "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "Documentation/zigux/review-checklist.md",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-build-wiring.py",
         "zigux/tests/phase7_build.zig",
     ],
@@ -198,23 +199,52 @@ MISSING_FILE_CASES = [
 MISSING_MARKER_CASES = [
     ("Documentation/zigux/README.md", "scripts/zigux/check-phase7-argv-split-packet.py"),
     ("Documentation/zigux/phase7-argv-split-slice.md", "PHASE7_LANE_KEY=P7-L09"),
-    ("Documentation/zigux/phase7-helper-lane-sequencing.md", "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09"),
-    ("Documentation/zigux/phase7-make-wrapper-selftest-alignment.md", "make -C zigux phase7-argv-split-survey"),
+    (
+        "Documentation/zigux/phase7-helper-lane-sequencing.md",
+        "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
+    ),
+    (
+        "Documentation/zigux/phase7-helper-lane-sequencing.md",
+        "`argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, fixture module, and dedicated packet checker still visible",
+    ),
+    (
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        "make -C zigux phase7-argv-split-survey",
+    ),
     ("Documentation/zigux/review-checklist.md", "Documentation/zigux/phase7-argv-split-slice.md"),
-    ("samples/zigux/README.md", "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`"),
+    (
+        "samples/zigux/README.md",
+        "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`",
+    ),
     ("samples/zigux/README.md", "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"),
+    ("samples/zigux/README.md", "scripts/zigux/check-phase7-argv-split-packet.py"),
     ("samples/zigux/README.md", "scripts/zigux/check-phase7-build-wiring.py"),
     ("scripts/zigux/README.md", "zigux/tests/phase7_argv_split_survey.zig"),
     ("scripts/zigux/validate-phase7.py", "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\""),
     ("lib/argv_split.zig", "pub fn cArgv"),
     ("zigux/tests/README.md", "zigux/tests/phase7_argv_split_manifest.json"),
-    ("zigux/tests/phase7_argv_split.zig", "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup"),
-    ("zigux/tests/phase7_argv_split_survey.zig", "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space"),
-    ("zigux/tests/phase7_argv_split_manifest.json", "canonical blank sentinels, repeatable teardown, and a null-terminated argv view"),
-    ("zigux/tests/fixtures/phase7_argv_split_vectors.zig", ".name = \"quote characters stay inside returned tokens\""),
+    (
+        "zigux/tests/phase7_argv_split.zig",
+        "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+    ),
+    (
+        "zigux/tests/phase7_argv_split_survey.zig",
+        "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space",
+    ),
+    (
+        "zigux/tests/phase7_argv_split_manifest.json",
+        "canonical blank sentinels, repeatable teardown, and a null-terminated argv view",
+    ),
+    (
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+        ".name = \"quote characters stay inside returned tokens\"",
+    ),
     ("zigux/tests/phase7_build.zig", "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));"),
     ("zigux/Makefile", "phase7-argv-split-survey:"),
-    ("Documentation/zigux/phase7-helper-lane-sequencing.md", "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, checker, or reminder drift."),
+    (
+        "Documentation/zigux/phase7-helper-lane-sequencing.md",
+        "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, checker, or reminder drift.",
+    ),
 ]
 
 
