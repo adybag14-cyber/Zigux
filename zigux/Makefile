@@ -3,7 +3,7 @@ PHONY += phase2-validate phase2-toolchain phase2-tools phase2-kconfig phase2-cro
 PHONY += phase3-validate phase3-selftest phase3-abi phase3-low-level-wrappers-test phase3-export-uapi-layout-test phase3-interop phase3
 PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4
 PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6
-PHONY += phase7-validate phase7-string-helpers-survey phase7-string-helpers-sample-boundary phase7-cmdline-survey phase7-argv-split-survey phase7-rbtree-survey phase7-test phase7
+PHONY += phase7-validate phase7-string-helpers-test phase7-string-helpers-survey phase7-string-helpers-sample-boundary phase7-cmdline-test phase7-cmdline-survey phase7-argv-split-test phase7-argv-split-survey phase7-rbtree-test phase7-rbtree-survey phase7-test phase7
 PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-cpu-mask-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
 PHONY += phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test phase9
 PHONY += phase10-validate phase10-test phase10
@@ -218,6 +218,8 @@ phase7-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py
+phase7-string-helpers-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all
 
 phase7-string-helpers-survey:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase7-string-helpers-survey --build-file zigux/tests/phase7_build.zig --summary all
@@ -225,11 +227,20 @@ phase7-string-helpers-survey:
 phase7-string-helpers-sample-boundary:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase7-string-helpers-sample-boundary --build-file zigux/tests/phase7_build.zig --summary all
 
+phase7-cmdline-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all
+
 phase7-cmdline-survey:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase7-cmdline-survey --build-file zigux/tests/phase7_build.zig --summary all
 
+phase7-argv-split-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all
+
 phase7-argv-split-survey:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase7-argv-split-survey --build-file zigux/tests/phase7_build.zig --summary all
+
+phase7-rbtree-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all
 
 phase7-rbtree-survey:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase7-rbtree-survey --build-file zigux/tests/phase7_build.zig --summary all
