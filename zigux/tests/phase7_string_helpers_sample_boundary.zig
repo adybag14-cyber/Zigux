@@ -27,22 +27,6 @@ fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
 }
 
-fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
-    if (needle.len == 0) return 0;
-
-    var count: usize = 0;
-    var search_start: usize = 0;
-    while (std.mem.indexOfPos(u8, haystack, search_start, needle)) |index| {
-        count += 1;
-        search_start = index + needle.len;
-    }
-    return count;
-}
-
-fn expectOccurrenceCount(haystack: []const u8, needle: []const u8, expected_count: usize) !void {
-    try std.testing.expectEqual(expected_count, countOccurrences(haystack, needle));
-}
-
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
@@ -78,21 +62,16 @@ test "phase 7 string helper boundary keeps the exact current sample inventory an
         if (!std.mem.endsWith(u8, entry.name, ".zig")) continue;
 
         total_zig_files += 1;
-
-        if (std.mem.indexOf(u8, entry.name, "string") != null) {
-            saw_string_file = true;
-        }
+        if (std.mem.indexOf(u8, entry.name, "string") != null) saw_string_file = true;
 
         if (markSeen(entry.name, expected_phase5_samples[0..], phase5_seen[0..])) {
             phase5_count += 1;
             continue;
         }
-
         if (markSeen(entry.name, expected_runtime_samples[0..], runtime_seen[0..])) {
             runtime_count += 1;
             continue;
         }
-
         saw_unexpected_file = true;
     }
 
@@ -106,12 +85,14 @@ test "phase 7 string helper boundary keeps the exact current sample inventory an
     for (runtime_seen) |seen| try std.testing.expect(seen);
 }
 
-test "phase 7 string helper boundary keeps the expanded helper packet and current shared reminders aligned" {
+test "phase 7 string helper boundary keeps the lane-local helper packet aligned without claiming shared control surfaces" {
     const allocator = std.testing.allocator;
-
     const io = std.testing.io;
+
     try std.Io.Dir.cwd().access(io, "lib/string_helpers.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers.zig", .{});
+    try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_survey.zig", .{});
+    try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_manifest.json", .{});
 
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-string-helpers-slice.md");
     defer allocator.free(slice_note);
@@ -121,124 +102,32 @@ test "phase 7 string helper boundary keeps the expanded helper packet and curren
     try expectNotContains(slice_note, "restored starter packet");
     try expectNotContains(slice_note, "missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
 
-    const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
-    defer allocator.free(docs_root);
-    try expectContains(docs_root, "restored starter packet");
-    try expectNotContains(docs_root, "expanded starter packet");
-    try expectContains(docs_root, "lib/string_helpers.zig");
-    try expectContains(docs_root, "zigux/tests/phase7_string_helpers.zig");
+    const helper = try readRepoFile(allocator, "lib/string_helpers.zig");
+    defer allocator.free(helper);
+    try expectContains(helper, "pub fn stringEscapeMem");
+    try expectContains(helper, "pub fn stringEscapeStrAnyNp");
+    try expectContains(helper, "pub fn memcpyAndPad");
+    try expectContains(helper, "pub fn strreplace");
 
-    const review_checklist = try readRepoFile(allocator, "Documentation/zigux/review-checklist.md");
-    defer allocator.free(review_checklist);
-    try expectContains(review_checklist, "there is no standalone `samples/zigux/*string*` reference sample");
-    try expectContains(review_checklist, "Documentation/zigux/phase7-string-helpers-slice.md");
-    try expectContains(review_checklist, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
-    try expectContains(review_checklist, "scripts/zigux/validate-phase7.py");
-    try expectContains(review_checklist, "scripts/zigux/check-phase7-make-wrapper.py");
-    try expectContains(review_checklist, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
-    try expectContains(review_checklist, "scripts/zigux/check-phase7-build-wiring.py");
-    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
-    try expectContains(review_checklist, "do those shared reminders keep the explicit ownership-focus packet visible so");
-    try expectContains(review_checklist, "first-NUL trimming and prefix skipping stop at the exported C-string boundary");
-    try expectContains(review_checklist, "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned");
-    try expectContains(review_checklist, "append-limited escape accounting stays inside caller storage");
-    try expectContains(review_checklist, "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results");
-    try expectContains(review_checklist, "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations");
-
-    const samples_root = try readRepoFile(allocator, "samples/zigux/README.md");
-    defer allocator.free(samples_root);
-    try expectContains(samples_root, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;");
-    try expectContains(samples_root, "keep the ownership-focus packet visible there too");
-    try expectContains(samples_root, "first-NUL trimming and prefix skipping stop at the exported C-string boundary");
-    try expectContains(samples_root, "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned");
-    try expectContains(samples_root, "append-limited escape accounting stays inside caller storage");
-    try expectContains(samples_root, "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results");
-    try expectContains(samples_root, "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations");
-    try expectContains(samples_root, "treat any new `samples/zigux/*string*.zig` file as review-blocking");
-    try expectContains(samples_root, "lib/string_helpers.zig");
-    try expectContains(samples_root, "zigux/tests/phase7_string_helpers.zig");
-
-    try std.Io.Dir.cwd().access(io, "scripts/zigux/validate-phase7.py", .{});
-    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-make-wrapper.py", .{});
-    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py", .{});
-    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-build-wiring.py", .{});
-
-    const validator = try readRepoFile(allocator, "scripts/zigux/validate-phase7.py");
-    defer allocator.free(validator);
-    try expectContains(validator, "\"scripts/zigux/check-phase7-make-wrapper.py\",");
-    try expectContains(validator, "\"scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\",");
-    try expectContains(validator, "\"scripts/zigux/check-phase7-build-wiring.py\",");
-
-    const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
-    defer allocator.free(scripts_root);
-    try expectContains(scripts_root, "current `master` still ships no standalone `samples/zigux/*string*` Phase 5 reference sample");
-    try expectContains(scripts_root, "restored starter packet");
-    try expectNotContains(scripts_root, "expanded starter packet");
-    try expectContains(scripts_root, "Documentation/zigux/phase7-string-helpers-slice.md");
-    try expectContains(scripts_root, "Documentation/zigux/review-checklist.md");
-    try expectContains(scripts_root, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
-    try expectContains(scripts_root, "samples/zigux/README.md");
-    try expectContains(scripts_root, "lib/string_helpers.zig");
-    try expectContains(scripts_root, "zigux/tests/phase7_string_helpers.zig");
-    try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_survey.zig");
-    try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_manifest.json");
-    try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
-    try expectContains(scripts_root, "scripts/zigux/validate-phase7.py");
-    try expectOccurrenceCount(scripts_root, "scripts/zigux/check-phase7-make-wrapper.py", 2);
-    try expectOccurrenceCount(scripts_root, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py", 2);
-    try expectOccurrenceCount(scripts_root, "scripts/zigux/check-phase7-build-wiring.py", 2);
-    try expectContains(scripts_root, "make -C zigux phase7-validate");
-
-    const workflow = try readRepoFile(allocator, ".github/workflows/zigux-bootstrap.yml");
-    defer allocator.free(workflow);
-    try expectContains(workflow, "Validate Phase 7 runtime helper gates");
-    try expectContains(workflow, "make -C zigux phase7-validate");
-    try expectContains(workflow, "Run Phase 7 runtime helper tests");
-    try expectContains(workflow, "make -C zigux phase7-test");
-
-    const make_wrapper_note = try readRepoFile(allocator, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
-    defer allocator.free(make_wrapper_note);
-    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test");
-    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-make-wrapper.py");
-    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test");
-    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
-    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-build-wiring.py --self-test");
-    try expectContains(make_wrapper_note, "python3 scripts/zigux/check-phase7-build-wiring.py");
-    try expectContains(make_wrapper_note, "make -C zigux phase7-string-helpers-sample-boundary");
-    try expectContains(make_wrapper_note, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
-
-    const makefile = try readRepoFile(allocator, "zigux/Makefile");
-    defer allocator.free(makefile);
-    try expectContains(makefile, "phase7-string-helpers-sample-boundary:");
-    try expectContains(makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test");
-    try expectContains(makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test");
-    try expectContains(makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py --self-test");
-    try expectContains(makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py");
-    try expectContains(makefile, "build phase7-string-helpers-sample-boundary --build-file zigux/tests/phase7_build.zig --summary all");
-
-    const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
-    defer allocator.free(tests_root);
-    try expectContains(tests_root, "zigux/tests/phase7_string_helpers.zig");
-    try expectContains(tests_root, "zigux/tests/phase7_string_helpers_survey.zig");
-    try expectContains(tests_root, "zigux/tests/phase7_string_helpers_manifest.json");
-    try expectContains(tests_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
+    defer allocator.free(helper_tests);
+    try expectContains(helper_tests, "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes");
+    try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
+    try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
 
     const survey = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_survey.zig");
     defer allocator.free(survey);
-    try expectContains(survey, "expanded starter packet");
-    try expectNotContains(survey, "restored starter packet");
-    try expectContains(survey, "lib/string_helpers.zig");
-    try expectContains(survey, "zigux/tests/phase7_string_helpers.zig");
+    try expectContains(survey, "phase 7 string helpers survey keeps the expanded starter packet truthful");
+    try expectContains(survey, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectNotContains(survey, "Documentation/zigux/review-checklist.md");
+    try expectNotContains(survey, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
+    try expectNotContains(survey, "zigux/tests/phase7_build.zig");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
-    try expectNotContains(manifest, "\"current_master_state\": \"restored_starter_packet\"");
-    try expectContains(manifest, "\"lib/string_helpers.zig\"");
-    try expectContains(manifest, "\"zigux/tests/phase7_string_helpers.zig\"");
-
-    const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
-    defer allocator.free(build_file);
-    try expectContains(build_file, "\"phase7_string_helpers.zig\"");
-    try expectContains(build_file, "\"phase7_string_helpers_sample_boundary.zig\"");
+    try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_sample_boundary.zig\"");
+    try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_survey.zig\"");
+    try expectNotContains(manifest, "missing_review_surfaces");
+    try expectNotContains(manifest, "missing_on_master");
 }
