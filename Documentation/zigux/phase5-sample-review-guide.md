@@ -162,7 +162,7 @@ Keep the restored non-runtime `kernel_clone` default plus `runRetargetReplay()`,
 
 Review the currently readable trace-events packet through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`.
 
-Keep `formattedMessage()`, `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, and `runLifecycleBoundaryReplay()` explicit together with the selected-string plus `iter=%d` formatting cue, the exact `checked_focus` order, the full modulo-selected string cycle across counts `0` through `4`, the registration-first callback path, the restored zero-depth registration balance, the public lifecycle summary, the underflow plus `OutstandingRegistration` rejection packet, and the post-`exit()` replay rejection boundary as one bounded non-runtime packet.
+Keep `runAnchorReplay()`, `formattedMessage()`, `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, and `unregisterFunctionCallback()` explicit together with the selected-string plus `iter=%d` formatting cue, the exact `checked_focus` order, the full modulo-selected string cycle across counts `0` through `4`, the registration-first callback path, the restored zero-depth registration balance, the `OutstandingRegistration` rejection packet, and the post-`exit()` replay rejection boundary as one bounded non-runtime packet.
 
 ## Non-goals
 
