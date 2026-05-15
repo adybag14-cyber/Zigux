@@ -18,7 +18,7 @@ CONFDATA_MANIFEST = (
 CONFDATA_SURVEY = ROOT / "Documentation" / "zigux" / "phase2-confdata-bridge-survey.md"
 
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_SELF_TEST_CASE_COUNT = 11
+EXPECTED_SELF_TEST_CASE_COUNT = 12
 
 SELFTEST_CONFDATA_HELPER_ANCHORS = (
     "confdata bridge parses bounded config states",
@@ -360,6 +360,16 @@ def run_self_test() -> int:
             "CONFDATA_HELPER_ANCHOR_SURVEY_MISSING_MARKER",
             "`scripts/zigux/check-kconfig-bridge.py` gate plus the direct `zig test scripts/zigux/kconfig/confdata_bridge.zig` replay",
         ) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve_path(root, KCONFIG_BRIDGE_CHECKER).unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+        else:
+            raise AssertionError("missing checker file did not abort")
         checks_run += 1
 
         build_self_test_root(root)
