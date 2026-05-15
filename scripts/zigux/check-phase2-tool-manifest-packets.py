@@ -67,6 +67,7 @@ PHASE2_ARTIFACT_TOOLS_MANIFEST_EXPECTED = {
     "shared_routes": [
         "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
         "python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
+        "make -C zigux phase2-tools",
         "make -C zigux phase2-validate",
     ],
     "docs": [
