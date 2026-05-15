@@ -114,9 +114,11 @@ fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8, closi
 }
 
 fn isTristateValue(raw_value: []const u8) bool {
-    return std.ascii.eqlIgnoreCase(raw_value, "y") or
-        std.ascii.eqlIgnoreCase(raw_value, "m") or
-        std.ascii.eqlIgnoreCase(raw_value, "n");
+    if (raw_value.len == 0) return false;
+    return switch (std.ascii.toLower(raw_value[0])) {
+        'y', 'm', 'n' => true,
+        else => false,
+    };
 }
 
 fn isConfigSymbol(name: []const u8) bool {
@@ -192,7 +194,9 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         else
             .value;
 
-        const cooked_value = if (closing_quote_index) |index|
+        const cooked_value = if (kind == .tristate)
+            try allocator.dupe(u8, raw_value[0..1])
+        else if (closing_quote_index) |index|
             try decodeQuotedString(allocator, raw_value, index)
         else
             try allocator.dupe(u8, raw_value);
@@ -472,19 +476,28 @@ test "confdata bridge recognizes uppercase tristate assignments" {
         \\CONFIG_ALPHA=Y
         \\CONFIG_BETA=M
         \\CONFIG_DEBUG=N
+        \\CONFIG_GAMMA=Ysuffix
+        \\CONFIG_DELTA=M #comment
+        \\CONFIG_EPSILON=N trailing
         \\
     );
     defer deinitSummary(allocator, &summary);
 
-    try std.testing.expectEqual(@as(usize, 3), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 6), summary.set_count);
     try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
-    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 6), summary.entries.len);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
     try std.testing.expectEqualStrings("Y", summary.entries[0].value);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
     try std.testing.expectEqualStrings("M", summary.entries[1].value);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[2].kind);
     try std.testing.expectEqualStrings("N", summary.entries[2].value);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[3].kind);
+    try std.testing.expectEqualStrings("Y", summary.entries[3].value);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[4].kind);
+    try std.testing.expectEqualStrings("M", summary.entries[4].value);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[5].kind);
+    try std.testing.expectEqualStrings("N", summary.entries[5].value);
 }
 
 test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
