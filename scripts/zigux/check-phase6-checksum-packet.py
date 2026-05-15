@@ -33,19 +33,21 @@ REQUIRED_SNIPPETS = {
         "`PHASE6_STATUS=parked_reviewable`",
         "current `master` keeps `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         "direct focused perf route: `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`",
-        "route nuance note: the checksum helper-owned replay and slowdown gate are readable from the committed helper packet again, but the shared `zigux/Makefile` and workflow surfaces still need their own route-truthfulness follow-up before reviewers should treat those wrappers as equivalent packet summaries",
-        "current review posture: parked reviewable; the checksum roadmap anchor now keeps the helper-owned replay, slowdown gate, and direct C parity scaffolding readable on current `master`, while the remaining gap has narrowed to shared route inventory truthfulness rather than a missing checksum helper packet",
+        "direct Linux-style perf route: `make -C zigux phase6-checksum-perf`",
+        "route nuance note: the checksum helper-owned replay, slowdown gate, and Linux-style perf wrapper are readable from the committed helper packet again, but the aggregate `zigux/Makefile` and workflow surfaces still need their own route-truthfulness follow-up before reviewers should treat the broader `phase6-validate`, `phase6-perf`, and `phase6` wrappers as equivalent packet summaries",
+        "current review posture: parked reviewable; the checksum roadmap anchor now keeps the helper-owned replay, slowdown gate, direct C parity scaffolding, aligned IPv4 fast-path helper proof, and Linux-style perf wrapper readable on current `master`, while the remaining gap has narrowed to aggregate shared-route inventory truthfulness rather than a missing checksum helper packet",
     ],
     "Documentation/zigux/phase6-helper-parity-catalog.md": [
         "focused helper replay on current `master`: `zigux/tests/phase6_checksum.zig`",
         "dedicated helper-local perf replay on current `master`: `zigux/tests/phase6_checksum_perf.zig`",
         "focused checksum fixture companion on current `master`: `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         "still-present direct C parity scaffolding: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
+        "direct Linux-style perf rerun route: `make -C zigux phase6-checksum-perf`",
         "exact current-file evidence: `lib/checksum.zig` now covers one's-complement add/subtract, block add/subtract, fold and unfold, replacement helpers, seeded `partial()` and `compute()` paths, and IPv4 plus IPv6 pseudo-header accumulation; `zigux/tests/phase6_checksum.zig` now replays fixture-backed compute parity, split-composition, seeded partials, KUnit-inspired carry discipline, random-prefix coverage, and pseudo-header cases; and `zigux/tests/phase6_checksum_perf.zig` now keeps two helper-local slowdown cases, `64` and `1501`, each capped at `max_slowdown_pct = 150` with `reps = 20_000` and `4_000`",
-        "current review posture: the checksum helper-owned packet is directly readable on current `master`, while the broader shared route inventory stays partially blocked only because the Linux-style wrapper surfaces and bootstrap workflow still lag those direct checksum build routes",
+        "current review posture: the checksum helper-owned packet is directly readable on current `master`, while the broader shared route inventory stays partially blocked only because the aggregate wrappers and bootstrap workflow still lag the restored checksum perf wrapper",
     ],
     "Documentation/zigux/phase6-perf-gate-survey.md": [
-        "checksum shared posture: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` are directly readable on current `master`, and current `zigux/tests/phase6_build.zig` defines the dedicated `phase6-checksum-perf` build step again; that slowdown gate is directly reviewable from the committed tree even though the broader `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` readbacks still expose the wrapper name only through shared route inventory surfaces",
+        "checksum shared posture: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` are directly readable on current `master`, and current `zigux/tests/phase6_build.zig` defines the dedicated `phase6-checksum-perf` build step again; that slowdown gate is directly reviewable from the committed tree, `zigux/Makefile` now exposes a committed `phase6-checksum-perf` target body, and only the broader bootstrap workflow plus aggregate wrapper summaries still lag the checksum packet",
         "checksum exact thresholds: `zigux/tests/phase6_checksum_perf.zig` now keeps two helper-local slowdown cases, `64` at `reps = 20_000` and `1501` at `reps = 4_000`, each capped at `max_slowdown_pct = 150`, so the checksum perf packet is reviewable from committed evidence today even while the Linux-style wrapper inventory still lags that direct build route",
     ],
     "scripts/zigux/check-phase6-checksum-c-parity.py": [
@@ -90,15 +92,16 @@ MANIFEST_REQUIRED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf",
 ]
 
 MANIFEST_REQUIRED_BLOCKED_ROUTES = [
     "make -C zigux phase6-checksum-c-parity",
-    "make -C zigux phase6-checksum-perf",
 ]
 
 MANIFEST_FORBIDDEN_BLOCKED_ROUTES = [
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
+    "make -C zigux phase6-checksum-perf",
 ]
 
 MANIFEST_REQUIRED_TRUTHFULNESS_NOTE_SNIPPETS = [
@@ -124,10 +127,9 @@ SELF_TEST_MANIFEST = {
     "tests_root_present_entrypoints": MANIFEST_PRESENT_ENTRYPOINTS,
     "tests_root_public_tree_gaps": [],
     "tests_root_truthfulness_note": (
-        "The shared tests-root reminder packet still needs its own follow-up so it "
-        "spells out the restored checksum helper, focused replay, helper-local perf "
-        "replay, and fixture companion beside the already-listed base64, bsearch, "
-        "and hexdump surfaces."
+        "The shared tests-root reminder packet now spells out the restored checksum "
+        "helper, focused replay, helper-local perf replay, and fixture companion "
+        "beside the already-listed base64, bsearch, and hexdump surfaces."
     ),
     "inventory_only_blocked_routes": MANIFEST_REQUIRED_BLOCKED_ROUTES,
     "exact_checks": MANIFEST_REQUIRED_EXACT_CHECKS,
@@ -308,6 +310,26 @@ def run_self_test() -> None:
         expect_failure(
             root,
             "zigux/tests/phase6_helper_parity_manifest.json: inventory_only_blocked_routes omits python3 scripts/zigux/check-phase6-checksum-c-parity.py",
+        )
+
+        write_fixture(root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["inventory_only_blocked_routes"].append("make -C zigux phase6-checksum-perf")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json: inventory_only_blocked_routes omits make -C zigux phase6-checksum-perf",
+        )
+
+        write_fixture(root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"] = [
+            check for check in manifest["exact_checks"] if check != "make -C zigux phase6-checksum-perf"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json: exact_checks contains make -C zigux phase6-checksum-perf",
         )
 
         print("PHASE6_CHECKSUM_PACKET_SELF_TEST=pass")
