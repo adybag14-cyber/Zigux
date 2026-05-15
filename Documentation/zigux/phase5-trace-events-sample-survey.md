@@ -54,9 +54,12 @@ Aligned reminder surfaces in this run:
 
 Those surfaces already keep the landed trace-events packet explicit, keep the missing shared `zigux/tests/phase5_build.zig` route explicit, keep the selected-string plus `iter=%d` replay positioned as the approved formatting idiom cue instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
 
-The tests-root shared reminder is close, but it is not fully aligned yet: current `zigux/tests/README.md` still points one trace-events tests-root path at mixed-case `zigux/tests/phase5_trace_EVENTS_sample.zig` even though the shipped file on current `master` is `zigux/tests/phase5_trace_events_sample.zig`.
+The tests-root shared reminder is aligned in this run too:
 
-Treat that tests-root path typo as the next one-file same-lane reminder-surface repair rather than as already-aligned current evidence.
+- `zigux/tests/README.md` names `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
+- it also keeps `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, the selected-string plus `iter=%d` cue, and `OutstandingRegistration` explicit
+
+Treat the shared reminder packet as aligned on current `master` until a fresh reread finds a new one-file drift.
 
 ## Landed sample and exact checks
 
@@ -78,7 +81,7 @@ The precise current gap is no longer "Zigux lacks a trace-events reference sampl
 
 - the roadmap-backed trace-events anchor already has a directly readable non-runtime sample plus focused tests-root evidence
 - current `master` still does not directly expose the older shared `zigux/tests/phase5_build.zig` route
-- broader shared-surface cleanup should stay limited to one reminder surface at a time, starting with the remaining tests-root path typo if it is still present on the next reread
+- broader shared-surface cleanup can stay parked unless a future reread finds a new one-file reminder drift, because the directly coupled shared docs-root, sample-root, scripts-root, and tests-root surfaces already align around the landed packet today
 
 So the honest same-lane follow-through is to keep this survey note anchored to the directly readable trace-events packet and to leave broader shared-surface cleanup for separate one-file repairs.
 
@@ -93,6 +96,6 @@ This survey does not claim:
 
 ## Next bounded step
 
-Leave this lane parked unless a fresh same-lane reread finds one more exact shared-surface truthfulness repair to make for the landed Phase 5 sample packet.
+Leave this lane parked unless a fresh same-lane reread finds a new exact shared-surface truthfulness repair to make for the landed Phase 5 sample packet.
 
-The best next bounded follow-up is the one-file tests-root repair only if current `master` still points `zigux/tests/README.md` at mixed-case `zigux/tests/phase5_trace_EVENTS_sample.zig` instead of the shipped `zigux/tests/phase5_trace_events_sample.zig`. 
+The best next bounded follow-up is the next one-file shared reminder drift that current `master` actually shows after rereading `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and the direct trace-events packet together.
