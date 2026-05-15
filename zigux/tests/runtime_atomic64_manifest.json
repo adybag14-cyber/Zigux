@@ -21,6 +21,112 @@
     "blocked_deliverable": "loadable Phase 9 runtime atomic64 pilot module lifecycle parity",
     "next_gate": "keep the direct atomic64 starter packet explicit, treat the visible shared loader-facing reminder packet as review-only evidence, and leave the broader runtime-substrate blocker explicit"
   },
+  "delivery_evidence_catalog": [
+    {
+      "id": "runtime-atomic64-sample",
+      "kind": "sample_starter",
+      "path": "samples/zigux/runtime_atomic64.zig",
+      "why_now": "The bounded starter keeps the `lib/atomic64_test.c` anchor, direct counter replay, and selftest-hook contract reviewable without claiming live loadable-module parity."
+    },
+    {
+      "id": "runtime-atomic64-loader-scaffold",
+      "kind": "runtime_loader_scaffold",
+      "path": "samples/zigux/runtime_atomic64_loader.zig",
+      "why_now": "The sample-side loader scaffold keeps prepared counter-summary snapshot replay, shared-request handoff checks, and release-without-substrate rollback reviewable while the runtime substrate stays blocked."
+    },
+    {
+      "id": "runtime-atomic64-module-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_atomic64_module.zig",
+      "why_now": "The direct module gate keeps the starter lifecycle, selftest hook, and bounded snapshot evidence machine-checkable on current master."
+    },
+    {
+      "id": "runtime-atomic64-diff-gate",
+      "kind": "differential_validation",
+      "path": "zigux/tests/runtime_atomic64_diff.zig",
+      "why_now": "The focused diff gate keeps add, sub, bitwise, swap, compare-swap, and guard-path expectations from `lib/atomic64_test.c` explicit without widening the packet."
+    },
+    {
+      "id": "runtime-atomic64-survey-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_atomic64_survey.zig",
+      "why_now": "The dedicated survey gate is the packet-local fail-closed surface for the runtime atomic64 survey note and manifest."
+    },
+    {
+      "id": "runtime-atomic64-family-make-route",
+      "kind": "review_route",
+      "path": "zigux/Makefile",
+      "why_now": "The dedicated `make -C zigux phase9-runtime-atomic64-test` route keeps the direct sample, module, diff, survey, and loader packet replayable beside the shared Phase 9 build bundle."
+    },
+    {
+      "id": "runtime-loader-facade",
+      "kind": "validation",
+      "path": "zigux/kernel/runtime_loader.zig",
+      "why_now": "The shared runtime-loader facade keeps the approved pilot-family contract, prepared-plan drift guards, and release-without-substrate state transitions visible while live runtime binding stays blocked."
+    },
+    {
+      "id": "runtime-loader-contract",
+      "kind": "validation",
+      "path": "zigux/kernel/runtime_loader_contract.zig",
+      "why_now": "The shared request contract records the allocator, lifecycle, and selftest-hook handoff shape that the atomic64 loader scaffold must preserve."
+    },
+    {
+      "id": "runtime-loader-allocator-init-flow",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_loader_allocator_init_flow.zig",
+      "why_now": "The allocator/init-flow replay keeps the shared handoff packet reviewable beside the atomic64-local sample and survey gates."
+    },
+    {
+      "id": "runtime-atomic64-shared-build-boundary",
+      "kind": "validation",
+      "path": "zigux/tests/phase9_build.zig",
+      "why_now": "The shared Phase 9 build bundle enumerates the atomic64-local sample, module, diff, loader, survey, and shared loader replay surfaces that this manifest catalogs explicitly."
+    },
+    {
+      "id": "runtime-atomic64-survey-note",
+      "kind": "review_note",
+      "path": "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+      "why_now": "The survey note records the current bounded runtime atomic64 packet and keeps the still-blocked live loader binding explicit."
+    },
+    {
+      "id": "runtime-atomic64-module-slice-note",
+      "kind": "review_note",
+      "path": "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+      "why_now": "The module-slice note keeps the starter, bounded loader scaffold, prepared counter-summary snapshot replay, and shared handoff packet visible for review."
+    }
+  ],
+  "ownership_map": [
+    {
+      "surface": "zigux/tests/runtime_atomic64_manifest.json",
+      "role": "packet_truth_manifest",
+      "owner": "P9-L04",
+      "boundary": "Records the visible runtime atomic64 packet on current master without borrowing proof from unrelated shared loader or later runtime-pilot lanes."
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+      "role": "survey_note",
+      "owner": "P9-L04",
+      "boundary": "Records the bounded runtime atomic64 review packet and keeps the blocked live loader-binding boundary explicit."
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+      "role": "module_slice_note",
+      "owner": "P9-L04",
+      "boundary": "Tracks the starter, bounded loader-scaffold, prepared counter-summary snapshot replay, and shared handoff proof without claiming loadable-module parity."
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+      "role": "shared_owner_map",
+      "owner": "P9-L11",
+      "boundary": "Owns the shared Phase 9 loader-facing reminder packet separately from this runtime atomic64 family-local packet."
+    },
+    {
+      "surface": "zigux/tests/phase9_build.zig",
+      "role": "shared_build_bundle",
+      "owner": "P9-L11",
+      "boundary": "Remains the shared Phase 9 build boundary while directly enumerating only the atomic64-local `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-diff-tests`, `phase9-runtime-atomic64-loader-tests`, and shared `phase9-runtime-loader-shared-tests` routes that this manifest catalogs; the broader loader packet stays outside this family-local ownership surface."
+    }
+  ],
   "gaps": [
     {
       "id": "phase9-build-gate",
