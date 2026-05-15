@@ -112,6 +112,10 @@ PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
 )
 PHASE2_VALIDATION_TOOLCHAIN_EXPECTED_COMMAND_COUNT = 2
 PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28
+ARTIFACT_DIFF_REQUIRED_RELATIVE_PATHS = (
+    "Documentation/zigux/artifact-diff.md",
+    "scripts/zigux/artifact_diff.py",
+)
 PHASE2_REQUIRED_RELATIVE_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
@@ -153,7 +157,9 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
 )
 PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
 PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 36
+ARTIFACT_DIFF_EXPECTED_REQUIRED_TAILS = frozenset(ARTIFACT_DIFF_REQUIRED_RELATIVE_PATHS)
+ARTIFACT_DIFF_EXPECTED_REQUIRED_FILE_COUNT = 2
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 40
 
 
 def build_python_commands(
@@ -280,6 +286,29 @@ def collect_required_file_inventory_issues(
             issues.append(f"phase2_validation_required_files:missing:{tail}")
     for tail in sorted(set(required_relative_paths) - expected_tails):
         issues.append(f"phase2_validation_required_files:unexpected:{tail}")
+    return issues
+
+
+def collect_artifact_diff_inventory_issues(
+    required_relative_paths: tuple[str, ...] = ARTIFACT_DIFF_REQUIRED_RELATIVE_PATHS,
+    *,
+    expected_count: int = ARTIFACT_DIFF_EXPECTED_REQUIRED_FILE_COUNT,
+    expected_tails: frozenset[str] = ARTIFACT_DIFF_EXPECTED_REQUIRED_TAILS,
+) -> list[str]:
+    issues: list[str] = []
+    count = len(required_relative_paths)
+    if count != expected_count:
+        issues.append(
+            "phase2_validation_artifact_diff_files:count="
+            f"{count}:expected={expected_count}"
+        )
+    if len(set(required_relative_paths)) != count:
+        issues.append("phase2_validation_artifact_diff_files:duplicate_relative_path")
+    for tail in sorted(expected_tails):
+        if tail not in required_relative_paths:
+            issues.append(f"phase2_validation_artifact_diff_files:missing:{tail}")
+    for tail in sorted(set(required_relative_paths) - expected_tails):
+        issues.append(f"phase2_validation_artifact_diff_files:unexpected:{tail}")
     return issues
 
 
@@ -569,6 +598,50 @@ def run_self_test() -> list[str]:
             [],
         ),
         (
+            "artifact_diff_inventory_ok",
+            collect_artifact_diff_inventory_issues(),
+            [],
+        ),
+        (
+            "artifact_diff_inventory_missing_doc",
+            collect_artifact_diff_inventory_issues(
+                tuple(
+                    rel_path
+                    for rel_path in ARTIFACT_DIFF_REQUIRED_RELATIVE_PATHS
+                    if rel_path != "Documentation/zigux/artifact-diff.md"
+                )
+            ),
+            [
+                "phase2_validation_artifact_diff_files:count=1:expected=2",
+                "phase2_validation_artifact_diff_files:missing:Documentation/zigux/artifact-diff.md",
+            ],
+        ),
+        (
+            "artifact_diff_inventory_missing_helper",
+            collect_artifact_diff_inventory_issues(
+                tuple(
+                    rel_path
+                    for rel_path in ARTIFACT_DIFF_REQUIRED_RELATIVE_PATHS
+                    if rel_path != "scripts/zigux/artifact_diff.py"
+                )
+            ),
+            [
+                "phase2_validation_artifact_diff_files:count=1:expected=2",
+                "phase2_validation_artifact_diff_files:missing:scripts/zigux/artifact_diff.py",
+            ],
+        ),
+        (
+            "artifact_diff_inventory_unexpected_path",
+            collect_artifact_diff_inventory_issues(
+                ARTIFACT_DIFF_REQUIRED_RELATIVE_PATHS
+                + ("Documentation/zigux/phase2-fixdep-next-step-note.md",)
+            ),
+            [
+                "phase2_validation_artifact_diff_files:count=3:expected=2",
+                "phase2_validation_artifact_diff_files:unexpected:Documentation/zigux/phase2-fixdep-next-step-note.md",
+            ],
+        ),
+        (
             "required_file_inventory_missing_fixdep_next_step_note",
             collect_required_file_inventory_issues(
                 tuple(
@@ -802,10 +875,21 @@ def main() -> int:
     toolchain_command_issues = collect_toolchain_command_inventory_issues()
     command_issues = collect_command_inventory_issues()
     file_inventory_issues = collect_required_file_inventory_issues()
-    if toolchain_command_issues or command_issues or file_inventory_issues:
+    artifact_diff_inventory_issues = collect_artifact_diff_inventory_issues()
+    if (
+        toolchain_command_issues
+        or command_issues
+        or file_inventory_issues
+        or artifact_diff_inventory_issues
+    ):
         label = "PHASE2_VALIDATION_SELF_TEST" if args.self_test else "PHASE2_VALIDATION"
         print(f"{label}=fail")
-        for issue in [*toolchain_command_issues, *command_issues, *file_inventory_issues]:
+        for issue in [
+            *toolchain_command_issues,
+            *command_issues,
+            *file_inventory_issues,
+            *artifact_diff_inventory_issues,
+        ]:
             print(issue)
         return 1
 
