@@ -86,6 +86,23 @@ BASE64_CASES = [
     },
 ]
 
+CHECKSUM_CASES = [
+    {
+        "label": "64",
+        "len": 64,
+        "reps": 20000,
+        "seed": 0,
+        "max_slowdown_pct": 150,
+    },
+    {
+        "label": "1501",
+        "len": 1501,
+        "reps": 4000,
+        "seed": 0x1234_5678,
+        "max_slowdown_pct": 150,
+    },
+]
+
 HEXDUMP_CASES = [
     {"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175},
     {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550},
@@ -234,6 +251,8 @@ def validate_manifest(repo_root: Path) -> None:
 
     if thresholds.get("base64", {}).get("cases") != BASE64_CASES:
         raise ValidationError(f"unexpected base64 perf thresholds in {MANIFEST_PATH}")
+    if thresholds.get("checksum", {}).get("cases") != CHECKSUM_CASES:
+        raise ValidationError(f"unexpected checksum perf thresholds in {MANIFEST_PATH}")
     if thresholds.get("hexdump", {}).get("cases") != HEXDUMP_CASES:
         raise ValidationError(f"unexpected hexdump perf thresholds in {MANIFEST_PATH}")
 
@@ -308,6 +327,7 @@ def scaffold_repo(root: Path) -> None:
         "perf_posture": dict(EXPECTED_PERF_POSTURE),
         "perf_thresholds": {
             "base64": {"cases": list(BASE64_CASES)},
+            "checksum": {"cases": list(CHECKSUM_CASES)},
             "bsearch": {"typed_lookup_budget": 4, "raw_lookup_budget": 4},
             "hexdump": {"cases": list(HEXDUMP_CASES)},
         },
@@ -368,6 +388,12 @@ def run_self_test() -> None:
             MANIFEST_PATH,
             '"perf_replay_cases": 6',
             '"perf_replay_cases": 5',
+        )
+        assert_failure(
+            root,
+            MANIFEST_PATH,
+            '"reps": 4000',
+            '"reps": 8000',
         )
         assert_failure(
             root,
