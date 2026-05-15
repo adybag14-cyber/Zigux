@@ -15,6 +15,7 @@ MANIFEST_REL = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 SURVEY_REL = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 MATRIX_REL = Path("Documentation/zigux/phase4-validation-matrix.md")
 GATE_EVIDENCE_REL = Path("Documentation/zigux/phase4-gate-evidence.md")
+DOC_README_REL = Path("Documentation/zigux/README.md")
 CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 BUILD_REL = Path("zigux/tests/phase4_build.zig")
@@ -33,6 +34,7 @@ REQUIRED_FILES = [
     SURVEY_REL,
     MATRIX_REL,
     GATE_EVIDENCE_REL,
+    DOC_README_REL,
     CHECKLIST_REL,
     TESTS_README_REL,
     BUILD_REL,
@@ -118,6 +120,12 @@ GATE_EVIDENCE_MARKERS = [
     "atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
 ]
 
+DOC_README_MARKERS = [
+    "`Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md`",
+    "approved local-only benchmark-command and acceptable-limit split",
+    "still-pending shared-CI perf-promotion posture explicit for the shipped Phase 4 gates",
+]
+
 REVERSIBLE_DELIVERY_MARKERS = [
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "zigux/tests/phase4_perf_baseline_manifest.json",
@@ -192,6 +200,7 @@ SELF_TEST_CASES = [
     "gate_evidence_limit_summary_drift",
     "gate_evidence_coordination_owner_drift",
     "gate_evidence_dedicated_local_checker_marker_drift",
+    "docs_readme_perf_governance_drift",
     "review_checklist_coordination_owner_drift",
     "tests_readme_wrapper_drift",
     "makefile_wrapper_drift",
@@ -239,6 +248,7 @@ def validate_root(root: Path) -> list[str]:
     survey_text = read_text(root / SURVEY_REL)
     matrix_text = read_text(root / MATRIX_REL)
     gate_evidence_text = read_text(root / GATE_EVIDENCE_REL)
+    doc_readme_text = read_text(root / DOC_README_REL)
     reversible_delivery_text = read_text(root / REVERSIBLE_DELIVERY_REL)
     sequencing_text = read_text(root / SEQUENCING_REL)
     checklist_text = read_text(root / CHECKLIST_REL)
@@ -306,6 +316,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in GATE_EVIDENCE_MARKERS:
         if marker not in gate_evidence_text:
             failures.append(f"gate_evidence_marker:{marker}")
+    for marker in DOC_README_MARKERS:
+        if marker not in doc_readme_text:
+            failures.append(f"doc_readme_marker:{marker}")
     for marker in REVERSIBLE_DELIVERY_MARKERS:
         if marker not in reversible_delivery_text:
             failures.append(f"reversible_delivery_marker:{marker}")
@@ -369,8 +382,6 @@ def build_fixture_tree(root: Path) -> None:
                     "zigux/tests/README.md, "
                     "Documentation/zigux/phase4-validation-matrix.md, "
                     "Documentation/zigux/phase4-gate-evidence.md, "
-                    "Documentation/zigux/phase4-reversible-delivery-evidence.md, "
-                    "Documentation/zigux/phase4-validation-lane-sequencing.md, and "
                     "Documentation/zigux/review-checklist.md continue to fail "
                     "closed on the same decision-owner, coordination-owner, "
                     "acceptable-limit, and shared-CI-pending promotion markers; "
@@ -472,6 +483,18 @@ def build_fixture_tree(root: Path) -> None:
                 "while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.",
                 "its manifest, survey, and dedicated local checker exact-pin the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.",
                 "atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root / DOC_README_REL,
+        "\n".join(
+            [
+                "# Zigux Documentation",
+                "`Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md`",
+                "approved local-only benchmark-command and acceptable-limit split",
+                "still-pending shared-CI perf-promotion posture explicit for the shipped Phase 4 gates",
             ]
         )
         + "\n",
@@ -853,6 +876,21 @@ def run_self_test() -> int:
         if not expect_failure(root, "gate_evidence_marker:its manifest, survey, and dedicated local checker exact-pin the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope."):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("gate evidence dedicated local checker marker drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / DOC_README_REL,
+            replace_once(
+                read_text(root / DOC_README_REL),
+                "approved local-only benchmark-command and acceptable-limit split",
+                "approved local-only benchmark-command split",
+            ),
+        )
+        if not expect_failure(root, "doc_readme_marker:approved local-only benchmark-command and acceptable-limit split"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("docs README perf-governance drift case did not fail closed")
             return 1
         case_count += 1
         build_fixture_tree(root)
