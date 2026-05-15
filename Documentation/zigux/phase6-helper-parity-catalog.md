@@ -22,6 +22,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - focused slowdown-fixture companion: `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - still-present direct C parity scaffolding: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 - dedicated helper-local perf replay on current `master`: `zigux/tests/phase6_base64_perf.zig`
+- direct local perf rerun route: `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`
 - direct parity packet note: the committed direct C parity scaffolding is self-contained again because `zigux/tests/phase6_base64_c_parity.zig` and `zigux/tests/phase6_base64_c_casegen.zig` now consume the compact `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` corpus instead of the absent focused replay fixture module
 - exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records `24` direct C parity cases and preserves the dedicated slowdown packet as six case labels, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`
 - current review posture: reviewable; current `master` keeps the helper, the focused helper replay, the dedicated slowdown gate, the slowdown-fixture companion, and a self-contained direct C parity packet under the same bounded base64 review surface, while the broader shared Phase 6 packet stays partially blocked only by the wrapper-inventory caveats recorded below
@@ -79,6 +80,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - `make -C zigux phase6-hexdump-test`
 - `make -C zigux phase6-hexdump-review`
 - `make -C zigux phase6-hexdump-perf`
+- `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`
 - `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`
 
 ### Still present in shared route surfaces but currently blocked or documentary
