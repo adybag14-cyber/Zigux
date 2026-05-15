@@ -263,6 +263,11 @@ REQUIRED_MARKERS = {
         "strreplace()",
         "phase 7 string helpers starter covers whitespace trimming and prefix skipping",
         "phase 7 string helpers starter formats bounded sizes with three significant figures",
+        "phase 7 string helpers starter builds sequential string arrays and sentinel views",
+        "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes",
+        "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result",
+        "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup",
+        "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view",
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "expanded helper packet",
@@ -293,6 +298,10 @@ REQUIRED_MARKERS = {
         "phase 7 string helpers starter unescapes supported escape families and preserves unsupported escapes",
         "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
         "phase 7 string helpers starter builds sequential string arrays and sentinel views",
+        "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes",
+        "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result",
+        "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup",
+        "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view",
         "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent",
         "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix",
         "phase 7 string helpers starter pads bounded copies without reading past the provided source slice",
@@ -330,6 +339,7 @@ EXACT_COUNT_MARKERS = {
         "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results": 1,
     },
 }
+
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
@@ -674,6 +684,36 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter formats bounded sizes with three significant figures",
             ),
             (
+                "string helper survey string-array coverage marker",
+                "zigux/tests/phase7_string_helpers_survey.zig",
+                "phase 7 string helpers starter builds sequential string arrays and sentinel views",
+                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter builds sequential string arrays and sentinel views",
+            ),
+            (
+                "string helper survey zero-count sentinel marker",
+                "zigux/tests/phase7_string_helpers_survey.zig",
+                "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes",
+                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes",
+            ),
+            (
+                "string helper survey sibling-ownership marker",
+                "zigux/tests/phase7_string_helpers_survey.zig",
+                "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result",
+                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result",
+            ),
+            (
+                "string helper survey allocator-failure marker",
+                "zigux/tests/phase7_string_helpers_survey.zig",
+                "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup",
+                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup",
+            ),
+            (
+                "string helper survey overflow marker",
+                "zigux/tests/phase7_string_helpers_survey.zig",
+                "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view",
+                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view",
+            ),
+            (
                 "string helper manifest expanded state marker",
                 "zigux/tests/phase7_string_helpers_manifest.json",
                 "\"current_master_state\": \"expanded_starter_packet\"",
@@ -726,6 +766,30 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_string_helpers.zig",
                 "phase 7 string helpers starter builds sequential string arrays and sentinel views",
                 "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter builds sequential string arrays and sentinel views",
+            ),
+            (
+                "string helper test zero-count sentinel marker",
+                "zigux/tests/phase7_string_helpers.zig",
+                "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes",
+                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes",
+            ),
+            (
+                "string helper test sibling-ownership marker",
+                "zigux/tests/phase7_string_helpers.zig",
+                "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result",
+                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result",
+            ),
+            (
+                "string helper test allocator-failure marker",
+                "zigux/tests/phase7_string_helpers.zig",
+                "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup",
+                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup",
+            ),
+            (
+                "string helper test overflow marker",
+                "zigux/tests/phase7_string_helpers.zig",
+                "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view",
+                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view",
             ),
             (
                 "string helper test kfree teardown coverage",
