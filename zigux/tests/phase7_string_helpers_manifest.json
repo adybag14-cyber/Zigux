@@ -68,8 +68,8 @@
   "ownership_focus": [
     "first-NUL-bounded helpers keep caller-provided slices explicit so whitespace trimming and prefix skipping stop at the exported C-string boundary",
     "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit",
-    "stringEscapeMem() and stringEscapeStrAnyNp() keep append-limited and dictionary-mode output accounting inside caller-owned storage",
-    "stringEscapeMemAnyNp() and stringEscapeStr() keep any-NP and first-NUL-bounded string-wrapper escaping explicit without widening beyond caller-owned storage",
+    "stringEscapeMem() keeps append-limited and dictionary-mode output accounting inside caller-owned storage",
+    "stringEscapeMemAnyNp(), stringEscapeStr(), and stringEscapeStrAnyNp() keep any-NP and first-NUL-bounded string-wrapper escaping explicit without widening beyond caller-owned storage",
     "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
     "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched",
     "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries"
