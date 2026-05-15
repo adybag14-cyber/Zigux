@@ -7,12 +7,13 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-input-survey`
 - `PHASE10_LANE_KEY=P10-L22`
+- `PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport`
 - `PHASE10_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
-- scope: keep the current `virtio_input` packet fail-closed around the landed lab-only driver validation evidence while risky transport remains blocked and the adjacent shared build-graph follow-through stays parked in `P10-L15`
+- scope: keep the current `virtio_input` packet fail-closed around the landed lab-only driver validation evidence while risky transport remains blocked, the roadmap's dual implementations for risky areas stay parked at `blocked_on_risky_transport`, and the adjacent shared build-graph follow-through stays parked in `P10-L15`
 
 ## Why this slice exists
 
-The Phase 10 roadmap still names `drivers/virtio/virtio_input.c` as a VM-friendly lab-driver anchor.
+The Phase 10 roadmap still names `drivers/virtio/virtio_input.c` as a VM-friendly lab-driver anchor and requires lab-only driver validation before risky-transport dual implementations can reopen broader lifecycle claims.
 
 This survey keeps the current packet truthful around the direct helper, the wrapper-facing verify replay in `drivers/virtio/virtio_input_verify.zig`, the direct gate in `zigux/tests/phase10_virtio_input.zig`, the dedicated probe-preflight replay in `zigux/tests/phase10_virtio_input_probe_preflight.zig`, the dedicated queue-callback-preflight replay in `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, the registration-preflight replay in `zigux/tests/phase10_virtio_input_registration_preflight.zig`, the teardown-observation replay in `zigux/tests/phase10_virtio_input_teardown_observation.zig`, the capability-setup and multitouch-slot helper boundaries in `drivers/virtio/virtio_input.zig`, the bounded probe-preflight, registration-preflight, queue-callback-preflight, status-drain, and teardown-observation helpers, the survey gate, and the new slice companions.
 
@@ -22,6 +23,7 @@ The current note therefore keeps `phase10-virtio-input-verify-replay`, `phase10-
 
 - `drivers/virtio/virtio_input.c` is still the Phase 10 anchor and still mixes config-space reads, queue setup, status sends, event handling, capability setup, registration-facing state, freeze or restore hooks, and teardown paths.
 - current `master` now keeps the capability-setup and multitouch-slot helpers, the direct lab gate, the dedicated probe-preflight replay, the wrapper-facing verify replay, the probe-preflight summary, the queue-callback preflight summary plus replay, the registration-preflight summary plus replay, the teardown-observation summary plus replay, the bounded status-drain helper, the survey gate, the survey manifest, and the packet-local slice companions visible in the same lane.
+- the Phase 10 roadmap still requires dual implementations for risky areas before this lane can widen into transport-backed registration, queue callback, freeze, restore, or status-completion closure, so the current survey packet keeps that posture explicit as `blocked_on_risky_transport` instead of implying a reopened Architecture Council packet.
 - wrapper ownership stays with the already-landed shared Phase 10 packets in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, and `drivers/virtio/virtio_mmio.zig`, so those wrappers remain outside virtio_input-local work.
 - `make -C zigux phase10-test` and `make -C zigux phase10` remain the shared route markers for this packet even though the adjacent compile-path follow-through for the probe-preflight, registration-preflight, and teardown-observation build entries stays parked in `P10-L15`.
 
@@ -40,7 +42,7 @@ The current note therefore keeps `phase10-virtio-input-verify-replay`, `phase10-
 - `phase10-virtio-input-teardown-observation-replay` keeps the dedicated teardown-observation replay explicit as the reset-local cleanup replay below remove, freeze, or restore parity.
 - `phase10-virtio-input-teardown-observation-helper` keeps the teardown-observation summary explicit around reset-local identity preservation and capability cleanup without widening into remove lifecycle claims.
 - `phase10-virtio-input-wrapper-ownership-note` keeps the wrapper ownership reminder explicit so virtio core, virtqueue wrapper, and MMIO wrapper work stays outside virtio_input-local work.
-- `phase10-virtio-input-registration-lifecycle` remains blocked below real event delivery, input registration lifecycle parity, freeze or restore parity, and transport-backed status completion callbacks.
+- `phase10-virtio-input-registration-lifecycle` remains blocked below real event delivery, input registration lifecycle parity, freeze or restore parity, transport-backed status completion callbacks, and the roadmap's dual-implementation boundary for risky transport.
 
 ## Non-Goals
 
@@ -49,7 +51,7 @@ This survey slice does not claim:
 - real event delivery or full `input_register_device()` parity
 - transport-backed status completion callbacks or queue-callback execution on live hardware paths
 - probe, remove, freeze, restore, or reset parity beyond the bounded local summaries already landed
-- risky-transport closure or an Architecture Council reopen attachment
+- risky-transport dual-implementation closure or an Architecture Council reopen attachment
 
 ## Gates
 
