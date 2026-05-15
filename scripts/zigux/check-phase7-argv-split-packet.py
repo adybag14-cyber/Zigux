@@ -124,7 +124,7 @@ REQUIRED_MARKERS = {
         "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact",
         "phase 7 argvFree on a non-blank result restores the canonical blank sentinels",
-        "phase 7 argvSplit preserves C-string termination for the final token and argv vector",
+        "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
         "phase 7 argvSplit deinit clears exported storage and argv views",
         "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
         "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another",
@@ -232,7 +232,7 @@ MISSING_MARKER_CASES = [
     ("zigux/tests/README.md", "zigux/tests/phase7_argv_split_manifest.json"),
     (
         "zigux/tests/phase7_argv_split.zig",
-        "phase 7 argvSplit preserves C-string termination for the final token and argv vector",
+        "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
     ),
     (
         "zigux/tests/phase7_argv_split.zig",
