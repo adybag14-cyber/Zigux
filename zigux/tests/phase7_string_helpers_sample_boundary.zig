@@ -101,11 +101,17 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(slice_note, "Current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample");
     try expectContains(slice_note, "leading whitespace skipping that stops at the first NUL");
     try expectContains(slice_note, "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting");
+    try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown");
+    try expectContains(slice_note, "allocator-backed duplicate-and-replace behavior that rewrites only the exported C-string prefix and leaves the source buffer untouched");
     try expectNotContains(slice_note, "restored starter packet");
     try expectNotContains(slice_note, "missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
 
     const helper = try readRepoFile(allocator, "lib/string_helpers.zig");
     defer allocator.free(helper);
+    try expectContains(helper, "pub const KasprintfStrarrayResult = struct {");
+    try expectContains(helper, "pub fn kasprintfStrarray");
+    try expectContains(helper, "pub fn kfreeStrarray");
+    try expectContains(helper, "pub fn kstrdupAndReplace");
     try expectContains(helper, "pub fn stringEscapeMem");
     try expectContains(helper, "pub fn stringEscapeStrAnyNp");
     try expectContains(helper, "pub fn memcpyAndPad");
@@ -116,6 +122,9 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(helper_tests, "phase 7 string helpers starter covers whitespace trimming and prefix skipping");
     try expectContains(helper_tests, "phase 7 string helpers starter formats bounded sizes with three significant figures");
     try expectContains(helper_tests, "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes");
+    try expectContains(helper_tests, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
+    try expectContains(helper_tests, "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent");
+    try expectContains(helper_tests, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
 
@@ -125,6 +134,8 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(survey, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(survey, "leading whitespace skipping that stops at the first NUL");
     try expectContains(survey, "phase 7 string helpers starter formats bounded sizes with three significant figures");
+    try expectContains(survey, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
+    try expectContains(survey, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
     try expectNotContains(survey, "Documentation/zigux/review-checklist.md");
     try expectNotContains(survey, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
     try expectNotContains(survey, "zigux/tests/phase7_build.zig");
@@ -134,6 +145,9 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
     try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_sample_boundary.zig\"");
     try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_survey.zig\"");
+    try expectContains(manifest, "\"bounded sequential string-array allocation with NULL-terminated pointer views\"");
+    try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
+    try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 }
