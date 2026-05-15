@@ -9,7 +9,7 @@ This note records the bounded Phase 15 parity-accounting surface for the freeze-
 - `PHASE15_SLICE=parity-scorecard-baseline`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - `PHASE15_SCORECARD_ROLE=blocked_posture_accounting_not_port_readiness`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-14`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-15`
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the scorecard remains an honest blocker-accounting packet, not a port-readiness claim
 
@@ -22,6 +22,8 @@ This scorecard does not claim that a deep-core anchor is ready for a direct Zigu
 The scorecard now also carries the same phase, status-bucket, required-approver-set, and validation-gate summary fields that the freeze-map governance packet expects from reviewable Phase 15 records, so the human-readable scorecard no longer underreports those core Architecture Council handoff fields.
 
 The paired freeze-map governance gate now cross-checks this scorecard's dated readback marker plus the active-freeze and blocked-anchor aggregate counts against the live freeze-map manifest, so the metrics below are reviewable governance accounting rather than note-only summary prose.
+
+For `net/core/skbuff.c`, that evidence bundle now keeps both the packet-local Phase 14 survey note and the shared Phase 14 traceability note explicit, because the live freeze-map governance packet uses both surfaces to keep the blocked ownership posture reviewable.
 
 That means the current parity-tracking gap is narrower and maintenance-only: keep the scorecard's lane identity, surveyed-master provenance, validator-first gate wording, roadmap wording, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata.
 
@@ -94,7 +96,7 @@ That means the current parity-tracking gap is narrower and maintenance-only: kee
 - rollback owner: `Architecture Council + Shared Subsystems Pod`
 - current blocker: `blocked_packet_lifetime_boundary_still_too_wide`
 - decision record path: `Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md`
-- linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase14-skbuff-bridge-survey.md`
+- linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`
 - benchmark-notes status: `pending_until_skbuff_followup_is_narrower_than_lifetime_boundary`
 - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
 - next honest posture: keep the anchor frozen until a narrower-than-lifetime skbuff follow-up exists and a reopen trigger is recorded
