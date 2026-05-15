@@ -49,6 +49,8 @@ REQUIRED_PANIC_SNIPPETS = (
 )
 
 REQUIRED_ALLOCATOR_SNIPPETS = (
+    "pub const InitFlow = enum {",
+    "pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {",
     "pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.AllocatorMode {",
     "pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.AllocatorMode {",
     "pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {",
@@ -59,6 +61,18 @@ REQUIRED_ALLOCATOR_SNIPPETS = (
     "pub fn permitsGlobalFallbackPolicyBytes(mode: u8, reserved: u8) bool {",
     "pub fn permitsGlobalFallbackInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn permitsGlobalFallbackByte(mode: u8) bool {",
+    "pub fn initializesOwnedState(mode: abi.AllocatorMode) bool {",
+    "pub fn initializesOwnedStatePolicyBytes(mode: u8, reserved: u8) bool {",
+    "pub fn initializesOwnedStateInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn initializesOwnedStateByte(mode: u8) bool {",
+    "pub fn requiresResetOnInit(mode: abi.AllocatorMode) bool {",
+    "pub fn requiresResetOnInitPolicyBytes(mode: u8, reserved: u8) bool {",
+    "pub fn requiresResetOnInitInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn requiresResetOnInitByte(mode: u8) bool {",
+    'test "phase3 allocator policy keeps init ownership explicit" {',
+    'try std.testing.expectEqual(InitFlow.caller_prepared, initFlowFor(.caller_provided));',
+    'try std.testing.expect(initializesOwnedState(.kernel_heap));',
+    'try std.testing.expect(requiresResetOnInit(.arena));',
     'try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));',
     'try std.testing.expect(!recognizesInteropPolicyBytes(2, 1));',
     'try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));',
@@ -67,6 +81,11 @@ REQUIRED_ALLOCATOR_SNIPPETS = (
     'try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));',
     'try std.testing.expect(permitsGlobalFallbackByte(1));',
     'try std.testing.expect(!permitsGlobalFallbackByte(9));',
+    'try std.testing.expect(initializesOwnedStateByte(1));',
+    'try std.testing.expect(!initializesOwnedStatePolicyBytes(2, 1));',
+    'try std.testing.expect(initializesOwnedStateInteropPolicy(heap_policy));',
+    'try std.testing.expect(requiresResetOnInitByte(2));',
+    'try std.testing.expect(requiresResetOnInitInteropPolicy(arena_policy));',
     'try std.testing.expect(!recognizesInteropPolicy(reserved_policy));',
     'try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(reserved_policy));',
     'try std.testing.expect(!requiresExplicitCallerInteropPolicy(reserved_policy));',
@@ -372,6 +391,40 @@ def run_self_test() -> int:
         )
 
         _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS) + "\n")
+        _write(
+            root,
+            ALLOCATOR_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_ALLOCATOR_SNIPPETS
+                if snippet != "pub fn requiresResetOnInitInteropPolicy(policy: abi.InteropPolicy) bool {"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_allocator_snippet:pub fn requiresResetOnInitInteropPolicy(policy: abi.InteropPolicy) bool {"
+            in issues
+        )
+
+        _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS) + "\n")
+        _write(
+            root,
+            ALLOCATOR_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_ALLOCATOR_SNIPPETS
+                if snippet != 'try std.testing.expect(initializesOwnedStateInteropPolicy(heap_policy));'
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_allocator_snippet:try std.testing.expect(initializesOwnedStateInteropPolicy(heap_policy));"
+            in issues
+        )
+
+        _write(root, ALLOCATOR_REL, "\n".join(REQUIRED_ALLOCATOR_SNIPPETS) + "\n")
         _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_POLICY_BYTE_SNIPPETS[1:]) + "\n")
         issues = validate(root)
         assert (
@@ -404,7 +457,7 @@ def run_self_test() -> int:
         assert f"missing_mmio_consumer_snippet:{REQUIRED_MMIO_CONSUMER_SNIPPETS[-1]}" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=17")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
