@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L08",
   "phase": "Phase 9",
-  "surveyed_commit": "dc9121502a99ed8c88d79081c6d83a8eada20a00",
+  "surveyed_commit": "66e60700501fc8bb08d645b081064c4698562427",
   "anchor": "lib/test_bitmap.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -19,7 +19,7 @@
       "id": "runtime-bitmap-sample",
       "kind": "sample_starter",
       "path": "samples/zigux/runtime_bitmap.zig",
-      "why_now": "The runtime bitmap sample is the family-local starter that keeps the bounded `lib/test_bitmap.c` replay visible without claiming live loadable-module parity."
+      "why_now": "The runtime bitmap sample is the family-local starter that keeps the bounded `lib/test_bitmap.c` replay visible, including repeat-init rejection that preserves established state across initialized, selftested, and exited retries, without claiming live loadable-module parity."
     },
     {
       "id": "runtime-bitmap-loader-scaffold",
