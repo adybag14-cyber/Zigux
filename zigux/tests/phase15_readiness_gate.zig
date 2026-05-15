@@ -121,7 +121,7 @@ test "phase 15 readiness note and replay routes stay aligned" {
     try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-docs-readme-alignment.py");
     try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
     try expectContains(readiness_note, "phase15-docs-root-summary-alignment");
-    try expectContains(readiness_note, "shared-summary lane `P15-Y06`");
+    try expectContains(readiness_note, "shared-summary lane `P15-Y07`");
     try expectContains(readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig");
     try expectContains(readiness_note, "make -C zigux phase15-validate");
     try expectContains(readiness_note, "make -C zigux phase15-test");
