@@ -121,7 +121,7 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_manifest_present);
-    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     const descriptor = syscalls.SyscallsHelperLab.descriptor();
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", descriptor.anchor);
@@ -203,6 +203,27 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
     );
     try expectGap(
         manifest,
+        "phase13-landlock-syscalls-slice-note",
+        "starter_landed",
+        "Documentation/zigux/phase13-landlock-syscalls-slice.md",
+        "credential-gate split",
+    );
+    try expectGap(
+        manifest,
+        "phase13-landlock-syscalls-governance-note",
+        "starter_landed",
+        "Documentation/zigux/phase13-landlock-syscalls-governance.md",
+        "fixture-free posture",
+    );
+    try expectGap(
+        manifest,
+        "phase13-landlock-syscalls-survey-note",
+        "starter_landed",
+        "Documentation/zigux/phase13-landlock-syscalls-survey.md",
+        "direct replay packet",
+    );
+    try expectGap(
+        manifest,
         "phase13-landlock-syscalls-direct-test-gate",
         "starter_landed",
         "zigux/tests/phase13_landlock_syscalls.zig",
@@ -214,6 +235,13 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
         "starter_landed",
         "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
         "helper, slice, governance note, survey note, and manifest aligned",
+    );
+    try expectGap(
+        manifest,
+        "phase13-landlock-syscalls-manifest",
+        "starter_landed",
+        "zigux/tests/phase13_landlock_syscalls_manifest.json",
+        "packet inventory stays fail-closed",
     );
     try expectGap(
         manifest,
@@ -237,6 +265,6 @@ test "phase13 landlock syscalls reviewability packet matches the current helper-
         "does not claim live ruleset ownership",
     );
 
-    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 4), blocked_count);
 }
