@@ -79,7 +79,7 @@ test "phase12 virtio net survey manifest keeps the bounded transmit-recycle pack
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("bb423a0308879c18054c720bbccb67a3de3e0951", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("2026-05-15", manifest.verified_on);
