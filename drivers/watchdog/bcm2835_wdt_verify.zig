@@ -45,7 +45,7 @@ test "phase11 bcm2835 watchdog verify keeps PM-base readiness and ownership expl
     try testing.expect(!blocked.register_device_requested);
     try testing.expect(blocked.stop_on_reboot_requested);
     try testing.expect(!blocked.poweroff_handler_claimed);
-    try testing.expect(blocked.poweroff_handler_conflict);
+    try testing.expect(!blocked.poweroff_handler_conflict);
     try testing.expect(blocked.blocked_on_live_platform_registration);
 
     const claim_pending = try bcm2835_wdt.summarizePlatformHandoff(.{
@@ -65,7 +65,7 @@ test "phase11 bcm2835 watchdog verify keeps PM-base readiness and ownership expl
     try testing.expect(claim_pending.timeout_init_requested);
     try testing.expect(!claim_pending.register_device_requested);
     try testing.expect(claim_pending.stop_on_reboot_requested);
-    try testing.expect(claim_pending.poweroff_handler_claimed);
+    try testing.expect(!claim_pending.poweroff_handler_claimed);
     try testing.expect(!claim_pending.poweroff_handler_conflict);
     try testing.expect(claim_pending.blocked_on_live_platform_registration);
 
@@ -119,4 +119,31 @@ test "phase11 bcm2835 watchdog verify keeps poweroff ownership distinct" {
     try testing.expect(stopped.running_before_stop);
     try testing.expect(!stopped.running_after_stop);
     try testing.expect(!stopped.full_reset_armed_after_stop);
+}
+
+test "phase11 bcm2835 watchdog verify keeps claimed remove cleanup explicit" {
+    var claimed = try bcm2835_wdt.Bcm2835WdtLab.init(8);
+    _ = try claimed.start();
+    const claimed_remove = claimed.remove(true);
+
+    try testing.expectEqualStrings(bcm2835_wdt.anchor_path, claimed_remove.anchor);
+    try testing.expectEqualStrings("watchdog_unregister_device", claimed_remove.unregister_device_call);
+    try testing.expect(claimed_remove.unregister_device_requested);
+    try testing.expect(claimed_remove.poweroff_handler_release_requested);
+    try testing.expect(claimed_remove.running_before_remove);
+    try testing.expect(!claimed_remove.running_after_remove);
+    try testing.expect(!claimed_remove.full_reset_armed_after_remove);
+    try testing.expect(!claimed_remove.halt_partition_requested_after_remove);
+    try testing.expectEqual(bcm2835_wdt.RemoveState.running_remove, claimed_remove.state);
+
+    var unclaimed = try bcm2835_wdt.Bcm2835WdtLab.init(8);
+    const unclaimed_remove = unclaimed.remove(false);
+
+    try testing.expect(unclaimed_remove.unregister_device_requested);
+    try testing.expect(!unclaimed_remove.poweroff_handler_release_requested);
+    try testing.expect(!unclaimed_remove.running_before_remove);
+    try testing.expect(!unclaimed_remove.running_after_remove);
+    try testing.expect(!unclaimed_remove.full_reset_armed_after_remove);
+    try testing.expect(!unclaimed_remove.halt_partition_requested_after_remove);
+    try testing.expectEqual(bcm2835_wdt.RemoveState.inactive_remove, unclaimed_remove.state);
 }
