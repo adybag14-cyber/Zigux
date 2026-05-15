@@ -77,6 +77,16 @@ EXPECTED_COMPILE_SHARDS = [
         "coverage": "focused_and_full_bundle",
     },
 ]
+EXPECTED_SMOKE_COMMANDS = [
+    "make -C zigux phase14-validate",
+    "make -C zigux phase14-test",
+    "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14",
+]
+EXPECTED_SMOKE_SHARD_COMMANDS = [
+    "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14-smoke",
+]
 RELEASE_BOUNDARY_FALLBACK_MARKER = (
     "attached-toolchain replay fallback: `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`, "
     "`ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`, and "
@@ -239,6 +249,12 @@ def check_manifest(errors: list[str], root: Path) -> None:
 
     if manifest.get("compile_shards") != EXPECTED_COMPILE_SHARDS:
         errors.append("phase14 manifest compile_shards drifted from the expected shared matrix")
+    if manifest.get("smoke_commands") != EXPECTED_SMOKE_COMMANDS:
+        errors.append("phase14 manifest smoke_commands drifted from the expected shared replay list")
+    if manifest.get("smoke_shard_commands") != EXPECTED_SMOKE_SHARD_COMMANDS:
+        errors.append(
+            "phase14 manifest smoke_shard_commands drifted from the expected focused smoke-shard list"
+        )
 
 
 def check(root: Path, source_text: str | None = None) -> list[str]:
@@ -377,6 +393,8 @@ def good_manifest_text() -> str:
                 "shared_smoke_surfaces": MANIFEST_REQUIRED_SURFACES,
                 "anchor_packets": [{}, {}, {}, {}],
                 "compile_shards": EXPECTED_COMPILE_SHARDS,
+                "smoke_commands": EXPECTED_SMOKE_COMMANDS,
+                "smoke_shard_commands": EXPECTED_SMOKE_SHARD_COMMANDS,
             },
             indent=2,
         )
@@ -688,6 +706,34 @@ def run_self_test() -> int:
         )
         write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
 
+        manifest = json.loads(good_manifest_text())
+        manifest["smoke_commands"] = EXPECTED_SMOKE_COMMANDS[:-1]
+        write(
+            root,
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            json.dumps(manifest, indent=2) + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "phase14 manifest smoke_commands drifted",
+            "self-test expected shared replay-command list drift failure",
+        )
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+
+        manifest = json.loads(good_manifest_text())
+        manifest["smoke_shard_commands"] = EXPECTED_SMOKE_SHARD_COMMANDS[:1]
+        write(
+            root,
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            json.dumps(manifest, indent=2) + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "phase14 manifest smoke_shard_commands drifted",
+            "self-test expected focused smoke-shard command list drift failure",
+        )
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+
         expect_contains(
             check(root, source_text="PHASE14_CHECK_PACKET=broken_marker"),
             "checker marker missing from checker source",
@@ -695,7 +741,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=19")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
