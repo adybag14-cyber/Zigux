@@ -168,6 +168,33 @@ pub fn __bitmap_weight_and(src1: []const Word, src2: []const Word, nbits: usize)
     return weightAnd(src1, src2, nbits);
 }
 
+pub fn weightAndNot(src1: []const Word, src2: []const Word, nbits: usize) usize {
+    assertBitmapLen(src1, nbits);
+    assertBitmapLen(src2, nbits);
+
+    var total: usize = 0;
+    const lim = nbits / bits_per_long;
+
+    var idx: usize = 0;
+    while (idx < lim) : (idx += 1) {
+        total += @popCount(src1[idx] & ~src2[idx]);
+    }
+
+    if ((nbits & (bits_per_long - 1)) != 0) {
+        total += @popCount((src1[idx] & ~src2[idx]) & lastWordMask(nbits));
+    }
+
+    return total;
+}
+
+pub fn bitmap_weight_andnot(src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightAndNot(src1, src2, nbits);
+}
+
+pub fn __bitmap_weight_andnot(src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightAndNot(src1, src2, nbits);
+}
+
 pub fn orBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     const nwords = bitsToWords(nbits);
     std.debug.assert(dst.len >= nwords);
@@ -729,6 +756,7 @@ test "bitmap and andnot equal intersects subset" {
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0b1010, 0 }, &dst);
     try std.testing.expect(andNotBits(&dst, &lhs, &rhs, 8));
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0b0100, 0 }, &dst);
+    try std.testing.expectEqual(@as(usize, 1), weightAndNot(&lhs, &rhs, 8));
     xorBits(&dst, &lhs, &rhs, 8);
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0b0100, 0 }, &dst);
     try std.testing.expect(equal(&lhs, &[_]Word{ 0b1110, 0 }, 8));
@@ -748,6 +776,9 @@ test "bitmap and andnot clamp tail bits in partial words" {
 
     try std.testing.expect(!andNotBits(&dst, &in_range_and_tail, &clear_in_range_only, nbits));
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0 }, &dst);
+    try std.testing.expectEqual(@as(usize, 0), weightAndNot(&in_range_and_tail, &clear_in_range_only, nbits));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weight_andnot(&in_range_and_tail, &clear_in_range_only, nbits));
+    try std.testing.expectEqual(@as(usize, 0), __bitmap_weight_andnot(&in_range_and_tail, &clear_in_range_only, nbits));
 }
 
 test "bitmap weight and clamps tail bits and aliases mirror the primary helper" {
@@ -1013,6 +1044,10 @@ test "bitmap zero-bit binary helpers stay explicit identity operations" {
     try std.testing.expectEqual(before, primary_dst[0]);
     try std.testing.expectEqual(before, alias_dst[0]);
 
+    try std.testing.expectEqual(@as(usize, 0), weightAndNot(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weight_andnot(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), __bitmap_weight_andnot(lhs[0..0], rhs[0..0], 0));
+
     complement(primary_dst[0..0], lhs[0..0], 0);
     bitmap_complement(alias_dst[0..0], lhs[0..0], 0);
     try std.testing.expectEqual(before, primary_dst[0]);
@@ -1061,6 +1096,8 @@ test "bitmap Linux-style aliases keep zero-bit windows explicit no-ops" {
 
     try std.testing.expectEqual(@as(usize, 0), weightAnd(lhs[0..0], rhs[0..0], 0));
     try std.testing.expectEqual(@as(usize, 0), bitmap_weight_and(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), weightAndNot(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weight_andnot(lhs[0..0], rhs[0..0], 0));
 
     try std.testing.expectEqual(@as(usize, 0), weightedOr(zero_dst[0..0], lhs[0..0], rhs[0..0], 0));
     try std.testing.expectEqual(before, zero_dst[0]);
@@ -1091,6 +1128,7 @@ test "bitmap low-level __bitmap aliases mirror the primary helper surface" {
 
     try std.testing.expectEqual(weight(&lhs, nbits), __bitmap_weight(&lhs, nbits));
     try std.testing.expectEqual(weightAnd(&lhs, &rhs, nbits), __bitmap_weight_and(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(weightAndNot(&lhs, &rhs, nbits), __bitmap_weight_andnot(&lhs, &rhs, nbits));
 
     var primary_range = [_]Word{ 0, 0 };
     var alias_range = [_]Word{ 0, 0 };
@@ -1184,6 +1222,7 @@ test "bitmap Linux-style aliases mirror the primary helper surface" {
 
     try std.testing.expectEqual(weight(&lhs, nbits), bitmap_weight(&lhs, nbits));
     try std.testing.expectEqual(weightAnd(&lhs, &rhs, nbits), bitmap_weight_and(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(weightAndNot(&lhs, &rhs, nbits), bitmap_weight_andnot(&lhs, &rhs, nbits));
     try std.testing.expectEqual(empty(&[_]Word{ 0, 0 }, nbits), bitmap_empty(&[_]Word{ 0, 0 }, nbits));
     try std.testing.expectEqual(full(&[_]Word{ ~@as(Word, 0), lastWordMask(nbits) }, nbits), bitmap_full(&[_]Word{ ~@as(Word, 0), lastWordMask(nbits) }, nbits));
 
