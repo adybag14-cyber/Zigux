@@ -1,7 +1,7 @@
 # Phase 11 Shared Replay Contract
 
 This note records the bounded shared reminder surface for the current Phase 11 simple-driver tranche on `master`.
-Direct GitHub contents reads for some current Phase 11 build and replay files can still return 404, so the shared contract must describe both the reminder surfaces and the raw-fallback materialization story honestly.
+The shared reminder packet should describe the files and routes that current `master` now materializes directly, so the delivery-tooling story stays reviewable without reviving removed validator surfaces.
 
 ## Status
 
@@ -29,29 +29,29 @@ The active shared Phase 11 packet is currently reviewable through these shared r
 * `zigux/Makefile`
 * `.github/workflows/zigux-bootstrap.yml`
 
-These shared surfaces keep the Phase 11 packet reviewable as a reminder-and-checker contract while the bounded build-backed replay files stay directly materialized through raw fallback on current `master`.
+These shared surfaces keep the Phase 11 packet reviewable as a reminder-and-checker contract while the bounded build-backed replay files stay directly materialized on current `master`.
 
 ## Current Repo Reality
 
-* direct GitHub contents reads can still return 404 for `zigux/tests/phase11_build.zig`
-* direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`
-* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`
-* the shared `zigux/tests/fixtures/phase11_build_inventory.json` stays part of the current reminder packet and records the shared test inventory, the dedicated HVC replay split, and the explicit shared replay markers beside `zigux/tests/phase11_build.zig`
-* those explicit shared replay markers currently cover `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, and `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
-* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, so treat them as landed bounded replay evidence even when the direct contents bridge still 404s
+* direct GitHub contents reads now materialize `zigux/tests/phase11_build.zig`
+* direct GitHub contents reads now materialize `zigux/tests/fixtures/phase11_build_inventory.json`
+* the shared `zigux/tests/fixtures/phase11_build_inventory.json` stays part of the current reminder packet and currently records fourteen Phase 11 build test names, thirteen shared `test_step.dependOn(...)` edges, one dedicated `hvc-console-survey` replay, and four explicit shared replay markers beside `zigux/tests/phase11_build.zig`
+* `zigux/tests/phase11_build.zig` currently materializes thirteen shared `test_step.dependOn(...)` edges across gpio, bcm2835, DesignWare, header-parity, `hvc_console`, `hvc_console_verify`, and `hvc_cleanup`, plus one dedicated `hvc-console-survey` build step
+* `make -C zigux phase11-contract`, `make -C zigux phase11`, and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same shared and dedicated routes
 * no shared `validate-phase11.py`
 * no shared `make -C zigux phase11-validate` target on `master`
-* the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts together with the materialized build-backed replay files and the landed inventory fixture rather than a broader validator stack
+* the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts together with the directly materialized build-backed replay files and the landed inventory fixture rather than a broader validator stack
 
 ## Exact Current Checks
 
 These are the exact bounded checks that keep the current shared packet deterministic and reviewable:
 
 * shared reminder packet self-tests: `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`, `python3 scripts/zigux/check-phase11-shared-summary-surfaces.py --self-test`, and `python3 scripts/zigux/check-phase11-build-inventory.py --self-test`
+* shared reminder packet direct live checkers: `python3 scripts/zigux/check-phase11-shared-replay-contract.py`, `python3 scripts/zigux/check-phase11-shared-summary-surfaces.py`, and `python3 scripts/zigux/check-phase11-build-inventory.py`
 * shared reminder packet live route: `make -C zigux phase11-contract`
 * shared build replay: `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 * dedicated HVC archival packet self-test and live checker: `python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-survey-packet.py`
-* dedicated HVC archival replay route: `make -C zigux phase11-hvc-survey`
+* dedicated HVC archival replay routes: `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` and `make -C zigux phase11-hvc-survey`
 * aggregate wrapper: `make -C zigux phase11`
 
 ## Driver-Local Evidence That Still Stays Beside The Shared Route
