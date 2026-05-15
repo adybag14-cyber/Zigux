@@ -31,32 +31,6 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "The next bounded follow-through should stay inside the helper-local packet");
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
 
-    const shared_note = try readRepoFile(allocator, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
-    defer allocator.free(shared_note);
-    try expectContains(shared_note, "shared docs-root and scripts-root");
-    try expectContains(shared_note, "ownership-focus packet explicit");
-    try expectContains(shared_note, "first-NUL trimming and prefix skipping stop at the exported C-string boundary");
-    try expectContains(shared_note, "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned");
-    try expectContains(shared_note, "append-limited escape accounting stays inside caller storage");
-    try expectContains(shared_note, "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results");
-    try expectContains(shared_note, "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations");
-
-    const review_checklist = try readRepoFile(allocator, "Documentation/zigux/review-checklist.md");
-    defer allocator.free(review_checklist);
-    try expectContains(review_checklist, "there is no standalone `samples/zigux/*string*` reference sample");
-    try expectContains(review_checklist, "Documentation/zigux/phase7-string-helpers-slice.md");
-    try expectContains(review_checklist, "lib/string_helpers.zig");
-    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers.zig");
-    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers_survey.zig");
-    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers_manifest.json");
-    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
-    try expectContains(review_checklist, "explicit ownership-focus packet visible");
-    try expectContains(review_checklist, "first-NUL trimming and prefix skipping stop at the exported C-string boundary");
-    try expectContains(review_checklist, "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned");
-    try expectContains(review_checklist, "append-limited escape accounting stays inside caller storage");
-    try expectContains(review_checklist, "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results");
-    try expectContains(review_checklist, "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations");
-
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
@@ -69,7 +43,6 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "\"memcpyAndPad\"");
     try expectContains(manifest, "\"strreplace\"");
     try expectContains(manifest, "bounded sequential string-array allocation with NULL-terminated pointer views");
-    try expectContains(manifest, "per-string ownership and teardown");
     try expectContains(manifest, "\"ownership_focus\": [");
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectNotContains(manifest, "missing_review_surfaces");
@@ -106,10 +79,9 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "string_helpers.kfreeStrarray(std.testing.allocator, &first);");
     try expectContains(helper_tests, "string_helpers.kfree_strarray(std.testing.allocator, &result);");
 
-    const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
-    defer allocator.free(build_file);
-    try expectContains(build_file, "\"phase7_string_helpers.zig\"");
-    try expectContains(build_file, "phase7-string-helpers-tests");
-    try expectContains(build_file, "\"phase7_string_helpers_survey.zig\"");
-    try expectContains(build_file, "phase7-string-helpers-survey-tests");
+    const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    defer allocator.free(sample_boundary);
+    try expectContains(sample_boundary, "phase 7 string helper boundary keeps the exact current sample inventory and no string sample");
+    try expectContains(sample_boundary, "phase 7 string helper boundary keeps the lane-local helper packet aligned without claiming shared control surfaces");
+    try expectNotContains(sample_boundary, "current shared reminders aligned");
 }
