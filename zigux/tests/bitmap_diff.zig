@@ -437,7 +437,6 @@ pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
         const short_copy_summary = short_destination.summary();
         mixThresholdChecksum(&checksum, short_copy_summary.first_zero);
         mixThresholdChecksum(&checksum, short_copy_summary.weight);
-
         try nth_probe.initWithSetBits(&starter_bits);
         const nth_seven = try nth_probe.findNthSet(nth_limit, 7);
         const nth_end = try nth_probe.findNthSet(nth_limit, 8);
@@ -819,6 +818,19 @@ test "bitmap diff gate records exact bounded copy checks" {
             .must_be_clear = &.{ 127 },
         },
         .{
+            .name = "test_copy partial-word 109-bit replay clears the padded tail in a prefix-seeded destination while the next seeded word stays intact",
+            .source_set_len = 127,
+            .copy_nbits = 109,
+            .destination_init = .{ .prefix_set = BitmapHarness.bits_per_long * 3 },
+            .expected_summary = .{
+                .first_set = 0,
+                .first_zero = 127,
+                .weight = 127 + BitmapHarness.bits_per_long,
+            },
+            .must_be_set = &.{ 108, 109, 126, 128, (BitmapHarness.bits_per_long * 3) - 1 },
+            .must_be_clear = &.{ 127, BitmapHarness.bits_per_long * 3, BitmapHarness.bitmap_nbits - 1 },
+        },
+        .{
             .name = "test_copy aligned 97-bit replay keeps the full second word before the filled tail resumes",
             .source_set_len = 109,
             .copy_nbits = 97,
@@ -1037,7 +1049,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectSourceCaseGroupCardinality(
         "const cases = [_]CopyCase{",
         "test \"bitmap diff gate rejects an empty threshold replay batch\"",
-        15,
+        16,
     );
     try expectMarker(bitmap_diff_source, "const exp1_find_nth_bits = [_]u32{");
     try expectMarker(bitmap_diff_source, "test_fill_set empty starter stays empty across short and full extents");
@@ -1061,6 +1073,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test_copy full-width replay clears a pre-filled destination");
     try expectMarker(bitmap_diff_source, "test_copy partial-word 109-bit replay keeps copied source tail bits through bit 126");
     try expectMarker(bitmap_diff_source, "test_copy partial-word 109-bit replay clears the padded tail before the filled tail resumes");
+    try expectMarker(bitmap_diff_source, "test_copy partial-word 109-bit replay clears the padded tail in a prefix-seeded destination while the next seeded word stays intact");
     try expectMarker(bitmap_diff_source, "test_copy aligned 97-bit replay keeps the full second word before the filled tail resumes");
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
     try expectMarker(bitmap_diff_source, "bitmap diff gate replays exact bounded exp1 find_nth_bit enumeration");
