@@ -78,6 +78,7 @@ fn focusName(focus: string_helpers_sample.SampleFocus) []const u8 {
         .bounded_size_rendering => "bounded_size_rendering",
         .deterministic_escape_subset => "deterministic_escape_subset",
         .bounded_destination_discipline => "bounded_destination_discipline",
+        .bounded_buffer_mutation => "bounded_buffer_mutation",
         .non_allocating_runtime_safe => "non_allocating_runtime_safe",
     };
 }
@@ -90,7 +91,7 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
         io_instance.io(),
         "zigux/tests/phase7_string_helpers_sample_manifest.json",
         std.testing.allocator,
-        .limited(20 * 1024),
+        .limited(24 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -163,17 +164,18 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
     try std.testing.expectEqualStrings("string_helpers_sample", manifest.sample_replay_contract.descriptor_name);
     try std.testing.expectEqual(@as(i32, 1), manifest.sample_replay_contract.matched_index);
-    try std.testing.expectEqual(@as(usize, 5), manifest.sample_replay_contract.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.sample_replay_contract.checked_focus.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.sample_replay_contract.lifecycle_states.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.sample_replay_contract.helper_call_markers.len);
-    try std.testing.expectEqual(@as(usize, 17), manifest.sample_replay_contract.test_assertions.len);
-    try std.testing.expectEqual(@as(usize, 15), manifest.verification_checks.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.sample_replay_contract.helper_call_markers.len);
+    try std.testing.expectEqual(@as(usize, 19), manifest.sample_replay_contract.test_assertions.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.verification_checks.len);
 
     const expected_focuses = [_][]const u8{
         "newline_tolerant_matching",
         "bounded_size_rendering",
         "deterministic_escape_subset",
         "bounded_destination_discipline",
+        "bounded_buffer_mutation",
         "non_allocating_runtime_safe",
     };
     for (expected_focuses, 0..) |expected, index| {
@@ -189,25 +191,27 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
         "`matchString([disabled, enabled], \"ignored\")` returns `-EINVAL` when the bounded table misses",
         "`stringGetSize(1536, 1, STRING_UNITS_2)` renders `1.50 KiB` with reported length `8`",
         "`stringGetSize(1536, 1, STRING_UNITS_2 | STRING_UNITS_NO_SPACE | STRING_UNITS_NO_BYTES)` renders `1.50Ki` with reported length `6`",
+        "in-place `strreplace(\"mode-ready\")` rewrites the replay buffer to `mode_ready`",
+        "bounded `memcpyAndPad(\"xy\", count=2, pad='.')` fills the five-byte replay window as `xy...`",
         "`stringUnescape(\"line\\\\n\")` produces `line` plus a trailing newline byte",
         "exact-fit `stringUnescape(\"\\\\n\", size=2)` returns length `1` and leaves a trailing NUL terminator",
         "`stringEscapeMem(\"\\n\", ESCAPE_HEX)` produces `\\\\x0a`",
         "bounded `stringEscapeMem(\"\\n\", dst[0..5], ESCAPE_HEX)` reports length `4` and leaves the untouched `?` sentinel in `\\\\x0a?`",
         "dictionary-limited `stringEscapeMem(\"A\\n\\tZ\", ESCAPE_SPACE, only=\"\\n\")` produces `A\\\\n\\tZ`",
         "append-selected `stringEscapeMem(\"A\\nZ\", ESCAPE_NAP | ESCAPE_HEX | ESCAPE_APPEND, only=\"\\n\")` produces `A\\\\x0aZ`",
-        "the replay records exactly five checked focus markers",
+        "the replay records exactly six checked focus markers",
     };
     for (expected_verification_checks, 0..) |expected, index| {
         try std.testing.expectEqualStrings(expected, manifest.verification_checks[index]);
     }
 
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".name = \"string_helpers_sample\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".matched_index = string_helpers.sysfsMatchString(&values, values.len, \"enabled\\n\"),") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, "string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "_ = string_helpers.strreplace(replaced_text.bytes[0..11], '-', '_');") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "string_helpers.memcpyAndPad(padded_text.bytes[0..5], \"xy\", 2, '.');") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "bounded_escape_text.bytes[0..5],") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, "string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND,") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "Separate helper-backed sample packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, helper_source, "pub fn stringEscapeMem") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "pub fn strreplace") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "pub fn memcpyAndPad") != null);
     try std.testing.expect(std.mem.indexOf(u8, fixture_source, "sample replay newline hex escape") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_source, "phase7-string-helpers-sample-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "`samples/zigux/string_helpers_sample.zig`") != null);
@@ -224,6 +228,7 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
         "bounded_size_rendering",
         "deterministic_escape_subset",
         "bounded_destination_discipline",
+        "bounded_buffer_mutation",
         "non_allocating_runtime_safe",
     };
 
@@ -256,6 +261,9 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
         try std.testing.expectEqualStrings(expected, focusName(focus));
     }
     try std.testing.expectEqualSlices(u8, "1.50Ki", replay.compact_size_text.bytes[0..replay.compact_size_text.len]);
+    try std.testing.expectEqualSlices(u8, "mode_ready", replay.replaced_text.bytes[0..replay.replaced_text.len]);
+    try std.testing.expectEqual(@as(usize, 5), replay.padded_text.len);
+    try std.testing.expectEqualSlices(u8, "xy...", replay.padded_text.bytes[0..replay.padded_text.len]);
     try std.testing.expectEqual(newline_suffix.expected_len, replay.unescaped_text.len);
     try std.testing.expectEqualSlices(u8, newline_suffix.expected, replay.unescaped_text.bytes[0..replay.unescaped_text.len]);
     try std.testing.expectEqual(@as(usize, 1), replay.exact_unescape_text.len);
