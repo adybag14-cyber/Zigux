@@ -138,6 +138,24 @@ pub const PlatformDrvdataCheckpointSummary = struct {
     blocked_on_platform_registration: bool,
 };
 
+pub const WatchdogDrvdataCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    hw_margin_ms: u32,
+    requested_line: ProbeLineRequest,
+    descriptor_flags: DescriptorRequestFlags,
+    parent_attached: bool,
+    platform_drvdata_attached: bool,
+    watchdog_drvdata_attachment_required: bool,
+    timeout_property_precedes_watchdog_drvdata: bool,
+    platform_drvdata_precedes_watchdog_drvdata: bool,
+    watchdog_drvdata_precedes_register_device_call: bool,
+    watchdog_drvdata_reuses_parent_linkage: bool,
+    drvdata_owner_identity: []const u8,
+    blocked_on_watchdog_core_registration: bool,
+    blocked_on_platform_registration: bool,
+};
+
 pub const NowayoutPolicySummary = struct {
     anchor: []const u8,
     module_param_name: []const u8,
@@ -441,6 +459,26 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn watchdogDrvdataCheckpointSummary(self: *const Self) WatchdogDrvdataCheckpointSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .hw_margin_ms = self.hw_margin_ms,
+            .requested_line = self.requestedLine(),
+            .descriptor_flags = self.descriptorRequestFlags(),
+            .parent_attached = true,
+            .platform_drvdata_attached = true,
+            .watchdog_drvdata_attachment_required = true,
+            .timeout_property_precedes_watchdog_drvdata = true,
+            .platform_drvdata_precedes_watchdog_drvdata = true,
+            .watchdog_drvdata_precedes_register_device_call = true,
+            .watchdog_drvdata_reuses_parent_linkage = true,
+            .drvdata_owner_identity = "gpio_wdt_priv",
+            .blocked_on_watchdog_core_registration = true,
+            .blocked_on_platform_registration = true,
+        };
+    }
+
     pub fn nowayoutPolicySummary() NowayoutPolicySummary {
         return .{
             .anchor = descriptor().anchor,
@@ -695,12 +733,13 @@ pub const GpioWatchdogLab = struct {
 
     pub fn registerDeviceCallSummary(self: *const Self, nowayout: bool) RegisterDeviceCallSummary {
         const plan = self.registrationPlanSummary(nowayout);
+        const drvdata = self.watchdogDrvdataCheckpointSummary();
         return .{
             .anchor = descriptor().anchor,
             .hw_algo = self.hw_algo,
             .selected_surface = .devm_watchdog_register_device_call,
             .validation_focus = .register_device_call_surface,
-            .requested_line = plan.requested_line,
+            .requested_line = drvdata.requested_line,
             .start_mode = plan.start_mode,
             .always_running = self.always_running,
             .nowayout = nowayout,
@@ -708,20 +747,20 @@ pub const GpioWatchdogLab = struct {
             .watchdog_ops_ready = plan.watchdog_ops_ready,
             .watchdog_device_ready = plan.watchdog_device_ready,
             .descriptor_request_ready = plan.descriptor_request_ready,
-            .watchdog_drvdata_set = true,
+            .watchdog_drvdata_set = drvdata.watchdog_drvdata_attachment_required,
             .min_timeout_sec = soft_timeout_min,
             .default_timeout_sec = soft_timeout_default,
             .max_hw_heartbeat_ms = self.hw_margin_ms,
             .timeout_init_requested = plan.timeout_init_requested,
             .nowayout_applied = nowayout,
-            .parent_attached = plan.parent_attached,
+            .parent_attached = drvdata.parent_attached,
             .stop_on_reboot = plan.stop_on_reboot,
             .reaches_registration_running = plan.reaches_registration_running,
             .reaches_registration_line_state = plan.reaches_registration_line_state,
             .reaches_registration_line_is_output = plan.reaches_registration_line_is_output,
             .register_device_requested = true,
             .blocked_on_gpio_descriptor = true,
-            .blocked_on_platform_registration = true,
+            .blocked_on_platform_registration = drvdata.blocked_on_platform_registration,
             .blocked_on_reboot_glue = true,
         };
     }
