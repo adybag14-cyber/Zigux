@@ -195,6 +195,19 @@ LOW_LEVEL_WRAPPER_SOURCE_MARKERS = {
     ),
 }
 
+PHASE3_CHECK_LIB_POLICY_MARKERS = {
+    Path("scripts/zigux/phase3_check_lib.py"): (
+        '(sys.executable, "scripts/zigux/validate-phase3-policy-unsafe-survey.py"),',
+        '(sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"),',
+        '(sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),',
+        '(sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),',
+        '((sys.executable, "scripts/zigux/validate-phase3-policy-unsafe-survey.py"), ROOT, False),',
+        '((sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"), ROOT, False),',
+        '((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"), ROOT, False),',
+        '((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),',
+    ),
+}
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -330,6 +343,7 @@ def validate_repo(repo_root: Path) -> list[str]:
 
     issues.extend(validate_manifest(repo_root))
     issues.extend(validate_source_markers(repo_root, LOW_LEVEL_WRAPPER_SOURCE_MARKERS))
+    issues.extend(validate_source_markers(repo_root, PHASE3_CHECK_LIB_POLICY_MARKERS))
     issues.extend(validate_abi_surface_sanity(repo_root))
     return issues
 
@@ -376,6 +390,23 @@ test \"phase3 low-level wrappers stub markers\" {
 """
 
 
+def _phase3_check_lib_stub() -> str:
+    return """ABI_COMMAND_PLAN = (
+    (sys.executable, \"scripts/zigux/validate-phase3-policy-unsafe-survey.py\"),
+    (sys.executable, \"scripts/zigux/check-phase3-policy-byte-guards.py\"),
+    (sys.executable, \"scripts/zigux/check-phase3-policy-unsafe-focused-replay.py\"),
+    (sys.executable, \"scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py\"),
+)
+
+observed_calls = [
+    ((sys.executable, \"scripts/zigux/validate-phase3-policy-unsafe-survey.py\"), ROOT, False),
+    ((sys.executable, \"scripts/zigux/check-phase3-policy-byte-guards.py\"), ROOT, False),
+    ((sys.executable, \"scripts/zigux/check-phase3-policy-unsafe-focused-replay.py\"), ROOT, False),
+    ((sys.executable, \"scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py\"), ROOT, False),
+]
+"""
+
+
 def _populate_repo(root: Path) -> None:
     for rel_path in REPO_FILES:
         _write(root / rel_path, "# stub\n")
@@ -402,6 +433,7 @@ def _populate_repo(root: Path) -> None:
     _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
     _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
     _write(root / LOW_LEVEL_TEST_PATH, _low_level_wrapper_stub())
+    _write(root / "scripts/zigux/phase3_check_lib.py", _phase3_check_lib_stub())
     _write(root / "include/zigux/dev_t.h", "#define ZIGUX_DEV_T_BITS 32\n")
     _write(root / "zigux/bindings/dev_t.zig", "pub const dev_t = u32;\n")
     _write(root / "zigux/bindings/notifier_abi.zig", "pub const notifier_call = i32;\n")
@@ -798,6 +830,45 @@ def run_self_test() -> int:
         case_count += 1
 
         _write(root / support_validator_rel, "# restored\n")
+        _write(
+            root / "scripts/zigux/phase3_check_lib.py",
+            _phase3_check_lib_stub().replace(
+                '(sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"),\n',
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_phase3_check_lib_command_marker = (
+            "missing source marker: scripts/zigux/phase3_check_lib.py :: "
+            '(sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"),'
+        )
+        if expected_phase3_check_lib_command_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing phase3 abi runner policy command marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(
+            root / "scripts/zigux/phase3_check_lib.py",
+            _phase3_check_lib_stub().replace(
+                '((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),\n',
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_phase3_check_lib_selftest_marker = (
+            "missing source marker: scripts/zigux/phase3_check_lib.py :: "
+            '((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),'
+        )
+        if expected_phase3_check_lib_selftest_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing phase3 abi runner policy self-test marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "scripts/zigux/phase3_check_lib.py", _phase3_check_lib_stub())
         _write(root / "zigux/Makefile", "phase3-validate:\n")
         issues = validate_repo(root)
         expected_marker = f"missing make marker: {MAKE_MARKERS[1]}"
