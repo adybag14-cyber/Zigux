@@ -266,7 +266,7 @@ REQUIRED_PHASE4_PERF_BASELINE_MATRIX_ROW_MARKERS = [
 ]
 
 GENERIC_CHECKS = [
-    ("ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"], None),
+    ("ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"], "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass"),
     ("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CHECK", ["scripts/zigux/check-artifact-diff-contract.py", "--self-test"], "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass"),
     ("ARTIFACT_DIFF_CONTRACT_CHECK", ["scripts/zigux/check-artifact-diff-contract.py"], "ARTIFACT_DIFF_CONTRACT=pass"),
     ("PHASE4_GATE_EVIDENCE_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-gate-evidence.py", "--self-test"], "PHASE4_GATE_EVIDENCE_SELF_TEST=pass"),
