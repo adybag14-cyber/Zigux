@@ -52,6 +52,8 @@ PHASE12_VIRTIO_SCSI_RAW_GITHUB_FALLBACK_CATALOG_PATH = (
 PHASE12_NVME_PCI_RAW_GITHUB_FALLBACK_MAP_PATH = (
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
 )
+PHASE12_NVME_PCI_SLICE_PATH = "Documentation/zigux/phase12-nvme-pci-slice.md"
+PHASE12_NVME_PCI_SURVEY_NOTE_PATH = "Documentation/zigux/phase12-nvme-pci-survey.md"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
@@ -68,6 +70,11 @@ PHASE12_VIRTIO_SCSI_SURVEY_PATH = "zigux/tests/phase12_virtio_scsi_survey.zig"
 PHASE12_REPEATED_REPLAN_PATH = "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig"
 PHASE12_REPEATED_ROLLBACK_PATH = "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig"
 PHASE12_PACKET_PATH = "zigux/tests/phase12_virtio_scsi_packet.zig"
+PHASE12_NVME_PCI_DRIVER_PATH = "drivers/nvme/host/pci.zig"
+PHASE12_NVME_PCI_VERIFY_PATH = "drivers/nvme/host/pci_verify.zig"
+PHASE12_NVME_PCI_TEST_PATH = "zigux/tests/phase12_nvme_pci.zig"
+PHASE12_NVME_PCI_SURVEY_PATH = "zigux/tests/phase12_nvme_pci_survey.zig"
+PHASE12_NVME_PCI_MANIFEST_PATH = "zigux/tests/phase12_nvme_pci_manifest.json"
 PHASE12_LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
 PHASE12_VALIDATE_PATH = "scripts/zigux/validate-phase12.py"
 
@@ -87,6 +94,8 @@ REQUIRED_FILES = [
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
     PHASE12_VIRTIO_SCSI_RAW_GITHUB_FALLBACK_CATALOG_PATH,
     PHASE12_NVME_PCI_RAW_GITHUB_FALLBACK_MAP_PATH,
+    PHASE12_NVME_PCI_SLICE_PATH,
+    PHASE12_NVME_PCI_SURVEY_NOTE_PATH,
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
@@ -103,6 +112,11 @@ REQUIRED_FILES = [
     PHASE12_REPEATED_REPLAN_PATH,
     PHASE12_REPEATED_ROLLBACK_PATH,
     PHASE12_PACKET_PATH,
+    PHASE12_NVME_PCI_DRIVER_PATH,
+    PHASE12_NVME_PCI_VERIFY_PATH,
+    PHASE12_NVME_PCI_TEST_PATH,
+    PHASE12_NVME_PCI_SURVEY_PATH,
+    PHASE12_NVME_PCI_MANIFEST_PATH,
     PHASE12_LIBBPF_SNAPSHOT_PATH,
     PHASE12_VALIDATE_PATH,
 ]
@@ -631,6 +645,34 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_file:{PHASE12_REPEATED_ROLLBACK_PATH}")
 
         write_fixture_tree(base)
+        (base / PHASE12_NVME_PCI_SLICE_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_NVME_PCI_SLICE_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_NVME_PCI_SURVEY_NOTE_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_NVME_PCI_SURVEY_NOTE_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_NVME_PCI_DRIVER_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_NVME_PCI_DRIVER_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_NVME_PCI_VERIFY_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_NVME_PCI_VERIFY_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_NVME_PCI_TEST_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_NVME_PCI_TEST_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_NVME_PCI_SURVEY_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_NVME_PCI_SURVEY_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_NVME_PCI_MANIFEST_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_NVME_PCI_MANIFEST_PATH}")
+
+        write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
         docs_root_path.write_text(
             docs_root_path.read_text(encoding="utf-8").replace(
@@ -763,7 +805,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=7:actual=6")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=14")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=21")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
