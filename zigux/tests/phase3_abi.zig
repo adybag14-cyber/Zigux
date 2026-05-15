@@ -67,6 +67,64 @@ test "phase3 abi keeps exported constants and family markers present" {
         @as(u32, 1),
         abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
     );
+    try std.testing.expectEqual(@as(u32, 0), abi.NOTIFIER_DONE);
+    try std.testing.expectEqual(@as(u32, 1), abi.NOTIFIER_OK);
+    try std.testing.expectEqual(@as(u32, 2), abi.NOTIFIER_STOP);
+    try std.testing.expectEqual(@as(u32, abi.NOTIFIER_DONE), @intFromEnum(abi.NotifierResult.done));
+    try std.testing.expectEqual(@as(u32, abi.NOTIFIER_OK), @intFromEnum(abi.NotifierResult.ok));
+    try std.testing.expectEqual(@as(u32, abi.NOTIFIER_STOP), @intFromEnum(abi.NotifierResult.stop));
+}
+
+test "phase3 abi keeps the notifier chain helper lifted into the shared abi binding" {
+    const single = abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 7,
+    };
+    const descending_third = abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = -4,
+    };
+    const descending_second = abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&descending_third),
+        .priority = 8,
+    };
+    const descending_first = abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&descending_second),
+        .priority = 8,
+    };
+    const rising_second = abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 5,
+    };
+    const rising_first = abi.NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&rising_second),
+        .priority = 3,
+    };
+
+    try std.testing.expectEqual(@as(usize, 24), @sizeOf(abi.NotifierBlock));
+    try std.testing.expectEqual(@as(usize, 8), @alignOf(abi.NotifierBlock));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(abi.NotifierBlock, "notifier_call"));
+    try std.testing.expectEqual(@as(usize, 8), @offsetOf(abi.NotifierBlock, "next"));
+    try std.testing.expectEqual(@as(usize, 16), @offsetOf(abi.NotifierBlock, "priority"));
+
+    try std.testing.expect(abi.chainHasNonincreasingPriority(null));
+    try std.testing.expect(abi.firstChainPriorityIncrease(null) == null);
+    try std.testing.expect(abi.chainHasNonincreasingPriority(&single));
+    try std.testing.expect(abi.firstChainPriorityIncrease(&single) == null);
+    try std.testing.expect(abi.chainHasNonincreasingPriority(&descending_first));
+    try std.testing.expect(!abi.chainHasNonincreasingPriority(&rising_first));
+
+    const increase = abi.firstChainPriorityIncrease(&rising_first).?;
+    try std.testing.expectEqual(@as(usize, 0), increase.previous_index);
+    try std.testing.expectEqual(@as(usize, 1), increase.current_index);
+    try std.testing.expectEqual(@as(i32, 3), increase.previous_priority);
+    try std.testing.expectEqual(@as(i32, 5), increase.current_priority);
 }
 
 test "phase3 abi keeps policy helper decoding aligned with interop policy bytes" {
