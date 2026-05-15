@@ -145,6 +145,18 @@
       "rationale": "Callback enqueue still routes through per-CPU segmented callback lists, overload tracking, NOCB offload selection, grace-period forcing, and time-bounded batch execution, so this seam is still coupled to live Tree RCU state rather than a narrow wrapper contract."
     },
     {
+      "id": "public-wait-and-callback-barrier",
+      "summary": "Keep public wait, polling-cookie visibility, and callback-barrier ownership in C while the survey records the public wait boundary.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "synchronize_rcu",
+        "get_state_synchronize_rcu",
+        "poll_state_synchronize_rcu",
+        "rcu_barrier"
+      ],
+      "rationale": "Public wait helpers still couple blocking waits, polling-cookie visibility, and callback-drain guarantees to deep-core Tree RCU sequencing and barrier coordination, so this surface remains blocked on stay-in-C evidence instead of a detachable bridge seam."
+    },
+    {
       "id": "cpu-hotplug-callback-migration",
       "summary": "Keep CPU hotplug enrollment, teardown, and callback migration in C while the survey records the callback-migration boundary.",
       "ownership": "stay_in_c",
