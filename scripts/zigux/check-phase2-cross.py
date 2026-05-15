@@ -10,6 +10,7 @@ from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
+TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 
 FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 
@@ -41,6 +42,59 @@ def load_fixture(path: Path) -> dict[str, object]:
     return payload
 
 
+def load_toolchain_policy_channel(policy_path: Path = TOOLCHAIN_POLICY) -> str | None:
+    if not policy_path.exists():
+        return None
+    payload = json.loads(policy_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("toolchain policy must be a JSON object")
+    channel = payload.get("channel")
+    if not isinstance(channel, str) or not channel:
+        raise ValueError("toolchain policy channel must be a non-empty string")
+    return channel
+
+
+def iter_repo_local_zig_candidates(
+    *,
+    root: Path = ROOT,
+    pinned_channel: str | None = None,
+) -> list[Path]:
+    toolchain_root = root / ".zig-toolchain"
+    candidates: list[Path] = []
+
+    def add_candidate(path: Path) -> None:
+        if path not in candidates:
+            candidates.append(path)
+
+    if pinned_channel is not None:
+        pinned_root = toolchain_root / f"zig-x86_64-linux-{pinned_channel}"
+        add_candidate(pinned_root / "zig")
+        add_candidate(pinned_root / "bin" / "zig")
+
+    if toolchain_root.exists():
+        for child in sorted(toolchain_root.iterdir()):
+            add_candidate(child / "zig")
+            add_candidate(child / "bin" / "zig")
+    return candidates
+
+
+def resolve_zig_executable(
+    explicit_zig: str | None = None,
+    *,
+    root: Path = ROOT,
+    policy_path: Path = TOOLCHAIN_POLICY,
+    which=shutil.which,
+) -> str | None:
+    if explicit_zig is not None:
+        return explicit_zig
+
+    pinned_channel = load_toolchain_policy_channel(policy_path) if policy_path.exists() else None
+    for candidate in iter_repo_local_zig_candidates(root=root, pinned_channel=pinned_channel):
+        if candidate.is_file():
+            return str(candidate)
+    return which("zig")
+
+
 def validate_fixture(root: Path) -> list[str]:
     issues: list[str] = []
     payload = load_fixture(root / "zigux/tests/fixtures/phase2_cross_targets.json")
@@ -64,11 +118,17 @@ def validate_fixture(root: Path) -> list[str]:
     return issues
 
 
-def run_cross_compile(root: Path, target: str) -> int:
-    zig = shutil.which("zig")
+def run_cross_compile(root: Path, target: str, zig_executable: str | None = None) -> int:
+    try:
+        zig = resolve_zig_executable(zig_executable, root=root)
+    except ValueError as exc:
+        print("PHASE2_CROSS=fail")
+        print(f"PHASE2_CROSS_NOTE={exc}")
+        return 1
+
     if zig is None:
         print("PHASE2_CROSS=fail")
-        print("PHASE2_CROSS_NOTE=zig not found on PATH")
+        print("PHASE2_CROSS_NOTE=zig not found on PATH or in repo-local .zig-toolchain")
         return 1
 
     payload = load_fixture(root / "zigux/tests/fixtures/phase2_cross_targets.json")
@@ -206,6 +266,52 @@ def run_self_test() -> int:
             assert rel_path in missing
             case_count += 1
 
+        build_self_test_root(root)
+        assert load_toolchain_policy_channel(root / "scripts/zigux/zig-toolchain-policy.json") is None
+        case_count += 1
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/zig-toolchain-policy.json",
+            json.dumps({"channel": "0.17.0-dev.87+9b177a7d2"}) + "\n",
+        )
+        pinned_root = root / ".zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
+        write_text(pinned_root / "zig", "#!/bin/sh\n")
+        resolved = resolve_zig_executable(root=root, policy_path=root / "scripts/zigux/zig-toolchain-policy.json", which=lambda _: "/usr/bin/zig")
+        assert resolved == str(pinned_root / "zig")
+        case_count += 1
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/zig-toolchain-policy.json",
+            json.dumps({"channel": "0.17.0-dev.87+9b177a7d2"}) + "\n",
+        )
+        pinned_root = root / ".zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
+        if pinned_root.exists():
+            shutil.rmtree(pinned_root)
+        fallback_root = root / ".zig-toolchain/fallback/bin"
+        write_text(fallback_root / "zig", "#!/bin/sh\n")
+        resolved = resolve_zig_executable(root=root, policy_path=root / "scripts/zigux/zig-toolchain-policy.json", which=lambda _: "/usr/bin/zig")
+        assert resolved == str(fallback_root / "zig")
+        case_count += 1
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/zig-toolchain-policy.json",
+            json.dumps({"channel": 7}) + "\n",
+        )
+        try:
+            resolve_zig_executable(root=root, policy_path=root / "scripts/zigux/zig-toolchain-policy.json", which=lambda _: None)
+        except ValueError as exc:
+            assert "toolchain policy channel must be a non-empty string" in str(exc)
+        else:
+            raise AssertionError("expected invalid toolchain policy to fail")
+        case_count += 1
+
+        build_self_test_root(root)
+        assert resolve_zig_executable("/custom/zig", root=root, which=lambda _: None) == "/custom/zig"
+        case_count += 1
+
     print("PHASE2_CROSS_SELF_TEST=pass")
     print(f"PHASE2_CROSS_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -217,6 +323,7 @@ def main() -> int:
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage.")
     parser.add_argument("--target", help="Run cross-target Zig test replays for one configured target.")
+    parser.add_argument("--zig", help="Explicit zig executable path.")
     args = parser.parse_args()
 
     if args.self_test:
@@ -251,7 +358,7 @@ def main() -> int:
         return 1
 
     if args.target:
-        return run_cross_compile(ROOT, args.target)
+        return run_cross_compile(ROOT, args.target, args.zig)
 
     payload = load_fixture(FIXTURE)
     targets = payload["targets"]
