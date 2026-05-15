@@ -19,9 +19,9 @@ DMA_REPLAY_PATH = "zigux/tests/phase13_devres_dma_coherent.zig"
 
 EXPECTED_LANE = "P13-L01"
 EXPECTED_COMMIT = "master-readback-2026-05-14"
-EXPECTED_GAP_COUNT = 17
+EXPECTED_GAP_COUNT = 18
 EXPECTED_STARTER_COUNT = 11
-EXPECTED_BLOCKED_COUNT = 6
+EXPECTED_BLOCKED_COUNT = 7
 
 EXPECTED_GAPS = {
     "phase13-make-target": "starter_landed",
@@ -40,6 +40,7 @@ EXPECTED_GAPS = {
     "phase13-devres-live-release-region-mutation": "blocked_on_live_mmio_state",
     "phase13-devres-live-device-tree-walk": "blocked_on_live_device_tree_state",
     "phase13-devres-live-arch-memtype-state": "blocked_on_live_arch_memtype_state",
+    "phase13-devres-live-dma-mappings": "blocked_on_live_dma_state",
     "phase13-devres-live-scatterlist-ownership": "blocked_on_live_scatterlist_state",
 }
 
@@ -64,6 +65,7 @@ SURVEY_MARKERS = [
     "phase13-devres-live-release-region-mutation",
     "phase13-devres-live-device-tree-walk",
     "phase13-devres-live-arch-memtype-state",
+    "phase13-devres-live-dma-mappings",
     "helper-only DMA/scatterlist boundary",
     "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
 ]
@@ -103,6 +105,8 @@ REVIEWABILITY_MARKERS = [
     'try std.testing.expect(descriptor.provides_ioremap_plain_wrapper_planning);',
     'try std.testing.expect(descriptor.provides_ioremap_np_wrapper_planning);',
     'try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_ioremap_np()") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase13-devres-live-dma-mappings") != null);',
+    'try expectGap(manifest, "phase13-devres-live-dma-mappings", "blocked_on_live_dma_state", "lib/devres.zig", "`dma_map_*`");',
     'try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres non-posted ioremap wrapper forces the NP lifetime path") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres non-posted ioremap wrapper frees the release record on map failure") != null);',
     '"phase13-devres-boundary-evidence-gate"',
@@ -110,9 +114,9 @@ REVIEWABILITY_MARKERS = [
     'try expectGap(manifest, "phase13-devres-test-gate", "starter_landed", "zigux/tests/phase13_devres.zig", "`devm_iounmap()` planner");',
     'try expectGap(manifest, "phase13-devres-test-gate", "starter_landed", "zigux/tests/phase13_devres.zig", "`devm_ioremap_np()`");',
     'try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres plans a managed iounmap call and warns on release misses") != null);',
-    'try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);',
+    'try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);',
     'try std.testing.expectEqual(@as(usize, 11), starter_landed_count);',
-    'try std.testing.expectEqual(@as(usize, 6), blocked_count);',
+    'try std.testing.expectEqual(@as(usize, 7), blocked_count);',
 ]
 
 BOUNDARY_REPLAY_MARKERS = [
@@ -125,8 +129,11 @@ BOUNDARY_REPLAY_MARKERS = [
 ]
 
 DMA_REPLAY_MARKERS = [
+    'try requireContains(manifest, "\"id\": \"phase13-devres-live-dma-mappings\"");',
+    'try requireContains(manifest, "\"status\": \"blocked_on_live_dma_state\"");',
     'try requireContains(manifest, "DMA mapping helpers");',
     'try requireContains(manifest, "`sg_table` lifecycle control");',
+    'try requireContains(survey, "phase13-devres-live-dma-mappings");',
     'try requireContains(survey, "no DMA mapping helpers");',
     'try requireContains(survey, "live DMA-backed helpers or DMA mapping ownership");',
     'try requireContains(survey, "no `sg_table` lifecycle control");',
@@ -268,9 +275,9 @@ def run_self_test() -> int:
         manifest['gaps'] = manifest['gaps'][:-1]
         write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + '\n')
         assert_only(validate(root), [
-            'manifest:gaps_count_mismatch:16',
+            'manifest:gaps_count_mismatch:17',
             'manifest:gap_status_mismatch:phase13-devres-live-scatterlist-ownership:None',
-            'manifest:blocked_count_mismatch:5',
+            'manifest:blocked_count_mismatch:6',
         ], 'manifest_gap_count_failed')
         case_count += 1
 
