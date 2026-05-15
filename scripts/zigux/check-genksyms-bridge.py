@@ -307,6 +307,11 @@ EXPECTED_TESTS_README_MARKERS = [
     "the shipped genksyms bridge direct replay",
 ]
 
+EXPECTED_PHASE2_TOOL_MANIFEST_ROUTES = [
+    "make -C zigux phase2-tools",
+    "make -C zigux phase2-validate",
+]
+
 EXPECTED_PHASE2_VALIDATOR_MARKERS = [
     'GENKSYMS_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"',
     '    (GENKSYMS_BRIDGE_CHECKER, "--self-test"),',
@@ -366,7 +371,7 @@ EXPECTED_SURVEY_MARKERS = [
     expected_survey_version_marker(),
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 28
+EXPECTED_SELF_TEST_CASE_COUNT = 30
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -477,6 +482,13 @@ def validate_phase2_tool_manifest(payload: dict[str, object]) -> list[str]:
     families = payload.get("families")
     if not isinstance(families, list) or "genksyms_bridge" not in families:
         issues.append("phase2_tool_manifest:missing_family:genksyms_bridge")
+    shared_routes = payload.get("shared_routes")
+    if not isinstance(shared_routes, list):
+        issues.append("phase2_tool_manifest:shared_routes:expected_list")
+    else:
+        for route in EXPECTED_PHASE2_TOOL_MANIFEST_ROUTES:
+            if route not in shared_routes:
+                issues.append(f"phase2_tool_manifest:missing_shared_route:{route}")
     return issues
 
 
@@ -621,6 +633,7 @@ def build_self_test_root(root: Path) -> None:
                 "shared_routes": [
                     "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
                     "python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
+                    "make -C zigux phase2-tools",
                     "make -C zigux phase2-validate",
                 ],
                 "docs": [
@@ -851,6 +864,42 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert "phase2_tool_manifest:missing_family:genksyms_bridge" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        phase2_tool_manifest = json.loads((root / PHASE2_TOOL_MANIFEST_REL).read_text(encoding="utf-8"))
+        phase2_tool_manifest["shared_routes"] = [
+            route
+            for route in phase2_tool_manifest["shared_routes"]
+            if route != EXPECTED_PHASE2_TOOL_MANIFEST_ROUTES[0]
+        ]
+        write_text(
+            root / PHASE2_TOOL_MANIFEST_REL,
+            json.dumps(phase2_tool_manifest, indent=2) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            f"phase2_tool_manifest:missing_shared_route:{EXPECTED_PHASE2_TOOL_MANIFEST_ROUTES[0]}"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        phase2_tool_manifest = json.loads((root / PHASE2_TOOL_MANIFEST_REL).read_text(encoding="utf-8"))
+        phase2_tool_manifest["shared_routes"] = [
+            route
+            for route in phase2_tool_manifest["shared_routes"]
+            if route != EXPECTED_PHASE2_TOOL_MANIFEST_ROUTES[1]
+        ]
+        write_text(
+            root / PHASE2_TOOL_MANIFEST_REL,
+            json.dumps(phase2_tool_manifest, indent=2) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            f"phase2_tool_manifest:missing_shared_route:{EXPECTED_PHASE2_TOOL_MANIFEST_ROUTES[1]}"
+            in issues
+        )
         case_count += 1
 
         build_self_test_root(root)
