@@ -19,8 +19,24 @@ test "phase10 virtio input probe preflight keeps identity visible before queue s
     try std.testing.expect(!summary.ready_for_probe_handoff);
 }
 
+test "phase10 virtio input probe preflight keeps serial visible without blocking identity staging" {
+    var serial_optional = try virtio_input.VirtioInputLab.init("probe-tablet", "", 22, null);
+
+    const summary = virtio_input_probe_preflight.summarize(&serial_optional);
+    try std.testing.expect(summary.name_ready);
+    try std.testing.expect(!summary.serial_ready);
+    try std.testing.expect(summary.phys_ready);
+    try std.testing.expect(summary.identity_ready);
+    try std.testing.expect(!summary.registration_preflight_ready);
+    try std.testing.expectEqual(
+        virtio_input_probe_preflight.ProbePreflightBlocker.queue_plan_incomplete,
+        summary.blocker.?,
+    );
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+}
+
 test "phase10 virtio input probe preflight reports the next bounded blocker before handoff" {
-    var device = try virtio_input.VirtioInputLab.init("probe-tablet", "probe-serial", 22, null);
+    var device = try virtio_input.VirtioInputLab.init("probe-tablet", "probe-serial", 23, null);
 
     var summary = virtio_input_probe_preflight.summarize(&device);
     try std.testing.expect(summary.identity_ready);
