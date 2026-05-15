@@ -40,6 +40,7 @@ REQUIRED_MARKERS = {
         "first-NUL trimming and prefix skipping stop at the exported C-string boundary",
         "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
         "append-limited escape accounting stays inside caller storage",
+        "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
         "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
     ],
     "Documentation/zigux/review-checklist.md": [
@@ -294,6 +295,19 @@ def run_self_test() -> None:
 
         remove_marker(
             tmp_root,
+            "Documentation/zigux/README.md",
+            "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
+            "missing_docs_root_strarray_ownership_marker",
+        )
+        expect_missing_marker(
+            "missing_docs_root_strarray_ownership_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
             "The older string-helpers missing-pair reminder and the older missing-rbtree replay reminder are no longer the live blocker for this shared note",
             "missing_live_blocker_note",
@@ -500,7 +514,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=17")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=18")
 
 
 
