@@ -340,7 +340,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try std.testing.expectEqualStrings("runtime_substrate", manifest.gaps[0].kind);
     try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.gaps[0].zigux_destination);
     try std.testing.expectEqualStrings(
-        "The roadmap's loadable runtime pilot module step still depends on a shared runtime substrate beyond the current reviewable family-local trace-events packet, including runtime task ownership, polling and event-loop substrate, polling-backed wake or dispatch behavior, and the still-blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and `depmod` script or manifest state boundary.",
+        "The roadmap's loadable runtime pilot module step still depends on a shared runtime substrate beyond the current reviewable family-local trace-events packet, including runtime task ownership, polling and event-loop substrate, polling-backed wake or dispatch behavior, and the still-blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and `depmod` script, manifest, or alias publication state boundary.",
         manifest.gaps[0].why_now,
     );
 
@@ -389,7 +389,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     try expectContains(
         survey_note,
-        "That still-blocked boundary also includes `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and `depmod` script or manifest state.",
+        "That still-blocked boundary also includes `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and `depmod` script, manifest, or alias publication state.",
     );
     try expectContains(
         survey_note,
@@ -412,7 +412,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     try expectContains(
         module_slice_note,
-        "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and any `depmod` script or manifest state",
+        "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication, and any `depmod` script, manifest, or alias publication state",
     );
     try expectContains(
         module_slice_note,
