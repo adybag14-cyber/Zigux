@@ -138,7 +138,7 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
     try std.testing.expectEqual(@as(usize, 4), manifest.blocker_ownership.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.deep_core_blocker_survey.len);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
-    try std.testing.expectEqual(@as(usize, 4), manifest.maintenance_handoff.replay_before_trusting.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.maintenance_handoff.replay_before_trusting.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
@@ -162,9 +162,13 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
     try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", skbuff.current_blocker);
 
     try expectContains(manifest.maintenance_handoff.replay_before_trusting[0], "validate-phase15.py");
-    try expectContains(manifest.maintenance_handoff.replay_before_trusting[3], "phase15_freeze_map_governance.zig");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[1], "check-phase15-docs-readme-alignment.py");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[4], "check-phase15-shared-summary-gap.py");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[5], "phase15_freeze_map_governance.zig");
     try expectContains(manifest.maintenance_handoff.reopen_conditions[2], "no-silent-exception posture");
     try expectContains(manifest.maintenance_handoff.next_future_target, "freeze-map-local");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "check-phase15-docs-readme-alignment.py");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "check-phase15-shared-summary-gap.py");
 
     const required_field_sync = findGap(manifest.gaps, "phase15-review-process-required-field-sync") orelse return error.MissingGap;
     try expectContains(required_field_sync.why_now, "required approver set");
@@ -202,12 +206,15 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContainsWithoutBackticks(governance_note, "Documentation/zigux/phase14-core-boundary-traceability.md now keeps the same shared owner-map lane P14-L11");
     try expectContains(governance_note, "## Maintenance-Mode Handoff");
     try expectContains(governance_note, "current lane posture: `maintenance_mode`");
+    try expectContains(governance_note, "check-phase15-docs-readme-alignment.py");
     try expectContains(governance_note, "check-phase15-review-process-handoff.py");
+    try expectContains(governance_note, "check-phase15-shared-summary-gap.py");
     try expectContains(governance_note, "shared-summary, parity-scorecard, or readiness packets");
     try expectContains(governance_note, "phase15-review-process-required-field-sync");
     try expectContains(governance_note, "phase15-freeze-map-required-approver-sync");
     try expectContains(governance_note, "phase15-dated-readback-provenance-refresh");
     try expectContains(governance_note, "phase15-freeze-map-maintenance-handoff");
+    try expectContains(governance_note, "docs-root alignment checker and shared-summary gap checker");
 }
 
 test "phase 15 freeze-map required terms, maintenance handoff, and scorecard ownership stay aligned" {
