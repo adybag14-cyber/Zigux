@@ -150,7 +150,7 @@ This survey slice does not claim:
 - `zig test zigux/tests/phase14_ring_buffer_survey.zig`
 
 2. run the shared Phase 14 build bundle
-- `zig build test --build-file zigux/tests/phase14_build.zig`
+- `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 
 3. run the convenience target
 - `make -C zigux phase14`
