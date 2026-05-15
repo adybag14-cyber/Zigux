@@ -8,6 +8,8 @@ Current direct contents reads now show the visible starter at `drivers/watchdog/
 
 The visible `gpio_wdt_lab` starter currently exports these code-backed review surfaces:
 
+- `platformDriverIdentitySummary()`
+- `watchdogMetadataSummary()`
 - `descriptorRequestSummary()`
 - `platformDrvdataCheckpointSummary()`
 - `nowayoutPolicySummary()`
