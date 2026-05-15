@@ -133,49 +133,15 @@ pub const perf_payload =
     "Phase 6 base64 perf gate payload keeps the helper wired to a real throughput check. " ++
     "This packet stays helper-local, avoids widening into neighboring leaf helpers, and " ++
     "exercises repeated encode and decode work over a stable review fixture. " ++
-    "Zigux uses the same payload for padded and unpadded standard and urlsafe runs.";
+    "Zigux uses the same payload for padded and unpadded standard, urlsafe, and imap runs.";
 
 pub const perf_cases = [_]PerfCase{
-    .{
-        .label = "STD_PAD",
-        .payload = perf_payload,
-        .padding = true,
-        .variant_name = "std",
-        .reference_kind = "std_padded",
-        .iterations = 12000,
-        .max_encode_slowdown_pct = 150,
-        .max_decode_slowdown_pct = 325,
-    },
-    .{
-        .label = "STD_NO_PAD",
-        .payload = perf_payload,
-        .padding = false,
-        .variant_name = "std",
-        .reference_kind = "std_no_pad",
-        .iterations = 12000,
-        .max_encode_slowdown_pct = 150,
-        .max_decode_slowdown_pct = 325,
-    },
-    .{
-        .label = "URLSAFE_PAD",
-        .payload = perf_payload,
-        .padding = true,
-        .variant_name = "urlsafe",
-        .reference_kind = "urlsafe_padded",
-        .iterations = 12000,
-        .max_encode_slowdown_pct = 150,
-        .max_decode_slowdown_pct = 325,
-    },
-    .{
-        .label = "URLSAFE_NO_PAD",
-        .payload = perf_payload,
-        .padding = false,
-        .variant_name = "urlsafe",
-        .reference_kind = "urlsafe_no_pad",
-        .iterations = 12000,
-        .max_encode_slowdown_pct = 150,
-        .max_decode_slowdown_pct = 325,
-    },
+    .{ .label = "STD_PAD", .payload = perf_payload, .padding = true, .variant_name = "std", .reference_kind = "std_padded", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "STD_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "std", .reference_kind = "std_no_pad", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "URLSAFE_PAD", .payload = perf_payload, .padding = true, .variant_name = "urlsafe", .reference_kind = "urlsafe_padded", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "URLSAFE_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "urlsafe", .reference_kind = "urlsafe_no_pad", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "IMAP_PAD", .payload = perf_payload, .padding = true, .variant_name = "imap", .reference_kind = "imap_padded", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "IMAP_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "imap", .reference_kind = "imap_no_pad", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
 };
 
 pub const perf_payload_buf_size = perf_payload.len;
