@@ -14,7 +14,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 
 The roadmap's Phase 5 target is still "Samples and Reference Patterns" and explicitly names `samples/trace_events/trace-events-sample.c` as one of the four approved Linux anchors.
 
-The bounded same-lane job here is not to widen runtime behavior. It is to keep the current sample-backed trace-events packet honest on current `master`: record the directly readable sample, focused replay, manifest, and survey replay; keep the older shared `zigux/tests/phase5_build.zig` route visible only as support material that still needs a fresh direct reread; and avoid borrowing exact replay wording from shared reminder surfaces that are still lagging the landed packet.
+The bounded same-lane job here is not to widen runtime behavior. It is to keep the current sample-backed trace-events packet honest on current `master`: record the directly readable sample, focused replay, manifest, and survey replay; keep the older shared `zigux/tests/phase5_build.zig` route visible only as current public-tree-backed support material while authenticated contents readback for that path still needs a fresh return; and avoid borrowing exact replay wording from shared reminder surfaces that are still lagging the landed packet.
 
 ## Current repo reality on `master`
 
@@ -36,9 +36,13 @@ A same-day authenticated-contents reread in the 2026-05-15 lane pass did not rec
 
 - `zigux/tests/phase5_build.zig`
 
-Treat the current trace-events packet as directly readable through the sample root, focused replay, manifest, and survey replay above. The focused `zig test` routes remain the most sample-local replays, while `zig build test --build-file zigux/tests/phase5_build.zig --summary all` stays recorded only as shared-route support material that still needs a fresh direct reread before it is reused as current proof.
+A same-day public-tree reread in that same lane still exposed this shared-build reminder path on current `master`:
 
-The manifest-backed review packet still routes exact validation through `zig test samples/zigux/trace_events_sample.zig`, `zig test zigux/tests/phase5_trace_events_sample.zig`, and `zig test zigux/tests/phase5_trace_events_sample_survey.zig`, and it keeps the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route explicit as split-readback support material rather than returned authenticated proof.
+- `zigux/tests/phase5_build.zig`
+
+Treat the current trace-events packet as directly readable through the sample root, focused replay, manifest, and survey replay above. The focused `zig test` routes remain the most sample-local replays, while `zig build test --build-file zigux/tests/phase5_build.zig --summary all` stays recorded as current public-tree-backed shared support material rather than returned authenticated-contents proof.
+
+The manifest-backed review packet still routes exact validation through `zig test samples/zigux/trace_events_sample.zig`, `zig test zigux/tests/phase5_trace_events_sample.zig`, and `zig test zigux/tests/phase5_trace_events_sample_survey.zig`, and it keeps the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route explicit as public-tree-backed split-readback support material rather than returned authenticated proof.
 
 ## Shared reminder posture
 
@@ -52,12 +56,12 @@ Aligned reminder surfaces in this run:
 - `samples/zigux/README.md`
 - `scripts/zigux/README.md`
 
-Those surfaces already keep the landed trace-events packet explicit, keep the selected-string plus `iter=%d` replay positioned as the approved formatting idiom cue instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet. They do not need this survey note to promote `zigux/tests/phase5_build.zig` back into direct proof while the authenticated-contents reread still misses that path.
+Those surfaces already keep the landed trace-events packet explicit, keep the selected-string plus `iter=%d` replay positioned as the approved formatting idiom cue instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet. They do not need this survey note to promote `zigux/tests/phase5_build.zig` back into direct authenticated proof while the contents reread still misses that path.
 
 The tests-root shared reminder is only inventory-aligned in this run:
 
 - `zigux/tests/README.md` names `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
-- it also keeps the current shared-build gap explicit through `zigux/tests/phase5_build.zig`
+- it also keeps the current shared-build split explicit through `zigux/tests/phase5_build.zig`
 - it does not restate helper-level trace-events cues such as `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, the selected-string plus `iter=%d` formatting cue, or `OutstandingRegistration`; those cues remain explicit in this survey note, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
 
 Treat the tests-root reminder as packet-inventory support material on current `master`, not as the place where the helper-level trace-events cue list is spelled out.
@@ -81,10 +85,10 @@ The focused tests-root packet in `zigux/tests/phase5_trace_events_sample.zig` an
 The precise current gap is no longer "Zigux lacks a trace-events reference sample." The more accurate same-lane state is:
 
 - the roadmap-backed trace-events anchor already has a directly readable non-runtime sample plus focused tests-root evidence
-- the shared `zigux/tests/phase5_build.zig` route still is not directly readable through the current GitHub-app reread, so this lane should keep that split explicit instead of claiming the shared build route has returned
-- broader shared-surface cleanup can stay parked unless a future reread finds a new one-file reminder drift, because the directly coupled shared docs-root, sample-root, scripts-root, and tests-root surfaces already align around the landed packet and the still-explicit shared-build gap today
+- the shared `zigux/tests/phase5_build.zig` route still is not directly readable through the current authenticated GitHub-app reread, but the current public tree exposes that shared build route again, so this lane should keep the split explicit instead of calling it absent or claiming fully direct connector proof
+- broader shared-surface cleanup can stay parked unless a future reread finds a new one-file reminder drift, because the directly coupled shared docs-root, sample-root, scripts-root, and tests-root surfaces already align around the landed packet and the still-explicit shared-build split today
 
-So the honest same-lane follow-through is to keep this survey note anchored to the directly readable trace-events packet, keep the shared build route framed as support material that still needs fresh direct reread, and leave broader shared-surface cleanup for separate one-file repairs.
+So the honest same-lane follow-through is to keep this survey note anchored to the directly readable trace-events packet, keep the shared build route framed as current public-tree-backed support material while authenticated direct reread is still missing, and leave broader shared-surface cleanup for separate one-file repairs.
 
 ## Non-goals
 
