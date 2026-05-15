@@ -20,7 +20,7 @@ REQUIRED_SURVEY_MARKERS = (
 
 REQUIRED_LOW_LEVEL_SURVEY_MARKERS = (
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
-    "PHASE3_MMIO_SCOPE=direct-range-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
+    "PHASE3_MMIO_SCOPE=direct-range-indexed-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
     "PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
 )
@@ -31,7 +31,7 @@ REQUIRED_SURVEY_SNIPPETS = (
 )
 
 REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS = (
-    "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.",
+    "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, indexed reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.",
     "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
 )
 
@@ -221,6 +221,45 @@ def run_self_test() -> int:
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
         _write(
             root,
+            LOW_LEVEL_SURVEY_REL,
+            "\n".join(
+                marker
+                for marker in REQUIRED_LOW_LEVEL_SURVEY_MARKERS
+                if marker
+                != "PHASE3_MMIO_SCOPE=direct-range-indexed-read-write-8-16-32-64-width-alignment-and-odd-offset-replay"
+            )
+            + "\nPHASE3_MMIO_SCOPE=direct-range-read-write-8-16-32-64-width-alignment-and-odd-offset-replay\n"
+            + "\n".join(REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS)
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_low_level_survey_marker:PHASE3_MMIO_SCOPE=direct-range-indexed-read-write-8-16-32-64-width-alignment-and-odd-offset-replay"
+            in issues
+        )
+
+        _write(
+            root,
+            LOW_LEVEL_SURVEY_REL,
+            "\n".join(REQUIRED_LOW_LEVEL_SURVEY_MARKERS)
+            + "\n"
+            + "\n".join(
+                snippet
+                for snippet in REQUIRED_LOW_LEVEL_SURVEY_SNIPPETS
+                if snippet
+                != "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, indexed reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route."
+            )
+            + "\n`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_low_level_survey_snippet:`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, indexed reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route."
+            in issues
+        )
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
             MMIO_REL,
             "\n".join(
                 snippet
@@ -322,7 +361,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=10")
+    print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
