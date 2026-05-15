@@ -97,7 +97,7 @@
       "status": "blocked_on_stay_in_c_evidence",
       "kind": "freeze_map",
       "zigux_destination": "zigux/tests/phase14_skbuff_bridge.zig",
-      "why_now": "The packet still stops at explicit stay-in-C wording: qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination remain in C."
+      "why_now": "The packet still stops at explicit stay-in-C wording: qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, destructor coordination, and the final sock-owned tail transfer remain in C."
     }
   ]
 }
