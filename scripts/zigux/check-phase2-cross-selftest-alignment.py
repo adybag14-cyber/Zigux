@@ -32,6 +32,9 @@ EXPECTED_TARGETS = [
 
 EXPECTED_ZIG_TEST_FILES = [
     "scripts/zigux/fixdep.zig",
+    "scripts/zigux/genksyms.zig",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
 EXACT_WORKFLOW_RUN_COUNTS = {
@@ -60,18 +63,19 @@ PHASE2_CROSS_TARGET_REQUIRED_LINES = [
 ]
 
 WORKFLOW_SCOPE_REQUIRED_FRAGMENTS = [
-    "scripts/zigux/install-zig\\.py",
-    "scripts/zigux/check-phase2-cross\\.py",
-    "scripts/zigux/check-phase2-cross-selftest-alignment\\.py",
-    "scripts/zigux/zig-toolchain-policy\\.json",
-    "scripts/zigux/fixdep\\.zig",
-    "zigux/tests/fixtures/phase2_cross_targets\\.json",
+    "Documentation/zigux/**",
+    "scripts/zigux/**",
+    "zigux/**",
+    ".github/workflows/zigux-bootstrap.yml",
 ]
 
 PHASE2_CROSS_CHECKER_MARKERS = [
     "EXPECTED_TARGETS = [",
     "EXPECTED_ZIG_TEST_FILES = [",
     '    "scripts/zigux/fixdep.zig",',
+    '    "scripts/zigux/genksyms.zig",',
+    '    "scripts/zigux/kconfig/conf_bridge.zig",',
+    '    "scripts/zigux/kconfig/confdata_bridge.zig",',
     'print("PHASE2_CROSS_SELF_TEST=pass")',
     'print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")',
     'print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")',
@@ -81,16 +85,21 @@ PHASE2_VALIDATOR_MARKERS = [
     'ROOT / "scripts" / "zigux" / "check-phase2-cross.py"',
     'ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"',
     '"zigux/tests/fixtures/phase2_cross_targets.json"',
+    '("zig", "test", ROOT / "scripts" / "zigux" / "fixdep.zig")',
+    '("zig", "test", ROOT / "scripts" / "zigux" / "genksyms.zig")',
+    '("zig", "test", ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig")',
+    '("zig", "test", ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig")',
 ]
 
 BOOTSTRAP_NOTES_MATRIX_BOUNDARY_SENTENCE = (
     "the closure note, tests root, and Makefile keep the committed "
     "`zigux/tests/fixtures/phase2_tool_manifest.json` plus "
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded "
-    "direct `zig test scripts/zigux/fixdep.zig` replay, the committed genksyms bridge "
-    "fixture packet, and the checker-backed kconfig bridge plus confdata manifest packet "
-    "reviewable without reopening the dedicated genksyms or kconfig lanes from this "
-    "bootstrap note"
+    "direct `zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, "
+    "`zig test scripts/zigux/kconfig/conf_bridge.zig`, and `zig test "
+    "scripts/zigux/kconfig/confdata_bridge.zig` replays, and the committed genksyms "
+    "bridge fixture plus kconfig manifest packet reviewable without reopening the "
+    "dedicated genksyms or kconfig lanes from this bootstrap note"
 )
 
 CLOSURE_MARKERS = [
@@ -100,6 +109,7 @@ CLOSURE_MARKERS = [
     "shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "make -C zigux phase2-cross",
+    "direct replay owners stay bounded on current `master`: `zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, `zig test scripts/zigux/kconfig/conf_bridge.zig`, and `zig test scripts/zigux/kconfig/confdata_bridge.zig` remain the shipped direct Phase 2 Zig replays",
 ]
 
 BOOTSTRAP_NOTES_MARKERS = [
@@ -124,6 +134,9 @@ TESTS_README_MARKERS = [
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
+    "scripts/zigux/genksyms.zig",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
     "make -C zigux phase2-cross",
 ]
 
@@ -131,6 +144,9 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
+    "scripts/zigux/genksyms.zig",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
 
@@ -309,11 +325,11 @@ def run_self_test() -> int:
     if validate_workflow_scope_fragments(scope_text):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope")
 
-    scope_issues = validate_workflow_scope_fragments("scripts/zigux/install-zig\\.py")
-    if "workflow_scope:missing_marker:scripts/zigux/check-phase2-cross\\.py" not in scope_issues:
+    scope_issues = validate_workflow_scope_fragments("scripts/zigux/**")
+    if "workflow_scope:missing_marker:Documentation/zigux/**" not in scope_issues:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_failure")
-    if "workflow_scope:missing_marker:scripts/zigux/zig-toolchain-policy\\.json" not in scope_issues:
-        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_policy_failure")
+    if "workflow_scope:missing_marker:.github/workflows/zigux-bootstrap.yml" not in scope_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_workflow_failure")
 
     makefile_text = "\n".join(
         [
@@ -472,7 +488,7 @@ def run_self_test() -> int:
         markers=REVIEW_CHECKLIST_MARKERS,
     )
     expected_review_checklist_issue = (
-        "phase2_review_checklist:missing_marker:zigux/tests/fixtures/phase2_cross_targets.json"
+        "phase2_review_checklist:missing_marker:scripts/zigux/kconfig/confdata_bridge.zig"
     )
     if review_checklist_missing != [expected_review_checklist_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:review_checklist_marker_failure")
