@@ -100,6 +100,13 @@ test "phase 9 runtime loader gap survey keeps the shared replay routes and no-de
     );
     defer allocator.free(phase9_build);
 
+    const docs_readme = try readRepoFileAlloc(
+        allocator,
+        "Documentation/zigux/README.md",
+        256 * 1024,
+    );
+    defer allocator.free(docs_readme);
+
     const review_checklist = try readRepoFileAlloc(
         allocator,
         "Documentation/zigux/review-checklist.md",
@@ -140,6 +147,11 @@ test "phase 9 runtime loader gap survey keeps the shared replay routes and no-de
     try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
     try expectContains(phase9_build, "runtime_loader_allocator_init_flow.zig");
     try expectContains(phase9_build, "runtime_loader_gap_survey.zig");
+
+    try expectContains(docs_readme, "`zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`");
+    try expectContains(docs_readme, "loader facade, contract, allocator/init-flow replay, loader-gap survey note plus manifest-backed survey gate, shared build, and workflow-backed Linux-style `make -C zigux phase9` replay route");
+    try expectContains(docs_readme, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the owner of the exact shared-loader target list");
+    try expectContains(docs_readme, "the still-blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest boundary");
 
     try expectContains(review_checklist, "`scripts/zigux/check-phase9-build-only-surface.py`");
     try expectContains(review_checklist, "workflow-backed `make -C zigux phase9` route");
