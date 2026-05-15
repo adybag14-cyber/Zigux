@@ -49,7 +49,7 @@ If `zig` is unavailable on `PATH`, keep the shipped degraded-workflow bundle plu
 
 Keep the degraded-workflow checker pair explicit beside that same order too:
 - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
-- `python3 scripts/zigux/check-build-only-phase12-surface.py`
+- `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
 - Current `master` keeps the starter-present `virtio_net` syntax-lab smoke shard explicit through `zigux/tests/phase12_build.zig`: the shipped `smoke` step runs `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig`, before the `test` step layers in the direct `zigux/tests/phase12_virtio_net.zig` and `zigux/tests/phase12_virtio_scsi.zig` replays on top of that same smoke shard.
 - The same smoke shard also keeps `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig` explicit as the shipped rollback-lab drill inside `zigux/tests/phase12_build.zig` rather than leaving that gate implied by the broader `virtio_scsi` packet wording.
 
