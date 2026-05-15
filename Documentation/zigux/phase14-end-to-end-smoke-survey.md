@@ -29,6 +29,10 @@ This document records the shared Phase 14 smoke lane that verifies the current b
   - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
   - `zigux/tests/phase14_build.zig`
   - `zigux/tests/phase14_workqueue_reviewability.zig`
+  - `zigux/tests/phase14_workqueue_bridge.zig`
+  - `zigux/tests/phase14_skbuff_bridge.zig`
+  - `zigux/tests/phase14_ring_buffer_survey.zig`
+  - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `zigux/tests/README.md`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
