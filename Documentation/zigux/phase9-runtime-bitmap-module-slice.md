@@ -6,7 +6,7 @@ This document tracks the current bounded runtime bitmap starter packet.
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
 - `PHASE9_LANE_KEY=P9-L08`
-- `PHASE9_SURVEYED_COMMIT=467d9e097f15f2fd867c5d1c784a721775d18381`
+- `PHASE9_SURVEYED_COMMIT=66e60700501fc8bb08d645b081064c4698562427`
 - scope: sample starter, diff gate, loader scaffold, top-bit companion replay, module gate, survey gate, manifest-backed ownership packet, and shared loader handoff plus shared build routes only
 
 ## Product Boundary
