@@ -153,6 +153,13 @@ EXPECTED_GENKSYMS_CASES = [
         "expected": "version_expected.json",
     },
     {
+        "name": "version_then_missing_long_reference_argument",
+        "argv": ["-V", "--reference"],
+        "mode": "process_json",
+        "expected": "version_then_missing_long_reference_argument_expected.json",
+        "normalize_stderr": True,
+    },
+    {
         "name": "abbreviated_version",
         "argv": ["--ver"],
         "mode": "process_json",
@@ -315,7 +322,7 @@ EXPECTED_PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     '    "shared genksyms bridge self-test: `python3 scripts/zigux/check-genksyms-bridge.py --self-test`",',
     '    "shared genksyms bridge gate: `python3 scripts/zigux/check-genksyms-bridge.py`",',
     '    "committed genksyms bridge fixture packet: `zigux/tests/fixtures/genksyms_bridge/`",',
-    '    "the dedicated `Phase 2 genksyms` bridge packet remains the live `23-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`, and the shared reminder surfaces should keep that fixture-backed bridge evidence explicit without drifting back to older undercounts or claiming standalone checker scripts that are not present on current `master`",',
+    '    "the dedicated `Phase 2 genksyms` bridge packet remains the live `24-case` bridge surface under `zigux/tests/fixtures/genksyms_bridge/`, and the shared reminder surfaces should keep that fixture-backed bridge evidence explicit without drifting back to older undercounts or claiming standalone checker scripts that are not present on current `master`",',
 ]
 
 
@@ -346,10 +353,11 @@ def expected_survey_case_marker() -> str:
 
 def expected_survey_version_marker() -> str:
     return (
-        "The external `version_expected.json` packet now proves the same version-side-effect "
-        "behavior as the helper-local anchor `genksyms bridge keeps version as a side effect "
-        "while parsing later options`, so the helper-local and external bridge packets are "
-        "aligned on that behavior."
+        "The external `version_expected.json` and "
+        "`version_then_missing_long_reference_argument_expected.json` packets now prove the "
+        "same version-side-effect request and parse-failure behavior as the helper-local "
+        "anchors already covered in `scripts/zigux/genksyms.zig`, so the helper-local and "
+        "external bridge packets are aligned on both bounded version paths."
     )
 
 
@@ -703,8 +711,8 @@ def run_self_test() -> int:
         payload.pop()
         write_text(root / GENKSYMS_CASES_REL, json.dumps(payload, indent=2) + "\n")
         issues = validate_root(root)
-        assert "genksyms_cases:case_count:expected=23:actual=22" in issues
-        assert "genksyms_cases:names:expected=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'missing_dump_types_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument', 'too_many_reference_files']:actual=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'missing_dump_types_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument']" in issues
+        assert "genksyms_cases:case_count:expected=24:actual=23" in issues
+        assert "genksyms_cases:names:expected=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'version_then_missing_long_reference_argument', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'missing_dump_types_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument', 'too_many_reference_files']:actual=['minimal', 'debug_reference_types', 'long_options', 'abbreviated_long_options', 'ambiguous_long_option', 'quiet_overrides_warning', 'explicit_option_terminator', 'positional_passthrough', 'lone_dash_passthrough', 'help', 'version_then_short_help', 'version_then_long_help', 'abbreviated_help', 'unexpected_help_argument', 'version', 'version_then_missing_long_reference_argument', 'abbreviated_version', 'invalid_option', 'missing_reference_argument', 'missing_dump_types_argument', 'unsupported_long_option', 'missing_long_reference_argument', 'missing_long_dump_types_argument']" in issues
         case_count += 1
 
         build_self_test_root(root)
