@@ -170,6 +170,7 @@
     "zigux/tests/phase10_virtio_input_manifest.json": [
       "phase10-virtio-input-capability-setup-helper",
       "phase10-virtio-input-multitouch-slot-helper",
+      "phase10-virtio-input-probe-preflight-helper",
       "phase10-virtio-input-teardown-observation-helper",
       "phase10-virtio-input-registration-preflight-helper",
       "phase10-virtio-input-queue-callback-preflight-helper",
