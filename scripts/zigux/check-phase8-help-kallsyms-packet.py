@@ -118,11 +118,28 @@ REQUIRED_MARKERS = {
         'test "phase 8 help output emission keeps column-major pretty-printing pure and testable"',
         'test "phase 8 help section rendering keeps the stable main and PATH headings reviewable"',
     ),
+    HELP_BUILD_PATH: (
+        '"../../tools/lib/subcmd/help.zig"',
+        '"phase8-help-only-tests"',
+        '"Run the focused Phase 8 help-only tests."',
+    ),
+    HELP_KALLSYMS_BUILD_PATH: (
+        '"../../tools/lib/subcmd/help.zig"',
+        '"../../tools/lib/symbol/kallsyms.zig"',
+        '"phase8-help-kallsyms-help-tests"',
+        '"phase8-help-kallsyms-kallsyms-tests"',
+        '"Run the focused Phase 8 help and kallsyms shared tests."',
+    ),
     KALLSYMS_TEST_PATH: (
         'test "phase 8 kallsyms direct parser truncates oversized names"',
         'test "phase 8 kallsyms chunked parser also truncates oversized names"',
         'test "phase 8 kallsyms segmented reader bubbles callback failures unchanged"',
         'test "phase 8 kallsyms wrappers preserve the parked callback contract"',
+    ),
+    KALLSYMS_BUILD_PATH: (
+        '"../../tools/lib/symbol/kallsyms.zig"',
+        '"phase8-kallsyms-only-tests"',
+        '"Run the focused Phase 8 kallsyms-only tests."',
     ),
 }
 
@@ -250,8 +267,24 @@ def run_self_test() -> int:
                 'test "phase 8 help output emission keeps column-major pretty-printing pure and testable"',
             ),
             (
+                HELP_BUILD_PATH,
+                '"phase8-help-only-tests"',
+            ),
+            (
+                HELP_KALLSYMS_BUILD_PATH,
+                '"../../tools/lib/symbol/kallsyms.zig"',
+            ),
+            (
+                HELP_KALLSYMS_BUILD_PATH,
+                '"phase8-help-kallsyms-kallsyms-tests"',
+            ),
+            (
                 KALLSYMS_TEST_PATH,
                 'test "phase 8 kallsyms direct parser truncates oversized names"',
+            ),
+            (
+                KALLSYMS_BUILD_PATH,
+                '"phase8-kallsyms-only-tests"',
             ),
         )
         for rel_path, marker in mutations:
