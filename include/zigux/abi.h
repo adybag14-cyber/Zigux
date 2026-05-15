@@ -1,6 +1,7 @@
 #ifndef _ZIGUX_ABI_H
 #define _ZIGUX_ABI_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #define ZIGUX_ABI_VERSION 1U
@@ -81,25 +82,49 @@ struct zigux_notifier_block {
     int32_t priority;
 };
 
-static inline int zigux_notifier_chain_has_nonincreasing_priority(
-    const struct zigux_notifier_block *head)
+typedef struct zigux_notifier_chain_priority_increase {
+    size_t previous_index;
+    size_t current_index;
+    int32_t previous_priority;
+    int32_t current_priority;
+} zigux_notifier_chain_priority_increase;
+
+static inline int zigux_notifier_first_chain_priority_increase(
+    const struct zigux_notifier_block *head,
+    zigux_notifier_chain_priority_increase *out)
 {
     int32_t previous_priority;
+    size_t previous_index = 0;
     const struct zigux_notifier_block *node;
 
     if (!head)
-        return 1;
+        return 0;
 
     previous_priority = head->priority;
     while (head->next != (uintptr_t)0) {
+        const size_t current_index = previous_index + 1;
         node = (const struct zigux_notifier_block *)(uintptr_t)head->next;
-        if (node->priority > previous_priority)
-            return 0;
+        if (node->priority > previous_priority) {
+            if (out) {
+                out->previous_index = previous_index;
+                out->current_index = current_index;
+                out->previous_priority = previous_priority;
+                out->current_priority = node->priority;
+            }
+            return 1;
+        }
+        previous_index = current_index;
         previous_priority = node->priority;
         head = node;
     }
 
-    return 1;
+    return 0;
+}
+
+static inline int zigux_notifier_chain_has_nonincreasing_priority(
+    const struct zigux_notifier_block *head)
+{
+    return !zigux_notifier_first_chain_priority_increase(head, NULL);
 }
 
 static inline zigux_boundary_header zigux_default_header(uint16_t flags)
