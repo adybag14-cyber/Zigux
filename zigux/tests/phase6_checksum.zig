@@ -53,6 +53,16 @@ fn appendBigEndianU32(buffer: []u8, value: u32) void {
     std.mem.writeInt(u32, pair, value, .big);
 }
 
+fn appendIpv6PseudoHeader(buffer: *[40]u8, case: fixtures.Ipv6PseudoHeaderCase) void {
+    @memcpy(buffer[0..16], case.saddr[0..]);
+    @memcpy(buffer[16..32], case.daddr[0..]);
+    appendBigEndianU32(buffer[32..36], case.declared_len);
+    buffer[36] = 0;
+    buffer[37] = 0;
+    buffer[38] = 0;
+    buffer[39] = case.proto;
+}
+
 test "phase 6 checksum module imports cleanly" {
     _ = checksum;
 }
@@ -90,6 +100,17 @@ test "kunit-inspired carry discipline stays stable on the helper surface" {
         const partial = checksum.partial(case.bytes, case.seed);
 
         try std.testing.expectEqual(case.expected_partial, partial);
+        try std.testing.expectEqual(case.expected_compute, checksum.fold(partial));
+        try std.testing.expectEqual(case.expected_compute, referenceFoldedChecksum(case.bytes, case.seed));
+    }
+}
+
+test "kunit random prefix matrix keeps partial and folded checksum parity stable" {
+    for (fixtures.kunit_random_prefix_cases) |case| {
+        const partial = checksum.partial(case.bytes, case.seed);
+
+        try std.testing.expectEqual(case.expected_partial, partial);
+        try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
         try std.testing.expectEqual(case.expected_compute, checksum.fold(partial));
         try std.testing.expectEqual(case.expected_compute, referenceFoldedChecksum(case.bytes, case.seed));
     }
@@ -140,5 +161,29 @@ test "pseudo header accumulation matches the fixture-backed reference checksum" 
         try std.testing.expectEqual(combined_partial, helper_partial);
         try std.testing.expectEqual(case.expected_compute, actual);
         try std.testing.expectEqual(referenceInternetChecksum(pseudo_and_payload[0..combined_len]), actual);
+    }
+}
+
+test "ipv6 pseudo header accumulation matches the fixture-backed unfolded checksum" {
+    for (fixtures.ipv6_pseudo_header_cases) |case| {
+        const payload_partial = checksum.partial(case.payload, 0);
+        const helper_partial = checksum.tcpUdpV6Nofold(payload_partial, case.saddr, case.daddr, case.declared_len, case.proto);
+
+        var pseudo_header: [40]u8 = undefined;
+        appendIpv6PseudoHeader(&pseudo_header, case);
+
+        const pseudo_partial = checksum.partial(&pseudo_header, 0);
+        const combined_partial = checksum.blockAdd(pseudo_partial, payload_partial, pseudo_header.len);
+        const normalized_combined_partial = checksum.partial("", combined_partial);
+
+        var pseudo_and_payload: [96]u8 = undefined;
+        const combined_len = pseudo_header.len + case.payload.len;
+        @memcpy(pseudo_and_payload[0..pseudo_header.len], pseudo_header[0..]);
+        @memcpy(pseudo_and_payload[pseudo_header.len..combined_len], case.payload);
+
+        try std.testing.expectEqual(case.expected_nofold, helper_partial);
+        try std.testing.expectEqual(case.expected_nofold, normalized_combined_partial);
+        try std.testing.expectEqual(case.expected_nofold, referencePartial(pseudo_and_payload[0..combined_len], 0));
+        try std.testing.expectEqual(referenceFoldedChecksum(pseudo_and_payload[0..combined_len], 0), checksum.fold(helper_partial));
     }
 }
