@@ -38,6 +38,7 @@ DOCS_ALIGNMENT_CHECKER_MARKER = "scripts/zigux/check-phase15-docs-readme-alignme
 ALIGNMENT_CHECKER_MARKER = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
 HANDOFF_CHECKER_MARKER = "scripts/zigux/check-phase15-review-process-handoff.py"
 LANE_OWNER_ALIGNMENT_MARKER = "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
+BLOCKER_EVIDENCE_MARKER = "zigux/tests/phase15_indefinite_c_blocker_evidence.zig"
 PHASE15_BUILD_MARKER = "zigux/tests/phase15_build.zig"
 VALIDATE_MARKER = "scripts/zigux/validate-phase15.py"
 HANDOFF_MANIFEST_MARKER = "zigux/tests/phase15_handoff_next_steps_manifest.json"
@@ -93,6 +94,7 @@ FILE_MARKERS = {
         HANDOFF_CHECKER_MARKER,
         HANDOFF_MANIFEST_MARKER,
         READINESS_MANIFEST_MARKER,
+        BLOCKER_EVIDENCE_MARKER,
         PHASE15_BUILD_MARKER,
         PHASE15_VALIDATE_ROUTE,
         PHASE15_TEST_ROUTE,
@@ -207,6 +209,7 @@ def _seed(root: Path) -> None:
                 HANDOFF_CHECKER_MARKER,
                 HANDOFF_MANIFEST_MARKER,
                 READINESS_MANIFEST_MARKER,
+                BLOCKER_EVIDENCE_MARKER,
                 PHASE15_BUILD_MARKER,
                 PHASE15_VALIDATE_ROUTE,
                 PHASE15_TEST_ROUTE,
@@ -504,6 +507,16 @@ def run_self_test() -> int:
         case_count += 1
 
         path = root / SCRIPTS_README_REL
+        _write(path, _read(path).replace(BLOCKER_EVIDENCE_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{SCRIPTS_README_REL}:missing:{BLOCKER_EVIDENCE_MARKER}"],
+            "scripts_readme_missing_blocker_evidence_surface",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / SCRIPTS_README_REL
         _write(path, _read(path).replace(PHASE15_BUILD_MARKER + "\n", "", 1))
         _assert_only(
             validate(root),
@@ -587,9 +600,10 @@ def main() -> int:
         description=(
             "Check that the current Phase 15 shared summaries keep the parity-scorecard survey, "
             "the dedicated parity-scorecard and indefinite-C policy surfaces, readiness and handoff "
-            "reminders, the review-process handoff checker, the lane-sequencing note, the docs-root "
-            "and scripts-root alignment checkers, the replay-build surface, the validator-route packet, "
-            "the manifest reminders, the lane-owner alignment surface, and the replay-route packet explicit."
+            "reminders, the review-process handoff checker, the scripts-root blocker-evidence marker, "
+            "the lane-sequencing note, the docs-root and scripts-root alignment checkers, the replay-build "
+            "surface, the validator-route packet, the manifest reminders, the lane-owner alignment surface, "
+            "and the replay-route packet explicit."
         )
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
