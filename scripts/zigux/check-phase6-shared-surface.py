@@ -14,6 +14,7 @@ class ValidationError(RuntimeError):
 
 
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
+SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 BASE64_SLICE_PATH = Path("Documentation/zigux/phase6-base64-slice.md")
@@ -71,6 +72,7 @@ EXPECTED_SHARED_ROUTE_NOTE = (
 )
 
 REQUIRED_SHARED_GATES = {
+    SCRIPTS_README_PATH.as_posix(),
     CATALOG_PATH.as_posix(),
     CHECKSUM_SLICE_PATH.as_posix(),
     PERF_SURVEY_PATH.as_posix(),
@@ -242,7 +244,7 @@ REQUIRED_BUILD_SNIPPETS = [
 REQUIRED_MAKEFILE_SNIPPETS = [
     "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
     "phase6-checksum-perf:",
-    '	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig',
+    '\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig',
 ]
 
 REQUIRED_WORKFLOW_SNIPPETS = [
@@ -261,6 +263,12 @@ REQUIRED_PRESENT_ENTRYPOINTS_SNIPPETS = [
     'EXPECTED_HEXDUMP_PACKET_CHECKER = HEXDUMP_CHECKER_PATH.as_posix()',
     'EXPECTED_HEXDUMP_PERF_REFRESH = HEXDUMP_PERF_REFRESH_PATH.as_posix()',
     'raise ValidationError(f"missing hexdump helper row in {MANIFEST_PATH.as_posix()}")',
+]
+
+REQUIRED_SCRIPTS_README_SNIPPETS = [
+    "- Phase 6 flow - the current shared Phase 6 review surface on `master` is `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/README.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
+    "- `check-phase6-shared-surface.py`, `check-phase6-base64-c-parity.py`, `check-phase6-bsearch-corpus-evidence.py`, `check-phase6-checksum-c-parity.py`, `check-phase6-hexdump-packet.py`, and `check-phase6-perf-threshold-markers.py` are the shipped scripts-root Phase 6 checkers on current `master`.",
+    "- `python3 scripts/zigux/check-phase6-shared-surface.py --self-test` and `python3 scripts/zigux/check-phase6-shared-surface.py` keep the manifest-backed shared packet honest, while `make -C zigux phase6-validate`, `make -C zigux phase6-perf`, and `make -C zigux phase6` should still be read as inventory-only convenience routes because current `zigux/Makefile` exposes those wrapper names without committed target bodies.",
 ]
 
 
@@ -422,6 +430,7 @@ def validate_manifest(repo_root: Path) -> None:
 
 def validate_paths(repo_root: Path) -> None:
     required = {
+        SCRIPTS_README_PATH.as_posix(),
         CATALOG_PATH.as_posix(),
         PERF_SURVEY_PATH.as_posix(),
         BASE64_SLICE_PATH.as_posix(),
@@ -469,6 +478,7 @@ def validate_paths(repo_root: Path) -> None:
 def run_checks(repo_root: Path) -> None:
     validate_paths(repo_root)
     validate_manifest(repo_root)
+    require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
     require_snippets(repo_root / BASE64_SLICE_PATH, REQUIRED_BASE64_SLICE_SNIPPETS)
     require_snippets(repo_root / BSEARCH_SLICE_PATH, REQUIRED_BSEARCH_SLICE_SNIPPETS)
@@ -521,6 +531,7 @@ def scaffold_repo(root: Path) -> None:
     }:
         write(root / rel_path, "fixture\n")
 
+    write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS + [""]))
     write(root / CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS + ["- surveyed head: `test-head`", ""]))
     write(root / BASE64_SLICE_PATH, "\n".join(REQUIRED_BASE64_SLICE_SNIPPETS + [""]))
     write(root / BSEARCH_SLICE_PATH, "\n".join(REQUIRED_BSEARCH_SLICE_SNIPPETS + [""]))
@@ -636,6 +647,18 @@ def run_self_test() -> None:
         root = Path(tmpdir)
         scaffold_repo(root)
         run_checks(root)
+        assert_failure(
+            root,
+            MANIFEST_PATH,
+            '"scripts/zigux/README.md"',
+            '"scripts/zigux/README-missing.md"',
+        )
+        assert_failure(
+            root,
+            SCRIPTS_README_PATH,
+            "`check-phase6-perf-threshold-markers.py`",
+            "`check-phase6-perf-threshold-drift.py`",
+        )
         assert_failure(
             root,
             MANIFEST_PATH,
