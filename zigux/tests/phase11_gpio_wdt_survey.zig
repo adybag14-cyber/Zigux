@@ -49,7 +49,7 @@ fn findGap(manifest: Manifest, id: []const u8) ?Gap {
     return null;
 }
 
-test "phase11 gpio_wdt archived survey gate keeps the visible starter, timeout replay, main replay, and missing shared route honest" {
+test "phase11 gpio_wdt archived survey gate keeps the visible starter, timeout replay, main replay, and shared build route honest" {
     const manifest_json = try readFile(std.testing.allocator, "zigux/tests/phase11_gpio_wdt_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
@@ -63,7 +63,7 @@ test "phase11 gpio_wdt archived survey gate keeps the visible starter, timeout r
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.gpio_wdt_c_lines >= 190);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.preexisting_phase11_test_files);
-    try std.testing.expect(!manifest.survey_summary.preexisting_phase11_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_gpio_wdt_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_gpio_wdt_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_survey_note_present);
@@ -79,8 +79,9 @@ test "phase11 gpio_wdt archived survey gate keeps the visible starter, timeout r
     try std.testing.expect(std.mem.indexOf(u8, survey_gate.why_now, "timeout-property") != null);
 
     const build_gate = findGap(manifest, "phase11-build-gate") orelse return error.MissingBuildGateGap;
-    try std.testing.expectEqualStrings("blocked_on_driver_scaffold", build_gate.status);
+    try std.testing.expectEqualStrings("starter_landed", build_gate.status);
     try std.testing.expectEqualStrings("zigux/tests/phase11_build.zig", build_gate.zigux_destination);
+    try std.testing.expect(std.mem.indexOf(u8, build_gate.why_now, "shared Phase 11 build route") != null);
 
     const driver_gap = findGap(manifest, "phase11-gpio-wdt-driver-starter") orelse return error.MissingDriverGap;
     try std.testing.expectEqualStrings("starter_landed", driver_gap.status);
@@ -127,7 +128,7 @@ test "phase11 gpio_wdt archived survey gate keeps the visible starter, timeout r
     try std.testing.expect(std.mem.indexOf(u8, blocker.why_now, "hardware-backed validation") != null);
 }
 
-test "phase11 gpio_wdt archived notes stay aligned with the visible starter, timeout replay, main replay, and missing shared build boundary" {
+test "phase11 gpio_wdt archived notes stay aligned with the visible starter, timeout replay, main replay, and visible shared build boundary" {
     const survey_note = try readFile(std.testing.allocator, "Documentation/zigux/phase11-gpio-wdt-survey.md", 32 * 1024);
     defer std.testing.allocator.free(survey_note);
 
