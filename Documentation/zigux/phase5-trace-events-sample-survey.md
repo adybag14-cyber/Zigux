@@ -54,12 +54,13 @@ Aligned reminder surfaces in this run:
 
 Those surfaces already keep the landed trace-events packet explicit, keep the missing shared `zigux/tests/phase5_build.zig` route explicit, keep the selected-string plus `iter=%d` replay positioned as the approved formatting idiom cue instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
 
-The tests-root shared reminder is aligned in this run too:
+The tests-root shared reminder is only inventory-aligned in this run:
 
 - `zigux/tests/README.md` names `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
-- it also keeps `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, the selected-string plus `iter=%d` cue, and `OutstandingRegistration` explicit
+- it also keeps the current public-tree Phase 5 shared-build gap explicit through `zigux/tests/phase5_build.zig`
+- it does not restate helper-level trace-events cues such as `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, the selected-string plus `iter=%d` formatting cue, or `OutstandingRegistration`; those cues remain explicit in this survey note, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-Treat the shared reminder packet as aligned on current `master` until a fresh reread finds a new one-file drift.
+Treat the tests-root reminder as packet-inventory support material on current `master`, not as the place where the helper-level trace-events cue list is spelled out.
 
 ## Landed sample and exact checks
 
