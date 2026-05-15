@@ -55,6 +55,7 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-test",
         "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
         "make -C zigux phase8",
+        "ready-buffer processing attempts cannot exceed the helper-counted ready buffers",
     ),
     SCRIPTS_README_PATH: (
         "Phase 8 flow",
@@ -90,6 +91,8 @@ REQUIRED_MARKERS = {
         "test \"phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit\" {",
         "test \"phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity\" {",
         "test \"resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries\" {",
+        'try expectContains(note, "ready-buffer processing attempts cannot exceed the helper-counted ready buffers");',
+        'try expectContains(gate, "\\"ready-buffer processing attempts cannot exceed the helper-counted ready buffers\\"");',
     ),
     PACKET_ONLY_BUILD_PATH: (
         "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
@@ -184,6 +187,7 @@ def run_self_test() -> int:
             (SLICE_PATH, "python3 scripts/zigux/validate-phase8.py --self-test"),
             (SLICE_PATH, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all"),
             (SLICE_PATH, "make -C zigux phase8-test"),
+            (SLICE_PATH, "ready-buffer processing attempts cannot exceed the helper-counted ready buffers"),
             (MAKEFILE_PATH, "phase8-perf-buffer-poll-test:"),
             (MAKEFILE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
             (PACKET_HELPER_PATH, "pub fn summarizePollExecutionResultFromWaitResult("),
@@ -192,6 +196,8 @@ def run_self_test() -> int:
             (PACKET_HELPER_PATH, "test \"summarizePoll rejects impossible buffer state for timeout interrupt and failed wait results\" {"),
             (PACKET_TEST_PATH, "test \"phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit\" {"),
             (PACKET_TEST_PATH, "test \"phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit\" {"),
+            (PACKET_TEST_PATH, 'try expectContains(note, "ready-buffer processing attempts cannot exceed the helper-counted ready buffers");'),
+            (PACKET_TEST_PATH, 'try expectContains(gate, "\\"ready-buffer processing attempts cannot exceed the helper-counted ready buffers\\"");'),
             (PACKET_ONLY_BUILD_PATH, "phase8-perf-buffer-poll-tests"),
         )
         for rel_path, marker in mutations:
