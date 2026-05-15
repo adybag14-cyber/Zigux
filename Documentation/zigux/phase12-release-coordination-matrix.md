@@ -16,6 +16,7 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - libbpf survey companion: `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
 - driver-local NVMe reopen companion: `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`
+- freeze-map boundary companion: `Documentation/zigux/freeze-map.md`
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`
 
@@ -56,9 +57,9 @@ Keep the degraded-workflow checker pair explicit beside that same order too:
 ## Boundaries
 - This matrix tracks only the shipped build-only contract and the active survey-backed packet on `master`.
 - Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`, but there is still no broader shared `check-phase12-*.py` family, focused-libbpf-only replay, or cross-build replay, so release-planning notes should keep that validator-first support packet distinct from the smoke-first direct replay packet.
-- Queueing, throughput, rollback, and recovery wording must stay bounded to the driver-local packets and the lab-only reversible-delivery evidence already recorded in the shared Phase 12 docs; this PMO companion must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
+- `Documentation/zigux/freeze-map.md` remains the boundary owner for deeper transport, queueing, throughput, rollback, and recovery anchors, so this PMO companion must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 
 ## Review Use
-- reread this matrix beside `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `scripts/zigux/README.md`, and `zigux/tests/README.md` whenever the shared Phase 12 packet changes
+- reread this matrix beside `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `scripts/zigux/README.md`, and `zigux/tests/README.md` whenever the shared Phase 12 packet changes
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening PMO wording
 - treat this file as a compact owner-and-fallback summary, not as a substitute for the driver-local survey notes or the shared build packet
