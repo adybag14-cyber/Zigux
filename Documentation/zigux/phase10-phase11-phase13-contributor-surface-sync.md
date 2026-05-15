@@ -112,6 +112,7 @@ Keep the shared-subsystems packet explicit through the verified docs-root, valid
 - `zigux/tests/phase13_libfs_manifest.json`
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
+- `lib/devres.zig`
 - `zigux/tests/phase13_devres.zig`
 - `zigux/tests/phase13_devres_reviewability.zig`
 - `zigux/tests/phase13_devres_dma_coherent.zig`
