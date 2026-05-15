@@ -12,6 +12,7 @@ The visible `gpio_wdt_lab` starter currently exports these code-backed review su
 - `watchdogMetadataSummary()`
 - `descriptorRequestSummary()`
 - `platformDrvdataCheckpointSummary()`
+- `watchdogDrvdataCheckpointSummary()`
 - `nowayoutPolicySummary()`
 - `probeSummary()`
 - `registrationHandoffSummary()`
