@@ -23,7 +23,6 @@ pub const PreparedRequest = struct {
         if (!keepsLoadPlanExplicit(self.plan, self.prepared_plan)) {
             return error.PreparedPlanDrift;
         }
-        _ = try prepareRequest(self.plan);
         self.state = .released_without_substrate;
     }
 };
@@ -87,6 +86,14 @@ pub fn keepsSelftestHookEvidenceConsistent(plan: LoadPlan) bool {
     };
 }
 
+fn missesRequiredSelftestHookEvidence(plan: LoadPlan) bool {
+    if (!plan.provides_selftest_hook) return true;
+    return switch (plan.init_flow.handoff_stage) {
+        .initialized => false,
+        .selftest_complete => plan.init_flow.selftest_runs == 0,
+    };
+}
+
 pub fn keepsAllocatorInitFlowConsistent(
     plan: LoadPlan,
     allocator_handoff: AllocatorHandoff,
@@ -120,6 +127,7 @@ pub fn ensurePreparedRequestReady(request: PreparedRequest) !LoadPlan {
 pub fn prepareRequest(plan: LoadPlan) !PreparedRequest {
     if (!plan.requires_runtime_substrate) return error.LoaderNotRequired;
     if (!keepsApprovedPilotFamilyContract(plan)) return error.InvalidPilotFamilyContract;
+    if (missesRequiredSelftestHookEvidence(plan)) return error.InvalidSelftestHookEvidence;
     if (!plan.init_flow.readyForRuntimeLoad()) return error.InvalidInitFlow;
     if (!keepsSelftestHookEvidenceConsistent(plan)) return error.InvalidSelftestHookEvidence;
 
@@ -259,7 +267,7 @@ test "PreparedRequest.requestRuntimeLoad preserves the prepared snapshot on drif
     try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
 }
 
-test "PreparedRequest.releaseWithoutSubstrate revalidates the waiting snapshot before release" {
+test "PreparedRequest.releaseWithoutSubstrate preserves the pending snapshot on drift" {
     const stable = LoadPlan{
         .module_name = "runtime_bitmap",
         .anchor = "lib/test_bitmap.c",
@@ -278,22 +286,26 @@ test "PreparedRequest.releaseWithoutSubstrate revalidates the waiting snapshot b
 
     var request = try prepareRequest(stable);
     const pending = try request.requestRuntimeLoad();
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .waiting_on_runtime_substrate, pending));
+    request.plan.exit_symbol = "zigux_runtime_bitmap_exit_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
 
-    request.plan.module_name = "runtime_bitmap_drift";
-    request.prepared_plan.module_name = "runtime_bitmap_drift";
-    try std.testing.expectError(error.InvalidPilotFamilyContract, request.releaseWithoutSubstrate());
+    request.plan = stable;
+    request.plan.allocator_handoff = .caller_provided;
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
     try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .waiting_on_runtime_substrate, request.plan));
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+    try std.testing.expectEqual(AllocatorHandoff.arena, request.prepared_plan.allocator_handoff);
+    try std.testing.expectEqual(AllocatorHandoff.caller_provided, request.plan.allocator_handoff);
 
-    request.plan = pending;
-    request.prepared_plan = pending;
-    request.plan.provides_selftest_hook = false;
-    request.prepared_plan.provides_selftest_hook = false;
-    try std.testing.expectError(error.InvalidSelftestHookEvidence, request.releaseWithoutSubstrate());
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .waiting_on_runtime_substrate, request.plan));
-
-    request.plan = pending;
-    request.prepared_plan = pending;
+    request.plan = stable;
     try request.releaseWithoutSubstrate();
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .released_without_substrate, pending));
+    try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .released_without_substrate, stable));
 }
