@@ -124,6 +124,7 @@ The current tests keep these packet edges explicit:
 * blank-input reuse of the empty exported argv view
 * blank-input reuse of the empty storage sentinel without allocator space
 * blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`, including shared empty-sentinel teardown beside another blank caller
+* whitespace-before-first-NUL input still reuses the canonical blank storage and exported argv sentinels without allocator space
 * explicit `ArgvSplitResult.deinit()` clearing of exported storage, argv, and null-terminated sentinel views
 * exported storage and argv views resetting back to the canonical empty sentinels after teardown
 * `argvFree()` on a non-blank live result resets storage, argv, and exported `cArgv()` views back to the canonical blank sentinels, keeping that post-free reread contract explicit for callers that retain the same result struct
