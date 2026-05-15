@@ -28,6 +28,8 @@ EXPECTED_MANIFEST_LANE_KEY = "P15-L08"
 EXPECTED_MANIFEST_PHASE = "Phase 15"
 EXPECTED_ROADMAP_REQUIREMENT = "Architecture Council review process"
 EXPECTED_MANIFEST_ANCHOR = NOTE_PATH
+EXPECTED_SURVEYED_COMMIT_PREFIX = "current-master-readback-"
+FIXTURE_SURVEYED_COMMIT = "current-master-readback-2026-05-12"
 HISTORICAL_CONTINUITY_MARKER = (
     "historical continuity for this parked maintenance surface still points back to `P15-L06`"
 )
@@ -278,6 +280,7 @@ def _validate_governance_alignment(
     freeze_manifest: dict,
     parity_scorecard: dict,
     readiness_manifest: dict,
+    note_text: str,
     scorecard_note_text: str,
     issues: list[str],
 ) -> None:
@@ -291,6 +294,15 @@ def _validate_governance_alignment(
         issues.append("manifest:roadmap_requirement")
     if review_manifest.get("anchor") != EXPECTED_MANIFEST_ANCHOR:
         issues.append("manifest:anchor")
+
+    manifest_surveyed_commit = review_manifest.get("surveyed_commit")
+    if not isinstance(manifest_surveyed_commit, str):
+        issues.append("manifest:surveyed_commit")
+    else:
+        if not manifest_surveyed_commit.startswith(EXPECTED_SURVEYED_COMMIT_PREFIX):
+            issues.append("manifest:surveyed_commit_prefix")
+        if manifest_surveyed_commit not in note_text:
+            issues.append("note:surveyed_commit_alignment")
 
     readiness = _require_json_object(readiness_manifest, "readiness_manifest", issues)
     if readiness.get("surveyed_commit_mode") != "dated_master_readback":
@@ -306,11 +318,14 @@ def _validate_governance_alignment(
     elif scorecard_role not in scorecard_note_text:
         issues.append("parity_scorecard_note:scorecard_role")
 
-    surveyed_commit = parity_scorecard.get("surveyed_commit")
-    if not isinstance(surveyed_commit, str):
+    parity_scorecard_surveyed_commit = parity_scorecard.get("surveyed_commit")
+    if not isinstance(parity_scorecard_surveyed_commit, str):
         issues.append("parity_scorecard:surveyed_commit")
-    elif surveyed_commit not in scorecard_note_text:
-        issues.append("parity_scorecard_note:surveyed_commit")
+    else:
+        if manifest_surveyed_commit is not None and manifest_surveyed_commit != parity_scorecard_surveyed_commit:
+            issues.append("manifest:surveyed_commit_alignment")
+        if parity_scorecard_surveyed_commit not in scorecard_note_text:
+            issues.append("parity_scorecard_note:surveyed_commit")
 
     metrics = _require_json_object(parity_scorecard.get("metrics"), "parity_scorecard:metrics", issues)
     if metrics.get("architecture_council_status_change_approval_count") != 0:
@@ -468,6 +483,7 @@ def validate(root: Path) -> list[str]:
         freeze_manifest,
         parity_scorecard,
         readiness_manifest,
+        note_text,
         scorecard_note_text,
         issues,
     )
@@ -491,7 +507,10 @@ def _scorecard_note_fixture(parity_scorecard: dict) -> str:
 
 
 def _seed_fixture_tree(root: Path) -> None:
-    _write(root / NOTE_PATH, "\n".join(NOTE_MARKERS + NOTE_MAINTENANCE_CLOSURE_MARKERS) + "\n")
+    _write(
+        root / NOTE_PATH,
+        "\n".join(NOTE_MARKERS + NOTE_MAINTENANCE_CLOSURE_MARKERS + (FIXTURE_SURVEYED_COMMIT,)) + "\n",
+    )
     _write(root / POLICY_PATH, "\n".join(POLICY_MARKERS) + "\n")
     _write(root / LANE_NOTE_PATH, "\n".join(LANE_NOTE_MARKERS) + "\n")
     _write(root / VALIDATOR_PATH, "\n".join(VALIDATOR_MARKERS) + "\n")
@@ -505,7 +524,7 @@ def _seed_fixture_tree(root: Path) -> None:
             {
                 "lane_key": EXPECTED_MANIFEST_LANE_KEY,
                 "phase": EXPECTED_MANIFEST_PHASE,
-                "surveyed_commit": "current-master-readback-2026-05-12",
+                "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
                 "roadmap_requirement": EXPECTED_ROADMAP_REQUIREMENT,
                 "anchor": EXPECTED_MANIFEST_ANCHOR,
                 "current_approval_state": "no_freeze_map_status_change_approved",
@@ -528,7 +547,7 @@ def _seed_fixture_tree(root: Path) -> None:
         root / FREEZE_MAP_MANIFEST_PATH,
         json.dumps(
             {
-                "surveyed_commit": "current-master-readback-2026-05-12",
+                "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
                 "freeze_in_c_targets": list(EXPECTED_FREEZE_IN_C_TARGETS),
                 "blocker_ownership": [
                     {
@@ -566,7 +585,7 @@ def _seed_fixture_tree(root: Path) -> None:
         + "\n",
     )
     parity_scorecard_fixture = {
-        "surveyed_commit": "current-master-readback-2026-05-12",
+        "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
         "posture": {
             "architecture_council_status_change_approval_recorded": False,
             "scorecard_role": "blocked_posture_accounting_not_port_readiness",
@@ -626,7 +645,7 @@ def _seed_fixture_tree(root: Path) -> None:
         json.dumps(
             {
                 "surveyed_commit_mode": "dated_master_readback",
-                "surveyed_commit": "current-master-readback-2026-05-12",
+                "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
             },
             indent=2,
         )
@@ -659,7 +678,7 @@ def run_self_test() -> int:
         scorecard_note_path = root / PARITY_SCORECARD_NOTE_PATH
         _write(
             scorecard_note_path,
-            _read(scorecard_note_path).replace("current-master-readback-2026-05-12\n", "", 1),
+            _read(scorecard_note_path).replace(FIXTURE_SURVEYED_COMMIT + "\n", "", 1),
         )
         _assert_only(
             validate(root),
@@ -829,6 +848,57 @@ def run_self_test() -> int:
         case_count += 1
 
         manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["surveyed_commit"] = "invalid-readback-2026-05-13"
+        parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
+        parity_scorecard["surveyed_commit"] = "invalid-readback-2026-05-13"
+        note_path = root / NOTE_PATH
+        note_text = _read(note_path).replace(FIXTURE_SURVEYED_COMMIT, "invalid-readback-2026-05-13", 1)
+        scorecard_note_path = root / PARITY_SCORECARD_NOTE_PATH
+        scorecard_note_text = _read(scorecard_note_path).replace(FIXTURE_SURVEYED_COMMIT, "invalid-readback-2026-05-13", 1)
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
+        _write(note_path, note_text)
+        _write(scorecard_note_path, scorecard_note_text)
+        _assert_only(
+            validate(root),
+            ["manifest:surveyed_commit_prefix"],
+            "manifest_surveyed_commit_prefix",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["surveyed_commit"] = "current-master-readback-2026-05-13"
+        parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
+        parity_scorecard["surveyed_commit"] = "current-master-readback-2026-05-13"
+        scorecard_note_path = root / PARITY_SCORECARD_NOTE_PATH
+        scorecard_note_text = _read(scorecard_note_path).replace(FIXTURE_SURVEYED_COMMIT, "current-master-readback-2026-05-13", 1)
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
+        _write(scorecard_note_path, scorecard_note_text)
+        _assert_only(
+            validate(root),
+            ["note:surveyed_commit_alignment"],
+            "note_surveyed_commit_alignment",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["surveyed_commit"] = "current-master-readback-2026-05-13"
+        note_path = root / NOTE_PATH
+        note_text = _read(note_path).replace(FIXTURE_SURVEYED_COMMIT, "current-master-readback-2026-05-13", 1)
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _write(note_path, note_text)
+        _assert_only(
+            validate(root),
+            ["manifest:surveyed_commit_alignment"],
+            "manifest_surveyed_commit_alignment",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["lane_key"] = "P15-L06"
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         _assert_only(
@@ -976,7 +1046,7 @@ def run_self_test() -> int:
             ["governance_alignment:required_approver_set:net/core/skbuff.c"],
             "approver_alignment",
         )
-        _seed_fixture_tree(root)
+        _seed_fixture_TREE(root)
         case_count += 1
 
         freeze_manifest = json.loads(_read(root / FREEZE_MAP_MANIFEST_PATH))
