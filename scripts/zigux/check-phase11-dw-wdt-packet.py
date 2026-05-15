@@ -69,6 +69,7 @@ MARKERS = {
         "pub const RemoveSummary = struct {",
         "pub fn removeSummary",
         'test "phase11 dw_wdt remove summary clears interrupts while distinguishing reset-backed shutdown"',
+        'test "phase11 dw_wdt remove summary keeps idle removal distinct from reset-backed shutdown"',
     ],
     "verify_file": [
         "pub fn summarizeStopTeardown",
