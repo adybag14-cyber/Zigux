@@ -87,7 +87,7 @@ TEXT_MARKERS = {
         "Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`",
     ],
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
-        "MMIO lane `P10-L10` owns",
+        "MMIO lane `P10-L11` owns",
         "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
         "Documentation/zigux/freeze-map.md",
         "phase10-mmio-lifecycle-and-irq-paths",
@@ -129,7 +129,7 @@ TEXT_MARKERS = {
 }
 
 MMIO_MANIFEST_SCALARS = {
-    "lane_key": "P10-L10",
+    "lane_key": "P10-L11",
     "phase": "Phase 10",
     "surveyed_commit": "84f90e23ad1c28ae345905d5293a8c5395f37d43",
     "anchor": "drivers/virtio/virtio_mmio.c",
@@ -311,6 +311,12 @@ def run_self_test() -> int:
                 "phase10-virtio-driver-lane-sequencing.md:scripts/zigux/check-phase10-mmio-freeze-boundary.py",
             ),
             (
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+                "MMIO lane `P10-L11` owns",
+                "MMIO lane `P10-Y11` owns",
+                "phase10-virtio-driver-lane-sequencing.md:MMIO lane `P10-L11` owns",
+            ),
+            (
                 "Documentation/zigux/review-checklist.md",
                 "`scripts/zigux/check-phase10-mmio-freeze-boundary.py`",
                 "`scripts/zigux/check-phase10-mmio-freeze-boundary-missing.py`",
@@ -360,7 +366,7 @@ def run_self_test() -> int:
         run_manifest_case(root)
 
     print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
