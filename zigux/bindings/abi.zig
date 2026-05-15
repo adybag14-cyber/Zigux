@@ -72,6 +72,62 @@ pub const UnsafeScope = enum(u8) {
     raw_pointer_bridge = UNSAFE_RAW_POINTER_BRIDGE,
 };
 
+pub const DecodedInteropPolicy = struct {
+    panic_mode: PanicMode,
+    allocator_mode: AllocatorMode,
+    unsafe_scope: UnsafeScope,
+};
+
+fn decodePanicMode(mode: u8) ?PanicMode {
+    return switch (mode) {
+        PANIC_ABORT => .abort,
+        PANIC_BUG => .bug,
+        PANIC_WARN => .warn,
+        else => null,
+    };
+}
+
+fn decodeAllocatorMode(mode: u8) ?AllocatorMode {
+    return switch (mode) {
+        ALLOC_CALLER_PROVIDED => .caller_provided,
+        ALLOC_KERNEL_HEAP => .kernel_heap,
+        ALLOC_ARENA => .arena,
+        else => null,
+    };
+}
+
+fn decodeUnsafeScope(scope: u8) ?UnsafeScope {
+    return switch (scope) {
+        UNSAFE_NONE => .none,
+        UNSAFE_VOLATILE_MMIO => .volatile_mmio,
+        UNSAFE_RAW_POINTER_BRIDGE => .raw_pointer_bridge,
+        else => null,
+    };
+}
+
+pub fn decodeInteropPolicyBytes(
+    panic_mode: u8,
+    allocator_mode: u8,
+    unsafe_scope: u8,
+    reserved: u8,
+) ?DecodedInteropPolicy {
+    if (reserved != 0) return null;
+    return .{
+        .panic_mode = decodePanicMode(panic_mode) orelse return null,
+        .allocator_mode = decodeAllocatorMode(allocator_mode) orelse return null,
+        .unsafe_scope = decodeUnsafeScope(unsafe_scope) orelse return null,
+    };
+}
+
+pub fn decodeInteropPolicy(policy: InteropPolicy) ?DecodedInteropPolicy {
+    return decodeInteropPolicyBytes(
+        policy.panic_mode,
+        policy.allocator_mode,
+        policy.unsafe_scope,
+        policy.reserved,
+    );
+}
+
 pub const NotifierResult = enum(u32) {
     done = NOTIFIER_DONE,
     ok = NOTIFIER_OK,
@@ -179,6 +235,23 @@ test "abi binding enums stay aligned with exported constants" {
     try std.testing.expectEqual(@as(u32, NOTIFIER_DONE), @intFromEnum(NotifierResult.done));
     try std.testing.expectEqual(@as(u32, NOTIFIER_OK), @intFromEnum(NotifierResult.ok));
     try std.testing.expectEqual(@as(u32, NOTIFIER_STOP), @intFromEnum(NotifierResult.stop));
+}
+
+test "abi binding interop policy decode stays canonical" {
+    const decoded = decodeInteropPolicy(.{
+        .panic_mode = PANIC_WARN,
+        .allocator_mode = ALLOC_ARENA,
+        .unsafe_scope = UNSAFE_RAW_POINTER_BRIDGE,
+        .reserved = 0,
+    }).?;
+
+    try std.testing.expectEqual(PanicMode.warn, decoded.panic_mode);
+    try std.testing.expectEqual(AllocatorMode.arena, decoded.allocator_mode);
+    try std.testing.expectEqual(UnsafeScope.raw_pointer_bridge, decoded.unsafe_scope);
+    try std.testing.expect(decodeInteropPolicyBytes(PANIC_WARN, ALLOC_ARENA, UNSAFE_RAW_POINTER_BRIDGE, 1) == null);
+    try std.testing.expect(decodeInteropPolicyBytes(9, ALLOC_ARENA, UNSAFE_RAW_POINTER_BRIDGE, 0) == null);
+    try std.testing.expect(decodeInteropPolicyBytes(PANIC_WARN, 9, UNSAFE_RAW_POINTER_BRIDGE, 0) == null);
+    try std.testing.expect(decodeInteropPolicyBytes(PANIC_WARN, ALLOC_ARENA, 9, 0) == null);
 }
 
 test "abi binding chrdev structs keep the published layout" {
