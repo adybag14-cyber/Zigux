@@ -138,13 +138,13 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
     try expectContains(gate_evidence_source, "final_nth_seven=123");
     try expectContains(gate_evidence_source, "thirteen bounded range and prefix cases");
     try expectContains(gate_evidence_source, "two `find_nth_bit` replays");
-    try expectContains(gate_evidence_source, "fifteen copy-tail cases");
+    try expectContains(gate_evidence_source, "sixteen copy-tail cases");
     try expectContains(gate_evidence_source, "explicit zero-length range/prefix and zero-length copy no-op coverage");
     try expectContains(gate_evidence_source, "explicit partial-word 109-bit replay that keeps copied source tail bits through bit 126");
     try expectContains(gate_evidence_source, "matching pre-filled 109-bit replay that clears the padded tail before the filled tail resumes");
     try expectContains(gate_evidence_source, "aligned 97-bit copy replay that keeps the second copied word intact before the cleared tail resumes");
     try expectContains(gate_evidence_source, "bounded out-of-bounds rejection coverage");
-    try expectContains(gate_evidence_source, "`13 DiffCase`, `15 CopyCase`, and `13 mixThresholdChecksum()` checkpoints");
+    try expectContains(gate_evidence_source, "`13 DiffCase`, `16 CopyCase`, and `13 mixThresholdChecksum()` checkpoints");
     try expectContains(gate_evidence_source, "bitmap_fill(..., 35)");
     try expectContains(gate_evidence_source, "bitmap_fill(..., 115)");
     try expectContains(gate_evidence_source, "bitmap_zero(..., 35)");
