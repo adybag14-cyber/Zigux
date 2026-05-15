@@ -9,6 +9,8 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - `PHASE14_SMOKE_VALIDATOR=present`
 - `PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py`
 - `PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate`
+- `PHASE14_SMOKE_ENTRYPOINT=make -C zigux phase14-smoke`
+- `PHASE14_SMOKE_BUILD_ENTRYPOINT=zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
 - `PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 - `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`
 - `PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14`
@@ -75,6 +77,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 
 - `zigux/tests/phase14_build.zig` is the shared Phase 14 replay entrypoint and now includes the dedicated smoke survey, the four anchor-local packets, and the focused workqueue reviewability replay.
 - `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py` keep the fast shared-smoke contract explicit, so the note, manifest, make targets, workflow path, docs-root summary, tests-root summary, and smoke-shard entrypoint are checked before the slower replay claims stay current.
+- the status block now keeps both `make -C zigux phase14-smoke` and `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all` explicit alongside the full-bundle routes, so the roadmap-backed smoke shard is visible before the later exact-evidence list instead of being implied only by the longer survey body.
 - `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` now fail-closes the tests-root packet order and exact line counts around the shared Phase 14 smoke anchor, so the shared inventory no longer relies on manual readback alone to keep `zigux/tests/README.md` aligned with the manifest-backed packet.
 - `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside `make -C zigux phase14-validate`, while `scripts/zigux/validate-phase14.py` continues to rerun `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` inside that same validator-first route. That keeps all four dedicated Phase 14 drift guards on the shared contract path without implying a separate tests-readme make target that current `master` does not ship.
 - the shared compile shard matrix now records that the workqueue reviewability replay plus the four anchor-local replays remain `full_bundle_only`, while `phase14-end-to-end-smoke-tests` is the only `focused_and_full_bundle` shard. That keeps the roadmap's validation-before-expansion discipline explicit without inventing new focused bridge claims.
