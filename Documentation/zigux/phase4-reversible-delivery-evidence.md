@@ -22,6 +22,8 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
 - `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA=98010ca557a586fe12cd770458e27c94b5ef0813`
 - `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=d67f4b90c5d1448d190e60e679a7b395b65351b4`
 - `PHASE4_REVERSIBLE_DELIVERY_SEQUENCING_NOTE_BLOB_SHA=21938ae182e01b1a389de836314b909912196c55`
+- `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`
+- `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`
 
 ## Current Packet
 
@@ -32,6 +34,7 @@ Treat the following as the current reversible-delivery packet for the already sh
   - `Documentation/zigux/phase4-validation-matrix.md`
   - `scripts/zigux/check-phase4-remaining-gap-matrix.py`
   - `scripts/zigux/check-phase4-workflow-route-counts.py`
+  - `scripts/zigux/check-phase4-reversible-delivery-pins.py`
   - `scripts/zigux/validate-phase4.py`
   - `zigux/tests/phase4_build.zig`
   - `zigux/Makefile`
@@ -45,6 +48,8 @@ Treat the following as the current reversible-delivery packet for the already sh
   - `Documentation/zigux/phase4-validation-lane-sequencing.md`
 
 Use `Documentation/zigux/phase4-gate-evidence.md` as the exact shared blob-pin checkpoint for the already-landed packet. This handoff note now keeps the shared matrix, the remaining-gap checker, the workflow-route checker, the validator-first replay surface, the dedicated local-only perf packet, the review checklist, and the sequencing note readable together as the smallest current reversible-delivery evidence set.
+
+The dedicated `scripts/zigux/check-phase4-reversible-delivery-pins.py` checker now fail-closes on the `zigux/Makefile` and `Documentation/zigux/review-checklist.md` blob pins recorded in this handoff note so those cross-packet anchors stay exact when the shared exact-readback packet or the dedicated local-only perf packet moves again.
 
 The shared packet keeps the rollback-owner map, the lab-matrix rows for the parked starter gaps and the local-only perf-threshold posture, and the current validator-first replay routes explicit. The dedicated local-only perf checker, manifest, and survey keep the approved local benchmark commands, the approved local-only acceptable limits, and the still-pending shared-CI promotion posture measurable without turning that local packet into a shared CI claim.
 
@@ -63,6 +68,7 @@ Keep the parked starter-gap packets for `samples/zigux/kprobe_example.zig` and `
 When Phase 4 follow-through reopens, repair the smallest packet that drifted first.
 
 - If the rollback-owner map, exact-readback wording, lab-matrix wording, remaining-gap checker wording, or validator-first route inventory drifts, repair the shared exact-readback packet first.
+- If the `zigux/Makefile` or `Documentation/zigux/review-checklist.md` blob pins drift inside this handoff note, repair this note together with `scripts/zigux/check-phase4-reversible-delivery-pins.py` after the directly readable current-head file change lands on `master`.
 - If the local benchmark commands, acceptable limits, or shared-CI-pending posture drifts, repair the dedicated local-only perf packet first.
 - If a later lane needs both, land the packet-local repair first, then refresh the shared exact-readback note only after the packet-local state is directly readable on current `master`.
 - Do not treat the dedicated local-only perf packet as shared CI perf approval until a later bounded Phase 4 lane intentionally widens that policy and names the decision directly.
