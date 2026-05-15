@@ -231,19 +231,23 @@
       "cases": [
         {
           "label": "64",
-          "iterations": 20000,
+          "len": 64,
+          "reps": 20000,
+          "seed": 0,
           "max_slowdown_pct": 150
         },
         {
           "label": "1501",
-          "iterations": 4000,
+          "len": 1501,
+          "reps": 4000,
+          "seed": 305419896,
           "max_slowdown_pct": 150
         }
       ]
     },
     "hexdump": {
       "replay": "zigux/tests/phase6_hexdump_perf.zig",
-      "fixture": "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
+      "fixture": "zigux/tests/phase6_hexdump_vectors.zig",
       "measurement_mode": "relative_slowdown",
       "cases": [
         {
@@ -351,7 +355,7 @@
       "lower_upper_dynamic_lengths": 33,
       "lower_upper_max_probe_formula": "len == 0 ? 1 : 2 * len + 2",
       "lower_upper_probe_count_formula": "len == 0 ? 2 : 2 * len + 3",
-      "lower_upper_record_member_size_replay": true,
+      "lower_upperRecord_member_size_replay": true,
       "c_abi_equality_dynamic_lengths": 33,
       "c_abi_equality_max_probe_formula": "len == 0 ? 1 : 2 * len + 1",
       "c_abi_equality_record_member_size_replay": true,
