@@ -121,6 +121,18 @@ test "phase 7 getOption keeps incomplete hex prefixes aligned with Linux simple_
     try std.testing.expectEqual(@as(i32, 0), validate[0]);
 }
 
+test "phase 7 getOptions stops on descending ranges and unparseable suffixes" {
+    var descending = [_]i32{ 0, 0, 0, 0 };
+    const descending_rest = cmdline.getOptions("4-2,9", descending.len, &descending);
+    try std.testing.expectEqualStrings("2,9", descending_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 0, 4, 0, 0 }, &descending);
+
+    var partial = [_]i32{ 0, 0, 0 };
+    const partial_rest = cmdline.getOptions("8,xx", partial.len, &partial);
+    try std.testing.expectEqualStrings("xx", partial_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 8, 0 }, &partial);
+}
+
 test "phase 7 getOption and getOptions preserve oversized wrap semantics" {
     var positive: []const u8 = "2147483648";
     var positive_value: i32 = 0;
