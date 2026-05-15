@@ -249,7 +249,8 @@ REQUIRED_SURVEY_SUMMARY_KEYS = [
     "phase14_build_has_smoke_shard_step",
     "phase14_make_target_present",
     "phase14_make_smoke_target_present",
-    "workflow_runs_phase14_validate",    "workflow_runs_phase14_build",
+    "workflow_runs_phase14_validate",
+    "workflow_runs_phase14_build",
     "workflow_runs_phase14_smoke_shard",
     "review_checklist_has_phase14_smoke_prompt",
     "review_checklist_has_productization_prompt",
@@ -506,7 +507,8 @@ def run_self_test() -> int:
             "smoke_note_records_tests_readme_checker",
             "scripts_readme_records_rollback_threshold",
         ]
-        if key not in REQUIRED_SURVEY_SUMMARY_KEYS    ]
+        if key not in REQUIRED_SURVEY_SUMMARY_KEYS
+    ]
     if required_summary_gaps:
         print("PHASE14_SELF_TEST=fail")
         print("SELF_TEST_REASON=required_phase14_summary_keys_missing")
