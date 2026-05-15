@@ -286,6 +286,7 @@
     }
   },
   "exact_checks": [
+    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test",
     "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
@@ -300,7 +301,6 @@
     "python3 scripts/zigux/check-phase6-perf-threshold-markers.py"
   ],
   "inventory_only_blocked_routes": [
-    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
     "make -C zigux phase6-base64-c-parity",
     "make -C zigux phase6-base64-perf",
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
