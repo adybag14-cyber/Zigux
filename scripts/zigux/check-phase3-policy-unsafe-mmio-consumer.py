@@ -55,13 +55,19 @@ REQUIRED_MMIO_SNIPPETS = (
     "pub fn read16InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u16 {",
     "pub fn read32InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u32 {",
     "pub fn read64InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u64 {",
+    "pub fn read16InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) MmioError!u16 {",
+    "pub fn read32InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) MmioError!u32 {",
     "pub fn read64InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) MmioError!u64 {",
     "pub fn write8InteropPolicyByte(base_addr: usize, offset: usize, value: u8, unsafe_scope: u8) MmioError!void {",
     "pub fn write16InteropPolicyByte(base_addr: usize, offset: usize, value: u16, unsafe_scope: u8) MmioError!void {",
     "pub fn write32InteropPolicyByte(base_addr: usize, offset: usize, value: u32, unsafe_scope: u8) MmioError!void {",
     "pub fn write64InteropPolicyByte(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8) MmioError!void {",
+    "pub fn write16InteropPolicyBytes(base_addr: usize, offset: usize, value: u16, unsafe_scope: u8, reserved: u8) MmioError!void {",
+    "pub fn write32InteropPolicyBytes(base_addr: usize, offset: usize, value: u32, unsafe_scope: u8, reserved: u8) MmioError!void {",
     "pub fn write64InteropPolicyBytes(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8, reserved: u8) MmioError!void {",
     'test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {',
+    "try write32InteropPolicyBytes(base, 3, 0xc001_d00d, mmio_scope, 0);",
+    "try read32InteropPolicyBytes(base, 3, mmio_scope, 0),",
 )
 
 REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
@@ -329,6 +335,78 @@ def run_self_test() -> int:
                 snippet
                 for snippet in REQUIRED_MMIO_SNIPPETS
                 if snippet
+                != "pub fn read32InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) MmioError!u32 {"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_mmio_snippet:pub fn read32InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) MmioError!u32 {"
+            in issues
+        )
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_MMIO_SNIPPETS
+                if snippet
+                != "pub fn write32InteropPolicyBytes(base_addr: usize, offset: usize, value: u32, unsafe_scope: u8, reserved: u8) MmioError!void {"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_mmio_snippet:pub fn write32InteropPolicyBytes(base_addr: usize, offset: usize, value: u32, unsafe_scope: u8, reserved: u8) MmioError!void {"
+            in issues
+        )
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_MMIO_SNIPPETS
+                if snippet
+                != "try write32InteropPolicyBytes(base, 3, 0xc001_d00d, mmio_scope, 0);"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_mmio_snippet:try write32InteropPolicyBytes(base, 3, 0xc001_d00d, mmio_scope, 0);"
+            in issues
+        )
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_MMIO_SNIPPETS
+                if snippet
+                != "try read32InteropPolicyBytes(base, 3, mmio_scope, 0),"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_mmio_snippet:try read32InteropPolicyBytes(base, 3, mmio_scope, 0),"
+            in issues
+        )
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_MMIO_SNIPPETS
+                if snippet
                 != "pub fn read64InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) MmioError!u64 {"
             )
             + "\n",
@@ -394,7 +472,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=14")
+    print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
