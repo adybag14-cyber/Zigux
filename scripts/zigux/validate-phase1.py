@@ -69,8 +69,23 @@ EXPECTED_HELPERS = EXPECTED_MANIFEST["helpers"]
 DIRECT_ANCHOR_HELPERS = set(EXPECTED_MANIFEST["lane_sequencing"]["direct_anchor_followup_helpers"])
 MANIFEST_TOP_LEVEL_KEYS = ("phase", "status", "helper_count", "helpers", "lane_sequencing")
 BITMAP_MANIFEST_VALUE_MARKERS = (
+    "first_word_boundary_anchor",
+    "final_partial_word_anchor",
+    "fill_tail_clamp_anchor",
+    "predicate_tail_mask_anchor",
     "phase1_helper_replay_anchor",
     "review_packet_summary",
+    "parity_fixture_keys",
+    "partial_xor_review_fields",
+    "scnprintf_cross_word_anchor",
+    "scnprintf_truncation_anchor",
+    "empty_buffer_anchor",
+    "copy_alias_anchor",
+    "copy_raw_alias_anchor",
+    "copy_zero_and_aligned_anchors",
+    "zero_bit_noop_anchor",
+    "zero_bit_binary_identity_anchor",
+    "linux_alias_anchor",
     "next_safe_step_note",
 )
 FIND_BIT_MANIFEST_VALUE_MARKERS = (
@@ -94,6 +109,10 @@ BENCH_EXPECTATION_MARKER_KEYS = (
     "checksums",
     "exact_checksums",
 )
+EXPECTED_BITMAP_FIRST_WORD_BOUNDARY_ANCHOR = 'test "bitmap range helpers honor exact first-word boundaries"'
+EXPECTED_BITMAP_FINAL_PARTIAL_WORD_ANCHOR = 'test "bitmap range helpers clamp the final partial word"'
+EXPECTED_BITMAP_FILL_TAIL_CLAMP_ANCHOR = 'test "bitmap fill clamps tail bits in partial words"'
+EXPECTED_BITMAP_PREDICATE_TAIL_MASK_ANCHOR = 'test "bitmap predicates ignore out-of-range tail bits"'
 EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR = 'test "phase 1 helper ports match committed parity fixture"'
 EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
     "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, truncation, tiny-buffer, and partial-window xor replay, "
@@ -101,6 +120,33 @@ EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
     "cross-word scnprintf collapse, empty-bitmap caller-buffer preservation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, "
     "zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master"
 )
+EXPECTED_BITMAP_PARITY_FIXTURE_KEYS = [
+    "alloc_words",
+    "zalloc_words",
+    "zalloc_values",
+    "scnprintf",
+    "truncated_scnprintf_len",
+    "truncated_scnprintf",
+    "terminator_only_scnprintf_len",
+    "terminator_only_nul",
+    "zero_length_scnprintf_len",
+]
+EXPECTED_BITMAP_PARTIAL_XOR_REVIEW_FIELDS = [
+    "partial_xor_nbits",
+    "partial_xor_masked_values",
+]
+EXPECTED_BITMAP_SCNPRINTF_CROSS_WORD_ANCHOR = 'test "bitmap scnprintf collapses contiguous ranges across word boundaries"'
+EXPECTED_BITMAP_SCNPRINTF_TRUNCATION_ANCHOR = 'test "bitmap scnprintf reports full length while truncating the buffer"'
+EXPECTED_BITMAP_EMPTY_BUFFER_ANCHOR = 'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"'
+EXPECTED_BITMAP_COPY_ALIAS_ANCHOR = 'test "bitmap copy aliases preserve tail clearing and extension semantics"'
+EXPECTED_BITMAP_COPY_RAW_ALIAS_ANCHOR = 'test "bitmap copy alias preserves raw source words without tail clearing"'
+EXPECTED_BITMAP_COPY_ZERO_AND_ALIGNED_ANCHORS = [
+    'test "bitmap copy and extend handles zero and aligned counts"',
+    'test "bitmap copy helpers keep zero-sized destination views untouched"',
+]
+EXPECTED_BITMAP_ZERO_BIT_NOOP_ANCHOR = 'test "bitmap zero-bit helpers stay explicit no-ops"'
+EXPECTED_BITMAP_ZERO_BIT_BINARY_IDENTITY_ANCHOR = 'test "bitmap zero-bit binary helpers stay explicit identity operations"'
+EXPECTED_BITMAP_LINUX_ALIAS_ANCHOR = 'test "bitmap Linux-style aliases mirror the primary helper surface"'
 EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen the already-closed closure-validator or validator-summary packets by default."
 )
@@ -394,13 +440,41 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
                 missing.append(f"phase1_manifest:review_anchor={helper}")
                 continue
             for key in helper_anchor.keys():
-                if key == "helper_test_anchors":
-                    continue
                 expected_value = None
-                if helper == "tools/lib/bitmap.zig" and key == "phase1_helper_replay_anchor":
+                if helper == "tools/lib/bitmap.zig" and key == "first_word_boundary_anchor":
+                    expected_value = EXPECTED_BITMAP_FIRST_WORD_BOUNDARY_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "final_partial_word_anchor":
+                    expected_value = EXPECTED_BITMAP_FINAL_PARTIAL_WORD_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "fill_tail_clamp_anchor":
+                    expected_value = EXPECTED_BITMAP_FILL_TAIL_CLAMP_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "predicate_tail_mask_anchor":
+                    expected_value = EXPECTED_BITMAP_PREDICATE_TAIL_MASK_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "phase1_helper_replay_anchor":
                     expected_value = EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR
                 elif helper == "tools/lib/bitmap.zig" and key == "review_packet_summary":
                     expected_value = EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY
+                elif helper == "tools/lib/bitmap.zig" and key == "parity_fixture_keys":
+                    expected_value = EXPECTED_BITMAP_PARITY_FIXTURE_KEYS
+                elif helper == "tools/lib/bitmap.zig" and key == "partial_xor_review_fields":
+                    expected_value = EXPECTED_BITMAP_PARTIAL_XOR_REVIEW_FIELDS
+                elif helper == "tools/lib/bitmap.zig" and key == "scnprintf_cross_word_anchor":
+                    expected_value = EXPECTED_BITMAP_SCNPRINTF_CROSS_WORD_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "scnprintf_truncation_anchor":
+                    expected_value = EXPECTED_BITMAP_SCNPRINTF_TRUNCATION_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "empty_buffer_anchor":
+                    expected_value = EXPECTED_BITMAP_EMPTY_BUFFER_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "copy_alias_anchor":
+                    expected_value = EXPECTED_BITMAP_COPY_ALIAS_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "copy_raw_alias_anchor":
+                    expected_value = EXPECTED_BITMAP_COPY_RAW_ALIAS_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "copy_zero_and_aligned_anchors":
+                    expected_value = EXPECTED_BITMAP_COPY_ZERO_AND_ALIGNED_ANCHORS
+                elif helper == "tools/lib/bitmap.zig" and key == "zero_bit_noop_anchor":
+                    expected_value = EXPECTED_BITMAP_ZERO_BIT_NOOP_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "zero_bit_binary_identity_anchor":
+                    expected_value = EXPECTED_BITMAP_ZERO_BIT_BINARY_IDENTITY_ANCHOR
+                elif helper == "tools/lib/bitmap.zig" and key == "linux_alias_anchor":
+                    expected_value = EXPECTED_BITMAP_LINUX_ALIAS_ANCHOR
                 elif helper == "tools/lib/bitmap.zig" and key == "next_safe_step_note":
                     expected_value = EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE
                 elif helper == "tools/lib/find_bit.zig" and key == "tail_word_inclusive_boundary_anchor":
@@ -430,47 +504,41 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
                 if helper_titles.count(marker) != 1:
                     missing.append(f"phase1_helper_test_marker:{helper}:{marker}")
             if helper == "tools/lib/bitmap.zig":
-                parity_anchor = helper_anchor.get("phase1_helper_replay_anchor")
-                if parity_anchor != EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR:
-                    missing.append(
-                        "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:phase1_helper_replay_anchor"
-                    )
                 for marker in BITMAP_MANIFEST_VALUE_MARKERS:
                     if marker not in helper_anchor:
                         missing.append(
                             f"phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:{marker}"
                         )
+                for marker in fixture_key_markers(helper_anchor.get("partial_xor_review_fields")):
+                    if marker not in EXPECTED_FIXTURE["bitmap"]:
+                        missing.append(f"phase1_manifest_review_anchor:bitmap_partial_xor_review_fields={marker}")
+                for marker in fixture_key_markers(helper_anchor.get("parity_fixture_keys")):
+                    if marker not in EXPECTED_FIXTURE["bitmap"]:
+                        missing.append(f"phase1_manifest_review_anchor:bitmap_parity_fixture_keys={marker}")
             elif helper == "tools/lib/find_bit.zig":
                 for marker in FIND_BIT_MANIFEST_VALUE_MARKERS:
                     if marker not in helper_anchor:
                         missing.append(
                             f"phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:{marker}"
                         )
+                for marker in fixture_key_markers(helper_anchor.get("tail_clamp_fixture_keys")):
+                    if marker not in EXPECTED_FIXTURE["find_bit"]:
+                        missing.append(f"phase1_manifest_review_anchor:find_bit_tail_clamp_fixture_keys={marker}")
             elif helper == "tools/lib/rbtree.zig":
                 for marker in RBTREE_MANIFEST_VALUE_MARKERS:
                     if marker not in helper_anchor:
                         missing.append(
                             f"phase1_manifest_review_anchor:value=tools/lib/rbtree.zig:{marker}"
                         )
+                for marker in fixture_key_markers(helper_anchor.get("parity_fixture_keys")):
+                    if marker not in EXPECTED_FIXTURE["rbtree"]:
+                        missing.append(f"phase1_manifest_review_anchor:rbtree_parity_fixture_keys={marker}")
             elif helper == "tools/lib/string.zig":
                 for marker in STRING_MANIFEST_VALUE_MARKERS:
                     if marker not in helper_anchor:
                         missing.append(
                             f"phase1_manifest_review_anchor:value=tools/lib/string.zig:{marker}"
                         )
-            if helper == "tools/lib/bitmap.zig":
-                for marker in fixture_key_markers(helper_anchor.get("partial_xor_review_fields")):
-                    if marker not in EXPECTED_FIXTURE["bitmap"]:
-                        missing.append(f"phase1_manifest_review_anchor:bitmap_partial_xor_review_fields={marker}")
-            if helper == "tools/lib/find_bit.zig":
-                for marker in fixture_key_markers(helper_anchor.get("tail_clamp_fixture_keys")):
-                    if marker not in EXPECTED_FIXTURE["find_bit"]:
-                        missing.append(f"phase1_manifest_review_anchor:find_bit_tail_clamp_fixture_keys={marker}")
-            if helper == "tools/lib/rbtree.zig":
-                for marker in fixture_key_markers(helper_anchor.get("parity_fixture_keys")):
-                    if marker not in EXPECTED_FIXTURE["rbtree"]:
-                        missing.append(f"phase1_manifest_review_anchor:rbtree_parity_fixture_keys={marker}")
-            if helper == "tools/lib/string.zig":
                 for marker in fixture_key_markers(helper_anchor.get("parity_fixture_keys")):
                     if marker not in EXPECTED_FIXTURE["string"]:
                         missing.append(f"phase1_manifest_review_anchor:string_parity_fixture_keys={marker}")
@@ -593,10 +661,7 @@ def make_fixture_root(root: Path) -> None:
 
     manifest = {
         **EXPECTED_MANIFEST,
-        "review_anchors": {
-            helper: {"helper_test_anchors": [f'test "{helper}"']}
-            for helper in EXPECTED_HELPERS
-        },
+        "review_anchors": {},
     }
     manifest["review_anchors"]["tools/lib/find_bit.zig"] = {
         "helper_test_anchors": [
@@ -610,10 +675,38 @@ def make_fixture_root(root: Path) -> None:
         "next_safe_step_note": EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE,
     }
     manifest["review_anchors"]["tools/lib/bitmap.zig"] = {
-        "helper_test_anchors": ['test "bitmap range helpers honor exact first-word boundaries"'],
-        "partial_xor_review_fields": ["partial_xor_nbits"],
+        "helper_test_anchors": [
+            EXPECTED_BITMAP_FIRST_WORD_BOUNDARY_ANCHOR,
+            EXPECTED_BITMAP_FINAL_PARTIAL_WORD_ANCHOR,
+            EXPECTED_BITMAP_FILL_TAIL_CLAMP_ANCHOR,
+            EXPECTED_BITMAP_PREDICATE_TAIL_MASK_ANCHOR,
+            EXPECTED_BITMAP_SCNPRINTF_CROSS_WORD_ANCHOR,
+            EXPECTED_BITMAP_SCNPRINTF_TRUNCATION_ANCHOR,
+            EXPECTED_BITMAP_EMPTY_BUFFER_ANCHOR,
+            EXPECTED_BITMAP_COPY_ALIAS_ANCHOR,
+            EXPECTED_BITMAP_COPY_RAW_ALIAS_ANCHOR,
+            *EXPECTED_BITMAP_COPY_ZERO_AND_ALIGNED_ANCHORS,
+            EXPECTED_BITMAP_ZERO_BIT_NOOP_ANCHOR,
+            EXPECTED_BITMAP_ZERO_BIT_BINARY_IDENTITY_ANCHOR,
+            EXPECTED_BITMAP_LINUX_ALIAS_ANCHOR,
+        ],
+        "first_word_boundary_anchor": EXPECTED_BITMAP_FIRST_WORD_BOUNDARY_ANCHOR,
+        "final_partial_word_anchor": EXPECTED_BITMAP_FINAL_PARTIAL_WORD_ANCHOR,
+        "fill_tail_clamp_anchor": EXPECTED_BITMAP_FILL_TAIL_CLAMP_ANCHOR,
+        "predicate_tail_mask_anchor": EXPECTED_BITMAP_PREDICATE_TAIL_MASK_ANCHOR,
         "phase1_helper_replay_anchor": EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR,
         "review_packet_summary": EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY,
+        "parity_fixture_keys": EXPECTED_BITMAP_PARITY_FIXTURE_KEYS,
+        "partial_xor_review_fields": EXPECTED_BITMAP_PARTIAL_XOR_REVIEW_FIELDS,
+        "scnprintf_cross_word_anchor": EXPECTED_BITMAP_SCNPRINTF_CROSS_WORD_ANCHOR,
+        "scnprintf_truncation_anchor": EXPECTED_BITMAP_SCNPRINTF_TRUNCATION_ANCHOR,
+        "empty_buffer_anchor": EXPECTED_BITMAP_EMPTY_BUFFER_ANCHOR,
+        "copy_alias_anchor": EXPECTED_BITMAP_COPY_ALIAS_ANCHOR,
+        "copy_raw_alias_anchor": EXPECTED_BITMAP_COPY_RAW_ALIAS_ANCHOR,
+        "copy_zero_and_aligned_anchors": EXPECTED_BITMAP_COPY_ZERO_AND_ALIGNED_ANCHORS,
+        "zero_bit_noop_anchor": EXPECTED_BITMAP_ZERO_BIT_NOOP_ANCHOR,
+        "zero_bit_binary_identity_anchor": EXPECTED_BITMAP_ZERO_BIT_BINARY_IDENTITY_ANCHOR,
+        "linux_alias_anchor": EXPECTED_BITMAP_LINUX_ALIAS_ANCHOR,
         "next_safe_step_note": EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE,
     }
     manifest["review_anchors"]["tools/lib/string.zig"] = {
@@ -774,9 +867,30 @@ def run_self_test() -> None:
         case_count += 1
 
         manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("first_word_boundary_anchor")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:first_word_boundary_anchor" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(load_text(manifest_path))
         manifest["review_anchors"]["tools/lib/bitmap.zig"]["review_packet_summary"] = "stale bitmap summary"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:review_packet_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"]["parity_fixture_keys"] = ["alloc_words"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:parity_fixture_keys" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"]["copy_zero_and_aligned_anchors"] = [EXPECTED_BITMAP_COPY_ZERO_AND_ALIGNED_ANCHORS[0]]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:copy_zero_and_aligned_anchors" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
 
