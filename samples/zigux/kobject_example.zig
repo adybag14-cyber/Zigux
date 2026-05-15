@@ -80,6 +80,21 @@ pub const SingleInitBoundaryReplay = struct {
     rejected_second_init: bool,
 };
 
+pub const RegistrationOwnershipReplay = struct {
+    anchor: []const u8,
+    stage_before_init: SampleStage,
+    stage_after_init: SampleStage,
+    stage_before_register: SampleStage,
+    stage_after_register: SampleStage,
+    active_attr_count_before_register: usize,
+    active_attr_count_after_register: usize,
+    init_runs: usize,
+    register_runs: usize,
+    exit_runs: usize,
+    rejected_registration_before_init: bool,
+    rejected_duplicate_registration: bool,
+};
+
 pub const InputValidationReplay = struct {
     anchor: []const u8,
     stage_before_validation_checks: SampleStage,
@@ -326,6 +341,50 @@ pub const KobjectExampleSample = struct {
             .register_runs = self.register_runs,
             .exit_runs = self.exit_runs,
             .rejected_second_init = rejected_second_init,
+        };
+    }
+
+    pub fn runRegistrationOwnershipReplay(self: *Self) !RegistrationOwnershipReplay {
+        self.requireColdReplayStart();
+
+        const rejected_registration_before_init = blk: {
+            self.registerAttributes() catch |err| {
+                if (err == error.InvalidLifecycleTransition) break :blk true;
+                return err;
+            };
+            break :blk false;
+        };
+
+        const stage_before_init = self.stage_value;
+        try self.init();
+        const stage_after_init = self.stage_value;
+        const stage_before_register = self.stage_value;
+        const active_attr_count_before_register = self.active_attr_count;
+        try self.registerAttributes();
+        const stage_after_register = self.stage_value;
+        const active_attr_count_after_register = self.active_attr_count;
+
+        const rejected_duplicate_registration = blk: {
+            self.registerAttributes() catch |err| {
+                if (err == error.InvalidLifecycleTransition) break :blk true;
+                return err;
+            };
+            break :blk false;
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .stage_before_init = stage_before_init,
+            .stage_after_init = stage_after_init,
+            .stage_before_register = stage_before_register,
+            .stage_after_register = stage_after_register,
+            .active_attr_count_before_register = active_attr_count_before_register,
+            .active_attr_count_after_register = active_attr_count_after_register,
+            .init_runs = self.init_runs,
+            .register_runs = self.register_runs,
+            .exit_runs = self.exit_runs,
+            .rejected_registration_before_init = rejected_registration_before_init,
+            .rejected_duplicate_registration = rejected_duplicate_registration,
         };
     }
 
@@ -608,6 +667,25 @@ test "kobject example sample keeps the single-init boundary self-check local to 
     try std.testing.expectEqual(@as(usize, 0), replay.exit_runs);
     try std.testing.expect(replay.rejected_second_init);
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+}
+
+test "kobject example sample keeps the registration-lifetime replay self-check local to the sample file" {
+    var sample = KobjectExampleSample{};
+    const replay = try sample.runRegistrationOwnershipReplay();
+
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(SampleStage.cold, replay.stage_before_init);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_after_init);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_register);
+    try std.testing.expectEqual(SampleStage.registered, replay.stage_after_register);
+    try std.testing.expectEqual(@as(usize, 0), replay.active_attr_count_before_register);
+    try std.testing.expectEqual(@as(usize, 3), replay.active_attr_count_after_register);
+    try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.exit_runs);
+    try std.testing.expect(replay.rejected_registration_before_init);
+    try std.testing.expect(replay.rejected_duplicate_registration);
+    try std.testing.expectEqual(SampleStage.registered, sample.stage());
 }
 
 test "kobject example sample keeps the registered boundary self-check local to the sample file" {
