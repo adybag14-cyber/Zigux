@@ -182,8 +182,10 @@ test "phase 9 runtime loader gap survey keeps the shared replay routes and no-de
     try expectContains(tests_readme, "`zigux/tests/runtime_loader_gap_survey.zig`");
     try expectContains(tests_readme, "`zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`");
 
-    try expectContains(samples_readme, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map");
+    try expectContains(samples_readme, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` as the shared owner map for the runtime-loader lane versus the pilot-family packets");
+    try expectContains(samples_readme, "keep older command and environment control boundaries under the existing tooling lanes instead of reading the runtime loader packet as shipped command or environment activation control");
     try expectContains(samples_readme, "the focused `phase9-runtime-loader-shared-tests` step");
+    try expectContains(samples_readme, "the paired `make -C zigux phase9-runtime-bitmap-top-bit-test` plus `make -C zigux phase9-runtime-loader-shared-tests` routes stay explicit as bounded review-only build surfaces");
     try expectContains(samples_readme, "instead of implying a dedicated `validate-phase9.py` route");
 }
 
