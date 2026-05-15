@@ -279,6 +279,9 @@ SYSRQ_HELPER_MARKERS = [
     "pub const SysrqHandoffRequest",
     "pub const SysrqHandoffSnapshot",
     "pub fn summarizeSysrqHandoff",
+    'test "phase11 hvc sysrq handoff keeps live execution out of scope" {',
+    'test "phase11 hvc sysrq handoff falls back to literal bytes when no target vterm is present" {',
+    'test "phase11 hvc sysrq handoff keeps non-kernel consoles on the literal fallback path" {',
 ]
 
 MAKEFILE_MARKERS = [
@@ -561,6 +564,9 @@ def run_self_test() -> None:
             (REQUIRED_FILES["sysrq_helper"], SYSRQ_HELPER_MARKERS[0]),
             (REQUIRED_FILES["sysrq_helper"], SYSRQ_HELPER_MARKERS[1]),
             (REQUIRED_FILES["sysrq_helper"], SYSRQ_HELPER_MARKERS[2]),
+            (REQUIRED_FILES["sysrq_helper"], SYSRQ_HELPER_MARKERS[3]),
+            (REQUIRED_FILES["sysrq_helper"], SYSRQ_HELPER_MARKERS[4]),
+            (REQUIRED_FILES["sysrq_helper"], SYSRQ_HELPER_MARKERS[5]),
             (REQUIRED_FILES["makefile"], "phase11-hvc-survey:"),
             (REQUIRED_FILES["workflow"], "run: make -C zigux phase11-hvc-survey"),
         ]
