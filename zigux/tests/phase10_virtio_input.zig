@@ -41,8 +41,17 @@ test "phase10 virtio input probe preflight keeps identity and capability staging
     try std.testing.expect(summary.blocker == null);
 }
 
+test "phase10 virtio input probe preflight keeps serial optional while name and phys drive identity" {
+    var serial_optional = try virtio_input.VirtioInputLab.init("touch-panel", "", 33, null);
+
+    const summary = serial_optional.probePreflightSummary();
+    try std.testing.expect(summary.identity_ready);
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.event_queue_unconfigured, summary.blocker.?);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+}
+
 test "phase10 virtio input registration preflight reports blockers before readiness" {
-    var device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-registration", 33, null);
+    var device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-registration", 34, null);
 
     var summary = device.registrationPreflightSummary();
     try std.testing.expectEqual(virtio_input.RegistrationBlocker.event_queue_unconfigured, summary.blocker.?);
@@ -69,7 +78,7 @@ test "phase10 virtio input registration preflight reports blockers before readin
 }
 
 test "phase10 virtio input teardown observation keeps identity while surfacing reset-local state" {
-    var device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-teardown", 34, null);
+    var device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-teardown", 35, null);
 
     try device.configureEventQueue(16);
     try device.configureStatusQueue(8);
@@ -91,7 +100,7 @@ test "phase10 virtio input teardown observation keeps identity while surfacing r
 }
 
 test "phase10 virtio input reset clears queue plan and returns to default bus identity" {
-    var device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-reset", 35, null);
+    var device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-reset", 36, null);
 
     try device.configureEventQueue(16);
     try device.configureStatusQueue(8);
