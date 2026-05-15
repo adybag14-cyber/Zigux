@@ -50,7 +50,7 @@ const Manifest = struct {
 };
 
 fn isAllowedStatus(status: []const u8) bool {
-    return std.mem.eql(u8, status, "starter_landed") or
+    return std.mem.eql(u8, status, "parked") or
         std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "blocked");
 }
@@ -82,7 +82,7 @@ fn expectStringSliceContains(haystack: []const []const u8, needle: []const u8) !
     try std.testing.expect(false);
 }
 
-test "phase 7 rbtree survey manifest records the landed runtime leaf surface and committed parity fixture" {
+test "phase 7 rbtree survey manifest records the parked runtime leaf surface and committed parity fixture" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -251,7 +251,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
     try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
-    var starter_landed_count: usize = 0;
+    var parked_count: usize = 0;
     var saw_build_gate = false;
     var saw_helper = false;
     var saw_survey_gate = false;
@@ -264,13 +264,13 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
         try std.testing.expect(gap.why_now.len > 0);
         try std.testing.expect(isAllowedStatus(gap.status));
 
-        if (std.mem.eql(u8, gap.status, "starter_landed")) {
-            starter_landed_count += 1;
+        if (std.mem.eql(u8, gap.status, "parked")) {
+            parked_count += 1;
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-build-gate")) {
             saw_build_gate = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("parked", gap.status);
             try std.testing.expect(gap.current_replay_status != null);
             try std.testing.expectEqualStrings("route_present_on_master", gap.current_replay_status.?);
             try std.testing.expectEqualStrings("zigux/tests/phase7_build.zig", gap.zigux_destination);
@@ -278,25 +278,25 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-helper")) {
             saw_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("parked", gap.status);
             try std.testing.expectEqualStrings("lib/rbtree.zig", gap.zigux_destination);
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-survey-gate")) {
             saw_survey_gate = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("parked", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase7_rbtree_survey.zig", gap.zigux_destination);
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-parity-checker")) {
             saw_parity_checker = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("parked", gap.status);
             try std.testing.expectEqualStrings("scripts/zigux/check-phase7-rbtree-parity.py", gap.zigux_destination);
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-parity-fixture-layer")) {
             saw_parity_fixture = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("parked", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/fixtures/phase7_rbtree.json", gap.zigux_destination);
         }
 
@@ -409,7 +409,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(parity_fixture, "\"erase_init\"");
     try expectContains(parity_fixture, "\"postorder\"");
 
-    try std.testing.expectEqual(manifest.gaps.len, starter_landed_count);
+    try std.testing.expectEqual(manifest.gaps.len, parked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_survey_gate);
