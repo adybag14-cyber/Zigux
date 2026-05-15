@@ -108,6 +108,7 @@ EXPECTED_HELPER_SLICE_NOTES = {
 }
 
 EXPECTED_EXACT_CHECKS = [
+    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test",
     "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
@@ -123,7 +124,6 @@ EXPECTED_EXACT_CHECKS = [
 ]
 
 EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES = [
-    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
     "make -C zigux phase6-base64-c-parity",
     "make -C zigux phase6-base64-perf",
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
