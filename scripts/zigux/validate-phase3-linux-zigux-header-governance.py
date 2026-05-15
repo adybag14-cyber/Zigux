@@ -45,6 +45,8 @@ HEADER_HELPERS = (
     "zigux_boundary_header_is_current_abi_version",
     "zigux_boundary_header_is_compatible_size",
     "zigux_boundary_header_is_canonical_size",
+    "zigux_boundary_header_is_compatible",
+    "zigux_boundary_header_is_canonical",
 )
 REQUIRED_BOUNDARY_MARKERS = {
     "keep canonical and future-compatible constructors as thin named relays over the canonical header and starter UAPI ownership": 1,
@@ -143,6 +145,8 @@ def run_self_test() -> int:
         "static inline int zigux_boundary_header_is_current_abi_version(uint16_t abi_version)\n{\n    return abi_version == (uint16_t)ZIGUX_ABI_VERSION;\n}\n\n"
         "static inline int zigux_boundary_header_is_compatible_size(uint32_t size)\n{\n    return size >= (uint32_t)sizeof(struct zigux_boundary_header);\n}\n\n"
         "static inline int zigux_boundary_header_is_canonical_size(uint32_t size)\n{\n    return size == (uint32_t)sizeof(struct zigux_boundary_header);\n}\n\n"
+        "static inline int zigux_boundary_header_is_compatible(struct zigux_boundary_header header)\n{\n    return zigux_boundary_header_is_current_abi_version(header.abi_version) &&\n        zigux_boundary_header_is_compatible_size(header.size);\n}\n\n"
+        "static inline int zigux_boundary_header_is_canonical(struct zigux_boundary_header header)\n{\n    return zigux_boundary_header_is_current_abi_version(header.abi_version) &&\n        zigux_boundary_header_is_canonical_size(header.size);\n}\n\n"
         "#endif\n"
     )
     sample_blob = _git_blob_sha(sample_header)
@@ -173,6 +177,8 @@ live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`
 `zigux_boundary_header_is_current_abi_version()`
 `zigux_boundary_header_is_compatible_size()`
 `zigux_boundary_header_is_canonical_size()`
+`zigux_boundary_header_is_compatible()`
+`zigux_boundary_header_is_canonical()`
 keep canonical and future-compatible constructors as thin named relays over the canonical header and starter UAPI ownership
 aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally
 """
@@ -286,6 +292,26 @@ aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` o
         print("expected canonical-size helper drift was not reported")
         return 1
 
+    broken = validate_text(
+        sample_note.replace("`zigux_boundary_header_is_compatible()`", "", 1),
+        sample_header,
+    )
+    expected = "governance note helper marker missing: zigux_boundary_header_is_compatible()"
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected whole-header compatible helper drift was not reported")
+        return 1
+
+    broken = validate_text(
+        sample_note.replace("`zigux_boundary_header_is_canonical()`", "", 1),
+        sample_header,
+    )
+    expected = "governance note helper marker missing: zigux_boundary_header_is_canonical()"
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected whole-header canonical helper drift was not reported")
+        return 1
+
     broken = validate_text(sample_note.replace(sample_blob, "deadbeef", 1), sample_header)
     expected = f"blob marker drift: PHASE3_ZIGUX_H_BLOB_SHA={sample_blob} (expected 1, found 0)"
     if expected not in broken:
@@ -305,6 +331,34 @@ aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` o
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected header helper drift was not reported")
+        return 1
+
+    broken = validate_text(
+        sample_note,
+        sample_header.replace(
+            "static inline int zigux_boundary_header_is_compatible(",
+            "static inline int zigux_boundary_header_accepts(",
+            1,
+        ),
+    )
+    expected = "header helper missing: zigux_boundary_header_is_compatible"
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected whole-header compatible relay drift was not reported")
+        return 1
+
+    broken = validate_text(
+        sample_note,
+        sample_header.replace(
+            "static inline int zigux_boundary_header_is_canonical(",
+            "static inline int zigux_boundary_header_matches(",
+            1,
+        ),
+    )
+    expected = "header helper missing: zigux_boundary_header_is_canonical"
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected whole-header canonical relay drift was not reported")
         return 1
 
     print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass")
