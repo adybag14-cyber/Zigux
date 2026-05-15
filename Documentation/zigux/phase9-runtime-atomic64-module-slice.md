@@ -27,6 +27,7 @@ This note tracks the bounded Phase 9 runtime atomic64 starter packet on `master`
 - `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/phase9_build.zig`
 - `zigux/tests/runtime_loader_allocator_init_flow.zig`
+- `zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`
 - `zigux/tests/runtime_loader_gap_manifest.json`
 - `zigux/tests/runtime_loader_gap_survey.zig`
 - `zigux/kernel/runtime_loader.zig`
@@ -50,7 +51,7 @@ That means the honest current atomic64 packet is a direct starter plus a visible
 3. `zigux/tests/runtime_atomic64_survey.zig` remains the truthfulness gate for the direct packet and the visible shared-loader reminder packet.
 4. `zigux/Makefile` keeps `make -C zigux phase9-runtime-atomic64-test` explicit as the family-local convenience route beside the direct sample, loader, module, diff, and survey packet.
 5. `zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig` keeps the landed loader-scaffold replay explicit as first-class shared-build evidence beside the direct sample leg.
-6. `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/Makefile` stay adjacent shared review surfaces only until the broader runtime substrate actually lands.
+6. `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/Makefile` stay adjacent shared review surfaces only until the broader runtime substrate actually lands.
 
 ## Review Surface
 
