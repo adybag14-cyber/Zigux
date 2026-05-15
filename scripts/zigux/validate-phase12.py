@@ -104,6 +104,7 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase12-virtio-net-survey.md": [
         "`PHASE12_STATUS=starter-present-transmit-recycle-followup`",
+        "`PHASE12_LANE=P12-L04`",
         "current `master` now also carries `drivers/net/virtio_net_transmit_recycle.zig`",
         "summarizeTransmitRecycle()",
         "current `master` now carries `zigux/tests/phase12_virtio_net_transmit_recycle.zig`",
@@ -181,7 +182,7 @@ REQUIRED_MARKERS = {
         "test_step.dependOn(&run_repeated_rollback_tests.step);",
     ],
     "zigux/tests/phase12_virtio_net_manifest.json": [
-        "\"lane_key\": \"P12-L01\"",
+        "\"lane_key\": \"P12-L04\"",
         "\"phase\": \"Phase 12\"",
         "\"anchor\": \"drivers/net/virtio_net.c\"",
         "\"preexisting_phase12_build_present\": true",
@@ -300,7 +301,7 @@ FIXTURE_OVERRIDES = {
         f"// {marker}" for marker in REQUIRED_MARKERS["zigux/tests/phase12_virtio_net_survey.zig"]
     )
     + "\n",
-    "zigux/tests/phase12_virtio_net_manifest.json": "{\n  \"lane_key\": \"P12-L01\",\n  \"phase\": \"Phase 12\",\n  \"anchor\": \"drivers/net/virtio_net.c\",\n  \"survey_summary\": {\n    \"preexisting_phase12_build_present\": true,\n    \"preexisting_phase12_survey_note_present\": true,\n    \"preexisting_virtio_net_zig_present\": true\n  },\n  \"gaps\": [\n    {\n      \"id\": \"phase12-build-gate\",\n      \"status\": \"shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay\"\n    },\n    {\n      \"id\": \"phase12-virtio-net-transmit-recycle-followup\",\n      \"status\": \"landed_on_master\"\n    },\n    {\n      \"id\": \"phase12-virtio-net-runtime-data-path\",\n      \"status\": \"blocked_on_dma_transport_runtime\"\n    }\n  ]\n}\n",
+    "zigux/tests/phase12_virtio_net_manifest.json": "{\n  \"lane_key\": \"P12-L04\",\n  \"phase\": \"Phase 12\",\n  \"anchor\": \"drivers/net/virtio_net.c\",\n  \"survey_summary\": {\n    \"preexisting_phase12_build_present\": true,\n    \"preexisting_phase12_survey_note_present\": true,\n    \"preexisting_virtio_net_zig_present\": true\n  },\n  \"gaps\": [\n    {\n      \"id\": \"phase12-build-gate\",\n      \"status\": \"shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay\"\n    },\n    {\n      \"id\": \"phase12-virtio-net-transmit-recycle-followup\",\n      \"status\": \"landed_on_master\"\n    },\n    {\n      \"id\": \"phase12-virtio-net-runtime-data-path\",\n      \"status\": \"blocked_on_dma_transport_runtime\"\n    }\n  ]\n}\n",
     "zigux/tests/phase12_virtio_scsi.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_syntax_lab.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig": "// fixture\n",
@@ -550,9 +551,9 @@ def run_self_test() -> None:
         (
             "missing_virtio_net_manifest_lane_key_marker",
             "zigux/tests/phase12_virtio_net_manifest.json",
-            "\"lane_key\": \"P12-L01\"",
+            "\"lane_key\": \"P12-L04\"",
             "\"lane_key\": \"P12-L99\"",
-            "zigux/tests/phase12_virtio_net_manifest.json: \"lane_key\": \"P12-L01\"",
+            "zigux/tests/phase12_virtio_net_manifest.json: \"lane_key\": \"P12-L04\"",
         ),
         (
             "missing_virtio_net_manifest_build_gate_marker",
