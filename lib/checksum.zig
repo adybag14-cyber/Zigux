@@ -84,6 +84,10 @@ pub fn tcpUdpV6Nofold(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len:
     return normalize(result);
 }
 
+pub fn tcpUdpV6Magic(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) u16 {
+    return fold(tcpUdpV6Nofold(sum, saddr, daddr, len, proto));
+}
+
 pub fn partial(bytes: []const u8, seed: u32) u32 {
     var sum: u64 = normalize(seed);
     var index: usize = 0;
@@ -251,4 +255,45 @@ test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
     manual_v6 = add(manual_v6, v6_len & 0xffff);
     manual_v6 = add(manual_v6, v6_proto);
     try std.testing.expectEqual(normalize(manual_v6), v6_result);
+    try std.testing.expectEqual(fold(v6_result), tcpUdpV6Magic(payload_seed, &v6_saddr, &v6_daddr, v6_len, v6_proto));
+}
+
+test "folded pseudo-header helpers match direct pseudo-header plus payload recomputation" {
+    const ipv4_payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
+    const ipv4_saddr: u32 = 0xc0a8_0001;
+    const ipv4_daddr: u32 = 0xc0a8_00c7;
+    const ipv4_len: u16 = ipv4_payload.len;
+    const ipv4_proto: u8 = 17;
+    const ipv4_expected = tcpUdpMagic(partial(&ipv4_payload, 0), ipv4_saddr, ipv4_daddr, ipv4_len, ipv4_proto);
+    const ipv4_packet = [_]u8{
+        0xc0, 0xa8, 0x00, 0x01,
+        0xc0, 0xa8, 0x00, 0xc7,
+        0x00, ipv4_proto,
+        0x00, ipv4_len,
+        0x70, 0x68, 0x61, 0x73, 0x65, 0x36,
+    };
+    try std.testing.expectEqual(compute(&ipv4_packet), ipv4_expected);
+
+    const ipv6_payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36, 0xaa };
+    const ipv6_saddr = [_]u8{
+        0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01,
+        0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe,
+    };
+    const ipv6_daddr = [_]u8{
+        0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02,
+        0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf,
+    };
+    const ipv6_len: u32 = ipv6_payload.len;
+    const ipv6_proto: u8 = 58;
+    const ipv6_expected = tcpUdpV6Magic(partial(&ipv6_payload, 0), &ipv6_saddr, &ipv6_daddr, ipv6_len, ipv6_proto);
+    const ipv6_packet = [_]u8{
+        0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01,
+        0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe,
+        0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02,
+        0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf,
+        0x00, 0x00, 0x00, @as(u8, ipv6_len),
+        0x00, 0x00, 0x00, ipv6_proto,
+        0x70, 0x68, 0x61, 0x73, 0x65, 0x36, 0xaa,
+    };
+    try std.testing.expectEqual(compute(&ipv6_packet), ipv6_expected);
 }
