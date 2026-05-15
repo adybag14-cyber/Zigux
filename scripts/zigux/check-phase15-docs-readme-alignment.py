@@ -22,8 +22,10 @@ DOCS_README_MARKERS = (
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_build.zig",
     "make -C zigux phase15-validate",
@@ -103,11 +105,31 @@ def run_self_test() -> int:
         case_count += 1
 
         path = root / DOCS_README_REL
+        _write(path, _read(path).replace("scripts/zigux/check-phase15-docs-readme-alignment.py\n", "", 1))
+        _assert_only(
+            validate(root),
+            ["docs_readme:missing:scripts/zigux/check-phase15-docs-readme-alignment.py"],
+            "docs_missing_docs_readme_alignment_checker",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
         _write(path, _read(path).replace("scripts/zigux/check-phase15-review-process-handoff.py\n", "", 1))
         _assert_only(
             validate(root),
             ["docs_readme:missing:scripts/zigux/check-phase15-review-process-handoff.py"],
             "docs_missing_review_process_handoff_checker",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace("scripts/zigux/check-phase15-shared-summary-gap.py\n", "", 1))
+        _assert_only(
+            validate(root),
+            ["docs_readme:missing:scripts/zigux/check-phase15-shared-summary-gap.py"],
+            "docs_missing_shared_summary_gap_checker",
         )
         _seed(root)
         case_count += 1
