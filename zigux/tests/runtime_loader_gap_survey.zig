@@ -161,6 +161,8 @@ test "phase 9 runtime loader gap survey keeps the shared replay routes and no-de
     try expectContains(docs_readme, "loader facade, contract, allocator/init-flow replay, loader-gap survey note plus manifest-backed survey gate, shared build, and workflow-backed Linux-style `make -C zigux phase9` replay route");
     try expectContains(docs_readme, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the owner of the exact shared-loader target list");
     try expectContains(docs_readme, "the still-blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest boundary");
+    try expectContains(docs_readme, "`scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references");
+    try expectContains(docs_readme, "`rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence.");
 
     try expectContains(review_checklist, "`scripts/zigux/check-phase9-build-only-surface.py`");
     try expectContains(review_checklist, "workflow-backed `make -C zigux phase9` route");
