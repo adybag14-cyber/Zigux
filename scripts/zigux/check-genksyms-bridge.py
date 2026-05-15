@@ -25,6 +25,7 @@ WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_REL = "zigux/Makefile"
 VALIDATE_PHASE2_REL = "scripts/zigux/validate-phase2.py"
 VALIDATE_PHASE2_CLOSURE_REL = "scripts/zigux/validate-phase2-closure.py"
+PHASE2_GENKSYMS_SURVEY_REL = "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md"
 
 EXPECTED_GENKSYMS_CASES = [
     {
@@ -334,7 +335,30 @@ EXPECTED_CLOSURE_MARKERS = [
     expected_closure_case_marker(),
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 25
+
+def expected_survey_case_marker() -> str:
+    return (
+        "`zigux/tests/fixtures/genksyms_bridge/manifest.json` is present, marks the tool "
+        "`closed`, records `mode: \"wrapper-first bridge\"`, and names the current "
+        f"{EXPECTED_GENKSYMS_MANIFEST['case_count']}-case external bridge packet."
+    )
+
+
+def expected_survey_version_marker() -> str:
+    return (
+        "The external `version_expected.json` packet now proves the same version-side-effect "
+        "behavior as the helper-local anchor `genksyms bridge keeps version as a side effect "
+        "while parsing later options`, so the helper-local and external bridge packets are "
+        "aligned on that behavior."
+    )
+
+
+EXPECTED_SURVEY_MARKERS = [
+    expected_survey_case_marker(),
+    expected_survey_version_marker(),
+]
+
+EXPECTED_SELF_TEST_CASE_COUNT = 28
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -456,6 +480,7 @@ def validate_root(root: Path) -> list[str]:
         GENKSYMS_MANIFEST_REL,
         PHASE2_TOOL_MANIFEST_REL,
         PHASE2_CLOSURE_REL,
+        PHASE2_GENKSYMS_SURVEY_REL,
         TESTS_README_REL,
         WORKFLOW_REL,
         MAKEFILE_REL,
@@ -510,6 +535,16 @@ def validate_root(root: Path) -> list[str]:
     issues.extend(validate_markers(tests_readme, EXPECTED_TESTS_README_MARKERS, TESTS_README_REL))
     issues.extend(
         validate_exact_counts(tests_readme, EXPECTED_TESTS_README_MARKERS, TESTS_README_REL)
+    )
+
+    survey_text = (root / PHASE2_GENKSYMS_SURVEY_REL).read_text(encoding="utf-8")
+    issues.extend(
+        validate_markers(survey_text, EXPECTED_SURVEY_MARKERS, PHASE2_GENKSYMS_SURVEY_REL)
+    )
+    issues.extend(
+        validate_exact_counts(
+            survey_text, EXPECTED_SURVEY_MARKERS, PHASE2_GENKSYMS_SURVEY_REL
+        )
     )
 
     closure_text = (root / PHASE2_CLOSURE_REL).read_text(encoding="utf-8")
@@ -614,6 +649,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root / TESTS_README_REL,
         "\n".join(EXPECTED_TESTS_README_MARKERS) + "\n",
+    )
+    write_text(
+        root / PHASE2_GENKSYMS_SURVEY_REL,
+        "\n".join(EXPECTED_SURVEY_MARKERS) + "\n",
     )
     write_text(
         root / PHASE2_CLOSURE_REL,
@@ -823,6 +862,46 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        survey_path = root / PHASE2_GENKSYMS_SURVEY_REL
+        survey_path.unlink()
+        issues = validate_root(root)
+        assert f"missing_file:{PHASE2_GENKSYMS_SURVEY_REL}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        survey_path = root / PHASE2_GENKSYMS_SURVEY_REL
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                EXPECTED_SURVEY_MARKERS[1] + "\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"missing_marker:{PHASE2_GENKSYMS_SURVEY_REL}:{EXPECTED_SURVEY_MARKERS[1]}" in issues
+        assert (
+            f"exact_count:{PHASE2_GENKSYMS_SURVEY_REL}:{EXPECTED_SURVEY_MARKERS[1]}:count=0:expected=1"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        survey_path = root / PHASE2_GENKSYMS_SURVEY_REL
+        stale_case_marker = f"{EXPECTED_GENKSYMS_MANIFEST['case_count'] - 1}-case"
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                f"{EXPECTED_GENKSYMS_MANIFEST['case_count']}-case", stale_case_marker, 1
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"missing_marker:{PHASE2_GENKSYMS_SURVEY_REL}:{EXPECTED_SURVEY_MARKERS[0]}" in issues
+        assert (
+            f"exact_count:{PHASE2_GENKSYMS_SURVEY_REL}:{EXPECTED_SURVEY_MARKERS[0]}:count=0:expected=1"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
         closure_path = root / PHASE2_CLOSURE_REL
         closure_path.write_text(
             closure_path.read_text(encoding="utf-8").replace(
@@ -950,6 +1029,7 @@ def main() -> int:
     )
     print(f"PHASE2_GENKSYMS_BRIDGE_WORKFLOW_HOOK_COUNT={len(EXPECTED_WORKFLOW_LINES)}")
     print(f"PHASE2_GENKSYMS_BRIDGE_MAKEFILE_HOOK_COUNT={len(EXPECTED_MAKEFILE_LINES)}")
+    print(f"PHASE2_GENKSYMS_BRIDGE_SURVEY_MARKER_COUNT={len(EXPECTED_SURVEY_MARKERS)}")
     print("PHASE2_GENKSYMS_BRIDGE_VALIDATOR_FILE_COUNT=2")
     return 0
 
