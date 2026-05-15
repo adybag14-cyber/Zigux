@@ -519,6 +519,32 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_next_step",
+            NEXT_STEP_MARKERS[14],
+            "",
+            0,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_next_step",
+            NEXT_STEP_MARKERS[14],
+            NEXT_STEP_MARKERS[14] + "\n" + NEXT_STEP_MARKERS[14],
+            2,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
