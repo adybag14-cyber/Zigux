@@ -97,7 +97,7 @@ Key entrypoints
   * `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
   * `zigux/Makefile`
   * `.github/workflows/zigux-bootstrap.yml`
-  * current public-tree Phase 6 gaps: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`
+  * current public-tree-backed Phase 6 checksum packet: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`
   * `zigux/tests/phase7_build.zig`
   * `zigux/tests/phase7_string_helpers.zig`
   * `zigux/tests/phase7_string_helpers_survey.zig`
