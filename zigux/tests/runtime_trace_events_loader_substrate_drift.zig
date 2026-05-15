@@ -14,7 +14,7 @@ fn expectPreparedRuntimeSubstrateDriftKeepsPreparedState(
     try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(shared_request.plan, stable_plan));
 }
 
-fn expectReleaseRuntimeSubstrateDriftKeepsWaitingState(
+fn expectReleasePlanDriftKeepsWaitingState(
     loader: *const runtime_trace_events_loader.RuntimeTraceEventsLoader,
     shared_request: runtime_loader.PreparedRequest,
     stable_plan: runtime_loader.LoadPlan,
@@ -22,11 +22,20 @@ fn expectReleaseRuntimeSubstrateDriftKeepsWaitingState(
 ) !void {
     try std.testing.expectEqual(runtime_trace_events_loader.LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
-    try std.testing.expect(shared_request.prepared_plan.requires_runtime_substrate);
-    try std.testing.expect(!shared_request.plan.requires_runtime_substrate);
     try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(shared_request.prepared_plan, stable_plan));
     try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(pending_plan, stable_plan));
     try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(shared_request.plan, stable_plan));
+}
+
+fn expectReleaseRuntimeSubstrateDriftKeepsWaitingState(
+    loader: *const runtime_trace_events_loader.RuntimeTraceEventsLoader,
+    shared_request: runtime_loader.PreparedRequest,
+    stable_plan: runtime_loader.LoadPlan,
+    pending_plan: runtime_loader.LoadPlan,
+) !void {
+    try expectReleasePlanDriftKeepsWaitingState(loader, shared_request, stable_plan, pending_plan);
+    try std.testing.expect(shared_request.prepared_plan.requires_runtime_substrate);
+    try std.testing.expect(!shared_request.plan.requires_runtime_substrate);
 }
 
 test "phase 9 runtime trace-events loader rejects prepared shared runtime-substrate drift before any local runtime handoff" {
@@ -136,6 +145,125 @@ test "phase 9 runtime trace-events loader keeps initialized-stage shared release
         shared_request,
         .waiting_on_runtime_substrate,
         shared_request.plan,
+    ));
+}
+
+test "phase 9 runtime trace-events loader keeps shared approved-family anchor and staged init or exit symbol release drift from desynchronizing waiting runtime-substrate state" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    var anchor_loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
+    var anchor_request = try anchor_loader.prepareSharedRequest(&module);
+    const stable_anchor_plan = anchor_request.plan;
+    const pending_anchor_plan = try anchor_loader.requestSharedRuntimeLoad(&anchor_request);
+    anchor_request.plan.anchor = "samples/trace_events/trace-events-sample-drift.c";
+
+    try std.testing.expectError(error.PreparedPlanDrift, anchor_loader.releaseSharedWithoutSubstrate(&anchor_request));
+    try expectReleasePlanDriftKeepsWaitingState(&anchor_loader, anchor_request, stable_anchor_plan, pending_anchor_plan);
+    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample-drift.c", anchor_request.plan.anchor);
+    try std.testing.expectEqualStrings(stable_anchor_plan.anchor, anchor_request.prepared_plan.anchor);
+    try std.testing.expectEqualStrings(stable_anchor_plan.anchor, pending_anchor_plan.anchor);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        anchor_request,
+        .waiting_on_runtime_substrate,
+        anchor_request.plan,
+    ));
+
+    var entry_loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
+    var entry_request = try entry_loader.prepareSharedRequest(&module);
+    const stable_entry_plan = entry_request.plan;
+    const pending_entry_plan = try entry_loader.requestSharedRuntimeLoad(&entry_request);
+    entry_request.plan.entry_symbol = "zigux_runtime_trace_events_init_drift";
+
+    try std.testing.expectError(error.PreparedPlanDrift, entry_loader.releaseSharedWithoutSubstrate(&entry_request));
+    try expectReleasePlanDriftKeepsWaitingState(&entry_loader, entry_request, stable_entry_plan, pending_entry_plan);
+    try std.testing.expectEqualStrings("zigux_runtime_trace_events_init_drift", entry_request.plan.entry_symbol);
+    try std.testing.expectEqualStrings(stable_entry_plan.entry_symbol, entry_request.prepared_plan.entry_symbol);
+    try std.testing.expectEqualStrings(stable_entry_plan.entry_symbol, pending_entry_plan.entry_symbol);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        entry_request,
+        .waiting_on_runtime_substrate,
+        entry_request.plan,
+    ));
+
+    var exit_loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
+    var exit_request = try exit_loader.prepareSharedRequest(&module);
+    const stable_exit_plan = exit_request.plan;
+    const pending_exit_plan = try exit_loader.requestSharedRuntimeLoad(&exit_request);
+    exit_request.plan.exit_symbol = "zigux_runtime_trace_events_exit_drift";
+
+    try std.testing.expectError(error.PreparedPlanDrift, exit_loader.releaseSharedWithoutSubstrate(&exit_request));
+    try expectReleasePlanDriftKeepsWaitingState(&exit_loader, exit_request, stable_exit_plan, pending_exit_plan);
+    try std.testing.expectEqualStrings("zigux_runtime_trace_events_exit_drift", exit_request.plan.exit_symbol);
+    try std.testing.expectEqualStrings(stable_exit_plan.exit_symbol, exit_request.prepared_plan.exit_symbol);
+    try std.testing.expectEqualStrings(stable_exit_plan.exit_symbol, pending_exit_plan.exit_symbol);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        exit_request,
+        .waiting_on_runtime_substrate,
+        exit_request.plan,
+    ));
+}
+
+test "phase 9 runtime trace-events loader keeps initialized-stage shared approved-family anchor and staged init or exit symbol release drift from desynchronizing waiting runtime-substrate state" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+
+    var anchor_loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
+    var anchor_request = try anchor_loader.prepareSharedRequest(&module);
+    const stable_anchor_plan = anchor_request.plan;
+    const pending_anchor_plan = try anchor_loader.requestSharedRuntimeLoad(&anchor_request);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_anchor_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), pending_anchor_plan.init_flow.selftest_runs);
+    anchor_request.plan.anchor = "samples/trace_events/trace-events-sample-drift.c";
+
+    try std.testing.expectError(error.PreparedPlanDrift, anchor_loader.releaseSharedWithoutSubstrate(&anchor_request));
+    try expectReleasePlanDriftKeepsWaitingState(&anchor_loader, anchor_request, stable_anchor_plan, pending_anchor_plan);
+    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample-drift.c", anchor_request.plan.anchor);
+    try std.testing.expectEqualStrings(stable_anchor_plan.anchor, anchor_request.prepared_plan.anchor);
+    try std.testing.expectEqualStrings(stable_anchor_plan.anchor, pending_anchor_plan.anchor);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        anchor_request,
+        .waiting_on_runtime_substrate,
+        anchor_request.plan,
+    ));
+
+    var entry_loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
+    var entry_request = try entry_loader.prepareSharedRequest(&module);
+    const stable_entry_plan = entry_request.plan;
+    const pending_entry_plan = try entry_loader.requestSharedRuntimeLoad(&entry_request);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_entry_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), pending_entry_plan.init_flow.selftest_runs);
+    entry_request.plan.entry_symbol = "zigux_runtime_trace_events_init_drift";
+
+    try std.testing.expectError(error.PreparedPlanDrift, entry_loader.releaseSharedWithoutSubstrate(&entry_request));
+    try expectReleasePlanDriftKeepsWaitingState(&entry_loader, entry_request, stable_entry_plan, pending_entry_plan);
+    try std.testing.expectEqualStrings("zigux_runtime_trace_events_init_drift", entry_request.plan.entry_symbol);
+    try std.testing.expectEqualStrings(stable_entry_plan.entry_symbol, entry_request.prepared_plan.entry_symbol);
+    try std.testing.expectEqualStrings(stable_entry_plan.entry_symbol, pending_entry_plan.entry_symbol);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        entry_request,
+        .waiting_on_runtime_substrate,
+        entry_request.plan,
+    ));
+
+    var exit_loader = runtime_trace_events_loader.RuntimeTraceEventsLoader{};
+    var exit_request = try exit_loader.prepareSharedRequest(&module);
+    const stable_exit_plan = exit_request.plan;
+    const pending_exit_plan = try exit_loader.requestSharedRuntimeLoad(&exit_request);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_exit_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), pending_exit_plan.init_flow.selftest_runs);
+    exit_request.plan.exit_symbol = "zigux_runtime_trace_events_exit_drift";
+
+    try std.testing.expectError(error.PreparedPlanDrift, exit_loader.releaseSharedWithoutSubstrate(&exit_request));
+    try expectReleasePlanDriftKeepsWaitingState(&exit_loader, exit_request, stable_exit_plan, pending_exit_plan);
+    try std.testing.expectEqualStrings("zigux_runtime_trace_events_exit_drift", exit_request.plan.exit_symbol);
+    try std.testing.expectEqualStrings(stable_exit_plan.exit_symbol, exit_request.prepared_plan.exit_symbol);
+    try std.testing.expectEqualStrings(stable_exit_plan.exit_symbol, pending_exit_plan.exit_symbol);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        exit_request,
+        .waiting_on_runtime_substrate,
+        exit_request.plan,
     ));
 }
 
