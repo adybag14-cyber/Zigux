@@ -417,6 +417,7 @@ def run_windows_wsl_compile(
         shlex.quote(windows_to_wsl(exe)),
     ]
     index = 0
+
     while index < len(flags):
         item = flags[index]
         quoted.append(shlex.quote(item))
@@ -552,6 +553,46 @@ def run_self_test() -> None:
         parity_key_output = collect_parity_key_issues(actual)
         assert "missing_parity_key:find_bit.tail_zero_clamped_next" in parity_key_output
 
+        missing_bitmap_truncation_len_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
+        del missing_bitmap_truncation_len_output["bitmap"]["truncated_scnprintf_len"]
+        actual.write_text(json.dumps(missing_bitmap_truncation_len_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:bitmap.truncated_scnprintf_len" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:bitmap.truncated_scnprintf_len" in parity_key_output
+
+        missing_bitmap_truncation_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
+        del missing_bitmap_truncation_output["bitmap"]["truncated_scnprintf"]
+        actual.write_text(json.dumps(missing_bitmap_truncation_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:bitmap.truncated_scnprintf" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:bitmap.truncated_scnprintf" in parity_key_output
+
+        missing_bitmap_terminator_len_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
+        del missing_bitmap_terminator_len_output["bitmap"]["terminator_only_scnprintf_len"]
+        actual.write_text(json.dumps(missing_bitmap_terminator_len_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:bitmap.terminator_only_scnprintf_len" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:bitmap.terminator_only_scnprintf_len" in parity_key_output
+
+        missing_bitmap_terminator_nul_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
+        del missing_bitmap_terminator_nul_output["bitmap"]["terminator_only_nul"]
+        actual.write_text(json.dumps(missing_bitmap_terminator_nul_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:bitmap.terminator_only_nul" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:bitmap.terminator_only_nul" in parity_key_output
+
+        missing_bitmap_zero_length_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
+        del missing_bitmap_zero_length_output["bitmap"]["zero_length_scnprintf_len"]
+        actual.write_text(json.dumps(missing_bitmap_zero_length_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:bitmap.zero_length_scnprintf_len" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:bitmap.zero_length_scnprintf_len" in parity_key_output
+
         missing_bitmap_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
         del missing_bitmap_output["bitmap"]["partial_xor_masked_values"]
         actual.write_text(json.dumps(missing_bitmap_output), encoding="utf-8")
@@ -600,7 +641,7 @@ def run_self_test() -> None:
         assert decode_issues[0].startswith("json_decode_error:")
 
     print("PHASE1_PARITY_SELF_TEST=pass")
-    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=22")
+    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=27")
 
 
 def main() -> int:
@@ -618,6 +659,7 @@ def main() -> int:
         action="store_true",
         help="Run checker self-test cases without compiling the live helper packet.",
     )
+
     args = parser.parse_args()
 
     if args.self_test:
