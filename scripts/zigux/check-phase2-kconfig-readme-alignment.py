@@ -169,10 +169,26 @@ def run_self_test() -> int:
     ) in issues
     checks_run += 1
 
+    issues = collect_issues(current_text.replace("`check-kconfig-bridge.py`", "", 1))
+    assert (
+        "EXACT_MARKER_COUNT_MISMATCH",
+        "`check-kconfig-bridge.py`:actual=1:expected=2",
+    ) in issues
+    checks_run += 1
+
     issues = collect_issues(current_text + "\n`check-phase2-confdata-helper-anchor-alignment.py`\n")
     assert (
         "EXACT_MARKER_COUNT_MISMATCH",
         "`check-phase2-confdata-helper-anchor-alignment.py`:actual=4:expected=3",
+    ) in issues
+    checks_run += 1
+
+    issues = collect_issues(
+        current_text.replace("`check-phase2-confdata-helper-anchor-alignment.py`", "", 1)
+    )
+    assert (
+        "EXACT_MARKER_COUNT_MISMATCH",
+        "`check-phase2-confdata-helper-anchor-alignment.py`:actual=2:expected=3",
     ) in issues
     checks_run += 1
 
@@ -197,7 +213,7 @@ def run_self_test() -> int:
         assert issues == []
         checks_run += 1
 
-    expected_self_test_case_count = 4 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_MARKERS)
+    expected_self_test_case_count = 6 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_MARKERS)
     if checks_run != expected_self_test_case_count:
         print("PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST=fail")
         print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
