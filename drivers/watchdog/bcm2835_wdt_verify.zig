@@ -45,8 +45,29 @@ test "phase11 bcm2835 watchdog verify keeps PM-base readiness and ownership expl
     try testing.expect(!blocked.register_device_requested);
     try testing.expect(blocked.stop_on_reboot_requested);
     try testing.expect(!blocked.poweroff_handler_claimed);
-    try testing.expect(!blocked.poweroff_handler_conflict);
+    try testing.expect(blocked.poweroff_handler_conflict);
     try testing.expect(blocked.blocked_on_live_platform_registration);
+
+    const claim_pending = try bcm2835_wdt.summarizePlatformHandoff(.{
+        .heartbeat_sec = 8,
+        .nowayout = false,
+        .bootloader_running = false,
+        .system_power_controller = true,
+        .poweroff_handler_present = false,
+        .parent_attached = true,
+        .pm_base_present = false,
+    });
+
+    try testing.expect(claim_pending.parent_attached);
+    try testing.expect(!claim_pending.parent_supplies_pm_base);
+    try testing.expect(claim_pending.pm_base_required);
+    try testing.expect(!claim_pending.pm_base_handoff_ready);
+    try testing.expect(claim_pending.timeout_init_requested);
+    try testing.expect(!claim_pending.register_device_requested);
+    try testing.expect(claim_pending.stop_on_reboot_requested);
+    try testing.expect(claim_pending.poweroff_handler_claimed);
+    try testing.expect(!claim_pending.poweroff_handler_conflict);
+    try testing.expect(claim_pending.blocked_on_live_platform_registration);
 }
 
 test "phase11 bcm2835 watchdog verify keeps poweroff ownership distinct" {
