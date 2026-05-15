@@ -26,6 +26,8 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
+BASE64_C_PARITY_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")
+BASE64_C_CASEGEN_PATH = Path("zigux/tests/phase6_base64_c_casegen.zig")
 CHECKSUM_HELPER_PATH = Path("lib/checksum.zig")
 CHECKSUM_REPLAY_PATH = Path("zigux/tests/phase6_checksum.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
@@ -100,6 +102,22 @@ EXPECTED_TESTS_ROOT_TRUTHFULNESS_NOTE = (
     "explicit until those checksum-owned assets return."
 )
 
+EXPECTED_BASE64_FIXTURE_POSTURE = {
+    "focused_replay_fixture": "zigux/tests/fixtures/phase6_base64_vectors.zig",
+    "direct_c_parity_fixture": "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
+    "direct_c_parity_replay": "zigux/tests/phase6_base64_c_parity.zig",
+    "direct_c_harness": "zigux/tests/fixtures/phase6_base64_c_harness.c",
+    "direct_c_case_generator": "zigux/tests/phase6_base64_c_casegen.zig",
+    "transient_generated_include": "zigux/tests/fixtures/phase6_base64_c_generated_cases.inc",
+    "transient_generated_include_committed": False,
+    "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py",
+    "perf_corpus_boundary": (
+        "keep the committed std and urlsafe slowdown baselines in phase6_base64_vectors.zig "
+        "and gate IMAP slowdown coverage behind a later explicit perfReferenceSupportedVariant() "
+        "baseline change"
+    ),
+}
+
 EXPECTED_HELPER_SLICE_NOTES = {
     "base64": BASE64_SLICE_PATH.as_posix(),
     "bsearch": BSEARCH_SLICE_PATH.as_posix(),
@@ -137,6 +155,7 @@ EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES = [
 REQUIRED_SNIPPETS = {
     CATALOG_PATH.as_posix(): [
         "- dedicated helper-local perf replay on current `master`: `zigux/tests/phase6_base64_perf.zig`",
+        "- direct parity packet note: the committed direct C parity scaffolding is self-contained again because `zigux/tests/phase6_base64_c_parity.zig` and `zigux/tests/phase6_base64_c_casegen.zig` now consume the compact `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` corpus instead of the absent focused replay fixture module",
         "- current missing helper-local helper and perf packet: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         "- current blocked-route posture: the slice notes above keep the focused base64 helper replay, the dedicated base64 slowdown gate, the direct base64 C parity packet, and the direct checksum C parity scaffolding readable as review surfaces, but the checksum helper packet remains blocked because its helper-owned replay and slowdown packet are still incomplete on current `master`",
         "- current perf-route posture: the shared perf survey above keeps the checksum slowdown route documentary until its missing helper-owned replay files return, while the aggregate `phase6-perf` route should still be read as inventory evidence because the current `zigux/Makefile` readback exposes only the wrapper name instead of a committed target body",
@@ -158,6 +177,7 @@ REQUIRED_SNIPPETS = {
     BASE64_SLICE_PATH.as_posix(): [
         "- `PHASE6_STATUS=reviewable`",
         "- current `master` keeps `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_base64_perf.zig`",
+        "- current `master` still keeps the direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
         "- present focused helper replay, shared vectors, and dedicated slowdown gate: `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_base64_perf.zig`",
         "- direct focused perf route: `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
     ],
@@ -290,6 +310,15 @@ def validate_manifest(repo_root: Path) -> None:
         raise ValidationError(f"unexpected base64 determinism evidence in {MANIFEST_PATH}")
     if base64.get("transient_generated_include_committed") is not False:
         raise ValidationError(f"unexpected base64 generated-include posture in {MANIFEST_PATH}")
+    fixture_posture = manifest.get("fixture_posture")
+    if not isinstance(fixture_posture, dict):
+        raise ValidationError(f"missing fixture_posture in {MANIFEST_PATH}")
+    base64_fixture_posture = fixture_posture.get("base64")
+    if not isinstance(base64_fixture_posture, dict):
+        raise ValidationError(f"missing base64 fixture_posture in {MANIFEST_PATH}")
+    for key, expected in EXPECTED_BASE64_FIXTURE_POSTURE.items():
+        if base64_fixture_posture.get(key) != expected:
+            raise ValidationError(f"unexpected base64 fixture_posture[{key!r}] in {MANIFEST_PATH}")
     if not isinstance(bsearch, dict) or bsearch.get("comparison_budget_max_compare_calls") != 4:
         raise ValidationError(f"unexpected bsearch determinism evidence in {MANIFEST_PATH}")
     if bsearch.get("fixture_dynamic_case_lengths") != 33:
@@ -315,6 +344,8 @@ def validate_paths(repo_root: Path) -> None:
         MAKEFILE_PATH.as_posix(),
         WORKFLOW_PATH.as_posix(),
         BASE64_PERF_PATH.as_posix(),
+        BASE64_C_PARITY_VECTORS_PATH.as_posix(),
+        BASE64_C_CASEGEN_PATH.as_posix(),
         *EXPECTED_SHARED_GATES,
         *EXPECTED_PRESENT_ENTRYPOINTS,
     }
@@ -350,7 +381,10 @@ def scaffold_repo(root: Path) -> None:
     write(root / WORKFLOW_PATH, "\n".join(REQUIRED_SNIPPETS[WORKFLOW_PATH.as_posix()] + [""]))
     write(root / HEXDUMP_VECTORS_PATH, "\n".join(REQUIRED_SNIPPETS[HEXDUMP_VECTORS_PATH.as_posix()] + [""]))
 
-    for rel_path in EXPECTED_SHARED_GATES + EXPECTED_PRESENT_ENTRYPOINTS:
+    for rel_path in EXPECTED_SHARED_GATES + EXPECTED_PRESENT_ENTRYPOINTS + [
+        BASE64_C_PARITY_VECTORS_PATH.as_posix(),
+        BASE64_C_CASEGEN_PATH.as_posix(),
+    ]:
         path = root / rel_path
         if path.exists():
             continue
@@ -373,6 +407,7 @@ def scaffold_repo(root: Path) -> None:
         "tests_root_present_entrypoints": list(EXPECTED_PRESENT_ENTRYPOINTS),
         "tests_root_public_tree_gaps": list(EXPECTED_PUBLIC_TREE_GAPS),
         "tests_root_truthfulness_note": EXPECTED_TESTS_ROOT_TRUTHFULNESS_NOTE,
+        "fixture_posture": {"base64": dict(EXPECTED_BASE64_FIXTURE_POSTURE)},
         "exact_checks": list(EXPECTED_EXACT_CHECKS),
         "inventory_only_blocked_routes": list(EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES),
         "determinism_evidence": {
@@ -434,6 +469,12 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
+            CATALOG_PATH,
+            "direct C parity scaffolding is self-contained again",
+            "direct C parity scaffolding is no longer self-contained",
+        )
+        assert_failure(
+            root,
             PERF_SURVEY_PATH,
             "zigux/tests/phase6_base64_perf.zig` are directly readable on current `master`",
             "zigux/tests/phase6_base64_perf.zig` are not directly readable on current `master`",
@@ -447,8 +488,20 @@ def run_self_test() -> None:
         assert_failure(
             root,
             BASE64_SLICE_PATH,
+            "current `master` still keeps the direct C parity packet",
+            "current `master` no longer keeps the direct C parity packet",
+        )
+        assert_failure(
+            root,
+            BASE64_SLICE_PATH,
             "zigux/tests/phase6_base64_perf.zig`",
             "zigux/tests/phase6_checksum_perf.zig`",
+        )
+        assert_failure(
+            root,
+            MANIFEST_PATH,
+            '"direct_c_case_generator": "zigux/tests/phase6_base64_c_casegen.zig"',
+            '"direct_c_case_generator": "zigux/tests/phase6_base64.zig"',
         )
         assert_failure(
             root,
