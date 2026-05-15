@@ -13,14 +13,9 @@ pub const PreparedRequest = struct {
     state: RequestState,
 
     pub fn requestRuntimeLoad(self: *PreparedRequest) !LoadPlan {
-        if (self.state != .prepared) return error.InvalidLoaderState;
-        if (!keepsLoadPlanExplicit(self.plan, self.prepared_plan)) {
-            return error.PreparedPlanDrift;
-        }
-
-        _ = try prepareRequest(self.plan);
+        const ready_plan = try ensurePreparedRequestReady(self.*);
         self.state = .waiting_on_runtime_substrate;
-        return self.plan;
+        return ready_plan;
     }
 
     pub fn releaseWithoutSubstrate(self: *PreparedRequest) !void {
@@ -111,6 +106,16 @@ pub fn keepsRequestStateAndPlanExplicit(
     return request.state == state and keepsLoadPlanExplicit(request.plan, plan);
 }
 
+pub fn ensurePreparedRequestReady(request: PreparedRequest) !LoadPlan {
+    if (request.state != .prepared) return error.InvalidLoaderState;
+    if (!keepsLoadPlanExplicit(request.plan, request.prepared_plan)) {
+        return error.PreparedPlanDrift;
+    }
+
+    _ = try prepareRequest(request.plan);
+    return request.prepared_plan;
+}
+
 pub fn prepareRequest(plan: LoadPlan) !PreparedRequest {
     if (!plan.requires_runtime_substrate) return error.LoaderNotRequired;
     if (!keepsApprovedPilotFamilyContract(plan)) return error.InvalidPilotFamilyContract;
@@ -122,6 +127,43 @@ pub fn prepareRequest(plan: LoadPlan) !PreparedRequest {
         .prepared_plan = plan,
         .state = .prepared,
     };
+}
+
+test "ensurePreparedRequestReady keeps the prepared snapshot explicit and revalidates the shared handoff contract" {
+    const stable = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+
+    const request = try prepareRequest(stable);
+    const ready = try ensurePreparedRequestReady(request);
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(ready, stable));
+
+    var drifted_state = request;
+    drifted_state.state = .waiting_on_runtime_substrate;
+    try std.testing.expectError(error.InvalidLoaderState, ensurePreparedRequestReady(drifted_state));
+
+    var drifted_snapshot = request;
+    drifted_snapshot.plan.requires_runtime_substrate = false;
+    try std.testing.expectError(error.PreparedPlanDrift, ensurePreparedRequestReady(drifted_snapshot));
+
+    var invalid_contract = request;
+    invalid_contract.plan.module_name = "runtime_trace_events_drift";
+    invalid_contract.prepared_plan.module_name = "runtime_trace_events_drift";
+    try std.testing.expectError(error.InvalidPilotFamilyContract, ensurePreparedRequestReady(invalid_contract));
 }
 
 test "prepareRequest enforces the bounded runtime loader contract" {
