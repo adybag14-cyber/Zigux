@@ -74,6 +74,17 @@ The separate runtime bitmap family stays explicit here too: `samples/zigux/runti
 
 current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep direct bitmap helper reviewability in its existing helper and runtime lanes instead of counting runtime-facing bitmap work as a fifth approved Phase 5 sample idiom.
 
+## Phase 7 no-sample boundary
+
+Phase 7 remains a shared-control reminder surface here rather than a sample-root delivery lane.
+
+* current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;
+* current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;
+* current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;
+* current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;
+
+Keep the no-sample boundary aligned with `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, and `scripts/zigux/check-phase7-rbtree-parity.py`. Those checker-backed reminders should keep the shared `make -C zigux phase7-validate` and `make -C zigux phase7` routes honest without turning this sample root into helper-local proof for `string_helpers`, `cmdline`, `argv_split`, or `rbtree`.
+
 ## Approved Phase 5 sample scope
 
 The roadmap-backed Phase 5 sample anchors are still limited to these four Linux sample paths:
