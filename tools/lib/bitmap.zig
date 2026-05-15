@@ -141,6 +141,33 @@ pub fn __bitmap_weight(src: []const Word, nbits: usize) usize {
     return weight(src, nbits);
 }
 
+pub fn weightAnd(src1: []const Word, src2: []const Word, nbits: usize) usize {
+    assertBitmapLen(src1, nbits);
+    assertBitmapLen(src2, nbits);
+
+    var total: usize = 0;
+    const lim = nbits / bits_per_long;
+
+    var idx: usize = 0;
+    while (idx < lim) : (idx += 1) {
+        total += @popCount(src1[idx] & src2[idx]);
+    }
+
+    if ((nbits & (bits_per_long - 1)) != 0) {
+        total += @popCount((src1[idx] & src2[idx]) & lastWordMask(nbits));
+    }
+
+    return total;
+}
+
+pub fn bitmap_weight_and(src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightAnd(src1, src2, nbits);
+}
+
+pub fn __bitmap_weight_and(src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightAnd(src1, src2, nbits);
+}
+
 pub fn orBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     const nwords = bitsToWords(nbits);
     std.debug.assert(dst.len >= nwords);
@@ -723,6 +750,25 @@ test "bitmap and andnot clamp tail bits in partial words" {
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0 }, &dst);
 }
 
+test "bitmap weight and clamps tail bits and aliases mirror the primary helper" {
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ 0b1111, (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
+    const rhs = [_]Word{ 0b1010, (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
+
+    try std.testing.expectEqual(@as(usize, 3), weightAnd(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(@as(usize, 3), bitmap_weight_and(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(@as(usize, 3), __bitmap_weight_and(&lhs, &rhs, nbits));
+}
+
+test "bitmap weight and keeps zero-bit windows empty" {
+    const lhs = [_]Word{~@as(Word, 0)};
+    const rhs = [_]Word{~@as(Word, 0)};
+
+    try std.testing.expectEqual(@as(usize, 0), weightAnd(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weight_and(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), __bitmap_weight_and(lhs[0..0], rhs[0..0], 0));
+}
+
 test "bitmap complement clamps tail bits and alias mirrors the primary helper" {
     const nbits = bits_per_long + 5;
     const src = [_]Word{ ~@as(Word, 0), (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
@@ -1013,6 +1059,9 @@ test "bitmap Linux-style aliases keep zero-bit windows explicit no-ops" {
     bitmap_xor(zero_dst[0..0], lhs[0..0], rhs[0..0], 0);
     try std.testing.expectEqual(before, zero_dst[0]);
 
+    try std.testing.expectEqual(@as(usize, 0), weightAnd(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weight_and(lhs[0..0], rhs[0..0], 0));
+
     try std.testing.expectEqual(@as(usize, 0), weightedOr(zero_dst[0..0], lhs[0..0], rhs[0..0], 0));
     try std.testing.expectEqual(before, zero_dst[0]);
     try std.testing.expectEqual(@as(usize, 0), bitmap_weighted_or(zero_dst[0..0], lhs[0..0], rhs[0..0], 0));
@@ -1041,6 +1090,7 @@ test "bitmap low-level __bitmap aliases mirror the primary helper surface" {
     const replace_mask = [_]Word{ 0xff, (@as(Word, 1) << 2) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
 
     try std.testing.expectEqual(weight(&lhs, nbits), __bitmap_weight(&lhs, nbits));
+    try std.testing.expectEqual(weightAnd(&lhs, &rhs, nbits), __bitmap_weight_and(&lhs, &rhs, nbits));
 
     var primary_range = [_]Word{ 0, 0 };
     var alias_range = [_]Word{ 0, 0 };
@@ -1133,6 +1183,7 @@ test "bitmap Linux-style aliases mirror the primary helper surface" {
     try std.testing.expectEqualSlices(Word, &primary_map, &alias_map);
 
     try std.testing.expectEqual(weight(&lhs, nbits), bitmap_weight(&lhs, nbits));
+    try std.testing.expectEqual(weightAnd(&lhs, &rhs, nbits), bitmap_weight_and(&lhs, &rhs, nbits));
     try std.testing.expectEqual(empty(&[_]Word{ 0, 0 }, nbits), bitmap_empty(&[_]Word{ 0, 0 }, nbits));
     try std.testing.expectEqual(full(&[_]Word{ ~@as(Word, 0), lastWordMask(nbits) }, nbits), bitmap_full(&[_]Word{ ~@as(Word, 0), lastWordMask(nbits) }, nbits));
 
