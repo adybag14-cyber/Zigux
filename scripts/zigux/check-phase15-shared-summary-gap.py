@@ -14,10 +14,14 @@ REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_REL = "scripts/zigux/README.md"
 LANE_NOTE_REL = "Documentation/zigux/phase15-governance-lane-sequencing.md"
 DOCS_ALIGNMENT_CHECKER_REL = "scripts/zigux/check-phase15-docs-readme-alignment.py"
+FREEZE_MAP_REL = "Documentation/zigux/freeze-map.md"
+FREEZE_MAP_GOVERNANCE_REL = "Documentation/zigux/phase15-freeze-map-governance.md"
 
 REQUIRED_FILES = (
     DOCS_README_REL,
     REVIEW_CHECKLIST_REL,
+    FREEZE_MAP_REL,
+    FREEZE_MAP_GOVERNANCE_REL,
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
@@ -51,6 +55,8 @@ NO_APPROVAL_MARKER = "no-approval-yet posture"
 FILE_MARKERS = {
     DOCS_README_REL: (
         "Phase 15 notes",
+        FREEZE_MAP_REL,
+        FREEZE_MAP_GOVERNANCE_REL,
         SURVEY_MARKER,
         PARITY_SCORECARD_MARKER,
         INDEFINITE_C_POLICY_MARKER,
@@ -67,6 +73,8 @@ FILE_MARKERS = {
     ),
     REVIEW_CHECKLIST_REL: (
         "shared Phase 15 governance packet",
+        FREEZE_MAP_REL,
+        FREEZE_MAP_GOVERNANCE_REL,
         SURVEY_MARKER,
         PARITY_SCORECARD_MARKER,
         INDEFINITE_C_POLICY_MARKER,
@@ -149,6 +157,8 @@ def _seed(root: Path) -> None:
             (
                 "# docs",
                 "Phase 15 notes",
+                FREEZE_MAP_REL,
+                FREEZE_MAP_GOVERNANCE_REL,
                 SURVEY_MARKER,
                 PARITY_SCORECARD_MARKER,
                 INDEFINITE_C_POLICY_MARKER,
@@ -172,6 +182,8 @@ def _seed(root: Path) -> None:
             (
                 "# review",
                 "shared Phase 15 governance packet",
+                FREEZE_MAP_REL,
+                FREEZE_MAP_GOVERNANCE_REL,
                 SURVEY_MARKER,
                 PARITY_SCORECARD_MARKER,
                 INDEFINITE_C_POLICY_MARKER,
@@ -191,6 +203,8 @@ def _seed(root: Path) -> None:
             )
         ),
     )
+    _write(root / FREEZE_MAP_REL, "# freeze map\n")
+    _write(root / FREEZE_MAP_GOVERNANCE_REL, "# freeze map governance\n")
     _write(root / "Documentation/zigux/phase15-parity-scorecard-survey.md", "# survey\n")
     _write(root / "Documentation/zigux/phase15-parity-scorecard.md", "# parity scorecard\n")
     _write(root / "Documentation/zigux/phase15-indefinite-c-policy.md", "# indefinite c policy\n")
@@ -264,6 +278,26 @@ def run_self_test() -> int:
         case_count += 1
 
         path = root / DOCS_README_REL
+        _write(path, _read(path).replace(FREEZE_MAP_REL + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{DOCS_README_REL}:missing:{FREEZE_MAP_REL}"],
+            "docs_readme_missing_freeze_map",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace(FREEZE_MAP_GOVERNANCE_REL + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{DOCS_README_REL}:missing:{FREEZE_MAP_GOVERNANCE_REL}"],
+            "docs_readme_missing_freeze_map_governance",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
         _write(path, _read(path).replace(SURVEY_MARKER + "\n", "", 1))
         _assert_only(
             validate(root),
@@ -273,135 +307,22 @@ def run_self_test() -> int:
         _seed(root)
         case_count += 1
 
-        path = root / DOCS_README_REL
-        _write(path, _read(path).replace(PARITY_SCORECARD_MARKER + "\n", "", 1))
+        path = root / REVIEW_CHECKLIST_REL
+        _write(path, _read(path).replace(FREEZE_MAP_REL + "\n", "", 1))
         _assert_only(
             validate(root),
-            [f"{DOCS_README_REL}:missing:{PARITY_SCORECARD_MARKER}"],
-            "docs_readme_missing_parity_scorecard",
+            [f"{REVIEW_CHECKLIST_REL}:missing:{FREEZE_MAP_REL}"],
+            "review_checklist_missing_freeze_map",
         )
         _seed(root)
         case_count += 1
 
-        path = root / DOCS_README_REL
-        _write(path, _read(path).replace(INDEFINITE_C_POLICY_MARKER + "\n", "", 1))
+        path = root / REVIEW_CHECKLIST_REL
+        _write(path, _read(path).replace(FREEZE_MAP_GOVERNANCE_REL + "\n", "", 1))
         _assert_only(
             validate(root),
-            [f"{DOCS_README_REL}:missing:{INDEFINITE_C_POLICY_MARKER}"],
-            "docs_readme_missing_indefinite_c_policy",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / DOCS_README_REL
-        _write(path, _read(path).replace(READINESS_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{DOCS_README_REL}:missing:{READINESS_MARKER}"],
-            "docs_readme_missing_readiness",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / DOCS_README_REL
-        _write(path, _read(path).replace(HANDOFF_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{DOCS_README_REL}:missing:{HANDOFF_MARKER}"],
-            "docs_readme_missing_handoff",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / DOCS_README_REL
-        _write(path, _read(path).replace(ALIGNMENT_CHECKER_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{DOCS_README_REL}:missing:{ALIGNMENT_CHECKER_MARKER}"],
-            "docs_readme_missing_alignment_checker",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / DOCS_README_REL
-        _write(path, _read(path).replace(HANDOFF_CHECKER_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{DOCS_README_REL}:missing:{HANDOFF_CHECKER_MARKER}"],
-            "docs_readme_missing_handoff_checker",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / DOCS_README_REL
-        _write(path, _read(path).replace(LANE_OWNER_ALIGNMENT_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{DOCS_README_REL}:missing:{LANE_OWNER_ALIGNMENT_MARKER}"],
-            "docs_readme_missing_lane_owner_alignment",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / DOCS_README_REL
-        _write(path, _read(path).replace(PHASE15_BUILD_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{DOCS_README_REL}:missing:{PHASE15_BUILD_MARKER}"],
-            "docs_readme_missing_phase15_build_surface",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / TESTS_README_REL
-        _write(path, _read(path).replace(SEQUENCING_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{TESTS_README_REL}:missing:{SEQUENCING_MARKER}"],
-            "tests_readme_missing_lane_note",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / TESTS_README_REL
-        _write(
-            path,
-            _read(path).replace("zigux/tests/phase15_governance_lane_sequencing.zig" + "\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            [f"{TESTS_README_REL}:missing:zigux/tests/phase15_governance_lane_sequencing.zig"],
-            "tests_readme_missing_lane_sequencing_replay",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / TESTS_README_REL
-        _write(path, _read(path).replace(PHASE15_VALIDATE_ROUTE + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{TESTS_README_REL}:missing:{PHASE15_VALIDATE_ROUTE}"],
-            "tests_readme_missing_phase15_validate_route",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / TESTS_README_REL
-        _write(path, _read(path).replace(PHASE15_TEST_ROUTE + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{TESTS_README_REL}:missing:{PHASE15_TEST_ROUTE}"],
-            "tests_readme_missing_phase15_test_route",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / TESTS_README_REL
-        _write(path, _read(path).replace(PHASE15_ROUTE + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{TESTS_README_REL}:missing:{PHASE15_ROUTE}"],
-            "tests_readme_missing_phase15_route",
+            [f"{REVIEW_CHECKLIST_REL}:missing:{FREEZE_MAP_GOVERNANCE_REL}"],
+            "review_checklist_missing_freeze_map_governance",
         )
         _seed(root)
         case_count += 1
@@ -416,56 +337,6 @@ def run_self_test() -> int:
         _seed(root)
         case_count += 1
 
-        path = root / REVIEW_CHECKLIST_REL
-        _write(path, _read(path).replace(PARITY_SCORECARD_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{REVIEW_CHECKLIST_REL}:missing:{PARITY_SCORECARD_MARKER}"],
-            "review_checklist_missing_parity_scorecard",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / REVIEW_CHECKLIST_REL
-        _write(path, _read(path).replace(INDEFINITE_C_POLICY_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{REVIEW_CHECKLIST_REL}:missing:{INDEFINITE_C_POLICY_MARKER}"],
-            "review_checklist_missing_indefinite_c_policy",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / REVIEW_CHECKLIST_REL
-        _write(path, _read(path).replace(READINESS_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{REVIEW_CHECKLIST_REL}:missing:{READINESS_MARKER}"],
-            "review_checklist_missing_readiness",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / REVIEW_CHECKLIST_REL
-        _write(path, _read(path).replace(VALIDATE_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{REVIEW_CHECKLIST_REL}:missing:{VALIDATE_MARKER}"],
-            "review_checklist_missing_validate_route",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / REVIEW_CHECKLIST_REL
-        _write(path, _read(path).replace(HANDOFF_MANIFEST_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{REVIEW_CHECKLIST_REL}:missing:{HANDOFF_MANIFEST_MARKER}"],
-            "review_checklist_missing_handoff_manifest",
-        )
-        _seed(root)
-        case_count += 1
-
         path = root / SCRIPTS_README_REL
         _write(path, _read(path).replace(SURVEY_MARKER + "\n", "", 1))
         _assert_only(
@@ -476,52 +347,12 @@ def run_self_test() -> int:
         _seed(root)
         case_count += 1
 
-        path = root / SCRIPTS_README_REL
-        _write(path, _read(path).replace(READINESS_MARKER + "\n", "", 1))
+        path = root / TESTS_README_REL
+        _write(path, _read(path).replace(SEQUENCING_MARKER + "\n", "", 1))
         _assert_only(
             validate(root),
-            [f"{SCRIPTS_README_REL}:missing:{READINESS_MARKER}"],
-            "scripts_readme_missing_readiness",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / SCRIPTS_README_REL
-        _write(path, _read(path).replace(VALIDATE_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{SCRIPTS_README_REL}:missing:{VALIDATE_MARKER}"],
-            "scripts_readme_missing_validate_route",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / SCRIPTS_README_REL
-        _write(path, _read(path).replace(READINESS_MANIFEST_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{SCRIPTS_README_REL}:missing:{READINESS_MANIFEST_MARKER}"],
-            "scripts_readme_missing_readiness_manifest",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / SCRIPTS_README_REL
-        _write(path, _read(path).replace(BLOCKER_EVIDENCE_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{SCRIPTS_README_REL}:missing:{BLOCKER_EVIDENCE_MARKER}"],
-            "scripts_readme_missing_blocker_evidence_surface",
-        )
-        _seed(root)
-        case_count += 1
-
-        path = root / SCRIPTS_README_REL
-        _write(path, _read(path).replace(PHASE15_BUILD_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{SCRIPTS_README_REL}:missing:{PHASE15_BUILD_MARKER}"],
-            "scripts_readme_missing_phase15_build_surface",
+            [f"{TESTS_README_REL}:missing:{SEQUENCING_MARKER}"],
+            "tests_readme_missing_lane_note",
         )
         _seed(root)
         case_count += 1
@@ -536,16 +367,6 @@ def run_self_test() -> int:
         _seed(root)
         case_count += 1
 
-        path = root / LANE_NOTE_REL
-        _write(path, _read(path).replace(DOCS_ALIGNMENT_CHECKER_MARKER + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"{LANE_NOTE_REL}:missing:{DOCS_ALIGNMENT_CHECKER_MARKER}"],
-            "lane_note_missing_docs_alignment_checker",
-        )
-        _seed(root)
-        case_count += 1
-
         (root / "Documentation/zigux/phase15-parity-scorecard-survey.md").unlink()
         _assert_only(
             validate(root),
@@ -555,20 +376,20 @@ def run_self_test() -> int:
         case_count += 1
 
         _seed(root)
-        (root / "Documentation/zigux/phase15-parity-scorecard.md").unlink()
+        (root / FREEZE_MAP_REL).unlink()
         _assert_only(
             validate(root),
-            ["missing_file:Documentation/zigux/phase15-parity-scorecard.md"],
-            "missing_parity_scorecard_file",
+            [f"missing_file:{FREEZE_MAP_REL}"],
+            "missing_freeze_map_file",
         )
         case_count += 1
 
         _seed(root)
-        (root / "Documentation/zigux/phase15-indefinite-c-policy.md").unlink()
+        (root / FREEZE_MAP_GOVERNANCE_REL).unlink()
         _assert_only(
             validate(root),
-            ["missing_file:Documentation/zigux/phase15-indefinite-c-policy.md"],
-            "missing_indefinite_c_policy_file",
+            [f"missing_file:{FREEZE_MAP_GOVERNANCE_REL}"],
+            "missing_freeze_map_governance_file",
         )
         case_count += 1
 
@@ -598,12 +419,11 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Check that the current Phase 15 shared summaries keep the parity-scorecard survey, "
-            "the dedicated parity-scorecard and indefinite-C policy surfaces, readiness and handoff "
-            "reminders, the review-process handoff checker, the scripts-root blocker-evidence marker, "
-            "the lane-sequencing note, the docs-root and scripts-root alignment checkers, the replay-build "
-            "surface, the validator-route packet, the manifest reminders, the lane-owner alignment surface, "
-            "and the replay-route packet explicit."
+            "Check that the current Phase 15 shared summaries keep the freeze-map governance packet, the parity-scorecard survey, "
+            "the dedicated parity-scorecard and indefinite-C policy surfaces, readiness and handoff reminders, the review-process "
+            "handoff checker, the scripts-root blocker-evidence marker, the lane-sequencing note, the docs-root and scripts-root "
+            "alignment checkers, the replay-build surface, the validator-route packet, the manifest reminders, the lane-owner "
+            "alignment surface, and the replay-route packet explicit."
         )
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
