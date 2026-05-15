@@ -12,6 +12,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
+VERIFY_HELPER_PATH = "tools/lib/bpf/zigux_segments/verify.zig"
 ONLINE_CPU_ROUTING_HELPER_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing.zig"
 
 REQUIRED_FILES = [
@@ -29,6 +30,7 @@ REQUIRED_FILES = [
     "zigux/Makefile",
     "zigux/tests/README.md",
     MANIFEST_PATH,
+    VERIFY_HELPER_PATH,
     ONLINE_CPU_ROUTING_HELPER_PATH,
     PHASE8_BUILD_PATH,
 ]
@@ -161,6 +163,19 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_libbpf_segments.zig`",
         "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`make -C zigux phase8-libbpf-segments-test`",
+    ],
+    VERIFY_HELPER_PATH: [
+        "const logging = @import(\"logging.zig\");",
+        "const file_path_handle_bridge = @import(\"file_path_handle_bridge.zig\");",
+        "fn expectHasDecl(comptime Module: type, comptime decl_name: []const u8) !void {",
+        'test "helper-first tools/lib/bpf Zigux segments compile together and keep their focused tests live" {',
+        'test "helper-first tools/lib/bpf Zigux segments keep the landed bounded entrypoints explicit" {',
+        'try expectHasDecl(logging, "resolveMinPrintLevel");',
+        'try expectHasDecl(pin_path, "buildValidatedSanitizedMapPinPath");',
+        'try expectHasDecl(cpu_mask, "parseCpuMaskString");',
+        'try expectHasDecl(type_names, "libbpfBpfMapTypeStr");',
+        'try expectHasDecl(file_path_handle_bridge, "planTokenPreparation");',
+        'try expectHasDecl(perf_buffer_poll, "summarizePollExecution");',
     ],
     ONLINE_CPU_ROUTING_HELPER_PATH: [
         "pub fn advanceOnlineCpuCursor(",
