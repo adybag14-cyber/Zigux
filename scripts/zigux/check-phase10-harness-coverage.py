@@ -459,6 +459,36 @@ def run_self_test() -> int:
         )
         review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "`drivers/virtio/virtio_input.zig`",
+                "`drivers/virtio/virtio_input_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_input_driver_surface",
+            root,
+            "review_checklist:`drivers/virtio/virtio_input.zig`",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "`drivers/virtio/virtio_input_verify.zig`",
+                "`drivers/virtio/virtio_input_verify_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_input_verify_surface",
+            root,
+            "review_checklist:`drivers/virtio/virtio_input_verify.zig`",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
         doc_readme_path = root / "Documentation/zigux/README.md"
         original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
         doc_readme_path.write_text(
@@ -611,6 +641,21 @@ def run_self_test() -> int:
 
         scripts_readme_path.write_text(
             original_scripts_readme.replace(
+                "`zigux/tests/phase10_virtio_input_status_drain.zig`",
+                "`zigux/tests/phase10_virtio_input_status_drain_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_input_status_drain",
+            root,
+            "scripts_readme:`zigux/tests/phase10_virtio_input_status_drain.zig`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
                 "`zigux/tests/phase10_virtio_input_manifest.json`",
                 "`zigux/tests/phase10_virtio_input_manifest_missing.json`",
                 1,
@@ -699,6 +744,23 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        build_path = root / "zigux/tests/phase10_build.zig"
+        original_build = build_path.read_text(encoding="utf-8")
+        build_path.write_text(
+            original_build.replace(
+                "phase10-virtio-input-status-drain-tests",
+                "phase10-virtio-input-status-drain-tests-missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "build_input_status_drain_route",
+            root,
+            "build:phase10-virtio-input-status-drain-tests",
+        )
+        build_path.write_text(original_build, encoding="utf-8")
+
         manifest_path = root / "zigux/tests/phase10_closure_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["exact_checks"] = [
@@ -770,7 +832,7 @@ def run_self_test() -> int:
         expect_missing_file("checker_file", root, "scripts/zigux/check-phase10-tests-readme-core-surfaces.py")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=26")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
