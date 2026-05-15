@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane for comparing the cur
 - `PHASE15_STATUS=indefinite_c_policy_survey`
 - `PHASE15_SLICE=indefinite-c-policy-gap-vs-roadmap`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- survey provenance refreshed against dated current-master readback marker `current-master-readback-2026-05-12` on 2026-05-12
+- survey provenance refreshed on 2026-05-15 against the current parked policy packet's dated master-readback marker `current-master-readback-2026-05-14`
 - scope: one survey-grade note that compares the live indefinite-C policy note, its machine-readable JSON companion, the dedicated Zig replay, the narrower blocker-evidence pair, and the surrounding Phase 15 governance reminders without widening into any deep-core status-change claim
 - product boundary:
   - `Documentation/zigux/phase15-indefinite-c-policy.md`
@@ -41,7 +41,7 @@ The roadmap-required Phase 15 governance features are:
 - parity scorecard
 - policy for code that remains in C indefinitely
 
-The dated 2026-05-12 readback shows that the indefinite-C policy requirement itself is already satisfied on `master` through:
+The dated 2026-05-15 reread of the live policy packet shows that the indefinite-C policy requirement itself is already satisfied on `master` through:
 
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `zigux/tests/phase15_indefinite_c_policy.json`
@@ -52,19 +52,22 @@ The current policy packet also keeps the two narrower same-family replays explic
 - `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 
-The dedicated policy packet itself now records packet-local lane key `P15-L16` and its own exact surveyed-commit field, so this survey lane stays distinct from the landed policy packet instead of reusing packet-local ownership.
+The dedicated policy packet itself now records packet-local lane key `P15-L16`, `surveyed_commit_mode=dated_master_readback`, and dated readback marker `current-master-readback-2026-05-14`, so this survey lane stays distinct from the landed policy packet instead of reusing packet-local ownership or stale exact-head provenance.
 
 ## Current packet agreement
 
 The landed indefinite-C note, JSON companion, and Zig replay agree on these core facts:
 
 - the roadmap requirement is `policy for code that remains in C indefinitely`
+- related roadmap continuity also stays explicit through `explicit stay-in-C decisions where warranted`
 - the governed freeze-in-C anchors are `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`
 - the dedicated policy packet keeps packet-local lane key `P15-L16` while this note stays the survey lane `P15-L13`
+- the note and JSON companion both keep the parked dated-readback maintenance posture explicit through `current-master-readback-2026-05-14`
 - the existing C implementation remains the product source of truth for the current plan horizon
 - there is no silent exception path around the stay-in-C posture
 - the only allowed reopen path is an Architecture Council request with fresh linked evidence
 - the named reopen-trigger catalog remains `narrower_followup_answers_blocker`, `evidence_packet_stale_or_contradictory`, and `ownership_or_validation_changed`
+- the packet now keeps the trigger-specific evidence refresh, the retained `retired_from_active_discussion` closeout state, and the dedicated maintenance handoff explicit
 - the remaining blocker is still `phase15-deep-core-status-change-blocker`
 
 The broader governance reminders also keep that same maintenance-mode posture explicit:
@@ -75,18 +78,18 @@ The broader governance reminders also keep that same maintenance-mode posture ex
 - `Documentation/zigux/phase15-readiness-gate-survey.md` keeps the no-approval-yet posture explicit for the whole Phase 15 packet
 - `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` already keep the landed indefinite-C packet visible from the shared summaries instead of understating it as missing policy work
 - `scripts/zigux/validate-phase15.py` requires the indefinite-C note, the JSON companion, and the shared replay routes before Phase 15 validation can pass
-- `scripts/zigux/README.md` and `zigux/tests/README.md` both name the indefinite-C packet as part of the shipped Phase 15 maintenance surface
+- `scripts/zigux/README.md` continues to name the indefinite-C packet as part of the shipped Phase 15 maintenance surface, while `zigux/tests/README.md` remains part of the broader replay-route and sequencing companion packet instead of a duplicate policy-gap reminder
 
 ## Current gap
 
 The current same-lane gap is not a missing indefinite-C policy packet.
 
-The real gap was narrower: this survey note had drifted behind current packet state by still carrying the older dated readback marker from 2026-05-11 and a gap list that no longer matched the live policy manifest after the packet-local field-sync follow-up landed.
+The real gap was narrower: this survey note had drifted behind current packet state by still carrying the older dated readback marker `current-master-readback-2026-05-12`, still describing the dedicated policy packet as if it were using exact surveyed-commit provenance, and still undercounting the live manifest after the roadmap-continuity, dated-readback provenance-refresh, and maintenance-handoff follow-through landed.
 
 Without that refresh, neighboring Phase 15 work could too easily collapse back into two unhelpful stories:
 
 - incorrectly implying that the roadmap-required indefinite-C policy is still absent from `master`
-- incorrectly treating the landed policy packet as if it had already moved beyond the current no-approval-yet blocker posture while also naming stale or non-manifest gap labels
+- incorrectly treating the landed policy packet as if it had already moved beyond the current no-approval-yet blocker posture while also naming stale exact-provenance or non-manifest gap language
 
 ## Honest current posture
 
@@ -95,10 +98,11 @@ The honest bounded Phase 15 statement on current `master` is:
 - the roadmap-required indefinite-C policy packet is landed
 - its dedicated note, machine-readable JSON companion, and Zig replay are all present on `master`
 - the narrower blocker-evidence and lane-owner-alignment replays are also present
+- the packet now keeps dated-readback provenance, roadmap continuity, and maintenance-handoff posture explicit
 - the shared validator-first and replay routes still point at the landed packet
 - no Architecture Council approval is recorded for a freeze-map status change
 - every freeze-in-C anchor remains blocked from a direct Zigux port claim
-- the remaining same-lane work is maintenance-only truthfulness and blocker upkeep until one of the named reopen triggers fires
+- the remaining same-lane work is maintenance-only truthfulness and blocker upkeep until one of the named reopen triggers fires or the parked policy provenance needs another refresh
 
 ## Recorded gaps
 
@@ -109,7 +113,10 @@ The current lane state is:
 - landed `phase15-indefinite-c-policy-test`
 - landed `phase15-build-gate-indefinite-c-policy`
 - landed `phase15-indefinite-c-field-sync-followup`
-- blocked `phase15-deep-core-status-change-blocker`
+- landed `phase15-indefinite-c-roadmap-continuity-survey`
+- landed `phase15-indefinite-c-dated-readback-provenance-refresh`
+- landed `phase15-indefinite-c-maintenance-handoff`
+- blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`
 
 The blocker-evidence and lane-owner-alignment Zig replays remain the companion review surfaces beside that landed packet rather than separate additional gap IDs inside the policy manifest.
 
@@ -127,4 +134,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-Keep this packet parked unless one of the named reopen triggers fires or the deep-core blocker posture changes. If this survey reopens first, reread `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, and `Documentation/zigux/phase15-handoff-next-steps-survey.md` together before touching any shared-summary, parity-scorecard, or freeze-map lane.
+Keep this packet parked unless one of the named reopen triggers fires, the deep-core blocker posture changes, or the parked policy provenance needs another packet-local refresh. If this survey reopens first, reread `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, and `Documentation/zigux/phase15-handoff-next-steps-survey.md` together before touching any shared-summary, parity-scorecard, or freeze-map lane.
