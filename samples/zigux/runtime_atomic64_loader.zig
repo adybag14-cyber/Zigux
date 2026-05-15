@@ -710,6 +710,33 @@ test "runtime atomic64 loader rejects prepared shared runtime-substrate drift be
     ));
 }
 
+test "runtime atomic64 loader rejects initialized-stage prepared shared runtime-substrate drift before any local runtime handoff" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(9);
+
+    var loader = RuntimeAtomic64Loader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, shared_request.plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), shared_request.plan.init_flow.selftest_runs);
+    shared_request.plan.requires_runtime_substrate = false;
+
+    try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
+}
+
 test "runtime atomic64 loader rejects prepared shared approved-family anchor and symbol drift before any local runtime handoff" {
     var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
     try module.init(0x1111_1111_2222_2222);
