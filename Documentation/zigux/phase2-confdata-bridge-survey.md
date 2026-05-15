@@ -18,7 +18,7 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 ## Verified Behavior
 
 - Current `master` still carries the helper-local anchor `confdata bridge ignores malformed quoted values like upstream confdata`, and the live parser continues to short-circuit malformed leading quoted assignments before they can fall through to raw scalar handling.
-- The bounded duplicate-malformed probe remains explicit in both the bridge-local test packet and the external fixture packet: `CONFIG_ALPHA="stable"` followed by a malformed duplicate quoted reassignment keeps the prior stable value while later entries continue to parse, yielding `{\"counts\":{\"set\":2,\"unset\":1},\"entries\":[{\"name\":\"CONFIG_ALPHA\",\"kind\":\"string\",\"value\":\"stable\"},{\"name\":\"CONFIG_DEBUG\",\"kind\":\"unset\",\"value\":\"n\"},{\"name\":\"CONFIG_BETA\",\"kind\":\"tristate\",\"value\":\"y\"}]}`.
+- The bounded duplicate-malformed probe remains explicit in both the bridge-local test packet and the external fixture packet: `CONFIG_ALPHA=\"stable\"` followed by a malformed duplicate quoted reassignment keeps the prior stable value while later entries continue to parse, yielding `{\\\"counts\\\":{\\\"set\\\":2,\\\"unset\\\":1},\\\"entries\\\":[{\\\"name\\\":\\\"CONFIG_ALPHA\\\",\\\"kind\\\":\\\"string\\\",\\\"value\\\":\\\"stable\\\"},{\\\"name\\\":\\\"CONFIG_DEBUG\\\",\\\"kind\\\":\\\"unset\\\",\\\"value\\\":\\\"n\\\"},{\\\"name\\\":\\\"CONFIG_BETA\\\",\\\"kind\\\":\\\"tristate\\\",\\\"value\\\":\\\"y\\\"}]}`.
 - Together, the live helper-local malformed-quote behavior and the shared `13`-case external packet mean this file family no longer has a remaining evidence gap framed as a pending malformed-first-quote correction.
 
 ## Survey Result
@@ -29,6 +29,6 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 
 ## Next Bounded Step
 
-- When a writable checkout and Zig toolchain are available, rerun `python3 scripts/zigux/check-kconfig-bridge.py --self-test`, the full `python3 scripts/zigux/check-kconfig-bridge.py` gate, and `zig test scripts/zigux/kconfig/confdata_bridge.zig` against the same `13-case` confdata packet.
+- When a writable checkout and Zig toolchain are available, rerun `python3 scripts/zigux/check-kconfig-bridge.py --self-test`, the full `python3 scripts/zigux/check-kconfig-bridge.py` gate, and the shared Phase 2 closure validators against the now `13-case` confdata packet.
 - Leave this survey parked unless one of the live confdata bridge packet surfaces drifts again.
 - If it reopens, first reread `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/kconfig_bridge/cases.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, and `scripts/zigux/check-kconfig-bridge.py` together, then update evidence only for genuinely new bridge-local drift.
