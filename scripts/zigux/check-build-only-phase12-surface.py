@@ -154,6 +154,11 @@ DOCS_ROOT_MARKERS = [
     "`make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12` keep the shipped validator-first then smoke-first release order visible",
     "`scripts/zigux/check-phase12-release-readiness-packet.py`",
     "only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts",
+    "`Documentation/zigux/phase12-virtio-net-survey.md`",
+    "`zigux/tests/phase12_virtio_net_manifest.json`",
+    "`zigux/tests/phase12_virtio_net_survey.zig`",
+    "`Documentation/zigux/phase12-virtio-scsi-slice.md`",
+    "`Documentation/zigux/phase12-virtio-scsi-survey.md`",
 ]
 
 DOCS_ROOT_FORBIDDEN_MARKERS = [
@@ -733,6 +738,42 @@ def run_self_test() -> int:
         expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[14]}")
 
         write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_MARKERS[18],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[18]}")
+
+        write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_MARKERS[19],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[19]}")
+
+        write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_MARKERS[22],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[22]}")
+
+        write_fixture_tree(base)
         sequencing_path = base / RELEASE_SEQUENCING_PATH
         sequencing_path.write_text(
             sequencing_path.read_text(encoding="utf-8").replace(
@@ -868,7 +909,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=7:actual=6")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=28")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=31")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -900,38 +941,15 @@ def main() -> int:
 
     failures = validate(args.root)
     if failures:
-        print("PHASE12_BUILD_ONLY_SURFACE=fail")
-        print("PHASE12_BUILD_ONLY_SURFACE_FAILURES_START")
         for failure in failures:
-            print(failure)
-        print("PHASE12_BUILD_ONLY_SURFACE_FAILURES_END")
+            print(f"PHASE12_BUILD_ONLY_SURFACE=fail:{failure}", file=sys.stderr)
         return 1
 
-    marker_count = (
-        len(REQUIRED_FILES)
-        + len(DOCS_ROOT_MARKERS)
-        + len(DOCS_ROOT_FORBIDDEN_MARKERS)
-        + len(REVIEW_CHECKLIST_MARKERS)
-        + len(SCRIPTS_README_MARKERS)
-        + len(TESTS_README_MARKERS)
-        + len(RELEASE_READINESS_SURVEY_MARKERS)
-        + len(RELEASE_SEQUENCING_MARKERS)
-        + len(RELEASE_COORDINATION_MATRIX_MARKERS)
-        + len(RELEASE_CLOSURE_CHECKLIST_MARKERS)
-        + len(COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS)
-        + len(LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS)
-        + len(LIBBPF_VERIFY_SHARD_NOTE_MARKERS)
-        + len(LIBBPF_SEGMENT_SURVEY_MARKERS)
-        + len(RAW_GITHUB_COVERAGE_SURVEY_MARKERS)
-        + len(WORKFLOW_MARKERS)
-        + len(MAKEFILE_MARKERS)
-        + len(PHASE12_BUILD_MARKERS)
-        + len(PHASE12_BUILD_EXACT_COUNTS)
-    )
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
-    print(f"PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT={marker_count}")
+    print(f"PHASE12_BUILD_ONLY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(f"PHASE12_BUILD_ONLY_EXPECTED_ABSENT_FILE_COUNT={len(DOCS_ROOT_FORBIDDEN_MARKERS)}")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
