@@ -25,6 +25,7 @@ This reserved Architecture Council evidence archive keeps the current stay-in-C 
 - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
 - rollback threshold: reopen and return the anchor to an explicitly blocked review state immediately if the evidence packet becomes stale or contradictory, if ownership or validation changes, or if any proposed skbuff follow-up is still wider than the approved lifetime boundary
 - automatic return-to-blocked trigger: any attempted status-change claim without fresh Architecture Council reopen evidence, current blocker refresh, and replay-backed validation
+- trigger-specific evidence refresh: before a named reopen trigger can justify Architecture Council attention again, reread `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, this archive, `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, and fresh blocker evidence after replay-backed validation
 
 ## Retained Stay-In-C Closeout
 
