@@ -108,11 +108,16 @@ of leaving that packet blurred into the tail of the Phase 8 flow.
 
 Fresh repo-first inspection now also shows `Documentation/zigux/review-checklist.md`
 keeps the no-dedicated-validator posture, the blocked module-metadata and
-depmod-publication boundary, the older Phase 8 command and environment cue
-owners, and the older Phase 2 Kconfig plus Phase 3 export non-owner boundaries
-explicit, while `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
-now keeps that reviewer-facing reminder fail-closed beside the broader shared
-build-only checker.
+depmod-publication boundary, and the older Phase 8 command and environment cue
+owners explicit. At the same time,
+`zigux/tests/runtime_loader_gap_manifest.json` still records
+`review_checklist_cross_phase_non_owner_boundary_present: false` and still
+names `runtime-loader-checklist-cross-phase-non-owner-reminder` as the
+remaining reviewer-facing follow-through, so the older Phase 2 Kconfig plus
+Phase 3 export non-owner reminder is not closed on current `master` yet.
+Current `master` still relies on the broader
+`scripts/zigux/check-phase9-build-only-surface.py` guard rather than a
+dedicated review-checklist-only checker.
 
 Fresh repo-first inspection now also shows
 `zigux/tests/runtime_loader_gap_manifest.json` no longer records any remaining
@@ -123,9 +128,13 @@ shared-loader evidence rather than treating trace-events loader drift as open
 family-local follow-through.
 
 That means the earlier docs-root undercount and the later tests-root undercount
-are both cleared on current `master`; the remaining same-lane follow-through is
-now future reminder drift around the blocked module-metadata and
-depmod-publication boundary rather than shared packet inventory sync.
+are both cleared on current `master`, but the checklist-local cross-phase
+non-owner reminder is still open: `zigux/tests/runtime_loader_gap_manifest.json`
+keeps `review_checklist_cross_phase_non_owner_boundary_present: false` and
+still records `runtime-loader-checklist-cross-phase-non-owner-reminder` as the
+remaining shared reminder gap. The remaining same-lane follow-through is
+therefore that one reviewer-facing reminder, not broader shared packet
+inventory sync.
 
 ## Next Bounded Step
 
@@ -137,6 +146,11 @@ around the shared loader-gap packet, the landed
 `zigux/tests/runtime_trace_events_loader_substrate_drift.zig` proof, the older
 Phase 2 Kconfig and Phase 3 export non-owner boundaries, or the blocked
 module-metadata and depmod-publication boundary.
+
+If `Documentation/zigux/review-checklist.md` still omits the older Phase 2
+Kconfig and Phase 3 export non-owner reminder on a fresh reread, land that
+one-file checklist follow-through first and keep this survey note otherwise
+parked.
 
 When that happens, keep the exact owner map and blocked publication boundary
 deferred back to `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`,
