@@ -349,8 +349,8 @@ def validate_exact_workflow_runs(text: str, *, payload: dict[str, object]) -> li
     lines = [line.strip() for line in text.splitlines()]
     expected_install = f"python3 scripts/zigux/install-zig.py --channel {channel} --dest .zig-toolchain"
     install_count = sum(1 for line in lines if line == f"run: {expected_install}")
-    if install_count != 1:
-        issues.append(f"workflow_exact_run:{expected_install}:count={install_count}:expected=1")
+    if install_count != 2:
+        issues.append(f"workflow_exact_run:{expected_install}:count={install_count}:expected=2")
 
     for command, expected_count in EXACT_WORKFLOW_RUN_COUNTS.items():
         count = sum(1 for line in lines if line == f"run: {command}")
@@ -517,9 +517,22 @@ def run_self_test() -> int:
             "run: python3 scripts/zigux/check-zig-toolchain.py",
             "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+            f"run: python3 scripts/zigux/install-zig.py --channel {SELF_TEST_CHANNEL} --dest .zig-toolchain",
         ]
     )
     assert validate_exact_workflow_runs(workflow_text, payload=valid_policy) == []
+    missing_install_issues = validate_exact_workflow_runs(
+        workflow_text.replace(
+            f"run: python3 scripts/zigux/install-zig.py --channel {SELF_TEST_CHANNEL} --dest .zig-toolchain\n",
+            "",
+            1,
+        ),
+        payload=valid_policy,
+    )
+    assert (
+        f"workflow_exact_run:python3 scripts/zigux/install-zig.py --channel {SELF_TEST_CHANNEL} --dest .zig-toolchain:count=1:expected=2"
+        in missing_install_issues
+    )
     missing_toolchain_self_test_issues = validate_exact_workflow_runs(
         workflow_text.replace(
             "run: python3 scripts/zigux/check-zig-toolchain.py --self-test\n",
@@ -648,7 +661,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=33")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
