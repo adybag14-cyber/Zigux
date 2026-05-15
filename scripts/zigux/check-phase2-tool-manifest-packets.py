@@ -352,7 +352,11 @@ SCRIPTS_PHASE2_STALE_NARROW_HELPER_SUMMARY_MARKER = (
     "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` "
     "instead of being implied as missing current-`master` surfaces."
 )
-SCRIPTS_PHASE2_TOP_LEVEL_HELPER_LIST_MARKER = (
+SCRIPTS_PHASE2_TOOL_MANIFEST_TOP_LEVEL_HELPER_LIST_MARKER = (
+    "`check-phase2-tests-readme-alignment.py` - `check-phase2-tool-manifest-packets.py` - "
+    "`check-phase2-fixdep-gate.py`"
+)
+SCRIPTS_PHASE2_KCONFIG_TOP_LEVEL_HELPER_LIST_MARKER = (
     "`check-phase2-kconfig-selftest-alignment.py` - `check-kconfig-bridge.py` - "
     "`validate-phase2.py`"
 )
@@ -407,7 +411,8 @@ REQUIRED_FILES = {
         "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
         "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
         "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
-        SCRIPTS_PHASE2_TOP_LEVEL_HELPER_LIST_MARKER,
+        SCRIPTS_PHASE2_TOOL_MANIFEST_TOP_LEVEL_HELPER_LIST_MARKER,
+        SCRIPTS_PHASE2_KCONFIG_TOP_LEVEL_HELPER_LIST_MARKER,
         SCRIPTS_PHASE2_FULL_HELPER_SUMMARY_MARKER,
         SCRIPTS_PHASE2_TOOL_MANIFEST_MARKER,
     ],
@@ -449,7 +454,8 @@ EXACT_FILE_MARKER_COUNTS = {
         "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
     },
     "scripts/zigux/README.md": {
-        SCRIPTS_PHASE2_TOP_LEVEL_HELPER_LIST_MARKER: 1,
+        SCRIPTS_PHASE2_TOOL_MANIFEST_TOP_LEVEL_HELPER_LIST_MARKER: 1,
+        SCRIPTS_PHASE2_KCONFIG_TOP_LEVEL_HELPER_LIST_MARKER: 1,
         SCRIPTS_PHASE2_TOOL_MANIFEST_MARKER: 1,
         SCRIPTS_PHASE2_STALE_NARROW_HELPER_SUMMARY_MARKER: 0,
         SCRIPTS_PHASE2_FULL_HELPER_SUMMARY_MARKER: 1,
@@ -481,7 +487,7 @@ PHASE2_REVIEW_NOTES_EXACT_COUNTS = {
     PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS[0]: 1,
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 16
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -744,7 +750,7 @@ def run_self_test() -> int:
         scripts_readme = root / "scripts/zigux/README.md"
         scripts_readme.write_text(
             scripts_readme.read_text(encoding="utf-8").replace(
-                SCRIPTS_PHASE2_TOP_LEVEL_HELPER_LIST_MARKER + "\n",
+                SCRIPTS_PHASE2_TOOL_MANIFEST_TOP_LEVEL_HELPER_LIST_MARKER + "\n",
                 "",
                 1,
             ),
@@ -752,7 +758,24 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert (
-            f"missing_marker:scripts/zigux/README.md:{SCRIPTS_PHASE2_TOP_LEVEL_HELPER_LIST_MARKER}"
+            f"missing_marker:scripts/zigux/README.md:{SCRIPTS_PHASE2_TOOL_MANIFEST_TOP_LEVEL_HELPER_LIST_MARKER}"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        scripts_readme = root / "scripts/zigux/README.md"
+        scripts_readme.write_text(
+            scripts_readme.read_text(encoding="utf-8").replace(
+                SCRIPTS_PHASE2_KCONFIG_TOP_LEVEL_HELPER_LIST_MARKER + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"missing_marker:scripts/zigux/README.md:{SCRIPTS_PHASE2_KCONFIG_TOP_LEVEL_HELPER_LIST_MARKER}"
             in issues
         )
         case_count += 1
