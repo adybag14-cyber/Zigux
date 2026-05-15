@@ -172,7 +172,6 @@ def run_self_test() -> None:
 
         write_fixture(tmpdir)
         survey_path = tmpdir / SURVEY_REL
-        survey_path.writeText = None
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(SURVEY_NEXT_STEP_REQUIRED[1] + "\n", ""),
             encoding="utf-8",
