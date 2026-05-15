@@ -32,6 +32,7 @@ PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
 RUNTIME_LOADER_CONTRACT_PATH = "zigux/kernel/runtime_loader_contract.zig"
 ALLOCATOR_INIT_FLOW_PATH = "zigux/tests/runtime_loader_allocator_init_flow.zig"
+RUNTIME_LOADER_SELFTEST_COMPLETE_EXIT_PARITY_PATH = "zigux/tests/runtime_loader_selftest_complete_exit_parity.zig"
 LOADER_GAP_MANIFEST_PATH = "zigux/tests/runtime_loader_gap_manifest.json"
 LOADER_GAP_SURVEY_PATH = "zigux/tests/runtime_loader_gap_survey.zig"
 RUNTIME_LOADER_LIFECYCLE_BOUNDARY_GUARD_PATH = "zigux/tests/runtime_loader_lifecycle_boundary_guard.zig"
@@ -131,6 +132,7 @@ REQUIRED_FILES = [
     RUNTIME_LOADER_PATH,
     RUNTIME_LOADER_CONTRACT_PATH,
     ALLOCATOR_INIT_FLOW_PATH,
+    RUNTIME_LOADER_SELFTEST_COMPLETE_EXIT_PARITY_PATH,
     LOADER_GAP_MANIFEST_PATH,
     LOADER_GAP_SURVEY_PATH,
     RUNTIME_LOADER_LIFECYCLE_BOUNDARY_GUARD_PATH,
@@ -230,11 +232,14 @@ REQUIRED_MARKERS = {
     PHASE9_BUILD_PATH: [
         "\"phase9-runtime-loader-shared-tests\"",
         "runtime_loader_gap_survey.zig",
+        "runtime_loader_selftest_complete_exit_parity.zig",
         "runtime_loader_allocator_init_flow.zig",
+        "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);",
         "runtime_loader_lifecycle_boundary_guard.zig",
         "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);",
         PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_BUILD_MARKER,
         "runtime_trace_events_loader_substrate_drift.zig",
+        "test_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);",
         "test_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);",
         "\"phase9-runtime-bitmap-top-bit-tests\"",
         "runtime_bitmap_top_bit_contract.zig",
@@ -263,6 +268,13 @@ REQUIRED_MARKERS = {
         "request.plan.allocator_handoff = .arena;",
         PREPARED_STATE_EXPLICIT_ASSERTION_MARKER,
         PREPARED_STATE_ALLOCATOR_HANDOFF_EXPLICIT_ASSERTION_MARKER,
+    ],
+    RUNTIME_LOADER_SELFTEST_COMPLETE_EXIT_PARITY_PATH: [
+        "phase 9 runtime loader keeps selftest-complete prepared snapshots stable even if later live state would look exited across all shipped pilot families",
+        "runtime_loader.RequestState.waiting_on_runtime_substrate",
+        "runtime_loader.RequestState.released_without_substrate",
+        "runtime_loader.HandoffStage.selftest_complete",
+        "runtime_loader.keepsSelftestHookEvidenceConsistent(pending)",
     ],
     LOADER_GAP_MANIFEST_PATH: [
         '"lane_key": "P9-L18"',
@@ -337,8 +349,11 @@ SELF_TEST_REMOVALS = [
     (MAKEFILE_PATH, "phase9-runtime-loader-shared-tests:", 1),
     (MAKEFILE_PATH, PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_MAKE_MARKER, 1),
     (PHASE9_BUILD_PATH, "runtime_loader_gap_survey.zig", 1),
+    (PHASE9_BUILD_PATH, "runtime_loader_selftest_complete_exit_parity.zig", 1),
     (PHASE9_BUILD_PATH, "runtime_trace_events_loader_substrate_drift.zig", 1),
+    (PHASE9_BUILD_PATH, "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);", 1),
     (PHASE9_BUILD_PATH, "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);", 1),
+    (RUNTIME_LOADER_SELFTEST_COMPLETE_EXIT_PARITY_PATH, "phase 9 runtime loader keeps selftest-complete prepared snapshots stable even if later live state would look exited across all shipped pilot families", 1),
     (RUNTIME_LOADER_LIFECYCLE_BOUNDARY_GUARD_PATH, "phase 9 runtime loader lifecycle boundary guard keeps manifest lifecycle summary aligned with the shared registration boundary", 1),
     (ALLOCATOR_INIT_FLOW_PATH, "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs", 1),
     (ALLOCATOR_INIT_FLOW_PATH, "request.plan.allocator_handoff = .arena;", 2),
