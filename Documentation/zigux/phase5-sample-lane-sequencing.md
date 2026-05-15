@@ -29,6 +29,7 @@ Current `master` still carries the four-anchor Phase 5 reminder packet together 
 - directly readable bytestream packet:
   - `Documentation/zigux/phase5-kfifo-sample-survey.md`
   - `samples/zigux/bytestream_fifo.zig`
+  - `zigux/tests/phase5_bytestream_fifo_manifest.json`
 - directly readable kobject packet:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
   - `samples/zigux/kobject_example.zig`
@@ -50,7 +51,6 @@ Fresh shared-surface readback also keeps these current gaps explicit:
 
 - `zigux/tests/phase5_build.zig`
 - `zigux/tests/phase5_bytestream_fifo.zig`
-- `zigux/tests/phase5_bytestream_fifo_manifest.json`
 - `zigux/tests/phase5_bytestream_fifo_survey.zig`
 - `zigux/tests/phase5_kobject_example_survey.zig`
 - `zigux/tests/phase5_kretprobe_example_survey.zig`
@@ -72,7 +72,7 @@ That shared lane owns only:
 
 - the shared contributor packet in `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
 - wording that keeps the roadmap-backed four-anchor packet explicit while also keeping the current direct-readback split explicit
-- wording that keeps bytestream routed through its survey-note-plus-sample packet, kobject routed through its note-plus-sample-plus-tests packet, kretprobe routed through its restored note-plus-sample-plus-tests packet, and trace-events routed through its directly readable non-runtime packet
+- wording that keeps bytestream routed through its survey-note-plus-sample-plus-direct-manifest packet, kobject routed through its note-plus-sample-plus-tests packet, kretprobe routed through its restored note-plus-sample-plus-tests packet, and trace-events routed through its directly readable non-runtime packet
 - wording that keeps the current missing shared `zigux/tests/phase5_build.zig` route explicit instead of presenting a live Linux-style shared replay path on current `master`
 - wording that keeps the Phase 5 versus Phase 9 boundary explicit for the later `samples/zigux/runtime_*.zig` and `*_loader.zig` families
 - no-extra-sample reminders for helper families such as `string`, `cmdline`, `argv`, `rbtree`, direct `bitmap`, and standalone formatting samples
@@ -85,8 +85,9 @@ The bytestream FIFO lane currently owns the directly readable landed packet for:
 
 - `Documentation/zigux/phase5-kfifo-sample-survey.md`
 - `samples/zigux/bytestream_fifo.zig`
+- `zigux/tests/phase5_bytestream_fifo_manifest.json`
 
-Keep bytestream-local follow-through inside the approved fixed-buffer FIFO packet: `StorageBacking.embedded_fixed_buffer`, `previewInto()`, `snapshotInto()`, the exact `reviewContract().focus` order, helper-boundary cues, queue-shape cues, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path.
+Keep bytestream-local follow-through inside the approved fixed-buffer FIFO packet: `StorageBacking.embedded_fixed_buffer`, `previewInto()`, `snapshotInto()`, the exact `reviewContract().focus` order, helper-boundary cues, queue-shape cues, the direct manifest-backed replay contract, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path.
 
 Do not reopen the older bytestream tests-root or shared-build companions from this lane until a fresh reread proves those exact paths returned.
 
@@ -147,7 +148,7 @@ When a Phase 5 change is proposed, choose the narrowest owner first.
 Use this note to keep future Phase 5 follow-through bounded:
 
 - reopen the shared sample lane only for one reminder-surface or owner-map truthfulness repair across the current four-anchor packet and its direct-readback split
-- reopen the bytestream lane only for one packet-local sample-surface or directly coupled survey-note repair inside the still-readable survey-note-plus-sample packet
+- reopen the bytestream lane only for one packet-local sample-surface, directly coupled survey-note repair, or direct-manifest alignment step inside the still-readable survey-note-plus-sample-plus-direct-manifest packet
 - reopen the kobject lane only for one packet-local manifest, sample-surface, or replay-contract repair inside the still-readable note-plus-sample-plus-tests packet
 - reopen the kretprobe lane only for one packet-local manifest, sample-surface, or replay-contract repair inside the restored note-plus-sample-plus-tests packet
 - reopen the trace-events lane only for one packet-local manifest, survey, replay-contract, or sample-surface repair inside the directly readable non-runtime packet
