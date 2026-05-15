@@ -508,7 +508,7 @@ PHASE2_REVIEW_NOTES_EXACT_COUNTS = {
     PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS[0]: 1,
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -857,6 +857,23 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        docs_readme = root / "Documentation/zigux/README.md"
+        docs_readme.write_text(
+            docs_readme.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"missing_marker:Documentation/zigux/README.md:{DOCS_ROOT_PHASE2_TOOL_MANIFEST_MARKERS[0]}"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
         bootstrap_note = root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
         bootstrap_note.write_text(
             bootstrap_note.read_text(encoding="utf-8").replace(
@@ -873,6 +890,23 @@ def run_self_test() -> int:
         )
         assert (
             f"exact_count:Documentation/zigux/phase2-toolchain-bootstrap-notes.md:{PHASE2_BOOTSTRAP_STALE_TOOL_MANIFEST_MARKERS[0]}:count=1:expected=0"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        tests_readme = root / "zigux/tests/README.md"
+        tests_readme.write_text(
+            tests_readme.read_text(encoding="utf-8").replace(
+                "scripts/zigux/check-phase2-tool-manifest-packets.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "missing_marker:zigux/tests/README.md:scripts/zigux/check-phase2-tool-manifest-packets.py"
             in issues
         )
         case_count += 1
