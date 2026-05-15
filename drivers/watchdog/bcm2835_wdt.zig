@@ -172,8 +172,8 @@ pub fn summarizePlatformHandoff(request: PlatformHandoffRequest) !PlatformHandof
         .restart_priority_value = probe.restart_priority_value,
         .system_power_controller = request.system_power_controller,
         .poweroff_handler_present = request.poweroff_handler_present,
-        .poweroff_handler_claimed = probe.poweroff_handler_claimed and pm_base_handoff_ready,
-        .poweroff_handler_conflict = probe.poweroff_handler_conflict and pm_base_handoff_ready,
+        .poweroff_handler_claimed = probe.poweroff_handler_claimed,
+        .poweroff_handler_conflict = probe.poweroff_handler_conflict,
         .blocked_on_live_platform_registration = true,
     };
 }
@@ -356,8 +356,31 @@ test "phase11 bcm2835_wdt platform handoff summary keeps PM-base prerequisites e
     try std.testing.expect(blocked.system_power_controller);
     try std.testing.expect(blocked.poweroff_handler_present);
     try std.testing.expect(!blocked.poweroff_handler_claimed);
-    try std.testing.expect(!blocked.poweroff_handler_conflict);
+    try std.testing.expect(blocked.poweroff_handler_conflict);
     try std.testing.expect(blocked.blocked_on_live_platform_registration);
+
+    const claim_pending = try summarizePlatformHandoff(.{
+        .heartbeat_sec = 9,
+        .nowayout = false,
+        .bootloader_running = false,
+        .system_power_controller = true,
+        .poweroff_handler_present = false,
+        .parent_attached = true,
+        .pm_base_present = false,
+    });
+
+    try std.testing.expect(claim_pending.parent_attached);
+    try std.testing.expect(!claim_pending.parent_supplies_pm_base);
+    try std.testing.expect(claim_pending.pm_base_required);
+    try std.testing.expect(!claim_pending.pm_base_handoff_ready);
+    try std.testing.expect(claim_pending.timeout_init_requested);
+    try std.testing.expect(!claim_pending.register_device_requested);
+    try std.testing.expect(claim_pending.stop_on_reboot_requested);
+    try std.testing.expect(claim_pending.system_power_controller);
+    try std.testing.expect(!claim_pending.poweroff_handler_present);
+    try std.testing.expect(claim_pending.poweroff_handler_claimed);
+    try std.testing.expect(!claim_pending.poweroff_handler_conflict);
+    try std.testing.expect(claim_pending.blocked_on_live_platform_registration);
 }
 
 test "phase11 bcm2835_wdt lab start stop and timeleft mirror watchdog register intent" {
