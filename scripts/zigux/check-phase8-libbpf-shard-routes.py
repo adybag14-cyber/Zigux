@@ -207,18 +207,27 @@ EXPECTED_MANIFEST_SEGMENTS = {
     "fdinfo-map-info-helpers": {
         "status": "starter_landed",
         "kind": "helper_first",
+        "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     },
     "map-reuse-compatibility": {
         "status": "starter_landed",
         "kind": "helper_first",
+        "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    },
+    "file-path-and-handle-bridge": {
+        "status": "deferred_high_risk",
+        "kind": "resource_boundary",
+        "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     },
     "perf-buffer-online-cpu-routing": {
         "status": "deferred_high_risk",
         "kind": "interrupt_routing",
+        "zigux_destination": "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
     },
     "perf-buffer-poll-bookkeeping": {
         "status": "starter_landed",
         "kind": "helper_adjacent",
+        "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     },
 }
 
@@ -226,6 +235,31 @@ EXPECTED_ROUTING_WHY_NOW_MARKERS = [
     "online_cpu_routing.zig",
     "cursor and routing-summary helper",
 ]
+
+EXPECTED_BRIDGE_SEGMENTATION_DESTINATION = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
+EXPECTED_BRIDGE_LANDED_SCOPE = [
+    "buildProcFdinfoPath() bounded /proc//fdinfo/ pathname shaping",
+    "parseFdinfoLine() field splitting and trimming",
+    "applyFdinfoMapInfoLine() numeric field decoding for map_type/key_size/value_size/max_entries/map_flags/map_extra",
+    "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
+    "summarizeFdinfoMapInfo() bounded completion reporting for the parsed map info packet",
+    "mapReuseObservationFromFdinfo() helper-only conversion from parsed fdinfo metadata into a reusable comparison observation",
+    "resolveReusedMapName() object-name retention for truncated reused-map names",
+    "normalizeObservedReuseMapFlags() devmap readonly-prog normalization for reuse comparison",
+    "summarizeMapReuseCompatibility() mismatch reporting for helper-only reused-map compatibility checks",
+    "isMapReuseCompatible() helper-only reused-map compatibility comparison",
+    "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects",
+]
+EXPECTED_BRIDGE_QUEUED_SCOPE = [
+    "direct procfs reads and descriptor ownership flow",
+    "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
+]
+EXPECTED_BRIDGE_WHY_NOW = (
+    "The shared file-path bridge destination now records the fdinfo parsing foundation, "
+    "helper-only observation shaping, reused-map compatibility summaries, and pinned-map reuse "
+    "planning packet as a reviewable landed helper slice, so future surveys can keep promoting "
+    "bounded bridge behavior without crossing into live descriptor or reopen side effects."
+)
 
 
 def collect_missing_files(root: Path) -> list[str]:
@@ -290,6 +324,41 @@ def collect_manifest_problems(root: Path) -> list[str]:
                         f"{MANIFEST_PATH}: segment:perf-buffer-online-cpu-routing:why_now:{marker}"
                     )
 
+    notes = manifest.get("segmentation_notes")
+    if not isinstance(notes, list):
+        problems.append(f"{MANIFEST_PATH}: segmentation_notes:not_a_list")
+        return problems
+    if len(notes) != 1:
+        problems.append(f"{MANIFEST_PATH}: segmentation_notes:length:{len(notes)}:1")
+        return problems
+
+    note = notes[0]
+    if not isinstance(note, dict):
+        problems.append(f"{MANIFEST_PATH}: segmentation_notes:entry:not_an_object")
+        return problems
+
+    destination = note.get("destination")
+    if destination != EXPECTED_BRIDGE_SEGMENTATION_DESTINATION:
+        problems.append(
+            f"{MANIFEST_PATH}: segmentation_notes:destination:{destination!r}:{EXPECTED_BRIDGE_SEGMENTATION_DESTINATION!r}"
+        )
+
+    for field, expected_value in (
+        ("landed_scope", EXPECTED_BRIDGE_LANDED_SCOPE),
+        ("queued_scope", EXPECTED_BRIDGE_QUEUED_SCOPE),
+    ):
+        actual_value = note.get(field)
+        if actual_value != expected_value:
+            problems.append(
+                f"{MANIFEST_PATH}: segmentation_notes:{field}:{actual_value!r}:{expected_value!r}"
+            )
+
+    why_now = note.get("why_now")
+    if why_now != EXPECTED_BRIDGE_WHY_NOW:
+        problems.append(
+            f"{MANIFEST_PATH}: segmentation_notes:why_now:{why_now!r}:{EXPECTED_BRIDGE_WHY_NOW!r}"
+        )
+
     return problems
 
 
@@ -327,6 +396,13 @@ def fixture_text(rel: str) -> str:
                             "why_now": "fixture",
                         },
                         {
+                            "slug": "file-path-and-handle-bridge",
+                            "status": "deferred_high_risk",
+                            "kind": "resource_boundary",
+                            "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+                            "why_now": "fixture",
+                        },
+                        {
                             "slug": "perf-buffer-online-cpu-routing",
                             "status": "deferred_high_risk",
                             "kind": "interrupt_routing",
@@ -347,6 +423,14 @@ def fixture_text(rel: str) -> str:
                             "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
                             "why_now": "fixture",
                         },
+                    ],
+                    "segmentation_notes": [
+                        {
+                            "destination": EXPECTED_BRIDGE_SEGMENTATION_DESTINATION,
+                            "landed_scope": EXPECTED_BRIDGE_LANDED_SCOPE,
+                            "queued_scope": EXPECTED_BRIDGE_QUEUED_SCOPE,
+                            "why_now": EXPECTED_BRIDGE_WHY_NOW,
+                        }
                     ],
                 },
                 indent=2,
@@ -396,7 +480,7 @@ def mutate_manifest(tmp_root: Path, mutator) -> None:
 
 def run_self_test() -> None:
     text_case_count = len(REQUIRED_FILES) + sum(len(markers) for markers in REQUIRED_MARKERS.values())
-    manifest_case_count = 2
+    manifest_case_count = 4
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase8_libbpf_shard_routes_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
@@ -446,6 +530,26 @@ def run_self_test() -> None:
             tmp_root,
             f"{MANIFEST_PATH}: segment:perf-buffer-online-cpu-routing:why_now:cursor and routing-summary helper",
         )
+        write_fixture_root(tmp_root)
+
+        def break_bridge_destination(manifest: dict) -> None:
+            for segment in manifest["segments"]:
+                if segment["slug"] == "file-path-and-handle-bridge":
+                    segment["zigux_destination"] = "tools/lib/bpf/zigux_segments/object_loader.zig"
+                    return
+            raise AssertionError("missing segment")
+
+        mutate_manifest(tmp_root, break_bridge_destination)
+        bridge_errors = validate(tmp_root)[1]
+        assert len(bridge_errors) == 1 and "segment:file-path-and-handle-bridge:zigux_destination" in bridge_errors[0], bridge_errors
+        write_fixture_root(tmp_root)
+
+        def break_bridge_note_scope(manifest: dict) -> None:
+            manifest["segmentation_notes"][0]["landed_scope"] = EXPECTED_BRIDGE_LANDED_SCOPE[:-1]
+
+        mutate_manifest(tmp_root, break_bridge_note_scope)
+        bridge_errors = validate(tmp_root)[1]
+        assert len(bridge_errors) == 1 and "segmentation_notes:landed_scope" in bridge_errors[0], bridge_errors
 
     print("PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST=pass")
     print(
@@ -490,7 +594,7 @@ def main() -> int:
     print(f"PHASE8_LIBBPF_SHARD_ROUTE_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE8_LIBBPF_SHARD_ROUTE_MARKER_COUNT="
-        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values()) + len(EXPECTED_MANIFEST_SEGMENTS) + len(EXPECTED_ROUTING_WHY_NOW_MARKERS)}"
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values()) + len(EXPECTED_MANIFEST_SEGMENTS) + len(EXPECTED_ROUTING_WHY_NOW_MARKERS) + 4}"
     )
     return 0
 
