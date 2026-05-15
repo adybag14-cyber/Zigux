@@ -57,22 +57,22 @@ Base raw URL prefix:
 - this note is a public-read pointer catalog only, not a release-closure claim and not a second survey note
 
 ## Current-Master Exact Coverage Evidence
-- public `master` head rechecked immediately before this note refresh on `2026-05-14`: `9c275ac5d5f4a18f5e238749028ab82f817a2121`
+- public `master` packet rechecked immediately before this note refresh on `2026-05-15`; this run's contents read path did not expose one authoritative branch-head commit, so the evidence below records exact current blob SHAs instead.
 - the same twelve covered current-master packet paths remain present beside this commit-pinned raw replay note:
-  - `drivers/scsi/virtio_scsi.zig` -> blob `58199934358d6c7dcf6cfddb2764594839896893`
-  - `Documentation/zigux/phase12-virtio-scsi-slice.md` -> blob `8420b21b3fc81c90523379ec97259f6b585a3d75`
-  - `Documentation/zigux/phase12-virtio-scsi-survey.md` -> blob `52946f81b7fd98b312443d5ac017a3ad1fa14350`
-  - `Documentation/zigux/README.md` -> blob `b559f4b95c4a882f029d9f741036c26db4e19e51`
-  - `zigux/tests/README.md` -> blob `2cb4f3473915010cfd2cc457af93883eed69d98a`
-  - `scripts/zigux/README.md` -> blob `9f71e83249f9bb5a9751cf68d9476bb3e5d21d29`
-  - `zigux/tests/phase12_build.zig` -> blob `9d85b42c5ec84f933954492561cfbbbaed9351be`
+  - `drivers/scsi/virtio_scsi.zig` -> blob `aef0c4205b7d99f7451ee6011adf63b6ac5220f5`
+  - `Documentation/zigux/phase12-virtio-scsi-slice.md` -> blob `346ea74e682322135eeb56ee2532e663f32188b2`
+  - `Documentation/zigux/phase12-virtio-scsi-survey.md` -> blob `a1fa942a65be4611e2fe008c84faa628ac8a092a`
+  - `Documentation/zigux/README.md` -> blob `78a2a98c221831105b48986aad48e91d4884a1d4`
+  - `zigux/tests/README.md` -> blob `bf048e32d25df0fb822789e7af1a30d91a3035d4`
+  - `scripts/zigux/README.md` -> blob `6f6dc7489e3d13a73e8982af2040f5416787b7b9`
+  - `zigux/tests/phase12_build.zig` -> blob `d5746e7fc71d926e8e72310f29bca9c9fcdad5fc`
   - `zigux/tests/phase12_virtio_scsi.zig` -> blob `f829de9b39576c67e81e75fe1e9d849e583db62f`
-  - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` -> blob `dc51df52c108ef06a46e3ff1964e6a8cb0f58f17`
-  - `zigux/tests/phase12_virtio_scsi_survey.zig` -> blob `4a005e0b085762136f9564058d49b0fe2716a912`
-  - `zigux/tests/phase12_virtio_scsi_manifest.json` -> blob `edeb0c6a92d8b14c0e965f329f82870efe6e1947`
-  - `zigux/Makefile` -> blob `8d4779d698888216ad87cb0e5a3b7f088f9a0d31`
+  - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` -> blob `89173ebd7f2c66d9673375e8d15f32cb645b60db`
+  - `zigux/tests/phase12_virtio_scsi_survey.zig` -> blob `c99597ec217e9d456e658a9942ebb2eaef535203`
+  - `zigux/tests/phase12_virtio_scsi_manifest.json` -> blob `6e0ed13c124baa6d2e845cd954ccdf93a148a4ca`
+  - `zigux/Makefile` -> blob `0dd002e3731182c264cf040cbe56c275591d7c0d`
 - current-master support-material boundary rechecked beside the same packet:
-  - `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `842a71d531646b9c52ab19af68a41629498f5dfd`
-  - `scripts/zigux/validate-phase12.py` -> blob `a1b3895271e811629e92fbb08666ab9812f04a97`
-  - `.github/workflows/zigux-bootstrap.yml` -> blob `08ae60d97fbaeff12354d6a7888460c2c07b078b`
+  - `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `524041f460157539a034f7dd9fd98ec1423d4f6a`
+  - `scripts/zigux/validate-phase12.py` -> blob `c548ea93121984ab3926c38ab64fbaf1022c0343`
+  - `.github/workflows/zigux-bootstrap.yml` -> blob `c345316a52e250a3eaf66b2d0b121a61872117f8`
 - this exact-evidence recheck preserves the existing split: this catalog stays pinned to `ee64eec272a352da1d967999c99bb3c3560c9b97` for direct raw replay, while the blob list above records what the broader current-master packet looked like immediately before this note refresh.
