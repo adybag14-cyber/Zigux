@@ -18,6 +18,11 @@ LINUX_ZIGUX_HEADER_GOVERNANCE_PATH = Path(
 NEXT_STEP_NOTE_PATH = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
 README_PATH = Path("scripts/zigux/README.md")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
+ABI_HEADER_PATH = Path("include/zigux/abi.h")
+ABI_BINDING_PATH = Path("zigux/bindings/abi.zig")
+DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
+DEV_T_BINDING_PATH = Path("zigux/bindings/dev_t.zig")
+NOTIFIER_BINDING_PATH = Path("zigux/bindings/notifier_abi.zig")
 
 MANIFEST_SLICE_FILES = (
     Path("Documentation/zigux/phase3-bindings-governance.md"),
@@ -32,11 +37,11 @@ MANIFEST_SLICE_FILES = (
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("include/linux/zigux.h"),
-    Path("include/zigux/abi.h"),
-    Path("include/zigux/dev_t.h"),
-    Path("zigux/bindings/abi.zig"),
-    Path("zigux/bindings/dev_t.zig"),
-    Path("zigux/bindings/notifier_abi.zig"),
+    ABI_HEADER_PATH,
+    DEV_T_HEADER_PATH,
+    ABI_BINDING_PATH,
+    DEV_T_BINDING_PATH,
+    NOTIFIER_BINDING_PATH,
     Path("zigux/helpers/layout_assert.zig"),
     Path("zigux/helpers/panic_policy.zig"),
     Path("zigux/helpers/allocator_policy.zig"),
@@ -81,11 +86,11 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
     LINUX_ZIGUX_HEADER_GOVERNANCE_PATH,
     Path("include/linux/zigux.h"),
-    Path("include/zigux/abi.h"),
-    Path("include/zigux/dev_t.h"),
-    Path("zigux/bindings/abi.zig"),
-    Path("zigux/bindings/dev_t.zig"),
-    Path("zigux/bindings/notifier_abi.zig"),
+    ABI_HEADER_PATH,
+    DEV_T_HEADER_PATH,
+    ABI_BINDING_PATH,
+    DEV_T_BINDING_PATH,
+    NOTIFIER_BINDING_PATH,
     Path("zigux/helpers/layout_assert.zig"),
     Path("zigux/helpers/panic_policy.zig"),
     Path("zigux/helpers/allocator_policy.zig"),
@@ -241,6 +246,38 @@ README_MARKERS = (
     "make -C zigux phase3",
 )
 
+ABI_HEADER_MARKERS = (
+    "#define ZIGUX_ABI_VERSION 1U",
+    "#define ZIGUX_FACILITY_KERNEL 1U",
+    "#define ZIGUX_STATUS_FLAG_ERROR 1U",
+    "typedef struct zigux_boundary_header {",
+    "struct zigux_export_status {",
+    "struct zigux_interop_policy {",
+    "struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view {",
+    "struct zigux_notifier_block {",
+    "static inline int zigux_notifier_chain_has_nonincreasing_priority(",
+    "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
+)
+
+ABI_BINDING_MARKERS = (
+    "pub const ABI_VERSION: u16 = 1;",
+    "pub const FACILITY_KERNEL: u16 = 1;",
+    "pub const STATUS_FLAG_ERROR: u16 = 1;",
+    "pub const BoundaryHeader = extern struct {",
+    "pub const ExportStatus = extern struct {",
+    "pub const InteropPolicy = extern struct {",
+    "pub const Facility = enum(u16) {",
+    "pub const PanicMode = enum(u8) {",
+    "pub const AllocatorMode = enum(u8) {",
+    "pub const UnsafeScope = enum(u8) {",
+    "pub const NotifierBlock = extern struct {",
+    "pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView = extern struct {",
+    "pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {",
+    "pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {",
+    "pub fn defaultHeader(flags: u16) BoundaryHeader {",
+    'test "abi binding keeps notifier block layout and chain helper explicit" {',
+)
+
 DEV_T_HEADER_MARKERS = (
     "#define ZIGUX_DEV_MINOR_BITS 20U",
     "#define ZIGUX_DEV_MINOR_MASK ((1U << ZIGUX_DEV_MINOR_BITS) - 1U)",
@@ -301,6 +338,11 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
 def _check_markers(path: Path, markers: tuple[str, ...], label: str) -> list[str]:
     if not path.is_file():
         return [f"missing repo file: {path.as_posix()}"]
@@ -337,37 +379,21 @@ def _load_manifest(path: Path) -> tuple[list[str], list[str]]:
 
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
-    if not (repo_root / SLICE_NOTE_PATH).is_file():
-        issues.append(f"missing repo file: {SLICE_NOTE_PATH.as_posix()}")
-    if not (repo_root / BINDINGS_SURVEY_PATH).is_file():
-        issues.append(f"missing repo file: {BINDINGS_SURVEY_PATH.as_posix()}")
-    if not (repo_root / BINDINGS_GOVERNANCE_PATH).is_file():
-        issues.append(f"missing repo file: {BINDINGS_GOVERNANCE_PATH.as_posix()}")
-    if not (repo_root / NEXT_STEP_NOTE_PATH).is_file():
-        issues.append(f"missing repo file: {NEXT_STEP_NOTE_PATH.as_posix()}")
-    if not (repo_root / README_PATH).is_file():
-        issues.append(f"missing repo file: {README_PATH.as_posix()}")
+    for rel_path in (SLICE_NOTE_PATH, BINDINGS_SURVEY_PATH, BINDINGS_GOVERNANCE_PATH, NEXT_STEP_NOTE_PATH, README_PATH):
+        if not (repo_root / rel_path).is_file():
+            issues.append(f"missing repo file: {rel_path.as_posix()}")
+
     for rel_path in REQUIRED_FILES:
         if not (repo_root / rel_path).is_file():
             issues.append(f"missing repo file: {rel_path.as_posix()}")
-    slice_note_path = repo_root / SLICE_NOTE_PATH
-    if slice_note_path.is_file():
-        slice_note_text = _read(slice_note_path)
-        for marker in SLICE_NOTE_MARKERS:
-            if marker not in slice_note_text:
-                issues.append(f"missing slice marker: {marker}")
-    next_step_note_path = repo_root / NEXT_STEP_NOTE_PATH
-    if next_step_note_path.is_file():
-        next_step_note_text = _read(next_step_note_path)
-        for marker in NEXT_STEP_NOTE_MARKERS:
-            if marker not in next_step_note_text:
-                issues.append(f"missing next-step marker: {marker}")
-    readme_path = repo_root / README_PATH
-    if readme_path.is_file():
-        readme_text = _read(readme_path)
-        for marker in README_MARKERS:
-            if marker not in readme_text:
-                issues.append(f"missing scripts README marker: {marker}")
+
+    if (repo_root / SLICE_NOTE_PATH).is_file():
+        issues.extend(_check_markers(repo_root / SLICE_NOTE_PATH, SLICE_NOTE_MARKERS, "slice"))
+    if (repo_root / NEXT_STEP_NOTE_PATH).is_file():
+        issues.extend(_check_markers(repo_root / NEXT_STEP_NOTE_PATH, NEXT_STEP_NOTE_MARKERS, "next-step"))
+    if (repo_root / README_PATH).is_file():
+        issues.extend(_check_markers(repo_root / README_PATH, README_MARKERS, "scripts README"))
+
     manifest_files, manifest_issues = _load_manifest(repo_root / MANIFEST_PATH)
     issues.extend(manifest_issues)
     if manifest_files:
@@ -376,6 +402,7 @@ def validate_repo(repo_root: Path) -> list[str]:
             rel_path_text = rel_path.as_posix()
             if rel_path_text not in manifest_set:
                 issues.append(f"missing manifest file entry: {rel_path_text}")
+
     issues.extend(_check_markers(repo_root / BINDINGS_SURVEY_PATH, BINDINGS_SURVEY_MARKERS, "bindings survey"))
     issues.extend(
         _check_markers(
@@ -384,25 +411,12 @@ def validate_repo(repo_root: Path) -> list[str]:
             "bindings governance",
         )
     )
-    issues.extend(
-        _check_markers(repo_root / Path("include/zigux/dev_t.h"), DEV_T_HEADER_MARKERS, "dev_t header")
-    )
-    issues.extend(
-        _check_markers(repo_root / Path("zigux/bindings/dev_t.zig"), DEV_T_BINDING_MARKERS, "dev_t binding")
-    )
-    issues.extend(
-        _check_markers(
-            repo_root / Path("zigux/bindings/notifier_abi.zig"),
-            NOTIFIER_BINDING_MARKERS,
-            "notifier binding",
-        )
-    )
+    issues.extend(_check_markers(repo_root / ABI_HEADER_PATH, ABI_HEADER_MARKERS, "abi header"))
+    issues.extend(_check_markers(repo_root / ABI_BINDING_PATH, ABI_BINDING_MARKERS, "abi binding"))
+    issues.extend(_check_markers(repo_root / DEV_T_HEADER_PATH, DEV_T_HEADER_MARKERS, "dev_t header"))
+    issues.extend(_check_markers(repo_root / DEV_T_BINDING_PATH, DEV_T_BINDING_MARKERS, "dev_t binding"))
+    issues.extend(_check_markers(repo_root / NOTIFIER_BINDING_PATH, NOTIFIER_BINDING_MARKERS, "notifier binding"))
     return issues
-
-
-def _write(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
 
 
 def _manifest_text(files: tuple[Path, ...] = MANIFEST_SLICE_FILES) -> str:
@@ -419,12 +433,11 @@ def _manifest_text(files: tuple[Path, ...] = MANIFEST_SLICE_FILES) -> str:
 def _populate_repo(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         _write(root / rel_path, "# stub\n")
-    _write(root / Path("include/zigux/dev_t.h"), "\n".join(DEV_T_HEADER_MARKERS) + "\n")
-    _write(root / Path("zigux/bindings/dev_t.zig"), "\n".join(DEV_T_BINDING_MARKERS) + "\n")
-    _write(
-        root / Path("zigux/bindings/notifier_abi.zig"),
-        "\n".join(NOTIFIER_BINDING_MARKERS) + "\n",
-    )
+    _write(root / ABI_HEADER_PATH, "\n".join(ABI_HEADER_MARKERS) + "\n")
+    _write(root / ABI_BINDING_PATH, "\n".join(ABI_BINDING_MARKERS) + "\n")
+    _write(root / DEV_T_HEADER_PATH, "\n".join(DEV_T_HEADER_MARKERS) + "\n")
+    _write(root / DEV_T_BINDING_PATH, "\n".join(DEV_T_BINDING_MARKERS) + "\n")
+    _write(root / NOTIFIER_BINDING_PATH, "\n".join(NOTIFIER_BINDING_MARKERS) + "\n")
     _write(root / MANIFEST_PATH, _manifest_text())
     _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
     _write(root / BINDINGS_SURVEY_PATH, "\n".join(BINDINGS_SURVEY_MARKERS) + "\n")
@@ -433,492 +446,209 @@ def _populate_repo(root: Path) -> None:
     _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
 
 
+def _require_issue(issues: list[str], expected: str, label: str) -> int:
+    if expected not in issues:
+        print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
+        print(f"expected {label} was not reported")
+        return 1
+    return 0
+
+
 def run_self_test() -> int:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_abi_bindings_syntax_") as temp_dir:
         root = Path(temp_dir)
         _populate_repo(root)
+
         issues = validate_repo(root)
         if issues:
             print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
             print("\n".join(issues))
             return 1
         case_count += 1
+
         missing_rel = REQUIRED_FILES[0]
         (root / missing_rel).unlink()
         issues = validate_repo(root)
-        expected_missing = f"missing repo file: {missing_rel.as_posix()}"
-        if expected_missing not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing repo file was not reported")
-            return 1
+        rc = _require_issue(issues, f"missing repo file: {missing_rel.as_posix()}", "missing repo file")
+        if rc:
+            return rc
         case_count += 1
-        phase3_abi_rel = Path("zigux/tests/phase3_abi.zig")
-        _write(root / missing_rel, "# restored\n")
-        (root / phase3_abi_rel).unlink()
-        issues = validate_repo(root)
-        expected_phase3_abi_missing = f"missing repo file: {phase3_abi_rel.as_posix()}"
-        if expected_phase3_abi_missing not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing phase3_abi replay file was not reported")
-            return 1
-        case_count += 1
-        boundary_lane_note_rel = Path("Documentation/zigux/phase3-boundary-lane-sequencing.md")
-        _write(root / phase3_abi_rel, "# restored\n")
-        (root / boundary_lane_note_rel).unlink()
-        issues = validate_repo(root)
-        expected_boundary_lane_note_missing = (
-            f"missing repo file: {boundary_lane_note_rel.as_posix()}"
-        )
-        if expected_boundary_lane_note_missing not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing boundary-lane note was not reported")
-            return 1
-        case_count += 1
-        _write(root / boundary_lane_note_rel, "# restored\n")
+
+        _populate_repo(root)
         _write(root / SLICE_NOTE_PATH, _read(root / SLICE_NOTE_PATH).replace("zigux/uapi/version.zig\n", "", 1))
         issues = validate_repo(root)
-        expected_slice_marker = "missing slice marker: zigux/uapi/version.zig"
-        if expected_slice_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing slice marker was not reported")
-            return 1
+        rc = _require_issue(issues, "missing slice marker: zigux/uapi/version.zig", "missing slice marker")
+        if rc:
+            return rc
         case_count += 1
-        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
-        _write(
-            root / SLICE_NOTE_PATH,
-            _read(root / SLICE_NOTE_PATH).replace(
-                "zigux/tests/phase3_abi.zig\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_phase3_abi_slice_marker = "missing slice marker: zigux/tests/phase3_abi.zig"
-        if expected_phase3_abi_slice_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing phase3_abi slice marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
-        _write(
-            root / SLICE_NOTE_PATH,
-            _read(root / SLICE_NOTE_PATH).replace(
-                "Documentation/zigux/phase3-export-uapi-boundary-survey.md\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_export_uapi_marker = (
-            "missing slice marker: Documentation/zigux/phase3-export-uapi-boundary-survey.md"
-        )
-        if expected_export_uapi_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing export-uapi slice marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
-        _write(
-            root / SLICE_NOTE_PATH,
-            _read(root / SLICE_NOTE_PATH).replace(
-                "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_policy_marker = (
-            "missing slice marker: Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
-        )
-        if expected_policy_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing policy-unsafe slice marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
-        _write(
-            root / SLICE_NOTE_PATH,
-            _read(root / SLICE_NOTE_PATH).replace(
-                "Documentation/zigux/phase3-abi-bindings-survey.md\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_bindings_survey_marker = (
-            "missing slice marker: Documentation/zigux/phase3-abi-bindings-survey.md"
-        )
-        if expected_bindings_survey_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing bindings-survey slice marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
-        _write(
-            root / SLICE_NOTE_PATH,
-            _read(root / SLICE_NOTE_PATH).replace(
-                "Documentation/zigux/phase3-bindings-governance.md\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_bindings_governance_marker = (
-            "missing slice marker: Documentation/zigux/phase3-bindings-governance.md"
-        )
-        if expected_bindings_governance_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing bindings-governance slice marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
-        _write(root / SLICE_NOTE_PATH, _read(root / SLICE_NOTE_PATH).replace("zigux/uapi/dev_t.zig\n", "", 1))
-        issues = validate_repo(root)
-        expected_dev_t_marker = "missing slice marker: zigux/uapi/dev_t.zig"
-        if expected_dev_t_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing dev_t slice marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / NEXT_STEP_NOTE_PATH, _read(root / NEXT_STEP_NOTE_PATH).replace(
-            "scripts/zigux/validate-phase3-abi-bindings-syntax.py\n",
-            "",
-            1,
-        ))
-        issues = validate_repo(root)
-        expected_next_step_marker = (
-            "missing next-step marker: scripts/zigux/validate-phase3-abi-bindings-syntax.py"
-        )
-        if expected_next_step_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing next-step marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / NEXT_STEP_NOTE_PATH, "\n".join(NEXT_STEP_NOTE_MARKERS) + "\n")
-        _write(root / SLICE_NOTE_PATH, _read(root / SLICE_NOTE_PATH).replace("PHASE3_CURRENT_INTEROP_GAP=\n", "", 1))
-        issues = validate_repo(root)
-        expected_gap_marker = "missing slice marker: PHASE3_CURRENT_INTEROP_GAP="
-        if expected_gap_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing interop-gap marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
-        _write(
-            root / SLICE_NOTE_PATH,
-            _read(root / SLICE_NOTE_PATH).replace(
-                "scripts/zigux/check-phase3-abi-dump-gate.py\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_dump_gate_marker = "missing slice marker: scripts/zigux/check-phase3-abi-dump-gate.py"
-        if expected_dump_gate_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing dump-gate marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
-        _write(root / README_PATH, _read(root / README_PATH).replace("zigux/uapi/dev_t.zig\n", "", 1))
-        issues = validate_repo(root)
-        expected_readme_marker = "missing scripts README marker: zigux/uapi/dev_t.zig"
-        if expected_readme_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing README dev_t marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
-        _write(
-            root / BINDINGS_SURVEY_PATH,
-            _read(root / BINDINGS_SURVEY_PATH).replace(
-                "Documentation/zigux/phase3-bindings-governance.md\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_bindings_survey_local_marker = (
-            "missing bindings survey marker: Documentation/zigux/phase3-bindings-governance.md"
-        )
-        if expected_bindings_survey_local_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing bindings-survey local marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / BINDINGS_SURVEY_PATH, "\n".join(BINDINGS_SURVEY_MARKERS) + "\n")
-        _write(
-            root / BINDINGS_GOVERNANCE_PATH,
-            _read(root / BINDINGS_GOVERNANCE_PATH).replace(
-                "zigux/tests/fixtures/phase3_abi_manifest.json\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_bindings_governance_local_marker = (
-            "missing bindings governance marker: zigux/tests/fixtures/phase3_abi_manifest.json"
-        )
-        if expected_bindings_governance_local_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing bindings-governance local marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / BINDINGS_GOVERNANCE_PATH, "\n".join(BINDINGS_GOVERNANCE_MARKERS) + "\n")
-        _write(
-            root / BINDINGS_SURVEY_PATH,
-            _read(root / BINDINGS_SURVEY_PATH).replace(
-                "zigux/tests/phase3_low_level_wrappers_build.zig\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_bindings_wrapper_marker = (
-            "missing bindings survey marker: zigux/tests/phase3_low_level_wrappers_build.zig"
-        )
-        if expected_bindings_wrapper_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing low-level-wrapper build marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / BINDINGS_SURVEY_PATH, "\n".join(BINDINGS_SURVEY_MARKERS) + "\n")
+
+        _populate_repo(root)
         manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["files"].remove("zigux/tests/phase3_low_level_wrappers_build.zig")
         manifest["file_count"] -= 1
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected_manifest_marker = (
-            "missing manifest file entry: zigux/tests/phase3_low_level_wrappers_build.zig"
+        rc = _require_issue(
+            issues,
+            "missing manifest file entry: zigux/tests/phase3_low_level_wrappers_build.zig",
+            "missing manifest file entry",
         )
-        if expected_manifest_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing manifest file entry was not reported")
-            return 1
+        if rc:
+            return rc
         case_count += 1
-        _write(root / MANIFEST_PATH, _manifest_text())
-        _write(
-            root / SLICE_NOTE_PATH,
-            _read(root / SLICE_NOTE_PATH).replace(
-                "Documentation/zigux/phase3-validator-support-surface.md\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_validator_support_marker = (
-            "missing slice marker: Documentation/zigux/phase3-validator-support-surface.md"
-        )
-        if expected_validator_support_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing validator-support slice marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
-        _write(
-            root / SLICE_NOTE_PATH,
-            _read(root / SLICE_NOTE_PATH).replace(
-                "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_low_level_selftest_marker = (
-            "missing slice marker: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"
-        )
-        if expected_low_level_selftest_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing low-level self-test slice marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
-        _write(
-            root / README_PATH,
-            _read(root / README_PATH).replace(
-                "Documentation/zigux/phase3-validator-support-surface.md\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_validator_support_readme_marker = (
-            "missing scripts README marker: Documentation/zigux/phase3-validator-support-surface.md"
-        )
-        if expected_validator_support_readme_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected validator-support README marker was not reported")
-            return 1
-        case_count += 1
-        _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
-        _write(
-            root / README_PATH,
-            _read(root / README_PATH).replace(
-                "validate-phase3-low-level-wrapper-survey.py\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_low_level_readme_marker = (
-            "missing scripts README marker: validate-phase3-low-level-wrapper-survey.py"
-        )
-        if expected_low_level_readme_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected low-level README marker was not reported")
-            return 1
-        case_count += 1
+
         _populate_repo(root)
         _write(
-            root / SLICE_NOTE_PATH,
-            _read(root / SLICE_NOTE_PATH).replace(
-                "Documentation/zigux/phase3-linux-zigux-header-governance.md\n",
+            root / BINDINGS_SURVEY_PATH,
+            _read(root / BINDINGS_SURVEY_PATH).replace(
+                "Documentation/zigux/phase3-bindings-governance.md\n", "", 1
+            ),
+        )
+        issues = validate_repo(root)
+        rc = _require_issue(
+            issues,
+            "missing bindings survey marker: Documentation/zigux/phase3-bindings-governance.md",
+            "missing bindings survey marker",
+        )
+        if rc:
+            return rc
+        case_count += 1
+
+        _populate_repo(root)
+        _write(
+            root / BINDINGS_GOVERNANCE_PATH,
+            _read(root / BINDINGS_GOVERNANCE_PATH).replace(
+                "zigux/tests/fixtures/phase3_abi_manifest.json\n", "", 1
+            ),
+        )
+        issues = validate_repo(root)
+        rc = _require_issue(
+            issues,
+            "missing bindings governance marker: zigux/tests/fixtures/phase3_abi_manifest.json",
+            "missing bindings governance marker",
+        )
+        if rc:
+            return rc
+        case_count += 1
+
+        _populate_repo(root)
+        _write(
+            root / ABI_HEADER_PATH,
+            _read(root / ABI_HEADER_PATH).replace(
+                "static inline int zigux_notifier_chain_has_nonincreasing_priority(\n", "", 1
+            ),
+        )
+        issues = validate_repo(root)
+        rc = _require_issue(
+            issues,
+            "missing abi header marker: static inline int zigux_notifier_chain_has_nonincreasing_priority(",
+            "missing abi header marker",
+        )
+        if rc:
+            return rc
+        case_count += 1
+
+        _populate_repo(root)
+        _write(
+            root / ABI_BINDING_PATH,
+            _read(root / ABI_BINDING_PATH).replace(
+                "pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {\n",
                 "",
                 1,
             ),
         )
         issues = validate_repo(root)
-        expected_linux_header_governance_marker = (
-            "missing slice marker: Documentation/zigux/phase3-linux-zigux-header-governance.md"
+        rc = _require_issue(
+            issues,
+            "missing abi binding marker: pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {",
+            "missing abi binding marker",
         )
-        if expected_linux_header_governance_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing linux-zigux-header governance slice marker was not reported")
-            return 1
+        if rc:
+            return rc
         case_count += 1
-        _populate_repo(root)
-        missing_header_governance_note = LINUX_ZIGUX_HEADER_GOVERNANCE_PATH
-        (root / missing_header_governance_note).unlink()
-        issues = validate_repo(root)
-        expected_missing_header_governance_note = (
-            f"missing repo file: {missing_header_governance_note.as_posix()}"
-        )
-        if expected_missing_header_governance_note not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing linux-zigux-header governance note was not reported")
-            return 1
-        case_count += 1
-        _populate_repo(root)
-        missing_header_governance_validator = Path(
-            "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"
-        )
-        (root / missing_header_governance_validator).unlink()
-        issues = validate_repo(root)
-        expected_missing_header_governance_validator = (
-            f"missing repo file: {missing_header_governance_validator.as_posix()}"
-        )
-        if expected_missing_header_governance_validator not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing linux-zigux-header governance validator was not reported")
-            return 1
-        case_count += 1
+
         _populate_repo(root)
         _write(
-            root / Path("zigux/bindings/dev_t.zig"),
-            _read(root / Path("zigux/bindings/dev_t.zig")).replace(
-                "pub fn rangeFits(first_minor: u32, count: u32) bool {\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_dev_t_binding_marker = (
-            "missing dev_t binding marker: pub fn rangeFits(first_minor: u32, count: u32) bool {"
-        )
-        if expected_dev_t_binding_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing dev_t binding marker was not reported")
-            return 1
-        case_count += 1
-        _populate_repo(root)
-        _write(
-            root / Path("zigux/bindings/notifier_abi.zig"),
-            _read(root / Path("zigux/bindings/notifier_abi.zig")).replace(
-                "    priority: i32,\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_notifier_binding_marker = "missing notifier binding marker:     priority: i32,"
-        if expected_notifier_binding_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing notifier binding marker was not reported")
-            return 1
-        case_count += 1
-        _populate_repo(root)
-        _write(
-            root / Path("zigux/bindings/notifier_abi.zig"),
-            _read(root / Path("zigux/bindings/notifier_abi.zig")).replace(
-                "pub fn prioritiesNonincreasing(blocks: []const NotifierBlock) bool {\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_notifier_helper_marker = (
-            "missing notifier binding marker: pub fn prioritiesNonincreasing(blocks: []const NotifierBlock) bool {"
-        )
-        if expected_notifier_helper_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing notifier helper marker was not reported")
-            return 1
-        case_count += 1
-        _populate_repo(root)
-        _write(
-            root / Path("zigux/bindings/notifier_abi.zig"),
-            _read(root / Path("zigux/bindings/notifier_abi.zig")).replace(
-                'test "notifier abi keeps nonincreasing priority order reviewable" {\n',
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected_notifier_test_marker = (
-            'missing notifier binding marker: test "notifier abi keeps nonincreasing priority order reviewable" {'
-        )
-        if expected_notifier_test_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing notifier test marker was not reported")
-            return 1
-        case_count += 1
-        _populate_repo(root)
-        _write(
-            root / Path("include/zigux/dev_t.h"),
-            _read(root / Path("include/zigux/dev_t.h")).replace(
+            root / DEV_T_HEADER_PATH,
+            _read(root / DEV_T_HEADER_PATH).replace(
                 "#define ZIGUX_DEV_MAJOR_MAX ((1U << (32U - ZIGUX_DEV_MINOR_BITS)) - 1U)\n",
                 "",
                 1,
             ),
         )
         issues = validate_repo(root)
-        expected_dev_t_header_marker = (
-            "missing dev_t header marker: #define ZIGUX_DEV_MAJOR_MAX ((1U << (32U - ZIGUX_DEV_MINOR_BITS)) - 1U)"
+        rc = _require_issue(
+            issues,
+            "missing dev_t header marker: #define ZIGUX_DEV_MAJOR_MAX ((1U << (32U - ZIGUX_DEV_MINOR_BITS)) - 1U)",
+            "missing dev_t header marker",
         )
-        if expected_dev_t_header_marker not in issues:
-            print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=fail")
-            print("expected missing dev_t header marker was not reported")
-            return 1
+        if rc:
+            return rc
         case_count += 1
+
+        _populate_repo(root)
+        _write(
+            root / DEV_T_BINDING_PATH,
+            _read(root / DEV_T_BINDING_PATH).replace(
+                "pub fn rangeFits(first_minor: u32, count: u32) bool {\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        rc = _require_issue(
+            issues,
+            "missing dev_t binding marker: pub fn rangeFits(first_minor: u32, count: u32) bool {",
+            "missing dev_t binding marker",
+        )
+        if rc:
+            return rc
+        case_count += 1
+
+        _populate_repo(root)
+        _write(
+            root / NOTIFIER_BINDING_PATH,
+            _read(root / NOTIFIER_BINDING_PATH).replace("    priority: i32,\n", "", 1),
+        )
+        issues = validate_repo(root)
+        rc = _require_issue(
+            issues,
+            "missing notifier binding marker:     priority: i32,",
+            "missing notifier binding marker",
+        )
+        if rc:
+            return rc
+        case_count += 1
+
     print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass")
     print(f"PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the shared Phase 3 ABI and bindings syntax review packet.")
-    parser.add_argument("--repo-root", type=Path, default=Path("."), help="repository root that contains the shared Phase 3 ABI packet")
+    parser = argparse.ArgumentParser(
+        description="Validate the shared Phase 3 ABI and bindings syntax review packet."
+    )
+    parser.add_argument(
+        "--repo-root",
+        type=Path,
+        default=Path("."),
+        help="repository root that contains the shared Phase 3 ABI packet",
+    )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+
     if args.self_test:
         return run_self_test()
+
     issues = validate_repo(args.repo_root)
     if issues:
         print("PHASE3_ABI_BINDINGS_SYNTAX=fail")
         for issue in issues:
             print(issue)
         return 1
+
     print(f"validated {args.repo_root / SLICE_NOTE_PATH}")
     return 0
 
