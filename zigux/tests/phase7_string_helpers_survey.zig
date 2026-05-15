@@ -28,6 +28,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "leading whitespace skipping that stops at the first NUL");
     try expectContains(slice_note, "bounded string escaping across space, special, null, octal, hex, append-limited dictionary mode, and string-wrapper mode");
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view");
+    try expectContains(slice_note, "`stringEscapeMem()` keeps append-limited and dictionary-mode output accounting inside caller-owned storage");
+    try expectContains(slice_note, "`stringEscapeMemAnyNp()`, `stringEscapeStr()`, and `stringEscapeStrAnyNp()` keep any-NP and first-NUL-bounded string-wrapper escaping inside caller-owned storage");
     try expectContains(slice_note, "The next bounded follow-through should stay inside the helper-local packet");
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
 
@@ -44,6 +46,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "\"strreplace\"");
     try expectContains(manifest, "bounded sequential string-array allocation with NULL-terminated pointer views");
     try expectContains(manifest, "\"ownership_focus\": [");
+    try expectContains(manifest, "stringEscapeMem() keeps append-limited and dictionary-mode output accounting inside caller-owned storage");
+    try expectContains(manifest, "stringEscapeMemAnyNp(), stringEscapeStr(), and stringEscapeStrAnyNp() keep any-NP and first-NUL-bounded string-wrapper escaping explicit without widening beyond caller-owned storage");
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
