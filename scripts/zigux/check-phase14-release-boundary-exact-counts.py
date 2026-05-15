@@ -106,9 +106,12 @@ RELEASE_BOUNDARY_MARKERS = [
     "PHASE14_RELEASE_BOUNDARY=present",
     "PHASE14_SHARED_REPLAY_PRESENT=yes",
     "PHASE14_RELEASE_CLOSED=no",
+    "PHASE14_COMPILE_SHARD_TOTAL=6",
+    "PHASE14_COMPILE_SHARD_FOCUSED_COUNT=1",
+    "PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5",
     "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture",
     "release-facing inventory follow-through: `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase14_workqueue_reviewability.zig`, `make -C zigux phase14-test`, and `make -C zigux phase14` remain explicit alongside that shared smoke packet so release-facing review keeps the scripts-root and tests-root inventory plus the wrapper-backed full-bundle and combined replay routes visible without widening beyond the current study-only boundary packet",
-    "compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-workqueue-reviewability-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
+    "compile-shard matrix: the shared packet now records exact coverage counts of `6` total shards, `1` focused `phase14-smoke` shard that covers only `phase14-end-to-end-smoke-tests`, and `5` `full_bundle_only` shards covering `phase14-workqueue-bridge-tests`, `phase14-workqueue-reviewability-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
     "bounded-internal sequencing guard: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain the two study-only anchors that can still receive same-phase bounded boundary-map or concurrency-audit follow-through, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors carried by the current Phase 14 shared smoke packet through their dedicated Phase 14 survey and manifest evidence instead of active delivery lanes; any status-change or reopen request still belongs to the Phase 15 freeze-map governance packet",
     "combined shared replay entrypoint: `make -C zigux phase14`",
     "wrapper-backed full-bundle replay: `make -C zigux phase14-test`",
@@ -514,6 +517,42 @@ def run_self_test() -> int:
         write(
             root,
             "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace("- `PHASE14_COMPILE_SHARD_TOTAL=6`\n", "", 1),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_COMPILE_SHARD_TOTAL=6",
+            "self-test expected missing compile-shard-total marker failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace("- `PHASE14_COMPILE_SHARD_FOCUSED_COUNT=1`\n", "", 1),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_COMPILE_SHARD_FOCUSED_COUNT=1",
+            "self-test expected missing compile-shard-focused-count marker failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace("- `PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5`\n", "", 1),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5",
+            "self-test expected missing compile-shard-full-bundle-only-count marker failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
             good_release_boundary_text().replace(
                 "- release-facing inventory follow-through:",
                 "",
@@ -880,7 +919,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=27")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
