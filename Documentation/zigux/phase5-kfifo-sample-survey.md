@@ -14,7 +14,7 @@ This note tracks the bounded Phase 5 reference-sample survey for the roadmap's `
   - `samples/zigux/README.md`
   - `samples/zigux/bytestream_fifo.zig`
   - public-tree blob readback for `zigux/tests/phase5_bytestream_fifo.zig`
-  - public-tree blob readback for `zigux/tests/phase5_bytestream_fifo_manifest.json`
+  - authenticated contents readback for `zigux/tests/phase5_bytestream_fifo_manifest.json`
   - public-tree blob readback for `zigux/tests/phase5_bytestream_fifo_survey.zig`
   - public-tree blob readback for `zigux/tests/phase5_build.zig`
 
@@ -34,16 +34,16 @@ Fresh repo-first inspection on 2026-05-15 confirmed these same-lane facts:
 - the shared Phase 5 guide in `Documentation/zigux/phase5-sample-review-guide.md` and the sample-root summary in `samples/zigux/README.md` already keep this anchor routed through the survey note and the broader bytestream packet wording instead of pretending the sample stands alone.
 - authenticated GitHub contents reads in this environment still did not recover these companion paths:
   - `zigux/tests/phase5_bytestream_fifo.zig`
-  - `zigux/tests/phase5_bytestream_fifo_manifest.json`
   - `zigux/tests/phase5_bytestream_fifo_survey.zig`
   - `zigux/tests/phase5_build.zig`
-- current public-tree blob readback on `master` does expose those same companion paths, including the bytestream manifest's `lane_key` `P5-L01`, the survey gate's approved in-memory FIFO checks, and the shared `phase5_build.zig` route that wires `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` together.
+- authenticated GitHub contents readback in this environment now does recover `zigux/tests/phase5_bytestream_fifo_manifest.json`, including the bytestream manifest's `lane_key` `P5-L01` and current `surveyed_commit` marker.
+- current public-tree blob readback on `master` still exposes those remaining companion paths, including the survey gate's approved in-memory FIFO checks and the shared `phase5_build.zig` route that wires `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` together.
 
 That means the honest same-lane posture today is:
 
 - the roadmap-backed kfifo sample idiom is still present at the sample root
-- the broader focused replay, manifest-backed packet, survey replay, and shared Phase 5 build route are publicly visible on current `master`
-- authenticated connector readback for those broader packet files still fails in this environment, so reminder surfaces should describe the split readback honestly instead of calling the files absent or pretending the connector path already recovered them
+- the manifest-backed packet is directly readable through authenticated contents readback, and the broader focused replay, survey replay, and shared Phase 5 build route are publicly visible on current `master`
+- authenticated connector readback for the remaining focused replay, survey replay, and shared-build files still fails in this environment, so reminder surfaces should describe the split readback honestly instead of calling those files absent or pretending the connector path already recovered them all
 
 ## Approved idiom for the current bytestream sample
 
@@ -140,7 +140,7 @@ Keep these current packet markers visible while `zigux/tests/phase5_bytestream_f
 
 An older commit-pinned replay snapshot for this bytestream packet remains recorded in prior survey wording, but it should no longer be presented as the only broader current proof now that public-tree readback exposes the companion files again.
 
-Treat earlier references to `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, or `zigux/tests/phase5_build.zig` as public-tree-backed current packet evidence plus an authenticated-contents-readback gap until a fresh reread proves those exact paths return cleanly through both readback routes.
+Treat earlier references to `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, or `zigux/tests/phase5_build.zig` as mixed current packet evidence: the manifest now returns through authenticated contents readback, while the focused replay, survey replay, and shared build route still rely on public-tree-backed current packet evidence until a fresh reread proves those exact paths return cleanly through both readback routes.
 
 ## Contributor refresh prompts for the current packet
 
@@ -158,10 +158,11 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig` or one of its dir
 The roadmap gap here is no longer "Zigux still needs a kfifo reference sample." The more precise same-lane gap is:
 
 - the roadmap-backed `kfifo` anchor already has a directly readable sample-root implementation
-- current `master` publicly exposes the focused replay, manifest-backed packet, survey replay, and shared `phase5_build.zig` route for that anchor, but authenticated contents readback for those files still fails in this environment
+- current `master` now directly exposes the manifest-backed packet and still publicly exposes the focused replay, survey replay, and shared `phase5_build.zig` route for that anchor
+- authenticated contents readback for the focused replay, survey replay, and shared build files still fails in this environment
 - Phase 5 reminder surfaces therefore need to keep the approved idiom explicit without collapsing that split into either a missing-packet claim or a fully recovered connector-proof claim
 
-So the honest same-lane follow-through is a truthfulness repair: keep this survey aligned with the sample-root file, the public-tree bytestream packet, and the current shared guide surfaces now, and only simplify the wording again if both readback routes converge.
+So the honest same-lane follow-through is a truthfulness repair: keep this survey aligned with the sample-root file, the direct manifest readback, the public-tree bytestream packet, and the current shared guide surfaces now, and only simplify the wording again if both readback routes converge.
 
 ## Review gates for this survey
 
@@ -188,7 +189,7 @@ This survey does not yet claim:
 
 Leave the bytestream survey packet parked unless a fresh bytestream-local reread changes one of two bounded facts:
 
-- authenticated connector readback for `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig` starts returning again, so the survey note can collapse back to fully direct wording
-- the split between public-tree blob readback and authenticated connector readback stays live and one more bytestream-local truthfulness repair is needed, starting with the smallest stale split-readback marker inside `Documentation/zigux/phase5-kfifo-sample-survey.md` because the manifest's public `surveyed_commit` marker no longer lags the current survey wording
+- authenticated connector readback for `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig` starts returning again, so the survey note can collapse back to fully direct wording
+- the split between direct manifest readback and the remaining public-tree-backed bytestream packet stays live and one more bytestream-local truthfulness repair is needed, starting with the smallest stale split-readback marker inside `Documentation/zigux/phase5-kfifo-sample-survey.md`
 
 Do not widen that follow-up into runtime work or broader sample behavior unless the sample-root file itself changes.
