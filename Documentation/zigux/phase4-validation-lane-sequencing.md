@@ -30,6 +30,7 @@ Current `master` already carries the active shared-versus-adjacent Phase 4 packe
   - `scripts/zigux/check-phase4-artifact-diff-determinism.py`
   - `scripts/zigux/check-phase4-gate-evidence.py`
   - `scripts/zigux/check-phase4-remaining-gap-matrix.py`
+  - `scripts/zigux/check-phase4-reversible-delivery-pins.py`
   - `scripts/zigux/check-phase4-workflow-route-counts.py`
   - `scripts/zigux/validate-phase4.py`
   - `zigux/tests/phase4_build.zig`
@@ -59,7 +60,7 @@ Treat `Documentation/zigux/phase4-gate-evidence.md` together with `Documentation
 
 This shared lane owns only:
 
-- the connector-readback and host-side artifact-diff packet in `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
+- the connector-readback and host-side artifact-diff packet in `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
 - wording that keeps the shipped atomic64, bitmap, helper-backed bitmap replay, and manifest-backed survey packet boundaries explicit together
 - wording that keeps the shipped host-side artifact-diff helper contract, deterministic catalog replay, and validator-first replay routes explicit together
 - wording that keeps the current rollback owners, reviewer prompts, reversible-delivery handoff, and validator-first replay routes explicit together
