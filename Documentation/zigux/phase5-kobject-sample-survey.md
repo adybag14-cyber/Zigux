@@ -12,6 +12,8 @@ This note tracks the bounded Phase 5 approved-idiom packet for the roadmap's `sa
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
   - `Documentation/zigux/phase5-sample-review-guide.md`
   - `samples/zigux/README.md`
+  - `scripts/zigux/README.md`
+  - `zigux/tests/README.md`
   - `samples/zigux/kobject_example.zig`
   - `zigux/tests/phase5_kobject_example.zig`
   - `zigux/tests/phase5_kobject_example_manifest.json`
@@ -26,7 +28,7 @@ This note exists to keep that approved idiom scoped to one landed non-runtime pa
 
 ## Approved idiom for the landed kobject-style sample
 
-The current kobject packet still describes the approved Phase 5 in-memory ownership-and-lifetime idiom for the roadmap anchor without implying runtime parity. That approved idiom stays reviewable through the sample root, focused test, manifest-backed replay, dedicated survey replay, shared build route, and the shared reminder surfaces that name those same files.
+The current kobject packet still describes the approved Phase 5 in-memory ownership-and-lifetime idiom for the roadmap anchor without implying runtime parity. That approved idiom stays reviewable through the sample root, focused test, manifest-backed replay, dedicated survey replay, shared build route, and the shared reminder surfaces that name those same files, including the docs-root, sample-root, scripts-root, and tests-root packet reminders.
 
 - `runAnchorReplay()` still requires `init()` first, registers exactly three attributes, leaves the sample in the registered stage, keeps the unnamed attribute group explicit, and still reads back default values `42`, `7`, and `-5` for `foo`, `baz`, and `bar`
 - before `registerAttributes()`, the sample still reports zero active attributes and blocks `showValue()` or `storeValue()`
@@ -74,7 +76,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or one of its dir
 - does the packet still keep the one-time `init()` rule explicit so a second `init()` returns `InvalidLifecycleTransition` without advancing `register_runs` or `exit_runs`?
 - do `runSingleInitBoundaryReplay()`, `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()` still describe the same bounded ownership-and-lifetime packet across the sample root, focused test, manifest, dedicated survey replay, and shared Phase 5 build route?
 - if a reminder surface mentions `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig`, did a fresh reread confirm whether the current public tree still carries those files instead of treating a connector-local `404` as repo absence?
-- shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too: `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
+- shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too: `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
 - keep the directly reviewable packet explicit instead of collapsing back to the older narrower packet unless fresh repo readback truly drops the dedicated survey or shared build routes again
 
 ## Non-goals
