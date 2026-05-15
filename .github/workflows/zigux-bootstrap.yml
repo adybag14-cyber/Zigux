@@ -235,6 +235,9 @@ jobs:
       - name: Check Phase 4 workflow route counts directly
         run: python3 scripts/zigux/check-phase4-workflow-route-counts.py
 
+      - name: Self-test Phase 4 gate evidence directly
+        run: python3 scripts/zigux/check-phase4-gate-evidence.py --self-test
+
       - name: Check Phase 4 gate evidence directly
         run: python3 scripts/zigux/check-phase4-gate-evidence.py
 
