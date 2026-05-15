@@ -80,6 +80,11 @@ MAKEFILE_MARKERS = [
 
 WORKFLOW_MARKERS = [
     "run: python3 scripts/zigux/validate-phase2.py",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
+    "run: python3 scripts/zigux/check-fixdep-diff.py",
+    "run: zig test scripts/zigux/fixdep.zig",
 ]
 
 TESTS_README_MARKERS = [
@@ -203,7 +208,7 @@ EXPECTED_CASES = {
     },
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 19
 
 FILE_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": WORKFLOW_MARKERS,
@@ -465,6 +470,38 @@ def run_self_test() -> int:
             ".github/workflows/zigux-bootstrap.yml:count:"
             f"{WORKFLOW_MARKERS[0]}:expected=1:got=2"
         ) in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / ".github/workflows/zigux-bootstrap.yml"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[4], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f".github/workflows/zigux-bootstrap.yml:{WORKFLOW_MARKERS[4]}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / ".github/workflows/zigux-bootstrap.yml"
+        original = path.read_text(encoding="utf-8")
+        reordered = original.replace(
+            "\n".join(WORKFLOW_MARKERS),
+            "\n".join(
+                [
+                    WORKFLOW_MARKERS[0],
+                    WORKFLOW_MARKERS[1],
+                    WORKFLOW_MARKERS[3],
+                    WORKFLOW_MARKERS[2],
+                    WORKFLOW_MARKERS[4],
+                    WORKFLOW_MARKERS[5],
+                ]
+            ),
+            1,
+        )
+        path.write_text(reordered, encoding="utf-8")
+        issues = validate_root(root)
+        assert f".github/workflows/zigux-bootstrap.yml:order:{WORKFLOW_MARKERS[3]}" in issues
         case_count += 1
 
         build_self_test_root(root)
