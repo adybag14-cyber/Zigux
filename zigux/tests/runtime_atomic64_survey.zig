@@ -202,6 +202,10 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(survey_note, "prepared `RuntimeAtomic64LoadSummary` snapshot");
     try expectContains(survey_note, "anchor, checked operation families, counter snapshot, and selftest-run count reviewable");
     try expectContains(survey_note, "later counter mutation, later selftest activity, or later exit activity changes the live sample");
+    try expectContains(
+        survey_note,
+        "direct shared runtime-load transition guard that keeps the loader stage and shared release state synchronized even if the shared request advances before the loader-owned release path runs",
+    );
 
     try expectContains(module_slice, "`PHASE9_LANE_KEY=P9-L04`");
     try expectSurveyedCommitMarker(module_slice, manifest.surveyed_commit);
@@ -230,6 +234,7 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader rejects prepared shared allocator and init-flow drift before any local runtime handoff");
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader surfaces prepared shared selftest-hook drift before any live atomic64 claim");
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps shared release failures from desynchronizing loader state");
+    try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps direct shared runtime-load transitions from desynchronizing shared release state");
 
     try expectContains(runtime_loader_allocator_init_flow, "zigux_runtime_atomic64_init");
     try expectContains(runtime_loader_allocator_init_flow, "zigux_runtime_atomic64_exit");
