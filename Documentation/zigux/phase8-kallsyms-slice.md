@@ -6,20 +6,20 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=kallsyms-parse-wrapper-parked`
-- scope: roadmap-backed symbol-lane reminder truthfulness, focused build-route verification, and one future helper-local reopen cue only
+- scope: roadmap-backed symbol-lane reminder truthfulness, helper-first expansion wording, focused build-route verification, and one future helper-local reopen cue only
 - current readable packet:
   - `Documentation/zigux/phase8-kallsyms-slice.md`
   - `zigux/tests/phase8_kallsyms.zig`
   - `zigux/tests/phase8_kallsyms_only_build.zig`
   - `zigux/tests/phase8_help_kallsyms_only_build.zig`
 - current blocker:
-  - `tools/lib/symbol/kallsyms.zig` still returns `404` on direct current-`master` GitHub contents reads, so the focused symbol packet is parked on reminder-and-build truthfulness rather than a directly runnable helper module
+  - exact direct helper readback for `tools/lib/symbol/kallsyms.zig` is still intermittent from this environment, so the focused symbol packet stays parked on reminder-and-build truthfulness plus slice-note alignment rather than a fresh in-repo parser replay
 
 ## Why this slice exists
 
-The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche.
+The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor, calls for helper-first expansion plus output-stable tooling behavior, and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination.
 
-This lane therefore stays reserved for one future `kallsyms` parser-and-wrapper follow-through, but current `master` does not yet expose a readable `tools/lib/symbol/kallsyms.zig` helper to validate directly. The honest current product surface is narrower: a dedicated slice note, the parked focused Phase 8 kallsyms test note, and the build shards that still point at the missing helper path.
+This lane therefore stays reserved for one direct `kallsymsParse()` wrapper and the smaller parser-and-wrapper follow-through around it. Current `master` already keeps that future helper-first expansion explicit through this slice note, the focused `zigux/tests/phase8_kallsyms.zig` packet, and the build shards that still point at the dedicated symbol helper path.
 
 ## Verified current behavior
 
@@ -29,27 +29,32 @@ Current `master` still keeps the focused symbol replay routes visible:
 - `zigux/tests/phase8_help_kallsyms_only_build.zig`
 - `zigux/tests/phase8_kallsyms.zig`
 
-But the bounded build replay is presently blocked before parser behavior can run:
+The dedicated slice review route also stays explicit through `zigux/tests/phase8_kallsyms.zig`, which currently rechecks that this note still names:
 
-1. direct GitHub contents reads for `tools/lib/symbol/kallsyms.zig` return `404`
-2. a focused replay of `zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all` fails immediately because Zig cannot open `tools/lib/symbol/kallsyms.zig`
+- helper-first expansion
+- output-stable tooling behavior
+- one direct `kallsymsParse()` wrapper
+- oversized symbol names now truncate to `KSYM_NAME_LEN`
+- weak-object `V` and `v` classes still follow the current C header contract
+- `make -C zigux phase8-help-kallsyms-test`
 
-That means the current symbol lane is parked on build-route truthfulness and reminder maintenance, not on a live helper-first parser packet.
+That means the current symbol lane is still parked, but it is no longer parked on a roadmap-vs-survey wording gap inside the dedicated slice note.
 
 ## Current parity surface
 
 The current readable packet still covers:
 
 - the roadmap-backed claim that `kallsyms` remains a valid future Phase 8 tool lane
+- the roadmap-backed helper-first expansion wording and one direct `kallsymsParse()` wrapper target
 - a focused external Phase 8 kallsyms note at `zigux/tests/phase8_kallsyms.zig`
 - focused build shards that still declare the intended `kallsyms` replay routes
-- a directly verifiable current blocker: both focused build shards still depend on the missing `tools/lib/symbol/kallsyms.zig` helper path
+- a directly verifiable current blocker: exact direct helper readback remains intermittent from this environment even while the focused test and build routes stay visible
 
 The current packet does not yet provide:
 
-- a readable `tools/lib/symbol/kallsyms.zig` helper on current `master`
-- a runnable `zig test tools/lib/symbol/kallsyms.zig` replay
-- a successful `phase8-kallsyms-only` or shared `help-kallsyms` focused build replay
+- a fresh in-repo parser replay from this environment against directly readable helper contents
+- a successful `phase8-kallsyms-only` or shared `help-kallsyms` focused build replay captured from this scheduled workspace
+- a wider userspace symbol pipeline beyond the bounded parser-and-wrapper destination reserved by the roadmap
 
 ## Non-goals
 
@@ -61,4 +66,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Keep the lane narrow. If `P8-L11` reopens again before the helper is restored, correct one directly coupled checker, validator, or note surface so it stops treating the missing `tools/lib/symbol/kallsyms.zig` path as a passing current-`master` build packet. If the helper path becomes readable later, restart with one focused replay of `zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all` before widening into any other Phase 8 tooling work.
+Keep the lane narrow. If `P8-L09` reopens again before a direct helper replay is practical, correct one directly coupled slice-note or focused-test reminder only so the dedicated `kallsyms` survey stays aligned with the roadmap-backed helper-first expansion wording and one direct `kallsymsParse()` wrapper target. If helper readback becomes stable enough for exact replay later, restart with one focused `zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all` run before widening into any other Phase 8 tooling work.
