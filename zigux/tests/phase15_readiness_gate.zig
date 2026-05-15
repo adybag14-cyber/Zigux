@@ -13,6 +13,9 @@ const RepoEvidence = struct {
 const Manifest = struct {
     surveyed_commit_mode: []const u8,
     surveyed_commit: []const u8,
+    bootstrap_ledger_anchor: []const u8,
+    roadmap_required_features: []const []const u8,
+    remaining_readiness_gaps: []const []const u8,
     repo_evidence: RepoEvidence,
     phase15_validate_checkers: []const []const u8,
 };
@@ -39,6 +42,30 @@ test "phase 15 readiness manifest preserves the parked validator-first route" {
 
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-15", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings(
+        "docs(zigux): add documentation root, review checklist, and freeze map",
+        manifest.bootstrap_ledger_anchor,
+    );
+    try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_required_features.len);
+    try std.testing.expectEqualStrings("freeze map", manifest.roadmap_required_features[0]);
+    try std.testing.expectEqualStrings(
+        "Architecture Council review process",
+        manifest.roadmap_required_features[1],
+    );
+    try std.testing.expectEqualStrings("parity scorecard", manifest.roadmap_required_features[2]);
+    try std.testing.expectEqualStrings(
+        "policy for code that remains in C indefinitely",
+        manifest.roadmap_required_features[3],
+    );
+    try std.testing.expectEqual(@as(usize, 2), manifest.remaining_readiness_gaps.len);
+    try std.testing.expectEqualStrings(
+        "phase15-deep-core-status-change-blocker",
+        manifest.remaining_readiness_gaps[0],
+    );
+    try std.testing.expectEqualStrings(
+        "phase15-shared-summaries-scripts-root-validator-route-drift",
+        manifest.remaining_readiness_gaps[1],
+    );
     try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_shared_summary_checker_selftest_present);
@@ -86,6 +113,10 @@ test "phase 15 readiness note and replay routes stay aligned" {
     try expectContains(readiness_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-15");
     try expectContains(readiness_note, "The packet remains parked.");
     try expectContains(readiness_note, "no Architecture Council approval is currently recorded");
+    try expectContains(readiness_note, "The roadmap requires the freeze map, Architecture Council review process, parity scorecard, and policy for code that remains in C indefinitely.");
+    try expectContains(readiness_note, "The bootstrap ledger anchor for this governance family was `docs(zigux): add documentation root, review checklist, and freeze map`.");
+    try expectContains(readiness_note, "Current `master` already exceeds that ledger foothold.");
+    try expectContains(readiness_note, "`phase15-shared-summaries-scripts-root-validator-route-drift`");
     try expectContains(readiness_note, "python3 scripts/zigux/validate-phase15.py");
     try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-docs-readme-alignment.py");
     try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
