@@ -112,8 +112,8 @@ The landed review text and tests still document these intended packet edges:
 
 * `getOption()` and `getOptions()` preserve Linux-style range parsing, including validator-only counting paths, while keeping `simple_strtoull()`-style leading-plus rejection explicit
 * `getOption()` clears caller-provided output on malformed signed and unsigned input so the bounded helper packet keeps that failure contract explicit instead of leaving stale caller state behind
-* `getOption()` and `getOptions()` keep the oversized wrap contract explicit across both 32-bit boundary inputs and full-width unsigned parses: `2147483648` wraps to `-2147483648`, `-2147483649` wraps to `2147483647`, `18446744073709551615` wraps to `-1`, `-18446744073709551615` wraps to `1`, and the paired `getOptions()` replays preserve the same wrapped values together with the validation-only count path
-* `memparse()` preserves suffix scaling, `simple_strtoull()`-style leading-plus rejection, and stop-index reporting
+* `getOption()` and `getOptions()` keep the oversized wrap contract explicit across both 32-bit boundary inputs and full-width unsigned parses, and prefixes beyond `u64` still saturate first before the helper truncates them into the same Linux-style wrapped `i32` results: `2147483648` wraps to `-2147483648`, `-2147483649` wraps to `2147483647`, `18446744073709551615` and `18446744073709551616` both wrap to `-1`, `-18446744073709551615` and `-18446744073709551616` both wrap to `1`, and the paired `getOptions()` replays preserve those wrapped values together with the validation-only count path
+* `memparse()` preserves suffix scaling, `simple_strtoull()`-style leading-plus rejection, stop-index reporting, and saturated oversized-prefix handling before any size-suffix shift is applied
 * exact bare-option matching for comma-delimited flags stays reviewable through `parseOptionStr()`
 * caller-owned `nextArg()` buffer slicing stays explicit for `param`, `value`, and `rest`
 * empty-input handling keeps `param` and `rest` borrowed from the caller slice
