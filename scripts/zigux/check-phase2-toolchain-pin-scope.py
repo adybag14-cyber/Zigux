@@ -28,7 +28,7 @@ EXPECTED_UPGRADE_POLICY_REQUIRED_MAKE_ROUTES = [
     "phase2-validate",
 ]
 PHASE2_CROSS_BOUNDARY_MARKER = (
-    "the dedicated `phase2-cross` workflow job currently reuses the same pinned installer path but stops at installer-side archive verification plus `scripts/zigux/check-phase2-cross.py`, so the broader closure packet should treat bootstrap and cross-target verification as adjacent but not identical routes until a later bounded follow-up adds the live checker there too"
+    "the dedicated `phase2-cross` workflow job currently reuses the same pinned installer path and reaches the live toolchain preflight through `scripts/zigux/check-phase2-cross.py --target <matrix-zig-target>`, whose target-mode path reruns `scripts/zigux/check-zig-toolchain.py --zig <resolved-zig>` before the cross-target Zig tests, so bootstrap and cross-target verification now share the same pinned-toolchain gate even though the cross route still adds the target replay packet on top of that preflight on current `master`"
 )
 ARCHIVE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
