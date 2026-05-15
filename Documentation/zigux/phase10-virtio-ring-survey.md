@@ -5,7 +5,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 ## Status
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-ring-survey`
-- lane: `P10-L10`
+- lane: `P10-L07`
 - surveyed commit: `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
 - roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
 - scope: keep the ring manifest, this survey note, the shared lane note, and one bounded truthfulness or helper-follow-through step aligned with the current queue-local virtio ring packet on `master`
@@ -66,7 +66,7 @@ That keeps the ring lane concrete and reviewable without overstating progress: t
 
 ## Freeze boundary
 - `Documentation/zigux/freeze-map.md` is the governing boundary note for this queue-local survey packet.
-- freeze-boundary owner: `P10-L10`
+- freeze-boundary owner: `P10-L11`
 - rollback owner: keep this survey note, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, and `Documentation/zigux/freeze-map.md` aligned before widening this queue-local note.
 - this ring survey stays inside `drivers/virtio/*.zig`; it does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain Phase 14 study-only anchors under the freeze map.
 - the Phase 15 freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c` also remain outside this lane; this survey does not claim scheduler, MM, RCU, or skbuff ownership, parity, or Architecture Council reopen authority.
