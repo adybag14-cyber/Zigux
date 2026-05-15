@@ -58,7 +58,7 @@ constant-parity packet should keep this survey explicit beside
 `scripts/zigux/validate-phase3-export-uapi-survey.py`,
 `scripts/zigux/validate-phase3-abi-bindings-syntax.py`, and
 `scripts/zigux/survey-phase3-abi-constant-parity.py`; the narrower
-`include/zigux/dev_t.h` plus the bounded `zigux/uapi/version.zig` and
-`zigux/uapi/dev_t.zig` starter-companion detail should stay anchored in this
-dedicated survey and the paired next-step note instead of being treated as a
-required broad-summary repeat everywhere.
+`include/zigux/dev_t.h` plus `zigux/uapi/version.zig` starter-companion detail
+should stay anchored in this dedicated survey and the paired next-step note,
+while the already-listed sibling companion stays explicit beside that dedicated
+packet instead of being treated as a required broad-summary repeat everywhere.
