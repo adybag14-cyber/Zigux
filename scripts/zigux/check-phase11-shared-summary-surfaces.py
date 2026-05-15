@@ -92,6 +92,11 @@ REQUIRED_MARKERS = {
     "review_checklist": [
         "if the change touches the shared Phase 11 simple-driver packet",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
+        "`Documentation/zigux/phase11-uapi-header-parity-survey.md`",
+        "`zigux/tests/phase11_uapi_header_parity_survey.zig`",
+        "`phase11-contract` reminder route",
+        "`phase11-hvc-survey` checker-backed route",
+        "without implying a removed `validate-phase11.py`, a missing build-inventory fixture",
         "`zigux/tests/phase11_hvc_cleanup.zig`",
         "`drivers/tty/hvc/hvc_console_verify.zig`",
     ],
