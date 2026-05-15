@@ -81,8 +81,8 @@ test "phase12 nvme pci survey manifest keeps the bounded queue-and-recovery pack
 
     try std.testing.expectEqualStrings("P12-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings("aadaa43e686ef355a946793cd83ce9899309deef", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings("2026-05-14", manifest.verified_on);
+    try std.testing.expectEqualStrings("c0270517a3dde4aeb1298a1d717661499e3ce2b0", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2026-05-15", manifest.verified_on);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_nvme_pci_zig_present);
@@ -98,12 +98,15 @@ test "phase12 nvme pci survey manifest keeps the bounded queue-and-recovery pack
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_gate_present);
 
     try std.testing.expectEqualStrings("starter_planner_present_runtime_dma_blocked", manifest.roadmap_gap_check.dma_safe_abstractions.status);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.dma_safe_abstractions.current_surface, "queue-pair planning") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.dma_safe_abstractions.current_surface, "queue-restart review") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.dma_safe_abstractions.current_surface, "rollback-gate review") != null);
     try std.testing.expectEqualStrings("starter_verifier_direct_test_manifest_and_survey_gate_present_shared_build_unwired", manifest.roadmap_gap_check.queueing_correctness.status);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.queueing_correctness.current_surface, "dedicated survey gate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.queueing_correctness.current_surface, "rollback-gate ordering") != null);
     try std.testing.expectEqualStrings("recovery_budget_summary_and_survey_gate_present_throughput_gate_missing", manifest.roadmap_gap_check.throughput_and_recovery_parity.status);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface, "dropped-backlog retirement") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface, "queue-restart numbering") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface, "rollback-gate blockers") != null);
     try std.testing.expectEqualStrings("driver_local_slice_note_manifest_survey_note_and_survey_gate_present_shared_build_unwired", manifest.roadmap_gap_check.segmented_rollout.status);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.segmented_rollout.current_surface, "rollback-gate review") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.segmented_rollout.blocked_by, "shared Phase 12 build route") != null);
 
     var saw_direct_replay = false;
@@ -124,11 +127,14 @@ test "phase12 nvme pci survey manifest keeps the bounded queue-and-recovery pack
             saw_direct_replay = true;
             try std.testing.expectEqualStrings("landed_on_master", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase12_nvme_pci.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-restart review") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback-gate ordering") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase12-nvme-manifest-anchor")) {
             saw_manifest = true;
             try std.testing.expectEqualStrings("landed_on_master", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "slice note") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-restart") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback-gate") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase12-nvme-shared-build-route")) {
             saw_shared_build = true;
@@ -143,11 +149,15 @@ test "phase12 nvme pci survey manifest keeps the bounded queue-and-recovery pack
             saw_survey_note = true;
             try std.testing.expectEqualStrings("survey_present", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-nvme-pci-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-restart") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback-gate") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase12-nvme-survey-gate")) {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("survey_present", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase12_nvme_pci_survey.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-restart") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback-gate") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase12-nvme-fallback-note")) {
             saw_fallback = true;
@@ -180,10 +190,10 @@ test "phase12 nvme pci survey note stays aligned with the bounded queue-and-reco
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("2026-05-14", manifest.verified_on);
+    try std.testing.expectEqualStrings("2026-05-15", manifest.verified_on);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-slice-note-survey-packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L08") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "inspected head: `aadaa43e686ef355a946793cd83ce9899309deef`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "inspected head: `c0270517a3dde4aeb1298a1d717661499e3ce2b0`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `drivers/nvme/host/pci.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "planAdminQueue()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "planIoQueue()") != null);
@@ -191,7 +201,11 @@ test "phase12 nvme pci survey note stays aligned with the bounded queue-and-reco
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "beginReset()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "completeReset()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryQueueRestoreSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queueRestartSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeDroppedIoRetirement()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryRollbackGateSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue restart review") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback-gate review") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `zigux/tests/phase12_nvme_pci_survey.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `Documentation/zigux/phase12-nvme-pci-slice.md`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not wire the bounded NVMe direct replay into `zigux/tests/phase12_build.zig`") != null);
