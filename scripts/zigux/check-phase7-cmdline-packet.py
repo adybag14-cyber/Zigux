@@ -36,8 +36,9 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
         "cmdline packet, lane `P7-L05`:",
         "Documentation/zigux/phase7-cmdline-slice.md",
+        "scripts/zigux/check-phase7-cmdline-packet.py",
         "PHASE7_CMDLINE_LANE=P7-L05",
-        "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
+        "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, checker, or same-slice reminder drift;",
     ],
     "Documentation/zigux/review-checklist.md": [
         "there is no standalone `samples/zigux/*cmdline*` reference sample",
@@ -77,6 +78,7 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_cmdline_survey.zig": [
         "P7-L05",
+        "scripts/zigux/check-phase7-cmdline-packet.py",
         "zigux/tests/phase7_cmdline_manifest.json",
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
         "shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`",
@@ -94,6 +96,7 @@ REQUIRED_MARKERS = {
         "\"zigux/tests/phase7_cmdline_survey.zig\"",
         "\"zigux/tests/phase7_cmdline_manifest.json\"",
         "\"zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig\"",
+        "\"scripts/zigux/check-phase7-cmdline-packet.py\"",
         "\"getOption\"",
         "\"getOptions\"",
         "\"memparse\"",
@@ -118,6 +121,13 @@ REQUIRED_MARKERS = {
     ],
 }
 
+REQUIRED_EXACT_LINES = {
+    "Documentation/zigux/phase7-cmdline-slice.md": [
+        "* `python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test`",
+        "* `python3 scripts/zigux/check-phase7-cmdline-packet.py`",
+    ],
+}
+
 
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
@@ -130,6 +140,11 @@ def collect_missing_markers(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
+    for rel, lines in REQUIRED_EXACT_LINES.items():
+        text_lines = (root / rel).read_text(encoding="utf-8").splitlines()
+        for line in lines:
+            if line not in text_lines:
+                missing.append(f"{rel}: {line}")
     return missing
 
 
@@ -141,7 +156,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 
 def write_fixture_root(tmp_root: Path) -> None:
-    fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
+    fixture_text = {}
+    for rel, markers in REQUIRED_MARKERS.items():
+        lines = list(markers)
+        lines.extend(REQUIRED_EXACT_LINES.get(rel, []))
+        fixture_text[rel] = "\n".join(lines) + "\n"
     for rel in REQUIRED_FILES:
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -163,7 +182,9 @@ def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
 def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
     path = tmp_root / rel
     original = path.read_text(encoding="utf-8")
-    updated = original.replace(old, new, 1)
+    index = original.rfind(old)
+    assert index != -1, case
+    updated = original[:index] + new + original[index + len(old) :]
     assert updated != original, case
     path.write_text(updated, encoding="utf-8")
 
@@ -190,16 +211,34 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase7-cmdline-slice.md: PHASE7_LANE_KEY=P7-L05",
             ),
             (
+                "slice_checker_selftest_marker",
+                "Documentation/zigux/phase7-cmdline-slice.md",
+                "* `python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test`",
+                "Documentation/zigux/phase7-cmdline-slice.md: * `python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test`",
+            ),
+            (
+                "slice_checker_live_marker",
+                "Documentation/zigux/phase7-cmdline-slice.md",
+                "* `python3 scripts/zigux/check-phase7-cmdline-packet.py`",
+                "Documentation/zigux/phase7-cmdline-slice.md: * `python3 scripts/zigux/check-phase7-cmdline-packet.py`",
+            ),
+            (
                 "slice_shared_route_marker",
                 "Documentation/zigux/phase7-cmdline-slice.md",
                 "shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`;",
                 "Documentation/zigux/phase7-cmdline-slice.md: shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`;",
             ),
             (
+                "helper_lane_checker_marker",
+                "Documentation/zigux/phase7-helper-lane-sequencing.md",
+                "scripts/zigux/check-phase7-cmdline-packet.py",
+                "Documentation/zigux/phase7-helper-lane-sequencing.md: scripts/zigux/check-phase7-cmdline-packet.py",
+            ),
+            (
                 "helper_lane_owner_marker",
                 "Documentation/zigux/phase7-helper-lane-sequencing.md",
-                "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
-                "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;",
+                "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, checker, or same-slice reminder drift;",
+                "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, checker, or same-slice reminder drift;",
             ),
             (
                 "review_checklist_boundary_marker",
@@ -238,6 +277,12 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_cmdline.zig: phase 7 nextArg keeps empty-input and leading-whitespace ownership explicit",
             ),
             (
+                "survey_checker_marker",
+                "zigux/tests/phase7_cmdline_survey.zig",
+                "scripts/zigux/check-phase7-cmdline-packet.py",
+                "zigux/tests/phase7_cmdline_survey.zig: scripts/zigux/check-phase7-cmdline-packet.py",
+            ),
+            (
                 "survey_manifest_marker",
                 "zigux/tests/phase7_cmdline_survey.zig",
                 "zigux/tests/phase7_cmdline_manifest.json",
@@ -248,6 +293,12 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_cmdline_survey.zig",
                 "leading equals sign stays in the parameter token",
                 "zigux/tests/phase7_cmdline_survey.zig: leading equals sign stays in the parameter token",
+            ),
+            (
+                "manifest_checker_marker",
+                "zigux/tests/phase7_cmdline_manifest.json",
+                "\"scripts/zigux/check-phase7-cmdline-packet.py\"",
+                "zigux/tests/phase7_cmdline_manifest.json: \"scripts/zigux/check-phase7-cmdline-packet.py\"",
             ),
             (
                 "manifest_helper_marker",
