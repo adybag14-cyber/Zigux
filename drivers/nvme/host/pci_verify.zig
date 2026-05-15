@@ -9,6 +9,7 @@ test "nvme pci descriptor stays honest about the bounded starter packet" {
     try testing.expect(descriptor.provides_lab_queue_planner);
     try testing.expect(descriptor.provides_dropped_io_retirement_helper);
     try testing.expect(descriptor.provides_recovery_rollback_gate_helper);
+    try testing.expect(descriptor.provides_queue_restart_summary_helper);
     try testing.expect(!descriptor.touches_live_dma);
     try testing.expect(!descriptor.touches_pci_probe);
     try testing.expect(!descriptor.touches_irq_recovery);
