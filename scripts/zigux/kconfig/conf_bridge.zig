@@ -594,6 +594,24 @@ test "conf bridge emits silent flag before mode flag" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--listnewconfig\",\"Kconfig\"]") != null);
 }
 
+test "conf bridge emits helpnewconfig silent packet from live fixture shape" {
+    var capture = try TestCapture.init(std.testing.allocator, 224);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .helpnewconfig,
+        .kconfig = "Kconfig",
+        .config = "out/help.config",
+        .arch = "riscv64",
+        .silent = true,
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"helpnewconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--helpnewconfig\",\"Kconfig\"]") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"out/help.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"riscv64\"") != null);
+}
+
 test "conf bridge emits alldefconfig argv and env" {
     var capture = try TestCapture.init(std.testing.allocator, 160);
     defer capture.deinit();
