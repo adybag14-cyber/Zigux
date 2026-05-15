@@ -2,12 +2,31 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import tempfile
 from pathlib import Path
 
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
+
+RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
+RUNTIME_EVIDENCE_PATHS = [
+    "scripts/zigux/check-phase12-release-readiness-packet.py",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
+]
+RUNTIME_EVIDENCE_ERROR = (
+    f"{RAW_GITHUB_COVERAGE_PATH}: exact runtime-reality evidence line drifted from current "
+    "blob SHAs for scripts/zigux/check-phase12-release-readiness-packet.py, zigux/Makefile, "
+    "and .github/workflows/zigux-bootstrap.yml"
+)
+RUNTIME_EVIDENCE_SUFFIX = (
+    "; the bounded degraded-workflow support route is now shipped as "
+    "`make -C zigux phase12-validate`, while the shared fallback packet still keeps "
+    "that validator-first support bundle distinct from the smoke-first direct replay "
+    "surface rather than treating it as a second direct replay packet."
+)
 
 REQUIRED_FILES = [
     "drivers/net/virtio_net.zig",
@@ -16,6 +35,7 @@ REQUIRED_FILES = [
     "drivers/nvme/host/pci_verify.zig",
     "Documentation/zigux/phase12-release-closure-checklist.md",
     "Documentation/zigux/phase12-release-readiness-survey.md",
+    RAW_GITHUB_COVERAGE_PATH,
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
     "Documentation/zigux/phase12-nvme-pci-reopen-governance.md",
@@ -37,6 +57,8 @@ REQUIRED_FILES = [
     "scripts/zigux/check-build-only-phase12-surface.py",
     "scripts/zigux/check-phase12-release-readiness-packet.py",
     "scripts/zigux/validate-phase12.py",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
 ]
 
 EXPECTED_ABSENT_FILES: list[str] = []
@@ -49,6 +71,15 @@ REQUIRED_MARKERS = {
         "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "make -C zigux phase12-validate",
+    ],
+    RAW_GITHUB_COVERAGE_PATH: [
+        "- `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
+        "- `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`",
+        "- `scripts/zigux/validate-phase12.py`",
+        "- `scripts/zigux/check-phase12-release-readiness-packet.py`",
+        "- `zigux/Makefile`",
+        "- `.github/workflows/zigux-bootstrap.yml`",
+        "- `make -C zigux phase12-validate`",
     ],
     "Documentation/zigux/phase12-nvme-pci-survey.md": [
         "`PHASE12_STATUS=starter-present-slice-note-survey-packet`",
@@ -112,6 +143,7 @@ REQUIRED_MARKERS = {
         "--self-test",
         "PHASE12_VALIDATION=pass",
         "PHASE12_VALIDATOR_SELF_TEST=pass",
+        RAW_GITHUB_COVERAGE_PATH,
         "Documentation/zigux/phase12-release-closure-checklist.md",
         "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
         "Documentation/zigux/phase12-nvme-pci-reopen-governance.md",
@@ -149,7 +181,40 @@ FIXTURE_OVERRIDES = {
     "zigux/tests/phase12_nvme_pci_survey.zig": "// phase12 nvme pci survey manifest keeps the bounded queue-and-recovery packet truthful\n// phase12 nvme pci survey note stays aligned with the bounded queue-and-recovery starter\n// phase12 nvme pci survey gate keeps present lane files explicit\n// Documentation/zigux/phase12-nvme-pci-survey.md\n// drivers/nvme/host/pci_verify.zig\n// zigux/tests/phase12_nvme_pci.zig\n",
     "scripts/zigux/check-build-only-phase12-surface.py": "#!/usr/bin/env python3\n",
     "scripts/zigux/check-phase12-release-readiness-packet.py": "#!/usr/bin/env python3\n",
+    "zigux/Makefile": "phase12-validate:\n\t@true\n",
+    ".github/workflows/zigux-bootstrap.yml": "name: zigux-bootstrap\n",
 }
+
+
+def git_blob_sha(path: Path) -> str:
+    data = path.read_bytes()
+    header = f"blob {len(data)}\0".encode("utf-8")
+    return hashlib.sha1(header + data).hexdigest()
+
+
+def runtime_evidence_line_fragment(root: Path) -> str:
+    checker_sha = git_blob_sha(root / "scripts/zigux/check-phase12-release-readiness-packet.py")
+    makefile_sha = git_blob_sha(root / "zigux/Makefile")
+    workflow_sha = git_blob_sha(root / ".github/workflows/zigux-bootstrap.yml")
+    return (
+        ": current `master` ships "
+        f"`scripts/zigux/check-phase12-release-readiness-packet.py` at blob `{checker_sha}`, "
+        f"`zigux/Makefile` at blob `{makefile_sha}`, "
+        f"and `.github/workflows/zigux-bootstrap.yml` at blob `{workflow_sha}`"
+        f"{RUNTIME_EVIDENCE_SUFFIX}"
+    )
+
+
+def has_exact_runtime_evidence_line(root: Path) -> bool:
+    expected_fragment = runtime_evidence_line_fragment(root)
+    lines = (root / RAW_GITHUB_COVERAGE_PATH).read_text(encoding="utf-8").splitlines()
+    matches = [
+        line
+        for line in lines
+        if line.startswith("- exact runtime-reality evidence checked on `")
+        and line.endswith(expected_fragment)
+    ]
+    return len(matches) == 1
 
 
 def collect_missing_files(root: Path) -> list[str]:
@@ -163,6 +228,8 @@ def collect_missing_markers(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
+    if not has_exact_runtime_evidence_line(root):
+        missing.append(RUNTIME_EVIDENCE_ERROR)
     return missing
 
 
@@ -182,13 +249,37 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     return [], [], collect_unexpected_files(root)
 
 
+def write_raw_github_coverage_fixture(root: Path) -> None:
+    survey_text = "\n".join(
+        [
+            "# Phase 12 Raw GitHub Coverage Survey",
+            "",
+            "- `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
+            "- `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`",
+            "- `scripts/zigux/validate-phase12.py`",
+            "- `scripts/zigux/check-phase12-release-readiness-packet.py`",
+            "- `zigux/Makefile`",
+            "- `.github/workflows/zigux-bootstrap.yml`",
+            "- `make -C zigux phase12-validate`",
+            f"- exact runtime-reality evidence checked on `2026-05-15`{runtime_evidence_line_fragment(root)}",
+            "",
+        ]
+    )
+    path = root / RAW_GITHUB_COVERAGE_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(survey_text, encoding="utf-8")
+
+
 def write_fixture_root(tmp_root: Path) -> None:
     fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
     fixture_text.update(FIXTURE_OVERRIDES)
     for rel in REQUIRED_FILES:
+        if rel == RAW_GITHUB_COVERAGE_PATH:
+            continue
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(fixture_text.get(rel, "// fixture\n"), encoding="utf-8")
+    write_raw_github_coverage_fixture(tmp_root)
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -202,7 +293,9 @@ def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers, unexpected_files = validate(tmp_root)
     assert missing_files == [], case
     assert unexpected_files == [], case
-    assert missing_markers == [marker], case
+    assert marker in missing_markers, case
+    extras = [item for item in missing_markers if item != marker]
+    assert extras in ([], [RUNTIME_EVIDENCE_ERROR]), case
 
 
 def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
@@ -213,11 +306,25 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
     path.write_text(updated, encoding="utf-8")
 
 
+def mutate_runtime_evidence_blob(tmp_root: Path) -> None:
+    path = tmp_root / RAW_GITHUB_COVERAGE_PATH
+    original = path.read_text(encoding="utf-8")
+    makefile_sha = git_blob_sha(tmp_root / "zigux/Makefile")
+    updated = original.replace(
+        f"`zigux/Makefile` at blob `{makefile_sha}`",
+        "`zigux/Makefile` at blob `0000000000000000000000000000000000000000`",
+        1,
+    )
+    assert updated != original, "missing_raw_github_runtime_evidence_blob"
+    path.write_text(updated, encoding="utf-8")
+
+
 def run_self_test() -> None:
     missing_file_cases = [
         ("missing_phase12_nvme_driver", "drivers/nvme/host/pci.zig"),
         ("missing_phase12_nvme_verify_shard", "drivers/nvme/host/pci_verify.zig"),
         ("missing_phase12_release_closure_checklist", "Documentation/zigux/phase12-release-closure-checklist.md"),
+        ("missing_phase12_raw_github_coverage_survey", RAW_GITHUB_COVERAGE_PATH),
         ("missing_phase12_nvme_survey_note", "Documentation/zigux/phase12-nvme-pci-survey.md"),
         ("missing_phase12_nvme_fallback_note", "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"),
         ("missing_phase12_nvme_reopen_governance", "Documentation/zigux/phase12-nvme-pci-reopen-governance.md"),
@@ -244,6 +351,13 @@ def run_self_test() -> None:
             "`Documentation/zigux/phase12-release-closure-checklist.md`",
             "`Documentation/zigux/phase12-release-closure-checklist-missing.md`",
             "Documentation/zigux/phase12-release-readiness-survey.md: `Documentation/zigux/phase12-release-closure-checklist.md`",
+        ),
+        (
+            "missing_raw_github_makefile_marker",
+            RAW_GITHUB_COVERAGE_PATH,
+            "- `zigux/Makefile`",
+            "- `zigux/Makefile-missing`",
+            f"{RAW_GITHUB_COVERAGE_PATH}: - `zigux/Makefile`",
         ),
         (
             "missing_phase12_build_repeated_rollback_source_marker",
@@ -302,6 +416,13 @@ def run_self_test() -> None:
             "scripts/zigux/validate-phase12.py: --self-test",
         ),
         (
+            "missing_validator_raw_github_coverage_marker",
+            "scripts/zigux/validate-phase12.py",
+            RAW_GITHUB_COVERAGE_PATH,
+            "Documentation/zigux/phase12-raw-github-coverage-survey-missing.md",
+            f"scripts/zigux/validate-phase12.py: {RAW_GITHUB_COVERAGE_PATH}",
+        ),
+        (
             "missing_validator_release_closure_checklist_marker",
             "scripts/zigux/validate-phase12.py",
             "Documentation/zigux/phase12-release-closure-checklist.md",
@@ -346,7 +467,15 @@ def run_self_test() -> None:
             expect_missing_marker(case, tmp_root, expected)
             write_fixture_root(tmp_root)
 
-    case_count = len(missing_file_cases) + len(marker_cases)
+        mutate_runtime_evidence_blob(tmp_root)
+        expect_missing_marker(
+            "missing_raw_github_runtime_evidence_blob",
+            tmp_root,
+            RUNTIME_EVIDENCE_ERROR,
+        )
+        write_fixture_root(tmp_root)
+
+    case_count = len(missing_file_cases) + len(marker_cases) + 1
     print("PHASE12_VALIDATOR_SELF_TEST=pass")
     print(f"PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
 
@@ -355,9 +484,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 shipped packet, the shared release-readiness "
-            "fallback note, the release-closure companion, the dedicated support checker, "
-            "and the bounded NVMe starter, verifier shard, direct replay, survey packet, "
-            "and manifest surfaces."
+            "fallback note, the raw-coverage companion, the release-closure companion, "
+            "the dedicated support checker, and the bounded NVMe starter, verifier shard, "
+            "direct replay, survey packet, and manifest surfaces."
         )
     )
     parser.add_argument(
