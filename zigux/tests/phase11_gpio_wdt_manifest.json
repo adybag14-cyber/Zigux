@@ -9,7 +9,7 @@
   ],
   "survey_summary": {
     "gpio_wdt_c_lines": 194,
-    "preexisting_phase11_test_files": 3,
+    "preexisting_phase11_test_files": 4,
     "preexisting_phase11_build_present": false,
     "preexisting_gpio_wdt_zig_present": true,
     "preexisting_gpio_wdt_test_present": true,
@@ -31,14 +31,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt_survey.zig",
-      "why_now": "The dedicated survey gate should now keep the visible starter, the visible main replay, the focused drvdata replays, and the still-visible notes aligned without pretending the missing shared Phase 11 build route is already back."
+      "why_now": "The dedicated survey gate should now keep the visible starter, the visible main replay, the focused timeout-property and drvdata replays, and the still-visible notes aligned without pretending the missing shared Phase 11 build route is already back."
     },
     {
       "id": "phase11-gpio-wdt-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-survey.md",
-      "why_now": "The survey note should now treat the visible `zigux/tests/phase11_gpio_wdt.zig` replay as current-master evidence while still keeping the missing shared build route and later live registration or hardware-backed work explicit."
+      "why_now": "The survey note should now treat the visible `zigux/tests/phase11_gpio_wdt.zig` replay plus the focused timeout-property replay as current-master evidence while still keeping the missing shared build route and later live registration or hardware-backed work explicit."
     },
     {
       "id": "phase11-gpio-wdt-driver-starter",
@@ -59,21 +59,21 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-module-slice.md",
-      "why_now": "The module-slice note should now name the visible starter and the directly coupled main replay together, while staying honest about the still-missing shared build route, live registration execution, and reboot-backed follow-through."
+      "why_now": "The module-slice note should now name the visible starter together with the visible main replay, the focused timeout-property replay, and the directly coupled drvdata replays while staying honest about the still-missing shared build route, live registration execution, and reboot-backed follow-through."
     },
     {
       "id": "phase11-gpio-wdt-teardown-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-teardown-note.md",
-      "why_now": "The teardown note should now treat the visible starter plus the visible `zigux/tests/phase11_gpio_wdt.zig` replay as code-backed teardown evidence, while keeping the missing shared build route and reboot-backed follow-through explicit."
+      "why_now": "The teardown note should now treat the visible starter plus the visible `zigux/tests/phase11_gpio_wdt.zig` replay and focused timeout-property replay as code-backed teardown evidence, while keeping the missing shared build route and reboot-backed follow-through explicit."
     },
     {
       "id": "phase11-gpio-wdt-validation-matrix",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
-      "why_now": "The validation matrix should now keep the visible starter, the visible main replay, and the still-missing shared build route separate so the archived gpio_wdt packet stays truthful on current master."
+      "why_now": "The validation matrix should now keep the visible starter, the visible main replay, the focused timeout-property replay, and the still-missing shared build route separate so the archived gpio_wdt packet stays truthful on current master."
     },
     {
       "id": "phase11-gpio-wdt-probe-summary-followup",
@@ -108,7 +108,14 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The visible starter keeps the required `hw_margin_ms` boundary explicit through `probeSummary()` and `platformDrvdataCheckpointSummary()`, even though there is still no dedicated timeout-only replay surface."
+      "why_now": "The visible starter keeps the required `hw_margin_ms` boundary explicit through `probeSummary()` and `platformDrvdataCheckpointSummary()`, and the focused `zigux/tests/phase11_gpio_wdt_timeout_property.zig` replay now keeps that timeout-property checkpoint directly reviewable."
+    },
+    {
+      "id": "phase11-gpio-wdt-timeout-property-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_gpio_wdt_timeout_property.zig",
+      "why_now": "The focused timeout-property replay now exercises the `hw_margin_ms` bookkeeping for both toggle and level modes without widening into live descriptor acquisition, watchdog-core registration, or the still-missing shared build route."
     },
     {
       "id": "phase11-gpio-wdt-platform-drvdata-checkpoint",
@@ -122,7 +129,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt_platform_drvdata.zig",
-      "why_now": "The focused `platform_set_drvdata()` replay remains directly visible on current master and now pairs with the visible starter, the visible main replay, and the dedicated survey gate to keep one early ordering checkpoint reviewable."
+      "why_now": "The focused `platform_set_drvdata()` replay remains directly visible on current master and now pairs with the visible starter, the visible main replay, the focused timeout-property replay, and the dedicated survey gate to keep one early ordering checkpoint reviewable."
     },
     {
       "id": "phase11-gpio-wdt-drvdata-checkpoint",
@@ -136,7 +143,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt_watchdog_drvdata.zig",
-      "why_now": "The focused `watchdog_set_drvdata()` replay is now directly visible on current master and pairs with the visible starter, the visible main replay, and the dedicated survey gate to keep that bounded ordering checkpoint reviewable."
+      "why_now": "The focused `watchdog_set_drvdata()` replay is now directly visible on current master and pairs with the visible starter, the visible main replay, the focused timeout-property replay, and the dedicated survey gate to keep that bounded ordering checkpoint reviewable."
     },
     {
       "id": "phase11-gpio-wdt-reboot-glue-checkpoint",
