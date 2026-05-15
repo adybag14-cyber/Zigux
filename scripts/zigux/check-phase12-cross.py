@@ -44,7 +44,7 @@ REQUIRED_BUILD_MARKERS = [
     "cross_step.dependOn(&phase12_virtio_scsi_repeated_rollback_tests.step);",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 9
+EXPECTED_SELF_TEST_CASE_COUNT = 11
 
 
 def load_fixture(path: Path) -> dict[str, object]:
@@ -205,6 +205,24 @@ def run_self_test() -> int:
         payload["lane_key"] = "P12-L99"
         write_text(root / "zigux/tests/fixtures/phase12_cross_targets.json", json.dumps(payload) + "\n")
         assert "fixture:lane_key:'P12-L99'" in validate_fixture(load_fixture(root / "zigux/tests/fixtures/phase12_cross_targets.json"))
+        checks_run += 1
+
+        build_self_test_tree(root)
+        payload = load_fixture(root / "zigux/tests/fixtures/phase12_cross_targets.json")
+        payload["build_file"] = "zigux/tests/phase12_cross_build_missing.zig"
+        write_text(root / "zigux/tests/fixtures/phase12_cross_targets.json", json.dumps(payload) + "\n")
+        assert "fixture:build_file:'zigux/tests/phase12_cross_build_missing.zig'" in validate_fixture(
+            load_fixture(root / "zigux/tests/fixtures/phase12_cross_targets.json")
+        )
+        checks_run += 1
+
+        build_self_test_tree(root)
+        payload = load_fixture(root / "zigux/tests/fixtures/phase12_cross_targets.json")
+        payload["build_step"] = "test"
+        write_text(root / "zigux/tests/fixtures/phase12_cross_targets.json", json.dumps(payload) + "\n")
+        assert "fixture:build_step:'test'" in validate_fixture(
+            load_fixture(root / "zigux/tests/fixtures/phase12_cross_targets.json")
+        )
         checks_run += 1
 
         build_self_test_tree(root)
