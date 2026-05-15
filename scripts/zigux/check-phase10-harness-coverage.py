@@ -127,6 +127,39 @@ TESTS_README_MARKERS = [
     "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
 ]
 
+REVIEW_CHECKLIST_MARKERS = [
+    "`Documentation/zigux/phase10-closure-evidence.md`",
+    "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+    "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+    "`Documentation/zigux/phase10-virtio-core-slice.md`",
+    "`Documentation/zigux/phase10-virtio-ring-slice.md`",
+    "`Documentation/zigux/phase10-virtio-input-slice.md`",
+    "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
+    "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
+    "`scripts/zigux/check-phase10-core-packet.py`",
+    "`scripts/zigux/check-phase10-ring-packet.py`",
+    "`scripts/zigux/check-phase10-input-packet.py`",
+    "`scripts/zigux/check-phase10-mmio-packet.py`",
+    "`scripts/zigux/check-phase10-mmio-freeze-boundary.py`",
+    "`scripts/zigux/check-phase10-harness-coverage.py`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`scripts/zigux/validate-phase10.py`",
+    "`scripts/zigux/validate-phase10-closure.py`",
+    "`zigux/tests/phase10_closure_manifest.json`",
+    "`drivers/virtio/virtio_ring.zig`",
+    "`drivers/virtio/virtio_ring_verify.zig`",
+    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+    "`drivers/virtio/virtio_input.zig`",
+    "`drivers/virtio/virtio_input_verify.zig`",
+    "`drivers/virtio/virtio_mmio.zig`",
+    "`drivers/virtio/virtio_mmio_verify.zig`",
+    "`zigux/tests/phase10_virtio_mmio.zig`",
+    "`zigux/tests/phase10_virtio_mmio_manifest.json`",
+    "`make -C zigux phase10-validate`",
+    "`make -C zigux phase10-test`",
+    "`make -C zigux phase10`",
+]
+
 CLOSURE_NOTE_MARKERS = [
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
@@ -170,6 +203,7 @@ CHECKS = [
     ),
     ("lane_note", "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", LANE_NOTE_MARKERS),
     ("input_survey", "Documentation/zigux/phase10-virtio-input-survey.md", INPUT_SURVEY_MARKERS),
+    ("review_checklist", "Documentation/zigux/review-checklist.md", REVIEW_CHECKLIST_MARKERS),
     ("doc_readme", "Documentation/zigux/README.md", DOC_README_MARKERS),
     ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
     ("make", "zigux/Makefile", MAKE_MARKERS),
@@ -201,7 +235,9 @@ FIXTURE_CONTENT = {
     + "\n",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_NOTE_MARKERS) + "\n",
     "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join(INPUT_SURVEY_MARKERS) + "\n",
-    "Documentation/zigux/review-checklist.md": "# Zigux Review Checklist\n\n",
+    "Documentation/zigux/review-checklist.md": "# Zigux Review Checklist\n\n"
+    + "\n".join(REVIEW_CHECKLIST_MARKERS)
+    + "\n",
     "Documentation/zigux/README.md": "\n".join(DOC_README_MARKERS) + "\n",
     "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
@@ -332,6 +368,23 @@ def run_self_test() -> int:
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
+
+        review_checklist_path = root / "Documentation/zigux/review-checklist.md"
+        original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "`scripts/zigux/check-phase10-mmio-freeze-boundary.py`",
+                "`scripts/zigux/check-phase10-mmio-freeze-boundary-missing.py`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_mmio_freeze_checker",
+            root,
+            "review_checklist:`scripts/zigux/check-phase10-mmio-freeze-boundary.py`",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
         doc_readme_path = root / "Documentation/zigux/README.md"
         original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
@@ -464,7 +517,7 @@ def run_self_test() -> int:
         expect_missing_file("checker_file", root, "scripts/zigux/check-phase10-tests-readme-core-surfaces.py")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
