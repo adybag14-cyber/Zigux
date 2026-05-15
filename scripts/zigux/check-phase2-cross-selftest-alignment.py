@@ -131,6 +131,14 @@ BOOTSTRAP_NOTES_MATRIX_BOUNDARY_SENTENCE = (
 
 BOOTSTRAP_NOTES_CROSS_WORKFLOW_BOUNDARY_SENTENCE = (
     "the dedicated `phase2-cross` workflow job currently reuses the same pinned installer "
+    "path and reaches the live toolchain preflight through `scripts/zigux/check-phase2-cross.py --target <matrix-zig-target>`, "
+    "whose target-mode path reruns `scripts/zigux/check-zig-toolchain.py --zig <resolved-zig>` before the cross-target Zig tests, "
+    "so bootstrap and cross-target verification now share the same pinned-toolchain gate even though the cross route still adds the "
+    "target replay packet on top of that preflight on current `master`"
+)
+
+BOOTSTRAP_NOTES_STALE_CROSS_WORKFLOW_BOUNDARY_SENTENCE = (
+    "the dedicated `phase2-cross` workflow job currently reuses the same pinned installer "
     "path but stops at installer-side archive verification plus `scripts/zigux/check-phase2-cross.py`, "
     "so the broader closure packet should treat bootstrap and cross-target verification as adjacent "
     "but not identical routes until a later bounded follow-up adds the live checker there too"
@@ -166,6 +174,7 @@ BOOTSTRAP_NOTES_MARKERS = [
 
 BOOTSTRAP_NOTES_FORBIDDEN_MARKERS = [
     "the direct kconfig and confdata Zig replays reviewable",
+    BOOTSTRAP_NOTES_STALE_CROSS_WORKFLOW_BOUNDARY_SENTENCE,
 ]
 
 DOCS_ROOT_README_MARKERS = [
@@ -712,10 +721,11 @@ def run_self_test() -> int:
         label="phase2_bootstrap_notes",
         markers=BOOTSTRAP_NOTES_FORBIDDEN_MARKERS,
     )
-    expected_forbidden_issue = (
-        "phase2_bootstrap_notes:forbidden_marker:the direct kconfig and confdata Zig replays reviewable"
-    )
-    if bootstrap_forbidden_failure != [expected_forbidden_issue]:
+    expected_forbidden_issues = [
+        "phase2_bootstrap_notes:forbidden_marker:the direct kconfig and confdata Zig replays reviewable",
+        f"phase2_bootstrap_notes:forbidden_marker:{BOOTSTRAP_NOTES_STALE_CROSS_WORKFLOW_BOUNDARY_SENTENCE}",
+    ]
+    if bootstrap_forbidden_failure != expected_forbidden_issues:
         raise SystemExit("phase2-cross-alignment:self-test:bootstrap_forbidden_failure")
     checks_run += 1
 
