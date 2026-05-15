@@ -36,6 +36,11 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-build-wiring.py",
         "make -C zigux phase7",
+        "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
+        "first-NUL trimming and prefix skipping stop at the exported C-string boundary",
+        "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
+        "append-limited escape accounting stays inside caller storage",
+        "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
     ],
     "Documentation/zigux/review-checklist.md": [
         "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
@@ -276,6 +281,19 @@ def run_self_test() -> None:
 
         remove_marker(
             tmp_root,
+            "Documentation/zigux/README.md",
+            "append-limited escape accounting stays inside caller storage",
+            "missing_docs_root_escape_accounting_marker",
+        )
+        expect_missing_marker(
+            "missing_docs_root_escape_accounting_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: append-limited escape accounting stays inside caller storage",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
             "The older string-helpers missing-pair reminder and the older missing-rbtree replay reminder are no longer the live blocker for this shared note",
             "missing_live_blocker_note",
@@ -482,7 +500,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=16")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=17")
 
 
 
