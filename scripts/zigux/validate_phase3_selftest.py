@@ -38,6 +38,7 @@ SELFTEST_COMMANDS = (
 SELFTEST_OUTPUT_MARKERS = {
     Path("scripts/zigux/validate-phase3.py"): (
         "PHASE3_VALIDATE_SELF_TEST=pass",
+        "PHASE3_VALIDATE_SELF_TEST_CASE_COUNT=71",
     ),
     Path("scripts/zigux/check-phase3-abi.py"): (
         "PHASE3_ABI_SELF_TEST=pass",
