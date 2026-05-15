@@ -34,6 +34,7 @@ REQUIRED_MARKERS = {
         "memparse() preserves suffix scaling, `simple_strtoull()`-style leading-plus rejection, stop-index reporting, and saturated oversized-prefix handling before any size-suffix shift is applied",
         "exact bare-option matching for comma-delimited flags stays reviewable through `parseOptionStr()`",
         "leading-whitespace handling keeps the Linux-style empty sentinel token",
+        "leading quoted tokens that contain `=` and still split at the first equals",
         "Treat any fresh shared `phase7_build.zig` replay claim as a cross-packet follow-through that should be backed by a new direct shared replay, not just by current-master readback.",
     ],
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
@@ -125,6 +126,7 @@ REQUIRED_MARKERS = {
         '"phase7-cmdline-survey-gate"',
     ],
     "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig": [
+        '.name = "leading quoted token with equals splits like Linux",',
         '.name = "leading equals sign stays in the parameter token",',
         '.name = "unterminated quoted value consumes the token tail",',
         '.name = "trailing spaces after key=value trim to empty rest",',
@@ -256,6 +258,12 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase7-cmdline-slice.md",
                 "exact bare-option matching for comma-delimited flags stays reviewable through `parseOptionStr()`",
                 "Documentation/zigux/phase7-cmdline-slice.md: exact bare-option matching for comma-delimited flags stays reviewable through `parseOptionStr()`",
+            ),
+            (
+                "slice_quoted_equals_marker",
+                "Documentation/zigux/phase7-cmdline-slice.md",
+                "leading quoted tokens that contain `=` and still split at the first equals",
+                "Documentation/zigux/phase7-cmdline-slice.md: leading quoted tokens that contain `=` and still split at the first equals",
             ),
             (
                 "helper_lane_checker_marker",
@@ -396,6 +404,12 @@ def run_self_test() -> None:
                 'zigux/tests/phase7_cmdline_manifest.json: "nextArg leading-whitespace sentinel token"',
             ),
             (
+                "fixture_quoted_equals_marker",
+                "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+                '.name = "leading quoted token with equals splits like Linux",',
+                'zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig: .name = "leading quoted token with equals splits like Linux",',
+            ),
+            (
                 "fixture_case_marker",
                 "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
                 '.name = "leading equals sign stays in the parameter token",',
@@ -417,7 +431,6 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Check that the Phase 7 cmdline helper packet stays aligned.")
     parser.add_argument("--self-test", action="store_true", help="Run checker self-tests without reading repo files.")
     args = parser.parse_args()
-
     if args.self_test:
         run_self_test()
         return 0
