@@ -818,3 +818,28 @@ test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace
     try std.testing.expectEqualStrings("hi", string.strim(&strim_cstr_buf));
     try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'h', 'i', 0, '\n', 0, 'x', 'y' }, &strim_cstr_buf);
 }
+
+test "phase 1 cmdline shared harness covers signed memparse edge cases" {
+    const negative = cmdline.memparse("-2Ktail");
+    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -2048))), negative.value);
+    try std.testing.expectEqualStrings("tail", negative.rest);
+
+    const positive = cmdline.memparse("+3Mmore");
+    try std.testing.expectEqual(@as(u64, 3 << 20), positive.value);
+    try std.testing.expectEqualStrings("more", positive.rest);
+
+    const negative_invalid = cmdline.memparse("-xyz");
+    try std.testing.expectEqual(@as(u64, 0), negative_invalid.value);
+    try std.testing.expectEqualStrings("-xyz", negative_invalid.rest);
+}
+
+test "phase 1 cmdline shared harness covers exact bare-option parsing" {
+    try std.testing.expect(cmdline.parseOptionStr("quiet,debug,nohlt", "debug"));
+    try std.testing.expect(cmdline.parseOptionStr("quiet,debug\x00,nohlt", "debug"));
+    try std.testing.expect(!cmdline.parseOptionStr("quiet,debug=1,nohlt", "debug"));
+    try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));
+    try std.testing.expect(cmdline.parseOptionStr(",debug", ""));
+    try std.testing.expect(cmdline.parseOptionStr("debug,,quiet", ""));
+    try std.testing.expect(!cmdline.parseOptionStr("debug,", ""));
+    try std.testing.expect(cmdline.parse_option_str("quiet,debug,nohlt", "quiet"));
+}
