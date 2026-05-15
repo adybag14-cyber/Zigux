@@ -113,9 +113,13 @@ REQUIRED_FIND_BIT_SOURCE_MARKERS = [
     'checksum +%= @intCast(find_bit.findFirstZeroBit(&tail_full, tail_nbits));',
     'checksum +%= @intCast(find_bit._find_first_zero_bit(&tail_full, tail_nbits));',
     'checksum +%= @intCast(find_bit.find_first_zero_bit(&tail_full, tail_nbits));',
+    'checksum +%= @intCast(find_bit.findNextZeroBit(&tail_full, tail_nbits, find_bit.bits_per_long));',
+    'checksum +%= @intCast(find_bit.find_next_zero_bit(&tail_full, tail_nbits, find_bit.bits_per_long));',
     'checksum +%= @intCast(find_bit.findFirstAndBit(&tail_set, &tail_set, tail_nbits));',
     'checksum +%= @intCast(find_bit._find_first_and_bit(&tail_set, &tail_set, tail_nbits));',
     'checksum +%= @intCast(find_bit.find_first_and_bit(&tail_set, &tail_set, tail_nbits));',
+    'checksum +%= @intCast(find_bit.findNextAndBit(&tail_set, &tail_set, tail_nbits, find_bit.bits_per_long + 4));',
+    'checksum +%= @intCast(find_bit.find_next_and_bit(&tail_set, &tail_set, tail_nbits, find_bit.bits_per_long + 4));',
     'checksum +%= @intCast(find_bit.findLastBit(&tail_set, tail_nbits));',
     'checksum +%= @intCast(find_bit._find_last_bit(&tail_set, tail_nbits));',
     'checksum +%= @intCast(find_bit.find_last_bit(&tail_set, tail_nbits));',
@@ -475,6 +479,38 @@ def run_self_test() -> None:
     ]))
     assert kind == 'missing_bitmap_source_markers'
     assert payload == ['bitmap.__bitmap_xor(&dst, &lhs, &rhs, nbits);']
+    cases += 1
+
+    kind, payload = validate_bench_source('\n'.join([
+        *REQUIRED_BITMAP_SOURCE_MARKERS,
+        *[marker for marker in REQUIRED_FIND_BIT_SOURCE_MARKERS if marker not in {
+            'checksum +%= @intCast(find_bit.findNextZeroBit(&tail_full, tail_nbits, find_bit.bits_per_long));',
+            'checksum +%= @intCast(find_bit.find_next_zero_bit(&tail_full, tail_nbits, find_bit.bits_per_long));',
+        }],
+        *REQUIRED_RBTREE_SOURCE_MARKERS,
+        *REQUIRED_STRING_SOURCE_MARKERS,
+    ]))
+    assert kind == 'missing_find_bit_source_markers'
+    assert payload == [
+        'checksum +%= @intCast(find_bit.findNextZeroBit(&tail_full, tail_nbits, find_bit.bits_per_long));',
+        'checksum +%= @intCast(find_bit.find_next_zero_bit(&tail_full, tail_nbits, find_bit.bits_per_long));',
+    ]
+    cases += 1
+
+    kind, payload = validate_bench_source('\n'.join([
+        *REQUIRED_BITMAP_SOURCE_MARKERS,
+        *[marker for marker in REQUIRED_FIND_BIT_SOURCE_MARKERS if marker not in {
+            'checksum +%= @intCast(find_bit.findNextAndBit(&tail_set, &tail_set, tail_nbits, find_bit.bits_per_long + 4));',
+            'checksum +%= @intCast(find_bit.find_next_and_bit(&tail_set, &tail_set, tail_nbits, find_bit.bits_per_long + 4));',
+        }],
+        *REQUIRED_RBTREE_SOURCE_MARKERS,
+        *REQUIRED_STRING_SOURCE_MARKERS,
+    ]))
+    assert kind == 'missing_find_bit_source_markers'
+    assert payload == [
+        'checksum +%= @intCast(find_bit.findNextAndBit(&tail_set, &tail_set, tail_nbits, find_bit.bits_per_long + 4));',
+        'checksum +%= @intCast(find_bit.find_next_and_bit(&tail_set, &tail_set, tail_nbits, find_bit.bits_per_long + 4));',
+    ]
     cases += 1
 
     kind, payload = validate_bench_source('\n'.join([
