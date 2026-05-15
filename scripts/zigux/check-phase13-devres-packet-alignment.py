@@ -22,6 +22,10 @@ EXPECTED_COMMIT = "master-readback-2026-05-14"
 EXPECTED_GAP_COUNT = 18
 EXPECTED_STARTER_COUNT = 11
 EXPECTED_BLOCKED_COUNT = 7
+EXPECTED_SUMMARY_FLAGS = {
+    "preexisting_phase13_devres_boundary_evidence_present": True,
+    "preexisting_phase13_devres_dma_coherent_present": True,
+}
 
 EXPECTED_GAPS = {
     "phase13-make-target": "starter_landed",
@@ -129,8 +133,8 @@ BOUNDARY_REPLAY_MARKERS = [
 ]
 
 DMA_REPLAY_MARKERS = [
-    'try requireContains(manifest, "\"id\": \"phase13-devres-live-dma-mappings\"");',
-    'try requireContains(manifest, "\"status\": \"blocked_on_live_dma_state\"");',
+    'try requireContains(manifest, "\\"id\\": \\"phase13-devres-live-dma-mappings\\"");',
+    'try requireContains(manifest, "\\"status\\": \\"blocked_on_live_dma_state\\"");',
     'try requireContains(manifest, "DMA mapping helpers");',
     'try requireContains(manifest, "`sg_table` lifecycle control");',
     'try requireContains(survey, "phase13-devres-live-dma-mappings");',
@@ -195,6 +199,15 @@ def validate(root: Path) -> list[str]:
     if manifest.get('surveyed_commit') != EXPECTED_COMMIT:
         errors.append(f"manifest:surveyed_commit_mismatch:{manifest.get('surveyed_commit')}")
 
+    summary = manifest.get('survey_summary')
+    if not isinstance(summary, dict):
+        errors.append('manifest:survey_summary_missing')
+        summary = {}
+    for key, expected in EXPECTED_SUMMARY_FLAGS.items():
+        actual = summary.get(key)
+        if actual != expected:
+            errors.append(f'manifest:survey_summary_mismatch:{key}:{actual}')
+
     gaps = manifest.get('gaps')
     if not isinstance(gaps, list):
         errors.append('manifest:gaps_missing')
@@ -228,6 +241,7 @@ def render_manifest_fixture() -> str:
     fixture = {
         'lane_key': EXPECTED_LANE,
         'surveyed_commit': EXPECTED_COMMIT,
+        'survey_summary': dict(EXPECTED_SUMMARY_FLAGS),
         'gaps': [
             {'id': gap_id, 'status': status}
             for gap_id, status in EXPECTED_GAPS.items()
@@ -258,6 +272,28 @@ def run_self_test() -> int:
         root = Path(temp_dir)
         seed_fixture_tree(root)
         assert_only(validate(root), [], 'baseline_failed')
+        case_count += 1
+
+        seed_fixture_tree(root)
+        manifest = json.loads(read_text(root / MANIFEST_PATH))
+        manifest['survey_summary']['preexisting_phase13_devres_boundary_evidence_present'] = False
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + '\n')
+        assert_only(
+            validate(root),
+            ['manifest:survey_summary_mismatch:preexisting_phase13_devres_boundary_evidence_present:False'],
+            'boundary_summary_flag_failed',
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        manifest = json.loads(read_text(root / MANIFEST_PATH))
+        manifest['survey_summary']['preexisting_phase13_devres_dma_coherent_present'] = False
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + '\n')
+        assert_only(
+            validate(root),
+            ['manifest:survey_summary_mismatch:preexisting_phase13_devres_dma_coherent_present:False'],
+            'dma_summary_flag_failed',
+        )
         case_count += 1
 
         seed_fixture_tree(root)
