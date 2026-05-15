@@ -33,6 +33,7 @@ RUNTIME_EVIDENCE_SUFFIX = (
 
 REQUIRED_FILES = [
     "drivers/net/virtio_net.zig",
+    "drivers/net/virtio_net_queue_resume.zig",
     "drivers/net/virtio_net_transmit_recycle.zig",
     "drivers/scsi/virtio_scsi.zig",
     "drivers/nvme/host/pci.zig",
@@ -49,6 +50,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase12-nvme-pci-slice.md",
     "Documentation/zigux/phase12-nvme-pci-survey.md",
     "zigux/tests/phase12_virtio_net.zig",
+    "zigux/tests/phase12_virtio_net_queue_resume.zig",
     "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
     "zigux/tests/phase12_virtio_net_syntax_lab.zig",
     "zigux/tests/phase12_virtio_net_survey.zig",
@@ -103,8 +105,11 @@ REQUIRED_MARKERS = {
         "shared-tree current-master survey companions",
     ],
     "Documentation/zigux/phase12-virtio-net-survey.md": [
-        "`PHASE12_STATUS=starter-present-transmit-recycle-followup`",
+        "`PHASE12_STATUS=starter-present-queue-resume-transmit-recycle-followup`",
         "`PHASE12_LANE=P12-L04`",
+        "current `master` now also carries `drivers/net/virtio_net_queue_resume.zig`",
+        "summarizeQueueResume()",
+        "current `master` now carries `zigux/tests/phase12_virtio_net_queue_resume.zig`",
         "current `master` now also carries `drivers/net/virtio_net_transmit_recycle.zig`",
         "summarizeTransmitRecycle()",
         "current `master` now carries `zigux/tests/phase12_virtio_net_transmit_recycle.zig`",
@@ -156,8 +161,14 @@ REQUIRED_MARKERS = {
         '"phase12_virtio_net_transmit_recycle.zig"',
         "phase12-virtio-net-transmit-recycle-tests",
         "run_virtio_net_transmit_recycle_tests.setCwd(b.path(\"../..\"));",
+        "../../drivers/net/virtio_net_queue_resume.zig",
+        '"phase12_virtio_net_queue_resume.zig"',
+        "phase12-virtio-net-queue-resume-tests",
+        "run_virtio_net_queue_resume_tests.setCwd(b.path(\"../..\"));",
         "smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
+        "smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
         "test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
+        "test_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
         "smoke_step.dependOn(&run_virtio_net_syntax_tests.step);",
         "test_step.dependOn(&run_virtio_net_contract_tests.step);",
         "../../drivers/scsi/virtio_scsi.zig",
@@ -190,14 +201,17 @@ REQUIRED_MARKERS = {
         "\"preexisting_virtio_net_zig_present\": true",
         "\"phase12-build-gate\"",
         "\"shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay\"",
+        "\"phase12-virtio-net-queue-resume-followup\"",
         "\"phase12-virtio-net-transmit-recycle-followup\"",
         "\"blocked_on_dma_transport_runtime\"",
     ],
     "zigux/tests/phase12_virtio_net_survey.zig": [
-        "phase12 virtio net survey manifest keeps the bounded transmit-recycle packet truthful",
-        "phase12 virtio net survey note stays aligned with the bounded transmit-recycle follow-up",
+        "phase12 virtio net survey manifest keeps the bounded transmit-recycle and queue-resume packet truthful",
+        "phase12 virtio net survey note stays aligned with the bounded queue-resume and transmit-recycle follow-up",
         "phase12 virtio net survey gate keeps present lane files explicit",
         "Documentation/zigux/phase12-virtio-net-survey.md",
+        "drivers/net/virtio_net_queue_resume.zig",
+        "zigux/tests/phase12_virtio_net_queue_resume.zig",
         "drivers/net/virtio_net_transmit_recycle.zig",
         "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
     ],
@@ -246,6 +260,8 @@ REQUIRED_MARKERS = {
         RAW_GITHUB_COVERAGE_PATH,
         VIRTIO_SCSI_FALLBACK_PATH,
         "Documentation/zigux/phase12-virtio-net-survey.md",
+        "drivers/net/virtio_net_queue_resume.zig",
+        "zigux/tests/phase12_virtio_net_queue_resume.zig",
         "drivers/net/virtio_net_transmit_recycle.zig",
         "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
         "zigux/tests/phase12_virtio_net_manifest.json",
@@ -269,6 +285,7 @@ REQUIRED_MARKERS = {
 
 FIXTURE_OVERRIDES = {
     "drivers/net/virtio_net.zig": "// fixture\n",
+    "drivers/net/virtio_net_queue_resume.zig": "// fixture\n",
     "drivers/net/virtio_net_transmit_recycle.zig": "// fixture\n",
     "drivers/scsi/virtio_scsi.zig": "// fixture\n",
     "drivers/nvme/host/pci.zig": "// fixture\n",
@@ -295,13 +312,14 @@ FIXTURE_OVERRIDES = {
     )
     + "\n",
     "zigux/tests/phase12_virtio_net.zig": "// fixture\n",
+    "zigux/tests/phase12_virtio_net_queue_resume.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_net_transmit_recycle.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_net_syntax_lab.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_net_survey.zig": "\n".join(
         f"// {marker}" for marker in REQUIRED_MARKERS["zigux/tests/phase12_virtio_net_survey.zig"]
     )
     + "\n",
-    "zigux/tests/phase12_virtio_net_manifest.json": "{\n  \"lane_key\": \"P12-L04\",\n  \"phase\": \"Phase 12\",\n  \"anchor\": \"drivers/net/virtio_net.c\",\n  \"survey_summary\": {\n    \"preexisting_phase12_build_present\": true,\n    \"preexisting_phase12_survey_note_present\": true,\n    \"preexisting_virtio_net_zig_present\": true\n  },\n  \"gaps\": [\n    {\n      \"id\": \"phase12-build-gate\",\n      \"status\": \"shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay\"\n    },\n    {\n      \"id\": \"phase12-virtio-net-transmit-recycle-followup\",\n      \"status\": \"landed_on_master\"\n    },\n    {\n      \"id\": \"phase12-virtio-net-runtime-data-path\",\n      \"status\": \"blocked_on_dma_transport_runtime\"\n    }\n  ]\n}\n",
+    "zigux/tests/phase12_virtio_net_manifest.json": "{\n  \"lane_key\": \"P12-L04\",\n  \"phase\": \"Phase 12\",\n  \"anchor\": \"drivers/net/virtio_net.c\",\n  \"survey_summary\": {\n    \"preexisting_phase12_build_present\": true,\n    \"preexisting_phase12_survey_note_present\": true,\n    \"preexisting_virtio_net_zig_present\": true\n  },\n  \"gaps\": [\n    {\n      \"id\": \"phase12-build-gate\",\n      \"status\": \"shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay\"\n    },\n    {\n      \"id\": \"phase12-virtio-net-queue-resume-followup\",\n      \"status\": \"landed_on_master\"\n    },\n    {\n      \"id\": \"phase12-virtio-net-transmit-recycle-followup\",\n      \"status\": \"landed_on_master\"\n    },\n    {\n      \"id\": \"phase12-virtio-net-runtime-data-path\",\n      \"status\": \"blocked_on_dma_transport_runtime\"\n    }\n  ]\n}\n",
     "zigux/tests/phase12_virtio_scsi.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_syntax_lab.zig": "// fixture\n",
     "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig": "// fixture\n",
@@ -410,12 +428,15 @@ def write_raw_github_coverage_fixture(root: Path) -> None:
 def write_fixture_root(tmp_root: Path) -> None:
     fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
     fixture_text.update(FIXTURE_OVERRIDES)
-    for rel in REQUIRED_FILES:
-        if rel == RAW_GITHUB_COVERAGE_PATH:
-            continue
+    for rel, text in fixture_text.items():
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(fixture_text.get(rel, "// fixture\n"), encoding="utf-8")
+        path.write_text(text, encoding="utf-8")
+    for rel in REQUIRED_FILES:
+        if rel not in fixture_text:
+            path = tmp_root / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(fixture_text.get(rel, "// fixture\n"), encoding="utf-8")
     write_raw_github_coverage_fixture(tmp_root)
 
 
@@ -458,6 +479,8 @@ def mutate_runtime_evidence_blob(tmp_root: Path) -> None:
 
 def run_self_test() -> None:
     missing_file_cases = [
+        ("missing_phase12_virtio_net_queue_resume_driver", "drivers/net/virtio_net_queue_resume.zig"),
+        ("missing_phase12_virtio_net_queue_resume_test", "zigux/tests/phase12_virtio_net_queue_resume.zig"),
         ("missing_phase12_virtio_net_transmit_recycle_driver", "drivers/net/virtio_net_transmit_recycle.zig"),
         ("missing_phase12_virtio_net_transmit_recycle_test", "zigux/tests/phase12_virtio_net_transmit_recycle.zig"),
         ("missing_phase12_nvme_driver", "drivers/nvme/host/pci.zig"),
@@ -544,9 +567,9 @@ def run_self_test() -> None:
         (
             "missing_virtio_net_survey_status_marker",
             "Documentation/zigux/phase12-virtio-net-survey.md",
-            "`PHASE12_STATUS=starter-present-transmit-recycle-followup`",
+            "`PHASE12_STATUS=starter-present-queue-resume-transmit-recycle-followup`",
             "`PHASE12_STATUS=starter-present-missing`",
-            "Documentation/zigux/phase12-virtio-net-survey.md: `PHASE12_STATUS=starter-present-transmit-recycle-followup`",
+            "Documentation/zigux/phase12-virtio-net-survey.md: `PHASE12_STATUS=starter-present-queue-resume-transmit-recycle-followup`",
         ),
         (
             "missing_virtio_net_manifest_lane_key_marker",
@@ -561,6 +584,13 @@ def run_self_test() -> None:
             "\"shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay\"",
             "\"shared_build_present_with_direct_virtio_net_syntax_lab_only\"",
             "zigux/tests/phase12_virtio_net_manifest.json: \"shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay\"",
+        ),
+        (
+            "missing_virtio_net_manifest_queue_resume_gap_marker",
+            "zigux/tests/phase12_virtio_net_manifest.json",
+            "\"phase12-virtio-net-queue-resume-followup\"",
+            "\"phase12-virtio-net-queue-resume-missing\"",
+            "zigux/tests/phase12_virtio_net_manifest.json: \"phase12-virtio-net-queue-resume-followup\"",
         ),
         (
             "missing_virtio_net_manifest_transmit_recycle_gap_marker",
@@ -841,7 +871,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 shipped packet, the shared release-readiness "
-            "fallback note, the bounded virtio_net starter-plus-transmit-recycle survey "
+            "fallback note, the bounded virtio_net starter-plus-queue-resume-and-transmit-recycle survey "
             "packet, the virtio_scsi survey packet, the raw-coverage companion, the "
             "release-closure companion, the dedicated support checkers, and the bounded "
             "NVMe starter, verifier shard, direct replay, survey packet, and manifest surfaces."
