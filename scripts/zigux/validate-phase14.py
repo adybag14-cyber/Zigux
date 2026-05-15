@@ -270,6 +270,19 @@ REQUIRED_SURVEY_SUMMARY_KEYS = [
     "freeze_map_lists_ring_buffer_c",
     "freeze_map_lists_tree_c",
 ]
+TRACEABILITY_SECTION_MARKERS = [
+    "## Roadmap posture",
+    "## Current repo evidence",
+    "## Shared replay contract",
+    "## Shared productization posture",
+    "Shared-lane runs should treat older packet-local owner labels as packet-local cleanup work only",
+]
+TRACEABILITY_OWNER_ROUTE_FRAGMENTS = {
+    "kernel/workqueue.c": "workqueue routes through `{lane_key}`",
+    "net/core/skbuff.c": "skbuff routes through `{lane_key}`",
+    "kernel/trace/ring_buffer.c": "ring buffer routes through `{lane_key}`",
+    "kernel/rcu/tree.c": "RCU currently routes through manifest-backed `{lane_key}` owner",
+}
 
 def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
@@ -328,6 +341,33 @@ def format_anchor_packet_survey_line(packet: dict[str, object]) -> str:
         f"- {label}: `{manifest_path}`, lane `{packet_lane_key}`, surveyed commit `{packet_commit}`, "
         f"ready-next `{ready_next_text}`, blocked `{blocked_gap}`"
     )
+
+def format_traceability_metadata_lines(packet: dict[str, object]) -> list[tuple[str, str]]:
+    manifest_path = packet.get("manifest_path")
+    survey_note_path = packet.get("survey_note_path")
+    packet_lane_key = packet.get("lane_key")
+    packet_commit = packet.get("surveyed_commit")
+    ready_next_gap = packet.get("ready_next_gap")
+    blocked_gap = packet.get("blocked_gap")
+    ready_next_line = "- ready-next gap: none currently recorded"
+    if ready_next_gap:
+        ready_next_line = f"- ready-next gap: `{ready_next_gap}`"
+    return [
+        ("manifest", f"- manifest: `{manifest_path}`"),
+        ("survey_note", f"- survey note: `{survey_note_path}`"),
+        ("lane_key", f"- lane key: `{packet_lane_key}`"),
+        ("surveyed_commit", f"- surveyed commit: `{packet_commit}`"),
+        ("ready_next_gap", ready_next_line),
+        ("blocked_gap", f"- blocked gap: `{blocked_gap}`"),
+    ]
+
+def format_traceability_owner_route_fragment(packet: dict[str, object]) -> str:
+    anchor = packet.get("anchor")
+    packet_lane_key = packet.get("lane_key")
+    template = TRACEABILITY_OWNER_ROUTE_FRAGMENTS.get(anchor)
+    if template is None:
+        return ""
+    return template.format(lane_key=packet_lane_key)
 
 def run_python_checker(
     root: Path,
@@ -433,6 +473,43 @@ def run_self_test() -> int:
             print(f"SELF_TEST_CHECKER_RETURN_CODE={returncode}")
             print(f"SELF_TEST_CHECKER_OUTPUT={output}")
             return 1
+
+    traceability_packet = {
+        "anchor": "kernel/workqueue.c",
+        "manifest_path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
+        "survey_note_path": "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+        "lane_key": "P14-L04",
+        "surveyed_commit": "9b98d3b9c812840bf279508030be0b8de093736c",
+        "ready_next_gap": "",
+        "blocked_gap": "phase14-workqueue-live-execution-blocker",
+    }
+    traceability_lines = dict(format_traceability_metadata_lines(traceability_packet))
+    if traceability_lines["ready_next_gap"] != "- ready-next gap: none currently recorded":
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_traceability_ready_next_none_line")
+        return 1
+    traceability_packet["ready_next_gap"] = "phase14-demo-ready-next"
+    traceability_lines = dict(format_traceability_metadata_lines(traceability_packet))
+    if traceability_lines["ready_next_gap"] != "- ready-next gap: `phase14-demo-ready-next`":
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_traceability_ready_next_marker_line")
+        return 1
+    if (
+        format_traceability_owner_route_fragment(traceability_packet)
+        != "workqueue routes through `P14-L04`"
+    ):
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_traceability_workqueue_owner_fragment")
+        return 1
+    traceability_packet["anchor"] = "kernel/rcu/tree.c"
+    traceability_packet["lane_key"] = "P14-L16"
+    if (
+        format_traceability_owner_route_fragment(traceability_packet)
+        != "RCU currently routes through manifest-backed `P14-L16` owner"
+    ):
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_traceability_rcu_owner_fragment")
+        return 1
 
     missing_reviewability_build = "\n".join(
         [f'.name = "{name}"' for name in EXPECTED_BUILD_TEST_NAMES]
@@ -743,6 +820,10 @@ def run_self_test() -> int:
     print("PHASE14_SELF_TEST_TESTS_README_CHECKER_PASS_MARKER=phase14 tests-readme smoke summary validated")
     print("PHASE14_SELF_TEST_TESTS_README_CHECKER_ARG_MARKER=--self-test")
     print("PHASE14_SELF_TEST_TESTS_README_CHECKER_FAIL_MARKER=phase14 tests-readme smoke summary failed")
+    print("PHASE14_SELF_TEST_TRACEABILITY_READY_NEXT_NONE_MARKER=- ready-next gap: none currently recorded")
+    print("PHASE14_SELF_TEST_TRACEABILITY_READY_NEXT_ROUTE_MARKER=- ready-next gap: `phase14-demo-ready-next`")
+    print("PHASE14_SELF_TEST_TRACEABILITY_WORKQUEUE_OWNER_MARKER=workqueue routes through `P14-L04`")
+    print("PHASE14_SELF_TEST_TRACEABILITY_RCU_OWNER_MARKER=RCU currently routes through manifest-backed `P14-L16` owner")
     print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     print("PHASE14_SELF_TEST_MISSING_SCRIPTS_README_SMOKE_ROUTE_MARKER=`make -C zigux phase14-smoke`")
     print("PHASE14_SELF_TEST_MISSING_RELEASE_TESTS_README_CHECKER_MARKER=scripts/zigux/check-phase14-tests-readme-smoke-summary.py")
@@ -805,6 +886,7 @@ def run_validation() -> int:
 
     survey_text = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
     release_boundary_text = text("Documentation/zigux/phase14-release-boundary-survey.md")
+    traceability_text = text("Documentation/zigux/phase14-core-boundary-traceability.md")
     skbuff_survey_text = text("Documentation/zigux/phase14-skbuff-bridge-survey.md")
     missing: list[str] = []
     json_decode_errors: list[str] = []
@@ -816,6 +898,7 @@ def run_validation() -> int:
         ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
         ("survey", survey_text, RELEASE_MARKERS),
         ("release_boundary", release_boundary_text, RELEASE_BOUNDARY_MARKERS),
+        ("traceability", traceability_text, TRACEABILITY_SECTION_MARKERS),
         ("skbuff_survey", skbuff_survey_text, SKBUFF_SURVEY_MARKERS),
         ("checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
         ("build", text("zigux/tests/phase14_build.zig"), BUILD_MARKERS),
@@ -874,6 +957,8 @@ def run_validation() -> int:
 
         anchor_packets = manifest.get("anchor_packets")
         expected_survey_anchor_lines: list[tuple[str, str]] = []
+        expected_traceability_fields: list[tuple[str, str, str]] = []
+        expected_traceability_owner_routes: list[tuple[str, str]] = []
         if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
             missing.append("manifest:anchor_packets")
         else:
@@ -971,10 +1056,25 @@ def run_validation() -> int:
                 expected_survey_anchor_lines.append(
                     (packet_lane_key, format_anchor_packet_survey_line(packet))
                 )
+                for field_name, traceability_line in format_traceability_metadata_lines(packet):
+                    expected_traceability_fields.append(
+                        (packet_lane_key, field_name, traceability_line)
+                    )
+                owner_route_fragment = format_traceability_owner_route_fragment(packet)
+                if owner_route_fragment:
+                    expected_traceability_owner_routes.append(
+                        (packet_lane_key, owner_route_fragment)
+                    )
 
         for packet_lane_key, survey_line in expected_survey_anchor_lines:
             if survey_line not in survey_text:
                 missing.append(f"survey:anchor_packet:{packet_lane_key}")
+        for packet_lane_key, field_name, traceability_line in expected_traceability_fields:
+            if traceability_line not in traceability_text:
+                missing.append(f"traceability:{packet_lane_key}:{field_name}")
+        for packet_lane_key, owner_route_fragment in expected_traceability_owner_routes:
+            if owner_route_fragment not in traceability_text:
+                missing.append(f"traceability:{packet_lane_key}:owner_route")
 
         smoke_commands = manifest.get("smoke_commands")
         expected_smoke_commands = [
@@ -1039,7 +1139,7 @@ def run_validation() -> int:
     print(f"PHASE14_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE14_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_LINES) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(TESTS_README_EXACT_LINES) + 1 + len(RELEASE_MARKERS) + len(RELEASE_BOUNDARY_MARKERS) + len(SKBUFF_SURVEY_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_LINES) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(TESTS_README_EXACT_LINES) + 1 + len(RELEASE_MARKERS) + len(RELEASE_BOUNDARY_MARKERS) + len(TRACEABILITY_SECTION_MARKERS) + len(SKBUFF_SURVEY_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
     )
     print(f"PHASE14_BUILD_TEST_COUNT={len(build_names)}")
     print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
