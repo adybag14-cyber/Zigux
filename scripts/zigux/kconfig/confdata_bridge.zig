@@ -613,13 +613,26 @@ test "confdata bridge ignores malformed quoted values like upstream confdata" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
         allocator,
-        "CONFIG_BROKEN=\"unterminated\n",
+        "CONFIG_ALPHA=y\n" ++
+            "CONFIG_BROKEN=\"unterminated\n" ++
+            "CONFIG_BROKEN=7\n" ++
+            "# CONFIG_DEBUG is not set\n" ++
+            "CONFIG_GAMMA=\"still-broken\n",
     );
     defer deinitSummary(allocator, &summary);
 
-    try std.testing.expectEqual(@as(usize, 0), summary.set_count);
-    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
-    try std.testing.expectEqual(@as(usize, 0), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("y", summary.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_BROKEN", summary.entries[1].name);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("7", summary.entries[1].value);
+    try std.testing.expectEqualStrings("CONFIG_DEBUG", summary.entries[2].name);
+    try std.testing.expectEqual(EntryKind.unset, summary.entries[2].kind);
+    try std.testing.expectEqualStrings("n", summary.entries[2].value);
 }
 
 test "confdata bridge emits no entries for empty CONFIG symbol names" {
