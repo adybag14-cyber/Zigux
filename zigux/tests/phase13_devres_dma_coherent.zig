@@ -40,6 +40,8 @@ test "phase13 devres coherent-dma shard stays visible beside the current mmio su
     try requireContains(manifest, "actual region acquisition side effects");
     try requireContains(manifest, "real `release_mem_region()`");
     try requireContains(manifest, "helper-only DMA/scatterlist boundary");
+    try requireContains(manifest, "DMA mapping helpers");
+    try requireContains(manifest, "`sg_table` lifecycle control");
     try requireContains(manifest, "devm_arch_phys_wc_add()");
 }
 
@@ -66,6 +68,9 @@ test "phase13 devres coherent-dma survey keeps the adjacent dma shard visible wi
     try requireContains(survey, "zigux/tests/phase13_devres_dma_coherent.zig");
     try requireContains(survey, "adjacent coherent-DMA evidence shard");
     try requireContains(survey, "helper-only DMA/scatterlist boundary");
+    try requireContains(survey, "no DMA mapping helpers");
+    try requireContains(survey, "live DMA-backed helpers or DMA mapping ownership");
+    try requireContains(survey, "no `sg_table` lifecycle control");
     try requireContains(survey, "live MMIO mappings");
     try requireContains(survey, "live device-tree walking");
     try requireContains(survey, "live arch memtype state transitions");
