@@ -237,6 +237,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(cmdline_tests, "const single_rest = cmdline.getOptions(\"1-1\", single.len, &single);");
     try expectContains(cmdline_tests, "const single_validate_rest = cmdline.getOptions(\"1-1\", 0, &single_validate);");
     try expectContains(cmdline_tests, "phase 7 parseOptionStr matches only exact bare options");
+    try expectContains(cmdline_tests, "try std.testing.expect(!cmdline.parseOptionStr(\"\", \"\"));");
     try expectContains(cmdline_tests, "phase 7 nextArg matches serialized edge fixtures");
     try expectContains(cmdline_tests, "for (next_arg_vectors.next_arg_cases) |fixture| {");
     try expectContains(cmdline_tests, "cmdline.nextArg");
@@ -262,6 +263,10 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(
         helper_impl,
         "test \"nextArg returns an empty sentinel token before leading whitespace and trims the following rest\"",
+    );
+    try expectContains(
+        helper_impl,
+        "try std.testing.expect(!parseOptionStr(\"\", \"\"));",
     );
 
     const next_arg_fixture = try readRepoFile(
