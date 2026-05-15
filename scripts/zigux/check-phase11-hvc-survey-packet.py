@@ -223,7 +223,10 @@ VERIFY_HELPER_MARKERS = [
     'test "hvc_console verify keeps combined cleanup trigger explicit" {',
     "try std.testing.expectEqual(CleanupTrigger.final_close_and_hangup, summary.trigger);",
     'test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces" {',
+    'test "hvc_console verify keeps targetless unregister requests sanitized" {',
+    'test "hvc_console verify keeps targeted unregister requests explicit" {',
     'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks" {',
+    'test "hvc_console verify keeps targetless literal fallback aligned with sanitized notifier state" {',
     'test "hvc_console verify keeps non-kernel sysrq literal fallback from implying notifier callbacks" {',
 ]
 
@@ -504,7 +507,10 @@ def run_self_test() -> None:
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[2]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[3]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[4]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[6]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[7]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[9]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[10]),
             (REQUIRED_FILES["survey_note"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["survey_note"], "khvcd sleep-and-reschedule handoff summary"),
             (REQUIRED_FILES["survey_note"], "`__hvc_poll` drain-order summary"),
