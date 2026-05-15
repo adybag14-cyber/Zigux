@@ -34,6 +34,7 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 - closure note: `Documentation/zigux/phase2-closure.md`
 - workflow install path: `python3 scripts/zigux/install-zig.py --dest .zig-toolchain`
 - workflow verification path: `python3 scripts/zigux/check-zig-toolchain.py`
+- the workflow verification path and Linux-style `make -C zigux phase2-toolchain` route now rely on `scripts/zigux/check-zig-toolchain.py` to exact-check the pinned `0.17.0-dev.87+9b177a7d2` channel and verify the cached `x86_64-linux` bootstrap archive sha256 when the repo-local `.zig-toolchain/archives/` copy is present, so the archive pin stays enforced by the live toolchain gate instead of living only in policy text
 - current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`
 - current minimum Zig version: `0.17.0-dev.87+9b177a7d2`
 - current pinned bootstrap archive target: `x86_64-linux`
