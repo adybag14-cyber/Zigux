@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - `PHASE8_STATUS=parked_helper_slice`
 - `PHASE8_SLICE=libbpf-perf-buffer-poll`
 - current packet posture: this landed helper-local slice stays explicit for reminder-surface truthfulness and focused replay reference only while the broader Phase 8 libbpf lane remains parked below routing expansion
-- scope: observed wait-result normalization, ordered ready-buffer cursor traversal, ready-buffer bookkeeping, bounded buffer-fd lookup and errno shaping, bounded buffer-window lookup and mapped-size passthrough, and ordered record-processing summaries only
+- scope: observed wait-result normalization, ordered ready-buffer cursor traversal, ready-buffer bookkeeping, helper-counted ready-buffer budget checks, bounded buffer-fd lookup and errno shaping, bounded buffer-window lookup and mapped-size passthrough, and ordered record-processing summaries only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
@@ -54,6 +54,7 @@ The current bounded helper covers:
 - explicit `perf_buffer__buffer(buf_idx, &buf, &buf_size)` slot lookup classification
 - mapped-size passthrough for present buffer windows
 - return shaping for valid buffer windows, invalid indices, and missing buffer windows
+- ready-buffer processing attempts cannot exceed the helper-counted ready buffers
 - ready-buffer processing attempts cannot exceed observed ready events
 - non-ready wait observations cannot claim record processing
 - reject impossible post-wait buffer state combinations
@@ -68,7 +69,8 @@ The current tests check:
 - return-path helpers that preserve the successful ready count until the first processing failure wins instead
 - buffer-fd slot lookups and errno-shaped invalid-index or missing-fd returns
 - buffer-window slot lookups and mapped-size passthrough plus errno-shaped invalid-index or missing-window returns
-- impossible processing paths that overrun the observed ready-event budget
+- helper-local ready-buffer processing attempts cannot exceed the helper-counted ready buffers
+- helper-local ready-buffer processing attempts cannot exceed observed ready events
 - impossible post-wait buffer state combinations that must stay rejected
 
 ## Non-goals
@@ -83,4 +85,4 @@ This slice does not yet claim:
 - broader perf-buffer-online-cpu-routing parity
 
 ## Next bounded step
-Keep this slice parked unless a fresh helper-local truthfulness, gate, or replay-surface drift appears against the landed wait-result, cursor, buffer-fd, or buffer-window packet. If it reopens, keep follow-up smaller than full routing, epoll, timer, clockevent, object-model, or ring-lifecycle work.
+Keep this slice parked unless a fresh helper-local truthfulness, gate, or replay-surface drift appears against the landed wait-result, ready-count, cursor, buffer-fd, or buffer-window packet. If it reopens, keep follow-up smaller than full routing, epoll, timer, clockevent, object-model, or ring-lifecycle work.
