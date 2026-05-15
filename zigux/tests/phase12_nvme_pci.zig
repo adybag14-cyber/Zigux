@@ -54,6 +54,52 @@ test "phase12 nvme pci recovery restore summary keeps admin-first replay and DMA
     try std.testing.expectError(error.ResetNotFrozen, lab.recoveryQueueRestoreSummary());
 }
 
+test "phase12 nvme pci queue restart summary keeps post-reset numbering reviewable" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    const idle = lab.queueRestartSummary();
+    try std.testing.expectEqual(nvme_pci.QueueRestartBlocker.no_recovery_window, idle.restart_blocker);
+    try std.testing.expectEqual(@as(usize, 0), idle.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), idle.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), idle.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u16, 3), idle.next_io_queue_id);
+    try std.testing.expectEqual(@as(u16, 1), idle.expected_next_io_queue_id);
+    try std.testing.expect(!idle.queue_numbering_restarted);
+
+    _ = lab.beginReset();
+    const frozen = lab.queueRestartSummary();
+    try std.testing.expectEqual(nvme_pci.QueueRestartBlocker.reset_frozen, frozen.restart_blocker);
+    try std.testing.expectEqual(@as(usize, 2), frozen.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), frozen.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), frozen.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u16, 3), frozen.next_io_queue_id);
+    try std.testing.expectEqual(@as(u16, 1), frozen.expected_next_io_queue_id);
+    try std.testing.expect(!frozen.queue_numbering_restarted);
+
+    _ = lab.completeReset();
+    const restarted = lab.queueRestartSummary();
+    try std.testing.expectEqual(nvme_pci.QueueRestartBlocker.none, restarted.restart_blocker);
+    try std.testing.expectEqual(@as(usize, 2), restarted.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), restarted.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), restarted.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u16, 1), restarted.next_io_queue_id);
+    try std.testing.expectEqual(@as(u16, 1), restarted.expected_next_io_queue_id);
+    try std.testing.expect(restarted.queue_numbering_restarted);
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    const partial = lab.queueRestartSummary();
+    try std.testing.expectEqual(nvme_pci.QueueRestartBlocker.none, partial.restart_blocker);
+    try std.testing.expectEqual(@as(usize, 1), partial.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 1), partial.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u16, 2), partial.next_io_queue_id);
+    try std.testing.expectEqual(@as(u16, 2), partial.expected_next_io_queue_id);
+    try std.testing.expect(partial.queue_numbering_restarted);
+}
+
 test "phase12 nvme pci dropped backlog retirement stays blocked until recovery plans are rebuilt" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     const descriptor = nvme_pci.NvmePciQueueLab.descriptor();
