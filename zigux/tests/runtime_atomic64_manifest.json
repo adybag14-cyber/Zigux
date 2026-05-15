@@ -124,7 +124,7 @@
       "surface": "zigux/tests/phase9_build.zig",
       "role": "shared_build_bundle",
       "owner": "P9-L11",
-      "boundary": "Remains the shared Phase 9 build boundary while directly enumerating only the atomic64-local `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-diff-tests`, `phase9-runtime-atomic64-loader-tests`, and shared `phase9-runtime-loader-shared-tests` routes that this manifest catalogs; the broader loader packet stays outside this family-local ownership surface."
+      "boundary": "Remains the shared Phase 9 build boundary while directly enumerating only the atomic64-local `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-diff-tests`, `phase9-runtime-atomic64-loader-tests`, `phase9-runtime-atomic64-survey-tests`, and shared `phase9-runtime-loader-shared-tests` routes that this manifest catalogs; the broader loader packet stays outside this family-local ownership surface."
     }
   ],
   "gaps": [
