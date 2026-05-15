@@ -184,9 +184,36 @@ DRIVER_STARTER_MARKERS = [
     "pub fn summarizeKhvcdPollingContract",
     "pub const KhvcdWorkerEntryRequest = struct {",
     "pub fn summarizeKhvcdWorkerEntry",
+    "pub const KhvcdSleepRequest = struct {",
+    "pub fn summarizeKhvcdSleepHandoff",
+    "pub const PollDrainOrderRequest = struct {",
+    "pub fn summarizePollDrainOrder",
+    "pub const HangupDisconnectRequest = struct {",
+    "pub fn summarizeHangupDisconnect",
+    "pub const RemoveHandoffRequest = struct {",
+    "pub fn summarizeRemoveHandoff",
     "pub const CleanupHandoffRequest = struct {",
     "pub fn summarizeCleanupHandoff",
+    "pub const TargetlessNotifierEdgeRequest = struct {",
+    "pub fn summarizeTargetlessNotifierEdge",
+    "pub const KickWakeupCueRequest = struct {",
+    "pub fn summarizeKickWakeupCue",
     "pub fn hvc_kick() void {}",
+    "pub fn notifier_add_irq(hp: *HvcStruct, irq: c_int) c_int {",
+    "pub fn notifier_del_irq(hp: *HvcStruct, irq: c_int) void {",
+    "pub fn notifier_hangup_irq(hp: *HvcStruct, irq: c_int) void {",
+]
+
+DRIVER_STARTER_TEST_MARKERS = [
+    'test "phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable" {',
+    'test "phase11 hvc console keeps __hvc_poll drain-order summary reviewable" {',
+    'test "phase11 hvc console keeps wakeup-only poll retries distinct from read-driven timeout reset" {',
+    'test "phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable" {',
+    'test "phase11 hvc console keeps stale hangup short-circuit ownership reviewable" {',
+    'test "phase11 hvc console keeps remove handoff summary reviewable" {',
+    'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
+    'test "phase11 hvc console keeps hvc_kick wakeup cue reviewable" {',
+    'test "phase11 hvc console keeps notifier irq helper surface reviewable" {',
 ]
 
 VERIFY_HELPER_MARKERS = [
@@ -326,6 +353,7 @@ def run_check(root: Path) -> None:
     teardown_note = read_text(root, REQUIRED_FILES["teardown_note"])
     validation_matrix = read_text(root, REQUIRED_FILES["validation_matrix"])
     build_inventory = read_text(root, REQUIRED_FILES["build_inventory"])
+    driver_starter = read_text(root, REQUIRED_FILES["driver_starter"])
 
     if surveyed_commit not in survey_note:
         raise CheckError(
@@ -342,7 +370,8 @@ def run_check(root: Path) -> None:
         build_inventory,
         BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS,
     )
-    expect_markers(REQUIRED_FILES["driver_starter"], read_text(root, REQUIRED_FILES["driver_starter"]), DRIVER_STARTER_MARKERS)
+    expect_markers(REQUIRED_FILES["driver_starter"], driver_starter, DRIVER_STARTER_MARKERS)
+    expect_markers(REQUIRED_FILES["driver_starter"], driver_starter, DRIVER_STARTER_TEST_MARKERS)
     expect_markers(REQUIRED_FILES["verify_helper"], read_text(root, REQUIRED_FILES["verify_helper"]), VERIFY_HELPER_MARKERS)
     expect_markers(REQUIRED_FILES["survey_gate"], read_text(root, REQUIRED_FILES["survey_gate"]), SURVEY_GATE_MARKERS)
     expect_markers(REQUIRED_FILES["console_replay"], read_text(root, REQUIRED_FILES["console_replay"]), CONSOLE_REPLAY_MARKERS)
@@ -387,7 +416,10 @@ def build_fixture(root: Path, surveyed_commit: str) -> None:
         root / REQUIRED_FILES["build_inventory"],
         "\n".join(BUILD_INVENTORY_MARKERS + BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS) + "\n",
     )
-    write(root / REQUIRED_FILES["driver_starter"], "\n".join(DRIVER_STARTER_MARKERS) + "\n")
+    write(
+        root / REQUIRED_FILES["driver_starter"],
+        "\n".join(DRIVER_STARTER_MARKERS + DRIVER_STARTER_TEST_MARKERS) + "\n",
+    )
     write(root / REQUIRED_FILES["verify_helper"], "\n".join(VERIFY_HELPER_MARKERS) + "\n")
     write(root / REQUIRED_FILES["survey_gate"], "\n".join(SURVEY_GATE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["console_replay"], "\n".join(CONSOLE_REPLAY_MARKERS) + "\n")
@@ -445,6 +477,16 @@ def run_self_test() -> None:
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[1]),
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[2]),
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[3]),
+            (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_MARKERS[10]),
+            (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_MARKERS[13]),
+            (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_MARKERS[15]),
+            (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_MARKERS[17]),
+            (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_MARKERS[21]),
+            (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[0]),
+            (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[1]),
+            (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[3]),
+            (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[6]),
+            (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[8]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[1]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[2]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[5]),
