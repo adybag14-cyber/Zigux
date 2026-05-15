@@ -254,7 +254,7 @@ REQUIRED_MARKERS = {
     ],
     ALLOCATOR_INIT_FLOW_PATH: [
         "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs",
-        "phase 9 runtime loader allocator/init-flow replay rejects missing-init, premature-selftest, exited, duplicate-init, duplicate-selftest, or incomplete handoffs",
+        "phase 9 runtime loader allocator/init-flow replay rejects missing init, premature selftest, exited, duplicate-init, duplicate-selftest, and incomplete selftest evidence",
         "phase 9 runtime loader allocator/init-flow replay keeps prepared snapshots pinned when requestRuntimeLoad sees prepared-plan drift",
         "runtime_loader.keepsAllocatorInitFlowConsistent(",
         "request.plan.allocator_handoff = .arena;",
