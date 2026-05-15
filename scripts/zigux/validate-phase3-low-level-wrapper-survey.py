@@ -48,6 +48,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/tests/phase3_low_level_wrappers.zig` now also replays raw-pointer bridge admission helpers such as `permitsRawPointerBridgeInteropPolicy`, `pointerAtInteropPolicy`, `sliceAtInteropPolicy`, `constSliceAtInteropPolicy`, and `writeValueAtInteropPolicy`, but those focused checks still belong to the adjacent policy-and-unsafe packet instead of widening this lane beyond the direct atomic, barrier, and MMIO wrapper family.",
     "helper-local `compiler()` barrier coverage in `zigux/helpers/barrier.zig`",
     "helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage in `zigux/helpers/mmio.zig`",
+    "helper-local MMIO stride-boundary and typed-index coverage in `zigux/helpers/mmio.zig` through `containsOffset`, `containsAccess`, `offsetForIndex`, and `typedOffsetForIndex`",
 )
 
 REQUIRED_BUILD_SNIPPETS = (
@@ -134,6 +135,12 @@ REQUIRED_BARRIER_SNIPPETS = (
 
 REQUIRED_MMIO_SNIPPETS = (
     'pub fn range(base_addr: usize, length: u32, stride: u32) Range {',
+    'pub fn containsOffset(desc: Range, offset: usize) bool {',
+    'pub fn containsAccess(desc: Range, offset: usize, width: usize) bool {',
+    'pub fn offsetForIndex(desc: Range, index: usize) ?usize {',
+    'pub fn typedOffsetForIndex(desc: Range, comptime T: type, index: usize) ?usize {',
+    'pub fn readIndex(comptime T: type, desc: Range, index: usize) ?T {',
+    'pub fn writeIndex(comptime T: type, desc: Range, index: usize, value: T) bool {',
     'pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {',
     'pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {',
     'pub fn allowsInteropPolicyByte(unsafe_scope: u8) bool {',
@@ -162,9 +169,13 @@ REQUIRED_MMIO_SNIPPETS = (
     'pub fn write8InteropPolicyByte(base_addr: usize, offset: usize, value: u8, unsafe_scope: u8) MmioError!void {',
     'test "phase3 mmio wrappers keep direct reads and writes reviewable" {',
     'test "phase3 mmio ranges keep byte and stride boundaries explicit" {',
+    'test "phase3 mmio wrappers keep stride-indexed accesses reviewable" {',
     'test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {',
     'test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {',
     'try std.testing.expectEqual(@as(?usize, 24), typedOffsetForIndex(desc, u64, 3));',
+    'try std.testing.expect(writeIndex(u64, desc, 4, 0x0123_4567_89ab_cdef));',
+    'try std.testing.expectEqual(@as(?u64, 0x0123_4567_89ab_cdef), readIndex(u64, desc, 4));',
+    'try std.testing.expect(!writeIndex(u64, desc, 5, 0xfedc_ba98_7654_3210));',
     'try requireInteropPolicy(mmio_policy);',
     'try requireInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0);',
     'try requireInteropPolicyByte(@intFromEnum(abi.UnsafeScope.volatile_mmio));',
@@ -366,6 +377,27 @@ def run_self_test() -> int:
             return 1
 
         _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
+        _write(
+            root,
+            SURVEY_REL,
+            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+                "helper-local MMIO stride-boundary and typed-index coverage in `zigux/helpers/mmio.zig` through `containsOffset`, `containsAccess`, `offsetForIndex`, and `typedOffsetForIndex`",
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue.startswith(
+                "missing_survey_snippet:helper-local MMIO stride-boundary and typed-index coverage in `zigux/helpers/mmio.zig`"
+            )
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing stride-index survey failure")
+            return 1
+
+        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
         _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
         _write(
             root,
@@ -516,6 +548,44 @@ def run_self_test() -> int:
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing odd-offset mmio replay failure")
+            return 1
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            (root / MMIO_REL).read_text(encoding="utf-8").replace(
+                'pub fn writeIndex(comptime T: type, desc: Range, index: usize, value: T) bool {',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_mmio_snippet:pub fn writeIndex(comptime T: type, desc: Range, index: usize, value: T) bool {'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing stride-index helper failure")
+            return 1
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            MMIO_REL,
+            (root / MMIO_REL).read_text(encoding="utf-8").replace(
+                'test "phase3 mmio wrappers keep stride-indexed accesses reviewable" {',
+                "",
+                1,
+            ),
+        )
+        issues = validate(root)
+        if not any(
+            issue == 'missing_mmio_snippet:test "phase3 mmio wrappers keep stride-indexed accesses reviewable" {'
+            for issue in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing stride-index replay failure")
             return 1
 
         _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
