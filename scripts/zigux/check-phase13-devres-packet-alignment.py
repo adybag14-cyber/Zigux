@@ -79,13 +79,24 @@ HELPER_MARKERS = [
     "pub fn planArchPhysWcAdd(",
 ]
 
+REPLAY_MARKERS = [
+    'phase13 devres release matching stays pointer-exact',
+    'phase13 devres plans a managed iounmap call and warns on release misses',
+    'planManagedIounmap(0x4000, 0x4000)',
+    'planManagedIounmap(0x4000, 0x4010)',
+    'miss.warns_on_release_miss',
+]
+
 REVIEWABILITY_MARKERS = [
     EXPECTED_COMMIT,
     'preexisting_phase13_devres_boundary_evidence_present',
     'try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_boundary_evidence_present);',
     'preexisting_phase13_devres_dma_coherent_present',
     'try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);',
+    'const direct_replay = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "zigux/tests/phase13_devres.zig", std.testing.allocator, .limited(40 * 1024));',
     '"phase13-devres-boundary-evidence-gate"',
+    'try expectGap(manifest, "phase13-devres-test-gate", "starter_landed", "zigux/tests/phase13_devres.zig", "`devm_iounmap()` planner");',
+    'try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres plans a managed iounmap call and warns on release misses") != null);',
     'try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);',
     'try std.testing.expectEqual(@as(usize, 11), starter_landed_count);',
     'try std.testing.expectEqual(@as(usize, 6), blocked_count);',
@@ -138,6 +149,7 @@ def validate(root: Path) -> list[str]:
     slice_path = require_file(root, SLICE_PATH, errors)
     survey_path = require_file(root, SURVEY_PATH, errors)
     helper_path = require_file(root, HELPER_PATH, errors)
+    replay_path = require_file(root, REPLAY_PATH, errors)
     reviewability_path = require_file(root, REVIEWABILITY_PATH, errors)
     boundary_replay_path = require_file(root, BOUNDARY_REPLAY_PATH, errors)
     dma_replay_path = require_file(root, DMA_REPLAY_PATH, errors)
@@ -148,6 +160,7 @@ def validate(root: Path) -> list[str]:
     slice_text = read_text(slice_path)
     survey_text = read_text(survey_path)
     helper_text = read_text(helper_path)
+    replay_text = read_text(replay_path)
     reviewability_text = read_text(reviewability_path)
     boundary_replay_text = read_text(boundary_replay_path)
     dma_replay_text = read_text(dma_replay_path)
@@ -184,6 +197,7 @@ def validate(root: Path) -> list[str]:
     require_markers(slice_text, 'slice', SLICE_MARKERS, errors)
     require_markers(survey_text, 'survey', SURVEY_MARKERS, errors)
     require_markers(helper_text, 'helper', HELPER_MARKERS, errors)
+    require_markers(replay_text, 'replay', REPLAY_MARKERS, errors)
     require_markers(reviewability_text, 'reviewability', REVIEWABILITY_MARKERS, errors)
     require_markers(boundary_replay_text, 'boundary_replay', BOUNDARY_REPLAY_MARKERS, errors)
     require_markers(dma_replay_text, 'dma_replay', DMA_REPLAY_MARKERS, errors)
@@ -207,6 +221,7 @@ def seed_fixture_tree(root: Path) -> None:
     write_text(root / SLICE_PATH, '\n'.join(SLICE_MARKERS) + '\n')
     write_text(root / SURVEY_PATH, '\n'.join(SURVEY_MARKERS) + '\n')
     write_text(root / HELPER_PATH, '\n'.join(HELPER_MARKERS) + '\n')
+    write_text(root / REPLAY_PATH, '\n'.join(REPLAY_MARKERS) + '\n')
     write_text(root / REVIEWABILITY_PATH, '\n'.join(REVIEWABILITY_MARKERS) + '\n')
     write_text(root / BOUNDARY_REPLAY_PATH, '\n'.join(BOUNDARY_REPLAY_MARKERS) + '\n')
     write_text(root / DMA_REPLAY_PATH, '\n'.join(DMA_REPLAY_MARKERS) + '\n')
@@ -228,6 +243,11 @@ def run_self_test() -> int:
         seed_fixture_tree(root)
         (root / BOUNDARY_REPLAY_PATH).unlink()
         assert_only(validate(root), [f'missing:{BOUNDARY_REPLAY_PATH}'], 'missing_boundary_replay_failed')
+        case_count += 1
+
+        seed_fixture_tree(root)
+        (root / REPLAY_PATH).unlink()
+        assert_only(validate(root), [f'missing:{REPLAY_PATH}'], 'missing_direct_replay_failed')
         case_count += 1
 
         seed_fixture_tree(root)
@@ -266,6 +286,22 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         write_text(
+            root / REPLAY_PATH,
+            '\n'.join(
+                marker
+                for marker in REPLAY_MARKERS
+                if marker != 'miss.warns_on_release_miss'
+            ) + '\n',
+        )
+        assert_only(
+            validate(root),
+            ['replay:missing_marker:miss.warns_on_release_miss'],
+            'replay_missing_release_miss_marker_failed',
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
             root / REVIEWABILITY_PATH,
             '\n'.join(
                 marker
@@ -288,15 +324,15 @@ def run_self_test() -> int:
             '\n'.join(
                 marker
                 for marker in REVIEWABILITY_MARKERS
-                if marker != 'try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);'
+                if marker != 'try expectGap(manifest, "phase13-devres-test-gate", "starter_landed", "zigux/tests/phase13_devres.zig", "`devm_iounmap()` planner");'
             ) + '\n',
         )
         assert_only(
             validate(root),
             [
-                'reviewability:missing_marker:try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);'
+                'reviewability:missing_marker:try expectGap(manifest, "phase13-devres-test-gate", "starter_landed", "zigux/tests/phase13_devres.zig", "`devm_iounmap()` planner");'
             ],
-            'reviewability_missing_dma_summary_assertion_failed',
+            'reviewability_missing_direct_replay_gap_assertion_failed',
         )
         case_count += 1
 
