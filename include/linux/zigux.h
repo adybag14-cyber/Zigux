@@ -36,4 +36,16 @@ static inline int zigux_boundary_header_is_canonical_size(uint32_t size)
     return size == (uint32_t)sizeof(struct zigux_boundary_header);
 }
 
+static inline int zigux_boundary_header_is_compatible(struct zigux_boundary_header header)
+{
+    return zigux_boundary_header_is_current_abi_version(header.abi_version) &&
+        zigux_boundary_header_is_compatible_size(header.size);
+}
+
+static inline int zigux_boundary_header_is_canonical(struct zigux_boundary_header header)
+{
+    return zigux_boundary_header_is_current_abi_version(header.abi_version) &&
+        zigux_boundary_header_is_canonical_size(header.size);
+}
+
 #endif
