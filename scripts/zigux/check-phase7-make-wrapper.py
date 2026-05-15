@@ -65,6 +65,13 @@ REQUIRED_MARKERS = {
     ],
 }
 
+EXACT_COUNT_MARKERS = {
+    "scripts/zigux/validate-phase7.py": {
+        '"scripts/zigux/check-phase7-make-wrapper.py": [': 1,
+        '"PHASE7_MAKE_WRAPPER_SELF_TEST=pass"': 1,
+    },
+}
+
 
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
@@ -80,11 +87,22 @@ def collect_missing_markers(root: Path) -> list[str]:
     return missing
 
 
-def validate(root: Path) -> tuple[list[str], list[str]]:
+def collect_count_mismatches(root: Path) -> list[str]:
+    mismatches: list[str] = []
+    for rel, expected_counts in EXACT_COUNT_MARKERS.items():
+        text = (root / rel).read_text(encoding="utf-8")
+        for marker, expected in expected_counts.items():
+            actual = text.count(marker)
+            if actual > 0 and actual != expected:
+                mismatches.append(f"{rel}: expected {expected} occurrence(s) of {marker!r}, found {actual}")
+    return mismatches
+
+
+def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
-        return missing_files, []
-    return [], collect_missing_markers(root)
+        return missing_files, [], []
+    return [], collect_missing_markers(root), collect_count_mismatches(root)
 
 
 def write_fixture_root(tmp_root: Path) -> None:
@@ -96,15 +114,24 @@ def write_fixture_root(tmp_root: Path) -> None:
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
+    missing_files, missing_markers, count_mismatches = validate(tmp_root)
     assert missing_markers == [], case
+    assert count_mismatches == [], case
     assert missing_files == [rel], case
 
 
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
+    missing_files, missing_markers, count_mismatches = validate(tmp_root)
     assert missing_files == [], case
+    assert count_mismatches == [], case
     assert missing_markers == [marker], case
+
+
+def expect_count_mismatch(case: str, tmp_root: Path, mismatch: str) -> None:
+    missing_files, missing_markers, count_mismatches = validate(tmp_root)
+    assert missing_files == [], case
+    assert missing_markers == [], case
+    assert count_mismatches == [mismatch], case
 
 
 def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
@@ -113,6 +140,11 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
     updated = original.replace(old, new, 1)
     assert updated != original, case
     path.write_text(updated, encoding="utf-8")
+
+
+def append_marker(tmp_root: Path, rel: str, marker: str) -> None:
+    path = tmp_root / rel
+    path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
@@ -177,7 +209,7 @@ def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_make_wrapper_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
-        assert validate(tmp_root) == ([], [])
+        assert validate(tmp_root) == ([], [], [])
 
         for case, rel in missing_file_cases:
             (tmp_root / rel).unlink()
@@ -189,7 +221,30 @@ def run_self_test() -> None:
             expect_missing_marker(case, tmp_root, expected)
             write_fixture_root(tmp_root)
 
-    case_count = len(missing_file_cases) + len(marker_cases)
+        append_marker(
+            tmp_root,
+            "scripts/zigux/validate-phase7.py",
+            '"scripts/zigux/check-phase7-make-wrapper.py": [',
+        )
+        expect_count_mismatch(
+            "duplicate_validator_wrapper_packet_key",
+            tmp_root,
+            "scripts/zigux/validate-phase7.py: expected 1 occurrence(s) of '\"scripts/zigux/check-phase7-make-wrapper.py\": [', found 2",
+        )
+        write_fixture_root(tmp_root)
+
+        append_marker(
+            tmp_root,
+            "scripts/zigux/validate-phase7.py",
+            '"PHASE7_MAKE_WRAPPER_SELF_TEST=pass"',
+        )
+        expect_count_mismatch(
+            "duplicate_validator_wrapper_success_marker",
+            tmp_root,
+            "scripts/zigux/validate-phase7.py: expected 1 occurrence(s) of '\"PHASE7_MAKE_WRAPPER_SELF_TEST=pass\"', found 2",
+        )
+
+    case_count = len(missing_file_cases) + len(marker_cases) + 2
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
     print(f"PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT={case_count}")
 
@@ -203,7 +258,7 @@ def main() -> int:
         run_self_test()
         return 0
 
-    missing_files, missing_markers = validate(ROOT)
+    missing_files, missing_markers, count_mismatches = validate(ROOT)
     if missing_files:
         print("PHASE7_MAKE_WRAPPER=fail")
         print("MISSING_PHASE7_MAKE_WRAPPER_FILES_START")
@@ -220,9 +275,21 @@ def main() -> int:
         print("MISSING_PHASE7_MAKE_WRAPPER_MARKERS_END")
         return 1
 
+    if count_mismatches:
+        print("PHASE7_MAKE_WRAPPER=fail")
+        print("MISMATCHED_PHASE7_MAKE_WRAPPER_COUNTS_START")
+        for item in count_mismatches:
+            print(item)
+        print("MISMATCHED_PHASE7_MAKE_WRAPPER_COUNTS_END")
+        return 1
+
     print("PHASE7_MAKE_WRAPPER=pass")
     print(f"PHASE7_MAKE_WRAPPER_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE7_MAKE_WRAPPER_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    print(
+        "PHASE7_MAKE_WRAPPER_COUNT_RULE_COUNT="
+        f"{sum(len(markers) for markers in EXACT_COUNT_MARKERS.values())}"
+    )
     return 0
 
 
