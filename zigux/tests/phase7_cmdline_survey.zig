@@ -99,8 +99,10 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline_survey.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline_manifest.json");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-cmdline-packet.py");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_build.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/Makefile");
+    try expectContains(manifest_json, "\"scripts/zigux/check-phase7-cmdline-packet.py\"");
 
     try expectStringSliceContains(manifest.covered_helpers, "getOption");
     try expectStringSliceContains(manifest.covered_helpers, "getOptions");
@@ -127,6 +129,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "zigux/tests/phase7_cmdline.zig");
     try expectContains(slice_note, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(slice_note, "zigux/tests/phase7_cmdline_manifest.json");
+    try expectContains(slice_note, "scripts/zigux/check-phase7-cmdline-packet.py");
     try expectContains(slice_note, "zig build phase7-cmdline-survey --build-file zigux/tests/phase7_build.zig --summary all");
     try expectContains(slice_note, "make -C zigux phase7-cmdline-survey");
     try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig");
@@ -164,9 +167,10 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(helper_lane_note, "cmdline packet, lane `P7-L05`:");
     try expectContains(helper_lane_note, "Documentation/zigux/phase7-cmdline-slice.md");
     try expectContains(helper_lane_note, "PHASE7_CMDLINE_LANE=P7-L05");
+    try expectContains(helper_lane_note, "scripts/zigux/check-phase7-cmdline-packet.py");
     try expectContains(
         helper_lane_note,
-        "P7-L05 owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift.",
+        "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, checker, or same-slice reminder drift.",
     );
 
     const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
