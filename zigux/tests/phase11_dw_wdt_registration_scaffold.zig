@@ -193,6 +193,40 @@ test "platform registration scaffold summary keeps blocked timeout-programming b
     try std.testing.expect(summary.blocked_on_live_mmio);
 }
 
+test "platform registration scaffold summary keeps optional reset-control absence explicit" {
+    const summary = dw_wdt.platformRegistrationScaffoldSummary(.{
+        .has_named_tclk = true,
+        .has_shared_clock = false,
+        .has_pclk = true,
+        .has_reset_control = false,
+        .has_pretimeout_irq = true,
+        .drvdata_published = true,
+        .timeout_programmed = true,
+        .imported_running = false,
+    });
+
+    try std.testing.expectEqual(
+        dw_wdt.RegistrationScaffoldState.ready_to_register,
+        summary.state,
+    );
+    try std.testing.expectEqual(dw_wdt.TimerClockPath.named_tclk, summary.timer_clock_path);
+    try std.testing.expectEqual(
+        dw_wdt.ProbeTimeoutOrigin.programmed_top_window,
+        summary.probe_timeout_origin,
+    );
+    try std.testing.expect(summary.registration_requested);
+    try std.testing.expect(summary.stop_on_reboot_requested);
+    try std.testing.expectEqual(dw_wdt.default_restart_priority, summary.restart_priority_value);
+    try std.testing.expect(!summary.reset_release_ready);
+    try std.testing.expectEqualStrings("reset_control_deassert", summary.reset_release_call);
+    try std.testing.expect(!summary.reset_release_requested);
+    try std.testing.expect(summary.pretimeout_irq_optional);
+    try std.testing.expect(summary.pretimeout_irq_present);
+    try std.testing.expectEqualStrings("platform_get_irq_optional", summary.pretimeout_irq_call);
+    try std.testing.expect(summary.blocked_on_live_platform_registration);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
 test "platform registration scaffold summary keeps missing timer clock block explicit" {
     const summary = dw_wdt.platformRegistrationScaffoldSummary(.{
         .has_named_tclk = false,
