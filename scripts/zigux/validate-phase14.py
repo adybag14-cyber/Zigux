@@ -115,6 +115,7 @@ RELEASE_MARKERS = [
     "compile shard matrix captured in the current shared packet",
     "scripts/zigux/validate-phase14.py",
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    TESTS_README_CHECKER_PATH,
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     "Documentation/zigux/phase14-core-boundary-traceability.md",
@@ -486,6 +487,21 @@ def run_self_test() -> int:
         print("SELF_TEST_MARKERS_END")
         return 1
 
+    good_release = "\n".join(RELEASE_MARKERS) + "\n"
+    missing_release_markers = [
+        marker
+        for marker in RELEASE_MARKERS
+        if marker not in good_release.replace(TESTS_README_CHECKER_PATH, "", 1)
+    ]
+    if missing_release_markers != [TESTS_README_CHECKER_PATH]:
+        print("PHASE14_SELF_TEST=fail")
+        print("SELF_TEST_REASON=unexpected_release_marker_gap")
+        print("SELF_TEST_MARKERS_START")
+        for item in missing_release_markers:
+            print(item)
+        print("SELF_TEST_MARKERS_END")
+        return 1
+
     if TESTS_README_CHECKER_PATH not in REQUIRED_SHARED_SMOKE_SURFACES:
         print("PHASE14_SELF_TEST=fail")
         print("SELF_TEST_REASON=tests_readme_checker_missing_from_required_shared_smoke_surfaces")
@@ -740,6 +756,7 @@ def run_self_test() -> int:
     print("PHASE14_SELF_TEST_TESTS_README_CHECKER_FAIL_MARKER=phase14 tests-readme smoke summary failed")
     print("PHASE14_SELF_TEST_MISSING_REVIEWABILITY_MARKER=test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);")
     print("PHASE14_SELF_TEST_MISSING_SCRIPTS_README_SMOKE_ROUTE_MARKER=`make -C zigux phase14-smoke`")
+    print("PHASE14_SELF_TEST_MISSING_RELEASE_TESTS_README_CHECKER_MARKER=scripts/zigux/check-phase14-tests-readme-smoke-summary.py")
     print("PHASE14_SELF_TEST_SHARED_SMOKE_SURFACE_MARKER=scripts/zigux/check-phase14-tests-readme-smoke-summary.py")
     print("PHASE14_SELF_TEST_SHARED_SMOKE_SURFACE_MARKER=zigux/Makefile")
     print("PHASE14_SELF_TEST_SHARED_SMOKE_SURFACE_MARKER=.github/workflows/zigux-bootstrap.yml")
