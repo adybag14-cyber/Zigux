@@ -75,7 +75,7 @@ REQUIRED_MARKERS = {
         "### 4. Shared wording lane",
         "`Documentation/zigux/phase8-libbpf-segment-survey.md` now carries the refreshed mixed 2026-05-12 libbpf readback",
         "current readable scripts-root evidence still includes `scripts/zigux/check-phase8-exec-cmd-packet.py`",
-        "Exact 2026-05-13 readback closes the earlier docs-root reopen cue instead of reopening it",
+        "Exact 2026-05-15 reread keeps the earlier docs-root reopen cue closed instead of reopening it",
         "`Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary",
         "Keep the shared wording lane parked until a fresh one-file reminder-surface drift appears.",
     ],
