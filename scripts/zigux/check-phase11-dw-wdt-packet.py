@@ -101,7 +101,9 @@ MARKERS = {
     "registration_scaffold": [
         'test "platform handoff stays blocked when drvdata publication is missing"',
         'test "platform handoff keeps timeout-programming registration state explicit when resources are ready"',
+        'test "platform handoff keeps imported-running registration state explicit"',
         'test "registration order summary keeps blocked registration explicit when drvdata is missing"',
+        'test "registration order summary keeps imported-running registration distinct from timeout programming"',
         'test "platform registration scaffold summary keeps ready imported-state probe anchors explicit"',
         'test "platform registration scaffold summary keeps blocked timeout-programming branch explicit"',
         'test "platform registration scaffold summary keeps optional reset-control absence explicit"',
