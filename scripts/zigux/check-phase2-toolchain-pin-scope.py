@@ -47,7 +47,12 @@ PHASE2_ROUTE_LIST_MARKER = (
 )
 
 README_MARKERS = [
+    "check-zig-toolchain.py",
+    "install-zig.py",
     "check-phase2-toolchain-pin-scope.py",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "Documentation/zigux/phase2-closure.md",
+    "make -C zigux phase2-validate",
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -100,7 +105,7 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",',
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",',
     "PHASE2_MAKEFILE_RUN_COUNTS = {",
-    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig \\"$(ZIG)\\"": 1,',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig \\\"$(ZIG)\\\"": 1,',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,',
     'issues.extend(validate_exact_lines(PHASE2_MAKEFILE.read_text(encoding="utf-8"), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"))',
@@ -512,6 +517,21 @@ def run_self_test() -> int:
         in missing_toolchain_self_test_issues
     )
 
+    scripts_readme_issues = validate_required_markers(
+        "\n".join(
+            [
+                "check-zig-toolchain.py",
+                "check-phase2-toolchain-pin-scope.py",
+                "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+                "Documentation/zigux/phase2-closure.md",
+                "make -C zigux phase2-validate",
+            ]
+        ),
+        label="scripts_readme",
+        markers=README_MARKERS,
+    )
+    assert scripts_readme_issues == ["scripts_readme:missing_marker:install-zig.py"]
+
     for label, checks in EXACT_SURFACE_COUNTS.items():
         text = "\n".join(marker for marker, expected_count in checks.items() for _ in range(expected_count))
         assert validate_exact_marker_counts(text, label=label, checks=checks) == []
@@ -611,7 +631,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=31")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
