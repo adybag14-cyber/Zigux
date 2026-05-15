@@ -703,6 +703,8 @@ def run_self_test() -> None:
         build_marker_cases = [
             ('"phase11-dw-wdt-survey-tests"', '"phase11-dw-wdt-survey-tests"'),
             ("const run_phase11_dw_wdt_registration_scaffold_tests = b.addRunArtifact(", "run_phase11_dw_wdt_registration_scaffold_tests"),
+            ("const run_phase11_hvc_console_tests = b.addRunArtifact(", "run_phase11_hvc_console_tests"),
+            ("const run_phase11_hvc_cleanup_tests = b.addRunArtifact(", "run_phase11_hvc_cleanup_tests"),
             ('"../../drivers/watchdog/dw_wdt_verify.zig"', "../../drivers/watchdog/dw_wdt_verify.zig"),
             (".root_module = phase11_dw_wdt_survey_module", "phase11_dw_wdt_survey_module"),
             (FORBIDDEN_BUILD_FILE_MARKER, FORBIDDEN_BUILD_FILE_MARKER),
