@@ -138,6 +138,28 @@ test "offset add planning keeps busy-remap and managed-offset boundaries explici
     try std.testing.expect(!out_of_range.records_offset_in_dentry);
 }
 
+test "offset remove planning keeps zero-offset noop and managed-slot erase explicit" {
+    const missing = libfs.LibfsHelperLab.planSimpleOffsetRemove(0);
+    const managed = libfs.LibfsHelperLab.planSimpleOffsetRemove(libfs.dir_offset_min + 6);
+    const reserved = libfs.LibfsHelperLab.planSimpleOffsetRemove(libfs.dir_offset_first);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", missing.anchor);
+    try std.testing.expectEqual(libfs.OffsetRemoveStatus.missing_offset, missing.status);
+    try std.testing.expectEqual(@as(?libfs.OffsetSlotClass, null), missing.recorded_slot_class);
+    try std.testing.expect(!missing.erases_map_entry);
+    try std.testing.expect(!missing.clears_recorded_offset);
+
+    try std.testing.expectEqual(libfs.OffsetRemoveStatus.ok, managed.status);
+    try std.testing.expectEqual(@as(?libfs.OffsetSlotClass, .managed_entry), managed.recorded_slot_class);
+    try std.testing.expect(managed.erases_map_entry);
+    try std.testing.expect(managed.clears_recorded_offset);
+
+    try std.testing.expectEqual(libfs.OffsetRemoveStatus.ok, reserved.status);
+    try std.testing.expectEqual(@as(?libfs.OffsetSlotClass, .first_real_entry), reserved.recorded_slot_class);
+    try std.testing.expect(reserved.erases_map_entry);
+    try std.testing.expect(reserved.clears_recorded_offset);
+}
+
 test "transaction release planning frees staged private data when present" {
     const plan = libfs.LibfsHelperLab.simpleTransactionReleasePlan(true);
 
@@ -216,12 +238,13 @@ test "offset rename exchange planning keeps managed-slot swap and rollback expec
 
 test "phase13 libfs manifest records the current helper-first filesystem packet" {
     try expectContains(manifest_text, "\"lane_key\": \"P13-Y01\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-14\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-15\"");
     try expectContains(manifest_text, "\"current_libfs_zig_present\": true");
     try expectContains(manifest_text, "\"current_phase13_libfs_test_present\": true");
     try expectContains(manifest_text, "\"current_phase13_libfs_reviewability_present\": true");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-helper-starter\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-offset-add-planner\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-libfs-offset-remove-planner\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-offset-rename-planner\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-acquire-helper\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-transaction-release-helper\"");
@@ -239,7 +262,9 @@ test "phase13 libfs manifest records the current helper-first filesystem packet"
     try expectContains(manifest_text, "transaction publish planning");
     try expectContains(manifest_text, "generic_check_addressable()");
     try expectContains(manifest_text, "simple_offset_add()");
+    try expectContains(manifest_text, "simple_offset_remove()");
     try expectContains(manifest_text, "offset-add planning");
+    try expectContains(manifest_text, "offset-remove planning");
     try expectContains(manifest_text, "simple_transaction_get()");
     try expectContains(manifest_text, "offset-based rename planning");
     try expectContains(manifest_text, "live dcache entry insertion");
