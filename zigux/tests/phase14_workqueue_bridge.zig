@@ -189,3 +189,51 @@ test "phase14 workqueue bridge descriptor matches the blocked-maintenance bridge
     try std.testing.expectEqualStrings("hotplug-topology-rebinding", audit.checkpoints[13].id);
     try std.testing.expectEqualStrings("scheduler-visible-worker-state-refinement", audit.checkpoints[14].id);
 }
+
+test "phase14 workqueue bridge external replay asserts the maintenance handoff surface" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase14_workqueue_bridge_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+    const manifest = parsed.value;
+
+    const handoff = workqueue_bridge.WorkqueueBridgeLab.maintenanceHandoff();
+
+    const expected_reread_surfaces = [_][]const u8{
+        "kernel/workqueue_bridge.zig",
+        "zigux/tests/phase14_workqueue_bridge.zig",
+        "zigux/tests/phase14_workqueue_reviewability.zig",
+        "zigux/tests/phase14_workqueue_bridge_manifest.json",
+        "Documentation/zigux/phase14-workqueue-bridge-slice.md",
+        "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+    };
+
+    try std.testing.expectEqualStrings("blocked_maintenance", handoff.posture);
+    try std.testing.expectEqualStrings(handoff.posture, manifest.maintenance_handoff.current_lane_posture);
+    try std.testing.expectEqualStrings(handoff.next_future_target, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus());
+    try std.testing.expectEqual(expected_reread_surfaces.len, handoff.reread_surfaces.len);
+    for (expected_reread_surfaces, handoff.reread_surfaces) |expected, actual| {
+        try std.testing.expectEqualStrings(expected, actual);
+    }
+
+    try std.testing.expectEqual(handoff.reopen_conditions.len, manifest.maintenance_handoff.reopen_conditions.len);
+    for (handoff.reopen_conditions, 0..) |condition, i| {
+        try std.testing.expectEqualStrings(condition, manifest.maintenance_handoff.reopen_conditions[i]);
+    }
+
+    try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "blocked maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "shared reminder surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[0], "reviewability test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[1], "core traceability packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[2], "delayed-work requeue governance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[2], "scheduler-visible worker-state transitions") != null);
+}
