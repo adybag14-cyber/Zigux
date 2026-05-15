@@ -16,6 +16,8 @@ The current anchor packet is review-only. It keeps the boundary-map helper in `n
 
 The skbuff lane stays parked at the live ownership blocker because shared-info refcounts, destructor teardown, checksum state, segmentation metadata, the final sock-owned tail transfer, exported tail publication, and the consumer-side list reset inside `validate_xmit_skb_list()` still belong to the C implementation.
 
+Any status-change or reopen request for `net/core/skbuff.c` belongs to the Phase 15 freeze-map governance packet, not this Phase 14 review-only bridge lane.
+
 After the roadmap-alignment helper and the exported-tail checkpoint, no smaller review-only skbuff follow-up remains before the live ownership blocker.
 
 ## Compile Evidence
@@ -35,4 +37,4 @@ After the roadmap-alignment helper and the exported-tail checkpoint, no smaller 
 
 ## Next bounded step
 
-Leave this lane parked unless `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `net/core/skbuff_bridge.zig`, or this note drift again on the full-bundle-only compile evidence or the blocked stay-in-C ownership wording.
+Leave this lane parked unless `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `net/core/skbuff_bridge.zig`, or this note drift again on the full-bundle-only compile evidence, the blocked stay-in-C ownership wording, or the explicit Phase 15 governance handoff for any future status-change discussion.
