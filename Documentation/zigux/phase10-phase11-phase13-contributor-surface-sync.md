@@ -59,7 +59,7 @@ Keep the bounded virtio packet explicit through:
 Contributor reminder:
 - keep the blocked risky-transport posture explicit
 - keep the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family explicit
-- keep the parked `P10-L10` freeze-boundary owner and rollback-owner note explicit around `Documentation/zigux/freeze-map.md` plus `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- keep the parked `P10-L11` MMIO freeze-boundary owner and rollback-owner note explicit around `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
 - keep Phase 5 reference samples and Phase 9 runtime starters as adjacent evidence, not extra Phase 10 closure proof
 - keep the separate Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit
 - keep `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` explicit as restored shared-review evidence on current `master`; do not frame any current packet-local Phase 10 slice companion as a repo-reality gap unless a fresh reread proves it disappeared
