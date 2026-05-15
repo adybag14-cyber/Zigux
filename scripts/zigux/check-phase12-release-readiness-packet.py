@@ -389,6 +389,17 @@ def run_self_test() -> int:
             "missing broader-shared-summary marker",
         )
 
+        write_text(
+            tmp_root / RELEASE_READINESS_PATH,
+            good_release_readiness_text() + f"- {RELEASE_READINESS_MARKERS[4]}\n",
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            f"marker count drift in {RELEASE_READINESS_PATH}: {RELEASE_READINESS_MARKERS[4]} (expected 1, found 2)",
+            "duplicate broader-shared-summary marker not detected",
+        )
+
         write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
         write_text(
             tmp_root / RELEASE_READINESS_PATH,
@@ -403,6 +414,17 @@ def run_self_test() -> int:
             check(tmp_root, source_text=MARKER),
             "support-checker-plus-validate-route reminder",
             "missing build-only-checker alignment marker",
+        )
+
+        write_text(
+            tmp_root / RELEASE_READINESS_PATH,
+            good_release_readiness_text() + f"- {RELEASE_READINESS_MARKERS[5]}\n",
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            f"marker count drift in {RELEASE_READINESS_PATH}: {RELEASE_READINESS_MARKERS[5]} (expected 1, found 2)",
+            "duplicate build-only-checker alignment marker not detected",
         )
 
         write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
@@ -421,6 +443,17 @@ def run_self_test() -> int:
             "missing validator-first support-bundle marker",
         )
 
+        write_text(
+            tmp_root / RELEASE_READINESS_PATH,
+            good_release_readiness_text() + f"- {RELEASE_READINESS_MARKERS[6]}\n",
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            f"marker count drift in {RELEASE_READINESS_PATH}: {RELEASE_READINESS_MARKERS[6]} (expected 1, found 2)",
+            "duplicate validator-first support-bundle marker not detected",
+        )
+
         write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
         write_text(
             tmp_root / RELEASE_READINESS_PATH,
@@ -435,6 +468,17 @@ def run_self_test() -> int:
             check(tmp_root, source_text=MARKER),
             "Keep the same degraded-workflow validation trio explicit too",
             "missing degraded-workflow trio marker",
+        )
+
+        write_text(
+            tmp_root / RELEASE_READINESS_PATH,
+            good_release_readiness_text() + f"- {RELEASE_READINESS_MARKERS[7]}\n",
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            f"marker count drift in {RELEASE_READINESS_PATH}: {RELEASE_READINESS_MARKERS[7]} (expected 1, found 2)",
+            "duplicate degraded-workflow trio marker not detected",
         )
 
         write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
