@@ -11,6 +11,7 @@
     "Documentation/zigux/phase12-release-coordination-matrix.md"
   ],
   "parked_absent_boundaries": [
+    "tools/lib/bpf/zigux_segments/pin_path.zig",
     "zigux/tests/phase12_libbpf_manifest.json",
     "zigux/tests/phase12_libbpf_segments.zig",
     "zigux/tests/phase12_libbpf_reviewability.zig",
