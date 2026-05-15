@@ -23,6 +23,7 @@ pub const PreparedRequest = struct {
         if (!keepsLoadPlanExplicit(self.plan, self.prepared_plan)) {
             return error.PreparedPlanDrift;
         }
+        _ = try prepareRequest(self.prepared_plan);
         self.state = .released_without_substrate;
     }
 };
@@ -305,6 +306,17 @@ test "PreparedRequest.releaseWithoutSubstrate preserves the pending snapshot on 
     try std.testing.expectEqual(AllocatorHandoff.caller_provided, request.plan.allocator_handoff);
 
     request.plan = stable;
+    request.prepared_plan = stable;
+    request.plan.module_name = "runtime_bitmap_drift";
+    request.prepared_plan.module_name = "runtime_bitmap_drift";
+    try std.testing.expectError(error.InvalidPilotFamilyContract, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+
+    request.plan = stable;
+    request.prepared_plan = stable;
     try request.releaseWithoutSubstrate();
     try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
     try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .released_without_substrate, stable));
