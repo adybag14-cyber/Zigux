@@ -290,7 +290,7 @@ pub const SkbuffBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "No smaller review-only skbuff follow-up remains before the live ownership blocker; keep qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination in C.";
+        return "No smaller review-only skbuff follow-up remains before the live ownership blocker; keep qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, destructor coordination, and the final sock-owned tail transfer in C.";
     }
 };
 
