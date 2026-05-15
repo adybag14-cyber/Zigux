@@ -127,6 +127,19 @@ pub fn assertNotifierBlockLayout() !void {
     fieldType(abi.NotifierBlock, "priority", i32);
 }
 
+pub fn assertNotifierChainPriorityIncreaseLayout() !void {
+    try size(abi.ChainPriorityIncrease, 24);
+    try alignment(abi.ChainPriorityIncrease, 8);
+    try offset(abi.ChainPriorityIncrease, "previous_index", 0);
+    try offset(abi.ChainPriorityIncrease, "current_index", 8);
+    try offset(abi.ChainPriorityIncrease, "previous_priority", 16);
+    try offset(abi.ChainPriorityIncrease, "current_priority", 20);
+    fieldType(abi.ChainPriorityIncrease, "previous_index", usize);
+    fieldType(abi.ChainPriorityIncrease, "current_index", usize);
+    fieldType(abi.ChainPriorityIncrease, "previous_priority", i32);
+    fieldType(abi.ChainPriorityIncrease, "current_priority", i32);
+}
+
 pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() !void {
     try assertThreeU32FieldLayout(
         abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView,
@@ -212,6 +225,7 @@ test "phase3 layout assertions cover canonical bindings" {
     try assertExportStatusLayout();
     try assertInteropPolicyLayout();
     try assertNotifierBlockLayout();
+    try assertNotifierChainPriorityIncreaseLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();
