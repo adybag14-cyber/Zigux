@@ -1,0 +1,244 @@
+#!/usr/bin/env python3
+"""Fail-closed checks for the current Phase 6 shared entrypoint inventory."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+import tempfile
+from pathlib import Path
+
+
+class ValidationError(RuntimeError):
+    pass
+
+
+MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
+CHECKER_PATH = Path("scripts/zigux/check-phase6-present-entrypoints.py")
+BSEARCH_CHECKER_PATH = Path("scripts/zigux/check-phase6-bsearch-corpus-evidence.py")
+HEXDUMP_CHECKER_PATH = Path("scripts/zigux/check-phase6-hexdump-packet.py")
+HEXDUMP_PERF_REFRESH_PATH = Path("Documentation/zigux/phase6-hexdump-perf-refresh.md")
+
+REQUIRED_SHARED_GATES = {
+    CHECKER_PATH.as_posix(),
+}
+
+REQUIRED_PRESENT_ENTRYPOINTS = {
+    CHECKER_PATH.as_posix(),
+    BSEARCH_CHECKER_PATH.as_posix(),
+    HEXDUMP_CHECKER_PATH.as_posix(),
+    HEXDUMP_PERF_REFRESH_PATH.as_posix(),
+}
+
+REQUIRED_EXACT_CHECKS = {
+    "python3 scripts/zigux/check-phase6-present-entrypoints.py",
+    "python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test",
+}
+
+EXPECTED_BSEARCH_CORPUS_CHECKER = BSEARCH_CHECKER_PATH.as_posix()
+EXPECTED_HEXDUMP_PACKET_CHECKER = HEXDUMP_CHECKER_PATH.as_posix()
+EXPECTED_HEXDUMP_PERF_REFRESH = HEXDUMP_PERF_REFRESH_PATH.as_posix()
+
+SELF_TEST_CASE_COUNT = 9
+
+
+def read_json(path: Path) -> object:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ValidationError(f"missing required file: {path.as_posix()}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValidationError(f"invalid JSON in {path.as_posix()}: {exc}") from exc
+
+
+def validate_paths(repo_root: Path) -> None:
+    for rel_path in sorted(REQUIRED_PRESENT_ENTRYPOINTS):
+        if not (repo_root / rel_path).is_file():
+            raise ValidationError(f"missing required file: {rel_path}")
+
+
+def validate_manifest(repo_root: Path) -> None:
+    manifest_obj = read_json(repo_root / MANIFEST_PATH)
+    if not isinstance(manifest_obj, dict):
+        raise ValidationError(f"expected object in {MANIFEST_PATH.as_posix()}")
+
+    shared_gates = manifest_obj.get("shared_gates")
+    if not isinstance(shared_gates, list):
+        raise ValidationError(f"missing shared_gates in {MANIFEST_PATH.as_posix()}")
+    for rel_path in REQUIRED_SHARED_GATES:
+        if rel_path not in shared_gates:
+            raise ValidationError(f"missing shared gate in {MANIFEST_PATH.as_posix()}: {rel_path}")
+
+    present_entrypoints = manifest_obj.get("tests_root_present_entrypoints")
+    if not isinstance(present_entrypoints, list):
+        raise ValidationError(f"missing tests_root_present_entrypoints in {MANIFEST_PATH.as_posix()}")
+    for rel_path in REQUIRED_PRESENT_ENTRYPOINTS:
+        if rel_path not in present_entrypoints:
+            raise ValidationError(
+                f"missing tests_root_present_entrypoint in {MANIFEST_PATH.as_posix()}: {rel_path}"
+            )
+
+    exact_checks = manifest_obj.get("exact_checks")
+    if not isinstance(exact_checks, list):
+        raise ValidationError(f"missing exact_checks in {MANIFEST_PATH.as_posix()}")
+    for command in REQUIRED_EXACT_CHECKS:
+        if command not in exact_checks:
+            raise ValidationError(f"missing exact check in {MANIFEST_PATH.as_posix()}: {command}")
+
+    helpers = manifest_obj.get("helpers")
+    if not isinstance(helpers, list):
+        raise ValidationError(f"missing helpers in {MANIFEST_PATH.as_posix()}")
+
+    bsearch_helper = next(
+        (item for item in helpers if isinstance(item, dict) and item.get("id") == "bsearch"),
+        None,
+    )
+    if not isinstance(bsearch_helper, dict):
+        raise ValidationError(f"missing bsearch helper row in {MANIFEST_PATH.as_posix()}")
+    if bsearch_helper.get("corpus_evidence_checker") != EXPECTED_BSEARCH_CORPUS_CHECKER:
+        raise ValidationError(
+            f"unexpected bsearch corpus checker in {MANIFEST_PATH.as_posix()}: "
+            f"{bsearch_helper.get('corpus_evidence_checker')!r}"
+        )
+
+    hexdump_helper = next(
+        (item for item in helpers if isinstance(item, dict) and item.get("id") == "hexdump"),
+        None,
+    )
+    if not isinstance(hexdump_helper, dict):
+        raise ValidationError(f"missing hexdump helper row in {MANIFEST_PATH.as_posix()}")
+    if hexdump_helper.get("packet_checker") != EXPECTED_HEXDUMP_PACKET_CHECKER:
+        raise ValidationError(
+            f"unexpected hexdump packet checker in {MANIFEST_PATH.as_posix()}: "
+            f"{hexdump_helper.get('packet_checker')!r}"
+        )
+    if hexdump_helper.get("perf_refresh_note") != EXPECTED_HEXDUMP_PERF_REFRESH:
+        raise ValidationError(
+            f"unexpected hexdump perf refresh note in {MANIFEST_PATH.as_posix()}: "
+            f"{hexdump_helper.get('perf_refresh_note')!r}"
+        )
+
+
+def run_checks(repo_root: Path) -> None:
+    validate_paths(repo_root)
+    validate_manifest(repo_root)
+
+
+def write(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def build_manifest() -> dict[str, object]:
+    return {
+        "shared_gates": sorted(REQUIRED_SHARED_GATES),
+        "tests_root_present_entrypoints": sorted(REQUIRED_PRESENT_ENTRYPOINTS),
+        "exact_checks": sorted(REQUIRED_EXACT_CHECKS),
+        "helpers": [
+            {
+                "id": "bsearch",
+                "corpus_evidence_checker": EXPECTED_BSEARCH_CORPUS_CHECKER,
+            },
+            {
+                "id": "hexdump",
+                "packet_checker": EXPECTED_HEXDUMP_PACKET_CHECKER,
+                "perf_refresh_note": EXPECTED_HEXDUMP_PERF_REFRESH,
+            },
+        ],
+    }
+
+
+def scaffold_repo(root: Path) -> None:
+    write(root / MANIFEST_PATH, json.dumps(build_manifest(), indent=2) + "\n")
+    write(root / CHECKER_PATH, "#!/usr/bin/env python3\n")
+    write(root / BSEARCH_CHECKER_PATH, "#!/usr/bin/env python3\n")
+    write(root / HEXDUMP_CHECKER_PATH, "#!/usr/bin/env python3\n")
+    write(root / HEXDUMP_PERF_REFRESH_PATH, "# Phase 6 Hexdump Perf Refresh Evidence\n")
+
+
+def expect_failure(root: Path, expected_fragment: str) -> None:
+    try:
+        run_checks(root)
+    except ValidationError as exc:
+        if expected_fragment not in str(exc):
+            raise AssertionError(
+                f"expected self-test failure containing {expected_fragment!r}, got {exc!r}"
+            ) from exc
+        return
+    raise AssertionError(f"expected failure containing {expected_fragment!r}")
+
+
+def run_self_test() -> None:
+    tmpdir = Path(tempfile.mkdtemp(prefix="phase6_present_entrypoints_"))
+    try:
+        scaffold_repo(tmpdir)
+        run_checks(tmpdir)
+
+        manifest_path = tmpdir / MANIFEST_PATH
+
+        manifest = build_manifest()
+        manifest["shared_gates"] = []
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(tmpdir, CHECKER_PATH.as_posix())
+
+        manifest = build_manifest()
+        manifest["tests_root_present_entrypoints"] = sorted(
+            REQUIRED_PRESENT_ENTRYPOINTS - {HEXDUMP_PERF_REFRESH_PATH.as_posix()}
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(tmpdir, HEXDUMP_PERF_REFRESH_PATH.as_posix())
+
+        manifest = build_manifest()
+        manifest["exact_checks"] = ["python3 scripts/zigux/check-phase6-present-entrypoints.py"]
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(tmpdir, "--self-test")
+
+        manifest = build_manifest()
+        manifest["helpers"][0]["corpus_evidence_checker"] = "scripts/zigux/check-phase6-bsearch-proof.py"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(tmpdir, "unexpected bsearch corpus checker")
+
+        manifest = build_manifest()
+        manifest["helpers"][1]["packet_checker"] = "scripts/zigux/check-phase6-hexdump-review.py"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(tmpdir, "unexpected hexdump packet checker")
+
+        manifest = build_manifest()
+        manifest["helpers"][1]["perf_refresh_note"] = "Documentation/zigux/phase6-hexdump-perf-old.md"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(tmpdir, "unexpected hexdump perf refresh note")
+
+        scaffold_repo(tmpdir)
+        (tmpdir / BSEARCH_CHECKER_PATH).unlink()
+        expect_failure(tmpdir, BSEARCH_CHECKER_PATH.as_posix())
+
+        scaffold_repo(tmpdir)
+        (tmpdir / HEXDUMP_CHECKER_PATH).unlink()
+        expect_failure(tmpdir, HEXDUMP_CHECKER_PATH.as_posix())
+
+        scaffold_repo(tmpdir)
+        (tmpdir / HEXDUMP_PERF_REFRESH_PATH).unlink()
+        expect_failure(tmpdir, HEXDUMP_PERF_REFRESH_PATH.as_posix())
+
+        print("PHASE6_PRESENT_ENTRYPOINTS_SELF_TEST=pass")
+        print(f"PHASE6_PRESENT_ENTRYPOINTS_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo-root", default=".", help="Path to the Zigux repository root")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in checks")
+    args = parser.parse_args()
+    if args.self_test:
+        run_self_test()
+        return 0
+    run_checks(Path(args.repo_root).resolve())
+    print("Phase 6 shared present-entrypoint inventory looks aligned.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
