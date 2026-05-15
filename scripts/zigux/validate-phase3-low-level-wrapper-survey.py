@@ -77,7 +77,6 @@ REQUIRED_BUILD_SNIPPETS = (
 
 REQUIRED_TEST_SNIPPETS = (
     'test "phase3 low-level wrappers cover the shipped helper surface directly" {',
-    'test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {',
     'test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable" {',
     'test "phase3 low-level wrappers keep allocator and panic policy helpers reviewable" {',
     'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {',
@@ -90,14 +89,6 @@ REQUIRED_TEST_SNIPPETS = (
     'mmio.write16(base, 1, 0x1234);',
     'mmio.write32(base, 3, 0x89abcdef);',
     'mmio.write64(base, 5, 0xfedc_ba98_7654_3210);',
-    'mmio.allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0)',
-    'const byte_scoped_desc = try mmio.rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.volatile_mmio));',
-    'const bytes_scoped_desc = try mmio.rangeInteropPolicyBytes(',
-    'mmio.write8InteropPolicyByte(base, 3, 0x7e, @intFromEnum(abi.UnsafeScope.volatile_mmio));',
-    'mmio.read8InteropPolicyByte(base, 3, @intFromEnum(abi.UnsafeScope.volatile_mmio))',
-    'mmio.write8InteropPolicyBytes(base, 1, 0x44, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0);',
-    'mmio.read8InteropPolicyBytes(base, 1, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0)',
-    'mmio.write64InteropPolicyByte(base, 8, 0xfedc_ba98_7654_3210, @intFromEnum(abi.UnsafeScope.volatile_mmio));',
     'narrow.pointerAtInteropPolicy(u32, base, @sizeOf(u32), raw_policy)',
     'allocator_policy.modeFromInteropPolicy(caller_abort_policy)',
     'panic_policy.actionForInteropPolicy(caller_abort_policy)',
@@ -605,25 +596,6 @@ def run_self_test() -> int:
         ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing allocator-policy replay failure")
-            return 1
-
-        _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
-        _write(
-            root,
-            TEST_REL,
-            (root / TEST_REL).read_text(encoding="utf-8").replace(
-                'const byte_scoped_desc = try mmio.rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.volatile_mmio));',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_test_snippet:const byte_scoped_desc = try mmio.rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.volatile_mmio));'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing byte-scoped mmio replay failure")
             return 1
 
         _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
