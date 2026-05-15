@@ -66,6 +66,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
