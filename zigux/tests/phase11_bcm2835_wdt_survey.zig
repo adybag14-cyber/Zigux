@@ -44,7 +44,8 @@ test "phase11 bcm2835 survey keeps survey, teardown, and matrix notes aligned wi
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase11_bcm2835_wdt_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/watchdog/bcm2835_wdt_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase11_bcm2835_wdt_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "one bcm2835-only manifest or slice-note extension") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase11-bcm2835-wdt-slice.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "explicit validation plan") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "PHASE11_BCM2835_WDT_TEARDOWN_STATUS=driver_teardown_truthful") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "drivers/watchdog/bcm2835_wdt_verify.zig") != null);
@@ -58,6 +59,8 @@ test "phase11 bcm2835 survey keeps survey, teardown, and matrix notes aligned wi
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "drivers/watchdog/bcm2835_wdt_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "survey-gate coverage") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zigux/tests/phase11_bcm2835_wdt_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "Documentation/zigux/phase11-bcm2835-wdt-slice.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "explicit validation plan") != null);
 }
 
 test "phase11 bcm2835 survey keeps the replay and verify helpers reviewable" {
