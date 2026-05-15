@@ -85,6 +85,8 @@ SCRIPT_README_MARKERS = [
     "`Documentation/zigux/freeze-map.md`",
     "`make -C zigux phase14-validate`",
     "`make -C zigux phase14-smoke`",
+    "`make -C zigux phase14-test`",
+    "`make -C zigux phase14`",
     "`zigux/tests/phase14_build.zig`",
     "shared Phase 14 smoke packet",
     "focused smoke-shard replay contract",
