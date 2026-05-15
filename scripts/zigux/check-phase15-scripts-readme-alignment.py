@@ -14,7 +14,9 @@ MAKEFILE_REL = "zigux/Makefile"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
 REVIEW_PROCESS_NOTE_REL = "Documentation/zigux/phase15-architecture-council-review-process.md"
+DOCS_ALIGNMENT_CHECKER_REL = "scripts/zigux/check-phase15-docs-readme-alignment.py"
 HANDOFF_CHECKER_REL = "scripts/zigux/check-phase15-review-process-handoff.py"
+SHARED_SUMMARY_CHECKER_REL = "scripts/zigux/check-phase15-shared-summary-gap.py"
 MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
 BUILD_REL = "zigux/tests/phase15_build.zig"
 
@@ -24,7 +26,9 @@ REQUIRED_FILES = (
     WORKFLOW_REL,
     REVIEW_CHECKLIST_REL,
     REVIEW_PROCESS_NOTE_REL,
+    DOCS_ALIGNMENT_CHECKER_REL,
     HANDOFF_CHECKER_REL,
+    SHARED_SUMMARY_CHECKER_REL,
     MANIFEST_REL,
     BUILD_REL,
     "Documentation/zigux/freeze-map.md",
@@ -63,10 +67,14 @@ MAKEFILE_REQUIRED = (
     "PHONY += phase15-validate phase15-test phase15",
     "phase15-validate:",
     "scripts/zigux/validate-phase15.py",
+    "scripts/zigux/check-phase15-docs-readme-alignment.py --self-test",
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py --self-test",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py --self-test",
+    "scripts/zigux/check-phase15-shared-summary-gap.py",
     "phase15-test:",
     "$(ZIG) build test --build-file zigux/tests/phase15_build.zig",
     "phase15: phase15-validate phase15-test",
@@ -257,10 +265,14 @@ def _baseline_makefile() -> str:
             "",
             "phase15-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase15.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-docs-readme-alignment.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-docs-readme-alignment.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py",
             "",
             "phase15-test:",
             "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase15_build.zig",
@@ -379,6 +391,8 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root / MAKEFILE_REL, _baseline_makefile())
     _write(root / WORKFLOW_REL, _baseline_workflow())
     _write(root / HANDOFF_CHECKER_REL, _baseline_handoff_checker())
+    _write(root / DOCS_ALIGNMENT_CHECKER_REL, "# checker\n")
+    _write(root / SHARED_SUMMARY_CHECKER_REL, "# checker\n")
     _write(root / REVIEW_CHECKLIST_REL, _baseline_review_checklist())
     _write(root / REVIEW_PROCESS_NOTE_REL, _baseline_review_process_note())
     _write(root / MANIFEST_REL, _baseline_manifest())
@@ -477,6 +491,45 @@ def run_self_test() -> int:
             validate(root),
             ["makefile:missing:scripts/zigux/validate-phase15.py"],
             "missing_validate_route_marker_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-docs-readme-alignment.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            ["makefile:missing:scripts/zigux/check-phase15-docs-readme-alignment.py --self-test"],
+            "missing_docs_alignment_selftest_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py --self-test\n",
+                "",
+                1,
+            ).replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "makefile:missing:scripts/zigux/check-phase15-shared-summary-gap.py --self-test",
+                "makefile:missing:scripts/zigux/check-phase15-shared-summary-gap.py",
+            ],
+            "missing_shared_summary_guard_failed",
         )
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
@@ -800,6 +853,24 @@ def run_self_test() -> int:
             validate(root),
             ["missing_file:zigux/tests/phase15_readiness_gate.zig"],
             "missing_readiness_gate_file_guard_failed",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        (root / DOCS_ALIGNMENT_CHECKER_REL).unlink()
+        _assert_only(
+            validate(root),
+            [f"missing_file:{DOCS_ALIGNMENT_CHECKER_REL}"],
+            "missing_docs_alignment_file_guard_failed",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        (root / SHARED_SUMMARY_CHECKER_REL).unlink()
+        _assert_only(
+            validate(root),
+            [f"missing_file:{SHARED_SUMMARY_CHECKER_REL}"],
+            "missing_shared_summary_file_guard_failed",
         )
         _seed_fixture_tree(root)
         case_count += 1
