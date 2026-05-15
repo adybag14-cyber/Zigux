@@ -18,6 +18,9 @@ PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER = (
 PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"
 )
+PHASE2_CONFDATA_HELPER_ANCHOR_ALIGNMENT_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-confdata-helper-anchor-alignment.py"
+)
 PHASE2_TOOL_MANIFEST_PACKET_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"
 )
@@ -41,6 +44,8 @@ PHASE2_VALIDATION_PY_COMMAND_SPECS: tuple[tuple[Path | str, ...], ...] = (
     (PHASE2_KCONFIG_SELFTEST_ALIGNMENT_CHECKER,),
     (KCONFIG_BRIDGE_CHECKER, "--self-test"),
     (KCONFIG_BRIDGE_CHECKER,),
+    (PHASE2_CONFDATA_HELPER_ANCHOR_ALIGNMENT_CHECKER, "--self-test"),
+    (PHASE2_CONFDATA_HELPER_ANCHOR_ALIGNMENT_CHECKER,),
     (FIXDEP_GATE_CHECKER, "--self-test"),
     (FIXDEP_GATE_CHECKER,),
     (FIXDEP_DIFF_CHECKER, "--self-test"),
@@ -72,6 +77,8 @@ PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-kconfig-bridge.py --self-test",
         "scripts/zigux/check-kconfig-bridge.py",
+        "scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py --self-test",
+        "scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py",
         "scripts/zigux/check-phase2-fixdep-gate.py --self-test",
         "scripts/zigux/check-phase2-fixdep-gate.py",
         "scripts/zigux/check-fixdep-diff.py --self-test",
@@ -92,7 +99,7 @@ PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
         "zig test scripts/zigux/kconfig/confdata_bridge.zig",
     }
 )
-PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 26
+PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28
 PHASE2_REQUIRED_RELATIVE_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
@@ -104,6 +111,7 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
     "scripts/zigux/README.md",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
@@ -132,8 +140,8 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
     "zigux/tests/fixtures/phase2_tool_manifest.json",
 )
 PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
-PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 36
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 30
+PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 33
 
 
 def build_validation_commands(
@@ -239,7 +247,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-kconfig-bridge.py",
             ],
         ),
@@ -253,8 +261,36 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-kconfig-bridge.py --self-test",
+            ],
+        ),
+        (
+            "command_inventory_missing_confdata_helper_anchor_alignment_self_test",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (PHASE2_CONFDATA_HELPER_ANCHOR_ALIGNMENT_CHECKER, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py --self-test",
+            ],
+        ),
+        (
+            "command_inventory_missing_confdata_helper_anchor_alignment_gate",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (PHASE2_CONFDATA_HELPER_ANCHOR_ALIGNMENT_CHECKER,)
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py",
             ],
         ),
         (
@@ -263,7 +299,7 @@ def run_self_test() -> list[str]:
                 tuple(spec for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS if spec != (TESTS_README_ALIGNMENT_CHECKER,))
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tests-readme-alignment.py",
             ],
         ),
@@ -277,7 +313,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
             ],
         ),
@@ -291,7 +327,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-kconfig-readme-alignment.py",
             ],
         ),
@@ -305,7 +341,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
             ],
         ),
@@ -319,7 +355,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
             ],
         ),
@@ -333,7 +369,7 @@ def run_self_test() -> list[str]:
                 ),
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:zig test scripts/zigux/fixdep.zig",
             ],
         ),
@@ -347,7 +383,7 @@ def run_self_test() -> list[str]:
                 ),
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:zig test scripts/zigux/genksyms.zig",
             ],
         ),
@@ -361,7 +397,7 @@ def run_self_test() -> list[str]:
                 ),
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:zig test scripts/zigux/kconfig/conf_bridge.zig",
             ],
         ),
@@ -375,7 +411,7 @@ def run_self_test() -> list[str]:
                 ),
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:zig test scripts/zigux/kconfig/confdata_bridge.zig",
             ],
         ),
@@ -385,7 +421,7 @@ def run_self_test() -> list[str]:
                 PHASE2_VALIDATION_PY_COMMAND_SPECS + ((TOOLCHAIN_PIN_SCOPE_CHECKER,),)
             ),
             [
-                "phase2_validation_commands:count=27:expected=26",
+                "phase2_validation_commands:count=29:expected=28",
                 "phase2_validation_commands:duplicate_command_tail",
             ],
         ),
@@ -399,7 +435,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tool-manifest-packets.py",
             ],
         ),
@@ -413,7 +449,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-genksyms-bridge.py",
             ],
         ),
@@ -427,7 +463,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_commands:count=25:expected=26",
+                "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-genksyms-bridge.py --self-test",
             ],
         ),
@@ -446,7 +482,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=35:expected=36",
+                "phase2_validation_required_files:count=36:expected=37",
                 "phase2_validation_required_files:missing:Documentation/zigux/phase2-fixdep-next-step-note.md",
             ],
         ),
@@ -460,8 +496,22 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=35:expected=36",
+                "phase2_validation_required_files:count=36:expected=37",
                 "phase2_validation_required_files:missing:Documentation/zigux/phase2-confdata-bridge-survey.md",
+            ],
+        ),
+        (
+            "required_file_inventory_missing_confdata_helper_anchor_alignment_script",
+            collect_required_file_inventory_issues(
+                tuple(
+                    rel_path
+                    for rel_path in PHASE2_REQUIRED_RELATIVE_PATHS
+                    if rel_path != "scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py"
+                )
+            ),
+            [
+                "phase2_validation_required_files:count=36:expected=37",
+                "phase2_validation_required_files:missing:scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py",
             ],
         ),
         (
@@ -504,7 +554,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=35:expected=36",
+                "phase2_validation_required_files:count=36:expected=37",
                 "phase2_validation_required_files:missing:scripts/zigux/validate-phase2.py",
             ],
         ),
@@ -518,7 +568,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=35:expected=36",
+                "phase2_validation_required_files:count=36:expected=37",
                 "phase2_validation_required_files:missing:scripts/zigux/check-kconfig-bridge.py",
             ],
         ),
@@ -532,7 +582,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=35:expected=36",
+                "phase2_validation_required_files:count=36:expected=37",
                 "phase2_validation_required_files:missing:scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
             ],
         ),
@@ -546,7 +596,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=35:expected=36",
+                "phase2_validation_required_files:count=36:expected=37",
                 "phase2_validation_required_files:missing:scripts/zigux/check-genksyms-bridge.py",
             ],
         ),
@@ -560,7 +610,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=35:expected=36",
+                "phase2_validation_required_files:count=36:expected=37",
                 "phase2_validation_required_files:missing:scripts/zigux/kconfig/conf_bridge.zig",
             ],
         ),
@@ -574,7 +624,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=35:expected=36",
+                "phase2_validation_required_files:count=36:expected=37",
                 "phase2_validation_required_files:missing:scripts/zigux/kconfig/confdata_bridge.zig",
             ],
         ),
@@ -588,7 +638,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=35:expected=36",
+                "phase2_validation_required_files:count=36:expected=37",
                 "phase2_validation_required_files:missing:zigux/tests/fixtures/genksyms_bridge/manifest.json",
             ],
         ),
@@ -602,7 +652,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=35:expected=36",
+                "phase2_validation_required_files:count=36:expected=37",
                 "phase2_validation_required_files:missing:zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
             ],
         ),
@@ -616,7 +666,7 @@ def run_self_test() -> list[str]:
                 )
             ),
             [
-                "phase2_validation_required_files:count=35:expected=36",
+                "phase2_validation_required_files:count=36:expected=37",
                 "phase2_validation_required_files:missing:zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
             ],
         ),
