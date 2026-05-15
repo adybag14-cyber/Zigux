@@ -28,8 +28,14 @@ The active shared Phase 11 packet is currently reviewable through these shared r
 * `zigux/tests/fixtures/phase11_build_inventory.json`
 * `zigux/Makefile`
 * `.github/workflows/zigux-bootstrap.yml`
+* `Documentation/zigux/README.md`
+* `Documentation/zigux/review-checklist.md`
+* `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+* `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+* `scripts/zigux/README.md`
+* `zigux/tests/README.md`
 
-These shared surfaces keep the Phase 11 packet reviewable as a reminder-and-checker contract while the bounded build-backed replay files stay directly materialized on current `master`.
+These shared surfaces keep the Phase 11 packet reviewable as a reminder-and-checker contract while the bounded build-backed replay files stay directly materialized on current `master`, and keep the broader contributor-facing packet aligned beside that checker-backed core instead of leaving those shared review surfaces implicit.
 
 ## Current Repo Reality
 
