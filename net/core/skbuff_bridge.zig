@@ -61,6 +61,11 @@ pub const LifetimeAudit = struct {
     next_step: []const u8,
 };
 
+pub const SegmentationAudit = struct {
+    checkpoints: []const AuditCheckpoint,
+    blocked_live_behaviors: []const []const u8,
+};
+
 const boundary_areas = [_]BoundaryArea{
     .{
         .id = "allocation-entrypoints",
@@ -277,6 +282,13 @@ pub const SkbuffBridgeLab = struct {
         return audit_checkpoints.len;
     }
 
+    pub fn segmentationAudit() SegmentationAudit {
+        return .{
+            .checkpoints = audit_checkpoints[4..],
+            .blocked_live_behaviors = blocked_live_behaviors[4..],
+        };
+    }
+
     pub fn nextAuditFocus() []const u8 {
         return "No smaller review-only skbuff follow-up remains before the live ownership blocker; keep qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination in C.";
     }
@@ -386,4 +398,28 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "validate_xmit_skb_list()") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "skb_mark_not_on_list()") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "tail = skb->prev") != null);
+}
+
+test "skbuff bridge segmentation audit stays grouped as one stay-in-c packet" {
+    const segmentation = SkbuffBridgeLab.segmentationAudit();
+
+    try std.testing.expectEqual(@as(usize, 5), segmentation.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 5), segmentation.blocked_live_behaviors.len);
+    try std.testing.expectEqualStrings("segmentation-orphan-and-zerocopy-handoff", segmentation.checkpoints[0].id);
+    try std.testing.expect(segmentation.checkpoints[0].guard == .segmentation_orphan_and_zerocopy_handoff);
+    try std.testing.expectEqualStrings("skb_shinfo(nskb)->nr_frags", segmentation.checkpoints[0].observed_fields[3]);
+    try std.testing.expectEqualStrings("segmentation-checksum-metadata-handoff", segmentation.checkpoints[1].id);
+    try std.testing.expect(segmentation.checkpoints[1].guard == .segmentation_checksum_metadata_handoff);
+    try std.testing.expectEqualStrings("segmentation-partial-tail-owner-transfer", segmentation.checkpoints[2].id);
+    try std.testing.expect(segmentation.checkpoints[2].guard == .segmentation_partial_tail_owner_transfer);
+    try std.testing.expectEqualStrings("segmentation-checksum-data-offset-crossover", segmentation.checkpoints[3].id);
+    try std.testing.expect(segmentation.checkpoints[3].guard == .segmentation_checksum_data_offset_crossover);
+    try std.testing.expectEqualStrings("segmentation-tail-publication-consumer-contract", segmentation.checkpoints[4].id);
+    try std.testing.expect(segmentation.checkpoints[4].guard == .segmentation_tail_publication_consumer_contract);
+    try std.testing.expect(std.mem.indexOf(u8, segmentation.checkpoints[4].blocked_by, "tail = skb->prev") != null);
+    try std.testing.expectEqualStrings("segmentation orphan-frag and zerocopy ownership handoff", segmentation.blocked_live_behaviors[0]);
+    try std.testing.expectEqualStrings("segmentation checksum metadata recompute and GSO handoff", segmentation.blocked_live_behaviors[1]);
+    try std.testing.expectEqualStrings("segmentation partial-seg metadata and tail-owner transfer", segmentation.blocked_live_behaviors[2]);
+    try std.testing.expectEqualStrings("segmentation checksum and data-offset crossover before tail publication", segmentation.blocked_live_behaviors[3]);
+    try std.testing.expectEqualStrings("segmentation exported tail-publication contract", segmentation.blocked_live_behaviors[4]);
 }
