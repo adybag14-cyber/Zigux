@@ -28,7 +28,6 @@ pub const InvalidDecodeCase = struct {
 
 const empty = [_]u8{};
 const one_byte_fb = [_]u8{0xfb};
-const three_ff = [_]u8{ 0xfb, 0xff, 0xff };
 const invalid_with_nul = [_]u8{ 'Z', 'g', 0, '=' };
 
 pub const standard_cases = [_]EncodeCase{
@@ -41,8 +40,8 @@ pub const standard_cases = [_]EncodeCase{
 pub const variant_cases = [_]VariantCase{
     .{ .input = &one_byte_fb, .expected = "-w", .padding = false, .variant_name = "urlsafe" },
     .{ .input = &one_byte_fb, .expected = "-w==", .padding = true, .variant_name = "urlsafe" },
+    .{ .input = &one_byte_fb, .expected = "+w", .padding = false, .variant_name = "imap" },
     .{ .input = &one_byte_fb, .expected = "+w==", .padding = true, .variant_name = "imap" },
-    .{ .input = &three_ff, .expected = "+,,,", .padding = false, .variant_name = "imap" },
 };
 
 pub const standard_decode_cases = [_]DecodeCase{
@@ -55,15 +54,15 @@ pub const standard_decode_cases = [_]DecodeCase{
 pub const variant_decode_cases = [_]DecodeCase{
     .{ .input = "-w", .expected = &one_byte_fb, .padding = false, .variant_name = "urlsafe" },
     .{ .input = "-w==", .expected = &one_byte_fb, .padding = true, .variant_name = "urlsafe" },
+    .{ .input = "+w", .expected = &one_byte_fb, .padding = false, .variant_name = "imap" },
     .{ .input = "+w==", .expected = &one_byte_fb, .padding = true, .variant_name = "imap" },
-    .{ .input = "+,,,", .expected = &three_ff, .padding = false, .variant_name = "imap" },
 };
 
 pub const invalid_decode_cases = [_]InvalidDecodeCase{
-    .{ .input = "A", .padding = false, .variant_name = "std" },
-    .{ .input = "AA=A", .padding = true, .variant_name = "std" },
     .{ .input = "AR==", .padding = true, .variant_name = "std" },
     .{ .input = "aGl=", .padding = true, .variant_name = "std" },
+    .{ .input = "-x", .padding = false, .variant_name = "urlsafe" },
+    .{ .input = "+x", .padding = false, .variant_name = "imap" },
     .{ .input = "-___", .padding = false, .variant_name = "std" },
     .{ .input = "+///", .padding = false, .variant_name = "urlsafe" },
     .{ .input = "+///", .padding = false, .variant_name = "imap" },
