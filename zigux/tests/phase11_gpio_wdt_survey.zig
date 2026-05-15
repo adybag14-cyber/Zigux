@@ -138,6 +138,8 @@ test "phase11 gpio_wdt archived notes stay aligned with the visible starter and 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "summarizeTeardown()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "do not expose `drivers/watchdog/gpio_wdt.zig`") == null);
 
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "platformDriverIdentitySummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "watchdogMetadataSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "descriptorRequestSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "platformDrvdataCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "nowayoutPolicySummary()") != null);
