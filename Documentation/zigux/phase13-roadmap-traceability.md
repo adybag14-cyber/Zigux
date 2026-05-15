@@ -125,7 +125,7 @@ The dedicated governance note, the shipped slice note, the shipped survey note, 
 When a shared contributor-facing summary mentions Phase 13, it should keep these expectations visible:
 - the packet is still active rather than closed
 - the owner split is explicit
-- the shared contributor-sync note and compact release-coordination companion stay explicit beside the contributor workflow, release-summary, and tests-root companion notes
+- the shared contributor-sync note `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` and the compact release-coordination companion `Documentation/zigux/phase13-release-coordination-matrix.md` stay explicit beside `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `zigux/tests/README.md`
 - notifier evidence is adjacent support, not a fifth helper slice
 - the guidance stays inside helper, docs, checklist, and truthfulness work unless a new roadmap-approved surface lands
 
