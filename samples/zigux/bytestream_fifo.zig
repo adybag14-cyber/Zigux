@@ -83,6 +83,7 @@ pub const PreviewBoundarySummary = struct {
     queue_len_after_preview: usize,
     available_after_preview: usize,
     visible_span_after_preview: VisibleSpanSummary,
+    writable_span_after_preview: WritableSpanSummary,
 };
 
 pub const WrappedPreviewSummary = struct {
@@ -96,6 +97,7 @@ pub const WrappedPreviewSummary = struct {
     queue_len_after_preview: usize,
     available_after_preview: usize,
     visible_span_after_preview: VisibleSpanSummary,
+    writable_span_after_preview: WritableSpanSummary,
 };
 
 pub const RemainingCapacitySummary = struct {
@@ -380,6 +382,7 @@ pub const BytestreamFifoSample = struct {
             .queue_len_after_preview = self.count(),
             .available_after_preview = self.available(),
             .visible_span_after_preview = self.visibleSpanSummary(),
+            .writable_span_after_preview = self.writableSpanSummary(),
         };
     }
 
@@ -419,6 +422,7 @@ pub const BytestreamFifoSample = struct {
             .queue_len_after_preview = self.count(),
             .available_after_preview = self.available(),
             .visible_span_after_preview = self.visibleSpanSummary(),
+            .writable_span_after_preview = self.writableSpanSummary(),
         };
     }
 
@@ -897,6 +901,11 @@ test "bytestream fifo sample keeps queue-shape review helpers explicit" {
     try std.testing.expectEqual(@as(usize, 10), preview_boundary.visible_span_after_preview.first_window_len);
     try std.testing.expectEqual(@as(usize, 0), preview_boundary.visible_span_after_preview.second_window_len);
     try std.testing.expect(!preview_boundary.visible_span_after_preview.wraps);
+    try std.testing.expectEqual(@as(usize, 17), preview_boundary.writable_span_after_preview.tail_index);
+    try std.testing.expectEqual(@as(usize, 22), preview_boundary.writable_span_after_preview.total_available);
+    try std.testing.expectEqual(@as(usize, 15), preview_boundary.writable_span_after_preview.first_window_len);
+    try std.testing.expectEqual(@as(usize, 7), preview_boundary.writable_span_after_preview.second_window_len);
+    try std.testing.expect(preview_boundary.writable_span_after_preview.wraps);
     try std.testing.expectEqual(@as(usize, 22), sample.available());
     try std.testing.expectEqual(@as(usize, 10), sample.visibleSpanSummary().first_window_len);
     try std.testing.expectEqual(@as(usize, 0), sample.visibleSpanSummary().second_window_len);
@@ -919,6 +928,11 @@ test "bytestream fifo sample keeps queue-shape review helpers explicit" {
     try std.testing.expectEqual(@as(usize, 28), wrapped_preview.visible_span_after_preview.first_window_len);
     try std.testing.expectEqual(@as(usize, 4), wrapped_preview.visible_span_after_preview.second_window_len);
     try std.testing.expect(wrapped_preview.visible_span_after_preview.wraps);
+    try std.testing.expectEqual(@as(usize, 4), wrapped_preview.writable_span_after_preview.tail_index);
+    try std.testing.expectEqual(@as(usize, 0), wrapped_preview.writable_span_after_preview.total_available);
+    try std.testing.expectEqual(@as(usize, 0), wrapped_preview.writable_span_after_preview.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), wrapped_preview.writable_span_after_preview.second_window_len);
+    try std.testing.expect(!wrapped_preview.writable_span_after_preview.wraps);
     try std.testing.expectEqual(@as(usize, 0), sample.available());
     try std.testing.expectEqual(@as(usize, 28), sample.visibleSpanSummary().first_window_len);
     try std.testing.expectEqual(@as(usize, 4), sample.visibleSpanSummary().second_window_len);
