@@ -27,11 +27,13 @@ The current Phase 15 readiness packet is the shared governance bundle around:
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `python3 scripts/zigux/validate-phase15.py`
-- `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`
+- `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`
+- `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `python3 scripts/zigux/check-phase15-review-process-handoff.py`
+- `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
 - `.github/workflows/zigux-bootstrap.yml`
+- `zigux/tests/phase15_readiness_gate_manifest.json`
+- `zigux/tests/phase15_readiness_gate.zig`
 - `zigux/tests/phase15_build.zig`
 - `zig build test --build-file zigux/tests/phase15_build.zig`
 - `make -C zigux phase15-validate`
@@ -39,6 +41,16 @@ The current Phase 15 readiness packet is the shared governance bundle around:
 - `make -C zigux phase15`
 
 The packet remains parked. The current readiness posture is that no freeze-map status-change approval has landed, and deep-core work stays blocked on stronger evidence.
+
+## Roadmap Versus Ledger
+
+The roadmap requires the freeze map, Architecture Council review process, parity scorecard, and policy for code that remains in C indefinitely.
+
+The bootstrap ledger anchor for this governance family was `docs(zigux): add documentation root, review checklist, and freeze map`.
+
+Current `master` already exceeds that ledger foothold. The freeze-map, review-process, parity-scorecard-survey, parity-scorecard, and indefinite-C policy packet is landed and wired into the validator-first and replay-backed maintenance routes.
+
+That means the remaining readiness gaps are now narrower than the roadmap feature list itself: `phase15-deep-core-status-change-blocker` and `phase15-shared-summaries-scripts-root-validator-route-drift`.
 
 ## Readiness Gate
 
@@ -52,10 +64,11 @@ Readiness here means:
 - the docs-root Phase 15 summary stays reviewable through `Documentation/zigux/README.md`, `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `python3 scripts/zigux/validate-phase15.py`
 - the remaining blocker is still `phase15-deep-core-status-change-blocker`
 
-## Remaining Blocker
+## Remaining Gaps
 
 - `phase15-deep-core-status-change-blocker`: the parity-scorecard and stay-in-C governance packet still do not carry enough reviewed evidence to justify a freeze-map status change for the deep-core anchors
-- until that blocker changes, the Phase 15 packet stays in governance maintenance mode only
+- `phase15-shared-summaries-scripts-root-validator-route-drift`: the only live non-readiness drift remains the scripts-root `phase15-validate` undercount in `scripts/zigux/README.md` plus `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and that bounded repair belongs to shared-summary lane `P15-Y06`, not the `P15-L01` readiness lane
+- until those gaps change, the Phase 15 packet stays in governance maintenance mode only
 - `phase15-docs-root-summary-alignment` remains a required truthfulness check whenever broad Phase 15 summaries move, and `python3 scripts/zigux/check-phase15-docs-readme-alignment.py` is now the dedicated docs-root guard for that reread
 
 ## Next Step
