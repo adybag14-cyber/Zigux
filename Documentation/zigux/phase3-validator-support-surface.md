@@ -18,6 +18,8 @@ Phase 3 ABI and runtime tranche.
 - `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`
 - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `scripts/zigux/validate-phase3-export-uapi-survey.py`
+- `zigux/tests/phase3_export_uapi_layout.zig`
+- `zigux/tests/phase3_export_uapi_layout_build.zig`
 - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
 - `scripts/zigux/validate-phase3-validator-support-surface.py`
 - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
@@ -54,9 +56,11 @@ Phase 3 ABI and runtime tranche.
 - `python3 scripts/zigux/generate-phase3-check-wrappers.py --check`
 - `python3 scripts/zigux/run-phase3-checks.py --self-test`
 - `python3 scripts/zigux/run-phase3-checks.py --slug abi`
+- `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
 - `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `make -C zigux phase3-validate`
 - `make -C zigux phase3-selftest`
+- `make -C zigux phase3-export-uapi-layout-test`
 - `make -C zigux phase3-low-level-wrappers-test`
 - `make -C zigux phase3`
 
@@ -79,8 +83,8 @@ Phase 3 ABI and runtime tranche.
   `Documentation/zigux/phase3-bindings-governance.md`,
   `Documentation/zigux/phase3-kernel-export-shim-governance.md`, and
   `Documentation/zigux/phase3-abi-h-boundary-next-step.md` so the shipped
-  validator-support inventory and the broad next-step reminder policy fail
-  closed together when either note drifts
+  validator-support inventory, the focused export/UAPI layout proof, and the
+  broad next-step reminder policy fail closed together when either note drifts
 - keep `make -C zigux phase3-selftest` as a focused companion route that
   complements but does not duplicate the default `make -C zigux phase3-validate`
   packet
@@ -108,16 +112,22 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `scripts/zigux/check-phase3-policy-byte-guards.py`,
 `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`,
 `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`,
+`Documentation/zigux/phase3-export-uapi-boundary-survey.md`,
+`zigux/tests/phase3_export_uapi_layout.zig`,
+`zigux/tests/phase3_export_uapi_layout_build.zig`,
+`zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`,
 `zigux/tests/phase3_low_level_wrappers.zig`,
 `zigux/tests/phase3_low_level_wrappers_build.zig`,
 `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`,
 `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`,
 `zigux/bindings/abi.zig`, `zigux/bindings/dev_t.zig`, and
-`zigux/bindings/notifier_abi.zig`, `make -C zigux phase3-selftest`, and
+`zigux/bindings/notifier_abi.zig`, `make -C zigux phase3-selftest`,
+`make -C zigux phase3-export-uapi-layout-test`, and
 `make -C zigux phase3-low-level-wrappers-test`; keep the dedicated ABI gate,
-policy-survey validator, policy-byte guard, focused low-level wrapper replay,
-and dedicated build-anchor route explicit beside the validator-support packet,
-keep `scripts/zigux/check-phase3-abi.py` explicit in this note even though the
+focused export/UAPI layout proof pair, policy-survey validator, policy-byte
+guard, focused low-level wrapper replay, and dedicated build-anchor routes
+explicit beside the validator-support packet, keep
+`scripts/zigux/check-phase3-abi.py` explicit in this note even though the
 current broad `scripts/zigux/README.md` and `zigux/tests/README.md` summaries
 still route that focused ABI gate through
 `python3 scripts/zigux/run-phase3-checks.py --slug abi`,
