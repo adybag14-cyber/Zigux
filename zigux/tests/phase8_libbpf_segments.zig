@@ -276,6 +276,45 @@ test "phase 8 libbpf survey gate keeps the landed online CPU routing helper evid
     try expectContains(routing_helper, "test \"summarizeOnlineCpuRouting reports the first routed online CPU whose fd slot is empty\" {");
 }
 
+test "phase 8 libbpf survey gate keeps the no-timer perf-buffer poll boundary explicit across shared notes" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const boundary_note = try readFileAlloc(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(boundary_note);
+
+    const poll_note = try readFileAlloc(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(poll_note);
+
+    try expectContains(boundary_note, "`Documentation/zigux/phase8-perf-buffer-poll-slice.md`");
+    try expectContains(boundary_note, "`make -C zigux phase8-perf-buffer-poll-test`");
+    try expectContains(
+        boundary_note,
+        "`zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`",
+    );
+    try expectContains(boundary_note, "standalone timer helper behavior");
+    try expectContains(boundary_note, "clockevent helper behavior");
+    try expectContains(
+        boundary_note,
+        "`perf_buffer__poll(timeout_ms)` packet must land as its own manifest-backed slice",
+    );
+
+    try expectContains(poll_note, "- no standalone timer helper behavior");
+    try expectContains(poll_note, "- no standalone clockevent helper behavior");
+    try expectContains(poll_note, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py");
+    try expectContains(poll_note, "`make -C zigux phase8-perf-buffer-poll-test`");
+}
+
 test "phase 8 libbpf survey note does not regress to the older ready-next wording" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
