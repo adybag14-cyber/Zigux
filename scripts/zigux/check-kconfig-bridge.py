@@ -12,6 +12,7 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
+TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
 CONFDATA_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
@@ -106,20 +107,79 @@ ALLCONFIG_SENTINEL_MODES = {
     "alldefconfig",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 23
+EXPECTED_SELF_TEST_CASE_COUNT = 26
+
+
+def load_policy(policy_path: Path = TOOLCHAIN_POLICY) -> dict[str, object] | None:
+    if not policy_path.exists():
+        return None
+    try:
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid toolchain policy JSON in {policy_path}: {exc.msg}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError(f"invalid toolchain policy payload in {policy_path}: expected object")
+    return payload
+
+
+def load_pinned_channel(policy_path: Path = TOOLCHAIN_POLICY) -> str | None:
+    payload = load_policy(policy_path)
+    if payload is None:
+        return None
+    channel = payload.get("channel")
+    if not isinstance(channel, str) or not channel.strip():
+        raise ValueError(f"invalid channel in {policy_path}")
+    return channel.strip()
+
+
+def iter_repo_local_zig_candidates(
+    *,
+    root: Path = ROOT,
+    pinned_channel: str | None = None,
+) -> list[Path]:
+    toolchain_root = root / ".zig-toolchain"
+    candidates: list[Path] = []
+
+    def add_candidate(path: Path) -> None:
+        if path not in candidates:
+            candidates.append(path)
+
+    if pinned_channel is not None:
+        pinned_root = toolchain_root / f"zig-x86_64-linux-{pinned_channel}"
+        add_candidate(pinned_root / "zig")
+        add_candidate(pinned_root / "bin" / "zig")
+
+    if toolchain_root.exists():
+        for child in sorted(toolchain_root.iterdir()):
+            add_candidate(child / "zig")
+            add_candidate(child / "bin" / "zig")
+    return candidates
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
 
-def find_zig(explicit: str | None) -> str:
+def find_zig(
+    explicit: str | None,
+    *,
+    root: Path = ROOT,
+    policy_path: Path = TOOLCHAIN_POLICY,
+    which=shutil.which,
+) -> str:
     if explicit:
         return explicit
-    found = shutil.which("zig")
+    try:
+        pinned_channel = load_pinned_channel(policy_path)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+    for candidate in iter_repo_local_zig_candidates(root=root, pinned_channel=pinned_channel):
+        if candidate.is_file():
+            return str(candidate)
+    found = which("zig")
     if found:
         return found
-    fallback = ROOT.parent / "toolchains" / "zig-master" / "current" / "zig.exe"
+    fallback = root.parent / "toolchains" / "zig-master" / "current" / "zig.exe"
     if fallback.exists():
         return str(fallback)
     raise SystemExit("zig not found; pass --zig or add zig to PATH")
@@ -459,11 +519,11 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
                     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "defconfig.out", "expected": "savedefconfig_expected.json"},
                     {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "expected": "listnewconfig_expected.json"},
-                    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": True, "expected": "helpnewconfig_expected.json"},
+                    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": true, "expected": "helpnewconfig_expected.json"},
                     {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
                     {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
                     {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
-                    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"},
+                    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"}
                 ],
                 "confdata_cases": [
                     {"name": "sample", "input": "sample.config", "expected": "sample_expected.json"},
@@ -478,8 +538,8 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "non_config_lines", "input": "non_config_lines.config", "expected": "non_config_lines_expected.json"},
                     {"name": "empty_config_symbol_names", "input": "empty_config_symbol_names.config", "expected": "empty_config_symbol_names_expected.json"},
                     {"name": "last_state_transitions", "input": "last_state_transitions.config", "expected": "last_state_transitions_expected.json"},
-                    {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
-                ],
+                    {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"}
+                ]
             },
             indent=2,
         )
@@ -512,28 +572,28 @@ def build_self_test_root(root: Path) -> None:
                     "olddefconfig_expected.json",
                     "yes2modconfig_expected.json",
                     "mod2yesconfig_expected.json",
-                    "mod2noconfig_expected.json",
+                    "mod2noconfig_expected.json"
                 ],
                 "mode_arg_cases": [
                     "defconfig",
-                    "savedefconfig",
+                    "savedefconfig"
                 ],
                 "silent_request_packet": [
-                    "helpnewconfig_expected.json",
+                    "helpnewconfig_expected.json"
                 ],
                 "syncconfig_env_packet": [
-                    "syncconfig_expected.json",
+                    "syncconfig_expected.json"
                 ],
                 "allconfig_sentinel_packet": [
                     "allnoconfig_expected.json",
                     "allyesconfig_expected.json",
-                    "alldefconfig_expected.json",
+                    "alldefconfig_expected.json"
                 ],
                 "allconfig_override_packet": [
                     "allmodconfig_expected.json",
-                    "randconfig_expected.json",
+                    "randconfig_expected.json"
                 ],
-                "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
+                "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS
             },
             indent=2,
         )
@@ -563,7 +623,7 @@ def build_self_test_root(root: Path) -> None:
                     "non_config_lines.config",
                     "empty_config_symbol_names.config",
                     "last_state_transitions.config",
-                    "duplicate_malformed_quoted_assignment.config",
+                    "duplicate_malformed_quoted_assignment.config"
                 ],
                 "expected_packet": [
                     "sample_expected.json",
@@ -578,9 +638,9 @@ def build_self_test_root(root: Path) -> None:
                     "non_config_lines_expected.json",
                     "empty_config_symbol_names_expected.json",
                     "last_state_transitions_expected.json",
-                    "duplicate_malformed_quoted_assignment_expected.json",
+                    "duplicate_malformed_quoted_assignment_expected.json"
                 ],
-                "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS,
+                "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS
             },
             indent=2,
         )
@@ -642,9 +702,46 @@ def run_self_test() -> int:
         manifest_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json"
         conf_bridge_path = root / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
         confdata_bridge_path = root / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
+        policy_path = root / "scripts" / "zigux" / "zig-toolchain-policy.json"
 
         build_self_test_root(root)
         assert collect_manifest_issues(root) == []
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path.write_text(
+            '{"channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2"}\n',
+            encoding="utf-8",
+        )
+        toolchain_dir = root / ".zig-toolchain" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
+        toolchain_dir.mkdir(parents=True)
+        pinned_zig = toolchain_dir / "zig"
+        pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        assert find_zig(None, root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig") == str(pinned_zig)
+        checks_run += 1
+
+        build_self_test_root(root)
+        shutil.rmtree(root / ".zig-toolchain", ignore_errors=True)
+        policy_path.write_text(
+            '{"channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2"}\n',
+            encoding="utf-8",
+        )
+        fallback_dir = root / ".zig-toolchain" / "fallback" / "bin"
+        fallback_dir.mkdir(parents=True)
+        fallback_zig = fallback_dir / "zig"
+        fallback_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        assert find_zig(None, root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig") == str(fallback_zig)
+        checks_run += 1
+
+        build_self_test_root(root)
+        shutil.rmtree(root / ".zig-toolchain", ignore_errors=True)
+        policy_path.write_text('{"channel":7,"minimum_version":"0.17.0-dev.87+9b177a7d2"}\n', encoding="utf-8")
+        try:
+            find_zig(None, root=root, policy_path=policy_path, which=lambda _: None)
+        except SystemExit as exc:
+            assert str(exc) == f"invalid channel in {policy_path}"
+        else:
+            raise AssertionError("expected invalid toolchain policy channel to fail")
         checks_run += 1
 
         build_self_test_root(root)
@@ -722,7 +819,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][0]["silent"] = False
+        payload["conf_cases"][0]["silent"] = false
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert ("INVALID_CONF_CASE_SILENT_FIELDS", "oldaskconfig:silent") in issues
@@ -878,7 +975,7 @@ def main() -> int:
 
         for case in cases["confdata_cases"]:
             actual = tmp_dir / f"{case['name']}.actual.json"
-            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"] )], cwd=str(ROOT), capture_output=True)
+            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"])], cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding="utf-8", newline="\n")
             run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(FIXTURE_DIR / case["expected"]), str(actual)], cwd=str(ROOT))
 
