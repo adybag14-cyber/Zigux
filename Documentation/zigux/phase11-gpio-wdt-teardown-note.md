@@ -6,7 +6,7 @@ It stays inside the simple-drivers lane and records only the host-free teardown 
 ## Status
 
 * `PHASE11_GPIO_WDT_TEARDOWN_STATUS=visible_starter_teardown_review_surface`
-* teardown evidence remains bounded to the visible starter, the visible main replay, and the archived `gpio_wdt` review packet on current `master`
+* teardown evidence remains bounded to the visible starter, the visible main replay, the focused timeout-property replay, and the archived `gpio_wdt` review packet on current `master`
 * remaining follow-through is still restoring the shared build route, plus later live GPIO descriptor lookup, platform-driver registration, watchdog-core registration, remove hooks, reboot-backed teardown execution, failure-mode parity beyond the current bounded packet, and hardware-backed validation
 
 ## Teardown Packet
@@ -19,6 +19,7 @@ The current teardown-facing GPIO review packet still directly visible on `master
 * `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 * `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 * `zigux/tests/phase11_gpio_wdt.zig`
+* `zigux/tests/phase11_gpio_wdt_timeout_property.zig`
 * `zigux/tests/phase11_gpio_wdt_manifest.json`
 * `zigux/tests/phase11_gpio_wdt_survey.zig`
 * `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`
@@ -33,10 +34,11 @@ The current visible starter and archived gpio watchdog review packet keep these 
 
 * `summarizeTeardown()` and the bounded stop-request outcomes recorded through `requestStop()`
 * the split between watchdog-core stop policy and hardware `always-running` behavior through `nowayoutPolicySummary()`
+* the timeout-property checkpoint that stays reviewable through `probeSummary()`, `platformDrvdataCheckpointSummary()`, and the focused `zigux/tests/phase11_gpio_wdt_timeout_property.zig` replay
 * the teardown handoff after descriptor request summary, `platform_set_drvdata()` ordering, `watchdogDrvdataCheckpointSummary()`, probe-time bookkeeping, registration handoff, and the first bounded register-device request surface
 * teardown-facing failure-mode cues that stay reviewable through `registerDeviceFailureSummary()` without claiming live remove-hook or reboot-backed shutdown execution
 
-The still-visible focused `platform_set_drvdata()` replay keeps one early ordering checkpoint directly replayable on current `master`, while the visible main replay and the dedicated survey gate keep the surrounding stop-transition, teardown-ownership boundaries, and bounded failure-mode cues freshly checked as archived review memory only.
+The still-visible focused timeout-property and `platform_set_drvdata()` replays keep early pre-registration checkpoints directly replayable on current `master`, while the visible main replay and the dedicated survey gate keep the surrounding stop-transition, teardown-ownership boundaries, and bounded failure-mode cues freshly checked as archived review memory only.
 
 ## Bounded Meaning
 
