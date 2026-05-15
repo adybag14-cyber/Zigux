@@ -38,7 +38,7 @@ test "phase 15 readiness manifest preserves the parked validator-first route" {
     const manifest = parsed.value;
 
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-14", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-15", manifest.surveyed_commit);
     try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_shared_summary_checker_selftest_present);
@@ -83,7 +83,7 @@ test "phase 15 readiness note and replay routes stay aligned" {
 
     try expectContains(readiness_note, "PHASE15_LANE_KEY=P15-L01");
     try expectContains(readiness_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(readiness_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-14");
+    try expectContains(readiness_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-15");
     try expectContains(readiness_note, "The packet remains parked.");
     try expectContains(readiness_note, "no Architecture Council approval is currently recorded");
     try expectContains(readiness_note, "python3 scripts/zigux/validate-phase15.py");
@@ -101,6 +101,14 @@ test "phase 15 readiness note and replay routes stay aligned" {
     try expectContains(
         readiness_note,
         "whether the dedicated readiness packet still keeps the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes aligned",
+    );
+    try expectContains(
+        readiness_note,
+        "a fresh 2026-05-15 reread confirmed that the only live non-readiness drift remains the scripts-root `phase15-validate` undercount in `scripts/zigux/README.md` plus `scripts/zigux/check-phase15-scripts-readme-alignment.py`, but the current owner map in `Documentation/zigux/phase15-governance-lane-sequencing.md` now routes that bounded repair through the `shared-summaries` lane instead of this readiness packet",
+    );
+    try expectContains(
+        readiness_note,
+        "keep this readiness packet parked while that narrower shared-summary repair is pending;",
     );
 
     try expectContains(scripts_readme, "validate-phase15.py");
