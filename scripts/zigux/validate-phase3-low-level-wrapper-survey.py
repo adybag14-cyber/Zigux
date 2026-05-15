@@ -49,6 +49,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "helper-local `compiler()` barrier coverage in `zigux/helpers/barrier.zig`",
     "helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage in `zigux/helpers/mmio.zig`",
     "helper-local MMIO stride-boundary and typed-index coverage in `zigux/helpers/mmio.zig` through `containsOffset`, `containsAccess`, `offsetForIndex`, and `typedOffsetForIndex`",
+    "The same helper-local MMIO packet now also keeps stride-indexed access replays through `readIndex()` and `writeIndex()` plus width-specific indexed relays through `read8Index()`, `read16Index()`, `read32Index()`, `read64Index()`, `write8Index()`, `write16Index()`, `write32Index()`, and `write64Index()` explicit in `zigux/helpers/mmio.zig` instead of leaving that direct-access slice visible only through the focused route.",
 )
 
 REQUIRED_BUILD_SNIPPETS = (
@@ -274,6 +275,7 @@ def run_self_test() -> int:
         bad_cases = [
             (SURVEY_REL, REQUIRED_SURVEY_MARKERS[0], "missing_survey_marker"),
             (SURVEY_REL, REQUIRED_SURVEY_SNIPPETS[0], "missing_survey_snippet"),
+            (SURVEY_REL, REQUIRED_SURVEY_SNIPPETS[-1], "missing_survey_snippet"),
             (BUILD_REL, REQUIRED_BUILD_SNIPPETS[0], "missing_build_snippet"),
             (TEST_REL, REQUIRED_TEST_SNIPPETS[0], "missing_test_snippet"),
             (ATOMIC_REL, REQUIRED_ATOMIC_SNIPPETS[0], "missing_atomic_snippet"),
