@@ -301,6 +301,12 @@ EXACT_COUNT_MARKERS = {
     "Documentation/zigux/README.md": {
         "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results": 1,
     },
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": {
+        "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results": 1,
+    },
+    "Documentation/zigux/review-checklist.md": {
+        "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results": 1,
+    },
 }
 
 
@@ -651,9 +657,35 @@ def run_self_test() -> None:
             "'`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer "
             "view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results', found 2",
         )
+        write_fixture_tree(tmp_root)
+
+        shared_note_path = tmp_root / "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"
+        shared_note_path.write_text(
+            shared_note_path.read_text(encoding="utf-8") + docs_root_marker + "\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: expected 1 occurrence(s) of "
+            "'`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer "
+            "view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results', found 2",
+        )
+        write_fixture_tree(tmp_root)
+
+        review_checklist_path = tmp_root / "Documentation/zigux/review-checklist.md"
+        review_checklist_path.write_text(
+            review_checklist_path.read_text(encoding="utf-8") + docs_root_marker + "\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            tmp_root,
+            "Documentation/zigux/review-checklist.md: expected 1 occurrence(s) of "
+            "'`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer "
+            "view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results', found 2",
+        )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={2 + len(cases)}")
+    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={4 + len(cases)}")
 
 
 def main() -> int:
