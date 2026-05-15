@@ -181,6 +181,7 @@ TESTS_README_MARKERS = [
     "`scripts/zigux/check-phase12-release-readiness-packet.py`",
     "while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`",
     "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
+    "`Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json`",
     "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
     "`make -C zigux phase12-smoke`",
     "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
@@ -726,6 +727,18 @@ def run_self_test() -> int:
         expect_failure(base, f"tests_readme:{TESTS_README_MARKERS[16]}")
 
         write_fixture_tree(base)
+        tests_readme_path = base / TESTS_README_PATH
+        tests_readme_path.write_text(
+            tests_readme_path.read_text(encoding="utf-8").replace(
+                TESTS_README_MARKERS[17],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"tests_readme:{TESTS_README_MARKERS[17]}")
+
+        write_fixture_tree(base)
         build_path = base / PHASE12_BUILD_PATH
         build_path.write_text(
             build_path.read_text(encoding="utf-8").replace(
@@ -750,7 +763,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=7:actual=6")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=13")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=14")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
