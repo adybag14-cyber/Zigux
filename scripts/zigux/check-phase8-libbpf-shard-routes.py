@@ -98,11 +98,12 @@ REQUIRED_MARKERS = {
         "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
         "current `master` also carries helper-local routing evidence in `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
         "advanceOnlineCpuCursor()",
+        "summarizeNextOnlineCpuRoute()",
         "summarizeOnlineCpuRouting()",
         "The manifest currently records twelve bounded segments: seven landed helper or helper-adjacent slices and five deferred or blocked follow-ons.",
         "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
         "The deferred `perf-buffer-online-cpu-routing` segment also stays explicitly larger than the helper-local `online_cpu_routing.zig` evidence",
-        "The real current gap is now survey truthfulness about the already-landed checker packet and helper-local routing evidence, not a missing checker rule or docs-root summary.",
+        "The real current gap is now survey truthfulness about the already-landed checker packet, helper-local routing evidence, and the still-mixed contents-route stability for the landed bridge-plus-build packet, not a missing checker rule or docs-root summary.",
         "That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit",
         "standalone timer or clockevent helper behavior",
         "broader timeout-sensitive routing behavior",
@@ -186,10 +187,8 @@ REQUIRED_MARKERS = {
     ],
 }
 
-
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
-
 
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
@@ -203,13 +202,11 @@ def collect_missing_markers(root: Path) -> list[str]:
                 missing.append(f"{rel}: {marker}")
     return missing
 
-
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, []
     return [], collect_missing_markers(root)
-
 
 def fixture_text(rel: str) -> str:
     markers = REQUIRED_MARKERS.get(rel)
@@ -217,25 +214,21 @@ def fixture_text(rel: str) -> str:
         return "# fixture\n"
     return "\n".join(markers) + "\n"
 
-
 def write_fixture_root(root: Path) -> None:
     for rel in REQUIRED_FILES:
         path = root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(fixture_text(rel), encoding="utf-8")
 
-
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_markers == [], case
     assert missing_files == [rel], case
 
-
 def expect_missing_marker(case: str, tmp_root: Path, expected: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [expected], case
-
 
 def mutate_marker(tmp_root: Path, rel: str, marker: str, case: str) -> None:
     path = tmp_root / rel
@@ -244,7 +237,6 @@ def mutate_marker(tmp_root: Path, rel: str, marker: str, case: str) -> None:
     updated = original.replace(marker, replacement)
     assert updated != original, case
     path.write_text(updated, encoding="utf-8")
-
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase8_libbpf_shard_routes_") as tmp_dir_str:
@@ -268,7 +260,6 @@ def run_self_test() -> None:
         "PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST_CASE_COUNT="
         f"{len(REQUIRED_FILES) + sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
     )
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -309,7 +300,6 @@ def main() -> int:
         f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
     )
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
