@@ -21,13 +21,14 @@ truthfulness work without promoting it into a separate shared replay count.
 
 - owner posture: adjacent notifier evidence rather than helper-lane ownership
 - owner-map reminder: `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` keeps `P13-L13` reserved for the `landlock/syscalls` survey-companion follow-through, so this note stays adjacent release-surface evidence instead of claiming that lane id
-- surveyed state: `current master` readback refreshed on `2026-05-14`
+- surveyed state: `current master` readback refreshed on `2026-05-15`
+- shared-surface reread: `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` now keep this adjacent notifier packet aligned with the shipped `libfs`, `devres`, and Landlock helper packet on current `master`
 - roadmap-adjacent reviewability evidence only
 - shared Phase 13 packet keeps this notifier evidence outside the validator-first shared-helper release handle as a counted helper path while still keeping it inside the broader release-facing packet as adjacent evidence rather than a fifth helper anchor or an extra shared replay count
 
 ## Current Repo Reality
 
-As of `2026-05-14`, current `master` can still materialize these adjacent
+As of `2026-05-15`, current `master` can still materialize these adjacent
 notifier-facing surfaces:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
@@ -101,6 +102,12 @@ When the shared Phase 13 contributor packet changes, re-read these surfaces toge
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+
+The `2026-05-15` reread also confirms that the review checklist, contributor
+workflow guide, release-coordination matrix, contributor-surface sync note, and
+tests-root companion now keep this adjacent notifier packet aligned with the
+shipped `libfs`, `devres`, and Landlock packet, so the next same-lane follow-through
+should stay parked unless one of those broader reminder surfaces drifts again.
 
 Those summaries should keep this notifier survey, the shipped
 `check-phase13-notifier-priority-signal.py` helper, the shipped
