@@ -15,6 +15,9 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`
 - `PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14`
 - `PHASE14_ANCHOR_PACKET_COUNT=4`
+- `PHASE14_COMPILE_SHARD_TOTAL=6`
+- `PHASE14_COMPILE_SHARD_FOCUSED_COUNT=1`
+- `PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5`
 - `PHASE14_STAY_IN_C_BOUNDARY=explicit`
 - `PHASE14_STATUS_CHANGE_CLAIM=no`
 - survey provenance captured against verified `master` head `40f2a065b1c06d7ea621c1c0c388e6202b0b22b7`
@@ -71,6 +74,10 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - `phase14-ring-buffer-survey-tests` -> `phase14_ring_buffer_survey.zig` -> `full_bundle_only`
   - `phase14-rcu-tree-survey-tests` -> `phase14_rcu_tree_survey.zig` -> `full_bundle_only`
   - `phase14-end-to-end-smoke-tests` -> `phase14_end_to_end_smoke_survey.zig` -> `focused_and_full_bundle`
+- exact compile-shard coverage counts:
+  - `PHASE14_COMPILE_SHARD_TOTAL=6`
+  - `PHASE14_COMPILE_SHARD_FOCUSED_COUNT=1`
+  - `PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5`
 - anchor packets in the current smoke bundle:
   - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L04`, surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, ready-next `none currently recorded`, blocked `phase14-workqueue-live-execution-blocker`
   - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L11`, surveyed commit `f05e02445443e7743c3675a6f8ca4f70f6e736fb`, ready-next `none currently recorded`, blocked `phase14-skbuff-live-ownership-blocker`
@@ -84,7 +91,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - the status block now keeps both `make -C zigux phase14-smoke` and `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all` explicit alongside the full-bundle routes, so the roadmap-backed smoke shard is visible before the later exact-evidence list instead of being implied only by the longer survey body.
 - `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` now fail-closes the tests-root packet order and exact line counts around the shared Phase 14 smoke anchor, so the shared inventory no longer relies on manual readback alone to keep `zigux/tests/README.md` aligned with the manifest-backed packet.
 - `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the four live checker invocations inside `make -C zigux phase14-validate`. `scripts/zigux/validate-phase14.py` still reruns `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` inside the validator so standalone `python3 scripts/zigux/validate-phase14.py` continues to fail closed on tests-root drift even outside the shared make route.
-- the shared compile shard matrix now records that the workqueue reviewability replay plus the four anchor-local replays remain `full_bundle_only`, while `phase14-end-to-end-smoke-tests` is the only `focused_and_full_bundle` shard. That keeps the roadmap's validation-before-expansion discipline explicit without inventing new focused bridge claims.
+- the shared compile shard matrix now records exact coverage counts of `6` total shards, `1` `focused_and_full_bundle` shard, and `5` `full_bundle_only` shards while keeping the workqueue reviewability replay plus the four anchor-local replays parked as `full_bundle_only` and `phase14-end-to-end-smoke-tests` as the only `focused_and_full_bundle` shard. That keeps the roadmap's validation-before-expansion discipline explicit without inventing new focused bridge claims.
 - the same packet also keeps the two landed bridge-backed roadmap destinations explicit by tying `phase14-workqueue-bridge-tests` to `../../kernel/workqueue_bridge.zig` and `phase14-skbuff-bridge-tests` to `../../net/core/skbuff_bridge.zig`, instead of letting the matrix collapse to test-root names alone.
 - `zigux/tests/phase14_build.zig` still exposes a dedicated `phase14-smoke` shard so the shared smoke packet can be replayed without compiling the heavier anchor-local bundle.
 - `zigux/Makefile` still exposes `make -C zigux phase14-test` as the wrapper-backed full-bundle replay, still exposes `make -C zigux phase14-smoke` as the focused shared smoke shard, and still honors the standard `ZIG` environment override so the attached archive can be injected with the literal `ZIG=/absolute/path/to/attached-zig/zig` examples above when neither the repo-local `.zig-toolchain` fallback nor the shell's default `zig` binary is available in the local environment.
