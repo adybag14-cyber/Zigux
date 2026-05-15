@@ -36,6 +36,9 @@ EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_core_module",
     '"phase10-virtio-core-tests"',
     "run_phase10_virtio_core_tests",
+    "phase10_virtio_core_interrupt_compound_ack_module",
+    '"phase10-virtio-core-interrupt-compound-ack-tests"',
+    "run_phase10_virtio_core_interrupt_compound_ack_tests",
     "phase10_virtio_core_verify_module",
     '"phase10-virtio-core-verify-tests"',
     "run_phase10_virtio_core_verify_tests",
@@ -73,6 +76,7 @@ EXPECTED_DOCS_README_MARKERS = [
     "drivers/virtio/virtio_driver_id.zig",
     "drivers/virtio/virtio_verify.zig",
     "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
     "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_core_manifest.json",
     "Documentation/zigux/phase10-virtio-core-slice.md",
@@ -412,6 +416,19 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_docs_readme_slice_marker_missing")
         docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+                "zigux/tests/phase10_virtio_core_interrupt_compound_ack_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(root)
+        if "docs_readme:zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_docs_readme_interrupt_marker_missing")
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
         manifest_path = root / "zigux/tests/phase10_virtio_core_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(original_manifest.replace(SURVEYED_COMMIT, "deadbeef", 1), encoding="utf-8")
@@ -502,6 +519,19 @@ def run_self_test() -> int:
 
         build_path.write_text(
             original_build.replace(
+                "run_phase10_virtio_core_interrupt_compound_ack_tests",
+                "run_phase10_virtio_core_interrupt_compound_ack_drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(root)
+        if "build:run_phase10_virtio_core_interrupt_compound_ack_tests" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_interrupt_compound_ack_build_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
+        build_path.write_text(
+            original_build.replace(
                 "run_phase10_virtio_core_verify_tests",
                 "run_phase10_virtio_core_verify_drift",
                 1,
@@ -539,7 +569,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_tests_readme_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
