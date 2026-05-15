@@ -75,3 +75,41 @@ test "phase 9 runtime loader lifecycle boundary guard keeps shared request state
     try expectContains(runtime_loader, "self.state = .released_without_substrate;");
     try expectContains(runtime_loader, ".state = .prepared,");
 }
+
+test "phase 9 runtime loader lifecycle boundary guard keeps shared review-checklist boundary markers explicit" {
+    const allocator = std.testing.allocator;
+
+    const manifest = try readRepoFileAlloc(
+        allocator,
+        "zigux/tests/runtime_loader_gap_manifest.json",
+        32 * 1024,
+    );
+    defer allocator.free(manifest);
+
+    const review_checklist = try readRepoFileAlloc(
+        allocator,
+        "Documentation/zigux/review-checklist.md",
+        128 * 1024,
+    );
+    defer allocator.free(review_checklist);
+
+    try expectContains(manifest, "\"surface\": \"zigux/tests/runtime_loader_lifecycle_boundary_guard.zig\"");
+    try expectContains(manifest, "\"owner\": \"P9-L17\"");
+    try expectContains(manifest, "\"id\": \"runtime-loader-lifecycle-boundary-summary-guard\"");
+    try expectContains(manifest, "\"status\": \"starter_landed\"");
+    try expectContains(review_checklist, "`scripts/zigux/check-phase9-build-only-surface.py`");
+    try expectContains(review_checklist, "no-dedicated-`validate-phase9.py` posture");
+    try expectContains(review_checklist, "the shared module-metadata and depmod-publication boundary still stays blocked");
+    try expectContains(
+        review_checklist,
+        "keep the older Phase 8 command and environment cue owners out of the packet so `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig` stay explicit as Phase 8 tooling boundaries",
+    );
+    try expectContains(
+        review_checklist,
+        "keep `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` explicit as Phase 2 config-surface bridge references",
+    );
+    try expectContains(
+        review_checklist,
+        "keep `rust/exports.c` and `zigux/kernel/export_shim.zig` explicit as Phase 3 export-boundary references",
+    );
+}
