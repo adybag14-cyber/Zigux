@@ -397,6 +397,7 @@ test "runtime trace-events loader keeps the prepared snapshot stable across late
     try std.testing.expectEqual(@as(i32, 0), prepared_snapshot.last_main_count);
     try std.testing.expectEqual(@as(i32, 0), pending_snapshot.last_main_count);
 }
+
 test "runtime trace-events loader emits the shared runtime-loader contract plan" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
@@ -553,11 +554,6 @@ test "runtime trace-events loader keeps initialized shared-request snapshots sta
         pending_plan,
     ));
 }
-        shared_request,
-        .released_without_substrate,
-        pending_plan,
-    ));
-}
 
 test "runtime trace-events loader keeps selftest-complete shared-request snapshots stable across later exit activity" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
@@ -696,6 +692,7 @@ test "runtime trace-events loader bridges the shared request lifecycle without w
         pending_plan,
     ));
 }
+
 test "runtime trace-events loader keeps shared release failures from desynchronizing loader state" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
@@ -723,6 +720,7 @@ test "runtime trace-events loader keeps shared release failures from desynchroni
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
 }
+
 test "runtime trace-events loader keeps direct shared runtime-load transitions from desynchronizing shared release state" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
