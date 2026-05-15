@@ -6,7 +6,7 @@ This document tracks the current bounded runtime bitmap starter packet.
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
 - `PHASE9_LANE_KEY=P9-L08`
-- `PHASE9_SURVEYED_COMMIT=dc9121502a99ed8c88d79081c6d83a8eada20a00`
+- `PHASE9_SURVEYED_COMMIT=66e60700501fc8bb08d645b081064c4698562427`
 - scope: sample starter, diff gate, loader scaffold, top-bit companion replay, module gate, survey gate, manifest-backed ownership packet, and shared loader handoff plus shared build routes only
 
 ## Product Boundary
@@ -23,7 +23,9 @@ This document tracks the current bounded runtime bitmap starter packet.
 
 ## Why This Slice Exists
 
-The runtime bitmap packet needs a family-local review surface that keeps the sample lifecycle, focused diff cases, shared-request handoff, top-bit boundary contract, and focused tests visible without implying live runtime substrate parity.
+The runtime bitmap packet needs a family-local review surface that keeps the sample lifecycle, repeat-init rejection, focused diff cases, shared-request handoff, top-bit boundary contract, and focused tests visible without implying live runtime substrate parity.
+
+The direct `samples/zigux/runtime_bitmap.zig` starter now also keeps repeat-init rejection explicit across initialized, selftested, and exited retries, so the review packet fails closed on state-preserving lifecycle rejection before widening into live runtime claims.
 
 The `zigux/tests/runtime_bitmap_diff.zig` gate owns the bounded `lib/test_bitmap.c` replay plus the selftest-complete and exit lifecycle guards, so those checks stay bitmap-local review proof instead of borrowing coverage from the shared loader packet.
 
@@ -51,4 +53,4 @@ The live runtime substrate is still missing, so this slice must stay review-only
 
 ## Next Bounded Step
 
-Leave the runtime bitmap packet parked unless a smaller same-lane lifecycle, diff, top-bit boundary, prepared-plan handoff, or selftest-hook reviewability gap appears before the blocked shared runtime substrate work moves again.
+Leave the runtime bitmap packet parked unless a smaller same-lane lifecycle, repeat-init, diff, top-bit boundary, prepared-plan handoff, or selftest-hook reviewability gap appears before the blocked shared runtime substrate work moves again.
