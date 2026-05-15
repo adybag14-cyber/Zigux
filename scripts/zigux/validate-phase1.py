@@ -114,7 +114,7 @@ EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE = (
 )
 EXPECTED_STRING_PREFIX_SUFFIX_REVIEW_SUMMARY = (
     "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields, "
-    "so strHasPrefix and strstarts plus strEndsWith and str_ends_with remain review-visible at the helper surface"
+    "so strHasPrefix and str_has_prefix plus strstarts plus strEndsWith and str_ends_with plus strends remain review-visible at the helper surface"
 )
 EXPECTED_STRING_MEMPARSE_REVIEW_SUMMARY = (
     "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation"
