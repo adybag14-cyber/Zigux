@@ -93,6 +93,15 @@ REQUIRED_MARKERS = {
         "shared Phase 8 reminder surfaces still group the symbol shard with the same parked build-and-validator packet",
         "Keep shared wording out of this lane unless a concrete symbol-lane packet drift appears on current `master`.",
     ),
+    HELP_SLICE_PATH: (
+        "`tools/lib/subcmd/help.zig`",
+        "`zigux/tests/phase8_help_only_build.zig`",
+        "output-stable tooling behavior",
+        "`make -C zigux phase8-help-test`",
+        "`load_command_list()`",
+        "`pretty_print_string_list()`",
+        "`list_commands()`",
+    ),
     KALLSYMS_SLICE_PATH: (
         "`tools/lib/symbol/kallsyms.zig`",
         "output-stable tooling behavior",
@@ -101,6 +110,13 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-kallsyms-test`",
         "oversized symbol names now truncate to `KSYM_NAME_LEN`",
         "weak-object `V` and `v` classes still follow the current C header contract",
+    ),
+    HELP_TEST_PATH: (
+        'test "phase 8 help slice note keeps helper-first output-stable tooling posture and non-goals explicit"',
+        'test "phase 8 help command-source and terminal layers stay aligned with the current help.c slice"',
+        'test "phase 8 help empty PATH fallback keeps section suppression and output stable"',
+        'test "phase 8 help output emission keeps column-major pretty-printing pure and testable"',
+        'test "phase 8 help section rendering keeps the stable main and PATH headings reviewable"',
     ),
     KALLSYMS_TEST_PATH: (
         'test "phase 8 kallsyms direct parser truncates oversized names"',
@@ -218,12 +234,20 @@ def run_self_test() -> int:
                 "the current Phase 8 test packet includes `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`",
             ),
             (
+                HELP_SLICE_PATH,
+                "`make -C zigux phase8-help-test`",
+            ),
+            (
                 KALLSYMS_SLICE_PATH,
                 "helper-first parser-and-wrapper packet",
             ),
             (
                 KALLSYMS_SLICE_PATH,
                 "oversized symbol names now truncate to `KSYM_NAME_LEN`",
+            ),
+            (
+                HELP_TEST_PATH,
+                'test "phase 8 help output emission keeps column-major pretty-printing pure and testable"',
             ),
             (
                 KALLSYMS_TEST_PATH,
