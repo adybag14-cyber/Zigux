@@ -124,6 +124,51 @@ fn isLowerHex40(value: []const u8) bool {
     return true;
 }
 
+fn expectRepresentativeStayInCMarkers(anchor: []const u8, survey_note: []const u8) !void {
+    if (std.mem.eql(u8, anchor, "kernel/trace/ring_buffer.c")) {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, "Reader-page consume audit") != null);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, "ring_buffer_alloc_read_page()") != null);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, "trace_access_lock()") != null);
+        return;
+    }
+    if (std.mem.eql(u8, anchor, "net/core/skbuff.c")) {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, "segs->prev") != null);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, "validate_xmit_skb_list()") != null);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, "tail = skb->prev") != null);
+        return;
+    }
+    if (std.mem.eql(u8, anchor, "kernel/rcu/tree.c")) {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, "poll_state_synchronize_rcu") != null);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, "rcu_barrier") != null);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, "CPU hotplug callback migration still stays in C") != null);
+    }
+}
+
+test "phase14 shared smoke representative stay-in-c markers stay explicit for ring buffer skbuff and rcu" {
+    const ring_buffer_note =
+        \\## Reader-page consume audit
+        \\`ring_buffer_alloc_read_page()`
+        \\`trace_access_lock()`
+    ;
+    try expectRepresentativeStayInCMarkers("kernel/trace/ring_buffer.c", ring_buffer_note);
+
+    const skbuff_note =
+        \\`segs->prev`
+        \\`validate_xmit_skb_list()`
+        \\`tail = skb->prev`
+    ;
+    try expectRepresentativeStayInCMarkers("net/core/skbuff.c", skbuff_note);
+
+    const rcu_note =
+        \\`poll_state_synchronize_rcu`
+        \\`rcu_barrier`
+        \\CPU hotplug callback migration still stays in C
+    ;
+    try expectRepresentativeStayInCMarkers("kernel/rcu/tree.c", rcu_note);
+
+    try expectRepresentativeStayInCMarkers("kernel/workqueue.c", "workqueue remains covered elsewhere");
+}
+
 test "phase14 shared smoke manifest records the current evidence bundle" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -419,6 +464,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
         );
         defer allocator.free(survey_note);
         try std.testing.expect(std.mem.indexOf(u8, survey_note, packet.anchor) != null);
+        try expectRepresentativeStayInCMarkers(packet.anchor, survey_note);
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, packet.surveyed_commit) != null);
         if (packet.ready_next_gap.len > 0) {
             try std.testing.expect(std.mem.indexOf(u8, survey_note, "Next bounded step") != null);
