@@ -2,17 +2,12 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 
 pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.AllocatorMode {
-    if (reserved != 0) return null;
-    return switch (mode) {
-        @intFromEnum(abi.AllocatorMode.caller_provided) => .caller_provided,
-        @intFromEnum(abi.AllocatorMode.kernel_heap) => .kernel_heap,
-        @intFromEnum(abi.AllocatorMode.arena) => .arena,
-        else => null,
-    };
+    const decoded = abi.decodeInteropPolicyBytes(abi.PANIC_ABORT, mode, abi.UNSAFE_NONE, reserved) orelse return null;
+    return decoded.allocator_mode;
 }
 
 pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.AllocatorMode {
-    return modeFromInteropPolicyBytes(policy.allocator_mode, policy.reserved);
+    return (abi.decodeInteropPolicy(policy) orelse return null).allocator_mode;
 }
 
 pub fn modeFromByte(mode: u8) ?abi.AllocatorMode {
