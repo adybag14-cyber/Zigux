@@ -10,10 +10,17 @@ This document tracks the bounded Phase 10 governance lane around `drivers/virtio
 - roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
 - scope: compare the already-landed core survey packet against the remaining roadmap lab-driver gap, keep the dedicated note, manifest, and shared build wiring aligned with that packet, and stay out of ring, MMIO, input, or transport-facing lifecycle work
 - product boundary:
+  - `drivers/virtio/virtio.zig`
+  - `drivers/virtio/virtio_driver_id.zig`
+  - `drivers/virtio/virtio_verify.zig`
+  - `zigux/tests/phase10_virtio_core.zig`
+  - `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`
+  - `zigux/tests/phase10_virtio_core_reset_queue.zig`
+  - `zigux/tests/phase10_virtio_driver_id.zig`
   - `zigux/tests/phase10_virtio_core_manifest.json`
   - `zigux/tests/phase10_virtio_core_survey.zig`
   - `zigux/tests/phase10_build.zig`
-  - `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`
+  - `Documentation/zigux/phase10-virtio-core-slice.md`
   - `Documentation/zigux/phase10-virtio-core-survey.md`
   - `scripts/zigux/check-phase10-core-packet.py`
   - `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
