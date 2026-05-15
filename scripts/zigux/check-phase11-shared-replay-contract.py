@@ -20,20 +20,21 @@ MARKERS = {
         "* `PHASE11_SHARED_REPLAY_STATUS=shared_packet_truthful`",
         "* `scripts/zigux/check-phase11-shared-summary-surfaces.py`",
         "* `scripts/zigux/check-phase11-build-inventory.py`",
-        "* direct GitHub contents reads can still return 404 for `zigux/tests/phase11_build.zig`",
-        "* direct GitHub contents reads still materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
-        "* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
-        "* the shared `zigux/tests/fixtures/phase11_build_inventory.json` stays part of the current reminder packet and records the shared test inventory, the dedicated HVC replay split, and the explicit shared replay markers beside `zigux/tests/phase11_build.zig`",
-        "* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, so treat them as landed bounded replay evidence even when the direct contents bridge still 404s",
+        "* direct GitHub contents reads now materialize `zigux/tests/phase11_build.zig`",
+        "* direct GitHub contents reads now materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
+        "* the shared `zigux/tests/fixtures/phase11_build_inventory.json` stays part of the current reminder packet and currently records fourteen Phase 11 build test names, thirteen shared `test_step.dependOn(...)` edges, one dedicated `hvc-console-survey` replay, and four explicit shared replay markers beside `zigux/tests/phase11_build.zig`",
+        "* `zigux/tests/phase11_build.zig` currently materializes thirteen shared `test_step.dependOn(...)` edges across gpio, bcm2835, DesignWare, header-parity, `hvc_console`, `hvc_console_verify`, and `hvc_cleanup`, plus one dedicated `hvc-console-survey` build step",
+        "* `make -C zigux phase11-contract`, `make -C zigux phase11`, and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same shared and dedicated routes",
         "* no shared `validate-phase11.py`",
         "* no shared `make -C zigux phase11-validate` target on `master`",
-        "* the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts together with the materialized build-backed replay files and the landed inventory fixture rather than a broader validator stack",
+        "* the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts together with the directly materialized build-backed replay files and the landed inventory fixture rather than a broader validator stack",
         "## Exact Current Checks",
         "* shared reminder packet self-tests: `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`, `python3 scripts/zigux/check-phase11-shared-summary-surfaces.py --self-test`, and `python3 scripts/zigux/check-phase11-build-inventory.py --self-test`",
+        "* shared reminder packet direct live checkers: `python3 scripts/zigux/check-phase11-shared-replay-contract.py`, `python3 scripts/zigux/check-phase11-shared-summary-surfaces.py`, and `python3 scripts/zigux/check-phase11-build-inventory.py`",
         "* shared reminder packet live route: `make -C zigux phase11-contract`",
         "* shared build replay: `zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
         "* dedicated HVC archival packet self-test and live checker: `python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-survey-packet.py`",
-        "* dedicated HVC archival replay route: `make -C zigux phase11-hvc-survey`",
+        "* dedicated HVC archival replay routes: `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` and `make -C zigux phase11-hvc-survey`",
         "* aggregate wrapper: `make -C zigux phase11`",
         "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; keep that landed bounded DesignWare packet explicit beside the shared reminder stack while platform-registration scaffolding remains the next same-lane follow-through, and do not widen the compile-local teardown or restart proofs into broader hardware-backed closure",
         "* the dedicated HVC archival packet stays bounded to `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `drivers/tty/hvc/hvc_console.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `make -C zigux phase11-hvc-survey`; keep those landed bounded replay surfaces explicit in shared summaries without widening them into notifier, khvcd, or host-backed execution closure",
@@ -65,6 +66,9 @@ MARKERS = {
 FORBIDDEN_MARKERS = {
     "note": [
         "* no shared `zigux/tests/fixtures/phase11_build_inventory.json`",
+        "* direct GitHub contents reads can still return 404 for `zigux/tests/phase11_build.zig`",
+        "* raw GitHub fallback confirms current `master` materializes `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `drivers/tty/hvc/hvc_console_verify.zig`",
+        "* `make -C zigux phase11` and `make -C zigux phase11-hvc-survey` remain present in `zigux/Makefile`, and the bootstrap workflow still names the same routes, so treat them as landed bounded replay evidence even when the direct contents bridge still 404s",
     ],
     "closure_note": [
         "* no landed shared `zigux/tests/fixtures/phase11_build_inventory.json`",
@@ -133,26 +137,7 @@ def run_self_test() -> None:
         build_self_test_fixture(fixture_root)
         run_check(fixture_root)
 
-        required_cases = [
-            (FILES["note"], MARKERS["note"][0]),
-            (FILES["note"], MARKERS["note"][1]),
-            (FILES["note"], MARKERS["note"][2]),
-            (FILES["note"], MARKERS["note"][3]),
-            (FILES["note"], MARKERS["note"][4]),
-            (FILES["note"], MARKERS["note"][5]),
-            (FILES["note"], MARKERS["note"][6]),
-            (FILES["note"], MARKERS["note"][7]),
-            (FILES["note"], MARKERS["note"][8]),
-            (FILES["note"], MARKERS["note"][9]),
-            (FILES["note"], MARKERS["note"][10]),
-            (FILES["note"], MARKERS["note"][11]),
-            (FILES["note"], MARKERS["note"][12]),
-            (FILES["note"], MARKERS["note"][13]),
-            (FILES["note"], MARKERS["note"][14]),
-            (FILES["note"], MARKERS["note"][15]),
-            (FILES["note"], MARKERS["note"][16]),
-            (FILES["note"], MARKERS["note"][17]),
-            (FILES["note"], MARKERS["note"][18]),
+        required_cases = [(FILES["note"], marker) for marker in MARKERS["note"]] + [
             (FILES["note"], "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`"),
             (FILES["note"], "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`"),
             (FILES["note"], "`zigux/tests/phase11_dw_wdt_manifest.json`"),
@@ -201,6 +186,9 @@ def run_self_test() -> None:
 
         forbidden_cases = [
             ("note", FORBIDDEN_MARKERS["note"][0]),
+            ("note", FORBIDDEN_MARKERS["note"][1]),
+            ("note", FORBIDDEN_MARKERS["note"][2]),
+            ("note", FORBIDDEN_MARKERS["note"][3]),
             ("closure_note", FORBIDDEN_MARKERS["closure_note"][0]),
             ("lane_note", FORBIDDEN_MARKERS["lane_note"][0]),
         ]
