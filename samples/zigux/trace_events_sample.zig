@@ -74,6 +74,7 @@ pub const CallbackBoundarySummary = struct {
     callback_path_checked: bool,
     registration_depth_after_recovery: usize,
     total_event_calls_after_recovery: usize,
+    checked_focus: []const SampleFocus,
 };
 
 pub const StringFormattingCase = struct {
@@ -336,6 +337,7 @@ pub const TraceEventsReferenceSample = struct {
             .callback_path_checked = self.saw_function_callback_path,
             .registration_depth_after_recovery = self.registration_depth,
             .total_event_calls_after_recovery = self.total_event_calls,
+            .checked_focus = reviewContract().focus,
         };
     }
 
@@ -642,6 +644,14 @@ test "trace-events sample replays every modulo-selected string and formatted mes
 
 test "trace-events sample exposes callback boundary recovery as one bounded replay" {
     var sample = TraceEventsReferenceSample{};
+    const expected_focus = [_]SampleFocus{
+        .payload_shape,
+        .string_selection,
+        .formatted_message,
+        .conditional_event_families,
+        .function_callback_registration,
+        .ownership_and_lifetime,
+    };
 
     try sample.init();
     const replay = try sample.runCallbackBoundaryRecoveryReplay();
@@ -657,6 +667,8 @@ test "trace-events sample exposes callback boundary recovery as one bounded repl
     try std.testing.expect(replay.callback_path_checked);
     try std.testing.expectEqual(@as(usize, 0), replay.registration_depth_after_recovery);
     try std.testing.expectEqual(@as(usize, 2), replay.total_event_calls_after_recovery);
+    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
 
     const lifecycle = sample.lifecycleSummary();
     try std.testing.expectEqual(SampleStage.initialized, lifecycle.stage);
@@ -669,6 +681,14 @@ test "trace-events sample exposes callback boundary recovery as one bounded repl
 
 test "trace-events sample replays lifecycle boundaries through one bounded helper" {
     var sample = TraceEventsReferenceSample{};
+    const expected_focus = [_]SampleFocus{
+        .payload_shape,
+        .string_selection,
+        .formatted_message,
+        .conditional_event_families,
+        .function_callback_registration,
+        .ownership_and_lifetime,
+    };
 
     const replay = try sample.runLifecycleBoundaryReplay();
 
@@ -687,6 +707,9 @@ test "trace-events sample replays lifecycle boundaries through one bounded helpe
     try std.testing.expect(replay.callback_boundary.armed_exit_rejected);
     try std.testing.expect(replay.callback_boundary.callback_path_checked);
     try std.testing.expectEqual(@as(usize, 0), replay.callback_boundary.registration_depth_after_recovery);
+    try std.testing.expectEqual(@as(usize, 2), replay.callback_boundary.total_event_calls_after_recovery);
+    try std.testing.expectEqual(@as(usize, 6), replay.callback_boundary.checked_focus.len);
+    try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.callback_boundary.checked_focus);
     try std.testing.expectEqual(SampleStage.initialized, replay.lifecycle_before_exit.stage);
     try std.testing.expectEqual(@as(usize, 1), replay.lifecycle_before_exit.init_run_count);
     try std.testing.expectEqual(@as(usize, 0), replay.lifecycle_before_exit.replay_run_count);
