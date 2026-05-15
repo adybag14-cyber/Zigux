@@ -69,9 +69,15 @@ LOW_LEVEL_TEST_REQUIRED = (
     "const scoped_mut_slice = try narrow.sliceAtInteropPolicy(u32, base, values.len, raw_policy);",
     "const scoped_mut_slice_bytes = try narrow.sliceAtInteropPolicyBytes(u32, base, values.len, 2, 0);",
     "const scoped_mut_slice_byte = try narrow.sliceAtByte(u32, base, values.len, 2);",
+    "const scoped_ptr = try narrow.pointerAtInteropPolicy(u32, base, @sizeOf(u32), raw_policy);",
+    "const scoped_const_ptr = try narrow.constPointerAtInteropPolicyBytes(u32, third_addr, 2, 0);",
+    "try narrow.writeValueAtInteropPolicy(u32, base, 111, raw_policy);",
+    "try narrow.writeValueAtInteropPolicyBytes(u32, third_addr, 122, 2, 0);",
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtInteropPolicy(u32, base, values.len, no_unsafe_policy));",
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtInteropPolicyBytes(u32, base, values.len, 2, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.sliceAtByte(u32, base, values.len, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.pointerAtInteropPolicy(u32, base, 0, mmio_policy));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.writeValueAtInteropPolicy(u32, base, 77, reserved_policy));",
 )
 
 LOW_LEVEL_BUILD_REQUIRED = (
@@ -166,6 +172,7 @@ def run_self_test() -> None:
 
         write_fixture(tmpdir)
         survey_path = tmpdir / SURVEY_REL
+        survey_path.writeText = None
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(SURVEY_NEXT_STEP_REQUIRED[1] + "\n", ""),
             encoding="utf-8",
@@ -228,6 +235,48 @@ def run_self_test() -> None:
             raise AssertionError("expected missing low-level raw-pointer bridge marker failure")
 
         write_fixture(tmpdir)
+        low_level_test_path = tmpdir / LOW_LEVEL_TEST_REL
+        low_level_test_path.write_text(
+            low_level_test_path.read_text(encoding="utf-8").replace(LOW_LEVEL_TEST_REQUIRED[3] + "\n", ""),
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert LOW_LEVEL_TEST_REL.as_posix() in str(exc)
+            assert LOW_LEVEL_TEST_REQUIRED[3] in str(exc)
+        else:
+            raise AssertionError("expected missing low-level pointer bridge marker failure")
+
+        write_fixture(tmpdir)
+        low_level_test_path = tmpdir / LOW_LEVEL_TEST_REL
+        low_level_test_path.write_text(
+            low_level_test_path.read_text(encoding="utf-8").replace(LOW_LEVEL_TEST_REQUIRED[6] + "\n", ""),
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert LOW_LEVEL_TEST_REL.as_posix() in str(exc)
+            assert LOW_LEVEL_TEST_REQUIRED[6] in str(exc)
+        else:
+            raise AssertionError("expected missing low-level write-value-bytes marker failure")
+
+        write_fixture(tmpdir)
+        low_level_test_path = tmpdir / LOW_LEVEL_TEST_REL
+        low_level_test_path.write_text(
+            low_level_test_path.read_text(encoding="utf-8").replace(LOW_LEVEL_TEST_REQUIRED[10] + "\n", ""),
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert LOW_LEVEL_TEST_REL.as_posix() in str(exc)
+            assert LOW_LEVEL_TEST_REQUIRED[10] in str(exc)
+        else:
+            raise AssertionError("expected missing low-level pointer-denial marker failure")
+
+        write_fixture(tmpdir)
         low_level_build_path = tmpdir / LOW_LEVEL_BUILD_REL
         low_level_build_path.write_text(
             low_level_build_path.read_text(encoding="utf-8").replace(LOW_LEVEL_BUILD_REQUIRED[-1] + "\n", ""),
@@ -242,7 +291,7 @@ def run_self_test() -> None:
             raise AssertionError("expected missing low-level build anchor failure")
 
         print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST=pass")
-        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=9")
+        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=12")
     finally:
         shutil.rmtree(tmpdir)
 
