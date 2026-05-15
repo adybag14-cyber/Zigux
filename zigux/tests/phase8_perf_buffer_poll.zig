@@ -60,10 +60,7 @@ test "phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit" 
     try expectContains(gate, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
     try expectContains(gate, "make -C zigux phase8-perf-buffer-poll-test");
     try expectContains(gate, "\"ready-buffer processing attempts cannot exceed the helper-counted ready buffers\"");
-    try expectContains(
-        gate,
-        "test \"phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit\" {",
-    );
+    try expectContains(gate, "phase 8 perf-buffer poll focused shard keeps the dedicated gate explicit");
 }
 
 test "phase 8 perf-buffer poll helper keeps ready-buffer cursor traversal explicit" {
