@@ -105,6 +105,8 @@ MANIFEST_REQUIRED_SURFACES = [
     ROLLBACK_CHECKER_PATH,
     CHECKER_PATH,
     "scripts/zigux/validate-phase14.py",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
 ]
 
 
