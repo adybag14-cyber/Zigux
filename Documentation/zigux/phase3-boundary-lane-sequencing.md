@@ -93,9 +93,12 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `scripts/zigux/phase3_check_lib.py`
   - `scripts/zigux/generate-phase3-check-wrappers.py`
   - `scripts/zigux/run-phase3-checks.py`
+  - `zigux/tests/phase3_low_level_wrappers.zig`
+  - `zigux/tests/phase3_low_level_wrappers_build.zig`
   - `zigux/uapi/dev_t.zig`
   - `zigux/bindings/abi.zig`
   - `zigux/Makefile`
+  - `make -C zigux phase3-low-level-wrappers-test`
 - shared anti-overlap owner-map packet, lane `P3-X12` (legacy aliases `P3-Y10` and `P3-X10`):
   - `Documentation/zigux/phase3-boundary-lane-sequencing.md`
 - shared closure and lane-state packet, lane `P3-X11` (older saved closure key `P3-Y11`):
