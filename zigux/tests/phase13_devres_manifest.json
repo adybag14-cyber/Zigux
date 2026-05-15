@@ -39,7 +39,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-devres-slice.md",
-      "why_now": "The slice note names the shipped `devm_iounmap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, `devm_of_iomap()`, `devm_arch_io_reserve_memtype_wc()`, and `devm_arch_phys_wc_add()` planners as reviewable helper-first evidence."
+      "why_now": "The slice note names the shipped `devm_iounmap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, `devm_ioremap_np()`, `devm_of_iomap()`, `devm_arch_io_reserve_memtype_wc()`, and `devm_arch_phys_wc_add()` planners as reviewable helper-first evidence."
     },
     {
       "id": "phase13-devres-survey-note",
@@ -53,7 +53,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres.zig",
-      "why_now": "The direct devres replay is present on current master and replays the shipped `devm_iounmap()` planner, the UC/WC wrapper planners, the pure `devm_of_iomap()` bridge, the detach-time WC memtype reservation helper, and the token-style phys-WC helper without pretending the absent shared build bundle is back."
+      "why_now": "The direct devres replay is present on current master and replays the shipped `devm_iounmap()` planner, the plain/UC/WC/NP wrapper planners, the pure `devm_of_iomap()` bridge, the detach-time WC memtype reservation helper, and the token-style phys-WC helper without pretending the absent shared build bundle is back."
     },
     {
       "id": "phase13-devres-reviewability-gate",
