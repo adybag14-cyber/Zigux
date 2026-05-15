@@ -16,6 +16,20 @@ pub const SampleFocus = enum {
     ownership_and_lifetime,
 };
 
+pub const sample_review_focus = [_]SampleFocus{
+    .payload_shape,
+    .string_selection,
+    .formatted_message,
+    .conditional_event_families,
+    .function_callback_registration,
+    .ownership_and_lifetime,
+};
+
+pub const ReviewContract = struct {
+    focus: []const SampleFocus,
+    modulo_selected_strings: []const []const u8,
+};
+
 pub const SampleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -165,6 +179,13 @@ pub const TraceEventsReferenceSample = struct {
             .anchor = "samples/trace_events/trace-events-sample.c",
             .requires_runtime_substrate = false,
             .provides_selfcheck = true,
+        };
+    }
+
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = &sample_review_focus,
+            .modulo_selected_strings = &random_strings,
         };
     }
 
@@ -321,8 +342,9 @@ pub const TraceEventsReferenceSample = struct {
     pub fn runStringFormattingCycleReplay(self: *Self) !StringFormattingCycleSummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
 
+        const contract = reviewContract();
         var cases: [random_strings.len]StringFormattingCase = undefined;
-        for (random_strings, 0..) |expected_string, i| {
+        for (contract.modulo_selected_strings, 0..) |expected_string, i| {
             const count: i32 = @intCast(i);
             try self.replayMainIteration(count);
 
@@ -496,14 +518,7 @@ pub const TraceEventsReferenceSample = struct {
             .relative_location_path_checked = self.saw_rel_loc_payload,
             .function_callback_path_checked = self.saw_function_callback_path,
             .registration_balance_restored = self.registration_depth == 0,
-            .checked_focus = &.{
-                .payload_shape,
-                .string_selection,
-                .formatted_message,
-                .conditional_event_families,
-                .function_callback_registration,
-                .ownership_and_lifetime,
-            },
+            .checked_focus = reviewContract().focus,
         };
     }
 
