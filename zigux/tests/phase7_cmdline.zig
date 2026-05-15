@@ -49,6 +49,28 @@ test "phase 7 getOption and getOptions preserve Linux-style range parsing" {
     try std.testing.expectEqual(@as(i32, 1), single_validate[0]);
 }
 
+test "phase 7 getOptions expands negative ranges and negative upper bounds like Linux get_range" {
+    var negative_values = [_]i32{ 0, 0, 0, 0, 0 };
+    const negative_rest = cmdline.getOptions("-2-1", negative_values.len, &negative_values);
+    try std.testing.expectEqualStrings("", negative_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, -2, -1, 0, 1 }, &negative_values);
+
+    var negative_validate = [_]i32{0};
+    const negative_validate_rest = cmdline.getOptions("-2-1", 0, &negative_validate);
+    try std.testing.expectEqualStrings("", negative_validate_rest);
+    try std.testing.expectEqual(@as(i32, 4), negative_validate[0]);
+
+    var negative_upper_values = [_]i32{ 0, 0, 0, 0 };
+    const negative_upper_rest = cmdline.getOptions("-3--1", negative_upper_values.len, &negative_upper_values);
+    try std.testing.expectEqualStrings("", negative_upper_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, -3, -2, -1 }, &negative_upper_values);
+
+    var negative_upper_validate = [_]i32{0};
+    const negative_upper_validate_rest = cmdline.getOptions("-3--1", 0, &negative_upper_validate);
+    try std.testing.expectEqualStrings("", negative_upper_validate_rest);
+    try std.testing.expectEqual(@as(i32, 3), negative_upper_validate[0]);
+}
+
 test "phase 7 getOption clears caller output on malformed signed and unsigned input" {
     var hyphen_only: []const u8 = "-";
     var hyphen_only_value: i32 = 99;
