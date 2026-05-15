@@ -282,3 +282,31 @@ test "phase3 atomic wrappers keep bit wrappers reviewable" {
     try std.testing.expectEqual(@as(u64, 0), high_bit_flags);
     try std.testing.expectEqual(@as(u1, 0), bitTest(u64, &high_bit_flags, high_bit_index, .acquire));
 }
+
+test "phase3 atomic wrappers keep shared-word bit handoffs reviewable" {
+    const handoff_bit: u16 = 17;
+    const sticky_bit: u16 = 29;
+    const adjacent_bit: u16 = 16;
+
+    var word: u32 = (@as(u32, 1) << sticky_bit) | (@as(u32, 1) << adjacent_bit) | 0b101;
+    const sticky_mask = (@as(u32, 1) << sticky_bit) | (@as(u32, 1) << adjacent_bit) | 0b101;
+
+    try std.testing.expectEqual(@as(u1, 0), bitTest(u32, &word, handoff_bit, .acquire));
+    try std.testing.expectEqual(@as(u1, 0), bitSet(u32, &word, handoff_bit, .release));
+    try std.testing.expectEqual(@as(u1, 1), bitTest(u32, &word, handoff_bit, .acquire));
+    try std.testing.expectEqual(sticky_mask | (@as(u32, 1) << handoff_bit), word);
+
+    try std.testing.expectEqual(@as(u1, 1), bitSet(u32, &word, handoff_bit, .monotonic));
+    try std.testing.expectEqual(sticky_mask | (@as(u32, 1) << handoff_bit), word);
+
+    try std.testing.expectEqual(@as(u1, 1), bitToggle(u32, &word, handoff_bit, .acq_rel));
+    try std.testing.expectEqual(sticky_mask, word);
+    try std.testing.expectEqual(@as(u1, 0), bitTest(u32, &word, handoff_bit, .acquire));
+
+    try std.testing.expectEqual(@as(u1, 1), bitReset(u32, &word, adjacent_bit, .release));
+    try std.testing.expectEqual((@as(u32, 1) << sticky_bit) | 0b101, word);
+    try std.testing.expectEqual(@as(u1, 0), bitTest(u32, &word, adjacent_bit, .acquire));
+
+    try std.testing.expectEqual(@as(u1, 0), bitToggle(u32, &word, handoff_bit, .monotonic));
+    try std.testing.expectEqual(((@as(u32, 1) << sticky_bit) | 0b101) | (@as(u32, 1) << handoff_bit), word);
+}
