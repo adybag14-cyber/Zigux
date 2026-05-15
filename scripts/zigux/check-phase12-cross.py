@@ -44,7 +44,7 @@ REQUIRED_BUILD_MARKERS = [
     "cross_step.dependOn(&phase12_virtio_scsi_repeated_rollback_tests.step);",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 11
+EXPECTED_SELF_TEST_CASE_COUNT = 14
 
 
 def load_fixture(path: Path) -> dict[str, object]:
@@ -273,6 +273,42 @@ def run_self_test() -> int:
             "--summary",
             "all",
         ]]
+        checks_run += 1
+
+        build_self_test_tree(root)
+        calls = []
+        assert run_all_targets(root, zig_executable="/custom/zig", runner=success_runner) == 0
+        assert calls == [
+            [
+                "/custom/zig",
+                "build",
+                "cross",
+                "--build-file",
+                "zigux/tests/phase12_cross_build.zig",
+                f"-Dtarget={target}",
+                "--summary",
+                "all",
+            ]
+            for target in EXPECTED_TARGETS
+        ]
+        checks_run += 1
+
+        build_self_test_tree(root)
+        def failing_runner(command, cwd, check=False):
+            return subprocess.CompletedProcess(command, 7)
+
+        assert run_cross_target(root, EXPECTED_TARGETS[1], zig_executable="/custom/zig", runner=failing_runner) == 7
+        checks_run += 1
+
+        build_self_test_tree(root)
+        payload = load_fixture(root / "zigux/tests/fixtures/phase12_cross_targets.json")
+        payload["targets"] = "not-a-list"
+        write_text(root / "zigux/tests/fixtures/phase12_cross_targets.json", json.dumps(payload) + "\n")
+        assert run_all_targets(
+            root,
+            zig_executable="/custom/zig",
+            runner=lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("runner should not be used")),
+        ) == 1
         checks_run += 1
 
         build_self_test_tree(root)
