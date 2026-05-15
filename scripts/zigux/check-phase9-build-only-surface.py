@@ -88,6 +88,8 @@ PHASE9_GAP_SURVEY_NOTE_BOUNDARY_MARKER = "`depmod` script or manifest state"
 LOADER_GAP_MANIFEST_NOTE_SURFACE_MARKER = '"surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md"'
 LOADER_GAP_MANIFEST_ROUTE_MARKER = '"current_honest_gate": "make -C zigux phase9-runtime-loader-shared-tests"'
 LOADER_GAP_MANIFEST_BOUNDARY_MARKER = '"id": "runtime-loader-publication-metadata"'
+LOADER_GAP_MANIFEST_CHECKLIST_BOUNDARY_FLAG_MARKER = '"review_checklist_cross_phase_non_owner_boundary_present": false'
+LOADER_GAP_MANIFEST_CHECKLIST_REMINDER_GAP_MARKER = '"id": "runtime-loader-checklist-cross-phase-non-owner-reminder"'
 PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_BUILD_MARKER = "\"phase9-runtime-trace-events-loader-substrate-drift-tests\""
 PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_MAKE_MARKER = (
     "$(ZIG) build phase9-runtime-trace-events-loader-substrate-drift-tests --build-file zigux/tests/phase9_build.zig"
@@ -235,6 +237,8 @@ REQUIRED_MARKERS = {
         '"surface": "zigux/tests/runtime_loader_gap_manifest.json"',
         LOADER_GAP_MANIFEST_ROUTE_MARKER,
         LOADER_GAP_MANIFEST_BOUNDARY_MARKER,
+        LOADER_GAP_MANIFEST_CHECKLIST_BOUNDARY_FLAG_MARKER,
+        LOADER_GAP_MANIFEST_CHECKLIST_REMINDER_GAP_MARKER,
     ],
     LOADER_GAP_SURVEY_PATH: [
         "phase 9 runtime loader gap survey keeps note and manifest aligned with the live shared packet",
@@ -458,6 +462,30 @@ def run_self_test() -> int:
         expect_failure(
             base,
             f"missing_marker:{LOADER_GAP_MANIFEST_PATH}:{LOADER_GAP_MANIFEST_BOUNDARY_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        gap_manifest_path = base / LOADER_GAP_MANIFEST_PATH
+        gap_manifest = gap_manifest_path.read_text(encoding="utf-8")
+        gap_manifest_path.write_text(
+            gap_manifest.replace(LOADER_GAP_MANIFEST_CHECKLIST_BOUNDARY_FLAG_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{LOADER_GAP_MANIFEST_PATH}:{LOADER_GAP_MANIFEST_CHECKLIST_BOUNDARY_FLAG_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        gap_manifest_path = base / LOADER_GAP_MANIFEST_PATH
+        gap_manifest = gap_manifest_path.read_text(encoding="utf-8")
+        gap_manifest_path.write_text(
+            gap_manifest.replace(LOADER_GAP_MANIFEST_CHECKLIST_REMINDER_GAP_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{LOADER_GAP_MANIFEST_PATH}:{LOADER_GAP_MANIFEST_CHECKLIST_REMINDER_GAP_MARKER}",
         )
 
         write_fixture_tree(base)
