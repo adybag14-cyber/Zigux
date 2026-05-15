@@ -1046,7 +1046,7 @@ def run_self_test() -> int:
             ["governance_alignment:required_approver_set:net/core/skbuff.c"],
             "approver_alignment",
         )
-        _seed_fixture_TREE(root)
+        _seed_fixture_tree(root)
         case_count += 1
 
         freeze_manifest = json.loads(_read(root / FREEZE_MAP_MANIFEST_PATH))
