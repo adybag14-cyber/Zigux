@@ -14,12 +14,13 @@
 ## Review Surface
 - present helper-owned packet: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - still-present direct C parity scaffolding: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
+- same-file aligned IPv4 fast-path packet: `lib/checksum.zig` now includes `ipFastCsum()` with a direct `compute()` proof over minimal, updated, and options-bearing IPv4 headers
 - direct focused helper replay route: `zig build test --build-file zigux/tests/phase6_build.zig`
 - direct focused perf route: `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`
 - direct local C parity checker route: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
 - built-in parity-script self-test route: `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test`
 - route nuance note: the checksum helper-owned replay and slowdown gate are readable from the committed helper packet again, but the shared `zigux/Makefile` and workflow surfaces still need their own route-truthfulness follow-up before reviewers should treat those wrappers as equivalent packet summaries
-- current review posture: parked reviewable; the checksum roadmap anchor now keeps the helper-owned replay, slowdown gate, and direct C parity scaffolding readable on current `master`, while the remaining gap has narrowed to shared route inventory truthfulness rather than a missing checksum helper packet
+- current review posture: parked reviewable; the checksum roadmap anchor now keeps the helper-owned replay, slowdown gate, direct C parity scaffolding, and aligned IPv4 fast-path helper proof readable on current `master`, while the remaining gap has narrowed to shared route inventory truthfulness rather than a missing checksum helper packet
 
 ## Next Step
 Keep this lane parked unless a future checksum follow-up finds helper-local drift in `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, or `zigux/tests/fixtures/phase6_checksum_vectors.zig`.
