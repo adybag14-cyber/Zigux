@@ -487,8 +487,14 @@ def run_self_test() -> None:
         run_check(tmpdir)
 
         missing_marker_cases = [
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[0]),
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[1]),
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[2]),
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[3]),
-            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[-1]),
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[4]),
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[5]),
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[6]),
+            (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_MARKERS[7]),
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[0]),
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[1]),
             (REQUIRED_FILES["build_inventory"], BUILD_INVENTORY_HVC_SPLIT_REPLAY_MARKERS[2]),
