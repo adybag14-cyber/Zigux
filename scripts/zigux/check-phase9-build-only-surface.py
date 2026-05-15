@@ -671,6 +671,18 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        contract_path = base / RUNTIME_LOADER_CONTRACT_PATH
+        contract = contract_path.read_text(encoding="utf-8")
+        contract_path.write_text(
+            contract.replace(RUNTIME_LOADER_CONTRACT_DEPMOD_ALIASES_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{RUNTIME_LOADER_CONTRACT_PATH}:{RUNTIME_LOADER_CONTRACT_DEPMOD_ALIASES_MARKER}",
+        )
+
+        write_fixture_tree(base)
         makefile_path = base / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -732,7 +744,7 @@ def run_self_test() -> int:
             allocator_init_flow.replace(
                 "request.plan.allocator_handoff = .arena;",
                 "",
-                1,
+                2,
             ),
             encoding="utf-8",
         )
