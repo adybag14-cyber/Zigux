@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -10,10 +11,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 VERSION_RE = re.compile(r"^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(?:-dev\.(?P<dev>\d+)(?:\+[0-9A-Za-z.-]+)?)?$")
+ARCHIVE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 FALLBACK_MIN_VERSION = "0.16.0"
-EXPECTED_SELF_TEST_CASE_COUNT = 29
+EXPECTED_SELF_TEST_CASE_COUNT = 40
 
 
 @dataclass(frozen=True, order=True)
@@ -69,6 +71,73 @@ def load_pinned_channel(policy_path: Path = TOOLCHAIN_POLICY) -> str | None:
     if not isinstance(channel, str) or not channel.strip():
         raise ValueError(f"invalid channel in {policy_path}")
     return channel.strip()
+
+
+def load_policy_archive_digests(policy_path: Path = TOOLCHAIN_POLICY) -> dict[str, str]:
+    payload = load_policy(policy_path)
+    if payload is None:
+        return {}
+    archive_sha256 = payload.get("archive_sha256")
+    if archive_sha256 is None:
+        return {}
+    if not isinstance(archive_sha256, dict):
+        raise ValueError(f"invalid archive_sha256 in {policy_path}")
+
+    digests: dict[str, str] = {}
+    for target_key, digest in archive_sha256.items():
+        if not isinstance(target_key, str) or not target_key.strip():
+            raise ValueError(f"invalid archive target in {policy_path}")
+        if not isinstance(digest, str) or not ARCHIVE_SHA256_RE.fullmatch(digest.lower()):
+            raise ValueError(f"invalid archive sha256 for {target_key} in {policy_path}")
+        digests[target_key.strip()] = digest.lower()
+    return digests
+
+
+def load_policy_archive_sha256(policy_path: Path = TOOLCHAIN_POLICY, target_key: str | None = None) -> str | None:
+    if target_key is None:
+        return None
+    return load_policy_archive_digests(policy_path).get(target_key)
+
+
+def resolve_archive_target(
+    explicit_target: str | None = None,
+    *,
+    policy_path: Path = TOOLCHAIN_POLICY,
+) -> str | None:
+    if explicit_target is not None and explicit_target.strip():
+        return explicit_target.strip()
+    digests = load_policy_archive_digests(policy_path)
+    if not digests:
+        return None
+    if len(digests) == 1:
+        return next(iter(digests))
+    raise ValueError("archive target must be specified when multiple archive digests exist in the toolchain policy")
+
+
+def calculate_sha256(path: Path) -> str:
+    sha256 = hashlib.sha256()
+    with path.open("rb") as fh:
+        while True:
+            chunk = fh.read(1024 * 1024)
+            if not chunk:
+                break
+            sha256.update(chunk)
+    return sha256.hexdigest()
+
+
+def verify_archive_sha256(path: Path, expected_sha256: str) -> str:
+    try:
+        actual_sha256 = calculate_sha256(path)
+    except FileNotFoundError as exc:
+        raise ValueError(f"zig archive not found: {path}") from exc
+    except OSError as exc:
+        raise ValueError(f"failed to read zig archive {path}: {exc}") from exc
+
+    if actual_sha256.lower() != expected_sha256.lower():
+        raise ValueError(
+            f"zig archive sha256 mismatch for {path.name}: expected {expected_sha256.lower()}, got {actual_sha256.lower()}"
+        )
+    return actual_sha256.lower()
 
 
 def iter_repo_local_zig_candidates(
@@ -147,6 +216,26 @@ def evaluate_toolchain_version(
     return "present", None
 
 
+def emit_archive_metadata(
+    archive_path: Path | None,
+    archive_target: str | None,
+    expected_archive_sha256: str | None,
+    actual_archive_sha256: str | None,
+    archive_status: str | None,
+) -> None:
+    if archive_path is None:
+        return
+    print(f"ZIG_TOOLCHAIN_ARCHIVE={archive_path}")
+    if archive_target is not None:
+        print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target}")
+    if expected_archive_sha256 is not None:
+        print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={expected_archive_sha256}")
+    if actual_archive_sha256 is not None:
+        print(f"ZIG_TOOLCHAIN_ARCHIVE_SHA256={actual_archive_sha256}")
+    if archive_status is not None:
+        print(f"ZIG_TOOLCHAIN_ARCHIVE_SHA256_STATUS={archive_status}")
+
+
 def run_self_test() -> int:
     case_count = 0
 
@@ -220,12 +309,18 @@ def run_self_test() -> int:
         policy_path = root / "zig-toolchain-policy.json"
         expect_equal(load_min_version(policy_path, "0.15.0"), "0.15.0")
         expect_equal(load_pinned_channel(policy_path), None)
+        expect_equal(load_policy_archive_sha256(policy_path, "x86_64-linux"), None)
+        expect_equal(resolve_archive_target(policy_path=policy_path), None)
         policy_path.write_text(
-            '{"channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2"}\n',
+            '{"channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"}}\n',
             encoding="utf-8",
         )
         expect_equal(load_min_version(policy_path, "0.15.0"), "0.17.0-dev.87+9b177a7d2")
         expect_equal(load_pinned_channel(policy_path), "0.17.0-dev.87+9b177a7d2")
+        expect_equal(load_policy_archive_sha256(policy_path, "x86_64-linux"), "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77")
+        expect_equal(load_policy_archive_sha256(policy_path, "aarch64-linux"), None)
+        expect_equal(resolve_archive_target(policy_path=policy_path), "x86_64-linux")
+        expect_equal(resolve_archive_target("aarch64-linux", policy_path=policy_path), "aarch64-linux")
         toolchain_dir = root / ".zig-toolchain" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
         toolchain_dir.mkdir(parents=True)
         pinned_zig = toolchain_dir / "zig"
@@ -243,11 +338,25 @@ def run_self_test() -> int:
             iter_repo_local_zig_candidates(root=root, pinned_channel="0.17.0-dev.87+9b177a7d2")[:2],
             [pinned_zig, toolchain_dir / "bin" / "zig"],
         )
+        archive_path = root / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+        archive_path.write_bytes(b"zigux-archive")
+        expected_archive_sha256 = hashlib.sha256(b"zigux-archive").hexdigest()
+        policy_path.write_text(
+            '{"channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + expected_archive_sha256 + '"}}\n',
+            encoding="utf-8",
+        )
+        expect_equal(verify_archive_sha256(archive_path, expected_archive_sha256), expected_archive_sha256)
+        expect_raises(lambda: verify_archive_sha256(archive_path, "0" * 64), "zig archive sha256 mismatch")
+        expect_raises(lambda: verify_archive_sha256(root / "missing.tar.xz", expected_archive_sha256), "zig archive not found")
         policy_path.write_text('{"minimum_version":7,"channel":"0.17.0-dev.87+9b177a7d2"}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid minimum_version")
         policy_path.write_text('{"minimum_version":"0.17.0-dev.87+9b177a7d2","channel":7}\n', encoding="utf-8")
         expect_raises(lambda: load_pinned_channel(policy_path), "invalid channel")
         expect_raises(lambda: resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: None), "invalid channel")
+        policy_path.write_text('{"minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":7}\n', encoding="utf-8")
+        expect_raises(lambda: load_policy_archive_sha256(policy_path, "x86_64-linux"), "invalid archive_sha256")
+        policy_path.write_text('{"minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"short"}}\n', encoding="utf-8")
+        expect_raises(lambda: load_policy_archive_sha256(policy_path, "x86_64-linux"), "invalid archive sha256")
         policy_path.write_text("{not-json}\n", encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid toolchain policy JSON")
         expect_raises(lambda: parse_zig_version("master"))
@@ -319,12 +428,19 @@ def main() -> int:
     )
     parser.add_argument("--allow-missing", action="store_true", help="Return success when zig is unavailable.")
     parser.add_argument("--zig", help="Explicit zig executable path.")
+    parser.add_argument("--archive", help="Optional local Zig bootstrap archive to verify against the pinned policy sha256.")
+    parser.add_argument("--archive-target", help="Explicit policy target key for --archive, such as x86_64-linux.")
     parser.add_argument("--self-test", action="store_true", help="Run built-in parser and ordering checks.")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
+    archive_path = Path(args.archive).expanduser() if args.archive is not None else None
+    archive_target: str | None = None
+    expected_archive_sha256: str | None = None
+    actual_archive_sha256: str | None = None
+    archive_status: str | None = None
     zig: str | None = None
     min_version_raw: str | None = args.min_version
     expected_channel_raw: str | None = None
@@ -336,6 +452,15 @@ def main() -> int:
         parse_zig_version(min_version_raw)
         if expected_channel_raw is not None:
             parse_zig_version(expected_channel_raw)
+        if archive_path is not None:
+            archive_target = resolve_archive_target(args.archive_target)
+            if archive_target is None:
+                raise ValueError("archive target could not be resolved from toolchain policy")
+            expected_archive_sha256 = load_policy_archive_sha256(TOOLCHAIN_POLICY, archive_target)
+            if expected_archive_sha256 is None:
+                raise ValueError(f"toolchain policy does not define archive sha256 for target {archive_target}")
+            actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)
+            archive_status = "verified"
     except ValueError as exc:
         print("ZIG_TOOLCHAIN_STATUS=invalid")
         print(f"ZIG_TOOLCHAIN_PATH={zig or 'unresolved'}")
@@ -347,6 +472,13 @@ def main() -> int:
             print("ZIG_TOOLCHAIN_PIN_POLICY=minimum_only")
         else:
             print("ZIG_TOOLCHAIN_PIN_POLICY=unresolved")
+        emit_archive_metadata(
+            archive_path,
+            archive_target,
+            expected_archive_sha256,
+            actual_archive_sha256,
+            archive_status or ("invalid" if archive_path is not None else None),
+        )
         print(f"ZIG_TOOLCHAIN_NOTE={exc}")
         return 1
 
@@ -355,6 +487,13 @@ def main() -> int:
         if args.allow_missing:
             print("ZIG_TOOLCHAIN_STATUS=missing")
             print(f"ZIG_TOOLCHAIN_NOTE={message}")
+            emit_archive_metadata(
+                archive_path,
+                archive_target,
+                expected_archive_sha256,
+                actual_archive_sha256,
+                archive_status,
+            )
             return 0
         print(message, file=sys.stderr)
         return 1
@@ -375,6 +514,13 @@ def main() -> int:
             print("ZIG_TOOLCHAIN_PIN_POLICY=minimum_only")
         else:
             print("ZIG_TOOLCHAIN_PIN_POLICY=unresolved")
+        emit_archive_metadata(
+            archive_path,
+            archive_target,
+            expected_archive_sha256,
+            actual_archive_sha256,
+            archive_status or ("invalid" if archive_path is not None else None),
+        )
         print(f"ZIG_TOOLCHAIN_NOTE={exc}")
         return 1
 
@@ -388,6 +534,13 @@ def main() -> int:
         print("ZIG_TOOLCHAIN_PIN_POLICY=exact")
     else:
         print("ZIG_TOOLCHAIN_PIN_POLICY=minimum_only")
+    emit_archive_metadata(
+        archive_path,
+        archive_target,
+        expected_archive_sha256,
+        actual_archive_sha256,
+        archive_status,
+    )
     if note is not None:
         print(f"ZIG_TOOLCHAIN_NOTE={note}")
     return exit_code
