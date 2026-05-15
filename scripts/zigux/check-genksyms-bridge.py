@@ -732,8 +732,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         payload = json.loads((root / GENKSYMS_CASES_REL).read_text(encoding="utf-8"))
         payload[13]["normalize_stderr"] = False
-        writeText = write_text
-        writeText(root / GENKSYMS_CASES_REL, json.dumps(payload, indent=2) + "\n")
+        write_text(root / GENKSYMS_CASES_REL, json.dumps(payload, indent=2) + "\n")
         issues = validate_root(root)
         assert "genksyms_cases:unexpected_help_argument:normalize_stderr:expected=True:actual=False" in issues
         case_count += 1
