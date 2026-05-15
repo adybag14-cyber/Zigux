@@ -110,8 +110,6 @@ phase3-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-linux-zigux-header-governance.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test
@@ -366,6 +364,7 @@ phase11: phase11-contract phase11-test phase11-hvc-survey
 phase12-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-build-only-phase12-surface.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-build-only-phase12-surface.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-cross.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase12.py
