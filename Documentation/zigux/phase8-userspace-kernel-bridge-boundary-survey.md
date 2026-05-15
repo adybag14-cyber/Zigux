@@ -17,8 +17,8 @@ control surface reviewable without pretending that the current Zigux packet has
 closed direct process-launch, live environment-read, or terminal-probing parity.
 
 The same shared boundary survey also keeps the current file, path, and handle
-bridge review packet explicit without pretending that the current Zigux packet
-has closed token materialization or capability handoff, map reopen or bpffs
+bridge review packet explicit without pretending that the current Zigux packet has
+closed token materialization or capability handoff, map reopen or bpffs
 compatibility closure, or fd close or ownership semantics.
 
 The note is intentionally narrow:
@@ -67,11 +67,20 @@ reviewable through:
 - `python3 scripts/zigux/validate-phase8.py --self-test`
 - `python3 scripts/zigux/validate-phase8.py`
 
-That queued bridge packet stays helper-first and planning-only: it names
-`mapReuseObservationFromFdinfo()`, `resolveReusePinnedMapAttempt()`, and
-`planTokenPreparation()` as a planning-only gate around a non-empty pinned path
-plus compatible fdinfo-derived map info and a non-empty token path plus a ready
-reused-map bridge plan.
+That queued bridge packet already keeps the landed config-side helper surface
+explicit: `buildProcFdinfoPath()`, `parseFdinfoLine()`, `parseFdinfoMapInfo()`,
+`mapReuseObservationFromFdinfo()`, `resolveReusedMapName()`,
+`normalizeObservedReuseMapFlags()`, `summarizeMapReuseCompatibility()`,
+`isMapReuseCompatible()`, and `resolveReusePinnedMapAttempt()` keep bounded
+pathname shaping, fdinfo parsing, reused-map naming, flag normalization,
+compatibility reporting, and pinned-map reuse planning reviewable without
+crossing into procfs, bpffs, or descriptor side effects.
+
+The same queued bridge packet keeps the narrower capability-planning edge
+explicit through `planTokenPreparation()` only: it models
+`skip_optional_missing_delegation`, `skip_optional`, and mandatory `fail`
+outcomes for a non-empty token path plus a ready reused-map bridge plan while
+still stopping short of token materialization or capability handoff.
 
 The same shared note also keeps the already-landed `perf-buffer-poll-bookkeeping`
 packet explicit as a smaller helper-adjacent review surface around observed
@@ -80,11 +89,13 @@ and ordered record-processing summaries rather than broader routing or event-loo
 ownership.
 
 That packet still does not claim token materialization or capability handoff,
-map reopen or bpffs compatibility closure, or fd close or ownership semantics.
-It also does not claim the deferred `perf-buffer-online-cpu-routing` packet,
-including `/sys/devices/system/cpu/online`, cached `/sys/devices/system/cpu/possible`
-counts via `libbpf_num_possible_cpus()`, online CPU filtering, per-CPU perf-event-array
-map updates, per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup,
+direct `/proc/.../fdinfo` reads, `bpf_obj_get()` reopen flow, map reopen or
+bpffs compatibility closure, `FD duplication or replacement behavior`, or fd
+close or ownership semantics. It also does not claim the deferred
+`perf-buffer-online-cpu-routing` packet, including `/sys/devices/system/cpu/online`,
+cached `/sys/devices/system/cpu/possible` counts via `libbpf_num_possible_cpus()`,
+online CPU filtering, per-CPU perf-event-array map updates, per-CPU
+`perf_event_open()` setup, perf-buffer ring `mmap()` setup,
 `PERF_EVENT_IOC_ENABLE` enablement, epoll-backed perf FD registration, or poll waits.
 It likewise does not claim standalone timer helper behavior or standalone
 clockevent helper behavior.
@@ -155,6 +166,15 @@ the direct exec-cmd shard, while authenticated contents reads for
 `zigux/tests/phase8_exec_cmd.zig` and
 `zigux/tests/phase8_exec_cmd_only_build.zig` remain intermittent from this
 environment.
+
+The same shared wording also needs to keep the landed config-side bridge helpers
+explicit while leaving capability work parked at `planTokenPreparation()`: the
+current helper packet carries `buildProcFdinfoPath()`, `parseFdinfoMapInfo()`,
+`resolveReusedMapName()`, `normalizeObservedReuseMapFlags()`,
+`summarizeMapReuseCompatibility()`, `isMapReuseCompatible()`, and
+`resolveReusePinnedMapAttempt()`, while capability flow is still limited to
+`skip_optional_missing_delegation`, `skip_optional`, and mandatory `fail`
+planning rather than token creation or handle ownership.
 
 Current `master` also shows that `Documentation/zigux/README.md` and
 `Documentation/zigux/review-checklist.md` already carry the refreshed shared-wording
