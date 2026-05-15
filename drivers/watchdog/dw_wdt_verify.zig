@@ -146,6 +146,56 @@ pub fn summarizeRestartFailureMode(request: RestartFailureModeRequest) RestartFa
     };
 }
 
+pub const RemoveTeardownState = enum {
+    idle_remove,
+    continued_heartbeat,
+    reset_control_shutdown,
+};
+
+pub const RemoveTeardownRequest = struct {
+    reset_control_available: bool,
+    hardware_running: bool,
+    interrupt_pending: bool,
+};
+
+pub const RemoveTeardownSummary = struct {
+    anchor: []const u8,
+    debugfs_clear_requested: bool,
+    unregister_device_requested: bool,
+    reset_control_available: bool,
+    reset_assert_requested: bool,
+    hardware_running_before_remove: bool,
+    hardware_running_after_remove: bool,
+    interrupt_pending_before_remove: bool,
+    interrupt_pending_after_remove: bool,
+    remove_leaves_hardware_running: bool,
+    state: RemoveTeardownState,
+};
+
+pub fn summarizeRemoveTeardown(request: RemoveTeardownRequest) RemoveTeardownSummary {
+    const reset_assert_requested = request.reset_control_available and request.hardware_running;
+    const hardware_running_after_remove = request.hardware_running and !request.reset_control_available;
+
+    return .{
+        .anchor = "drivers/watchdog/dw_wdt.c",
+        .debugfs_clear_requested = true,
+        .unregister_device_requested = true,
+        .reset_control_available = request.reset_control_available,
+        .reset_assert_requested = reset_assert_requested,
+        .hardware_running_before_remove = request.hardware_running,
+        .hardware_running_after_remove = hardware_running_after_remove,
+        .interrupt_pending_before_remove = request.interrupt_pending,
+        .interrupt_pending_after_remove = false,
+        .remove_leaves_hardware_running = hardware_running_after_remove,
+        .state = if (!request.hardware_running)
+            .idle_remove
+        else if (request.reset_control_available)
+            .reset_control_shutdown
+        else
+            .continued_heartbeat,
+    };
+}
+
 test "phase11 dw_wdt verify keeps stop teardown ownership explicit" {
     const summary = summarizeStopTeardown(.{
         .drvdata_ready = true,
@@ -281,4 +331,64 @@ test "phase11 dw_wdt verify keeps missing-drvdata restart failures explicit" {
     try std.testing.expect(blocked_drvdata.keeps_missing_drvdata_explicit);
     try std.testing.expect(!blocked_drvdata.keeps_missing_timeout_image_explicit);
     try std.testing.expectEqual(RestartFailureState.blocked_missing_drvdata, blocked_drvdata.state);
+}
+
+test "phase11 dw_wdt verify keeps remove teardown heartbeat continuation explicit" {
+    const summary = summarizeRemoveTeardown(.{
+        .reset_control_available = false,
+        .hardware_running = true,
+        .interrupt_pending = true,
+    });
+
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", summary.anchor);
+    try std.testing.expect(summary.debugfs_clear_requested);
+    try std.testing.expect(summary.unregister_device_requested);
+    try std.testing.expect(!summary.reset_control_available);
+    try std.testing.expect(!summary.reset_assert_requested);
+    try std.testing.expect(summary.hardware_running_before_remove);
+    try std.testing.expect(summary.hardware_running_after_remove);
+    try std.testing.expect(summary.interrupt_pending_before_remove);
+    try std.testing.expect(!summary.interrupt_pending_after_remove);
+    try std.testing.expect(summary.remove_leaves_hardware_running);
+    try std.testing.expectEqual(RemoveTeardownState.continued_heartbeat, summary.state);
+}
+
+test "phase11 dw_wdt verify keeps remove teardown reset-backed shutdown explicit" {
+    const summary = summarizeRemoveTeardown(.{
+        .reset_control_available = true,
+        .hardware_running = true,
+        .interrupt_pending = true,
+    });
+
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", summary.anchor);
+    try std.testing.expect(summary.debugfs_clear_requested);
+    try std.testing.expect(summary.unregister_device_requested);
+    try std.testing.expect(summary.reset_control_available);
+    try std.testing.expect(summary.reset_assert_requested);
+    try std.testing.expect(summary.hardware_running_before_remove);
+    try std.testing.expect(!summary.hardware_running_after_remove);
+    try std.testing.expect(summary.interrupt_pending_before_remove);
+    try std.testing.expect(!summary.interrupt_pending_after_remove);
+    try std.testing.expect(!summary.remove_leaves_hardware_running);
+    try std.testing.expectEqual(RemoveTeardownState.reset_control_shutdown, summary.state);
+}
+
+test "phase11 dw_wdt verify keeps idle remove distinct from running teardown" {
+    const summary = summarizeRemoveTeardown(.{
+        .reset_control_available = true,
+        .hardware_running = false,
+        .interrupt_pending = true,
+    });
+
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", summary.anchor);
+    try std.testing.expect(summary.debugfs_clear_requested);
+    try std.testing.expect(summary.unregister_device_requested);
+    try std.testing.expect(summary.reset_control_available);
+    try std.testing.expect(!summary.reset_assert_requested);
+    try std.testing.expect(!summary.hardware_running_before_remove);
+    try std.testing.expect(!summary.hardware_running_after_remove);
+    try std.testing.expect(summary.interrupt_pending_before_remove);
+    try std.testing.expect(!summary.interrupt_pending_after_remove);
+    try std.testing.expect(!summary.remove_leaves_hardware_running);
+    try std.testing.expectEqual(RemoveTeardownState.idle_remove, summary.state);
 }
