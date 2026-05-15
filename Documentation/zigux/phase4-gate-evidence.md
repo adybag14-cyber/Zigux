@@ -2,7 +2,7 @@
 This note records the current connector-readback checkpoint for the shipped Phase 4 rollback-ownership and lab-matrix packet. The status block below now matches the dedicated gate-evidence checker and the shared validator on current `master`, while the local-only perf and parked survey packets remain intentionally separate.
 
 ## Status
-- `PHASE4_EVIDENCE_DATE=2026-05-14`
+- `PHASE4_EVIDENCE_DATE=2026-05-15`
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
@@ -17,7 +17,7 @@ This note records the current connector-readback checkpoint for the shipped Phas
 - `PHASE4_WORKFLOW_BLOB_SHA=796c2f1c2df51e3cafc2ff7c55e8c3ab345867bd`
 - `PHASE4_DOC_README_BLOB_SHA=50fb6645bb5dcff927a12b5996f7a8dc7d421359`
 - `PHASE4_SCRIPT_README_BLOB_SHA=85026d77d8742b14212e99f30ceed139f8fb31af`
-- `PHASE4_TESTS_README_BLOB_SHA=ae702f91a3f81c9c3d16c4e48467fedb9485a5e5`
+- `PHASE4_TESTS_README_BLOB_SHA=76a7f19697de17f7dd5fd8dbaeea360530b8b8c8`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=a1226b6fecefcf3ff9b2ac02963f8f2de92b8765`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=73d7d86e04bca860d2a8845e442d02eca7ce8d2c`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=58dee27613f48d2cab0e29f649fd2a7d9fc5d279`
