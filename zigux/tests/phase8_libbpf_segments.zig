@@ -245,8 +245,9 @@ test "phase 8 libbpf survey note keeps the current landed count and helper-local
     try expectContains(phase8_note, "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.");
     try expectContains(phase8_note, "current `master` also carries helper-local routing evidence in `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`");
     try expectContains(phase8_note, "advanceOnlineCpuCursor()");
+    try expectContains(phase8_note, "summarizeNextOnlineCpuRoute()");
     try expectContains(phase8_note, "summarizeOnlineCpuRouting()");
-    try expectContains(phase8_note, "The real current gap is now survey truthfulness about the already-landed checker packet and helper-local routing evidence, not a missing checker rule or docs-root summary.");
+    try expectContains(phase8_note, "The real current gap is now survey truthfulness about the already-landed checker packet, helper-local routing evidence, and the still-mixed contents-route stability for the landed bridge-plus-build packet, not a missing checker rule or docs-root summary.");
     try expectContains(phase8_note, "That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit");
     try expectContains(phase8_note, "standalone timer or clockevent helper behavior");
     try expectContains(phase8_note, "broader timeout-sensitive routing behavior");
