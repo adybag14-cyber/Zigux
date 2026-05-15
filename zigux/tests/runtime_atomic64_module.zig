@@ -9,6 +9,30 @@ test "runtime atomic64 sample advertises the bounded pilot-module contract" {
     try std.testing.expect(descriptor.provides_selftest_hook);
 }
 
+test "runtime atomic64 sample keeps selftest summary replay explicit at the module boundary" {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(0x1111_1111_2222_2222);
+
+    const selftest_summary = try module.runSelftest();
+    try std.testing.expectEqualStrings("lib/atomic64_test.c", selftest_summary.anchor);
+    try std.testing.expectEqual(@as(usize, 5), selftest_summary.operation_families.len);
+    try std.testing.expectEqual(sample.OperationFamily.arithmetic, selftest_summary.operation_families[0]);
+    try std.testing.expectEqual(sample.OperationFamily.bitwise, selftest_summary.operation_families[1]);
+    try std.testing.expectEqual(sample.OperationFamily.returning_ops, selftest_summary.operation_families[2]);
+    try std.testing.expectEqual(sample.OperationFamily.swap_ops, selftest_summary.operation_families[3]);
+    try std.testing.expectEqual(sample.OperationFamily.guard_ops, selftest_summary.operation_families[4]);
+    try std.testing.expect(selftest_summary.checked_returning_paths);
+    try std.testing.expect(selftest_summary.checked_bitwise_paths);
+    try std.testing.expect(selftest_summary.checked_guard_paths);
+
+    const selftest_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, selftest_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftest_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftest_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftest_snapshot.exit_runs);
+    try std.testing.expect(selftest_snapshot.allows_counter_ops);
+}
+
 test "runtime atomic64 sample keeps lifecycle snapshot replay explicit at the module boundary" {
     var module = sample.RuntimeAtomic64Sample{};
 
