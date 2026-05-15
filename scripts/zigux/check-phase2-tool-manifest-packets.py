@@ -508,7 +508,7 @@ PHASE2_REVIEW_NOTES_EXACT_COUNTS = {
     PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS[0]: 1,
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 24
+EXPECTED_SELF_TEST_CASE_COUNT = 28
 
 
 def load_json(path: Path, label: str) -> tuple[dict[str, object] | None, list[str]]:
@@ -895,6 +895,21 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        review_checklist = root / "Documentation/zigux/review-checklist.md"
+        review_checklist.write_text(
+            review_checklist.read_text(encoding="utf-8")
+            + "scripts/zigux/check-phase2-tool-manifest-packets.py\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "exact_count:Documentation/zigux/review-checklist.md:"
+            "scripts/zigux/check-phase2-tool-manifest-packets.py:count=2:expected=1"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
         tests_readme = root / "zigux/tests/README.md"
         tests_readme.write_text(
             tests_readme.read_text(encoding="utf-8").replace(
@@ -929,6 +944,21 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        closure_doc = root / PHASE2_CLOSURE_DOC_RELATIVE_PATH
+        closure_doc.write_text(
+            closure_doc.read_text(encoding="utf-8")
+            + f"- {PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS[0]}\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "exact_count:Documentation/zigux/phase2-closure.md:review_notes:"
+            f"{PHASE2_REVIEW_NOTES_TOOL_MANIFEST_MARKERS[0]}:count=2:expected=1"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
         validator = root / "scripts/zigux/validate-phase2.py"
         validator.write_text(
             validator.read_text(encoding="utf-8").replace(VALIDATOR_TOOL_MANIFEST_MARKERS[2] + "\n", "", 1),
@@ -952,6 +982,20 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        workflow = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8") + WORKFLOW_TOOL_MANIFEST_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "exact_count:.github/workflows/zigux-bootstrap.yml:"
+            f"{WORKFLOW_TOOL_MANIFEST_MARKERS[0]}:count=2:expected=1"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
         makefile = root / "zigux/Makefile"
         makefile.write_text(
             makefile.read_text(encoding="utf-8").replace(MAKEFILE_TOOL_MANIFEST_MARKERS[1] + "\n", "", 1),
@@ -960,6 +1004,20 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             f"missing_marker:zigux/Makefile:{MAKEFILE_TOOL_MANIFEST_MARKERS[1]}"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        makefile = root / "zigux/Makefile"
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8") + MAKEFILE_TOOL_MANIFEST_MARKERS[2] + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            "exact_count:zigux/Makefile:"
+            f"{MAKEFILE_TOOL_MANIFEST_MARKERS[2]}:count=2:expected=1"
             in issues
         )
         case_count += 1
