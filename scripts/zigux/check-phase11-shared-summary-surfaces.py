@@ -211,11 +211,18 @@ def run_self_test() -> None:
         run_check(fixture_root)
 
         required_cases = [
+            (FILES["contract_note"], CONTRACT_MARKERS[0]),
+            (FILES["contract_note"], CONTRACT_MARKERS[1]),
             (FILES["contract_note"], CONTRACT_MARKERS[2]),
+            (FILES["contract_note"], CONTRACT_MARKERS[3]),
             (FILES["contract_note"], CONTRACT_MARKERS[4]),
             (FILES["contract_note"], CONTRACT_MARKERS[5]),
             (FILES["contract_note"], CONTRACT_MARKERS[6]),
+            (FILES["contract_note"], CONTRACT_MARKERS[7]),
+            (FILES["contract_note"], CONTRACT_MARKERS[8]),
+            (FILES["contract_note"], CONTRACT_MARKERS[9]),
             (FILES["contract_note"], CONTRACT_MARKERS[10]),
+            (FILES["contract_note"], CONTRACT_MARKERS[11]),
             (FILES["contract_note"], "`Documentation/zigux/phase11-hvc-console-slice.md`"),
             (FILES["contract_note"], "`drivers/tty/hvc/hvc_console.zig`"),
             (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][3]),
