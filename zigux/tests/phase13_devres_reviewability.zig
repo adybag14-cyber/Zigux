@@ -64,6 +64,8 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     defer std.testing.allocator.free(devres_source);
     const boundary_replay = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "zigux/tests/phase13_devres_boundary_evidence.zig", std.testing.allocator, .limited(24 * 1024));
     defer std.testing.allocator.free(boundary_replay);
+    const direct_replay = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "zigux/tests/phase13_devres.zig", std.testing.allocator, .limited(40 * 1024));
+    defer std.testing.allocator.free(direct_replay);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{ .ignore_unknown_fields = true });
     defer parsed.deinit();
@@ -122,6 +124,11 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try std.testing.expect(std.mem.indexOf(u8, boundary_replay, "phase13 devres boundary evidence keeps the manifest-backed blocked surfaces explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, boundary_replay, "phase13-devres-boundary-evidence-gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, boundary_replay, "phase13 devres planners keep blocked arch memtype boundaries in detach-bookkeeping form") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres release matching stays pointer-exact") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres plans a managed iounmap call and warns on release misses") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "planManagedIounmap(0x4000, 0x4000)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "planManagedIounmap(0x4000, 0x4010)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "miss.warns_on_release_miss") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -133,6 +140,7 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
         if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1 else blocked_count += 1;
     }
 
+    try expectGap(manifest, "phase13-devres-test-gate", "starter_landed", "zigux/tests/phase13_devres.zig", "`devm_iounmap()` planner");
     try expectGap(manifest, "phase13-devres-boundary-evidence-gate", "starter_landed", "zigux/tests/phase13_devres_boundary_evidence.zig", "blocked live-state boundaries explicit");
     try expectGap(manifest, "phase13-devres-live-region-reservation", "blocked_on_live_mmio_state", "lib/devres.zig", "region acquisition side effects");
     try expectGap(manifest, "phase13-devres-live-release-region-mutation", "blocked_on_live_mmio_state", "lib/devres.zig", "release_mem_region()");
