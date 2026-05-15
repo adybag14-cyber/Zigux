@@ -4,7 +4,7 @@ This bounded Phase 10 slice records the current queue-local `virtio_ring` wrappe
 
 - `PHASE10_SLICE=virtio-ring-queue-wrapper-packet`
 - reviewed against live `master` ring packet anchored by surveyed `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
-- lane: `P10-L07`
+- lane: `P10-L10`
 - anchor: `drivers/virtio/virtio_ring.c`
 
 ## Shipped packet
