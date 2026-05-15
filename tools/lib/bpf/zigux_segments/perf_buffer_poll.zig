@@ -125,6 +125,7 @@ pub const PollError = error{
     ReadyBufferProcessingExceedsObservedEvents,
     NonReadyWaitHasProcessedRecords,
     InconsistentProcessingFailureSummary,
+    InconsistentProcessingAccountingSummary,
     WaitResultDisagreesWithExecutionOutcome,
     WaitResultDisagreesWithReadyEventCount,
     WaitResultDisagreesWithFailureCode,
@@ -136,6 +137,30 @@ fn hasAnyBufferState(summary: ReadyBufferSummary) bool {
 
 fn hasConsistentProcessFailure(summary: PollExecutionSummary) bool {
     return (summary.first_process_error_index == null) == (summary.first_process_error == null);
+}
+
+fn hasConsistentProcessAccounting(summary: PollExecutionSummary) bool {
+    return switch (summary.poll.outcome) {
+        .timeout, .interrupted, .failed => summary.attempted_ready_buffer_count == 0 and
+            summary.completed_ready_buffer_count == 0 and
+            summary.processed_record_count == 0 and
+            summary.first_process_error_index == null and
+            summary.first_process_error == null,
+        .ready => blk: {
+            if (summary.attempted_ready_buffer_count > summary.poll.ready_count) break :blk false;
+            if (summary.attempted_ready_buffer_count > summary.poll.observed_ready_events) break :blk false;
+            if (summary.completed_ready_buffer_count > summary.attempted_ready_buffer_count) break :blk false;
+
+            if (summary.first_process_error_index) |index| {
+                break :blk summary.first_process_error != null and
+                    summary.completed_ready_buffer_count < summary.attempted_ready_buffer_count and
+                    index == summary.completed_ready_buffer_count;
+            }
+
+            break :blk summary.first_process_error == null and
+                summary.completed_ready_buffer_count == summary.attempted_ready_buffer_count;
+        },
+    };
 }
 
 pub fn classifyObservedWaitResult(wait_result: i32) WaitObservation {
@@ -379,6 +404,9 @@ pub fn resolvePollExecutionResultFromWaitResult(
 ) PollError!PollExecutionResult {
     if (!hasConsistentProcessFailure(execution)) {
         return PollError.InconsistentProcessingFailureSummary;
+    }
+    if (!hasConsistentProcessAccounting(execution)) {
+        return PollError.InconsistentProcessingAccountingSummary;
     }
 
     return switch (classifyObservedWaitResult(wait_result)) {
@@ -776,6 +804,68 @@ test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing-f
     try std.testing.expectError(
         PollError.InconsistentProcessingFailureSummary,
         resolvePollExecutionResultFromWaitResult(2, missing_index),
+    );
+}
+
+test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing accounting summaries" {
+    const too_many_attempts = PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 2,
+            .ready_count = 1,
+            .first_ready_index = 0,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 2,
+        .completed_ready_buffer_count = 1,
+        .processed_record_count = 4,
+        .first_process_error_index = 1,
+        .first_process_error = -11,
+    };
+    try std.testing.expectError(
+        PollError.InconsistentProcessingAccountingSummary,
+        resolvePollExecutionResultFromWaitResult(2, too_many_attempts),
+    );
+
+    const impossible_completion = PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 2,
+            .ready_count = 2,
+            .first_ready_index = 0,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 1,
+        .completed_ready_buffer_count = 1,
+        .processed_record_count = 4,
+        .first_process_error_index = 1,
+        .first_process_error = -11,
+    };
+    try std.testing.expectError(
+        PollError.InconsistentProcessingAccountingSummary,
+        resolvePollExecutionResultFromWaitResult(2, impossible_completion),
+    );
+
+    const failed_with_processing = PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .failed,
+            .observed_ready_events = 0,
+            .ready_count = 0,
+            .first_ready_index = null,
+            .first_error = -5,
+        },
+        .attempted_ready_buffer_count = 1,
+        .completed_ready_buffer_count = 1,
+        .processed_record_count = 2,
+        .first_process_error_index = null,
+        .first_process_error = null,
+    };
+    try std.testing.expectError(
+        PollError.InconsistentProcessingAccountingSummary,
+        resolvePollExecutionResultFromWaitResult(-5, failed_with_processing),
     );
 }
 
