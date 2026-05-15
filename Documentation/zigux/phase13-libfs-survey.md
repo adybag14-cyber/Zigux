@@ -24,6 +24,7 @@ That matters because `fs/libfs.c` contains small VFS-adjacent helpers that can e
 ## Survey findings
 
 - `fs/libfs.zig` still models positive-entry classification, simple-directory emptiness planning, negative-dentry lookup shaping, and simple transaction release planning as pure helper surfaces.
+- the helper lab now also ships bounded `dcache_dir_open()` cursor-allocation planning and `dcache_readdir()` cursor-precondition planning, keeping allocation failure, `dir_emit_dots()` gating, first-child-versus-private-cursor resume selection, and missing-private-data blocking explicit without claiming live sibling-list mutation, lock ordering, or cursor dentry ownership.
 - the helper lab now also ships bounded `simple_offset_add()` planning, keeping the prepopulated-dentry guard, the allocator-busy to `-ENOSPC` remap, and managed-offset recording explicit without claiming live maple-tree mutation or directory ownership.
 - the helper lab now also ships bounded `simple_offset_remove()` planning, keeping the zero-offset no-op, recorded-slot classification, map erase, and recorded-offset clearing explicit without claiming live directory-map teardown or dentry lifetime ownership.
 - the helper lab also ships bounded transaction acquire planning around `simple_transaction_get()`, keeping the page-bounded write limit, zeroed page allocation, one-write-per-open staging, and private-data handoff explicit without claiming live readback or pseudo-filesystem execution.
@@ -31,7 +32,7 @@ That matters because `fs/libfs.c` contains small VFS-adjacent helpers that can e
 - the helper lab also ships bounded addressability planning around `generic_check_addressable()`, keeping blocksize-window validation, zero-block short-circuiting, sector-limit checks, and page-index overflow checks explicit without claiming live inode, buffer-head, or page-cache ownership.
 - the helper lab also ships bounded offset-directory seek and readdir planners that keep the real-entry window, emit-dots gate, and end-of-directory sentinel explicit without claiming live iteration side effects.
 - the current helper packet already includes offset-based rename and rename-exchange planners that keep managed slots, missing offsets, reserved dot-window offsets, and end-of-directory sentinels explicit without mutating live directory maps.
-- current `master` ships the direct `zigux/tests/phase13_libfs.zig` replay and the manifest-backed survey packet, so the helper starter plus its offset-add, transaction acquire, transaction release, transaction publish, and addressability follow-ups are directly re-readable.
+- current `master` ships the direct `zigux/tests/phase13_libfs.zig` replay and the manifest-backed survey packet, so the helper starter plus its offset-add, transaction acquire, transaction release, transaction publish, addressability, and cursor-precondition follow-ups are directly re-readable.
 - current `master` still does not materialize the older shared `zigux/tests/phase13_build.zig` surface, so the libfs lane remains a direct helper-local replay packet rather than part of a wider shared Phase 13 build route.
 - exact helper readback on current `master` shows no live dcache entry insertion, no inode lifetime management, no page-cache-backed state changes, and no broader filesystem runtime ownership; the current packet stays at helper-only planning.
 
@@ -39,7 +40,7 @@ That matters because `fs/libfs.c` contains small VFS-adjacent helpers that can e
 
 The current lane state is:
 
-- survey ownership for this packet is tracked under `P13-L04`, while the separate verification-only replay lane remains parked under `P13-L03`
+- survey ownership for this packet is tracked under `P13-L04`
 - landed `phase13-libfs-helper-starter`
 - landed `phase13-libfs-offset-add-planner`
 - landed `phase13-libfs-offset-remove-planner`
@@ -48,13 +49,15 @@ The current lane state is:
 - landed `phase13-libfs-transaction-release-helper`
 - landed `phase13-libfs-transaction-publish-helper`
 - landed `phase13-libfs-addressability-helper`
+- landed `phase13-libfs-dcache-cursor-preconditions`
 - landed `phase13-libfs-reviewability-gate`
 - landed `phase13-libfs-survey-note`
+- ready-next `phase13-libfs-dcache-cursor-reposition-bookkeeping`
 - blocked `phase13-build-gate`
 - blocked `phase13-libfs-live-dcache-mutation`
 - blocked `phase13-libfs-live-inode-state`
 
-This keeps the lane explicit without overstating progress: Zigux has a real helper-first libfs foothold for reviewable directory, offset-add, offset-remove, lookup, transaction acquire, transaction release, transaction publish, addressability, and offset-based rename planning, but it does not yet claim the missing shared Phase 13 build surface or any live dcache and inode state transitions.
+This keeps the lane explicit without overstating progress: Zigux has a real helper-first libfs foothold for reviewable directory, lookup, cursor-open precondition, offset-add, offset-remove, transaction acquire, transaction release, transaction publish, addressability, and offset-based rename planning, but it does not yet claim the missing shared Phase 13 build surface, post-scan cursor reposition bookkeeping, or any live dcache and inode state transitions.
 
 ## Non-goals
 
@@ -69,4 +72,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Leave `P13-L04` parked unless fresh current-master inspection finds new same-packet drift across `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, or `zigux/tests/phase13_libfs_manifest.json`; if the libfs family reopens for code later, prefer the next equally small offset-map lifecycle helper such as destroy planning, and keep the non-goals explicit before claiming it. Keep verification-only published-tree replays on `P13-L03`.
+Leave `P13-L04` parked unless fresh current-master inspection finds new same-packet drift across `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, or `zigux/tests/phase13_libfs_manifest.json`; if the libfs family reopens for code later, prefer the next equally small post-scan cursor-reposition planner around `hlist_del_init()` plus `hlist_add_before()` / `hlist_add_behind()` and keep the non-goals explicit before claiming it.
