@@ -252,7 +252,8 @@
         "test \"memparse keeps signed values and their trailing rest aligned\"",
         "test \"memparse consumes suffix after saturation\"",
         "test \"memparse applies suffixes before signed clamping\"",
-        "test \"strnchr honors count and C-string boundaries\""
+        "test \"strnchr honors count and C-string boundaries\"",
+        "test \"strnchrNul returns the first match, NUL, or count boundary\""
       ],
       "memparse_review_anchors": [
         "test \"memparse handles decimal hexadecimal octal and suffixes\"",
@@ -290,7 +291,12 @@
       ],
       "strscpy_review_summary": "helper-local string copy-and-pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strscpy or strscpyPad fixture keys",
       "strnchr_review_anchor": "test \"strnchr honors count and C-string boundaries\"",
-      "strnchr_review_summary": "the direct strnchr follow-up stays explicit because the shared Phase 1 replay still does not carry a dedicated counted-search fixture key, so count-limited scanning and embedded-NUL stop behavior remain owned by the helper-local anchor",
+      "counted_search_review_anchors": [
+        "test \"strnchr honors count and C-string boundaries\"",
+        "test \"strnchrNul returns the first match, NUL, or count boundary\""
+      ],
+      "strnchrnul_review_anchor": "test \"strnchrNul returns the first match, NUL, or count boundary\"",
+      "strnchr_review_summary": "the direct counted-search follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated counted-search fixture keys, so strnchr() count-limited scanning and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors",
       "trim_nul_review_anchor": "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"",
       "trim_nul_review_summary": "the direct trim follow-up stays explicit because the shared Phase 1 string fixture records the trimmed bytes but not the preserved tail bytes beyond the first embedded terminator",
       "phase1_trim_cstr_replay_anchor": "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"",
