@@ -44,7 +44,7 @@ FREEZE_MAP_TRACE_BOUNDARY_MARKER = (
 PREPARED_STATE_LANDED_MARKER = (
     "direct readback now also shows `zigux/tests/runtime_loader_allocator_init_flow.zig` already keeps the prepared-plan drift replay explicit across rejected `requestRuntimeLoad()` calls"
 )
-PREPARED_STATE_EXPLICIT_ASSERTION_MARKER = """request.plan.module_name = \\"runtime_trace_events_drift\\";
+PREPARED_STATE_EXPLICIT_ASSERTION_MARKER = """request.plan.module_name = \\\"runtime_trace_events_drift\\\";
     try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
     try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
@@ -239,6 +239,7 @@ REQUIRED_MARKERS = {
         "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);",
         PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_BUILD_MARKER,
         "runtime_trace_events_loader_substrate_drift.zig",
+        "test_step.dependOn(&run_runtime_trace_events_loader_substrate_drift_tests.step);",
         "test_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);",
         "test_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);",
         "\"phase9-runtime-bitmap-top-bit-tests\"",
@@ -351,6 +352,7 @@ SELF_TEST_REMOVALS = [
     (PHASE9_BUILD_PATH, "runtime_loader_gap_survey.zig", 1),
     (PHASE9_BUILD_PATH, "runtime_loader_selftest_complete_exit_parity.zig", 1),
     (PHASE9_BUILD_PATH, "runtime_trace_events_loader_substrate_drift.zig", 1),
+    (PHASE9_BUILD_PATH, "test_step.dependOn(&run_runtime_trace_events_loader_substrate_drift_tests.step);", 1),
     (PHASE9_BUILD_PATH, "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);", 1),
     (PHASE9_BUILD_PATH, "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);", 1),
     (RUNTIME_LOADER_SELFTEST_COMPLETE_EXIT_PARITY_PATH, "phase 9 runtime loader keeps selftest-complete prepared snapshots stable even if later live state would look exited across all shipped pilot families", 1),
