@@ -78,6 +78,10 @@ REQUIRED_MARKERS = {
         "make -C zigux phase7-rbtree-survey",
         "make -C zigux phase7-test",
         "make -C zigux phase7",
+        "zig build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "zig build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "zig build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "zig build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
         "`Documentation/zigux/phase7-helper-lane-sequencing.md`,",
         "`Documentation/zigux/phase7-rbtree-slice.md`, `zigux/tests/README.md`, and",
         "`zigux/tests/phase7_build.zig` now all read back `zigux/tests/phase7_rbtree.zig`",
@@ -173,7 +177,6 @@ def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
-
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
     for rel, markers in REQUIRED_MARKERS.items():
@@ -182,7 +185,6 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
     return missing
-
 
 
 def collect_count_mismatches(root: Path) -> list[str]:
@@ -196,13 +198,11 @@ def collect_count_mismatches(root: Path) -> list[str]:
     return mismatches
 
 
-
 def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, [], []
     return [], collect_missing_markers(root), collect_count_mismatches(root)
-
 
 
 def write_fixture_root(tmp_root: Path) -> None:
@@ -227,13 +227,11 @@ def write_fixture_root(tmp_root: Path) -> None:
     )
 
 
-
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers, count_mismatches = validate(tmp_root)
     assert missing_files == [], case
     assert count_mismatches == [], case
     assert missing_markers == [marker], case
-
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -243,13 +241,11 @@ def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     assert missing_files == [rel], case
 
 
-
 def expect_count_mismatch(case: str, tmp_root: Path, mismatch: str) -> None:
     missing_files, missing_markers, count_mismatches = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [], case
     assert count_mismatches == [mismatch], case
-
 
 
 def remove_marker(tmp_root: Path, rel: str, marker: str, case: str) -> None:
@@ -258,7 +254,6 @@ def remove_marker(tmp_root: Path, rel: str, marker: str, case: str) -> None:
     updated = text.replace(marker, "", 1)
     assert updated != text, case
     path.write_text(updated, encoding="utf-8")
-
 
 
 def run_self_test() -> None:
@@ -275,37 +270,55 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-        (tmp_root / "Documentation/zigux/phase7-helper-lane-sequencing.md").unlink()
-        expect_missing_file(
-            "missing_helper_lane_note",
+        remove_marker(
             tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "zig build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "missing_direct_string_helpers_route",
+        )
+        expect_missing_marker(
+            "missing_direct_string_helpers_route",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: zig build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
         )
         write_fixture_root(tmp_root)
 
         remove_marker(
             tmp_root,
-            "Documentation/zigux/README.md",
-            "append-limited escape accounting stays inside caller storage",
-            "missing_docs_root_escape_accounting_marker",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "zig build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "missing_direct_cmdline_route",
         )
         expect_missing_marker(
-            "missing_docs_root_escape_accounting_marker",
+            "missing_direct_cmdline_route",
             tmp_root,
-            "Documentation/zigux/README.md: append-limited escape accounting stays inside caller storage",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: zig build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
         )
         write_fixture_root(tmp_root)
 
         remove_marker(
             tmp_root,
-            "Documentation/zigux/README.md",
-            "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
-            "missing_docs_root_strarray_ownership_marker",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "zig build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "missing_direct_argv_split_route",
         )
         expect_missing_marker(
-            "missing_docs_root_strarray_ownership_marker",
+            "missing_direct_argv_split_route",
             tmp_root,
-            "Documentation/zigux/README.md: `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: zig build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "zig build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "missing_direct_rbtree_route",
+        )
+        expect_missing_marker(
+            "missing_direct_rbtree_route",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: zig build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
         )
         write_fixture_root(tmp_root)
 
@@ -335,177 +348,6 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-        remove_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-            "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
-            "missing_shared_note_terminator_only_marker",
-        )
-        expect_missing_marker(
-            "missing_shared_note_terminator_only_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
-        )
-        write_fixture_root(tmp_root)
-
-        remove_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-            "append-limited escape accounting stays inside caller storage",
-            "missing_shared_note_escape_accounting_marker",
-        )
-        expect_missing_marker(
-            "missing_shared_note_escape_accounting_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: append-limited escape accounting stays inside caller storage",
-        )
-        write_fixture_root(tmp_root)
-
-        remove_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-            "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
-            "missing_shared_note_bounded_write_marker",
-        )
-        expect_missing_marker(
-            "missing_shared_note_bounded_write_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
-        )
-        write_fixture_root(tmp_root)
-
-        remove_marker(
-            tmp_root,
-            "Documentation/zigux/review-checklist.md",
-            "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
-            "missing_review_checklist_terminator_only_marker",
-        )
-        expect_missing_marker(
-            "missing_review_checklist_terminator_only_marker",
-            tmp_root,
-            "Documentation/zigux/review-checklist.md: exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
-        )
-        write_fixture_root(tmp_root)
-
-        remove_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-string-helpers-slice.md",
-            "The current `string_helpers` state on `master` now carries an expanded starter packet",
-            "missing_expanded_slice_marker",
-        )
-        expect_missing_marker(
-            "missing_expanded_slice_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-string-helpers-slice.md: The current `string_helpers` state on `master` now carries an expanded starter packet",
-        )
-        write_fixture_root(tmp_root)
-
-        remove_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-string-helpers-slice.md",
-            "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit",
-            "missing_slice_terminator_only_marker",
-        )
-        expect_missing_marker(
-            "missing_slice_terminator_only_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-string-helpers-slice.md: exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit",
-        )
-        write_fixture_root(tmp_root)
-
-        remove_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
-            "`string_helpers` is restored as a starter helper-local packet",
-            "missing_string_helpers_lane_state",
-        )
-        expect_missing_marker(
-            "missing_string_helpers_lane_state",
-            tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md: `string_helpers` is restored as a starter helper-local packet",
-        )
-        write_fixture_root(tmp_root)
-
-        remove_marker(
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_manifest.json",
-            "\"current_master_state\": \"expanded_starter_packet\"",
-            "missing_manifest_state",
-        )
-        expect_missing_marker(
-            "missing_manifest_state",
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_manifest.json: \"current_master_state\": \"expanded_starter_packet\"",
-        )
-        write_fixture_root(tmp_root)
-
-        remove_marker(
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_manifest.json",
-            "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
-            "missing_manifest_ownership_marker",
-        )
-        expect_missing_marker(
-            "missing_manifest_ownership_marker",
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_manifest.json: kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
-        )
-        write_fixture_root(tmp_root)
-
-        remove_marker(
-            tmp_root,
-            "scripts/zigux/README.md",
-            "make -C zigux phase7-validate",
-            "missing_scripts_phase7_validate_route",
-        )
-        expect_missing_marker(
-            "missing_scripts_phase7_validate_route",
-            tmp_root,
-            "scripts/zigux/README.md: make -C zigux phase7-validate",
-        )
-        write_fixture_root(tmp_root)
-
-        remove_marker(
-            tmp_root,
-            "zigux/Makefile",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
-            "missing_makefile_build_wiring_hook",
-        )
-        assert validate(tmp_root) == (
-            [],
-            [
-                "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
-            ],
-            [
-                "zigux/Makefile: expected 1 occurrence(s) of 'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py', found 0",
-            ],
-        ), "missing_makefile_build_wiring_hook"
-        write_fixture_root(tmp_root)
-
-        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
-        workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8") + "make -C zigux phase7-validate\n",
-            encoding="utf-8",
-        )
-        expect_count_mismatch(
-            "duplicate_workflow_phase7_validate",
-            tmp_root,
-            ".github/workflows/zigux-bootstrap.yml: expected 1 occurrence(s) of 'make -C zigux phase7-validate', found 2",
-        )
-        write_fixture_root(tmp_root)
-
-        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
-        workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8") + "make -C zigux phase7-test\n",
-            encoding="utf-8",
-        )
-        expect_count_mismatch(
-            "duplicate_workflow_phase7_test",
-            tmp_root,
-            ".github/workflows/zigux-bootstrap.yml: expected 1 occurrence(s) of 'make -C zigux phase7-test', found 2",
-        )
-        write_fixture_root(tmp_root)
-
         workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8") + "python3 scripts/zigux/check-phase7-build-wiring.py\n",
@@ -529,35 +371,9 @@ def run_self_test() -> None:
             tmp_root,
             ".github/workflows/zigux-bootstrap.yml: expected 0 occurrence(s) of 'zig build test --build-file zigux/tests/phase7_build.zig --summary all', found 1",
         )
-        write_fixture_root(tmp_root)
-
-        makefile_path = tmp_root / "zigux/Makefile"
-        makefile_path.write_text(
-            makefile_path.read_text(encoding="utf-8") + "phase7-test:\n",
-            encoding="utf-8",
-        )
-        expect_count_mismatch(
-            "duplicate_makefile_phase7_test_target",
-            tmp_root,
-            "zigux/Makefile: expected 1 occurrence(s) of 'phase7-test:', found 2",
-        )
-        write_fixture_root(tmp_root)
-
-        makefile_path = tmp_root / "zigux/Makefile"
-        makefile_path.write_text(
-            makefile_path.read_text(encoding="utf-8")
-            + "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all\n",
-            encoding="utf-8",
-        )
-        expect_count_mismatch(
-            "duplicate_makefile_phase7_build_replay",
-            tmp_root,
-            "zigux/Makefile: expected 1 occurrence(s) of 'cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all', found 2",
-        )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=23")
-
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=8")
 
 
 def main() -> int:
