@@ -380,6 +380,22 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader rejects prepared shared approved-family anchor and symbol drift before any live registration claim\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "anchor_request.plan.anchor = \"samples/kprobes/kretprobe_example_drift.c\";",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "entry_request.plan.entry_symbol = \"zigux_runtime_kretprobe_init_drift\";",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "exit_request.plan.exit_symbol = \"zigux_runtime_kretprobe_exit_drift\";",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "test \"runtime kretprobe loader rejects prepared shared runtime-substrate drift before any live registration claim\"",
     );
     try expectContains(
