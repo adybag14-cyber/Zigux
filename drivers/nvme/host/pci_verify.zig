@@ -183,3 +183,26 @@ test "nvme pci rollback gate verifier keeps rollback blockers ordered" {
     try testing.expect(ready.queue_numbering_restarted);
     try testing.expect(ready.can_clear_rollback_gate);
 }
+
+test "nvme pci rollback gate verifier keeps queue-number drift visible after parity recovers" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    lab.next_io_queue_id = 9;
+
+    const drift = lab.recoveryRollbackGateSummary();
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.queue_numbering_restart, drift.rollback_blocker);
+    try testing.expect(drift.queue_count_parity_recovered);
+    try testing.expect(drift.host_dma_parity_recovered);
+    try testing.expect(!drift.queue_numbering_restarted);
+    try testing.expect(!drift.can_clear_rollback_gate);
+}
