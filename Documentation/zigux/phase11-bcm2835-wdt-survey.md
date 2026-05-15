@@ -7,7 +7,7 @@ It stays inside the watchdog family and records the directly reviewable starter 
 
 * `PHASE11_BCM2835_WDT_SURVEY_STATUS=survey_gate_landed`
 * roadmap phase: `Phase 11`
-* archival packet identity remains `P11-L08`, with current continuity tracked through `P11-L12`
+* archival packet identity and current continuity both remain `P11-L08`
 * Linux anchor: `drivers/watchdog/bcm2835_wdt.c`
 * current bcm2835 state on direct `master` readback is a bounded starter packet with one dedicated replay-backed test surface, one compile-local verify helper, one dedicated registration-scaffold replay, one dedicated survey gate, one bcm2835-local slice note, and one manifest-backed reminder packet; live platform-backed closure is still not landed
 
