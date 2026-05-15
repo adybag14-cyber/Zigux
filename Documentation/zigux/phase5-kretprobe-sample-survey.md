@@ -18,8 +18,9 @@ This restored Phase 5 packet now reads directly through:
 - `zigux/tests/phase5_kretprobe_example.zig`
 - `zigux/tests/phase5_kretprobe_example_manifest.json`
 - `zigux/tests/phase5_kretprobe_example_survey.zig`
+- `zigux/tests/phase5_build.zig`
 
-The older shared `zigux/tests/phase5_build.zig` route remains missing and should stay explicit as a gap instead of being treated as current proof.
+The shared `zigux/tests/phase5_build.zig` route is directly readable current proof again and should stay explicit alongside the sample-owned focused and survey routes.
 
 Fresh Phase 5 readback in this run also confirmed that the shared reminder packet is aligned around that restored direct sample packet:
 
@@ -30,7 +31,7 @@ Fresh Phase 5 readback in this run also confirmed that the shared reminder packe
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-Those aligned shared surfaces keep the restored direct packet explicit while still keeping the missing shared `zigux/tests/phase5_build.zig` route framed as a gap instead of returned evidence.
+Those aligned shared surfaces keep the restored direct packet explicit and agree with the currently readable shared `zigux/tests/phase5_build.zig` route instead of treating it as a gap.
 
 ## Landed sample and exact checks
 
@@ -49,7 +50,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or one of its d
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` so the packet stays in the non-runtime Phase 5 lane?
 - does the sample still keep the default `kernel_clone` path explicit together with `runRetargetReplay("do_sys_openat2")`, including empty-symbol rejection before init and post-init retarget rejection afterward?
 - do `runAnchorReplay()`, `runLifecycleGuardReplay()`, `runOwnershipReplay()`, and `runRecoveryReplay()` still describe the same bounded packet across the sample, focused test, manifest-backed contract, and survey gate, including `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `nmissed = 1`, `maxactive = 20`, and recovered duration `60`?
-- if a shared reminder surface mentions the restored kretprobe packet, does it keep `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` explicit while still keeping the missing shared `zigux/tests/phase5_build.zig` route framed as the remaining gap?
+- if a shared reminder surface mentions the restored kretprobe packet, does it keep `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, and `zigux/tests/phase5_build.zig` explicit as current proof?
 - do the docs still keep the separate Phase 9 `runtime_kretprobe` family visible without widening this note into `register_kretprobe()` parity, `unregister_kretprobe()` parity, `pt_regs` parity, or runtime module wiring claims?
 
 ## Boundary reminders
@@ -65,5 +66,5 @@ This note does not claim `register_kretprobe()` parity, `unregister_kretprobe()`
 
 Leave the restored direct kretprobe packet parked unless a future reread finds a new one-file same-lane shared reminder drift:
 
-- if a shared README, guide, or checklist later stops naming the restored direct packet while still keeping the missing shared `phase5_build.zig` route explicit, repair only that one file
+- if a shared README, guide, or checklist later stops naming the restored direct packet or drifts from the now-directly-readable shared `phase5_build.zig` route, repair only that one file
 - otherwise leave the restored direct kretprobe packet parked while the shared reminder surfaces stay aligned
