@@ -582,6 +582,35 @@ def run_self_test() -> None:
         )
         expect_failure(
             rewrite_json(
+                "missing_hvc_verify_depend_step",
+                lambda data: data["shared_test_depend_steps"].remove("run_hvc_console_verify_tests"),
+            ),
+            "run_hvc_console_verify_tests",
+        )
+        expect_failure(
+            rewrite_json(
+                "wrong_hvc_verify_module_path",
+                lambda data: next(
+                    entry.update({"path": "../../drivers/tty/hvc/hvc_console.zig"})
+                    for entry in data["module_root_source_files"]
+                    if entry["module"] == "hvc_console_verify_module"
+                ),
+            ),
+            "module_root_source_files mismatch for hvc_console_verify_module",
+        )
+        expect_failure(
+            rewrite_json(
+                "wrong_hvc_verify_root_module",
+                lambda data: next(
+                    entry.update({"root_module": "phase11_hvc_console_module"})
+                    for entry in data["test_root_modules"]
+                    if entry["test"] == "phase11-hvc-console-verify-tests"
+                ),
+            ),
+            "test_root_modules mismatch for phase11-hvc-console-verify-tests",
+        )
+        expect_failure(
+            rewrite_json(
                 "wrong_dw_wdt_survey_root_module",
                 lambda data: next(
                     entry.update({"root_module": "phase11_dw_wdt_registration_scaffold_module"})
@@ -615,13 +644,33 @@ def run_self_test() -> None:
         )
         expect_failure(marker_case, marker)
 
+        shared_summary_case = tmpdir / "missing_shared_summary_marker"
+        shutil.copytree(fixture, shared_summary_case, dirs_exist_ok=True)
+        shared_summary_marker = "`scripts/zigux/check-phase11-build-inventory.py`"
+        write(
+            shared_summary_case / FILES["shared_summary_checker"],
+            read_text(shared_summary_case, FILES["shared_summary_checker"]).replace(
+                shared_summary_marker, "", 1
+            ),
+        )
+        expect_failure(shared_summary_case, shared_summary_marker)
+
+        workflow_case = tmpdir / "missing_workflow_marker"
+        shutil.copytree(fixture, workflow_case, dirs_exist_ok=True)
+        workflow_marker = "- name: Run Phase 11 watchdog and console tests"
+        write(
+            workflow_case / FILES["workflow"],
+            read_text(workflow_case, FILES["workflow"]).replace(workflow_marker, "", 1),
+        )
+        expect_failure(workflow_case, workflow_marker)
+
         missing_build_case = tmpdir / "missing_build_file"
         shutil.copytree(fixture, missing_build_case, dirs_exist_ok=True)
         (missing_build_case / FILES["build_file"]).unlink()
         expect_failure(missing_build_case, FILES["build_file"])
 
         print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-        print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=11")
+        print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=16")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
