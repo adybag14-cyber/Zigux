@@ -77,6 +77,10 @@ SELFTEST_OUTPUT_MARKERS = {
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"): (
         "PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass",
     ),
+    Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"): (
+        "PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass",
+        "PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST_CASE_COUNT=11",
+    ),
     Path("scripts/zigux/phase3_catalog.py"): (
         "PHASE3_CATALOG_SELF_TEST=pass",
     ),
