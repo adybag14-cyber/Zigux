@@ -93,8 +93,10 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
+    try std.testing.expect(descriptor.provides_ioremap_plain_wrapper_planning);
     try std.testing.expect(descriptor.provides_ioremap_uc_wrapper_planning);
     try std.testing.expect(descriptor.provides_ioremap_wc_wrapper_planning);
+    try std.testing.expect(descriptor.provides_ioremap_np_wrapper_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_iounmap_call_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
@@ -115,6 +117,7 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planArchIoReserveMemtypeWc(") != null);
     try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planArchPhysWcAdd(") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_iounmap()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_ioremap_np()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_arch_io_reserve_memtype_wc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_arch_phys_wc_add()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase13_devres_boundary_evidence.zig") != null);
@@ -126,6 +129,8 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try std.testing.expect(std.mem.indexOf(u8, boundary_replay, "phase13 devres planners keep blocked arch memtype boundaries in detach-bookkeeping form") != null);
     try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres release matching stays pointer-exact") != null);
     try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres plans a managed iounmap call and warns on release misses") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres non-posted ioremap wrapper forces the NP lifetime path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres non-posted ioremap wrapper frees the release record on map failure") != null);
     try std.testing.expect(std.mem.indexOf(u8, direct_replay, "planManagedIounmap(0x4000, 0x4000)") != null);
     try std.testing.expect(std.mem.indexOf(u8, direct_replay, "planManagedIounmap(0x4000, 0x4010)") != null);
     try std.testing.expect(std.mem.indexOf(u8, direct_replay, "miss.warns_on_release_miss") != null);
@@ -140,7 +145,9 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
         if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1 else blocked_count += 1;
     }
 
+    try expectGap(manifest, "phase13-devres-slice-note", "starter_landed", "Documentation/zigux/phase13-devres-slice.md", "`devm_ioremap_np()`");
     try expectGap(manifest, "phase13-devres-test-gate", "starter_landed", "zigux/tests/phase13_devres.zig", "`devm_iounmap()` planner");
+    try expectGap(manifest, "phase13-devres-test-gate", "starter_landed", "zigux/tests/phase13_devres.zig", "`devm_ioremap_np()`");
     try expectGap(manifest, "phase13-devres-boundary-evidence-gate", "starter_landed", "zigux/tests/phase13_devres_boundary_evidence.zig", "blocked live-state boundaries explicit");
     try expectGap(manifest, "phase13-devres-live-region-reservation", "blocked_on_live_mmio_state", "lib/devres.zig", "region acquisition side effects");
     try expectGap(manifest, "phase13-devres-live-release-region-mutation", "blocked_on_live_mmio_state", "lib/devres.zig", "release_mem_region()");
