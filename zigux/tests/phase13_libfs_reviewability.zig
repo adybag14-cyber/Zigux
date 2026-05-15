@@ -233,7 +233,7 @@ test "offset add and rename helpers stay reviewable as managed-slot planners rat
     try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.reserved_source_offset, exchange_reserved_source.status);
     try std.testing.expectEqual(libfs.OffsetSlotClass.dot_entry_window, exchange_reserved_source.source_slot_class);
     try std.testing.expect(!exchange_reserved_source.stores_source_in_destination_map);
-    try std.testing.expect(!exchange_reserved_source.stores_destinationInSourceMap);
+    try std.testing.expect(!exchange_reserved_source.stores_destination_in_source_map);
     try std.testing.expect(!exchange_reserved_source.swaps_recorded_offsets);
 
     try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.reserved_destination_offset, exchange_reserved.status);
