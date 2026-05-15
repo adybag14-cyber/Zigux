@@ -53,8 +53,16 @@ pub fn emptyRoot(root: *const Root) bool {
     return root.node == null;
 }
 
+pub fn rb_empty_root(root: *const Root) bool {
+    return emptyRoot(root);
+}
+
 pub fn emptyNode(node: *const Node) bool {
     return node.parent == node;
+}
+
+pub fn rb_empty_node(node: *const Node) bool {
+    return emptyNode(node);
 }
 
 pub fn clearNode(node: *Node) void {
@@ -64,12 +72,20 @@ pub fn clearNode(node: *Node) void {
     node.color = .red;
 }
 
+pub fn rb_clear_node(node: *Node) void {
+    clearNode(node);
+}
+
 pub fn linkNode(node: *Node, parent: ?*Node, link: *?*Node) void {
     node.parent = parent;
     node.left = null;
     node.right = null;
     node.color = .red;
     link.* = node;
+}
+
+pub fn rb_link_node(node: *Node, parent: ?*Node, link: *?*Node) void {
+    linkNode(node, parent, link);
 }
 
 fn colorOf(node: ?*Node) Color {
@@ -864,6 +880,41 @@ test "rbtree ordered Linux-style aliases mirror traversal and replacement helper
 
     try std.testing.expectEqual(count, alias_count);
     try std.testing.expectEqualSlices(i32, primary_forward[0..count], alias_forward[0..alias_count]);
+}
+
+test "rbtree low-level Linux-style aliases mirror node-state helpers" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    var primary_root = Root.init();
+    var alias_root = Root.init();
+    var primary_entry = Entry{ .key = 10 };
+    var alias_entry = Entry{ .key = 10 };
+
+    try std.testing.expect(emptyRoot(&primary_root));
+    try std.testing.expect(rb_empty_root(&alias_root));
+
+    linkNode(&primary_entry.node, null, &primary_root.node);
+    rb_link_node(&alias_entry.node, null, &alias_root.node);
+
+    try std.testing.expectEqual(emptyRoot(&primary_root), rb_empty_root(&alias_root));
+    try std.testing.expectEqual(primary_root.node != null, alias_root.node != null);
+    try std.testing.expectEqual(primary_entry.node.parent, alias_entry.node.parent);
+    try std.testing.expectEqual(primary_entry.node.left, alias_entry.node.left);
+    try std.testing.expectEqual(primary_entry.node.right, alias_entry.node.right);
+    try std.testing.expectEqual(primary_entry.node.color, alias_entry.node.color);
+
+    clearNode(&primary_entry.node);
+    rb_clear_node(&alias_entry.node);
+
+    try std.testing.expectEqual(emptyNode(&primary_entry.node), rb_empty_node(&alias_entry.node));
+    try std.testing.expectEqual(primary_entry.node.parent, &primary_entry.node);
+    try std.testing.expectEqual(alias_entry.node.parent, &alias_entry.node);
+    try std.testing.expectEqual(primary_entry.node.left, alias_entry.node.left);
+    try std.testing.expectEqual(primary_entry.node.right, alias_entry.node.right);
+    try std.testing.expectEqual(primary_entry.node.color, alias_entry.node.color);
 }
 
 test "rbtree eraseInit detaches erased node" {
