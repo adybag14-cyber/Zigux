@@ -32,7 +32,7 @@
       "id": "runtime-atomic64-loader-scaffold",
       "kind": "runtime_loader_scaffold",
       "path": "samples/zigux/runtime_atomic64_loader.zig",
-      "why_now": "The sample-side loader scaffold keeps prepared counter-summary snapshot replay, shared-request handoff checks, and release-without-substrate rollback reviewable while the runtime substrate stays blocked."
+      "why_now": "The sample-side loader scaffold keeps prepared counter-summary snapshot replay, shared-request handoff checks, prepared shared selftest-hook drift rejection, and release-without-substrate rollback plus shared release-state synchronization reviewable while the runtime substrate stays blocked."
     },
     {
       "id": "runtime-atomic64-module-gate",
@@ -182,7 +182,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_atomic64_loader.zig",
-      "why_now": "A bounded loader scaffold keeps the entry and exit symbol names, handoff-plan shape, and the adjacent shared loader-facing reminder packet reviewable without implying live runtime registration parity."
+      "why_now": "A bounded loader scaffold keeps the entry and exit symbol names, handoff-plan shape, prepared shared selftest-hook drift rejection, and shared release-state synchronization reviewable without implying live runtime registration parity."
     },
     {
       "id": "runtime-atomic64-live-loader-binding",
