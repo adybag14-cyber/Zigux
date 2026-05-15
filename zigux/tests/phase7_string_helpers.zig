@@ -52,6 +52,16 @@ test "phase 7 string helpers starter formats bounded sizes with three significan
     try std.testing.expectEqual(@as(usize, 6), flag_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', 'K', 'i', 0 }, flag_buf[0 .. flag_written + 1]);
 
+    var rounded_decimal = [_]u8{0} ** 16;
+    const rounded_decimal_written = string_helpers.stringGetSize(999950, 1, string_helpers.STRING_UNITS_10, &rounded_decimal, 0);
+    try std.testing.expectEqual(@as(usize, 7), rounded_decimal_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '0', '0', '0', ' ', 'k', 'B', 0 }, rounded_decimal[0 .. rounded_decimal_written + 1]);
+
+    var rounded_binary = [_]u8{0} ** 16;
+    const rounded_binary_written = string_helpers.string_get_size(1048064, 1, string_helpers.STRING_UNITS_2, &rounded_binary, 0);
+    try std.testing.expectEqual(@as(usize, 8), rounded_binary_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '0', '2', '4', ' ', 'K', 'i', 'B', 0 }, rounded_binary[0 .. rounded_binary_written + 1]);
+
     var truncated = [_]u8{ '#', '#', '#', '#', '#' };
     const truncated_written = string_helpers.string_get_size(1536, 1, string_helpers.STRING_UNITS_2, &truncated, truncated.len);
     try std.testing.expectEqual(@as(usize, 8), truncated_written);
