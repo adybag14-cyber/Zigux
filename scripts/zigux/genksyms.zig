@@ -39,7 +39,7 @@ pub const ParseOutcome = union(enum) {
 
 const usage_text =
     "Usage:\n" ++
-    "genksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver\n" ++
+    "genksyms [-dDpwqhV] [-r file] [-T file] > /path/to/.tmp_obj.ver\n" ++
     "\n" ++
     " -d, --debug Increment the debug level (repeatable)\n" ++
     " -D, --dump Dump expanded symbol defs (for debugging only)\n" ++
@@ -792,6 +792,12 @@ test "genksyms bridge renders missing short option argument like the fixture" {
         "option requires an argument -- 'T'\n",
         output.written(),
     );
+}
+
+test "genksyms bridge help output only advertises implemented flags" {
+    const usage_line = "genksyms [-dDpwqhV] [-r file] [-T file] > /path/to/.tmp_obj.ver";
+    try testing.expect(std.mem.containsAtLeast(u8, usage_text, 1, usage_line));
+    try testing.expect(std.mem.indexOf(u8, usage_text, "genksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver") == null);
 }
 
 test "genksyms bridge renders unexpected long option argument like the fixture" {
