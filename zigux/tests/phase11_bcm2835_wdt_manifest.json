@@ -1,0 +1,111 @@
+{
+  "lane_key": "P11-L08",
+  "phase": "Phase 11",
+  "scope": "drivers/watchdog bcm2835 and dw_wdt | straightforward watchdog lifecycle parity",
+  "bounded_task": "manifest-backed extension for the directly readable bcm2835 starter packet",
+  "anchor": "drivers/watchdog/bcm2835_wdt.c",
+  "current_repo_reality": {
+    "driver_starter_present": true,
+    "verify_helper_present": true,
+    "replay_present": true,
+    "survey_gate_present": true,
+    "manifest_present": true,
+    "survey_note_present": true,
+    "teardown_note_present": true,
+    "validation_matrix_present": true,
+    "slice_note_present": false
+  },
+  "delivery_evidence_catalog": [
+    {
+      "surface": "drivers/watchdog/bcm2835_wdt.zig",
+      "kind": "simple_driver_starter",
+      "why_now": "Keeps timeout, probe, platform-handoff, lifecycle, poweroff, and remove cleanup summaries directly readable."
+    },
+    {
+      "surface": "drivers/watchdog/bcm2835_wdt_verify.zig",
+      "kind": "compile_local_verify_helper",
+      "why_now": "Keeps PM-base readiness, poweroff ownership, and remove cleanup intent reviewable beside the starter."
+    },
+    {
+      "surface": "zigux/tests/phase11_bcm2835_wdt.zig",
+      "kind": "dedicated_replay",
+      "why_now": "Replays timeout, probe, lifecycle, poweroff, and remove cleanup behavior for the bcm2835 packet."
+    },
+    {
+      "surface": "zigux/tests/phase11_bcm2835_wdt_survey.zig",
+      "kind": "survey_gate",
+      "why_now": "Fail-closes the current bcm2835 starter packet markers."
+    },
+    {
+      "surface": "zigux/tests/phase11_bcm2835_wdt_manifest.json",
+      "kind": "packet_truth_manifest",
+      "why_now": "Pins the directly readable bcm2835 starter packet so the reminder notes and survey gate can stay aligned."
+    },
+    {
+      "surface": "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
+      "kind": "survey_note",
+      "why_now": "Records the current manifest-backed starter packet without overstating a slice-note closure."
+    },
+    {
+      "surface": "Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md",
+      "kind": "teardown_note",
+      "why_now": "Keeps the restart, poweroff, and remove cleanup packet truthful beside the new manifest."
+    },
+    {
+      "surface": "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
+      "kind": "validation_matrix",
+      "why_now": "Records the current manifest-backed bcm2835 validation packet and its still-blocked slice-note follow-through."
+    }
+  ],
+  "gaps": [
+    {
+      "id": "phase11-bcm2835-driver-starter",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
+      "why_now": "The bounded starter now directly exposes timeout, probe, platform-handoff, lifecycle, poweroff, and remove cleanup summaries."
+    },
+    {
+      "id": "phase11-bcm2835-verify-helper",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "drivers/watchdog/bcm2835_wdt_verify.zig",
+      "why_now": "The compile-local verify helper keeps PM-base readiness, ownership, and remove cleanup reviewable without widening execution scope."
+    },
+    {
+      "id": "phase11-bcm2835-replay",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_bcm2835_wdt.zig",
+      "why_now": "The dedicated replay keeps the bounded bcm2835 lifecycle and ownership packet reviewable in tests."
+    },
+    {
+      "id": "phase11-bcm2835-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_bcm2835_wdt_survey.zig",
+      "why_now": "The survey gate now has a manifest-backed packet to guard instead of only notes-only reminders."
+    },
+    {
+      "id": "phase11-bcm2835-manifest",
+      "status": "starter_landed",
+      "kind": "packet_truth_manifest",
+      "zigux_destination": "zigux/tests/phase11_bcm2835_wdt_manifest.json",
+      "why_now": "The starter packet is now substantive enough to pin its directly readable surfaces in one bcm2835-local manifest."
+    },
+    {
+      "id": "phase11-bcm2835-slice-note",
+      "status": "blocked_on_driver_scaffold",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-bcm2835-wdt-slice.md",
+      "why_now": "The manifest-backed starter is reviewable, but a slice note should wait for another dedicated bcm2835 proof surface instead of overstating platform-backed progress."
+    },
+    {
+      "id": "phase11-bcm2835-platform-registration",
+      "status": "blocked_on_driver_scaffold",
+      "kind": "validation",
+      "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
+      "why_now": "Live platform registration, PM-base plumbing, shared callback installation, and hardware-backed execution remain intentionally blocked outside this starter packet."
+    }
+  ]
+}
