@@ -14,6 +14,7 @@ This note records the current low-level wrapper packet that `master` still route
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-new-kernel-style-low-level-family-landed-beyond-current-atomic-barrier-and-direct-mmio-packet`
+- `PHASE3_SHARED_CONSUMER_RULE=consumer-only-policy-and-unsafe-drift-inside-the-focused-low-level-wrapper-replay-stays-with-the-adjacent-owner-packet`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-this-lane-limited-to-packet-local-survey-validator-or-build-surface-repairs-for-atomic-barrier-and-direct-mmio-ownership-only`
 
 ## Current Packet
@@ -39,6 +40,7 @@ This lane no longer owns the policy-and-unsafe packet just because the current f
 - that helper-local MMIO proof surface does not move volatile-MMIO policy relay ownership into this lane; it only means the already-landed policy relays now have both helper-local and focused-route evidence on current `master`.
 - `zigux/tests/phase3_low_level_wrappers.zig` still exercises byte-scoped MMIO policy relays such as `allowsInteropPolicyByte`, `rangeInteropPolicyByte`, `read8InteropPolicyByte`, `write8InteropPolicyByte`, `read8InteropPolicyBytes`, and `write8InteropPolicyBytes`, but those focused checks continue to serve the adjacent policy-and-unsafe owner packet rather than widening direct MMIO ownership here.
 - `zigux/tests/phase3_low_level_wrappers.zig` now also replays raw-pointer bridge admission helpers such as `permitsRawPointerBridgeInteropPolicy`, `pointerAtInteropPolicy`, `sliceAtInteropPolicy`, `constSliceAtInteropPolicy`, and `writeValueAtInteropPolicy`, but those focused checks still belong to the adjacent policy-and-unsafe packet instead of widening this lane beyond the direct atomic, barrier, and MMIO wrapper family.
+- consumer-only drift inside `zigux/tests/phase3_low_level_wrappers.zig` should therefore reopen the adjacent policy-and-unsafe packet whenever the direct atomic, barrier, and direct-MMIO behavior is unchanged; this low-level wrapper lane should only touch those shared replay sections when the coupled direct wrapper proof moves with them.
 - this low-level wrapper note should therefore describe direct MMIO behavior only and leave policy admission, reserved-byte decoding, raw-pointer bridge scope, allocator policy, and panic policy drift to the adjacent packet.
 
 ## Roadmap Fit
@@ -75,5 +77,5 @@ The next honest follow-on inside `shared-subsystems` stays small:
 
 - keep the dedicated survey, validator, helper-local atomic proof surface, helper-local barrier proof surface, and focused build route aligned with the current atomic, barrier, and direct-MMIO packet
 - keep the helper-local MMIO proof surface aligned with the same direct-MMIO packet instead of treating the focused replay as the only live MMIO evidence
-- keep policy admission, allocator policy, panic policy, and raw-pointer bridge follow-through in the adjacent policy-and-unsafe packet
+- route consumer-only policy, raw-pointer bridge, allocator, and panic replay drift back to the adjacent policy-and-unsafe packet unless the direct wrapper proof changes too
 - avoid widening this lane into broader ABI, policy, export, or generated-wrapper cleanup
