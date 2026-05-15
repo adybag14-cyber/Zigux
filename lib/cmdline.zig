@@ -260,22 +260,13 @@ fn parseUnsignedPrefix(s: []const u8) ?ParsedPrefix {
 
     var base: u8 = 10;
     var start: usize = 0;
-    var prefix_len: usize = 0;
 
-    if (s[0] == '+') {
-        prefix_len = 1;
-        start = 1;
-        if (s.len == 1) {
-            return null;
-        }
-    }
-
-    if (s.len >= start + 2 and s[start] == '0' and (s[start + 1] == 'x' or s[start + 1] == 'X')) {
+    if (s.len >= 2 and s[0] == '0' and (s[1] == 'x' or s[1] == 'X')) {
         base = 16;
-        start += 2;
-    } else if (s[start] == '0') {
+        start = 2;
+    } else if (s[0] == '0') {
         base = 8;
-        start += 1;
+        start = 1;
     }
 
     const base_u64: u64 = base;
@@ -299,8 +290,8 @@ fn parseUnsignedPrefix(s: []const u8) ?ParsedPrefix {
     }
 
     if (!saw_digit) {
-        if (start == prefix_len + 1 or (base == 16 and start == prefix_len + 2)) {
-            return .{ .value = 0, .len = prefix_len + 1 };
+        if (start == 1 or (base == 16 and start == 2)) {
+            return .{ .value = 0, .len = 1 };
         }
         return null;
     }
@@ -313,16 +304,8 @@ fn parseMemparseZeroPrefix(s: []const u8) ?ParsedPrefix {
         return null;
     }
 
-    var start: usize = 0;
-    if (s[0] == '+') {
-        start = 1;
-        if (s.len == 1) {
-            return null;
-        }
-    }
-
-    if (s.len >= start + 2 and s[start] == '0' and (s[start + 1] == 'x' or s[start + 1] == 'X')) {
-        return .{ .value = 0, .len = start + 1 };
+    if (s.len >= 2 and s[0] == '0' and (s[1] == 'x' or s[1] == 'X')) {
+        return .{ .value = 0, .len = 1 };
     }
 
     return null;
@@ -393,18 +376,12 @@ test "getOption parses signed integers and updates the remaining slice" {
     try std.testing.expectEqualStrings("tail", rest);
 }
 
-test "getOption reports ranges, accepts leading plus, and consumes a standalone leading hyphen" {
+test "getOption reports ranges and consumes a standalone leading hyphen" {
     var range_rest: []const u8 = "1-3";
     var range_value: i32 = 0;
     try std.testing.expectEqual(@as(u8, 3), getOption(&range_rest, &range_value));
     try std.testing.expectEqual(@as(i32, 1), range_value);
     try std.testing.expectEqualStrings("-3", range_rest);
-
-    var plus_rest: []const u8 = "+7";
-    var plus_value: i32 = 0;
-    try std.testing.expectEqual(@as(u8, 1), getOption(&plus_rest, &plus_value));
-    try std.testing.expectEqual(@as(i32, 7), plus_value);
-    try std.testing.expectEqualStrings("", plus_rest);
 
     var hyphen_only: []const u8 = "-";
     var hyphen_only_value: i32 = 99;
@@ -422,9 +399,9 @@ test "getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull
 
     var plus_hex_rest: []const u8 = "+0x";
     var plus_hex_value: i32 = -1;
-    try std.testing.expectEqual(@as(u8, 1), getOption(&plus_hex_rest, &plus_hex_value));
+    try std.testing.expectEqual(@as(u8, 0), getOption(&plus_hex_rest, &plus_hex_value));
     try std.testing.expectEqual(@as(i32, 0), plus_hex_value);
-    try std.testing.expectEqualStrings("x", plus_hex_rest);
+    try std.testing.expectEqualStrings("+0x", plus_hex_rest);
 
     var negative_hex_rest: []const u8 = "-0x";
     var negative_hex_value: i32 = -1;
@@ -433,7 +410,7 @@ test "getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull
     try std.testing.expectEqualStrings("x", negative_hex_rest);
 }
 
-test "getOptions expands ranges, supports validation-only counting, and accepts leading plus" {
+test "getOptions expands ranges and supports validation-only counting" {
     var values = [_]i32{ 0, 0, 0, 0, 0 };
     const rest = getOptions("1-3,5", values.len, &values);
     try std.testing.expectEqualStrings("", rest);
@@ -453,19 +430,9 @@ test "getOptions expands ranges, supports validation-only counting, and accepts 
     const single_validate_rest = getOptions("1-1", 0, &single_validate);
     try std.testing.expectEqualStrings("", single_validate_rest);
     try std.testing.expectEqual(@as(i32, 1), single_validate[0]);
-
-    var plus_values = [_]i32{ 0, 0, 0 };
-    const plus_options_rest = getOptions("+7", plus_values.len, &plus_values);
-    try std.testing.expectEqualStrings("", plus_options_rest);
-    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 7, 0 }, &plus_values);
-
-    var plus_validate = [_]i32{0};
-    const plus_validate_rest = getOptions("+7", 0, &plus_validate);
-    try std.testing.expectEqualStrings("", plus_validate_rest);
-    try std.testing.expectEqual(@as(i32, 1), plus_validate[0]);
 }
 
-test "getOptions keeps incomplete hex prefixes as zero-valued leaves" {
+test "getOptions keeps incomplete hex prefixes as zero-valued leaves without accepting explicit leading plus" {
     var values = [_]i32{ 0, 0, 0 };
     const rest = getOptions("0x,7", values.len, &values);
     try std.testing.expectEqualStrings("x,7", rest);
@@ -473,8 +440,8 @@ test "getOptions keeps incomplete hex prefixes as zero-valued leaves" {
 
     var validate = [_]i32{0};
     const validate_rest = getOptions("+0x,7", 0, &validate);
-    try std.testing.expectEqualStrings("x,7", validate_rest);
-    try std.testing.expectEqual(@as(i32, 1), validate[0]);
+    try std.testing.expectEqualStrings("+0x,7", validate_rest);
+    try std.testing.expectEqual(@as(i32, 0), validate[0]);
 }
 
 test "getOptions stops on descending ranges and unparseable suffixes" {
@@ -489,7 +456,7 @@ test "getOptions stops on descending ranges and unparseable suffixes" {
     try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 8, 0 }, &partial);
 }
 
-test "memparse handles size suffixes, accepts leading plus, and reports where parsing stopped" {
+test "memparse handles size suffixes, rejects explicit leading plus, and reports where parsing stopped" {
     var index: usize = 999;
     try std.testing.expectEqual(@as(u64, 2 * 1024 * 1024), memparse("2M", &index));
     try std.testing.expectEqual(@as(usize, 2), index);
@@ -501,13 +468,13 @@ test "memparse handles size suffixes, accepts leading plus, and reports where pa
     try std.testing.expectEqual(@as(usize, 1), index);
 
     try std.testing.expectEqual(@as(u64, 0), memparse("+0xK", &index));
-    try std.testing.expectEqual(@as(usize, 2), index);
+    try std.testing.expectEqual(@as(usize, 0), index);
 
     try std.testing.expectEqual(@as(u64, 0), memparse("+0x", &index));
-    try std.testing.expectEqual(@as(usize, 2), index);
+    try std.testing.expectEqual(@as(usize, 0), index);
 
-    try std.testing.expectEqual(@as(u64, 1024), memparse("+1K", &index));
-    try std.testing.expectEqual(@as(usize, 3), index);
+    try std.testing.expectEqual(@as(u64, 0), memparse("+1K", &index));
+    try std.testing.expectEqual(@as(usize, 0), index);
 
     try std.testing.expectEqual(@as(u64, 0), memparse("K", &index));
     try std.testing.expectEqual(@as(usize, 1), index);
@@ -833,6 +800,16 @@ test "memparse saturates oversized unsigned prefixes before applying suffix hand
     try std.testing.expectEqual(std.math.maxInt(u64), memparse("18446744073709551616", &index));
     try std.testing.expectEqual(@as(usize, 20), index);
 
-    try std.testing.expectEqual(std.math.maxInt(u64), memparse("+18446744073709551616", &index));
+    try std.testing.expectEqual(@as(u64, 0), memparse("+18446744073709551616", &index));
+    try std.testing.expectEqual(@as(usize, 0), index);
+}
+
+test "memparse keeps saturated prefixes aligned when size suffixes still apply" {
+    var index: usize = 0;
+
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(u64)) << 10, memparse("18446744073709551616K", &index));
     try std.testing.expectEqual(@as(usize, 21), index);
+
+    try std.testing.expectEqual(@as(u64, 0), memparse("+18446744073709551616M", &index));
+    try std.testing.expectEqual(@as(usize, 0), index);
 }
