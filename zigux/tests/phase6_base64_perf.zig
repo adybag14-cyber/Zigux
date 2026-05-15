@@ -19,6 +19,8 @@ const expected_perf_cases = [_]ExpectedPerfCase{
     .{ .label = "STD_NO_PAD", .variant_name = "std", .reference_kind = "std_no_pad", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
     .{ .label = "URLSAFE_PAD", .variant_name = "urlsafe", .reference_kind = "urlsafe_padded", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
     .{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .reference_kind = "urlsafe_no_pad", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "IMAP_PAD", .variant_name = "imap", .reference_kind = "imap_padded", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "IMAP_NO_PAD", .variant_name = "imap", .reference_kind = "imap_no_pad", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
 };
 
 const PerfResult = struct {
@@ -37,17 +39,7 @@ pub fn main() !void {
         const result = try runPerfCase(case);
         std.debug.print(
             "phase6-base64-perf {s} helper_encode_ns_per_op={} helper_decode_ns_per_op={} reference_encode_ns_per_op={} reference_decode_ns_per_op={} encode_slowdown_pct={} decode_slowdown_pct={} encoded_len={} decoded_len={}\n",
-            .{
-                case.label,
-                result.helper_encode_ns_per_op,
-                result.helper_decode_ns_per_op,
-                result.reference_encode_ns_per_op,
-                result.reference_decode_ns_per_op,
-                result.encode_slowdown_pct,
-                result.decode_slowdown_pct,
-                result.encoded_len,
-                result.decoded_len,
-            },
+            .{ case.label, result.helper_encode_ns_per_op, result.helper_decode_ns_per_op, result.reference_encode_ns_per_op, result.reference_decode_ns_per_op, result.encode_slowdown_pct, result.decode_slowdown_pct, result.encoded_len, result.decoded_len },
         );
     }
 }
@@ -85,19 +77,45 @@ fn normalizeNoPadInput(dst: []u8, src: []const u8) ![]const u8 {
     return dst[0..len];
 }
 
-fn referenceEncode(kind: []const u8, dst: []u8, src: []const u8) ![]const u8 {
-    if (std.mem.eql(u8, kind, "std_padded")) {
-        return std.base64.standard.Encoder.encode(dst, src);
+fn remapInPlace(bytes: []u8, from: u8, to: u8) void {
+    for (bytes) |*byte| {
+        if (byte.* == from) byte.* = to;
     }
+}
+
+fn normalizeImapInput(dst: []u8, src: []const u8, padding: bool) ![]const u8 {
+    if (src.len > dst.len) return error.InvalidInput;
+    @memcpy(dst[0..src.len], src);
+    remapInPlace(dst[0..src.len], ',', '/');
+    var len = src.len;
+    if (!padding) {
+        while ((len % 4) != 0) : (len += 1) {
+            if (len >= dst.len) return error.InvalidInput;
+            dst[len] = '=';
+        }
+    }
+    return dst[0..len];
+}
+
+fn referenceEncode(kind: []const u8, dst: []u8, src: []const u8) ![]const u8 {
+    if (std.mem.eql(u8, kind, "std_padded")) return std.base64.standard.Encoder.encode(dst, src);
     if (std.mem.eql(u8, kind, "std_no_pad")) {
         const encoded = std.base64.standard.Encoder.encode(dst, src);
         return encoded[0..stripPaddingLen(encoded.len, src.len)];
     }
-    if (std.mem.eql(u8, kind, "urlsafe_padded")) {
-        return std.base64.url_safe.Encoder.encode(dst, src);
-    }
+    if (std.mem.eql(u8, kind, "urlsafe_padded")) return std.base64.url_safe.Encoder.encode(dst, src);
     if (std.mem.eql(u8, kind, "urlsafe_no_pad")) {
         const encoded = std.base64.url_safe.Encoder.encode(dst, src);
+        return encoded[0..stripPaddingLen(encoded.len, src.len)];
+    }
+    if (std.mem.eql(u8, kind, "imap_padded")) {
+        const encoded = std.base64.standard.Encoder.encode(dst, src);
+        remapInPlace(dst[0..encoded.len], '/', ',');
+        return encoded;
+    }
+    if (std.mem.eql(u8, kind, "imap_no_pad")) {
+        const encoded = std.base64.standard.Encoder.encode(dst, src);
+        remapInPlace(dst[0..encoded.len], '/', ',');
         return encoded[0..stripPaddingLen(encoded.len, src.len)];
     }
     return error.InvalidInput;
@@ -120,6 +138,16 @@ fn referenceDecode(kind: []const u8, dst: []u8, encoded: []const u8, scratch: []
     if (std.mem.eql(u8, kind, "urlsafe_no_pad")) {
         const normalized = try normalizeNoPadInput(scratch, encoded);
         try std.base64.url_safe.Decoder.decode(dst, normalized);
+        return dst.len;
+    }
+    if (std.mem.eql(u8, kind, "imap_padded")) {
+        const normalized = try normalizeImapInput(scratch, encoded, true);
+        try std.base64.standard.Decoder.decode(dst, normalized);
+        return dst.len;
+    }
+    if (std.mem.eql(u8, kind, "imap_no_pad")) {
+        const normalized = try normalizeImapInput(scratch, encoded, false);
+        try std.base64.standard.Decoder.decode(dst, normalized);
         return dst.len;
     }
     return error.InvalidInput;
@@ -203,11 +231,9 @@ fn expectPerfCaseReferenceParity(case: PerfCase) !void {
     var helper_decoded: [fixtures.perf_payload_buf_size]u8 = undefined;
     var reference_decoded: [fixtures.perf_payload_buf_size]u8 = undefined;
     var reference_decode_scratch: [fixtures.perf_encoded_buf_size]u8 = undefined;
-
     const helper_encoded_len = try base64.encode(helper_encoded[0..], case.payload, case.padding, variant);
     const reference_encoded_slice = try referenceEncode(case.reference_kind, reference_encoded[0..], case.payload);
     try std.testing.expectEqualSlices(u8, reference_encoded_slice, helper_encoded[0..helper_encoded_len]);
-
     const helper_decoded_len = try base64.decode(helper_decoded[0..], helper_encoded[0..helper_encoded_len], case.padding, variant);
     const reference_decoded_len = try referenceDecode(case.reference_kind, reference_decoded[0..], reference_encoded_slice, reference_decode_scratch[0..]);
     try std.testing.expectEqual(case.payload.len, helper_decoded_len);
@@ -223,68 +249,48 @@ fn runPerfCase(case: PerfCase) !PerfResult {
     var helper_decoded: [fixtures.perf_payload_buf_size]u8 = undefined;
     var reference_decoded: [fixtures.perf_payload_buf_size]u8 = undefined;
     var reference_decode_scratch: [fixtures.perf_encoded_buf_size]u8 = undefined;
-
     const helper_encoded_len = try base64.encode(helper_encoded[0..], case.payload, case.padding, variant);
     const reference_encoded_slice = try referenceEncode(case.reference_kind, reference_encoded[0..], case.payload);
     try std.testing.expectEqualSlices(u8, reference_encoded_slice, helper_encoded[0..helper_encoded_len]);
-
     const helper_decoded_len = try base64.decode(helper_decoded[0..], helper_encoded[0..helper_encoded_len], case.padding, variant);
     const reference_decoded_len = try referenceDecode(case.reference_kind, reference_decoded[0..], reference_encoded_slice, reference_decode_scratch[0..]);
     try std.testing.expectEqual(case.payload.len, helper_decoded_len);
     try std.testing.expectEqual(case.payload.len, reference_decoded_len);
     try std.testing.expectEqualSlices(u8, case.payload, helper_decoded[0..helper_decoded_len]);
     try std.testing.expectEqualSlices(u8, case.payload, reference_decoded[0..reference_decoded_len]);
-
     _ = try benchHelperEncode(case.payload, helper_encoded[0..], case.iterations / 10, case.padding, variant);
     _ = try benchReferenceEncode(case.reference_kind, case.payload, reference_encoded[0..], case.iterations / 10);
     _ = try benchHelperDecode(reference_encoded_slice, helper_decoded[0..], case.payload.len, case.iterations / 10, case.padding, variant);
     _ = try benchReferenceDecode(case.reference_kind, reference_encoded_slice, reference_decoded[0..], case.payload.len, case.iterations / 10);
-
     var encode_samples: [3]u64 = undefined;
     var decode_samples: [3]u64 = undefined;
     var best_helper_encode: u64 = std.math.maxInt(u64);
     var best_helper_decode: u64 = std.math.maxInt(u64);
     var best_reference_encode: u64 = std.math.maxInt(u64);
     var best_reference_decode: u64 = std.math.maxInt(u64);
-
     for (0..3) |sample_index| {
         const helper_encode = try benchHelperEncode(case.payload, helper_encoded[0..], case.iterations, case.padding, variant);
         const reference_encode = try benchReferenceEncode(case.reference_kind, case.payload, reference_encoded[0..], case.iterations);
         const helper_decode = try benchHelperDecode(reference_encoded_slice, helper_decoded[0..], case.payload.len, case.iterations, case.padding, variant);
         const reference_decode = try benchReferenceDecode(case.reference_kind, reference_encoded_slice, reference_decoded[0..], case.payload.len, case.iterations);
-
         best_helper_encode = @min(best_helper_encode, helper_encode.elapsed);
         best_reference_encode = @min(best_reference_encode, reference_encode.elapsed);
         best_helper_decode = @min(best_helper_decode, helper_decode.elapsed);
         best_reference_decode = @min(best_reference_decode, reference_decode.elapsed);
-
         try std.testing.expectEqual(helper_encode.sink, reference_encode.sink);
         try std.testing.expectEqual(helper_decode.sink, reference_decode.sink);
-
         encode_samples[sample_index] = slowdownPct(helper_encode.elapsed, reference_encode.elapsed);
         decode_samples[sample_index] = slowdownPct(helper_decode.elapsed, reference_decode.elapsed);
     }
-
     const encode_slowdown_pct = median3(encode_samples[0], encode_samples[1], encode_samples[2]);
     const decode_slowdown_pct = median3(decode_samples[0], decode_samples[1], decode_samples[2]);
     try std.testing.expect(encode_slowdown_pct <= case.max_encode_slowdown_pct);
     try std.testing.expect(decode_slowdown_pct <= case.max_decode_slowdown_pct);
-
-    return .{
-        .helper_encode_ns_per_op = nsPerOp(best_helper_encode, case.iterations),
-        .helper_decode_ns_per_op = nsPerOp(best_helper_decode, case.iterations),
-        .reference_encode_ns_per_op = nsPerOp(best_reference_encode, case.iterations),
-        .reference_decode_ns_per_op = nsPerOp(best_reference_decode, case.iterations),
-        .encode_slowdown_pct = encode_slowdown_pct,
-        .decode_slowdown_pct = decode_slowdown_pct,
-        .encoded_len = helper_encoded_len,
-        .decoded_len = helper_decoded_len,
-    };
+    return .{ .helper_encode_ns_per_op = nsPerOp(best_helper_encode, case.iterations), .helper_decode_ns_per_op = nsPerOp(best_helper_decode, case.iterations), .reference_encode_ns_per_op = nsPerOp(best_reference_encode, case.iterations), .reference_decode_ns_per_op = nsPerOp(best_reference_decode, case.iterations), .encode_slowdown_pct = encode_slowdown_pct, .decode_slowdown_pct = decode_slowdown_pct, .encoded_len = helper_encoded_len, .decoded_len = helper_decoded_len };
 }
 
 test "phase 6 base64 perf matrix keeps all shipped variant-and-padding replays" {
     try std.testing.expectEqual(expected_perf_cases.len, fixtures.perf_cases.len);
-
     for (expected_perf_cases, fixtures.perf_cases) |expected, actual| {
         try std.testing.expectEqualStrings(expected.label, actual.label);
         try std.testing.expectEqualStrings(expected.variant_name, actual.variant_name);
@@ -298,7 +304,5 @@ test "phase 6 base64 perf matrix keeps all shipped variant-and-padding replays" 
 }
 
 test "phase 6 base64 perf cases keep helper and reference codecs aligned before timing" {
-    for (fixtures.perf_cases) |case| {
-        try expectPerfCaseReferenceParity(case);
-    }
+    for (fixtures.perf_cases) |case| try expectPerfCaseReferenceParity(case);
 }
