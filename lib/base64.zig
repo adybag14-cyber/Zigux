@@ -63,6 +63,18 @@ pub fn bytes(src: []const u8, padding: bool, variant: Variant) DecodeError!usize
     return decodedLength(src, padding, variant);
 }
 
+pub fn bytesStd(src: []const u8, padding: bool) DecodeError!usize {
+    return bytes(src, padding, .std);
+}
+
+pub fn bytesUrlsafe(src: []const u8, padding: bool) DecodeError!usize {
+    return bytes(src, padding, .urlsafe);
+}
+
+pub fn bytesImap(src: []const u8, padding: bool) DecodeError!usize {
+    return bytes(src, padding, .imap);
+}
+
 pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) EncodeError!usize {
     const needed = chars(src.len, padding);
     if (dst.len < needed) {
@@ -906,6 +918,19 @@ test "base64 helpers keep padded and unpadded sizing explicit" {
     try std.testing.expectEqual(@as(usize, 3), maxDecodedBytes(4));
     try std.testing.expectEqual(@as(usize, 2), try bytes("aGk=", true, .std));
     try std.testing.expectEqual(@as(usize, 2), try bytes("aGk", false, .std));
+}
+
+test "base64 bytes convenience wrappers pin each variant and preserve invalid-input behavior" {
+    try std.testing.expectEqual(@as(usize, 2), try bytesStd("aGk=", true));
+    try std.testing.expectEqual(@as(usize, 2), try bytesStd("aGk", false));
+    try std.testing.expectEqual(@as(usize, 2), try bytesUrlsafe("-_8=", true));
+    try std.testing.expectEqual(@as(usize, 2), try bytesUrlsafe("-_8", false));
+    try std.testing.expectEqual(@as(usize, 2), try bytesImap("+,8=", true));
+    try std.testing.expectEqual(@as(usize, 2), try bytesImap("+,8", false));
+
+    try std.testing.expectError(error.InvalidInput, bytesStd("-___", false));
+    try std.testing.expectError(error.InvalidInput, bytesUrlsafe("+///", false));
+    try std.testing.expectError(error.InvalidInput, bytesImap("+///", false));
 }
 
 test "base64 standard convenience wrappers pin the common variant across direct, slice, and allocator paths" {
