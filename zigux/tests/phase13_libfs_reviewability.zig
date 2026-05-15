@@ -16,6 +16,7 @@ test "descriptor keeps the current bounded helper surface explicit" {
     try std.testing.expect(descriptor.provides_offset_seek_planning);
     try std.testing.expect(descriptor.provides_offset_readdir_planning);
     try std.testing.expect(descriptor.provides_offset_add_planning);
+    try std.testing.expect(descriptor.provides_offset_remove_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
@@ -192,6 +193,28 @@ test "offset add and rename helpers stay reviewable as managed-slot planners rat
     try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.reserved_destination_offset, exchange_reserved.status);
     try std.testing.expectEqual(libfs.OffsetSlotClass.end_of_directory, exchange_reserved.destination_slot_class);
     try std.testing.expect(!exchange_reserved.stores_destination_in_source_map);
+}
+
+test "offset remove planning stays reviewable as erase-only lifecycle bookkeeping" {
+    const missing = libfs.LibfsHelperLab.planSimpleOffsetRemove(0);
+    const managed = libfs.LibfsHelperLab.planSimpleOffsetRemove(libfs.dir_offset_min + 6);
+    const reserved = libfs.LibfsHelperLab.planSimpleOffsetRemove(libfs.dir_offset_first);
+
+    try std.testing.expectEqualStrings("fs/libfs.c", missing.anchor);
+    try std.testing.expectEqual(libfs.OffsetRemoveStatus.missing_offset, missing.status);
+    try std.testing.expectEqual(@as(?libfs.OffsetSlotClass, null), missing.recorded_slot_class);
+    try std.testing.expect(!missing.erases_map_entry);
+    try std.testing.expect(!missing.clears_recorded_offset);
+
+    try std.testing.expectEqual(libfs.OffsetRemoveStatus.ok, managed.status);
+    try std.testing.expectEqual(@as(?libfs.OffsetSlotClass, .managed_entry), managed.recorded_slot_class);
+    try std.testing.expect(managed.erases_map_entry);
+    try std.testing.expect(managed.clears_recorded_offset);
+
+    try std.testing.expectEqual(libfs.OffsetRemoveStatus.ok, reserved.status);
+    try std.testing.expectEqual(@as(?libfs.OffsetSlotClass, .first_real_entry), reserved.recorded_slot_class);
+    try std.testing.expect(reserved.erases_map_entry);
+    try std.testing.expect(reserved.clears_recorded_offset);
 }
 
 test "transaction acquire planner stays helper-only and page-bounded" {
