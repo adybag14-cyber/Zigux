@@ -27,6 +27,7 @@ const SurveySummary = struct {
 const MaintenanceHandoff = struct {
     current_lane_posture: []const u8,
     replay_before_trusting: []const []const u8,
+    attached_toolchain_fallback: []const []const u8,
     reopen_conditions: []const []const u8,
     next_future_target: []const u8,
 };
@@ -121,6 +122,10 @@ test "phase14 ring-buffer survey manifest records the current study-only packet"
     try std.testing.expectEqualStrings("zig test zigux/tests/phase14_ring_buffer_survey.zig", manifest.maintenance_handoff.replay_before_trusting[0]);
     try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase14_build.zig --summary all", manifest.maintenance_handoff.replay_before_trusting[1]);
     try std.testing.expectEqualStrings("make -C zigux phase14", manifest.maintenance_handoff.replay_before_trusting[2]);
+    try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.attached_toolchain_fallback.len);
+    try std.testing.expectEqualStrings("/absolute/path/to/attached-zig/zig test zigux/tests/phase14_ring_buffer_survey.zig", manifest.maintenance_handoff.attached_toolchain_fallback[0]);
+    try std.testing.expectEqualStrings("/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all", manifest.maintenance_handoff.attached_toolchain_fallback[1]);
+    try std.testing.expectEqualStrings("ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14", manifest.maintenance_handoff.attached_toolchain_fallback[2]);
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.reopen_conditions[0], "dedicated survey note, manifest, or Zig survey gate drift") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.reopen_conditions[1], "shared smoke or core traceability packet") != null);
@@ -165,6 +170,10 @@ test "phase14 ring-buffer survey note keeps the parked study-only posture explic
     try std.testing.expect(std.mem.indexOf(u8, note, "## Maintenance-Mode Handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "current lane posture: `maintenance_mode`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zig test zigux/tests/phase14_ring_buffer_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "attached-toolchain fallback routes for the same parked packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "/absolute/path/to/attached-zig/zig test zigux/tests/phase14_ring_buffer_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-maintenance-handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "shared smoke or core traceability packet reintroduces a ring-buffer-specific owner-label or ready-next mismatch") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "genuinely narrower stay-in-C evidence appears around reserve or commit publication") != null);
@@ -173,5 +182,6 @@ test "phase14 ring-buffer survey note keeps the parked study-only posture explic
     try std.testing.expect(std.mem.indexOf(u8, note, "run the dedicated ring-buffer survey replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "run the shared Phase 14 build bundle") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zig build test --build-file zigux/tests/phase14_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "rerun the same parked packet with the attached toolchain when neither the repo-local `.zig-toolchain` fallback nor the shell's default `zig` binary is available") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "- `zig build test --build-file zigux/tests/phase14_build.zig`\n") == null);
 }
