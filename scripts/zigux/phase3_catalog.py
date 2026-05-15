@@ -282,6 +282,10 @@ def audit_slug_sanity(root: Path = ROOT) -> list[str]:
     issues.extend(audit_artifact_diff_reality(root))
     issues.extend(audit_dump_surface_reality(root))
     issues.extend(audit_build_surface_reality(root))
+    for path in audit_legacy_wrapper_docs(root):
+        issues.append(f"legacy wrapper doc marker: {path}")
+    for reference in audit_legacy_wrapper_references(root):
+        issues.append(f"legacy wrapper reference: {reference}")
     return issues
 
 
@@ -353,8 +357,9 @@ def run_self_test() -> int:
 
         missing_doc = root / "Documentation/zigux/phase3-missing-slice.md"
         missing_doc.write_text("# stray\n", encoding="utf-8")
-        expected_missing_doc_issue = "documented Phase 3 slug lacks full slice packet: missing"
-        assert audit_slug_sanity(root) == [expected_missing_doc_issue]
+        assert audit_slug_sanity(root) == [
+            "documented Phase 3 slug lacks full slice packet: missing"
+        ]
         missing_doc.unlink()
 
         artifact = root / "Documentation/zigux/artifact-diff.md"
@@ -380,6 +385,9 @@ def run_self_test() -> int:
         assert audit_legacy_wrapper_docs(root) == [
             "Documentation/zigux/phase3-abi-slice.md"
         ]
+        assert audit_slug_sanity(root) == [
+            "legacy wrapper doc marker: Documentation/zigux/phase3-abi-slice.md"
+        ]
         assert audit_legacy_wrapper_references(root) == []
 
         abi_doc.write_text(_shared_runner_marker("abi") + "\n", encoding="utf-8")
@@ -391,6 +399,9 @@ def run_self_test() -> int:
         assert audit_legacy_wrapper_references(root) == [
             "zigux/tests/README.md: scripts/zigux/check-phase3-abi.py"
         ]
+        assert audit_slug_sanity(root) == [
+            "legacy wrapper reference: zigux/tests/README.md: scripts/zigux/check-phase3-abi.py"
+        ]
 
         support_note = root / "Documentation/zigux/phase3-support-note.md"
         support_note.write_text(
@@ -401,6 +412,10 @@ def run_self_test() -> int:
             "Documentation/zigux/phase3-support-note.md: scripts/zigux/check-phase3-abi.py",
             "zigux/tests/README.md: scripts/zigux/check-phase3-abi.py",
         ]
+        assert audit_slug_sanity(root) == [
+            "legacy wrapper reference: Documentation/zigux/phase3-support-note.md: scripts/zigux/check-phase3-abi.py",
+            "legacy wrapper reference: zigux/tests/README.md: scripts/zigux/check-phase3-abi.py",
+        ]
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
 
@@ -408,12 +423,13 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Focused Phase 3 catalog helper.")
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--slug-sanity", action="store_true")
+    parser.add_argument("--check-slug-sanity", action="store_true")
     parser.add_argument("--audit-doc-sync", action="store_true")
     parser.add_argument("--audit-build-surface-reality", action="store_true")
     parser.add_argument("--audit-artifact-diff-reality", action="store_true")
     parser.add_argument("--legacy-wrapper-docs", action="store_true")
     parser.add_argument("--legacy-wrapper-references", action="store_true")
-    parser.add_argument("--slug-sanity", action="store_true")
     parser.add_argument("--print-slices", action="store_true")
     args = parser.parse_args()
 
@@ -432,6 +448,16 @@ def main() -> int:
                 print(issue)
             return 1
         print("PHASE3_DOC_SYNC_AUDIT=pass")
+        return 0
+
+    if args.slug_sanity or args.check_slug_sanity:
+        issues = audit_slug_sanity()
+        if issues:
+            print("PHASE3_SLUG_SANITY=fail")
+            for issue in issues:
+                print(issue)
+            return 1
+        print("PHASE3_SLUG_SANITY=pass")
         return 0
 
     if args.audit_build_surface_reality:
@@ -470,16 +496,6 @@ def main() -> int:
             return 0
         for reference in references:
             print(reference)
-        return 0
-
-    if args.slug_sanity:
-        issues = audit_slug_sanity()
-        if issues:
-            print("PHASE3_SLUG_SANITY=fail")
-            for issue in issues:
-                print(issue)
-            return 1
-        print("PHASE3_SLUG_SANITY=pass")
         return 0
 
     parser.print_help()
