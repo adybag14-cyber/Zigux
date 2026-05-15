@@ -29,9 +29,9 @@
       "make -C zigux phase14"
     ],
     "reopen_conditions": [
-      "the dedicated workqueue survey, slice note, manifest, or reviewability test drifts on surveyed commit, blocked gap, blocked-maintenance posture, or blocked live-execution wording",
-      "the directly coupled shared smoke or core traceability packet reintroduces a stale lane key, ready-next record, or blocked-gap record for the workqueue anchor",
-      "genuinely narrower stay-in-C evidence appears around delayed-work timer expiry, delayed-work requeue governance, flush-drain ownership, hotplug topology rebinding, or scheduler-visible worker-state transitions without implying live execution ownership"
+      "the bridge, dedicated test, reviewability test, manifest, slice note, or survey note drifts on the blocked-maintenance posture or the blocked live-execution boundary",
+      "the directly coupled shared smoke or core traceability packet reintroduces a stale owner label, ready-next record, or blocked-gap record for the workqueue anchor",
+      "genuinely narrower stay-in-C evidence appears around delayed-work requeue governance, flush-drain ownership, hotplug topology rebinding, or scheduler-visible worker-state transitions without implying live execution ownership"
     ],
     "next_future_target": "stay in blocked maintenance unless one of those packet-local reopen conditions fires; if a future truthfulness drift is workqueue-local, reread kernel/workqueue_bridge.zig, zigux/tests/phase14_workqueue_bridge.zig, zigux/tests/phase14_workqueue_reviewability.zig, zigux/tests/phase14_workqueue_bridge_manifest.json, Documentation/zigux/phase14-workqueue-bridge-slice.md, and Documentation/zigux/phase14-workqueue-bridge-survey.md together before touching the shared Phase 14 smoke packet"
   },
