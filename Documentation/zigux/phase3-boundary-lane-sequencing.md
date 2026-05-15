@@ -77,6 +77,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `scripts/zigux/check-phase3-selftest-surface.py`
   - `scripts/zigux/check-phase3-readme-tooling-inventory.py`
   - `scripts/zigux/check-phase3-catalog-selftest.py`
+  - `scripts/zigux/check-phase3-abi.py`
   - `scripts/zigux/check-phase3-abi-dump-gate.py`
   - `scripts/zigux/validate-phase3-policy-unsafe-survey.py`
   - `scripts/zigux/check-phase3-policy-byte-guards.py`
