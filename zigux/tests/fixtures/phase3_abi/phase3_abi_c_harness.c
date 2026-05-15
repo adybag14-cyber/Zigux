@@ -2,11 +2,20 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "linux/zigux.h"
 #include "zigux/abi.h"
 #include "zigux/dev_t.h"
 
 int main(void)
 {
+    const struct zigux_boundary_header canonical_header = zigux_boundary_header_make(0x22U);
+    const struct zigux_boundary_header future_compatible_header =
+        zigux_boundary_header_make_compatible(
+            (uint32_t)sizeof(struct zigux_boundary_header) + 16U,
+            0x22U);
+    struct zigux_boundary_header mismatched_version_header = zigux_boundary_header_make(0x22U);
+    mismatched_version_header.abi_version = (uint16_t)(ZIGUX_ABI_VERSION + 1U);
+
     const struct zigux_notifier_block single = {
         .notifier_call = 0,
         .next = (uintptr_t)0,
@@ -71,6 +80,46 @@ int main(void)
         "\"notifier_ok\":%u,"
         "\"notifier_stop\":%u"
         "},"
+        "\"uapi_boundary_header\":{"
+        "\"header_size\":%zu,"
+        "\"abi_version\":%u,"
+        "\"canonical_header\":{"
+        "\"size\":%u,"
+        "\"abi_version\":%u,"
+        "\"flags\":%u,"
+        "\"current_abi\":%u,"
+        "\"compatible_size\":%u,"
+        "\"canonical_size\":%u,"
+        "\"compatible\":%u,"
+        "\"canonical\":%u,"
+        "\"extends_boundary\":%u,"
+        "\"requested_extra_bytes\":%u"
+        "},"
+        "\"future_compatible\":{"
+        "\"size\":%u,"
+        "\"abi_version\":%u,"
+        "\"flags\":%u,"
+        "\"current_abi\":%u,"
+        "\"compatible_size\":%u,"
+        "\"canonical_size\":%u,"
+        "\"compatible\":%u,"
+        "\"canonical\":%u,"
+        "\"extends_boundary\":%u,"
+        "\"requested_extra_bytes\":%u"
+        "},"
+        "\"mismatched_version\":{"
+        "\"size\":%u,"
+        "\"abi_version\":%u,"
+        "\"flags\":%u,"
+        "\"current_abi\":%u,"
+        "\"compatible_size\":%u,"
+        "\"canonical_size\":%u,"
+        "\"compatible\":%u,"
+        "\"canonical\":%u,"
+        "\"extends_boundary\":%u,"
+        "\"requested_extra_bytes\":%u"
+        "}"
+        "},"
         "\"dev_t\":{"
         "\"minor_bits\":%u,"
         "\"minor_mask\":%u,"
@@ -123,6 +172,40 @@ int main(void)
         ZIGUX_NOTIFIER_DONE,
         ZIGUX_NOTIFIER_OK,
         ZIGUX_NOTIFIER_STOP,
+        sizeof(struct zigux_boundary_header),
+        ZIGUX_ABI_VERSION,
+        canonical_header.size,
+        canonical_header.abi_version,
+        canonical_header.flags,
+        (unsigned)zigux_boundary_header_is_current_abi_version(canonical_header.abi_version),
+        (unsigned)zigux_boundary_header_is_compatible_size(canonical_header.size),
+        (unsigned)zigux_boundary_header_is_canonical_size(canonical_header.size),
+        (unsigned)zigux_boundary_header_is_compatible(canonical_header),
+        (unsigned)zigux_boundary_header_is_canonical(canonical_header),
+        (unsigned)(zigux_boundary_header_is_compatible(canonical_header) &&
+                   !zigux_boundary_header_is_canonical(canonical_header)),
+        0U,
+        future_compatible_header.size,
+        future_compatible_header.abi_version,
+        future_compatible_header.flags,
+        (unsigned)zigux_boundary_header_is_current_abi_version(future_compatible_header.abi_version),
+        (unsigned)zigux_boundary_header_is_compatible_size(future_compatible_header.size),
+        (unsigned)zigux_boundary_header_is_canonical_size(future_compatible_header.size),
+        (unsigned)zigux_boundary_header_is_compatible(future_compatible_header),
+        (unsigned)zigux_boundary_header_is_canonical(future_compatible_header),
+        (unsigned)(zigux_boundary_header_is_compatible(future_compatible_header) &&
+                   !zigux_boundary_header_is_canonical(future_compatible_header)),
+        (unsigned)(future_compatible_header.size - (uint32_t)sizeof(struct zigux_boundary_header)),
+        mismatched_version_header.size,
+        mismatched_version_header.abi_version,
+        mismatched_version_header.flags,
+        (unsigned)zigux_boundary_header_is_current_abi_version(mismatched_version_header.abi_version),
+        (unsigned)zigux_boundary_header_is_compatible_size(mismatched_version_header.size),
+        (unsigned)zigux_boundary_header_is_canonical_size(mismatched_version_header.size),
+        (unsigned)zigux_boundary_header_is_compatible(mismatched_version_header),
+        (unsigned)zigux_boundary_header_is_canonical(mismatched_version_header),
+        0U,
+        0U,
         ZIGUX_DEV_MINOR_BITS,
         ZIGUX_DEV_MINOR_MASK,
         ZIGUX_DEV_MAJOR_MAX,
