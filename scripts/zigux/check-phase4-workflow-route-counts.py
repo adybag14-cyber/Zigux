@@ -95,6 +95,8 @@ REQUIRED_WORKFLOW_MARKERS = [
     "run: python3 scripts/zigux/validate-phase4.py --self-test",
     "- name: Validate Phase 4 diff packet directly",
     "run: python3 scripts/zigux/validate-phase4.py",
+    "- name: Self-test Phase 4 artifact-diff helper directly",
+    "run: python3 scripts/zigux/artifact_diff.py --self-test",
     "- name: Self-test Phase 4 artifact-diff contract directly",
     "run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test",
     "- name: Check Phase 4 artifact-diff contract directly",
@@ -121,6 +123,7 @@ REQUIRED_WORKFLOW_ORDER_MARKERS = [
     "run: make -C zigux phase4-validate",
     "run: python3 scripts/zigux/validate-phase4.py --self-test",
     "run: python3 scripts/zigux/validate-phase4.py",
+    "run: python3 scripts/zigux/artifact_diff.py --self-test",
     "run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test",
     "run: python3 scripts/zigux/check-artifact-diff-contract.py",
     "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
@@ -208,6 +211,7 @@ SELFTEST_CASES = [
     "missing_make_route_counts_command",
     "missing_make_remaining_gap_command",
     "missing_workflow_validate_route",
+    "missing_workflow_artifact_diff_helper_self_test_route",
     "missing_workflow_artifact_diff_contract_self_test_route",
     "missing_workflow_artifact_diff_contract_route",
     "missing_workflow_artifact_diff_determinism_self_test_route",
@@ -284,6 +288,8 @@ SELFTEST_WORKFLOW = """jobs:
         run: python3 scripts/zigux/validate-phase4.py --self-test
       - name: Validate Phase 4 diff packet directly
         run: python3 scripts/zigux/validate-phase4.py
+      - name: Self-test Phase 4 artifact-diff helper directly
+        run: python3 scripts/zigux/artifact_diff.py --self-test
       - name: Self-test Phase 4 artifact-diff contract directly
         run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test
       - name: Check Phase 4 artifact-diff contract directly
@@ -745,6 +751,30 @@ def run_selftest() -> None:
             ),
         )
         covered_cases.append("missing_workflow_validate_route")
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "        run: python3 scripts/zigux/artifact_diff.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "missing workflow artifact-diff helper self-test route",
+            lambda: check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            ),
+        )
+        covered_cases.append("missing_workflow_artifact_diff_helper_self_test_route")
 
         write_baseline()
         workflow.write_text(
