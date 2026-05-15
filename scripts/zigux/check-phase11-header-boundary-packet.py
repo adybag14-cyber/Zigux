@@ -36,6 +36,29 @@ EXPECTED_BUILD_INVENTORY_BUILD_TEST_NAME = "phase11-uapi-header-parity-survey-te
 EXPECTED_BUILD_INVENTORY_SHARED_TEST_DEPEND_STEP = (
     "run_phase11_uapi_header_parity_survey_tests"
 )
+EXPECTED_BUILD_INVENTORY_MODULE_ROOT_SOURCE_FILES = [
+    {
+        "module": "layout_assert_module",
+        "path": "../helpers/layout_assert.zig",
+    },
+    {
+        "module": "phase11_uapi_header_parity_survey_module",
+        "path": "phase11_uapi_header_parity_survey.zig",
+    },
+]
+EXPECTED_BUILD_INVENTORY_MODULE_IMPORTS = [
+    {
+        "module": "phase11_uapi_header_parity_survey_module",
+        "import_name": "layout_assert",
+        "imported_module": "layout_assert_module",
+    },
+]
+EXPECTED_BUILD_INVENTORY_TEST_ROOT_MODULES = [
+    {
+        "test": "phase11-uapi-header-parity-survey-tests",
+        "root_module": "phase11_uapi_header_parity_survey_module",
+    },
+]
 EXPECTED_BUILD_INVENTORY_DEDICATED_SURVEY_REPLAYS = [
     "zigux/tests/phase11_hvc_console_survey.zig",
 ]
@@ -265,6 +288,18 @@ def require_markers(text: str, markers: list[str], label: str) -> None:
         raise SystemExit(f"{label} missing markers: {', '.join(missing)}")
 
 
+def require_object_entries(
+    entries: object,
+    expected_entries: list[dict[str, str]],
+    label: str,
+) -> None:
+    if not isinstance(entries, list):
+        raise SystemExit(f"{label} mismatch")
+    for expected_entry in expected_entries:
+        if expected_entry not in entries:
+            raise SystemExit(f"{label} mismatch")
+
+
 def check_manifest(manifest: dict[str, object]) -> None:
     if manifest.get("lane_key") != EXPECTED_LANE_KEY:
         raise SystemExit("manifest lane_key mismatch")
@@ -303,6 +338,22 @@ def check_build_inventory(build_inventory: dict[str, object]) -> None:
         or EXPECTED_BUILD_INVENTORY_SHARED_TEST_DEPEND_STEP not in shared_test_depend_steps
     ):
         raise SystemExit("build inventory shared_test_depend_steps mismatch")
+
+    require_object_entries(
+        build_inventory.get("module_root_source_files"),
+        EXPECTED_BUILD_INVENTORY_MODULE_ROOT_SOURCE_FILES,
+        "build inventory module_root_source_files",
+    )
+    require_object_entries(
+        build_inventory.get("module_imports"),
+        EXPECTED_BUILD_INVENTORY_MODULE_IMPORTS,
+        "build inventory module_imports",
+    )
+    require_object_entries(
+        build_inventory.get("test_root_modules"),
+        EXPECTED_BUILD_INVENTORY_TEST_ROOT_MODULES,
+        "build inventory test_root_modules",
+    )
 
     if (
         build_inventory.get("dedicated_survey_replays")
@@ -364,6 +415,9 @@ def build_fixture_repo(root: Path) -> None:
     build_inventory = {
         "build_test_names": [EXPECTED_BUILD_INVENTORY_BUILD_TEST_NAME],
         "shared_test_depend_steps": [EXPECTED_BUILD_INVENTORY_SHARED_TEST_DEPEND_STEP],
+        "module_root_source_files": EXPECTED_BUILD_INVENTORY_MODULE_ROOT_SOURCE_FILES,
+        "module_imports": EXPECTED_BUILD_INVENTORY_MODULE_IMPORTS,
+        "test_root_modules": EXPECTED_BUILD_INVENTORY_TEST_ROOT_MODULES,
         "dedicated_survey_replays": EXPECTED_BUILD_INVENTORY_DEDICATED_SURVEY_REPLAYS,
         "shared_split_replays": EXPECTED_BUILD_INVENTORY_SHARED_SPLIT_REPLAYS,
         "shared_adjunct_replays": EXPECTED_BUILD_INVENTORY_SHARED_ADJUNCT_REPLAYS,
@@ -596,6 +650,27 @@ def run_self_test() -> int:
         expect_failure(
             root,
             "zigux/tests/fixtures/phase11_build_inventory.json",
+            '"path": "phase11_uapi_header_parity_survey.zig"',
+            '"path": "phase11_uapi_header_packet_survey.zig"',
+            "build inventory module_root_source_files mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/fixtures/phase11_build_inventory.json",
+            '"imported_module": "layout_assert_module"',
+            '"imported_module": "layout_assert_missing_module"',
+            "build inventory module_imports mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/fixtures/phase11_build_inventory.json",
+            '"root_module": "phase11_uapi_header_parity_survey_module"',
+            '"root_module": "phase11_uapi_header_packet_survey_module"',
+            "build inventory test_root_modules mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/fixtures/phase11_build_inventory.json",
             '"zigux/tests/phase11_hvc_console_survey.zig"',
             '"zigux/tests/phase11_hvc_console_packet_survey.zig"',
             "build inventory dedicated_survey_replays mismatch",
@@ -622,7 +697,7 @@ def run_self_test() -> int:
             "build inventory shared_split_replays mismatch",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=26")
+    print("phase11-header-boundary-packet: self-test cases=29")
     return 0
 
 
