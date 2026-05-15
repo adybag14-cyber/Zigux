@@ -77,7 +77,9 @@ SHARED_REQUIRED_MARKERS = {
 
 LEGACY_PACKET_REQUIRED_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
-        "Run focused Phase 8 libbpf shard tests",
+        "make -C zigux phase8-file-path-handle-bridge-test",
+        "make -C zigux phase8-perf-buffer-poll-test",
+        "Run focused Phase 8 libbpf segment tests",
         "make -C zigux phase8-libbpf-segments-test",
     ],
     "Documentation/zigux/README.md": [
@@ -127,7 +129,9 @@ LEGACY_PACKET_REQUIRED_MARKERS = {
 
 PARKED_DRIFT_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
-        "Run focused Phase 8 libbpf shard tests",
+        "make -C zigux phase8-file-path-handle-bridge-test",
+        "make -C zigux phase8-perf-buffer-poll-test",
+        "Run focused Phase 8 libbpf segment tests",
         "make -C zigux phase8-libbpf-segments-test",
     ],
     "Documentation/zigux/README.md": [
@@ -219,7 +223,12 @@ FIXTURE_TEXT = {
 - name: Validate Phase 8 tooling packet
   run: make -C zigux phase8-validate
 
-- name: Run focused Phase 8 libbpf shard tests
+- name: Run focused Phase 8 help and kallsyms tests
+  run: |
+    make -C zigux phase8-file-path-handle-bridge-test
+    make -C zigux phase8-perf-buffer-poll-test
+
+- name: Run focused Phase 8 libbpf segment tests
   run: make -C zigux phase8-libbpf-segments-test
 """,
     "Documentation/zigux/README.md": """# Zigux Documentation
@@ -644,7 +653,9 @@ def run_self_test() -> int:
             [],
             [],
             [
-                ".github/workflows/zigux-bootstrap.yml:Run focused Phase 8 libbpf shard tests",
+                ".github/workflows/zigux-bootstrap.yml:make -C zigux phase8-file-path-handle-bridge-test",
+                ".github/workflows/zigux-bootstrap.yml:make -C zigux phase8-perf-buffer-poll-test",
+                ".github/workflows/zigux-bootstrap.yml:Run focused Phase 8 libbpf segment tests",
                 ".github/workflows/zigux-bootstrap.yml:make -C zigux phase8-libbpf-segments-test",
                 "Documentation/zigux/README.md:Documentation/zigux/phase8-libbpf-segment-survey.md",
                 "Documentation/zigux/README.md:tools/lib/bpf/zigux_segments/manifest.json",
@@ -670,7 +681,7 @@ def run_self_test() -> int:
 
         for rel_path, removals in {
             ".github/workflows/zigux-bootstrap.yml": [
-                "- name: Run focused Phase 8 libbpf shard tests\n  run: make -C zigux phase8-libbpf-segments-test\n",
+                "- name: Run focused Phase 8 help and kallsyms tests\n  run: |\n    make -C zigux phase8-file-path-handle-bridge-test\n    make -C zigux phase8-perf-buffer-poll-test\n\n- name: Run focused Phase 8 libbpf segment tests\n  run: make -C zigux phase8-libbpf-segments-test\n",
             ],
             "Documentation/zigux/README.md": [
                 "- `Documentation/zigux/phase8-libbpf-segment-survey.md`\n",
