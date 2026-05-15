@@ -23,7 +23,7 @@ This bounded Phase 10 slice records the current queue-local `virtio_ring` wrappe
 
 ## Parked boundary
 
-- `phase10-ring-lab-driver-bridge` stays blocked on risky transport and remains owned by the adjacent `P10-L14` MMIO packet.
+- `phase10-ring-lab-driver-bridge` stays blocked on risky transport and remains owned by the adjacent MMIO packet.
 - `Documentation/zigux/freeze-map.md` still governs the Phase 10 boundary for this queue-local slice.
 - the roadmap's dual-implementation posture remains `blocked_on_risky_transport`, and no Architecture Council reopen is attached by this note.
 
