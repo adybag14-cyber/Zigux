@@ -139,7 +139,7 @@ Current `master` already exposes the pilot-family notes plus the shared loader p
 
 - `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet. Keep family-local manifest, survey, and directly coupled module-slice wording there while the shared loader-facing reminder packet stays on `P9-L11`.
 - `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, focused top-bit companion replay, and survey gate packet. Keep bitmap-local proof there while `P9-L11` owns the shared loader-facing reminder packet.
-- `P9-L10`: owns the current runtime trace-events manifest, survey note, module-slice note, dedicated loader-substrate-drift replay, survey gate, and the module-level selftest-ready failed-exit plus rejected re-selftest rollback proof. Keep trace-events-local proof there while the shared loader-facing reminder packet remains adjacent only.
+- `P9-L10`: owns the current runtime trace-events manifest, survey note, module-slice note, and survey-gate packet. Keep the dedicated loader-substrate-drift replay plus the module-level selftest-ready failed-exit and rejected re-selftest rollback proof inside that same trace-events-local packet while the shared loader-facing reminder packet remains adjacent only.
 - `P9-L13`: owns the current runtime kretprobe manifest-backed loader-plan, survey-gate lifecycle, and tracing proof follow-through. Keep kretprobe-local proof there while the older family-local `P9-L10` label remains historical only unless repo evidence explicitly moves ownership back.
 
 ## Pilot-Family Anti-overlap Rule
@@ -150,10 +150,11 @@ If a follow-through only changes one pilot family's survey note, module-slice no
 
 1. Re-read the shared reminder surfaces against the live shared loader-facing family plus the four pilot-family packets whenever the Phase 9 owner map is in doubt.
 2. If a shared reminder surface stops deferring the exact owner map, convenience-target names, or blocked publication boundary back to this note, refresh the smallest one-file reminder surface that drifted.
-3. If `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, or `zigux/tests/README.md` reclaims pilot-family survey, manifest, module-slice, or survey-gate work, repair that one file at a time instead of widening into pilot behavior or checker growth.
-4. If a different shared reminder surface starts overstating blocked publication surfaces or inventing shared validation routes, repair that one file at a time instead of widening into pilot behavior or checker growth.
-5. If the shared loader-facing family changes or a direct shared-loader proof lands, refresh this sequencing note before later shared reminder passes inherit stale owner labels.
-6. Only after the shared reminder packet is truthful again should any family-local survey note be refreshed to describe shared loader adjacency.
+3. If the shared reminder packet already defers correctly to this note, refresh the smallest shipped shared summary that still drifts around the blocked module-metadata and depmod-publication boundary and the stale repo-root loader inventory, starting with `Documentation/zigux/README.md`, then `zigux/tests/README.md`, while keeping `scripts/zigux/README.md` parked unless a later reread shows it reclaiming family-local owner-map detail again.
+4. If `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, or `zigux/tests/README.md` reclaims pilot-family survey, manifest, module-slice, or survey-gate work, repair that one file at a time instead of widening into pilot behavior or checker growth.
+5. If a different shared reminder surface starts overstating blocked publication surfaces or inventing shared validation routes, repair that one file at a time instead of widening into pilot behavior or checker growth.
+6. If the shared loader-facing family changes or a direct shared-loader proof lands, refresh this sequencing note before later shared reminder passes inherit stale owner labels.
+7. Only after the shared reminder packet is truthful again should any family-local survey note be refreshed to describe shared loader adjacency.
 - `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, while the bitmap-local `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig` replay stays with the family packet instead of being flattened into shared loader evidence, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet
 
 ## Anti-overlap rule
