@@ -18,7 +18,7 @@ CONFDATA_MANIFEST = (
 CONFDATA_SURVEY = ROOT / "Documentation" / "zigux" / "phase2-confdata-bridge-survey.md"
 
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_SELF_TEST_CASE_COUNT = 12
+EXPECTED_SELF_TEST_CASE_COUNT = 13
 
 SELFTEST_CONFDATA_HELPER_ANCHORS = (
     "confdata bridge parses bounded config states",
@@ -292,6 +292,18 @@ def run_self_test() -> int:
             code == "CONFDATA_HELPER_ANCHOR_MANIFEST_NAME_MISMATCH"
             for code, _ in issues
         )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CONFDATA_MANIFEST)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["helper_local_anchors"] = payload["helper_local_anchors"][:-1]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert (
+            "CONFDATA_HELPER_ANCHOR_MANIFEST_COUNT_MISMATCH",
+            "actual=19:expected=20",
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
