@@ -49,6 +49,24 @@ test "phase3 barrier wrappers keep barrier locality reviewable" {
     try std.testing.expectEqual(@as(u8, 21), right);
 }
 
+test "phase3 barrier wrappers keep fence-word state transitions reviewable" {
+    fence_word = 9;
+    acquire();
+    try std.testing.expectEqual(@as(u8, 9), fence_word);
+
+    fence_word = 7;
+    release();
+    try std.testing.expectEqual(@as(u8, 0), fence_word);
+
+    fence_word = 5;
+    full();
+    try std.testing.expectEqual(@as(u8, 0), fence_word);
+
+    fence_word = 11;
+    acquireRelease();
+    try std.testing.expectEqual(@as(u8, 0), fence_word);
+}
+
 test "phase3 barrier wrappers keep barrier handoff reviewable" {
     const Packet = struct {
         ready: bool,
