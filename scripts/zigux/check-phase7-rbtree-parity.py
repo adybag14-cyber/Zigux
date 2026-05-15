@@ -135,6 +135,7 @@ REQUIRED_MARKERS = {
         "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
         "phase 7 rbtree detached nodes stay non-empty until callers clear them",
         "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
+        "phase 7 rbtree find helpers walk duplicate-key ranges",
         "phase 7 rbtree postorder traversal matches committed parity fixture",
         "phase 7 rbtree cleared detached nodes stop postorder traversal",
     ],
@@ -419,6 +420,13 @@ def run_self_test() -> None:
             "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
             "",
             "zigux/tests/phase7_rbtree.zig: phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
+        ),
+        (
+            "helper_duplicate_range_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "phase 7 rbtree find helpers walk duplicate-key ranges",
+            "",
+            "zigux/tests/phase7_rbtree.zig: phase 7 rbtree find helpers walk duplicate-key ranges",
         ),
         (
             "helper_postorder_marker",
