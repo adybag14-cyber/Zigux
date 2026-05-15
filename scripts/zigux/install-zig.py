@@ -127,6 +127,26 @@ def cache_archive(archive_path: Path, install_root: Path) -> Path:
     return cached_archive
 
 
+def resolve_cached_archive(
+    install_root: Path,
+    archive_name: str,
+    *,
+    expected_sha256: str | None,
+) -> tuple[Path | None, str | None]:
+    if expected_sha256 is None:
+        return None, None
+
+    cached_archive = install_root / ARCHIVE_CACHE_DIRNAME / archive_name
+    if not cached_archive.is_file():
+        return None, None
+
+    try:
+        actual_sha256 = verify_archive_sha256(cached_archive, expected_sha256)
+    except SystemExit:
+        return None, None
+    return cached_archive, actual_sha256
+
+
 def open_url(url: str | urllib.request.Request, *, retries: int = 3, timeout: float = 30.0):
     last_error: Exception | None = None
     for attempt in range(1, retries + 1):
@@ -502,6 +522,23 @@ def run_self_test() -> int:
         cached_archive = cache_archive(archive_path, Path(tmp_dir) / '.zig-toolchain')
         assert cached_archive == Path(tmp_dir) / '.zig-toolchain' / ARCHIVE_CACHE_DIRNAME / 'archive.tar.xz'
         assert cached_archive.read_bytes() == b'zigux-archive'
+        assert resolve_cached_archive(Path(tmp_dir) / '.zig-toolchain', 'archive.tar.xz', expected_sha256=expected_sha256) == (
+            cached_archive,
+            expected_sha256,
+        )
+        assert resolve_cached_archive(Path(tmp_dir) / '.zig-toolchain', 'missing.tar.xz', expected_sha256=expected_sha256) == (
+            None,
+            None,
+        )
+        assert resolve_cached_archive(Path(tmp_dir) / '.zig-toolchain', 'archive.tar.xz', expected_sha256=None) == (
+            None,
+            None,
+        )
+        cached_archive.write_bytes(b'not-the-right-archive')
+        assert resolve_cached_archive(Path(tmp_dir) / '.zig-toolchain', 'archive.tar.xz', expected_sha256=expected_sha256) == (
+            None,
+            None,
+        )
         try:
             verify_archive_sha256(archive_path, '0' * 64)
         except SystemExit as exc:
@@ -710,7 +747,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=33')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=37')
     return 0
 
 
@@ -758,19 +795,29 @@ def main() -> int:
         tmpdir = Path(tmpdir_str)
         archive_name = tarball_url.rsplit('/', 1)[-1]
         archive_path = tmpdir / archive_name
-        selected_url, actual_archive_sha256 = download_archive(
-            candidate_urls,
-            archive_path,
+        cached_archive, actual_archive_sha256 = resolve_cached_archive(
+            install_root,
+            archive_name,
             expected_sha256=expected_archive_sha256,
         )
-        if selected_url != tarball_url:
-            print(f'ZIG_INSTALL_DOWNLOAD_URL={selected_url}')
+        if cached_archive is not None:
+            shutil.copy2(cached_archive, archive_path)
+            print('ZIG_INSTALL_ARCHIVE_CACHE_STATUS=reused')
+        else:
+            selected_url, actual_archive_sha256 = download_archive(
+                candidate_urls,
+                archive_path,
+                expected_sha256=expected_archive_sha256,
+            )
+            if selected_url != tarball_url:
+                print(f'ZIG_INSTALL_DOWNLOAD_URL={selected_url}')
+            cached_archive = cache_archive(archive_path, install_root)
+            print('ZIG_INSTALL_ARCHIVE_CACHE_STATUS=populated')
         if actual_archive_sha256 is not None:
             print(f'ZIG_INSTALL_ARCHIVE_SHA256={actual_archive_sha256}')
             print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified')
         else:
             print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=unverified')
-        cached_archive = cache_archive(archive_path, install_root)
         print(f'ZIG_INSTALL_ARCHIVE_CACHE={cached_archive.resolve()}')
 
         extracted_root = extract_archive(archive_path, tmpdir / 'extract')
