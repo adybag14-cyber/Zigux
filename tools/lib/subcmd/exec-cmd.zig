@@ -238,14 +238,16 @@ pub fn setArgv0Path(
     state: *ExecCmdState,
     argv0_path: ?[]const u8,
 ) !void {
+    const owned_path = if (argv0_path) |path|
+        try allocator.dupe(u8, path)
+    else
+        null;
+    errdefer if (owned_path) |path| allocator.free(path);
+
     if (state.argv0_path) |previous| {
         allocator.free(previous);
-        state.argv0_path = null;
     }
-
-    if (argv0_path) |path| {
-        state.argv0_path = try allocator.dupe(u8, path);
-    }
+    state.argv0_path = owned_path;
 }
 
 fn appendPathEntry(
@@ -1003,6 +1005,27 @@ test "setArgvExecPath preserves the previous value when environment propagation 
     );
     try std.testing.expectEqualStrings("/old/path", state.argv_exec_path.?);
     try std.testing.expectEqualStrings("/old/path", env.get("PERF_EXEC_PATH").?);
+}
+
+test "setArgv0Path preserves the previous value when duplicating the replacement path fails" {
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try setArgv0Path(std.testing.allocator, &state, "/old/path");
+
+    var failing_allocator_state = std.testing.FailingAllocator.init(std.testing.allocator, .{
+        .fail_index = 0,
+    });
+
+    try std.testing.expectError(
+        error.OutOfMemory,
+        setArgv0Path(
+            failing_allocator_state.allocator(),
+            &state,
+            "/new/path",
+        ),
+    );
+    try std.testing.expectEqualStrings("/old/path", state.argv0_path.?);
 }
 
 test "setupPath updates PATH using stored exec path, argv0 path, and fallback defaults" {
