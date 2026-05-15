@@ -18,11 +18,18 @@ TRANSPORT_MANIFEST_FILES = {
     "mmio_manifest": "zigux/tests/phase10_virtio_mmio_manifest.json",
 }
 
+INPUT_DRIVER_FILES = [
+    "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_probe_preflight.zig",
+    "drivers/virtio/virtio_input_verify.zig",
+]
+
 FILES = [
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py",
     "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    *INPUT_DRIVER_FILES,
     TRANSPORT_MANIFEST_FILES["ring_manifest"],
     TRANSPORT_MANIFEST_FILES["input_manifest"],
     TRANSPORT_MANIFEST_FILES["mmio_manifest"],
@@ -367,10 +374,13 @@ def write_fixture(root: Path) -> None:
     files = {
         "scripts/zigux/validate-phase10.py": "# fixture validator\n",
         "scripts/zigux/validate-phase10-closure.py": "# fixture closure validator\n",
-        "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_NOTE_MARKERS)
         + "\n",
         "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join(SURVEY_MARKERS) + "\n",
+        "drivers/virtio/virtio_input.zig": "// fixture input helper\n",
+        "drivers/virtio/virtio_input_probe_preflight.zig": "// fixture probe preflight helper\n",
+        "drivers/virtio/virtio_input_verify.zig": "// fixture input verify helper\n",
+        "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig": "\n".join(TEARDOWN_MARKERS)
         + "\n",
         TRANSPORT_MANIFEST_FILES["input_manifest"]: json.dumps(
@@ -615,6 +625,33 @@ def run_self_test() -> int:
         )
         teardown_path.write_text(original_teardown, encoding="utf-8")
 
+        driver_file = root / "drivers/virtio/virtio_input_probe_preflight.zig"
+        driver_file.unlink()
+        expect_missing_file(
+            root,
+            "drivers/virtio/virtio_input_probe_preflight.zig",
+            "phase10-self-test:missing_probe_preflight_driver_file",
+        )
+        write_fixture(root)
+
+        driver_file = root / "drivers/virtio/virtio_input.zig"
+        driver_file.unlink()
+        expect_missing_file(
+            root,
+            "drivers/virtio/virtio_input.zig",
+            "phase10-self-test:missing_input_driver_file",
+        )
+        write_fixture(root)
+
+        driver_file = root / "drivers/virtio/virtio_input_verify.zig"
+        driver_file.unlink()
+        expect_missing_file(
+            root,
+            "drivers/virtio/virtio_input_verify.zig",
+            "phase10-self-test:missing_input_verify_driver_file",
+        )
+        write_fixture(root)
+
         (root / "scripts/zigux/validate-phase10-closure.py").unlink()
         expect_missing_file(
             root,
@@ -677,7 +714,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_VALIDATION_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_VALIDATION_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
