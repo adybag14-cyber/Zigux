@@ -14,6 +14,7 @@ REPLAY_PATH = "zigux/tests/phase12_virtio_scsi_packet.zig"
 BUILD_PATH = "zigux/tests/phase12_build.zig"
 
 SLICE_MARKER = "`PHASE12_SLICE=virtio-scsi-queue-lab-support`"
+EXPECTED_SELF_TEST_CASE_COUNT = 11
 
 
 def read_text(path: Path) -> str:
@@ -251,6 +252,68 @@ def run_self_test() -> int:
         case_count += 1
 
         seed_fixture_tree(root)
+        (root / MANIFEST_PATH).unlink()
+        assert_only(
+            validate(root),
+            [f"missing:{MANIFEST_PATH}"],
+            "missing_manifest_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(root / MANIFEST_PATH, "{\n")
+        assert_only(
+            validate(root),
+            ["manifest:json_decode:Expecting property name enclosed in double quotes"],
+            "invalid_manifest_json_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        manifest = json.loads(read_text(root / MANIFEST_PATH))
+        manifest["lane_key"] = ""
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        assert_only(
+            validate(root),
+            ["manifest:lane_key_missing"],
+            "missing_lane_key_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        manifest = json.loads(read_text(root / MANIFEST_PATH))
+        manifest["surveyed_commit"] = ""
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        assert_only(
+            validate(root),
+            ["manifest:surveyed_commit_missing"],
+            "missing_surveyed_commit_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        manifest = json.loads(read_text(root / MANIFEST_PATH))
+        manifest["shipped_paths"] = []
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        assert_only(
+            validate(root),
+            ["manifest:shipped_paths_missing"],
+            "missing_shipped_paths_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        manifest = json.loads(read_text(root / MANIFEST_PATH))
+        manifest["repo_gaps"] = []
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        assert_only(
+            validate(root),
+            ["manifest:repo_gaps_missing"],
+            "missing_repo_gaps_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
         write_text(root / SLICE_PATH, "# stale\n")
         assert_only(
             validate(root),
@@ -312,6 +375,13 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+    if case_count != EXPECTED_SELF_TEST_CASE_COUNT:
+        raise SystemExit(
+            "phase12-virtio-scsi-packet-self-test:"
+            f"case_count:got={case_count}:want={EXPECTED_SELF_TEST_CASE_COUNT}"
+        )
+
+    print("PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST=pass")
     print(f"PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
