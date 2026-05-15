@@ -350,6 +350,7 @@ EXPECTED_STRING_HELPER_TESTS = [
     'test "memparse consumes suffix after saturation"',
     'test "memparse applies suffixes before signed clamping"',
     'test "strnchr honors count and C-string boundaries"',
+    'test "strnchrNul returns the first match, NUL, or count boundary"',
 ]
 
 STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES = (
@@ -520,6 +521,7 @@ def expected_string_memparse_review_anchors(test_names: list[str]) -> list[str]:
 def expected_string_prefix_suffix_review_anchors(test_names: list[str]) -> list[str]:
     return [name for name in test_names if name.startswith(STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES)]
 
+
 def expected_string_sysfs_review_anchors(test_names: list[str]) -> list[str]:
     return [name for name in test_names if name.startswith(STRING_SYSFS_ANCHOR_PREFIXES)]
 
@@ -531,6 +533,13 @@ def expected_string_lookup_review_anchors(test_names: list[str]) -> list[str]:
 def expected_string_strnchr_review_anchor(test_names: list[str]) -> str | None:
     for name in test_names:
         if name.startswith('test "strnchr '):
+            return name
+    return None
+
+
+def expected_string_strnchrnul_review_anchor(test_names: list[str]) -> str | None:
+    for name in test_names:
+        if name.startswith('test "strnchrNul '):
             return name
     return None
 
@@ -562,6 +571,8 @@ def collect_string_manifest_markers(root: Path, manifest: Any) -> list[str]:
         missing.append("string_manifest:lookup_review_anchors")
     if string_anchors.get("strnchr_review_anchor") != expected_string_strnchr_review_anchor(helper_tests):
         missing.append("string_manifest:strnchr_review_anchor")
+    if string_anchors.get("strnchrnul_review_anchor") != expected_string_strnchrnul_review_anchor(helper_tests):
+        missing.append("string_manifest:strnchrnul_review_anchor")
     return missing
 
 
@@ -639,11 +650,13 @@ def make_fixture_root(root: Path) -> None:
                         "sysfs_review_anchors": expected_string_sysfs_review_anchors(EXPECTED_STRING_HELPER_TESTS),
                         "lookup_review_anchors": expected_string_lookup_review_anchors(EXPECTED_STRING_HELPER_TESTS),
                         "strnchr_review_anchor": expected_string_strnchr_review_anchor(EXPECTED_STRING_HELPER_TESTS),
+                        "strnchrnul_review_anchor": expected_string_strnchrnul_review_anchor(EXPECTED_STRING_HELPER_TESTS),
                     },
                 }
             },
             indent=2,
-        ) + "\n",
+        )
+        + "\n",
     )
     write_text(root, "scripts/zigux/validate-phase1.py", "import sys\nif __name__ == '__main__':\n    print('PHASE1_VALIDATION=pass')\n    raise SystemExit(0)\n")
     write_text(root, str(DIRECT_OWNER_CHECKER_REL), "import sys\nif __name__ == '__main__':\n    print('PHASE1_DIRECT_OWNER_MARKERS=pass')\n    raise SystemExit(0)\n")
@@ -811,6 +824,13 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["strnchrnul_review_anchor"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "string_manifest:strnchrnul_review_anchor" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
         bench_path = root / "zigux/tests/fixtures/phase1_bench_expectations.json"
         bench = json.loads(bench_path.read_text(encoding="utf-8"))
         bench["exact_checksums"]["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"] = 1
@@ -889,7 +909,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + len(EXPECTED_RBTREE_MANIFEST) + 6}"
+        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + len(EXPECTED_RBTREE_MANIFEST) + 7}"
     )
     return 0
 
