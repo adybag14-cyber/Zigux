@@ -29,6 +29,6 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 
 ## Next Bounded Step
 
-- When a writable checkout and Zig toolchain are available, rerun `python3 scripts/zigux/check-kconfig-bridge.py --self-test`, the full `python3 scripts/zigux/check-kconfig-bridge.py` gate, `zig test scripts/zigux/kconfig/confdata_bridge.zig`, and the shared Phase 2 closure validators against the same `13-case` confdata packet.
+- When a writable checkout and Zig toolchain are available, rerun `python3 scripts/zigux/check-kconfig-bridge.py --self-test`, the full `python3 scripts/zigux/check-kconfig-bridge.py` gate, and `zig test scripts/zigux/kconfig/confdata_bridge.zig` against the same `13-case` confdata packet.
 - Leave this survey parked unless one of the live confdata bridge packet surfaces drifts again.
-- If it reopens, first reread `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/kconfig_bridge/cases.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, `scripts/zigux/check-kconfig-bridge.py`, and `Documentation/zigux/phase2-closure.md` together, then update evidence only for genuinely new substantive bridge progress.
+- If it reopens, first reread `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/kconfig_bridge/cases.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, and `scripts/zigux/check-kconfig-bridge.py` together, then update evidence only for genuinely new bridge-local drift.
