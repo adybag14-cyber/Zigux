@@ -646,7 +646,9 @@ test "phase 9 runtime loader allocator/init-flow replay keeps the shared build r
     try expectFileContains(phase9_build, "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);");
     try expectFileContains(phase9_build, "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);");
     try expectFileContains(phase9_build, "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);");
+    try expectFileContains(phase9_build, "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);");
     try expectFileContains(phase9_build, "test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);");
+    try expectFileContains(phase9_build, "test_step.dependOn(&run_runtime_loader_gap_survey_tests.step);");
 }
 
 test "phase 9 runtime loader allocator/init-flow replay keeps exact current init and registration evidence explicit" {
