@@ -40,6 +40,8 @@ REQUIRED_EXACT_CHECKSUMS = {
     'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM',
     'PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM',
     'PHASE1_BENCH_STRING_CHECKSUM',
+    'PHASE1_BENCH_HWEIGHT_CHECKSUM',
+    'PHASE1_BENCH_LIST_SORT_CHECKSUM',
     'PHASE1_BENCH_RBTREE_CHECKSUM',
     'PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM',
     'PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM',
@@ -423,8 +425,8 @@ def run_self_test() -> None:
         f"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM={full_exact_checksums['PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM']}",
         f"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']}",
         f"PHASE1_BENCH_STRING_CHECKSUM={full_exact_checksums['PHASE1_BENCH_STRING_CHECKSUM']}",
-        'PHASE1_BENCH_HWEIGHT_CHECKSUM=1600000',
-        'PHASE1_BENCH_LIST_SORT_CHECKSUM=69300',
+        f"PHASE1_BENCH_HWEIGHT_CHECKSUM={full_exact_checksums['PHASE1_BENCH_HWEIGHT_CHECKSUM']}",
+        f"PHASE1_BENCH_LIST_SORT_CHECKSUM={full_exact_checksums['PHASE1_BENCH_LIST_SORT_CHECKSUM']}",
         f"PHASE1_BENCH_RBTREE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_RBTREE_CHECKSUM']}",
         f"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM']}",
         f"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM={full_exact_checksums['PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM']}",
@@ -589,10 +591,22 @@ def run_self_test() -> None:
     assert payload == ['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']
     cases += 1
 
-    missing_nonexact_output = ok_output.replace('\nPHASE1_BENCH_HWEIGHT_CHECKSUM=1600000', '')
-    kind, payload = validate_output(full_expectations, missing_nonexact_output)
-    assert kind == 'missing'
+    missing_hweight_exact_output = ok_output.replace(
+        f"\nPHASE1_BENCH_HWEIGHT_CHECKSUM={full_exact_checksums['PHASE1_BENCH_HWEIGHT_CHECKSUM']}",
+        '',
+    )
+    kind, payload = validate_output(full_expectations, missing_hweight_exact_output)
+    assert kind == 'missing_exact_checksums'
     assert payload == ['PHASE1_BENCH_HWEIGHT_CHECKSUM']
+    cases += 1
+
+    missing_list_sort_exact_output = ok_output.replace(
+        f"\nPHASE1_BENCH_LIST_SORT_CHECKSUM={full_exact_checksums['PHASE1_BENCH_LIST_SORT_CHECKSUM']}",
+        '',
+    )
+    kind, payload = validate_output(full_expectations, missing_list_sort_exact_output)
+    assert kind == 'missing_exact_checksums'
+    assert payload == ['PHASE1_BENCH_LIST_SORT_CHECKSUM']
     cases += 1
 
     kind, _ = validate_expectations(full_expectations)
@@ -621,10 +635,10 @@ def run_self_test() -> None:
     cases += 1
 
     unexpected_exact_expectations = clone_expectations(full_expectations)
-    unexpected_exact_expectations['exact_checksums']['PHASE1_BENCH_HWEIGHT_CHECKSUM'] = 1600000
+    unexpected_exact_expectations['exact_checksums']['PHASE1_BENCH_FAKE_CHECKSUM'] = 1600000
     kind, payload = validate_expectations(unexpected_exact_expectations)
-    assert kind == 'expectations_unexpected_exact_checksums'
-    assert payload == ['PHASE1_BENCH_HWEIGHT_CHECKSUM']
+    assert kind == 'expectations_exact_checksum_not_listed'
+    assert payload == 'PHASE1_BENCH_FAKE_CHECKSUM'
     cases += 1
 
     duplicate_checksum_expectations = clone_expectations(full_expectations)
