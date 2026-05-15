@@ -202,10 +202,10 @@ def run_self_test() -> int:
         (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
             json.dumps(
                 {
-                    "phase": "Phase 2",
+                    "phase": "Phase 3",
                     "status": EXPECTED_STATUS,
-                    "target_count": 2,
-                    "targets": EXPECTED_TARGETS[:-1],
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
                     "zig_test_files": EXPECTED_ZIG_TEST_FILES,
                 },
                 indent=2,
@@ -214,8 +214,7 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_fixture(root)
-        assert any(issue.startswith("fixture:targets:") for issue in issues)
-        assert "fixture:target_count:2" in issues
+        assert "fixture:phase:'Phase 3'" in issues
         case_count += 1
 
         build_self_test_root(root)
@@ -235,6 +234,26 @@ def run_self_test() -> int:
         )
         issues = validate_fixture(root)
         assert "fixture:status:'open'" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "status": EXPECTED_STATUS,
+                    "target_count": 2,
+                    "targets": EXPECTED_TARGETS[:-1],
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert any(issue.startswith("fixture:targets:") for issue in issues)
+        assert "fixture:target_count:2" in issues
         case_count += 1
 
         build_self_test_root(root)
