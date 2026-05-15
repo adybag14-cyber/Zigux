@@ -255,6 +255,8 @@ REQUIRED_MARKERS = {
         "string_escape_str_any_np()",
         "memcpyAndPad()",
         "strreplace()",
+        "phase 7 string helpers starter covers whitespace trimming and prefix skipping",
+        "phase 7 string helpers starter formats bounded sizes with three significant figures",
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "expanded helper packet",
@@ -590,6 +592,18 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_string_helpers_survey.zig",
                 "stringEscapeMem()",
                 "zigux/tests/phase7_string_helpers_survey.zig: stringEscapeMem()",
+            ),
+            (
+                "string helper survey whitespace coverage marker",
+                "zigux/tests/phase7_string_helpers_survey.zig",
+                "phase 7 string helpers starter covers whitespace trimming and prefix skipping",
+                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter covers whitespace trimming and prefix skipping",
+            ),
+            (
+                "string helper survey bounded-size coverage marker",
+                "zigux/tests/phase7_string_helpers_survey.zig",
+                "phase 7 string helpers starter formats bounded sizes with three significant figures",
+                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter formats bounded sizes with three significant figures",
             ),
             (
                 "string helper manifest expanded state marker",
