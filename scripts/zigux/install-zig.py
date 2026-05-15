@@ -14,11 +14,14 @@ import tarfile
 import tempfile
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 
 
 INDEX_URL = 'https://ziglang.org/download/index.json'
+COMMUNITY_MIRRORS_URL = 'https://ziglang.org/download/community-mirrors.txt'
+DOWNLOAD_SOURCE = 'zigux-install-zig'
 VERSION_KEY_RE = re.compile(r'^\d+\.\d+\.\d+(?:-dev\.\d+(?:\+[0-9A-Za-z.-]+)?)?$')
 ARCHIVE_SHA256_RE = re.compile(r'^[0-9a-f]{64}$')
 RETRYABLE_HTTP_STATUS_CODES = {500, 502, 503, 504}
@@ -237,6 +240,20 @@ def read_index() -> dict:
         return json.load(response)
 
 
+def read_mirror_list() -> list[str]:
+    with open_url(COMMUNITY_MIRRORS_URL) as response:
+        payload = response.read().decode('utf-8')
+    mirrors: list[str] = []
+    for line in payload.splitlines():
+        candidate = line.strip().rstrip('/')
+        if not candidate:
+            continue
+        if not candidate.startswith('https://'):
+            continue
+        mirrors.append(candidate)
+    return mirrors
+
+
 def infer_tarball_url(channel: str, target_key: str, system_key: str) -> str:
     suffix = '.zip' if system_key == 'windows' else '.tar.xz'
     if '-dev.' in channel:
@@ -276,6 +293,81 @@ def load_index(channel: str) -> dict:
         if not is_explicit_version(channel):
             raise
         return {}
+
+
+def add_source_query(url: str, source: str = DOWNLOAD_SOURCE) -> str:
+    if not source:
+        return url
+    split = urllib.parse.urlsplit(url)
+    query = urllib.parse.parse_qsl(split.query, keep_blank_values=True)
+    query.append(('source', source))
+    return urllib.parse.urlunsplit(
+        (split.scheme, split.netloc, split.path, urllib.parse.urlencode(query), split.fragment)
+    )
+
+
+def build_candidate_urls(tarball_url: str, expected_sha256: str | None) -> list[str]:
+    candidates = [tarball_url]
+    if expected_sha256 is None:
+        return candidates
+
+    parsed = urllib.parse.urlsplit(tarball_url)
+    if parsed.netloc != 'ziglang.org':
+        return candidates
+
+    tarball_name = Path(parsed.path).name
+    try:
+        mirrors = read_mirror_list()
+    except (urllib.error.HTTPError, urllib.error.URLError):
+        return candidates
+
+    candidate_urls: list[str] = []
+    seen: set[str] = set()
+    for mirror_url in mirrors:
+        candidate = add_source_query(f'{mirror_url}/{tarball_name}')
+        if candidate in seen:
+            continue
+        candidate_urls.append(candidate)
+        seen.add(candidate)
+
+    if tarball_url not in seen:
+        candidate_urls.append(tarball_url)
+    return candidate_urls
+
+
+def download_archive(
+    candidate_urls: list[str],
+    destination: Path,
+    *,
+    expected_sha256: str | None,
+    retries: int = DOWNLOAD_RETRIES,
+    timeout: float = DOWNLOAD_TIMEOUT,
+) -> tuple[str, str | None]:
+    errors: list[str] = []
+    for candidate_url in candidate_urls:
+        if destination.exists():
+            destination.unlink()
+        try:
+            copy_url_to_file(candidate_url, destination, retries=retries, timeout=timeout)
+            actual_sha256 = None
+            if expected_sha256 is not None:
+                actual_sha256 = verify_archive_sha256(destination, expected_sha256)
+            return candidate_url, actual_sha256
+        except SystemExit as exc:
+            errors.append(f'{candidate_url}: {exc}')
+        except (
+            FileNotFoundError,
+            OSError,
+            TimeoutError,
+            subprocess.CalledProcessError,
+            urllib.error.HTTPError,
+            urllib.error.URLError,
+        ) as exc:
+            errors.append(f'{candidate_url}: {exc}')
+        if destination.exists():
+            destination.unlink()
+    detail = '\n'.join(errors) if errors else 'no candidate URLs were generated'
+    raise SystemExit(f'failed to download Zig archive from available sources:\n{detail}')
 
 
 def extract_archive(archive_path: Path, dest: Path) -> Path:
@@ -405,6 +497,30 @@ def run_self_test() -> int:
         else:
             raise AssertionError('expected sha mismatch to fail')
 
+    assert add_source_query('https://mirror.example/zig.tar.xz') == (
+        'https://mirror.example/zig.tar.xz?source=zigux-install-zig'
+    )
+    assert add_source_query('https://mirror.example/zig.tar.xz?via=test') == (
+        'https://mirror.example/zig.tar.xz?via=test&source=zigux-install-zig'
+    )
+
+    original_read_mirror_list = globals()['read_mirror_list']
+    try:
+        globals()['read_mirror_list'] = lambda: ['https://mirror-one.example', 'https://mirror-two.example']
+        assert build_candidate_urls('https://ziglang.org/builds/zig.tar.xz', None) == [
+            'https://ziglang.org/builds/zig.tar.xz'
+        ]
+        assert build_candidate_urls('https://downloads.example/zig.tar.xz', 'f' * 64) == [
+            'https://downloads.example/zig.tar.xz'
+        ]
+        assert build_candidate_urls('https://ziglang.org/builds/zig.tar.xz', 'f' * 64) == [
+            'https://mirror-one.example/zig.tar.xz?source=zigux-install-zig',
+            'https://mirror-two.example/zig.tar.xz?source=zigux-install-zig',
+            'https://ziglang.org/builds/zig.tar.xz',
+        ]
+    finally:
+        globals()['read_mirror_list'] = original_read_mirror_list
+
     class FakeResponse:
         def __init__(self, events: list[bytes | BaseException], *, status: int):
             self._events = list(events)
@@ -508,6 +624,51 @@ def run_self_test() -> int:
         shutil.which = original_which
         globals()['copy_url_to_file_with_curl'] = original_curl_copy
 
+    download_attempts: list[str] = []
+    verified_urls: list[str] = []
+
+    def fake_copy(url: str, destination: Path, *, retries: int = DOWNLOAD_RETRIES, timeout: float = DOWNLOAD_TIMEOUT) -> None:
+        del retries, timeout
+        download_attempts.append(url)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(url, encoding='utf-8')
+
+    def fake_verify(path: Path, expected_sha256: str) -> str:
+        del expected_sha256
+        candidate_url = path.read_text(encoding='utf-8')
+        verified_urls.append(candidate_url)
+        if 'mirror-one' in candidate_url:
+            raise SystemExit('zig archive sha256 mismatch for zig.tar.xz: expected good, got bad')
+        return 'f' * 64
+
+    original_copy = globals()['copy_url_to_file']
+    original_verify = globals()['verify_archive_sha256']
+    with tempfile.TemporaryDirectory(prefix='zigux_install_zig_download_') as tmp_dir:
+        temp_archive = Path(tmp_dir) / 'zig.tar.xz'
+        try:
+            globals()['copy_url_to_file'] = fake_copy
+            globals()['verify_archive_sha256'] = fake_verify
+            selected_url, selected_sha = download_archive(
+                [
+                    'https://mirror-one.example/zig.tar.xz?source=zigux-install-zig',
+                    'https://mirror-two.example/zig.tar.xz?source=zigux-install-zig',
+                ],
+                temp_archive,
+                expected_sha256='f' * 64,
+                retries=2,
+                timeout=1.0,
+            )
+            assert selected_url == 'https://mirror-two.example/zig.tar.xz?source=zigux-install-zig'
+            assert selected_sha == 'f' * 64
+            assert download_attempts == [
+                'https://mirror-one.example/zig.tar.xz?source=zigux-install-zig',
+                'https://mirror-two.example/zig.tar.xz?source=zigux-install-zig',
+            ]
+            assert verified_urls == download_attempts
+        finally:
+            globals()['copy_url_to_file'] = original_copy
+            globals()['verify_archive_sha256'] = original_verify
+
     try:
         normalize_os('plan9')
     except SystemExit:
@@ -537,7 +698,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=27')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=31')
     return 0
 
 
@@ -564,11 +725,14 @@ def main() -> int:
     expected_archive_sha256 = None
     if channel == policy_channel:
         expected_archive_sha256 = load_policy_archive_sha256(TOOLCHAIN_POLICY, target_key)
+    candidate_urls = build_candidate_urls(tarball_url, expected_archive_sha256)
 
     print(f'ZIG_INSTALL_CHANNEL={channel}')
     print(f'ZIG_INSTALL_VERSION={version}')
     print(f'ZIG_INSTALL_TARGET={target_key}')
     print(f'ZIG_INSTALL_URL={tarball_url}')
+    if candidate_urls and candidate_urls[0] != tarball_url:
+        print(f'ZIG_INSTALL_MIRROR_CANDIDATE_COUNT={len(candidate_urls) - 1}')
     if expected_archive_sha256 is not None:
         print(f'ZIG_INSTALL_EXPECTED_ARCHIVE_SHA256={expected_archive_sha256}')
     if args.resolve_only:
@@ -582,9 +746,14 @@ def main() -> int:
         tmpdir = Path(tmpdir_str)
         archive_name = tarball_url.rsplit('/', 1)[-1]
         archive_path = tmpdir / archive_name
-        copy_url_to_file(tarball_url, archive_path)
-        if expected_archive_sha256 is not None:
-            actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)
+        selected_url, actual_archive_sha256 = download_archive(
+            candidate_urls,
+            archive_path,
+            expected_sha256=expected_archive_sha256,
+        )
+        if selected_url != tarball_url:
+            print(f'ZIG_INSTALL_DOWNLOAD_URL={selected_url}')
+        if actual_archive_sha256 is not None:
             print(f'ZIG_INSTALL_ARCHIVE_SHA256={actual_archive_sha256}')
             print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified')
         else:
