@@ -11,6 +11,7 @@
     "phase15_replay_green_on_current_master": true
   },
   "phase15_validate_checkers": [
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py"
