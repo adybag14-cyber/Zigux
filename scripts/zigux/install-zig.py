@@ -31,6 +31,7 @@ DOWNLOAD_CHUNK_SIZE = 1024 * 1024
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
 FALLBACK_CHANNEL = 'master'
+ARCHIVE_CACHE_DIRNAME = 'archives'
 
 
 def normalize_os(name: str) -> str:
@@ -116,6 +117,14 @@ def verify_archive_sha256(path: Path, expected_sha256: str) -> str:
             f'zig archive sha256 mismatch for {path.name}: expected {expected_sha256.lower()}, got {actual_sha256.lower()}'
         )
     return actual_sha256.lower()
+
+
+def cache_archive(archive_path: Path, install_root: Path) -> Path:
+    cache_root = install_root / ARCHIVE_CACHE_DIRNAME
+    cache_root.mkdir(parents=True, exist_ok=True)
+    cached_archive = cache_root / archive_path.name
+    shutil.copy2(archive_path, cached_archive)
+    return cached_archive
 
 
 def open_url(url: str | urllib.request.Request, *, retries: int = 3, timeout: float = 30.0):
@@ -490,6 +499,9 @@ def run_self_test() -> int:
         expected_sha256 = hashlib.sha256(b'zigux-archive').hexdigest()
         assert calculate_sha256(archive_path) == expected_sha256
         assert verify_archive_sha256(archive_path, expected_sha256) == expected_sha256
+        cached_archive = cache_archive(archive_path, Path(tmp_dir) / '.zig-toolchain')
+        assert cached_archive == Path(tmp_dir) / '.zig-toolchain' / ARCHIVE_CACHE_DIRNAME / 'archive.tar.xz'
+        assert cached_archive.read_bytes() == b'zigux-archive'
         try:
             verify_archive_sha256(archive_path, '0' * 64)
         except SystemExit as exc:
@@ -698,7 +710,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=31')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=33')
     return 0
 
 
@@ -758,6 +770,8 @@ def main() -> int:
             print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified')
         else:
             print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=unverified')
+        cached_archive = cache_archive(archive_path, install_root)
+        print(f'ZIG_INSTALL_ARCHIVE_CACHE={cached_archive.resolve()}')
 
         extracted_root = extract_archive(archive_path, tmpdir / 'extract')
         final_root = install_root / extracted_root.name
