@@ -69,6 +69,11 @@ EXACT_CHECK_MARKERS = [
     "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
 ]
 
+EXPECTED_READY_TRANSPORT_FOLLOWUPS = {
+    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
+}
+
 SCRIPTS_README_MARKERS = [
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
@@ -162,6 +167,41 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             if marker not in exact_checks:
                 missing.append(f"manifest:exact_checks:{marker}")
 
+    ready_transport_followups = manifest.get("ready_transport_followups")
+    if not isinstance(ready_transport_followups, dict):
+        missing.append("manifest:ready_transport_followups")
+    else:
+        for path, gap_id in EXPECTED_READY_TRANSPORT_FOLLOWUPS.items():
+            actual = ready_transport_followups.get(path)
+            if actual != gap_id:
+                missing.append(
+                    "manifest:ready_transport_followups:"
+                    + path
+                    + "="
+                    + repr(actual)
+                )
+        for path in sorted(set(ready_transport_followups) - set(EXPECTED_READY_TRANSPORT_FOLLOWUPS)):
+            missing.append(
+                "manifest:ready_transport_followups:extra:"
+                + path
+                + "="
+                + repr(ready_transport_followups[path])
+            )
+
+    blocked_transport_gaps = manifest.get("blocked_transport_gaps")
+    if not isinstance(blocked_transport_gaps, dict):
+        missing.append("manifest:blocked_transport_gaps")
+    else:
+        for path, gap_id in EXPECTED_READY_TRANSPORT_FOLLOWUPS.items():
+            actual = blocked_transport_gaps.get(path)
+            if actual != gap_id:
+                missing.append(
+                    "manifest:blocked_transport_gaps:"
+                    + path
+                    + "="
+                    + repr(actual)
+                )
+
     return [], missing
 
 
@@ -196,6 +236,11 @@ def write_fixture(root: Path) -> None:
                     }
                 },
                 "exact_checks": EXACT_CHECK_MARKERS,
+                "ready_transport_followups": EXPECTED_READY_TRANSPORT_FOLLOWUPS,
+                "blocked_transport_gaps": {
+                    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
+                    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
+                },
             },
             indent=2,
         )
@@ -413,6 +458,42 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["ready_transport_followups"][
+            "zigux/tests/phase10_virtio_input_manifest.json"
+        ] = "phase10-virtio-input-registration-lifecycle-drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_ready_transport_followup_input",
+            root,
+            "manifest:ready_transport_followups:zigux/tests/phase10_virtio_input_manifest.json='phase10-virtio-input-registration-lifecycle-drift'",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["ready_transport_followups"][
+            "zigux/tests/phase10_virtio_ring_manifest.json"
+        ] = "phase10-ring-lab-driver-bridge"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_ready_transport_followup_extra",
+            root,
+            "manifest:ready_transport_followups:extra:zigux/tests/phase10_virtio_ring_manifest.json='phase10-ring-lab-driver-bridge'",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["blocked_transport_gaps"][
+            "zigux/tests/phase10_virtio_mmio_manifest.json"
+        ] = "phase10-mmio-lifecycle-and-irq-paths-drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_blocked_transport_gap_mmio",
+            root,
+            "manifest:blocked_transport_gaps:zigux/tests/phase10_virtio_mmio_manifest.json='phase10-mmio-lifecycle-and-irq-paths-drift'",
+        )
+        write_fixture(root)
+
         tests_readme_path = root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -439,7 +520,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
