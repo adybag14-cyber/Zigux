@@ -106,16 +106,13 @@ and the focused `make -C zigux phase9-runtime-loader-shared-tests`,
 `make -C zigux phase9-test`, and `make -C zigux phase9` replay routes instead
 of leaving that packet blurred into the tail of the Phase 8 flow.
 
-Fresh repo-first inspection also shows `Documentation/zigux/review-checklist.md`
-still keeps the no-dedicated-validator posture, the blocked module-metadata and
-depmod-publication boundary, and the older Phase 8 command and environment cue
-owners explicit, but it does not yet restate that
-`scripts/zigux/kconfig/conf_bridge.zig` and
-`scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface
-bridge references while `rust/exports.c` and `zigux/kernel/export_shim.zig`
-remain Phase 3 export-boundary references. That missing checklist reminder is
-now the smallest same-lane cross-phase follow-through left inside the shared
-loader packet.
+Fresh repo-first inspection now also shows `Documentation/zigux/review-checklist.md`
+keeps the no-dedicated-validator posture, the blocked module-metadata and
+depmod-publication boundary, the older Phase 8 command and environment cue
+owners, and the older Phase 2 Kconfig plus Phase 3 export non-owner boundaries
+explicit, while `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
+now keeps that reviewer-facing reminder fail-closed beside the broader shared
+build-only checker.
 
 Fresh repo-first inspection now also shows
 `zigux/tests/runtime_loader_gap_manifest.json` no longer records any remaining
@@ -127,10 +124,8 @@ family-local follow-through.
 
 That means the earlier docs-root undercount and the later tests-root undercount
 are both cleared on current `master`; the remaining same-lane follow-through is
-now the review-checklist reminder for the older Phase 2 Kconfig and Phase 3
-export non-owner boundaries, then future reminder drift around the blocked
-module-metadata and depmod-publication boundary rather than shared packet
-inventory sync.
+now future reminder drift around the blocked module-metadata and
+depmod-publication boundary rather than shared packet inventory sync.
 
 ## Next Bounded Step
 
@@ -143,9 +138,7 @@ around the shared loader-gap packet, the landed
 Phase 2 Kconfig and Phase 3 export non-owner boundaries, or the blocked
 module-metadata and depmod-publication boundary.
 
-When that happens, start with `Documentation/zigux/review-checklist.md` if the
-older cross-phase non-owner reminder is still missing there; otherwise keep the
-exact owner map and blocked publication boundary deferred back to
-`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, and keep future
-follow-through inside shared reminder truthfulness instead of reopening
-pilot-family behavior, loader implementation, or new checker growth.
+When that happens, keep the exact owner map and blocked publication boundary
+deferred back to `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`,
+and keep future follow-through inside shared reminder truthfulness instead of
+reopening pilot-family behavior, loader implementation, or new checker growth.
