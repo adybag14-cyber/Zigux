@@ -208,7 +208,8 @@ test "phase 5 trace-events survey note stays aligned with the focused direct rep
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`checked_focus`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "FunctionCallbackNotRegistered") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`OutstandingRegistration`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "tests-root shared reminder now keeps the current landed helper vocabulary aligned too") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "tests-root shared reminder is only inventory-aligned in this run") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "packet-inventory support material on current `master`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "phase5-trace-events-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "samples/zigux/trace_events_sample.zig") != null);
@@ -219,16 +220,12 @@ test "phase 5 trace-events survey note stays aligned with the focused direct rep
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_build.zig") != null);
 
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "Documentation/zigux/phase5-trace-events-sample-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "samples/zigux/trace_events_sample.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_trace_events_sample.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_trace_events_sample_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_trace_events_sample_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "runPayloadBoundaryReplay()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "runCallbackBoundaryRecoveryReplay()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "runStringFormattingCycleReplay()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "runLifecycleBoundaryReplay()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "lifecycleSummary()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "selected-string plus `iter=%d`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "OutstandingRegistration") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_build.zig") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "trace-events") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "`checked_focus` order") != null);
