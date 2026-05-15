@@ -1,7 +1,7 @@
 const std = @import("std");
 const contract = @import("runtime_loader_contract.zig");
 
-pub const AllocatorHandoff = contract.AllocatorHandoff;
+pub const AllocatorHandoff = contract.AllatorHandoff;
 pub const HandoffStage = contract.HandoffStage;
 pub const InitFlow = contract.InitFlow;
 pub const LoadPlan = contract.LoadPlan;
@@ -23,6 +23,7 @@ pub const PreparedRequest = struct {
         if (!keepsLoadPlanExplicit(self.plan, self.prepared_plan)) {
             return error.PreparedPlanDrift;
         }
+        _ = try prepareRequest(self.plan);
         self.state = .released_without_substrate;
     }
 };
@@ -258,7 +259,7 @@ test "PreparedRequest.requestRuntimeLoad preserves the prepared snapshot on drif
     try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
 }
 
-test "PreparedRequest.releaseWithoutSubstrate preserves the pending snapshot on drift" {
+test "PreparedRequest.releaseWithoutSubstrate revalidates the waiting snapshot before release" {
     const stable = LoadPlan{
         .module_name = "runtime_bitmap",
         .anchor = "lib/test_bitmap.c",
@@ -277,26 +278,22 @@ test "PreparedRequest.releaseWithoutSubstrate preserves the pending snapshot on 
 
     var request = try prepareRequest(stable);
     const pending = try request.requestRuntimeLoad();
-    request.plan.exit_symbol = "zigux_runtime_bitmap_exit_drift";
-    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
-    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
-    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
-    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
-    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .waiting_on_runtime_substrate, pending));
 
-    request.plan = stable;
-    request.plan.allocator_handoff = .caller_provided;
-    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
-    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    request.plan.module_name = "runtime_bitmap_drift";
+    request.prepared_plan.module_name = "runtime_bitmap_drift";
+    try std.testing.expectError(error.InvalidPilotFamilyContract, request.releaseWithoutSubstrate());
     try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .waiting_on_runtime_substrate, request.plan));
-    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
-    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
-    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
-    try std.testing.expectEqual(AllocatorHandoff.arena, request.prepared_plan.allocator_handoff);
-    try std.testing.expectEqual(AllocatorHandoff.caller_provided, request.plan.allocator_handoff);
 
-    request.plan = stable;
+    request.plan = pending;
+    request.prepared_plan = pending;
+    request.plan.provides_selftest_hook = false;
+    request.prepared_plan.provides_selftest_hook = false;
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, request.releaseWithoutSubstrate());
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .waiting_on_runtime_substrate, request.plan));
+
+    request.plan = pending;
+    request.prepared_plan = pending;
     try request.releaseWithoutSubstrate();
-    try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .released_without_substrate, stable));
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .released_without_substrate, pending));
 }
