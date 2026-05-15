@@ -239,6 +239,9 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(cmdline_tests, "phase 7 getOption preserves validator-only numeric acceptance without explicit leading plus");
     try expectContains(cmdline_tests, "phase 7 getOption clears caller output on malformed signed and unsigned input");
     try expectContains(cmdline_tests, "phase 7 getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull consumption");
+    try expectContains(cmdline_tests, "phase 7 getOption and getOptions preserve oversized wrap semantics");
+    try expectContains(cmdline_tests, "phase 7 memparse saturates oversized unsigned prefixes before applying suffix handling");
+    try expectContains(cmdline_tests, "phase 7 memparse keeps saturated prefixes aligned when size suffixes still apply");
     try expectContains(cmdline_tests, "const single_rest = cmdline.getOptions(\"1-1\", single.len, &single);");
     try expectContains(cmdline_tests, "const single_validate_rest = cmdline.getOptions(\"1-1\", 0, &single_validate);");
     try expectContains(cmdline_tests, "phase 7 parseOptionStr matches only exact bare options");
@@ -252,6 +255,18 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(
         helper_impl,
         "test \"getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull consumption\"",
+    );
+    try expectContains(
+        helper_impl,
+        "test \"getOption and getOptions preserve oversized wrap semantics\"",
+    );
+    try expectContains(
+        helper_impl,
+        "test \"memparse saturates oversized unsigned prefixes before applying suffix handling\"",
+    );
+    try expectContains(
+        helper_impl,
+        "test \"memparse keeps saturated prefixes aligned when size suffixes still apply\"",
     );
     try expectContains(
         helper_impl,
