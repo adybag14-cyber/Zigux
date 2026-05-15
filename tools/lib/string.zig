@@ -1,11 +1,9 @@
 const std = @import("std");
+const cmdline = @import("cmdline.zig");
 
 pub const ParseBoolError = error{Invalid};
 
-pub const MemparseResult = struct {
-    value: u64,
-    rest: []const u8,
-};
+pub const MemparseResult = cmdline.MemparseResult;
 
 const strscpy_e2big: isize = -7;
 
@@ -284,121 +282,8 @@ pub fn match_string(haystack: []const []const u8, needle: []const u8) ?usize {
     return matchString(haystack, needle);
 }
 
-fn digitValue(ch: u8, base: u8) ?u8 {
-    const value = std.fmt.charToDigit(ch, base) catch return null;
-    return @intCast(value);
-}
-
-fn parseSignedPrefix(text: []const u8) struct {
-    negative: bool,
-    start: usize,
-} {
-    if (text.len == 0) {
-        return .{ .negative = false, .start = 0 };
-    }
-
-    return switch (text[0]) {
-        '-' => .{ .negative = true, .start = 1 },
-        '+' => .{ .negative = false, .start = 1 },
-        else => .{ .negative = false, .start = 0 },
-    };
-}
-
-fn parseBase(text: []const u8, start: usize) struct {
-    base: u8,
-    digits_start: usize,
-} {
-    if (start + 1 < text.len and text[start] == '0') {
-        const next = text[start + 1];
-        if (next == 'x' or next == 'X') {
-            return .{ .base = 16, .digits_start = start + 2 };
-        }
-        return .{ .base = 8, .digits_start = start };
-    }
-
-    return .{ .base = 10, .digits_start = start };
-}
-
-fn saturatingMulAdd(value: u64, base: u8, digit: u8) u64 {
-    const mul = std.math.mul(u64, value, base) catch return std.math.maxInt(u64);
-    return std.math.add(u64, mul, digit) catch return std.math.maxInt(u64);
-}
-
-fn applySuffix(value: u64, suffix: u8) u64 {
-    const shift: u6 = switch (suffix) {
-        'E', 'e' => 60,
-        'P', 'p' => 50,
-        'T', 't' => 40,
-        'G', 'g' => 30,
-        'M', 'm' => 20,
-        'K', 'k' => 10,
-        else => return value,
-    };
-    const max_value: u64 = std.math.maxInt(u64);
-    if (value > (max_value >> shift)) {
-        return std.math.maxInt(u64);
-    }
-    return value << shift;
-}
-
-fn clampSignedMagnitude(magnitude: u64, negative: bool) u64 {
-    const max_positive = std.math.maxInt(i64);
-    const min_magnitude = (@as(u64, 1) << 63);
-    const min_signed: i64 = std.math.minInt(i64);
-
-    if (negative) {
-        if (magnitude >= min_magnitude) {
-            return @bitCast(min_signed);
-        }
-
-        const signed: i64 = -@as(i64, @intCast(magnitude));
-        return @bitCast(signed);
-    }
-
-    if (magnitude > @as(u64, @intCast(max_positive))) {
-        return @as(u64, @intCast(max_positive));
-    }
-
-    return magnitude;
-}
-
 pub fn memparse(text: []const u8) MemparseResult {
-    const prefix = parseSignedPrefix(text);
-    const base_info = parseBase(text, prefix.start);
-    const signed_input = prefix.start != 0;
-
-    var idx = base_info.digits_start;
-    var parsed_any = false;
-    var magnitude: u64 = 0;
-
-    while (idx < text.len) : (idx += 1) {
-        const digit = digitValue(text[idx], base_info.base) orelse break;
-        parsed_any = true;
-        magnitude = saturatingMulAdd(magnitude, base_info.base, digit);
-    }
-
-    if (!parsed_any) {
-        return .{ .value = 0, .rest = text };
-    }
-
-    if (idx < text.len) {
-        if (signed_input) {
-            magnitude = applySuffix(magnitude, text[idx]);
-        }
-    }
-
-    var result = clampSignedMagnitude(magnitude, prefix.negative);
-    if (idx < text.len) {
-        if (!signed_input) {
-            result = applySuffix(result, text[idx]);
-        }
-        switch (text[idx]) {
-            'E', 'e', 'P', 'p', 'T', 't', 'G', 'g', 'M', 'm', 'K', 'k' => idx += 1,
-            else => {},
-        }
-    }
-
-    return .{ .value = result, .rest = text[idx..] };
+    return cmdline.memparse(text);
 }
 
 pub fn strHasPrefix(str: []const u8, prefix: []const u8) usize {
