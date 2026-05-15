@@ -71,11 +71,13 @@ MANIFEST_TOP_LEVEL_KEYS = ("phase", "status", "helper_count", "helpers", "lane_s
 BITMAP_MANIFEST_VALUE_MARKERS = (
     "phase1_helper_replay_anchor",
     "review_packet_summary",
+    "next_safe_step_note",
 )
 FIND_BIT_MANIFEST_VALUE_MARKERS = (
     "tail_word_inclusive_boundary_anchor",
     "tail_word_inclusive_boundary_contract",
     "review_packet_summary",
+    "next_safe_step_note",
 )
 RBTREE_MANIFEST_VALUE_MARKERS = (
     "review_packet_summary",
@@ -99,12 +101,18 @@ EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
     "cross-word scnprintf collapse, empty-bitmap caller-buffer preservation, copy alias, raw copy alias, zero-and-aligned copy-and-extend behavior, "
     "zero-bit no-op, zero-bit binary identity, and Linux-style alias behavior review-visible on current master"
 )
+EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE = (
+    "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen the already-closed closure-validator or validator-summary packets by default."
+)
 EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_ANCHOR = 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"'
 EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_CONTRACT = (
     "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit of the final partial word, while later starts still return nbits instead of leaking the out-of-range tail."
 )
 EXPECTED_FIND_BIT_REVIEW_PACKET_SUMMARY = (
     "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, underscore-alias, and Linux-style alias behavior review-visible on current master"
+)
+EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE = (
+    "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families."
 )
 EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY = (
     "shared find, first-match, next-match, and match-iterator duplicate-search parity stays explicit through the Phase 1 fixture and replay, while cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships a dedicated cached-root leftmost-return fixture key"
@@ -376,6 +384,8 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
         missing.append("phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:phase1_helper_replay_anchor")
     if bitmap_review_anchors.get("review_packet_summary") != EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY:
         missing.append("phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:review_packet_summary")
+    if bitmap_review_anchors.get("next_safe_step_note") != EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE:
+        missing.append("phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:next_safe_step_note")
 
     find_bit_review_anchors = review_anchors.get("tools/lib/find_bit.zig")
     if not isinstance(find_bit_review_anchors, dict):
@@ -387,6 +397,8 @@ def collect_manifest_and_source_markers(root: Path, manifest: object) -> list[st
         missing.append("phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:tail_word_inclusive_boundary_contract")
     if find_bit_review_anchors.get("review_packet_summary") != EXPECTED_FIND_BIT_REVIEW_PACKET_SUMMARY:
         missing.append("phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:review_packet_summary")
+    if find_bit_review_anchors.get("next_safe_step_note") != EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE:
+        missing.append("phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:next_safe_step_note")
 
     rbtree_review_anchors = review_anchors.get("tools/lib/rbtree.zig")
     if not isinstance(rbtree_review_anchors, dict):
@@ -577,12 +589,14 @@ def make_fixture_root(root: Path) -> None:
         "tail_word_inclusive_boundary_contract": EXPECTED_FIND_BIT_TAIL_WORD_INCLUSIVE_BOUNDARY_CONTRACT,
         "tail_clamp_fixture_keys": ["tail_clamped_first"],
         "review_packet_summary": EXPECTED_FIND_BIT_REVIEW_PACKET_SUMMARY,
+        "next_safe_step_note": EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE,
     }
     manifest["review_anchors"]["tools/lib/bitmap.zig"] = {
         "helper_test_anchors": ['test "bitmap range helpers honor exact first-word boundaries"'],
         "partial_xor_review_fields": ["partial_xor_nbits"],
         "phase1_helper_replay_anchor": EXPECTED_BITMAP_PHASE1_HELPER_REPLAY_ANCHOR,
         "review_packet_summary": EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY,
+        "next_safe_step_note": EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE,
     }
     manifest["review_anchors"]["tools/lib/string.zig"] = {
         "helper_test_anchors": ['test "strtobool accepts common Linux forms"'],
@@ -735,6 +749,13 @@ def run_self_test() -> None:
         make_fixture_root(root)
         case_count += 1
 
+        manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"]["next_safe_step_note"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:next_safe_step_note" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
         bitmap_path = root / "tools/lib/bitmap.zig"
         bitmap_path.write_text(load_text(bitmap_path) + 'test "bitmap drift"\n', encoding="utf-8")
         assert "phase1_helper_test_anchor_list:tools/lib/bitmap.zig" in collect_missing_markers(root)
@@ -759,6 +780,13 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/find_bit.zig"]["review_packet_summary"] = "stale find_bit summary"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:review_packet_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(load_text(manifest_path))
+        manifest["review_anchors"]["tools/lib/find_bit.zig"]["next_safe_step_note"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:next_safe_step_note" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
 
