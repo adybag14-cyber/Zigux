@@ -43,6 +43,14 @@ test "phase4 test_fsmount survey keeps the parked gap packet explicit" {
     );
 }
 
+test "phase4 test_fsmount survey keeps the historical parked-gap lane key explicit" {
+    try requireMarker("\"lane_key\": \"P4-L19\"");
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "PHASE4_TEST_FSMOUNT_LANE_KEY=P4-L19",
+    );
+}
+
 test "phase4 test_fsmount survey keeps threshold posture explicit" {
     try requireMarker("\"threshold_posture\": \"reviewability_only_no_perf_threshold\"");
 }
@@ -72,6 +80,17 @@ test "phase4 test_fsmount survey keeps shared lab-and-ci matrix anchor explicit"
     try requireRepoMarker(
         "Documentation/zigux/phase4-gate-evidence.md",
         "`scripts/zigux/check-phase4-remaining-gap-matrix.py` remains the dedicated lab-matrix checker for the parked `kprobe_example`, parked `test_fsmount`, and local-only perf-threshold rows",
+    );
+}
+
+test "phase4 test_fsmount survey keeps the anti-overlap sequencing note aligned" {
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-lane-sequencing.md",
+        "Both packet-local manifests currently still advertise `\"lane_key\": \"P4-L19\"` as the shared parked-gap coordination label. Treat that label as historical grouping only, not as permission to batch kprobe and `test_fsmount` follow-through into the same repair.",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-lane-sequencing.md",
+        "Even while both parked starter-gap manifests still carry `P4-L19`, reopen only the one parked packet that drifted; do not repair the sibling parked packet in the same run unless the shared exact-readback lane needs a later post-publication catch-up.",
     );
 }
 
@@ -224,7 +243,7 @@ test "phase4 test_fsmount survey keeps the shared review checklist aligned" {
     );
 }
 
-test "phase4 test_fsmount survey keeps the tests-root reminder aligned" {
+test "phase4 test_fsmount survey keeps the tests README perf-governance packet aligned" {
     try requireRepoMarker(
         "zigux/tests/README.md",
         "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
