@@ -10,6 +10,10 @@
     "pre_execution_handoff_only": true,
     "requires_idle_registration_snapshot": true,
     "failed_exit_state_retained_until_drain": true,
+    "metadata_only_lifecycle_labels": [
+      "zigux_runtime_kretprobe_init",
+      "zigux_runtime_kretprobe_exit"
+    ],
     "metadata_only_registration_labels": [
       "register_kretprobe",
       "unregister_kretprobe"
