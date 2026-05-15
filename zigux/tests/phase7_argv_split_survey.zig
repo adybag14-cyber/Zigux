@@ -174,8 +174,11 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expectEqualStrings("present_on_master", manifest.current_verification.shared_phase7_build.status);
     try std.testing.expect(manifest.current_verification.shared_phase7_build.readback_on_utc.len != 0);
     try std.testing.expectEqualStrings("zigux/tests/phase7_build.zig", manifest.current_verification.shared_phase7_build.build_file);
+    try std.testing.expectEqual(@as(usize, 6), manifest.current_verification.shared_phase7_build.reviewable_sibling_paths.len);
     try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "lib/string_helpers.zig");
     try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "zigux/tests/phase7_string_helpers.zig");
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "lib/cmdline.zig");
+    try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "zigux/tests/phase7_cmdline.zig");
     try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "lib/rbtree.zig");
     try expectStringSliceContains(manifest.current_verification.shared_phase7_build.reviewable_sibling_paths, "zigux/tests/phase7_rbtree.zig");
     try std.testing.expectEqual(@as(usize, 95), manifest.survey_summary.argv_split_c_lines);
@@ -289,16 +292,11 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(checker, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"");
     try expectContains(checker, "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space");
 
-    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-argv-split-packet.py\","
-);
-    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split.zig\","
-);
-    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_survey.zig\","
-);
-    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_manifest.json\","
-);
-    try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\","
-);
+    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-argv-split-packet.py\",");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split.zig\",");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_survey.zig\",");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_manifest.json\",");
+    try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\",");
 
     var parked_count: usize = 0;
     var ready_next_count: usize = 0;
