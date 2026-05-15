@@ -403,6 +403,51 @@ def run_self_test() -> int:
         )
         review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "`Documentation/zigux/phase10-closure-evidence.md`",
+                "`Documentation/zigux/phase10-closure-evidence-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_closure_evidence_marker",
+            root,
+            "review_checklist:`Documentation/zigux/phase10-closure-evidence.md`",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "`Documentation/zigux/phase10-virtio-core-slice.md`",
+                "`Documentation/zigux/phase10-virtio-core-slice-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_core_slice_marker",
+            root,
+            "review_checklist:`Documentation/zigux/phase10-virtio-core-slice.md`",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "`make -C zigux phase10-validate`",
+                "`make -C zigux phase10-validate-missing`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_phase10_validate_route",
+            root,
+            "review_checklist:`make -C zigux phase10-validate`",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
         doc_readme_path = root / "Documentation/zigux/README.md"
         original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
         doc_readme_path.write_text(
@@ -624,7 +669,7 @@ def run_self_test() -> int:
         expect_missing_file("checker_file", root, "scripts/zigux/check-phase10-tests-readme-core-surfaces.py")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
