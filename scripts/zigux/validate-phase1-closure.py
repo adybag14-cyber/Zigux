@@ -177,13 +177,41 @@ EXPECTED_BENCH = {
         "PHASE1_BENCH_STRING_CHECKSUM": 320000,
         "PHASE1_BENCH_RBTREE_CHECKSUM": 3380000,
         "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 1308000,
-        "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 56000,
+        "PHASE1_BENCH_FIND_ADD_CHECKSUM": 56000,
         "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 1868000,
         "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 148000,
     },
 }
 
 EXPECTED_BITMAP_MANIFEST = {
+    "helper_test_anchors": [
+        'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
+        'test "bitmap allocator helpers size zero and free their buffers"',
+        'test "bitmap size aliases round bit counts to full words in bytes"',
+        'test "bitmap set clear weight and empty full helpers"',
+        'test "bitmap range helpers honor exact first-word boundaries"',
+        'test "bitmap range helpers clamp the final partial word"',
+        'test "bitmap fill clamps tail bits in partial words"',
+        'test "bitmap and andnot equal intersects subset"',
+        'test "bitmap and andnot clamp tail bits in partial words"',
+        'test "bitmap complement clamps tail bits and alias mirrors the primary helper"',
+        'test "bitmap predicates ignore out-of-range tail bits"',
+        'test "bitmap xor keeps caller-selected bit window"',
+        'test "bitmap scnprintf collapses contiguous ranges"',
+        'test "bitmap scnprintf collapses contiguous ranges across word boundaries"',
+        'test "bitmap scnprintf reports full length while truncating the buffer"',
+        'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
+        'test "bitmap copy alias preserves raw source words without tail clearing"',
+        'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+        'test "bitmap copy and extend handles zero and aligned counts"',
+        'test "bitmap copy helpers keep zero-sized destination views untouched"',
+        'test "bitmap copy and extend leaves words past the requested size untouched"',
+        'test "bitmap zero-bit helpers stay explicit no-ops"',
+        'test "bitmap zero-bit binary helpers stay explicit identity operations"',
+        'test "bitmap Linux-style aliases keep zero-bit windows explicit no-ops"',
+        'test "bitmap low-level __bitmap aliases mirror the primary helper surface"',
+        'test "bitmap Linux-style aliases mirror the primary helper surface"',
+    ],
     "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
     "final_partial_word_anchor": 'test "bitmap range helpers clamp the final partial word"',
     "fill_tail_clamp_anchor": 'test "bitmap fill clamps tail bits in partial words"',
@@ -725,6 +753,13 @@ def run_self_test() -> None:
             make_fixture_root(root)
 
         manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"]["helper_test_anchors"] = ["drift"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "bitmap_manifest:helper_test_anchors" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["review_anchors"]["tools/lib/bitmap.zig"]["predicate_tail_mask_anchor"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
