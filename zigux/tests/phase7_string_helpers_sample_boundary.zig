@@ -150,8 +150,9 @@ test "phase 7 string helper boundary keeps the expanded helper packet and curren
     try expectContains(samples_root, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;");
     try expectContains(samples_root, "keep the ownership-focus packet visible there too");
     try expectContains(samples_root, "first-NUL trimming and prefix skipping stop at the exported C-string boundary");
-    try expectContains(samples_root, "exact-fit and zero-capacity unescape destinations stay caller-owned");
+    try expectContains(samples_root, "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned");
     try expectContains(samples_root, "append-limited escape accounting stays inside caller storage");
+    try expectContains(samples_root, "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results");
     try expectContains(samples_root, "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations");
     try expectContains(samples_root, "treat any new `samples/zigux/*string*.zig` file as review-blocking");
     try expectContains(samples_root, "lib/string_helpers.zig");
