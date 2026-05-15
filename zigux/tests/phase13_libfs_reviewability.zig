@@ -74,6 +74,52 @@ test "lookup offset seek and offset readdir helpers stay reviewable without impl
     try std.testing.expect(terminal_readdir.treats_end_of_directory_as_terminal);
 }
 
+test "cursor-open and cursor-precondition helpers stay reviewable without implying live cursor ownership" {
+    const open_ready = libfs.LibfsHelperLab.dcacheDirOpenPlan(true);
+    try std.testing.expectEqualStrings("fs/libfs.c", open_ready.anchor);
+    try std.testing.expectEqual(libfs.CursorOpenStatus.ok, open_ready.status);
+    try std.testing.expect(open_ready.allocates_private_cursor);
+    try std.testing.expect(open_ready.stores_private_cursor);
+    try std.testing.expect(open_ready.zeroes_cursor_position);
+    try std.testing.expect(open_ready.returns_zero);
+
+    const open_oom = libfs.LibfsHelperLab.dcacheDirOpenPlan(false);
+    try std.testing.expectEqual(libfs.CursorOpenStatus.out_of_memory, open_oom.status);
+    try std.testing.expect(!open_oom.allocates_private_cursor);
+    try std.testing.expect(!open_oom.stores_private_cursor);
+    try std.testing.expect(!open_oom.zeroes_cursor_position);
+    try std.testing.expect(!open_oom.returns_zero);
+
+    const blocked = libfs.LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(libfs.dir_offset_first + 2, false, false);
+    try std.testing.expectEqual(libfs.CursorPreconditionStatus.ok, blocked.status);
+    try std.testing.expectEqual(libfs.CursorResumeMode.blocked_on_emit_dots, blocked.mode.?);
+    try std.testing.expect(blocked.returns_zero);
+    try std.testing.expect(!blocked.enters_positive_scan);
+    try std.testing.expect(blocked.keeps_current_pos);
+    try std.testing.expect(!blocked.requires_private_cursor);
+
+    const first_child = libfs.LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(libfs.dir_offset_first, true, false);
+    try std.testing.expectEqual(libfs.CursorResumeMode.resume_at_first_child, first_child.mode.?);
+    try std.testing.expect(first_child.enters_positive_scan);
+    try std.testing.expect(!first_child.requires_private_cursor);
+
+    const missing_cursor = libfs.LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(libfs.dir_offset_first + 3, true, false);
+    try std.testing.expectEqual(libfs.CursorResumeMode.missing_private_cursor, missing_cursor.mode.?);
+    try std.testing.expect(!missing_cursor.enters_positive_scan);
+    try std.testing.expect(missing_cursor.keeps_current_pos);
+    try std.testing.expect(missing_cursor.requires_private_cursor);
+
+    const resumed = libfs.LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(libfs.dir_offset_first + 3, true, true);
+    try std.testing.expectEqual(libfs.CursorResumeMode.resume_from_private_cursor, resumed.mode.?);
+    try std.testing.expect(resumed.enters_positive_scan);
+    try std.testing.expect(!resumed.keeps_current_pos);
+    try std.testing.expect(resumed.requires_private_cursor);
+
+    const invalid = libfs.LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(-1, true, true);
+    try std.testing.expectEqual(libfs.CursorPreconditionStatus.negative_position, invalid.status);
+    try std.testing.expectEqual(@as(?libfs.CursorResumeMode, null), invalid.mode);
+}
+
 test "addressability planner stays reviewable without implying live page-cache ownership" {
     const zero_blocks = libfs.LibfsHelperLab.genericCheckAddressablePlan(7, 0, .{
         .sector_bits = 16,
@@ -187,7 +233,7 @@ test "offset add and rename helpers stay reviewable as managed-slot planners rat
     try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.reserved_source_offset, exchange_reserved_source.status);
     try std.testing.expectEqual(libfs.OffsetSlotClass.dot_entry_window, exchange_reserved_source.source_slot_class);
     try std.testing.expect(!exchange_reserved_source.stores_source_in_destination_map);
-    try std.testing.expect(!exchange_reserved_source.stores_destination_in_source_map);
+    try std.testing.expect(!exchange_reserved_source.stores_destinationInSourceMap);
     try std.testing.expect(!exchange_reserved_source.swaps_recorded_offsets);
 
     try std.testing.expectEqual(libfs.OffsetRenameExchangeStatus.reserved_destination_offset, exchange_reserved.status);
