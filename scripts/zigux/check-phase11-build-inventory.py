@@ -491,7 +491,7 @@ def build_inventory_fixture() -> dict[str, object]:
 
 def build_fixture(root: Path) -> None:
     write(root / FILES["inventory"], json.dumps(build_inventory_fixture(), indent=2) + "\n")
-    write(root / FILES["build_file"], "const std = @import(\"std\");\n")
+    write(root / FILES["build_file"], 'const std = @import("std");\n')
     for label, markers in TEXT_MARKERS.items():
         write(root / FILES[label], "\n".join(markers) + "\n")
 
@@ -521,156 +521,166 @@ def run_self_test() -> None:
             write(root / FILES["inventory"], json.dumps(data, indent=2) + "\n")
             return root
 
-        expect_failure(
-            rewrite_json("missing_build_name", lambda data: data["build_test_names"].remove("phase11-hvc-cleanup-tests")),
-            "phase11-hvc-cleanup-tests",
-        )
-        expect_failure(
-            rewrite_json(
+        def rewrite_text_case(case: str, label: str, marker: str) -> Path:
+            root = tmpdir / case
+            shutil.copytree(fixture, root, dirs_exist_ok=True)
+            relative_path = FILES[label]
+            write(
+                root / relative_path,
+                read_text(root, relative_path).replace(marker, "", 1),
+            )
+            return root
+
+        base_json_cases = [
+            (
+                "missing_build_name",
+                lambda data: data["build_test_names"].remove("phase11-hvc-cleanup-tests"),
+                "phase11-hvc-cleanup-tests",
+            ),
+            (
                 "wrong_module_path",
                 lambda data: next(
                     entry.update({"path": "drivers/tty/hvc/hvc_console_verify.zig"})
                     for entry in data["module_root_source_files"]
                     if entry["module"] == "hvc_console_verify_module"
                 ),
+                "module_root_source_files mismatch for hvc_console_verify_module",
             ),
-            "module_root_source_files mismatch for hvc_console_verify_module",
-        )
-        expect_failure(
-            rewrite_json(
+            (
                 "wrong_gpio_survey_path",
                 lambda data: next(
                     entry.update({"path": "phase11_gpio_wdt.zig"})
                     for entry in data["module_root_source_files"]
                     if entry["module"] == "phase11_gpio_wdt_survey_module"
                 ),
+                "module_root_source_files mismatch for phase11_gpio_wdt_survey_module",
             ),
-            "module_root_source_files mismatch for phase11_gpio_wdt_survey_module",
-        )
-        expect_failure(
-            rewrite_json(
+            (
                 "wrong_dw_wdt_survey_path",
                 lambda data: next(
                     entry.update({"path": "phase11_dw_wdt_registration_scaffold.zig"})
                     for entry in data["module_root_source_files"]
                     if entry["module"] == "phase11_dw_wdt_survey_module"
                 ),
+                "module_root_source_files mismatch for phase11_dw_wdt_survey_module",
             ),
-            "module_root_source_files mismatch for phase11_dw_wdt_survey_module",
-        )
-        expect_failure(
-            rewrite_json(
+            (
                 "missing_abi_bindings_import",
                 lambda data: data["module_imports"].remove({
                     "module": "layout_assert_module",
                     "import_name": "abi_bindings",
                     "imported_module": "abi_bindings_module",
                 }),
+                "('layout_assert_module', 'abi_bindings', 'abi_bindings_module')",
             ),
-            "('layout_assert_module', 'abi_bindings', 'abi_bindings_module')",
-        )
-        expect_failure(
-            rewrite_json(
+            (
                 "wrong_hvc_console_root_module",
                 lambda data: next(
                     entry.update({"root_module": "phase11_hvc_cleanup_module"})
                     for entry in data["test_root_modules"]
                     if entry["test"] == "phase11-hvc-console-tests"
                 ),
+                "test_root_modules mismatch for phase11-hvc-console-tests",
             ),
-            "test_root_modules mismatch for phase11-hvc-console-tests",
-        )
-        expect_failure(
-            rewrite_json(
+            (
                 "missing_hvc_verify_depend_step",
                 lambda data: data["shared_test_depend_steps"].remove("run_hvc_console_verify_tests"),
+                "run_hvc_console_verify_tests",
             ),
-            "run_hvc_console_verify_tests",
-        )
-        expect_failure(
-            rewrite_json(
+            (
                 "wrong_hvc_verify_module_path",
                 lambda data: next(
                     entry.update({"path": "../../drivers/tty/hvc/hvc_console.zig"})
                     for entry in data["module_root_source_files"]
                     if entry["module"] == "hvc_console_verify_module"
                 ),
+                "module_root_source_files mismatch for hvc_console_verify_module",
             ),
-            "module_root_source_files mismatch for hvc_console_verify_module",
-        )
-        expect_failure(
-            rewrite_json(
+            (
                 "wrong_hvc_verify_root_module",
                 lambda data: next(
                     entry.update({"root_module": "phase11_hvc_console_module"})
                     for entry in data["test_root_modules"]
                     if entry["test"] == "phase11-hvc-console-verify-tests"
                 ),
+                "test_root_modules mismatch for phase11-hvc-console-verify-tests",
             ),
-            "test_root_modules mismatch for phase11-hvc-console-verify-tests",
-        )
-        expect_failure(
-            rewrite_json(
+            (
                 "wrong_dw_wdt_survey_root_module",
                 lambda data: next(
                     entry.update({"root_module": "phase11_dw_wdt_registration_scaffold_module"})
                     for entry in data["test_root_modules"]
                     if entry["test"] == "phase11-dw-wdt-survey-tests"
                 ),
+                "test_root_modules mismatch for phase11-dw-wdt-survey-tests",
             ),
-            "test_root_modules mismatch for phase11-dw-wdt-survey-tests",
-        )
-        expect_failure(
-            rewrite_json(
+            (
                 "forbidden_shared_step",
                 lambda data: data["shared_test_depend_steps"].append(FORBIDDEN_SHARED_DEPEND_STEP),
+                FORBIDDEN_SHARED_DEPEND_STEP,
             ),
-            FORBIDDEN_SHARED_DEPEND_STEP,
-        )
-        expect_failure(
-            rewrite_json(
+            (
                 "duplicate_build_name",
                 lambda data: data["build_test_names"].append("phase11-hvc-cleanup-tests"),
+                "duplicate entry in build_test_names",
             ),
-            "duplicate entry in build_test_names",
-        )
-
-        marker_case = tmpdir / "missing_contract_marker"
-        shutil.copytree(fixture, marker_case, dirs_exist_ok=True)
-        marker = "`scripts/zigux/check-phase11-build-inventory.py`"
-        write(
-            marker_case / FILES["contract_note"],
-            read_text(marker_case, FILES["contract_note"]).replace(marker, "", 1),
-        )
-        expect_failure(marker_case, marker)
-
-        shared_summary_case = tmpdir / "missing_shared_summary_marker"
-        shutil.copytree(fixture, shared_summary_case, dirs_exist_ok=True)
-        shared_summary_marker = "`scripts/zigux/check-phase11-build-inventory.py`"
-        write(
-            shared_summary_case / FILES["shared_summary_checker"],
-            read_text(shared_summary_case, FILES["shared_summary_checker"]).replace(
-                shared_summary_marker, "", 1
+            (
+                "missing_forbidden_marker",
+                lambda data: data["forbidden_markers"].clear(),
+                "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
             ),
-        )
-        expect_failure(shared_summary_case, shared_summary_marker)
+            (
+                "missing_dedicated_survey_replay",
+                lambda data: data["dedicated_survey_replays"].clear(),
+                "zigux/tests/phase11_hvc_console_survey.zig",
+            ),
+            (
+                "shared_split_replays_not_empty",
+                lambda data: data["shared_split_replays"].append("zigux/tests/phase11_hvc_console_poll_retry_split.zig"),
+                "expected shared_split_replays to stay empty",
+            ),
+            (
+                "shared_adjunct_replays_not_empty",
+                lambda data: data["shared_adjunct_replays"].append("zigux/tests/phase11_hvc_console_modem_control_split.zig"),
+                "expected shared_adjunct_replays to stay empty",
+            ),
+        ]
+        for case_name, mutate, fragment in base_json_cases:
+            expect_failure(rewrite_json(case_name, mutate), fragment)
 
-        workflow_case = tmpdir / "missing_workflow_marker"
-        shutil.copytree(fixture, workflow_case, dirs_exist_ok=True)
-        workflow_marker = "- name: Run Phase 11 watchdog and console tests"
-        write(
-            workflow_case / FILES["workflow"],
-            read_text(workflow_case, FILES["workflow"]).replace(workflow_marker, "", 1),
-        )
-        expect_failure(workflow_case, workflow_marker)
+        replay_pair_cases = sorted(REQUIRED_REPLAY_MARKERS)
+        for idx, pair in enumerate(replay_pair_cases, start=1):
+            def drop_pair(data, pair=pair):
+                data["shared_replay_markers"] = [
+                    entry
+                    for entry in data["shared_replay_markers"]
+                    if (entry.get("path"), entry.get("marker")) != pair
+                ]
+
+            expect_failure(
+                rewrite_json(f"missing_replay_pair_{idx}", drop_pair),
+                f"missing shared replay marker pair: {pair!r}",
+            )
+
+        text_marker_cases = [
+            (label, marker)
+            for label, markers in TEXT_MARKERS.items()
+            for marker in markers
+        ]
+        for idx, (label, marker) in enumerate(text_marker_cases, start=1):
+            expect_failure(
+                rewrite_text_case(f"missing_text_marker_{idx}", label, marker),
+                marker,
+            )
 
         missing_build_case = tmpdir / "missing_build_file"
         shutil.copytree(fixture, missing_build_case, dirs_exist_ok=True)
         (missing_build_case / FILES["build_file"]).unlink()
         expect_failure(missing_build_case, FILES["build_file"])
 
+        case_count = len(base_json_cases) + len(replay_pair_cases) + len(text_marker_cases) + 1
         print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-        print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=16")
+        print(f"PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT={case_count}")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
