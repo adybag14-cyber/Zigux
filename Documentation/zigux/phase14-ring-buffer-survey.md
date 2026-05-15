@@ -104,6 +104,10 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
   - `zig test zigux/tests/phase14_ring_buffer_survey.zig`
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
   - `make -C zigux phase14`
+- attached-toolchain fallback routes for the same parked packet:
+  - `/absolute/path/to/attached-zig/zig test zigux/tests/phase14_ring_buffer_survey.zig`
+  - `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+  - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`
 - reopen only when one of the packet-local conditions below becomes true:
   - the dedicated survey note, manifest, or Zig survey gate drift on surveyed commit, blocked gap, last closed follow-up, or ready-next posture
   - the directly coupled shared smoke or core traceability packet reintroduces a ring-buffer-specific owner-label or ready-next mismatch
@@ -154,6 +158,11 @@ This survey slice does not claim:
 
 3. run the convenience target
 - `make -C zigux phase14`
+
+4. rerun the same parked packet with the attached toolchain when neither the repo-local `.zig-toolchain` fallback nor the shell's default `zig` binary is available
+- `/absolute/path/to/attached-zig/zig test zigux/tests/phase14_ring_buffer_survey.zig`
+- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+- `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`
 
 ## Next bounded step
 
