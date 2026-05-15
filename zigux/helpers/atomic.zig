@@ -53,6 +53,7 @@ pub fn compareExchange(
     comptime failure_order: std.builtin.AtomicOrder,
 ) ?T {
     ensureCompareExchangeSuccessOrder(success_order);
+    ensureCompareExchangeFailureOrder(success_order, failure_order);
     return @cmpxchgStrong(T, ptr, expected_value, new_value, success_order, failure_order);
 }
 
@@ -65,6 +66,7 @@ pub fn compareExchangeWeak(
     comptime failure_order: std.builtin.AtomicOrder,
 ) ?T {
     ensureCompareExchangeSuccessOrder(success_order);
+    ensureCompareExchangeFailureOrder(success_order, failure_order);
     return @cmpxchgWeak(T, ptr, expected_value, new_value, success_order, failure_order);
 }
 
@@ -72,6 +74,29 @@ fn ensureCompareExchangeSuccessOrder(comptime order: std.builtin.AtomicOrder) vo
     switch (order) {
         .monotonic, .acquire, .release, .acq_rel, .seq_cst => {},
         .unordered => @compileError("compareExchange success ordering must be monotonic or stricter"),
+    }
+}
+
+fn ensureCompareExchangeFailureOrder(
+    comptime success_order: std.builtin.AtomicOrder,
+    comptime failure_order: std.builtin.AtomicOrder,
+) void {
+    switch (failure_order) {
+        .monotonic => {},
+        .acquire => switch (success_order) {
+            .acquire, .acq_rel, .seq_cst => {},
+            .unordered, .monotonic, .release => {
+                @compileError("compareExchange failure ordering must not be stronger than success ordering");
+            },
+        },
+        .seq_cst => switch (success_order) {
+            .seq_cst => {},
+            .unordered, .monotonic, .acquire, .release, .acq_rel => {
+                @compileError("compareExchange failure ordering must not be stronger than success ordering");
+            },
+        },
+        .unordered => @compileError("compareExchange failure ordering must be monotonic or stricter"),
+        .release, .acq_rel => @compileError("compareExchange failure ordering cannot be release or acq_rel"),
     }
 }
 
@@ -191,6 +216,13 @@ test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
     try std.testing.expectEqual(@as(u32, 0b1011_1100), fetchXor(u32, &ordered_bits_value, 0b0011_0011, .acq_rel));
     try std.testing.expectEqual(@as(u32, 0b1000_1111), ordered_bits_value);
 
+    var acquire_value: u32 = 29;
+    try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &acquire_value, 29, 31, .acquire, .monotonic));
+    try std.testing.expectEqual(@as(u32, 31), acquire_value);
+    const acquire_mismatch = compareExchange(u32, &acquire_value, 29, 37, .acquire, .monotonic);
+    try std.testing.expectEqual(@as(?u32, 31), acquire_mismatch);
+    try std.testing.expectEqual(@as(u32, 31), acquire_value);
+
     var acq_rel_value: u32 = 7;
     try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire));
     try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
@@ -208,6 +240,34 @@ test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
     const weak_mismatch = compareExchangeWeak(u32, &weak_release_value, 13, 23, .release, .monotonic);
     try std.testing.expectEqual(@as(?u32, 19), weak_mismatch);
     try std.testing.expectEqual(@as(u32, 19), weak_release_value);
+}
+
+test "phase3 atomic wrappers keep compare-exchange failure orderings reviewable" {
+    var seq_cst_value: u32 = 41;
+    const seq_cst_mismatch = compareExchange(u32, &seq_cst_value, 17, 23, .seq_cst, .acquire);
+    try std.testing.expectEqual(@as(?u32, 41), seq_cst_mismatch);
+    try std.testing.expectEqual(@as(u32, 41), seq_cst_value);
+
+    var weak_acquire_value: u32 = 23;
+    var attempts: usize = 0;
+    while (true) {
+        attempts += 1;
+        if (compareExchangeWeak(u32, &weak_acquire_value, 23, 29, .seq_cst, .acquire) == null) break;
+        try std.testing.expectEqual(@as(u32, 23), weak_acquire_value);
+        try std.testing.expect(attempts < 16);
+    }
+    try std.testing.expectEqual(@as(u32, 29), weak_acquire_value);
+
+    const acquire_failure_mismatch = compareExchangeWeak(
+        u32,
+        &weak_acquire_value,
+        23,
+        31,
+        .seq_cst,
+        .acquire,
+    );
+    try std.testing.expectEqual(@as(?u32, 29), acquire_failure_mismatch);
+    try std.testing.expectEqual(@as(u32, 29), weak_acquire_value);
 }
 
 test "phase3 atomic wrappers keep signed arithmetic orderings reviewable" {
