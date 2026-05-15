@@ -65,6 +65,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
+    try expectContains(helper_tests, "phase 7 string helpers starter covers whitespace trimming and prefix skipping");
+    try expectContains(helper_tests, "phase 7 string helpers starter formats bounded sizes with three significant figures");
     try expectContains(helper_tests, "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes");
     try expectContains(helper_tests, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
     try expectContains(helper_tests, "phase 7 string helpers starter reuses the blank string-array sentinel when no names are requested");
