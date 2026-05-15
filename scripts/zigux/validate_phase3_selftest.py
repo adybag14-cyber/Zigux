@@ -36,6 +36,9 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/run-phase3-checks.py"), ("--self-test",)),
 )
 SELFTEST_OUTPUT_MARKERS = {
+    Path("scripts/zigux/validate-phase3.py"): (
+        "PHASE3_VALIDATE_SELF_TEST=pass",
+    ),
     Path("scripts/zigux/check-phase3-abi.py"): (
         "PHASE3_ABI_SELF_TEST=pass",
     ),
@@ -44,6 +47,9 @@ SELFTEST_OUTPUT_MARKERS = {
     ),
     Path("scripts/zigux/check-phase3-selftest-surface.py"): (
         "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
+    ),
+    Path("scripts/zigux/check-phase3-abi-dump-gate.py"): (
+        "PHASE3_ABI_DUMP_GATE_SELF_TEST=pass",
     ),
     Path("scripts/zigux/check-phase3-catalog-selftest.py"): (
         "PHASE3_CATALOG_SELFTEST_SURFACE_SELF_TEST=pass",
