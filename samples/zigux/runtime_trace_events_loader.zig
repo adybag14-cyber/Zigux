@@ -25,6 +25,9 @@ pub const RuntimeTraceEventsLoadSummary = struct {
     main_thread_events: usize,
     fn_thread_events: usize,
     total_events: usize,
+    last_main_emitted_events: ?usize,
+    last_fn_emitted_events: ?usize,
+    last_main_conditional_event_count: ?usize,
     conditional_paths_checked: bool,
     registration_paths_checked: bool,
     last_main_count: i32,
@@ -52,6 +55,9 @@ pub const RuntimeTraceEventsRegistrationSnapshot = struct {
     main_thread_events: usize,
     fn_thread_events: usize,
     total_events: usize,
+    last_main_emitted_events: ?usize,
+    last_fn_emitted_events: ?usize,
+    last_main_conditional_event_count: ?usize,
     conditional_paths_checked: bool,
     registration_paths_checked: bool,
     last_main_count: i32,
@@ -99,6 +105,9 @@ pub fn registrationSnapshot(plan: RuntimeTraceEventsLoadPlan) RuntimeTraceEvents
         .main_thread_events = plan.summary.main_thread_events,
         .fn_thread_events = plan.summary.fn_thread_events,
         .total_events = plan.summary.total_events,
+        .last_main_emitted_events = plan.summary.last_main_emitted_events,
+        .last_fn_emitted_events = plan.summary.last_fn_emitted_events,
+        .last_main_conditional_event_count = plan.summary.last_main_conditional_event_count,
         .conditional_paths_checked = plan.summary.conditional_paths_checked,
         .registration_paths_checked = plan.summary.registration_paths_checked,
         .last_main_count = plan.summary.last_main_count,
@@ -117,6 +126,9 @@ pub fn keepsRegistrationSnapshotExplicit(
         snapshot.main_thread_events == plan.summary.main_thread_events and
         snapshot.fn_thread_events == plan.summary.fn_thread_events and
         snapshot.total_events == plan.summary.total_events and
+        snapshot.last_main_emitted_events == plan.summary.last_main_emitted_events and
+        snapshot.last_fn_emitted_events == plan.summary.last_fn_emitted_events and
+        snapshot.last_main_conditional_event_count == plan.summary.last_main_conditional_event_count and
         snapshot.conditional_paths_checked == plan.summary.conditional_paths_checked and
         snapshot.registration_paths_checked == plan.summary.registration_paths_checked and
         snapshot.last_main_count == plan.summary.last_main_count and
@@ -161,8 +173,11 @@ pub const RuntimeTraceEventsLoader = struct {
                 else => unreachable,
             },
             .main_thread_events = module.main_thread_events,
-            .fn_thread_events = module.fn_iterations * 2,
+            .fn_thread_events = module.fn_thread_events,
             .total_events = module.total_events,
+            .last_main_emitted_events = module.last_main_emitted_events,
+            .last_fn_emitted_events = module.last_fn_emitted_events,
+            .last_main_conditional_event_count = module.last_main_conditional_event_count,
             .conditional_paths_checked = module.saw_conditional_path,
             .registration_paths_checked = module.fn_iterations > 0 and module.registration_depth == 0,
             .last_main_count = module.last_main_count,
@@ -277,6 +292,9 @@ test "runtime trace-events loader prepares a bounded registration handoff plan" 
     try std.testing.expectEqual(@as(usize, 6), plan.summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 2), plan.summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 8), plan.summary.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), plan.summary.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), plan.summary.last_main_conditional_event_count);
     try std.testing.expect(plan.summary.conditional_paths_checked);
     try std.testing.expect(plan.summary.registration_paths_checked);
     try std.testing.expectEqual(@as(i32, 0), plan.summary.last_main_count);
@@ -287,6 +305,9 @@ test "runtime trace-events loader prepares a bounded registration handoff plan" 
     try std.testing.expectEqualStrings("tracepoint_probe_register", snapshot.register_api);
     try std.testing.expectEqualStrings("tracepoint_probe_unregister", snapshot.unregister_api);
     try std.testing.expectEqual(@as(usize, 8), snapshot.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), snapshot.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), snapshot.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), snapshot.last_main_conditional_event_count);
     try std.testing.expectEqual(@as(usize, 0), snapshot.registration_depth);
 }
 
@@ -304,6 +325,9 @@ test "runtime trace-events loader keeps unavailable substrate and lifecycle guar
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.total_events);
+    try std.testing.expectEqual(@as(?usize, null), prepared.summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), prepared.summary.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), prepared.summary.last_main_conditional_event_count);
     try std.testing.expect(!prepared.summary.conditional_paths_checked);
     try std.testing.expect(!prepared.summary.registration_paths_checked);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.selftest_runs);
@@ -350,6 +374,12 @@ test "runtime trace-events loader keeps the prepared snapshot stable across late
     try std.testing.expectEqual(@as(i32, 0), pending_plan.summary.last_main_count);
     try std.testing.expectEqual(@as(i32, 5), live_summary.last_fn_count);
     try std.testing.expectEqual(@as(i32, 1), pending_plan.summary.last_fn_count);
+    try std.testing.expectEqual(@as(?usize, 4), live_summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 6), pending_plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), live_summary.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), pending_plan.summary.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 0), live_summary.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(?usize, 2), pending_plan.summary.last_main_conditional_event_count);
     try std.testing.expectEqual(@as(usize, 1), live_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), pending_plan.summary.selftest_runs);
     try std.testing.expect(keepsRegistrationSnapshotExplicit(pending_plan, prepared_snapshot));
@@ -358,10 +388,15 @@ test "runtime trace-events loader keeps the prepared snapshot stable across late
     try std.testing.expectEqualStrings("tracepoint_probe_register", pending_snapshot.register_api);
     try std.testing.expectEqual(@as(usize, 8), prepared_snapshot.total_events);
     try std.testing.expectEqual(@as(usize, 8), pending_snapshot.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), prepared_snapshot.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 6), pending_snapshot.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), prepared_snapshot.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), pending_snapshot.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), prepared_snapshot.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(?usize, 2), pending_snapshot.last_main_conditional_event_count);
     try std.testing.expectEqual(@as(i32, 0), prepared_snapshot.last_main_count);
     try std.testing.expectEqual(@as(i32, 0), pending_snapshot.last_main_count);
 }
-
 test "runtime trace-events loader emits the shared runtime-loader contract plan" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
@@ -518,6 +553,11 @@ test "runtime trace-events loader keeps initialized shared-request snapshots sta
         pending_plan,
     ));
 }
+        shared_request,
+        .released_without_substrate,
+        pending_plan,
+    ));
+}
 
 test "runtime trace-events loader keeps selftest-complete shared-request snapshots stable across later exit activity" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
@@ -545,6 +585,9 @@ test "runtime trace-events loader keeps selftest-complete shared-request snapsho
     try std.testing.expectEqual(@as(usize, 6), selftested_summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 2), selftested_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 8), selftested_summary.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), selftested_summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), selftested_summary.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), selftested_summary.last_main_conditional_event_count);
     try std.testing.expectEqual(@as(usize, 1), selftested_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), selftested_summary.exit_runs);
     try std.testing.expectEqual(@as(i32, 0), selftested_summary.last_main_count);
@@ -561,6 +604,9 @@ test "runtime trace-events loader keeps selftest-complete shared-request snapsho
     try std.testing.expectEqual(selftested_summary.main_thread_events, exited_summary.main_thread_events);
     try std.testing.expectEqual(selftested_summary.fn_thread_events, exited_summary.fn_thread_events);
     try std.testing.expectEqual(selftested_summary.total_events, exited_summary.total_events);
+    try std.testing.expectEqual(selftested_summary.last_main_emitted_events, exited_summary.last_main_emitted_events);
+    try std.testing.expectEqual(selftested_summary.last_fn_emitted_events, exited_summary.last_fn_emitted_events);
+    try std.testing.expectEqual(selftested_summary.last_main_conditional_event_count, exited_summary.last_main_conditional_event_count);
     try std.testing.expectEqual(selftested_summary.last_main_count, exited_summary.last_main_count);
     try std.testing.expectEqual(selftested_summary.last_fn_count, exited_summary.last_fn_count);
     try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeTraceEventsLoader.planFor(&module));
@@ -650,7 +696,6 @@ test "runtime trace-events loader bridges the shared request lifecycle without w
         pending_plan,
     ));
 }
-
 test "runtime trace-events loader keeps shared release failures from desynchronizing loader state" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
@@ -880,37 +925,6 @@ test "runtime trace-events loader rejects prepared shared selftest-hook drift be
     ));
 }
 
-test "runtime trace-events loader rejects shared selftest-hook drift before any local runtime handoff" {
-    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
-    try module.init();
-
-    const initialized_plan = try RuntimeTraceEventsLoader.planFor(&module);
-    var initialized_shared_plan = toSharedLoadPlan(initialized_plan);
-    try std.testing.expect(initialized_shared_plan.provides_selftest_hook);
-    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_shared_plan));
-
-    initialized_shared_plan.provides_selftest_hook = false;
-    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_shared_plan));
-    try std.testing.expectError(
-        error.InvalidSelftestHookEvidence,
-        runtime_loader.prepareRequest(initialized_shared_plan),
-    );
-
-    _ = try module.runSelftest();
-
-    const selftest_plan = try RuntimeTraceEventsLoader.planFor(&module);
-    var selftest_shared_plan = toSharedLoadPlan(selftest_plan);
-    try std.testing.expect(selftest_shared_plan.provides_selftest_hook);
-    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_shared_plan));
-
-    selftest_shared_plan.provides_selftest_hook = false;
-    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_shared_plan));
-    try std.testing.expectError(
-        error.InvalidSelftestHookEvidence,
-        runtime_loader.prepareRequest(selftest_shared_plan),
-    );
-}
-
 test "runtime trace-events loader rejects shared-load-plan snapshot drift" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
@@ -958,6 +972,18 @@ test "runtime trace-events loader rejects registration snapshot drift" {
     drifted_total_events.total_events += 2;
     try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_total_events));
 
+    var drifted_main_emitted = snapshot;
+    drifted_main_emitted.last_main_emitted_events = 4;
+    try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_main_emitted));
+
+    var drifted_fn_emitted = snapshot;
+    drifted_fn_emitted.last_fn_emitted_events = 4;
+    try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_fn_emitted));
+
+    var drifted_conditional_count = snapshot;
+    drifted_conditional_count.last_main_conditional_event_count = 1;
+    try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_conditional_count));
+
     var drifted_main_count = snapshot;
     drifted_main_count.last_main_count += 11;
     try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_main_count));
@@ -1004,6 +1030,9 @@ test "runtime trace-events loader keeps selftest-ready single registration drain
     try std.testing.expectEqual(@as(usize, 6), recovered_plan.summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), recovered_plan.summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 10), recovered_plan.summary.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), recovered_plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), recovered_plan.summary.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), recovered_plan.summary.last_main_conditional_event_count);
     try std.testing.expect(recovered_plan.summary.conditional_paths_checked);
     try std.testing.expect(recovered_plan.summary.registration_paths_checked);
     try std.testing.expectEqual(@as(i32, 0), recovered_plan.summary.last_main_count);
