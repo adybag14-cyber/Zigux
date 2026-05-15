@@ -38,7 +38,63 @@ fn expectExactLoadPlanParity(
     try std.testing.expectEqual(expected.init_flow.exit_runs, actual.init_flow.exit_runs);
 }
 
-test "phase 9 runtime loader keeps bitmap and kretprobe selftest-complete prepared snapshots stable even if later live state would look exited" {
+fn expectPreparedSnapshotStableAfterLaterLiveExit(
+    expected: runtime_loader.LoadPlan,
+) !runtime_loader.LoadPlan {
+    var request = try runtime_loader.prepareRequest(expected);
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        request,
+        .prepared,
+        expected,
+    ));
+
+    var live_exited = expected;
+    live_exited.init_flow.exit_runs = 1;
+    try std.testing.expect(!live_exited.init_flow.readyForRuntimeLoad());
+    try std.testing.expect(!runtime_loader.keepsRequestStateAndPlanExplicit(
+        request,
+        .prepared,
+        live_exited,
+    ));
+
+    const pending = try request.requestRuntimeLoad();
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        request,
+        .waiting_on_runtime_substrate,
+        expected,
+    ));
+    try expectExactLoadPlanParity(expected, pending);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        pending,
+        expected.allocator_handoff,
+        expected.init_flow,
+    ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending));
+
+    try request.releaseWithoutSubstrate();
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        request,
+        .released_without_substrate,
+        expected,
+    ));
+
+    return pending;
+}
+
+test "phase 9 runtime loader keeps selftest-complete prepared snapshots stable even if later live state would look exited across all shipped pilot families" {
+    const expected_atomic64 = makePlan(
+        "runtime_atomic64",
+        "lib/atomic64_test.c",
+        "zigux_runtime_atomic64_init",
+        "zigux_runtime_atomic64_exit",
+        .caller_provided,
+        .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 },
+    );
+    const atomic64_pending = try expectPreparedSnapshotStableAfterLaterLiveExit(expected_atomic64);
+
     const expected_bitmap = makePlan(
         "runtime_bitmap",
         "lib/test_bitmap.c",
@@ -47,37 +103,17 @@ test "phase 9 runtime loader keeps bitmap and kretprobe selftest-complete prepar
         .arena,
         .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 },
     );
-    var bitmap_request = try runtime_loader.prepareRequest(expected_bitmap);
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, bitmap_request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        bitmap_request,
-        .prepared,
-        expected_bitmap,
-    ));
+    const bitmap_pending = try expectPreparedSnapshotStableAfterLaterLiveExit(expected_bitmap);
 
-    var bitmap_live_exited = expected_bitmap;
-    bitmap_live_exited.init_flow.exit_runs = 1;
-    try std.testing.expect(!bitmap_live_exited.init_flow.readyForRuntimeLoad());
-    try std.testing.expect(!runtime_loader.keepsRequestStateAndPlanExplicit(
-        bitmap_request,
-        .prepared,
-        bitmap_live_exited,
-    ));
-
-    const bitmap_pending = try bitmap_request.requestRuntimeLoad();
-    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, bitmap_request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        bitmap_request,
-        .waiting_on_runtime_substrate,
-        expected_bitmap,
-    ));
-    try expectExactLoadPlanParity(expected_bitmap, bitmap_pending);
-    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
-        bitmap_pending,
-        .arena,
-        expected_bitmap.init_flow,
-    ));
-    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(bitmap_pending));
+    const expected_trace_events = makePlan(
+        "runtime_trace_events",
+        "samples/trace_events/trace-events-sample.c",
+        "zigux_runtime_trace_events_init",
+        "zigux_runtime_trace_events_exit",
+        .caller_provided,
+        .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 },
+    );
+    const trace_events_pending = try expectPreparedSnapshotStableAfterLaterLiveExit(expected_trace_events);
 
     const expected_kretprobe = makePlan(
         "runtime_kretprobe",
@@ -87,57 +123,28 @@ test "phase 9 runtime loader keeps bitmap and kretprobe selftest-complete prepar
         .kernel_heap,
         .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 },
     );
-    var kretprobe_request = try runtime_loader.prepareRequest(expected_kretprobe);
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, kretprobe_request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        kretprobe_request,
-        .prepared,
-        expected_kretprobe,
-    ));
+    const kretprobe_pending = try expectPreparedSnapshotStableAfterLaterLiveExit(expected_kretprobe);
 
-    var kretprobe_live_exited = expected_kretprobe;
-    kretprobe_live_exited.init_flow.exit_runs = 1;
-    try std.testing.expect(!kretprobe_live_exited.init_flow.readyForRuntimeLoad());
-    try std.testing.expect(!runtime_loader.keepsRequestStateAndPlanExplicit(
-        kretprobe_request,
-        .prepared,
-        kretprobe_live_exited,
-    ));
-
-    const kretprobe_pending = try kretprobe_request.requestRuntimeLoad();
-    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, kretprobe_request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        kretprobe_request,
-        .waiting_on_runtime_substrate,
-        expected_kretprobe,
-    ));
-    try expectExactLoadPlanParity(expected_kretprobe, kretprobe_pending);
-    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+    const pending_plans = [_]runtime_loader.LoadPlan{
+        atomic64_pending,
+        bitmap_pending,
+        trace_events_pending,
         kretprobe_pending,
-        .kernel_heap,
-        expected_kretprobe.init_flow,
-    ));
-    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(kretprobe_pending));
+    };
 
-    try std.testing.expectEqual(bitmap_pending.init_flow.handoff_stage, kretprobe_pending.init_flow.handoff_stage);
-    try std.testing.expectEqual(bitmap_pending.init_flow.init_runs, kretprobe_pending.init_flow.init_runs);
-    try std.testing.expectEqual(bitmap_pending.init_flow.selftest_runs, kretprobe_pending.init_flow.selftest_runs);
-    try std.testing.expectEqual(bitmap_pending.init_flow.exit_runs, kretprobe_pending.init_flow.exit_runs);
-    try std.testing.expectEqual(bitmap_pending.requires_runtime_substrate, kretprobe_pending.requires_runtime_substrate);
-    try std.testing.expectEqual(bitmap_pending.provides_selftest_hook, kretprobe_pending.provides_selftest_hook);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_plans[0].init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 1), pending_plans[0].init_flow.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), pending_plans[0].init_flow.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), pending_plans[0].init_flow.exit_runs);
+    try std.testing.expect(pending_plans[0].requires_runtime_substrate);
+    try std.testing.expect(pending_plans[0].provides_selftest_hook);
 
-    try bitmap_request.releaseWithoutSubstrate();
-    try kretprobe_request.releaseWithoutSubstrate();
-    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, bitmap_request.state);
-    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, kretprobe_request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        bitmap_request,
-        .released_without_substrate,
-        expected_bitmap,
-    ));
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        kretprobe_request,
-        .released_without_substrate,
-        expected_kretprobe,
-    ));
+    for (pending_plans[1..]) |pending| {
+        try std.testing.expectEqual(pending_plans[0].init_flow.handoff_stage, pending.init_flow.handoff_stage);
+        try std.testing.expectEqual(pending_plans[0].init_flow.init_runs, pending.init_flow.init_runs);
+        try std.testing.expectEqual(pending_plans[0].init_flow.selftest_runs, pending.init_flow.selftest_runs);
+        try std.testing.expectEqual(pending_plans[0].init_flow.exit_runs, pending.init_flow.exit_runs);
+        try std.testing.expectEqual(pending_plans[0].requires_runtime_substrate, pending.requires_runtime_substrate);
+        try std.testing.expectEqual(pending_plans[0].provides_selftest_hook, pending.provides_selftest_hook);
+    }
 }
