@@ -132,3 +132,24 @@ test "phase11 bcm2835 watchdog replay keeps start stop restart and poweroff life
     try std.testing.expect(poweroff_summary.poweroff_handler_claimed);
     try std.testing.expect(poweroff_summary.running_after_poweroff);
 }
+
+test "phase11 bcm2835 watchdog replay keeps remove cleanup ownership explicit" {
+    var claimed = try bcm2835_wdt.Bcm2835WdtLab.init(5);
+    _ = try claimed.start();
+    const claimed_remove = claimed.remove(true);
+    try std.testing.expect(claimed_remove.unregister_device_requested);
+    try std.testing.expect(claimed_remove.poweroff_handler_release_requested);
+    try std.testing.expect(claimed_remove.running_before_remove);
+    try std.testing.expect(!claimed_remove.running_after_remove);
+    try std.testing.expect(!claimed_remove.full_reset_armed_after_remove);
+    try std.testing.expect(!claimed_remove.halt_partition_requested_after_remove);
+    try std.testing.expectEqual(bcm2835_wdt.RemoveState.running_remove, claimed_remove.state);
+
+    var unclaimed = try bcm2835_wdt.Bcm2835WdtLab.init(5);
+    const unclaimed_remove = unclaimed.remove(false);
+    try std.testing.expect(unclaimed_remove.unregister_device_requested);
+    try std.testing.expect(!unclaimed_remove.poweroff_handler_release_requested);
+    try std.testing.expect(!unclaimed_remove.running_before_remove);
+    try std.testing.expect(!unclaimed_remove.running_after_remove);
+    try std.testing.expectEqual(bcm2835_wdt.RemoveState.inactive_remove, unclaimed_remove.state);
+}
