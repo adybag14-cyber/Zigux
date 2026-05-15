@@ -65,6 +65,7 @@ SCRIPTS_README_MARKERS = [
 MAKEFILE_MARKERS = [
     "phase12-validate:",
     "scripts/zigux/check-build-only-phase12-surface.py --self-test",
+    "scripts/zigux/check-phase12-cross.py --self-test",
     "scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
     "scripts/zigux/validate-phase12.py",
     "phase12: phase12-validate phase12-smoke phase12-test",
@@ -291,6 +292,7 @@ def good_makefile_text() -> str:
         [
             "phase12-validate:",
             "\t$(PYTHON) scripts/zigux/check-build-only-phase12-surface.py --self-test",
+            "\t$(PYTHON) scripts/zigux/check-phase12-cross.py --self-test",
             "\t$(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
             "\t$(PYTHON) scripts/zigux/validate-phase12.py",
             "",
@@ -706,6 +708,22 @@ def run_self_test() -> int:
             check(tmp_root, source_text=MARKER),
             "scripts/zigux/check-build-only-phase12-surface.py --self-test",
             "missing makefile build-only checker marker",
+        )
+
+        write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
+        write_text(
+            tmp_root / MAKEFILE_PATH,
+            good_makefile_text().replace(
+                "scripts/zigux/check-phase12-cross.py --self-test",
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "scripts/zigux/check-phase12-cross.py --self-test",
+            "missing makefile cross self-test marker",
         )
 
         write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
