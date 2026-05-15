@@ -7,7 +7,7 @@ This document records the bounded Phase 14 survey lane around `net/core/skbuff.c
 - `PHASE14_LANE_KEY=P14-L11`
 - `PHASE14_BLOCKED_GAP=phase14-skbuff-live-ownership-blocker`
 - explicit stay-in-C wording for `sock_wfree`, `tail->destructor`, `tail->sk`, `segs->prev`, `tail->next`, `validate_xmit_skb_list()`, `skb_mark_not_on_list()`, and `tail = skb->prev`
-- explicit wording that qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination, and the final sock-owned tail transfer remain in C
+- explicit wording that qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, destructor coordination, and the final sock-owned tail transfer remain in C
 
 ## Boundary Reading
 
