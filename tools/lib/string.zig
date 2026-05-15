@@ -323,6 +323,10 @@ pub fn str_ends_with(str: []const u8, suffix: []const u8) bool {
     return strEndsWith(str, suffix);
 }
 
+pub fn strends(str: []const u8, suffix: []const u8) bool {
+    return strEndsWith(str, suffix);
+}
+
 test "strtobool accepts common Linux forms" {
     try std.testing.expect(try strtobool("y"));
     try std.testing.expect(try strtobool("On"));
@@ -500,6 +504,7 @@ test "strstarts mirrors the header-level prefix helper" {
 test "strEndsWith honors C-string boundaries" {
     try std.testing.expect(strEndsWith("prefix", "fix"));
     try std.testing.expect(str_ends_with("prefix", "prefix"));
+    try std.testing.expect(strends("prefix", "fix"));
     try std.testing.expect(strEndsWith("prefix", ""));
     try std.testing.expect(!strEndsWith("prefix", "suffix"));
     try std.testing.expect(!strEndsWith("pre", "prefix"));
@@ -508,7 +513,9 @@ test "strEndsWith honors C-string boundaries" {
     const embedded_suffix = [_]u8{ 'a', 'b', 0, 'y' };
     const trailing_miss = [_]u8{ 'x', 0, 'y' };
     try std.testing.expect(strEndsWith(&cstr, &embedded_suffix));
+    try std.testing.expect(strends(&cstr, &embedded_suffix));
     try std.testing.expect(!strEndsWith(&cstr, &trailing_miss));
+    try std.testing.expect(!strends(&cstr, &trailing_miss));
 }
 
 test "sysfsStreq treats trailing newline and NUL as equivalent" {
