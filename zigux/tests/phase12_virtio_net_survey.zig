@@ -79,7 +79,7 @@ test "phase12 virtio net survey manifest keeps the bounded transmit-recycle pack
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("bb423a0308879c18054c720bbccb67a3de3e0951", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("2026-05-15", manifest.verified_on);
@@ -203,7 +203,9 @@ test "phase12 virtio net survey note stays aligned with the bounded transmit-rec
     const manifest = parsed.value;
 
     try std.testing.expectEqualStrings("2026-05-15", manifest.verified_on);
+    try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-transmit-recycle-followup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L04") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `drivers/net/virtio_net.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now also carries `drivers/net/virtio_net_transmit_recycle.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeQueueTopology()") != null);
