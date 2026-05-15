@@ -9,9 +9,10 @@ from pathlib import Path
 import tempfile
 
 
+ABI_SLICE_NOTE_PATH = Path("Documentation/zigux/phase3-abi-slice.md")
 ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 REQUIRED_FILES = (
-    Path("Documentation/zigux/phase3-abi-slice.md"),
+    ABI_SLICE_NOTE_PATH,
     Path("Documentation/zigux/phase3-abi-bindings-survey.md"),
     Path("Documentation/zigux/phase3-bindings-governance.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
@@ -63,7 +64,7 @@ REQUIRED_FILES = (
     Path("scripts/zigux/run-phase3-checks.py"),
 )
 REQUIRED_MANIFEST_ENTRIES = (
-    Path("Documentation/zigux/phase3-abi-slice.md"),
+    ABI_SLICE_NOTE_PATH,
     Path("Documentation/zigux/phase3-abi-bindings-survey.md"),
     Path("Documentation/zigux/phase3-bindings-governance.md"),
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
@@ -101,6 +102,17 @@ OPTIONAL_EXPORT_UAPI_REPLAY_FILES = (
     Path("zigux/tests/phase3_export_uapi.zig"),
     Path("zigux/tests/phase3_export_uapi_layout.zig"),
 )
+
+ABI_SLICE_CURRENT_GAP_MARKERS = {
+    "Documentation/zigux/phase3-bindings-governance.md": 1,
+    "Documentation/zigux/phase3-boundary-lane-sequencing.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "Documentation/zigux/phase3-validator-support-surface.md": 1,
+    "zigux/tests/phase3_export_uapi_layout_build.zig": 1,
+    "zigux/tests/phase3_export_uapi_layout.zig": 1,
+    "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
+    "focused `phase3_export_uapi_layout` proof aligned": 1,
+}
 
 MAKEFILE_PATH = Path("zigux/Makefile")
 RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
@@ -167,6 +179,36 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def extract_section(text: str, heading: str, next_heading: str | None) -> str | None:
+    if heading not in text:
+        return None
+    section = text.split(heading, 1)[1]
+    if next_heading is not None and next_heading in section:
+        section = section.split(next_heading, 1)[0]
+    elif next_heading is None and "\n## " in section:
+        section = section.split("\n## ", 1)[0]
+    return section
+
+
+def check_marker_counts(
+    section: str | None,
+    marker_counts: dict[str, int],
+    label: str,
+    missing_message: str,
+) -> list[str]:
+    if section is None:
+        return [missing_message]
+    issues: list[str] = []
+    for marker, expected_count in marker_counts.items():
+        actual_count = section.count(marker)
+        if actual_count != expected_count:
+            issues.append(
+                f"{label} marker count drift: {marker} "
+                f"(expected {expected_count}, found {actual_count})"
+            )
+    return issues
+
+
 def validate_manifest_entries(repo_root: Path) -> list[str]:
     manifest_path = repo_root / ABI_MANIFEST_PATH
     if not manifest_path.is_file():
@@ -205,8 +247,23 @@ def validate_source_markers(repo_root: Path) -> list[str]:
         source_text = _read(source_path)
         for marker in markers:
             if marker not in source_text:
-                issues.append(f"missing source marker: {rel_path.as_posix()} :: {marker}")
+                issues.append(
+                    f"missing source marker: {rel_path.as_posix()} :: {marker}"
+                )
     return issues
+
+
+def validate_abi_slice_note(repo_root: Path) -> list[str]:
+    note_path = repo_root / ABI_SLICE_NOTE_PATH
+    if not note_path.is_file():
+        return []
+    note_text = _read(note_path)
+    return check_marker_counts(
+        extract_section(note_text, "## Current Gap", "## Scope"),
+        ABI_SLICE_CURRENT_GAP_MARKERS,
+        "Phase 3 ABI slice current gap",
+        "missing ABI slice section: ## Current Gap",
+    )
 
 
 def validate_repo(repo_root: Path) -> list[str]:
@@ -240,6 +297,7 @@ def validate_repo(repo_root: Path) -> list[str]:
 
     issues.extend(validate_manifest_entries(repo_root))
     issues.extend(validate_source_markers(repo_root))
+    issues.extend(validate_abi_slice_note(repo_root))
     return issues
 
 
@@ -263,6 +321,23 @@ def _source_marker_stub(rel_path: Path) -> str:
     return "\n".join(SOURCE_MARKERS[rel_path]) + "\n"
 
 
+def _abi_slice_note_stub() -> str:
+    current_gap_lines = "\n".join(f"- `{marker}`" for marker in ABI_SLICE_CURRENT_GAP_MARKERS)
+    return (
+        "# Phase 3 ABI Slice\n\n"
+        "## Packet Markers\n\n"
+        "- `Documentation/zigux/phase3-abi-bindings-survey.md`\n"
+        "- `Documentation/zigux/phase3-bindings-governance.md`\n"
+        "- `Documentation/zigux/phase3-boundary-lane-sequencing.md`\n"
+        "- `Documentation/zigux/phase3-validator-support-surface.md`\n"
+        "\n"
+        "## Current Gap\n\n"
+        f"{current_gap_lines}\n\n"
+        "## Scope\n\n"
+        "- stub\n"
+    )
+
+
 def _populate_repo(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         _write(root / rel_path)
@@ -270,6 +345,7 @@ def _populate_repo(root: Path) -> None:
     _write(root / MAKEFILE_PATH, "\n".join(MAKE_MARKERS) + "\n")
     _write(root / RUNNER_PATH, "\n".join(RUNNER_MARKERS) + "\n")
     _write(root / CHECK_LIB_PATH, "\n".join(CHECK_LIB_MARKERS) + "\n")
+    _write(root / ABI_SLICE_NOTE_PATH, _abi_slice_note_stub())
     for rel_path in SOURCE_MARKERS:
         _write(root / rel_path, _source_marker_stub(rel_path))
 
@@ -387,9 +463,7 @@ def run_self_test() -> int:
         case_count += 1
         _write(root / low_level_wrapper_survey_rel)
 
-        abi_bindings_survey_rel = Path(
-            "Documentation/zigux/phase3-abi-bindings-survey.md"
-        )
+        abi_bindings_survey_rel = Path("Documentation/zigux/phase3-abi-bindings-survey.md")
         (root / abi_bindings_survey_rel).unlink()
         issues = validate_repo(root)
         expected_abi_bindings_survey_missing = (
@@ -402,9 +476,7 @@ def run_self_test() -> int:
         case_count += 1
         _write(root / abi_bindings_survey_rel)
 
-        bindings_governance_rel = Path(
-            "Documentation/zigux/phase3-bindings-governance.md"
-        )
+        bindings_governance_rel = Path("Documentation/zigux/phase3-bindings-governance.md")
         (root / bindings_governance_rel).unlink()
         issues = validate_repo(root)
         expected_bindings_governance_missing = (
@@ -507,9 +579,7 @@ def run_self_test() -> int:
         panic_policy_rel = Path("zigux/helpers/panic_policy.zig")
         (root / panic_policy_rel).unlink()
         issues = validate_repo(root)
-        expected_panic_policy_missing = (
-            f"missing repo file: {panic_policy_rel.as_posix()}"
-        )
+        expected_panic_policy_missing = f"missing repo file: {panic_policy_rel.as_posix()}"
         if expected_panic_policy_missing not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing panic-policy helper was not reported")
@@ -566,7 +636,9 @@ def run_self_test() -> int:
         narrow_unsafe_rel = Path("zigux/unsafe/narrow.zig")
         (root / narrow_unsafe_rel).unlink()
         issues = validate_repo(root)
-        expected_narrow_unsafe_missing = f"missing repo file: {narrow_unsafe_rel.as_posix()}"
+        expected_narrow_unsafe_missing = (
+            f"missing repo file: {narrow_unsafe_rel.as_posix()}"
+        )
         if expected_narrow_unsafe_missing not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing narrow-unsafe helper was not reported")
@@ -577,7 +649,9 @@ def run_self_test() -> int:
         mmio_consumer_rel = Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py")
         (root / mmio_consumer_rel).unlink()
         issues = validate_repo(root)
-        expected_mmio_consumer_missing = f"missing repo file: {mmio_consumer_rel.as_posix()}"
+        expected_mmio_consumer_missing = (
+            f"missing repo file: {mmio_consumer_rel.as_posix()}"
+        )
         if expected_mmio_consumer_missing not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing policy/unsafe mmio-consumer checker was not reported")
@@ -648,6 +722,47 @@ def run_self_test() -> int:
         case_count += 1
         _write(root / uapi_version_rel, _source_marker_stub(uapi_version_rel))
 
+        abi_slice_note_rel = ABI_SLICE_NOTE_PATH
+        _write(
+            root / abi_slice_note_rel,
+            _read(root / abi_slice_note_rel).replace(
+                "- `zigux/tests/phase3_export_uapi_layout_build.zig`\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_abi_slice_marker_missing = (
+            "Phase 3 ABI slice current gap marker count drift: "
+            "zigux/tests/phase3_export_uapi_layout_build.zig (expected 1, found 0)"
+        )
+        if expected_abi_slice_marker_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing ABI slice layout-build marker was not reported")
+            return 1
+        case_count += 1
+        _write(root / abi_slice_note_rel, _abi_slice_note_stub())
+
+        _write(
+            root / abi_slice_note_rel,
+            _read(root / abi_slice_note_rel).replace(
+                "- `focused `phase3_export_uapi_layout` proof aligned`\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_abi_slice_phrase_missing = (
+            "Phase 3 ABI slice current gap marker count drift: "
+            "focused `phase3_export_uapi_layout` proof aligned (expected 1, found 0)"
+        )
+        if expected_abi_slice_phrase_missing not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected missing ABI slice focused-layout phrase was not reported")
+            return 1
+        case_count += 1
+        _write(root / abi_slice_note_rel, _abi_slice_note_stub())
+
         missing_rel = REQUIRED_FILES[0]
         (root / missing_rel).unlink()
         issues = validate_repo(root)
@@ -658,10 +773,12 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        _write(root / missing_rel)
+        _write(root / missing_rel, _abi_slice_note_stub())
         _write(root / MAKEFILE_PATH, "phase3-abi:\n")
         issues = validate_repo(root)
-        expected_make_marker = "missing make marker: $(ZIG) build phase3-test --build-file zigux/tests/build.zig"
+        expected_make_marker = (
+            "missing make marker: $(ZIG) build phase3-test --build-file zigux/tests/build.zig"
+        )
         if expected_make_marker not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing make marker was not reported")
@@ -691,7 +808,9 @@ def run_self_test() -> int:
         _write(root / MAKEFILE_PATH, "\n".join(MAKE_MARKERS) + "\n")
         _write(root / RUNNER_PATH, "from phase3_check_lib import run_phase3_slice_entry\n")
         issues = validate_repo(root)
-        expected_runner_marker = "missing runner marker: return run_phase3_slice_entry(entry, root=root)"
+        expected_runner_marker = (
+            "missing runner marker: return run_phase3_slice_entry(entry, root=root)"
+        )
         if expected_runner_marker not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing runner marker was not reported")
@@ -714,7 +833,8 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in CHECK_LIB_MARKERS
-                if marker != '(sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),'
+                if marker
+                != '(sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),'
             )
             + "\n",
         )
