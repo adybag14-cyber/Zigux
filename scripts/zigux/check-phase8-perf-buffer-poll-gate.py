@@ -91,6 +91,7 @@ REQUIRED_MARKERS = {
         'test "summarizePollFromWaitResult keeps raw wait-result normalization coupled to the bounded buffer summary" {',
         'test "summarizePollExecutionFromWaitResult keeps raw wait-result normalization coupled to execution bookkeeping" {',
         'test "summarizePollExecutionResultFromWaitResult keeps timeout interrupt and wait failure returns aligned" {',
+        'test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing-failure bookkeeping" {',
         'test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {',
         'test "summarizePollExecution rejects processing more ready buffers than the helper counted as ready" {',
         'test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing accounting summaries" {',
@@ -107,13 +108,15 @@ REQUIRED_MARKERS = {
         'test "phase 8 perf-buffer poll helper keeps ready-buffer cursor traversal explicit" {',
         'test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity" {',
         'test "phase 8 perf-buffer poll helper keeps buffer-state-only ready events explicit below routing parity" {',
+        'test "phase 8 perf-buffer poll helper rejects inconsistent processing-failure bookkeeping before return shaping" {',
         'test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {',
         'test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {',
         'test "phase 8 perf-buffer poll helper rejects inconsistent processing accounting summaries before return shaping" {',
         'test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {',
         'try expectContains(note, "ready-buffer processing attempts cannot exceed the helper-counted ready buffers");',
-        'try expectContains(gate, "\\"ready-buffer processing attempts cannot exceed the helper-counted ready buffers\\"");',
+        'try expectContains(gate, "\"ready-buffer processing attempts cannot exceed the helper-counted ready buffers\"");',
         "perf_buffer_poll.PollReturnDisposition.buffer_state_failed",
+        "perf_buffer_poll.PollError.InconsistentProcessingFailureSummary",
         "perf_buffer_poll.PollError.InconsistentProcessingAccountingSummary",
         "perf_buffer_poll.BufferFdLookupDisposition.found_fd",
         "perf_buffer_poll.BufferWindowLookupDisposition.found_window",
@@ -203,11 +206,11 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{details}")
 
         mutations = (
-            (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
-            (TESTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
-            (TESTS_README_PATH, "`make -C zigux phase8-perf-buffer-poll-test`") ,
-            (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
-            (REVIEW_CHECKLIST_PATH, "`make -C zigux phase8-libbpf-segments-test`") ,
+            (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
+            (TESTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
+            (TESTS_README_PATH, "`make -C zigux phase8-perf-buffer-poll-test`"),
+            (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
+            (REVIEW_CHECKLIST_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
             (SEQUENCING_PATH, "make -C zigux phase8-perf-buffer-poll-test"),
             (SLICE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
             (SLICE_PATH, "python3 scripts/zigux/validate-phase8.py --self-test"),
@@ -240,6 +243,10 @@ def run_self_test() -> int:
             (
                 PACKET_HELPER_PATH,
                 'test "summarizePollExecutionResultFromWaitResult keeps timeout interrupt and wait failure returns aligned" {',
+            ),
+            (
+                PACKET_HELPER_PATH,
+                'test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing-failure bookkeeping" {',
             ),
             (
                 PACKET_HELPER_PATH,
@@ -299,6 +306,10 @@ def run_self_test() -> int:
             ),
             (
                 PACKET_TEST_PATH,
+                'test "phase 8 perf-buffer poll helper rejects inconsistent processing-failure bookkeeping before return shaping" {',
+            ),
+            (
+                PACKET_TEST_PATH,
                 'test "phase 8 perf-buffer poll helper rejects inconsistent processing accounting summaries before return shaping" {',
             ),
             (
@@ -319,9 +330,10 @@ def run_self_test() -> int:
             ),
             (
                 PACKET_TEST_PATH,
-                'try expectContains(gate, "\\"ready-buffer processing attempts cannot exceed the helper-counted ready buffers\\"");',
+                'try expectContains(gate, "\"ready-buffer processing attempts cannot exceed the helper-counted ready buffers\"");',
             ),
             (PACKET_TEST_PATH, "perf_buffer_poll.PollReturnDisposition.buffer_state_failed"),
+            (PACKET_TEST_PATH, "perf_buffer_poll.PollError.InconsistentProcessingFailureSummary"),
             (PACKET_TEST_PATH, "perf_buffer_poll.PollError.InconsistentProcessingAccountingSummary"),
             (PACKET_TEST_PATH, "perf_buffer_poll.BufferFdLookupDisposition.found_fd"),
             (PACKET_TEST_PATH, "perf_buffer_poll.BufferWindowLookupDisposition.found_window"),
