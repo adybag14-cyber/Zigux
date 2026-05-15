@@ -19,6 +19,13 @@ pub const PriorityIncrease = struct {
     current_priority: i32,
 };
 
+pub const ChainPriorityIncrease = struct {
+    previous_index: usize,
+    current_index: usize,
+    previous_priority: i32,
+    current_priority: i32,
+};
+
 pub fn prioritiesNonincreasing(blocks: []const NotifierBlock) bool {
     return firstPriorityIncrease(blocks) == null;
 }
@@ -43,21 +50,36 @@ pub fn firstPriorityIncrease(blocks: []const NotifierBlock) ?PriorityIncrease {
 }
 
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
-    var current = head orelse return true;
+    return firstChainPriorityIncrease(head) == null;
+}
+
+pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {
+    var current = head orelse return null;
+    var previous_index: usize = 0;
     var previous_priority = current.priority;
 
     while (current.next != 0) {
         const next: *const NotifierBlock = @ptrFromInt(current.next);
-        if (next.priority > previous_priority) return false;
+        const current_index = previous_index + 1;
+        if (next.priority > previous_priority) {
+            return .{
+                .previous_index = previous_index,
+                .current_index = current_index,
+                .previous_priority = previous_priority,
+                .current_priority = next.priority,
+            };
+        }
+        previous_index = current_index;
         previous_priority = next.priority;
         current = next;
     }
 
-    return true;
+    return null;
 }
 
 test "notifier priority helper accepts empty chain" {
     try std.testing.expect(chainHasNonincreasingPriority(null));
+    try std.testing.expect(firstChainPriorityIncrease(null) == null);
 }
 
 test "notifier priority helper accepts single node chain" {
@@ -68,6 +90,7 @@ test "notifier priority helper accepts single node chain" {
     };
 
     try std.testing.expect(chainHasNonincreasingPriority(&node));
+    try std.testing.expect(firstChainPriorityIncrease(&node) == null);
 }
 
 test "notifier priority helper accepts equal and descending priorities" {
@@ -88,12 +111,18 @@ test "notifier priority helper accepts equal and descending priorities" {
     };
 
     try std.testing.expect(chainHasNonincreasingPriority(&first));
+    try std.testing.expect(firstChainPriorityIncrease(&first) == null);
 }
 
-test "notifier priority helper rejects increasing priority" {
-    const third = NotifierBlock{
+test "notifier priority helper reports the first chain priority increase" {
+    const fourth = NotifierBlock{
         .notifier_call = 0,
         .next = 0,
+        .priority = 1,
+    };
+    const third = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&fourth),
         .priority = 6,
     };
     const second = NotifierBlock{
@@ -107,6 +136,11 @@ test "notifier priority helper rejects increasing priority" {
         .priority = 4,
     };
 
+    const increase = firstChainPriorityIncrease(&first).?;
+    try std.testing.expectEqual(@as(usize, 1), increase.previous_index);
+    try std.testing.expectEqual(@as(usize, 2), increase.current_index);
+    try std.testing.expectEqual(@as(i32, 2), increase.previous_priority);
+    try std.testing.expectEqual(@as(i32, 6), increase.current_priority);
     try std.testing.expect(!chainHasNonincreasingPriority(&first));
 }
 
