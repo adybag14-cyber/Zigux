@@ -173,6 +173,45 @@ pub const OffsetReaddirPlan = struct {
     treats_end_of_directory_as_terminal: bool,
 };
 
+pub const CursorOpenStatus = enum {
+    ok,
+    out_of_memory,
+};
+
+pub const CursorOpenPlan = struct {
+    anchor: []const u8,
+    status: CursorOpenStatus,
+    allocates_private_cursor: bool,
+    stores_private_cursor: bool,
+    zeroes_cursor_position: bool,
+    returns_zero: bool,
+};
+
+pub const CursorResumeMode = enum {
+    blocked_on_emit_dots,
+    resume_at_first_child,
+    resume_from_private_cursor,
+    missing_private_cursor,
+};
+
+pub const CursorPreconditionStatus = enum {
+    ok,
+    negative_position,
+};
+
+pub const CursorPreconditionPlan = struct {
+    anchor: []const u8,
+    current_position: i64,
+    emit_dots_result: bool,
+    private_cursor_present: bool,
+    status: CursorPreconditionStatus,
+    mode: ?CursorResumeMode,
+    returns_zero: bool,
+    enters_positive_scan: bool,
+    keeps_current_pos: bool,
+    requires_private_cursor: bool,
+};
+
 pub const OffsetSlotClass = enum {
     missing,
     dot_entry_window,
@@ -540,6 +579,96 @@ pub const LibfsHelperLab = struct {
             .enters_offset_iteration = !terminal,
             .keeps_current_pos = terminal,
             .treats_end_of_directory_as_terminal = terminal,
+        };
+    }
+
+    pub fn dcacheDirOpenPlan(allocation_succeeds: bool) CursorOpenPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .status = if (allocation_succeeds) .ok else .out_of_memory,
+            .allocates_private_cursor = allocation_succeeds,
+            .stores_private_cursor = allocation_succeeds,
+            .zeroes_cursor_position = allocation_succeeds,
+            .returns_zero = allocation_succeeds,
+        };
+    }
+
+    pub fn dcacheReaddirCursorPreconditionsPlan(
+        current_position: i64,
+        emit_dots_result: bool,
+        private_cursor_present: bool,
+    ) CursorPreconditionPlan {
+        if (current_position < 0) {
+            return .{
+                .anchor = descriptor().anchor,
+                .current_position = current_position,
+                .emit_dots_result = emit_dots_result,
+                .private_cursor_present = private_cursor_present,
+                .status = .negative_position,
+                .mode = null,
+                .returns_zero = false,
+                .enters_positive_scan = false,
+                .keeps_current_pos = false,
+                .requires_private_cursor = false,
+            };
+        }
+
+        if (!emit_dots_result) {
+            return .{
+                .anchor = descriptor().anchor,
+                .current_position = current_position,
+                .emit_dots_result = emit_dots_result,
+                .private_cursor_present = private_cursor_present,
+                .status = .ok,
+                .mode = .blocked_on_emit_dots,
+                .returns_zero = true,
+                .enters_positive_scan = false,
+                .keeps_current_pos = true,
+                .requires_private_cursor = false,
+            };
+        }
+
+        if (current_position <= dir_offset_first) {
+            return .{
+                .anchor = descriptor().anchor,
+                .current_position = current_position,
+                .emit_dots_result = emit_dots_result,
+                .private_cursor_present = private_cursor_present,
+                .status = .ok,
+                .mode = .resume_at_first_child,
+                .returns_zero = false,
+                .enters_positive_scan = true,
+                .keeps_current_pos = false,
+                .requires_private_cursor = false,
+            };
+        }
+
+        if (!private_cursor_present) {
+            return .{
+                .anchor = descriptor().anchor,
+                .current_position = current_position,
+                .emit_dots_result = emit_dots_result,
+                .private_cursor_present = private_cursor_present,
+                .status = .ok,
+                .mode = .missing_private_cursor,
+                .returns_zero = false,
+                .enters_positive_scan = false,
+                .keeps_current_pos = true,
+                .requires_private_cursor = true,
+            };
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .current_position = current_position,
+            .emit_dots_result = emit_dots_result,
+            .private_cursor_present = private_cursor_present,
+            .status = .ok,
+            .mode = .resume_from_private_cursor,
+            .returns_zero = false,
+            .enters_positive_scan = true,
+            .keeps_current_pos = false,
+            .requires_private_cursor = true,
         };
     }
 
@@ -953,14 +1082,12 @@ test "offset readdir plan gates offset iteration on emit_dots and eod state" {
     try std.testing.expect(!blocked.treats_end_of_directory_as_terminal);
 
     const active = LibfsHelperLab.planOffsetReaddir(dir_offset_first + 4, true);
-    try std.testing.expectEqual(OffsetReaddirStatus.ok, active.status);
     try std.testing.expectEqual(OffsetReaddirMode.ready_to_iterate, active.mode.?);
     try std.testing.expect(active.enters_offset_iteration);
     try std.testing.expect(!active.keeps_current_pos);
     try std.testing.expect(!active.treats_end_of_directory_as_terminal);
 
     const terminal = LibfsHelperLab.planOffsetReaddir(dir_offset_end_of_directory, true);
-    try std.testing.expectEqual(OffsetReaddirStatus.ok, terminal.status);
     try std.testing.expectEqual(OffsetReaddirMode.ready_at_end_of_directory, terminal.mode.?);
     try std.testing.expect(!terminal.enters_offset_iteration);
     try std.testing.expect(terminal.keeps_current_pos);
@@ -970,6 +1097,59 @@ test "offset readdir plan gates offset iteration on emit_dots and eod state" {
     try std.testing.expectEqual(OffsetReaddirStatus.negative_position, invalid.status);
     try std.testing.expectEqual(@as(?OffsetReaddirMode, null), invalid.mode);
     try std.testing.expect(!invalid.returns_zero);
+}
+
+test "cursor open planner keeps allocation failure explicit" {
+    const ready = LibfsHelperLab.dcacheDirOpenPlan(true);
+    try std.testing.expectEqualStrings("fs/libfs.c", ready.anchor);
+    try std.testing.expectEqual(CursorOpenStatus.ok, ready.status);
+    try std.testing.expect(ready.allocates_private_cursor);
+    try std.testing.expect(ready.stores_private_cursor);
+    try std.testing.expect(ready.zeroes_cursor_position);
+    try std.testing.expect(ready.returns_zero);
+
+    const oom = LibfsHelperLab.dcacheDirOpenPlan(false);
+    try std.testing.expectEqual(CursorOpenStatus.out_of_memory, oom.status);
+    try std.testing.expect(!oom.allocates_private_cursor);
+    try std.testing.expect(!oom.stores_private_cursor);
+    try std.testing.expect(!oom.zeroes_cursor_position);
+    try std.testing.expect(!oom.returns_zero);
+}
+
+test "cursor precondition planner keeps emit_dots and private-cursor resume paths explicit" {
+    const blocked = LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(dir_offset_first + 2, false, false);
+    try std.testing.expectEqualStrings("fs/libfs.c", blocked.anchor);
+    try std.testing.expectEqual(CursorPreconditionStatus.ok, blocked.status);
+    try std.testing.expectEqual(CursorResumeMode.blocked_on_emit_dots, blocked.mode.?);
+    try std.testing.expect(blocked.returns_zero);
+    try std.testing.expect(!blocked.enters_positive_scan);
+    try std.testing.expect(blocked.keeps_current_pos);
+    try std.testing.expect(!blocked.requires_private_cursor);
+
+    const first_child = LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(dir_offset_first, true, false);
+    try std.testing.expectEqual(CursorResumeMode.resume_at_first_child, first_child.mode.?);
+    try std.testing.expect(!first_child.returns_zero);
+    try std.testing.expect(first_child.enters_positive_scan);
+    try std.testing.expect(!first_child.keeps_current_pos);
+    try std.testing.expect(!first_child.requires_private_cursor);
+
+    const missing_cursor = LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(dir_offset_first + 3, true, false);
+    try std.testing.expectEqual(CursorResumeMode.missing_private_cursor, missing_cursor.mode.?);
+    try std.testing.expect(!missing_cursor.returns_zero);
+    try std.testing.expect(!missing_cursor.enters_positive_scan);
+    try std.testing.expect(missing_cursor.keeps_current_pos);
+    try std.testing.expect(missing_cursor.requires_private_cursor);
+
+    const resumed = LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(dir_offset_first + 3, true, true);
+    try std.testing.expectEqual(CursorResumeMode.resume_from_private_cursor, resumed.mode.?);
+    try std.testing.expect(!resumed.returns_zero);
+    try std.testing.expect(resumed.enters_positive_scan);
+    try std.testing.expect(!resumed.keeps_current_pos);
+    try std.testing.expect(resumed.requires_private_cursor);
+
+    const invalid = LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(-1, true, true);
+    try std.testing.expectEqual(CursorPreconditionStatus.negative_position, invalid.status);
+    try std.testing.expectEqual(@as(?CursorResumeMode, null), invalid.mode);
 }
 
 test "offset slot classification distinguishes managed entries from reserved sentinels" {
