@@ -236,10 +236,13 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     defer allocator.free(cmdline_tests);
     try expectContains(cmdline_tests, "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");");
     try expectContains(cmdline_tests, "phase 7 getOption and getOptions preserve Linux-style range parsing");
+    try expectContains(cmdline_tests, "phase 7 getOptions expands negative ranges and negative upper bounds like Linux get_range");
+    try expectContains(cmdline_tests, "phase 7 getOptions stops on descending ranges and unparseable suffixes");
     try expectContains(cmdline_tests, "phase 7 getOption preserves validator-only numeric acceptance without explicit leading plus");
     try expectContains(cmdline_tests, "phase 7 getOption clears caller output on malformed signed and unsigned input");
     try expectContains(cmdline_tests, "phase 7 getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull consumption");
     try expectContains(cmdline_tests, "phase 7 getOption and getOptions preserve oversized wrap semantics");
+    try expectContains(cmdline_tests, "phase 7 memparse preserves suffix scaling, leading-plus rejection, and stop index semantics");
     try expectContains(cmdline_tests, "phase 7 memparse saturates oversized unsigned prefixes before applying suffix handling");
     try expectContains(cmdline_tests, "phase 7 memparse keeps saturated prefixes aligned when size suffixes still apply");
     try expectContains(cmdline_tests, "const single_rest = cmdline.getOptions(\"1-1\", single.len, &single);");
@@ -247,6 +250,8 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(cmdline_tests, "phase 7 parseOptionStr matches only exact bare options");
     try expectContains(cmdline_tests, "try std.testing.expect(!cmdline.parseOptionStr(\"\", \"\"));");
     try expectContains(cmdline_tests, "phase 7 nextArg matches serialized edge fixtures");
+    try expectContains(cmdline_tests, "phase 7 nextArg keeps empty-input and leading-whitespace ownership explicit");
+    try expectContains(cmdline_tests, "phase 7 nextArg keeps leading quoted param, value, and rest borrowed from the caller buffer");
     try expectContains(cmdline_tests, "for (next_arg_vectors.next_arg_cases) |fixture| {");
     try expectContains(cmdline_tests, "cmdline.nextArg");
 
