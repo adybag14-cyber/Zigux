@@ -30,11 +30,13 @@ test "phase13 devres coherent-dma shard stays visible beside the current mmio su
     try requireContains(manifest, "\"id\": \"phase13-devres-live-release-region-mutation\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-device-tree-walk\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-arch-memtype-state\"");
+    try requireContains(manifest, "\"id\": \"phase13-devres-live-dma-mappings\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
     try requireContains(manifest, "\"status\": \"starter_landed\"");
     try requireContains(manifest, "\"status\": \"blocked_on_live_mmio_state\"");
     try requireContains(manifest, "\"status\": \"blocked_on_live_device_tree_state\"");
     try requireContains(manifest, "\"status\": \"blocked_on_live_arch_memtype_state\"");
+    try requireContains(manifest, "\"status\": \"blocked_on_live_dma_state\"");
     try requireContains(manifest, "\"status\": \"blocked_on_live_scatterlist_state\"");
     try requireContains(manifest, "stable shared Phase 13 replay handle");
     try requireContains(manifest, "actual region acquisition side effects");
@@ -67,6 +69,7 @@ test "phase13 devres coherent-dma survey keeps the adjacent dma shard visible wi
 
     try requireContains(survey, "zigux/tests/phase13_devres_dma_coherent.zig");
     try requireContains(survey, "adjacent coherent-DMA evidence shard");
+    try requireContains(survey, "phase13-devres-live-dma-mappings");
     try requireContains(survey, "helper-only DMA/scatterlist boundary");
     try requireContains(survey, "no DMA mapping helpers");
     try requireContains(survey, "live DMA-backed helpers or DMA mapping ownership");
