@@ -174,7 +174,9 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try std.testing.expectEqualStrings("runtime_loader_scaffold", loader_entry.kind);
     try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", loader_entry.path);
     try expectContains(loader_entry.why_now, "prepared counter-summary snapshot replay");
+    try expectContains(loader_entry.why_now, "selftest-hook drift rejection");
     try expectContains(loader_entry.why_now, "release-without-substrate rollback");
+    try expectContains(loader_entry.why_now, "shared release-state synchronization");
 
     const make_route_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-atomic64-family-make-route") orelse return error.MissingMakeRouteEntry;
     try std.testing.expectEqualStrings("review_route", make_route_entry.kind);
@@ -231,6 +233,8 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try std.testing.expectEqualStrings("runtime_loader_scaffold", loader_gap.kind);
     try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", loader_gap.zigux_destination);
     try expectContains(loader_gap.why_now, "entry and exit symbol names");
+    try expectContains(loader_gap.why_now, "selftest-hook drift rejection");
+    try expectContains(loader_gap.why_now, "shared release-state synchronization");
     try expectContains(loader_gap.why_now, "shared loader-facing reminder packet");
 
     const substrate_gap = findGap(manifest.gaps, "runtime-atomic64-live-loader-binding") orelse return error.MissingSubstrateGap;
@@ -275,6 +279,8 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(survey_note, "prepared `RuntimeAtomic64LoadSummary` snapshot");
     try expectContains(survey_note, "anchor, checked operation families, counter snapshot, and selftest-run count reviewable");
     try expectContains(survey_note, "later counter mutation, later selftest activity, or later exit activity changes the live sample");
+    try expectContains(survey_note, "prepared shared selftest-hook drift guard");
+    try expectContains(survey_note, "paired shared-release desynchronization proofs");
     try expectContains(
         survey_note,
         "direct shared runtime-load transition guard that keeps the loader stage and shared release state synchronized even if the shared request advances before the loader-owned release path runs",
@@ -296,6 +302,8 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(module_slice, "prepared `RuntimeAtomic64LoadSummary` snapshot reviewable");
     try expectContains(module_slice, "anchor, checked operation families, counter snapshot, and selftest-run count");
     try expectContains(module_slice, "later counter mutation, later selftest activity, or later exit activity do not rewrite the shared request");
+    try expectContains(module_slice, "prepared shared selftest-hook drift guard");
+    try expectContains(module_slice, "paired shared-release desynchronization proofs");
     try expectContains(module_slice, "`make -C zigux phase9-runtime-atomic64-test`");
     try expectContains(module_slice, "`zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig`");
 
@@ -327,4 +335,13 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(makefile, "phase9-runtime-atomic64-test:");
     try expectContains(makefile, "$(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all");
     try expectContains(makefile, "phase9: phase9-runtime-atomic64-test");
+}
+
+test "phase 9 runtime atomic64 survey keeps prepared shared drift guards and shared release synchronization explicit" {
+    const runtime_atomic64_loader = try readRepoFileAlloc(std.testing.allocator, "samples/zigux/runtime_atomic64_loader.zig", 128 * 1024);
+    defer std.testing.allocator.free(runtime_atomic64_loader);
+
+    try expectContains(runtime_atomic64_loader, "runtime atomic64 loader surfaces prepared shared selftest-hook drift before any live atomic64 claim");
+    try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps shared release failures from desynchronizing loader state");
+    try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps direct shared runtime-load transitions from desynchronizing shared release state");
 }
