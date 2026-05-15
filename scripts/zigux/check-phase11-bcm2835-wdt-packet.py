@@ -98,7 +98,18 @@ LANE_NOTE_MARKERS = [
     "* contributor-note lane `P11-L18` owns the shared contributor-facing wording across `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
 ]
 
-SELF_TEST_CASE_COUNT = 5
+MARKER_GROUPS = {
+    "driver": DRIVER_MARKERS,
+    "survey_note": SURVEY_NOTE_MARKERS,
+    "teardown_note": TEARDOWN_NOTE_MARKERS,
+    "validation_matrix": VALIDATION_MATRIX_MARKERS,
+    "shared_contract": SHARED_CONTRACT_MARKERS,
+    "closure_note": CLOSURE_NOTE_MARKERS,
+    "lane_note": LANE_NOTE_MARKERS,
+    "test_replay": TEST_REPLAY_MARKERS,
+    "survey_replay": SURVEY_REPLAY_MARKERS,
+    "verify_replay": VERIFY_REPLAY_MARKERS,
+}
 
 
 class CheckError(RuntimeError):
@@ -205,65 +216,37 @@ def expect_failure(root: Path, expected_fragment: str) -> None:
 def run_self_test() -> None:
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_bcm2835_wdt_packet_"))
     try:
-        build_self_test_fixture(tmpdir)
-        run_check(tmpdir)
+        fixture_root = tmpdir / "fixture"
+        build_self_test_fixture(fixture_root)
+        run_check(fixture_root)
 
-        survey_note_path = tmpdir / REQUIRED_FILES["survey_note"]
-        survey_note_path.write_text(
-            survey_note_path.read_text(encoding="utf-8").replace(
-                "`drivers/watchdog/bcm2835_wdt_verify.zig`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "`drivers/watchdog/bcm2835_wdt_verify.zig`")
+        marker_case_count = 0
+        for label, markers in MARKER_GROUPS.items():
+            relative_path = REQUIRED_FILES[label]
+            for marker_index, marker in enumerate(markers, start=1):
+                case_root = tmpdir / f"{label}_{marker_index}"
+                shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
+                path = case_root / relative_path
+                path.write_text(
+                    path.read_text(encoding="utf-8").replace(marker, "__mutated__", 1),
+                    encoding="utf-8",
+                )
+                expect_failure(case_root, marker)
+                marker_case_count += 1
 
-        build_self_test_fixture(tmpdir)
-        teardown_note_path = tmpdir / REQUIRED_FILES["teardown_note"]
-        teardown_note_path.write_text(
-            teardown_note_path.read_text(encoding="utf-8").replace(
-                "`Bcm2835WdtLab.poweroff()`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "`Bcm2835WdtLab.poweroff()`")
-
-        build_self_test_fixture(tmpdir)
-        validation_matrix_path = tmpdir / REQUIRED_FILES["validation_matrix"]
-        validation_matrix_path.write_text(
-            validation_matrix_path.read_text(encoding="utf-8").replace(
-                "Do not claim `zigux/tests/phase11_bcm2835_wdt_manifest.json` as landed\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            tmpdir,
-            "Do not claim `zigux/tests/phase11_bcm2835_wdt_manifest.json` as landed",
-        )
-
-        build_self_test_fixture(tmpdir)
-        lane_note_path = tmpdir / REQUIRED_FILES["lane_note"]
-        lane_note_path.write_text(
-            lane_note_path.read_text(encoding="utf-8").replace(
-                "* bcm2835 lane continuity stays split: archival packet identity remains `P11-L08`, while the current same-family reminder refreshes run through `P11-L05`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(tmpdir, "* bcm2835 lane continuity stays split")
-
-        build_self_test_fixture(tmpdir)
-        (tmpdir / REQUIRED_FILES["driver"]).unlink()
-        expect_failure(tmpdir, REQUIRED_FILES["driver"])
+        missing_file_case_count = 0
+        for label, relative_path in REQUIRED_FILES.items():
+            case_root = tmpdir / f"missing_{label}"
+            shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
+            (case_root / relative_path).unlink()
+            expect_failure(case_root, relative_path)
+            missing_file_case_count += 1
 
         print("PHASE11_BCM2835_WDT_PACKET_SELF_TEST=pass")
-        print(f"PHASE11_BCM2835_WDT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
+        print(
+            "PHASE11_BCM2835_WDT_PACKET_SELF_TEST_CASE_COUNT="
+            f"{marker_case_count + missing_file_case_count}"
+        )
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
