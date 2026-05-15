@@ -253,7 +253,7 @@ test "offset rename planning keeps managed destinations and sentinel rejection e
     try std.testing.expect(ok_plan.preserves_destination_offset_value);
 
     try std.testing.expectEqual(libfs.OffsetRenameStatus.missing_destination_offset, missing_destination.status);
-    try std.testing.expect(!missing_destination.clears_destination_offsetBeforeReplace);
+    try std.testing.expect(!missing_destination.clears_destination_offset_before_replace);
     try std.testing.expect(!missing_destination.installs_source_at_destination_offset);
 
     try std.testing.expectEqual(libfs.OffsetRenameStatus.reserved_destination_offset, reserved_destination.status);
