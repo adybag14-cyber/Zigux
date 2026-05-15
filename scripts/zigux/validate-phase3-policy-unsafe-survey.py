@@ -45,7 +45,7 @@ REQUIRED_MARKER_PREFIXES = (
 STATIC_MARKERS = (
     "PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-byte-and-field-asserts-consumed-by-shared-abi-replays",
     "PHASE3_PANIC_POLICY=explicit-modes-only",
-    "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
+    "PHASE3_ALLOCATOR_POLICY=explicit-modes-plus-init-flow",
     "PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge",
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
     "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
@@ -106,7 +106,7 @@ CHECKER_RUNS = (
 REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/layout_assert.zig` is still a small generic helper, but it now centralizes compile-time layout checks for `BoundaryHeader`, `ExportStatus`, and `InteropPolicy` plus the current panic, allocator, and unsafe-scope byte values, and it now also keeps the current chrdev notify ack-window policy budget-window delivery-window view, summary, budget-view, and budget-summary layouts explicit so those ABI structs no longer live only in the shared replays.",
     "`zigux/helpers/panic_policy.zig` keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
-    "`zigux/helpers/allocator_policy.zig` keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte or typed shared callers infer behavior elsewhere in the packet.",
+    "`zigux/helpers/allocator_policy.zig` keeps allocator mode, init ownership, and global-fallback policy explicit through `InitFlow`, `initFlowFor`, `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `permitsGlobalFallbackPolicyBytes`, `initializesOwnedStatePolicyBytes`, and `requiresResetOnInitPolicyBytes` so unknown allocator modes, helper-owned initialization, arena reset requirements, and nonzero reserved bytes fail closed before raw-byte or typed shared callers infer behavior elsewhere in the packet.",
     "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.",
     "`zigux/unsafe/narrow.zig` also mirrors the panic and allocator helper style with typed `InteropPolicy` entry points through `scopeFromInteropPolicy`, `recognizesInteropPolicy`, `permitsNoUnsafeInteropPolicy`, `permitsVolatileMmioInteropPolicy`, and `permitsRawPointerBridgeInteropPolicy`, while keeping the direct raw-pointer bridge relays narrowed to the `sliceAt*`, `constSliceAt*`, `constPointerAt*`, `pointerAt*`, and `writeValueAt*` helper family instead of widening into a broader unsafe facade.",
     "`zigux/helpers/mmio.zig` consumes that same narrow layer for direct `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, `write32()`, `read64()`, and `write64()` access while also routing policy-aware MMIO through `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*` relays so volatile-MMIO callers stay inside the bounded unsafe contract.",
@@ -142,12 +142,31 @@ REQUIRED_PANIC_POLICY_SNIPPETS = (
 )
 
 REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
+    "pub const InitFlow = enum {",
+    "pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {",
     "pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.AllocatorMode {",
     "pub fn requiresExplicitCallerPolicyBytes(mode: u8, reserved: u8) bool {",
     "pub fn permitsGlobalFallbackPolicyBytes(mode: u8, reserved: u8) bool {",
+    "pub fn initializesOwnedState(mode: abi.AllocatorMode) bool {",
+    "pub fn initializesOwnedStatePolicyBytes(mode: u8, reserved: u8) bool {",
+    "pub fn initializesOwnedStateInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn initializesOwnedStateByte(mode: u8) bool {",
+    "pub fn requiresResetOnInit(mode: abi.AllocatorMode) bool {",
+    "pub fn requiresResetOnInitPolicyBytes(mode: u8, reserved: u8) bool {",
+    "pub fn requiresResetOnInitInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn requiresResetOnInitByte(mode: u8) bool {",
+    'test "phase3 allocator policy keeps init ownership explicit" {',
+    'try std.testing.expectEqual(InitFlow.caller_prepared, initFlowFor(.caller_provided));',
+    'try std.testing.expect(initializesOwnedState(.kernel_heap));',
+    'try std.testing.expect(requiresResetOnInit(.arena));',
     'try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));',
     'try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));',
     'try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));',
+    'try std.testing.expect(initializesOwnedStateByte(1));',
+    'try std.testing.expect(!initializesOwnedStatePolicyBytes(2, 1));',
+    'try std.testing.expect(initializesOwnedStateInteropPolicy(heap_policy));',
+    'try std.testing.expect(requiresResetOnInitByte(2));',
+    'try std.testing.expect(requiresResetOnInitInteropPolicy(arena_policy));',
 )
 
 REQUIRED_UNSAFE_SNIPPETS = (
