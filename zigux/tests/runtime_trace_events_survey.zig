@@ -353,8 +353,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(loader_substrate_drift_why_now, "dedicated loader-substrate-drift replay");
     try expectContains(loader_substrate_drift_why_now, "selftest-complete and initialized-stage handoffs");
     try expectContains(survey_note_why_now, "selftest-ready failed-exit rollback cue");
+    try expectContains(survey_note_why_now, "rejected re-selftest rollback cue");
     try expectContains(survey_note_why_now, "loader-substrate-drift replay");
     try expectContains(module_slice_note_why_now, "selftest-ready failed-exit rollback note");
+    try expectContains(module_slice_note_why_now, "rejected re-selftest rollback note");
     try expectContains(module_slice_note_why_now, "loader-substrate-drift replay");
 
     try expectContains(survey_note, "reviewable family-local starter plus the adjacent shared loader-facing reminder packet");
@@ -373,6 +375,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(
         survey_note,
         "the family-local module gate separately keeps the selftest-ready failed-exit rollback path explicit so lifecycle state stays stable until registration drain finishes.",
+    );
+    try expectContains(
+        survey_note,
+        "The family-local module gate also now keeps rejected re-selftest rollback explicit, so invalid repeat selftest attempts leave both the selftest-complete and exited diagnostics summaries unchanged instead of silently mutating lifecycle state.",
     );
     try expectContains(
         survey_note,
@@ -401,6 +407,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(
         module_slice_note,
         "the family-local module gate owns the selftest-ready failed-exit rollback path that preserves lifecycle state until registration drain finishes, while still leaving the broader runtime-substrate handoff as a separate blocked step.",
+    );
+    try expectContains(
+        module_slice_note,
+        "The family-local module gate also keeps rejected re-selftest rollback explicit, so invalid repeat selftest attempts leave both the selftest-complete and exited summaries stable while the broader runtime-substrate handoff stays blocked.",
     );
     try expectContains(
         module_slice_note,
@@ -446,6 +456,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(
         runtime_trace_events_module,
         "test \"runtime trace-events module gate keeps selftest-ready failed-exit rollback explicit\" {",
+    );
+    try expectContains(
+        runtime_trace_events_module,
+        "test \"runtime trace-events module gate keeps rejected re-selftest rollback explicit\" {",
     );
     try expectContains(
         runtime_trace_events_module,
