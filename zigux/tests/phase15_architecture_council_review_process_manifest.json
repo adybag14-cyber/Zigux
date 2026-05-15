@@ -5,6 +5,14 @@
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
+  "directly_coupled_evidence_surfaces": [
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/review-checklist.md",
+    "zigux/tests/phase15_build.zig"
+  ],
   "ownership_evidence_fields": [
     "owner",
     "required approver set",
