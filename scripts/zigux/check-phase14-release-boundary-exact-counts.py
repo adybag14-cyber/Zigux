@@ -804,6 +804,34 @@ def run_self_test() -> int:
         write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
 
         manifest = json.loads(good_manifest_text())
+        manifest["productization"]["status_bucket"] = "blocked"
+        write(
+            root,
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            json.dumps(manifest, indent=2) + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "phase14 manifest status_bucket drifted from study_only",
+            "self-test expected manifest status-bucket drift failure",
+        )
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+
+        manifest = json.loads(good_manifest_text())
+        manifest["productization"]["rollback_owner"] = "Core-Adjacent Pod"
+        write(
+            root,
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            json.dumps(manifest, indent=2) + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "phase14 manifest rollback_owner drifted from Repo Tooling Pod",
+            "self-test expected manifest rollback-owner drift failure",
+        )
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+
+        manifest = json.loads(good_manifest_text())
         manifest["compile_shards"] = EXPECTED_COMPILE_SHARDS[:-1]
         write(
             root,
@@ -852,7 +880,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=25")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
