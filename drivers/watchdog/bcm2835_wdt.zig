@@ -68,6 +68,23 @@ pub const PoweroffSummary = struct {
     running_after_poweroff: bool,
 };
 
+pub const RemoveState = enum {
+    inactive_remove,
+    running_remove,
+};
+
+pub const RemoveSummary = struct {
+    anchor: []const u8,
+    unregister_device_call: []const u8,
+    unregister_device_requested: bool,
+    poweroff_handler_release_requested: bool,
+    running_before_remove: bool,
+    running_after_remove: bool,
+    full_reset_armed_after_remove: bool,
+    halt_partition_requested_after_remove: bool,
+    state: RemoveState,
+};
+
 pub const PlatformHandoffRequest = struct {
     heartbeat_sec: u32,
     nowayout: bool,
@@ -257,6 +274,26 @@ pub const Bcm2835WdtLab = struct {
             .running_after_poweroff = self.running,
         };
     }
+
+    pub fn remove(self: *Bcm2835WdtLab, handler_claimed: bool) RemoveSummary {
+        const running_before_remove = self.running;
+        self.running = false;
+        self.current_ticks = 0;
+        self.full_reset_armed = false;
+        self.halt_partition_requested = false;
+
+        return .{
+            .anchor = anchor_path,
+            .unregister_device_call = "watchdog_unregister_device",
+            .unregister_device_requested = true,
+            .poweroff_handler_release_requested = handler_claimed,
+            .running_before_remove = running_before_remove,
+            .running_after_remove = self.running,
+            .full_reset_armed_after_remove = self.full_reset_armed,
+            .halt_partition_requested_after_remove = self.halt_partition_requested,
+            .state = if (running_before_remove) .running_remove else .inactive_remove,
+        };
+    }
 };
 
 test "phase11 bcm2835_wdt conversion helpers keep watchdog bounds explicit" {
@@ -422,4 +459,29 @@ test "phase11 bcm2835_wdt restart and poweroff summaries keep full reset and hal
     try std.testing.expect(poweroff_summary.full_reset_armed);
     try std.testing.expect(poweroff_summary.poweroff_handler_claimed);
     try std.testing.expect(poweroff_summary.running_after_poweroff);
+}
+
+test "phase11 bcm2835_wdt remove summary keeps claimed cleanup explicit" {
+    var claimed = try Bcm2835WdtLab.init(5);
+    _ = try claimed.start();
+    const claimed_summary = claimed.remove(true);
+    try std.testing.expectEqualStrings(anchor_path, claimed_summary.anchor);
+    try std.testing.expectEqualStrings("watchdog_unregister_device", claimed_summary.unregister_device_call);
+    try std.testing.expect(claimed_summary.unregister_device_requested);
+    try std.testing.expect(claimed_summary.poweroff_handler_release_requested);
+    try std.testing.expect(claimed_summary.running_before_remove);
+    try std.testing.expect(!claimed_summary.running_after_remove);
+    try std.testing.expect(!claimed_summary.full_reset_armed_after_remove);
+    try std.testing.expect(!claimed_summary.halt_partition_requested_after_remove);
+    try std.testing.expectEqual(RemoveState.running_remove, claimed_summary.state);
+
+    var unclaimed = try Bcm2835WdtLab.init(5);
+    const unclaimed_summary = unclaimed.remove(false);
+    try std.testing.expect(unclaimed_summary.unregister_device_requested);
+    try std.testing.expect(!unclaimed_summary.poweroff_handler_release_requested);
+    try std.testing.expect(!unclaimed_summary.running_before_remove);
+    try std.testing.expect(!unclaimed_summary.running_after_remove);
+    try std.testing.expect(!unclaimed_summary.full_reset_armed_after_remove);
+    try std.testing.expect(!unclaimed_summary.halt_partition_requested_after_remove);
+    try std.testing.expectEqual(RemoveState.inactive_remove, unclaimed_summary.state);
 }
