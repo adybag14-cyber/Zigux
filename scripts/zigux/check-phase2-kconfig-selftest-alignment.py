@@ -120,7 +120,11 @@ EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 26
 EXPECTED_CONF_CASE_COUNT = 16
 EXPECTED_CONFDATA_CASE_COUNT = 13
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_SELF_TEST_CASE_COUNT = 10
+EXPECTED_SELF_TEST_CASE_COUNT = 12
+
+
+def under_root(root: Path, path: Path) -> Path:
+    return root / path.relative_to(ROOT)
 
 
 def read_text(path: Path) -> str:
@@ -177,7 +181,7 @@ def extract_case_names(cases: object, label: str, issues: list[tuple[str, str]])
 def collect_kconfig_checker_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     assignments = parse_python_assignments(
-        read_text(root / KCONFIG_BRIDGE_CHECKER.name),
+        read_text(under_root(root, KCONFIG_BRIDGE_CHECKER)),
         (
             "REQUIRED_CONF_CASE_MODES",
             "REQUIRED_CONFDATA_CASES",
@@ -207,7 +211,7 @@ def collect_kconfig_checker_issues(root: Path) -> list[tuple[str, str]]:
             )
         )
 
-    cases_payload = read_json(root / KCONFIG_BRIDGE_CASES.name)
+    cases_payload = read_json(under_root(root, KCONFIG_BRIDGE_CASES))
     if not isinstance(cases_payload, dict):
         return [("KCONFIG_CASE_PACKET_INVALID", "cases.json must decode to an object")]
 
@@ -219,8 +223,8 @@ def collect_kconfig_checker_issues(root: Path) -> list[tuple[str, str]]:
     if isinstance(confdata_cases, list) and live_confdata_names != confdata_cases:
         issues.append(("KCONFIG_CASE_PACKET_NAME_MISMATCH", f"confdata_cases:{live_confdata_names!r}:{confdata_cases!r}"))
 
-    conf_manifest = read_json(root / KCONFIG_BRIDGE_CONF_MANIFEST.name)
-    confdata_manifest = read_json(root / KCONFIG_BRIDGE_CONFDATA_MANIFEST.name)
+    conf_manifest = read_json(under_root(root, KCONFIG_BRIDGE_CONF_MANIFEST))
+    confdata_manifest = read_json(under_root(root, KCONFIG_BRIDGE_CONFDATA_MANIFEST))
     if not isinstance(conf_manifest, dict) or conf_manifest.get("case_count") != EXPECTED_CONF_CASE_COUNT:
         issues.append(("KCONFIG_MANIFEST_CASE_COUNT_MISMATCH", "conf_manifest"))
     if not isinstance(confdata_manifest, dict) or confdata_manifest.get("case_count") != EXPECTED_CONFDATA_CASE_COUNT:
@@ -236,17 +240,17 @@ def collect_kconfig_checker_issues(root: Path) -> list[tuple[str, str]]:
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
-    validator_text = read_text(root / PHASE2_VALIDATOR.name)
+    validator_text = read_text(under_root(root, PHASE2_VALIDATOR))
     issues.extend(collect_missing_markers(validator_text, VALIDATOR_MARKERS, "MISSING_VALIDATOR_MARKERS"))
 
-    closure_validator_text = read_text(root / PHASE2_CLOSURE_VALIDATOR.name)
+    closure_validator_text = read_text(under_root(root, PHASE2_CLOSURE_VALIDATOR))
     issues.extend(
         collect_missing_markers(
             closure_validator_text, CLOSURE_VALIDATOR_MARKERS, "MISSING_CLOSURE_VALIDATOR_MARKERS"
         )
     )
 
-    workflow_text = read_text(root / WORKFLOW.name)
+    workflow_text = read_text(under_root(root, WORKFLOW))
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
         if count == 0:
@@ -254,7 +258,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
 
-    makefile_text = read_text(root / MAKEFILE.name)
+    makefile_text = read_text(under_root(root, MAKEFILE))
     for marker in MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
         if count == 0:
@@ -262,13 +266,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count={count}"))
 
-    issues.extend(collect_missing_markers(read_text(root / SCRIPTS_README.name), SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"))
-    issues.extend(collect_missing_markers(read_text(root / TESTS_README.name), TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"))
-    issues.extend(collect_missing_markers(read_text(root / REVIEW_CHECKLIST.name), REVIEW_CHECKLIST_MARKERS, "MISSING_REVIEW_CHECKLIST_MARKERS"))
-    issues.extend(collect_missing_markers(read_text(root / PHASE2_CLOSURE_DOC.name), PHASE2_CLOSURE_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"))
-    issues.extend(collect_missing_markers(read_text(root / PHASE2_BOOTSTRAP_NOTES.name), PHASE2_BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS"))
+    issues.extend(collect_missing_markers(read_text(under_root(root, SCRIPTS_README)), SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"))
+    issues.extend(collect_missing_markers(read_text(under_root(root, TESTS_README)), TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"))
+    issues.extend(collect_missing_markers(read_text(under_root(root, REVIEW_CHECKLIST)), REVIEW_CHECKLIST_MARKERS, "MISSING_REVIEW_CHECKLIST_MARKERS"))
+    issues.extend(collect_missing_markers(read_text(under_root(root, PHASE2_CLOSURE_DOC)), PHASE2_CLOSURE_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"))
+    issues.extend(collect_missing_markers(read_text(under_root(root, PHASE2_BOOTSTRAP_NOTES)), PHASE2_BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS"))
 
-    confdata_survey_text = read_text(root / PHASE2_CONFDATA_SURVEY.name)
+    confdata_survey_text = read_text(under_root(root, PHASE2_CONFDATA_SURVEY))
     issues.extend(collect_missing_markers(confdata_survey_text, PHASE2_CONFDATA_SURVEY_MARKERS, "MISSING_CONFDATA_SURVEY_MARKERS"))
     issues.extend(
         collect_forbidden_markers(
@@ -296,20 +300,21 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 
 def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(root / PHASE2_VALIDATOR.name, "\n".join(VALIDATOR_MARKERS) + "\n")
-    write_text(root / PHASE2_CLOSURE_VALIDATOR.name, "\n".join(CLOSURE_VALIDATOR_MARKERS) + "\n")
-    write_text(root / WORKFLOW.name, "\n".join(WORKFLOW_LINES) + "\n")
-    write_text(root / MAKEFILE.name, "\n".join(MAKEFILE_LINES) + "\n")
-    write_text(root / SCRIPTS_README.name, "\n".join(SCRIPTS_README_MARKERS) + "\n")
-    write_text(root / TESTS_README.name, "\n".join(TESTS_README_MARKERS) + "\n")
-    write_text(root / REVIEW_CHECKLIST.name, "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
-    write_text(root / PHASE2_CLOSURE_DOC.name, "\n".join(PHASE2_CLOSURE_DOC_MARKERS) + "\n")
-    write_text(root / PHASE2_BOOTSTRAP_NOTES.name, "\n".join(PHASE2_BOOTSTRAP_NOTES_MARKERS) + "\n")
-    write_text(root / PHASE2_CONFDATA_SURVEY.name, "\n".join(PHASE2_CONFDATA_SURVEY_MARKERS) + "\n")
+    write_text(under_root(root, PHASE2_VALIDATOR), "\n".join(VALIDATOR_MARKERS) + "\n")
+    write_text(under_root(root, PHASE2_CLOSURE_VALIDATOR), "\n".join(CLOSURE_VALIDATOR_MARKERS) + "\n")
+    write_text(under_root(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
+    write_text(under_root(root, MAKEFILE), "\n".join(MAKEFILE_LINES) + "\n")
+    write_text(under_root(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
+    write_text(under_root(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
+    write_text(under_root(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
+    write_text(under_root(root, PHASE2_CLOSURE_DOC), "\n".join(PHASE2_CLOSURE_DOC_MARKERS) + "\n")
+    write_text(under_root(root, PHASE2_BOOTSTRAP_NOTES), "\n".join(PHASE2_BOOTSTRAP_NOTES_MARKERS) + "\n")
+    write_text(under_root(root, PHASE2_CONFDATA_SURVEY), "\n".join(PHASE2_CONFDATA_SURVEY_MARKERS) + "\n")
 
     checker_source = "\n".join(
         [
@@ -326,19 +331,19 @@ def build_self_test_root(root: Path) -> None:
             "",
         ]
     )
-    write_text(root / KCONFIG_BRIDGE_CHECKER.name, checker_source)
+    write_text(under_root(root, KCONFIG_BRIDGE_CHECKER), checker_source)
 
     cases_payload = {
         "conf_cases": [{"name": name} for name in ("oldaskconfig", "syncconfig", "oldconfig", "allnoconfig", "allyesconfig", "allmodconfig", "alldefconfig", "randconfig", "defconfig", "savedefconfig", "listnewconfig", "helpnewconfig", "olddefconfig", "yes2modconfig", "mod2yesconfig", "mod2noconfig")],
         "confdata_cases": [{"name": name} for name in ("sample", "escaped_strings", "escaped_control_sequences", "trailing_escaped_backslash", "sample_crlf", "explicit_n_tristate", "final_trailing_carriage_return", "final_unterminated_unset_comment", "uppercase_tristate", "non_config_lines", "empty_config_symbol_names", "last_state_transitions", "duplicate_malformed_quoted_assignment")],
     }
-    write_text(root / KCONFIG_BRIDGE_CASES.name, json.dumps(cases_payload, indent=2) + "\n")
+    write_text(under_root(root, KCONFIG_BRIDGE_CASES), json.dumps(cases_payload, indent=2) + "\n")
     write_text(
-        root / KCONFIG_BRIDGE_CONF_MANIFEST.name,
+        under_root(root, KCONFIG_BRIDGE_CONF_MANIFEST),
         json.dumps({"case_count": EXPECTED_CONF_CASE_COUNT, "cases": [case["name"] for case in cases_payload["conf_cases"]]}, indent=2) + "\n",
     )
     write_text(
-        root / KCONFIG_BRIDGE_CONFDATA_MANIFEST.name,
+        under_root(root, KCONFIG_BRIDGE_CONFDATA_MANIFEST),
         json.dumps(
             {
                 "case_count": EXPECTED_CONFDATA_CASE_COUNT,
@@ -364,40 +369,50 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        write_text(root / PHASE2_VALIDATOR.name, replace_once(read_text(root / PHASE2_VALIDATOR.name), VALIDATOR_MARKERS[1], ""))
+        write_text(under_root(root, PHASE2_VALIDATOR), replace_once(read_text(under_root(root, PHASE2_VALIDATOR)), VALIDATOR_MARKERS[1], ""))
         assert ("MISSING_VALIDATOR_MARKERS", VALIDATOR_MARKERS[1]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
         write_text(
-            root / PHASE2_VALIDATOR.name,
-            replace_once(read_text(root / PHASE2_VALIDATOR.name), VALIDATOR_MARKERS[-1], "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 26"),
+            under_root(root, PHASE2_VALIDATOR),
+            replace_once(read_text(under_root(root, PHASE2_VALIDATOR)), VALIDATOR_MARKERS[-1], "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 26"),
         )
         assert ("MISSING_VALIDATOR_MARKERS", VALIDATOR_MARKERS[-1]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(root / SCRIPTS_README.name, replace_once(read_text(root / SCRIPTS_README.name), SCRIPTS_README_MARKERS[2], ""))
+        write_text(under_root(root, SCRIPTS_README), replace_once(read_text(under_root(root, SCRIPTS_README)), SCRIPTS_README_MARKERS[2], ""))
         assert ("MISSING_SCRIPTS_README_MARKERS", SCRIPTS_README_MARKERS[2]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(root / WORKFLOW.name, replace_once(read_text(root / WORKFLOW.name), WORKFLOW_LINES[6], ""))
+        write_text(under_root(root, WORKFLOW), replace_once(read_text(under_root(root, WORKFLOW)), WORKFLOW_LINES[6], ""))
         assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[6]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        payload = json.loads(read_text(root / KCONFIG_BRIDGE_CASES.name))
+        write_text(under_root(root, WORKFLOW), read_text(under_root(root, WORKFLOW)) + WORKFLOW_LINES[2] + "\n")
+        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{WORKFLOW_LINES[2]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(under_root(root, MAKEFILE), read_text(under_root(root, MAKEFILE)) + MAKEFILE_LINES[3] + "\n")
+        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{MAKEFILE_LINES[3]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(read_text(under_root(root, KCONFIG_BRIDGE_CASES)))
         payload["confdata_cases"].pop()
-        write_text(root / KCONFIG_BRIDGE_CASES.name, json.dumps(payload, indent=2) + "\n")
+        write_text(under_root(root, KCONFIG_BRIDGE_CASES), json.dumps(payload, indent=2) + "\n")
         assert any(code == "KCONFIG_CASE_PACKET_NAME_MISMATCH" or code == "KCONFIG_CHECKER_CONFDATA_CASE_COUNT_MISMATCH" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
         write_text(
-            root / KCONFIG_BRIDGE_CHECKER.name,
+            under_root(root, KCONFIG_BRIDGE_CHECKER),
             replace_once(
-                read_text(root / KCONFIG_BRIDGE_CHECKER.name),
+                read_text(under_root(root, KCONFIG_BRIDGE_CHECKER)),
                 f"EXPECTED_SELF_TEST_CASE_COUNT = {EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT}",
                 "EXPECTED_SELF_TEST_CASE_COUNT = 20",
             ),
@@ -409,19 +424,19 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(root / PHASE2_CONFDATA_SURVEY.name, read_text(root / PHASE2_CONFDATA_SURVEY.name) + "\n11 fixture cases\n")
+        write_text(under_root(root, PHASE2_CONFDATA_SURVEY), read_text(under_root(root, PHASE2_CONFDATA_SURVEY)) + "\n11 fixture cases\n")
         assert ("FORBIDDEN_CONFDATA_SURVEY_MARKERS", "11 fixture cases") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        manifest = json.loads(read_text(root / KCONFIG_BRIDGE_CONFDATA_MANIFEST.name))
+        manifest = json.loads(read_text(under_root(root, KCONFIG_BRIDGE_CONFDATA_MANIFEST)))
         manifest["helper_local_anchors"] = manifest["helper_local_anchors"][:-1]
-        write_text(root / KCONFIG_BRIDGE_CONFDATA_MANIFEST.name, json.dumps(manifest, indent=2) + "\n")
+        write_text(under_root(root, KCONFIG_BRIDGE_CONFDATA_MANIFEST), json.dumps(manifest, indent=2) + "\n")
         assert ("KCONFIG_MANIFEST_PACKET_MISMATCH", "confdata_manifest:helper_local_anchors") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(root / REVIEW_CHECKLIST.name, replace_once(read_text(root / REVIEW_CHECKLIST.name), REVIEW_CHECKLIST_MARKERS[1], ""))
+        write_text(under_root(root, REVIEW_CHECKLIST), replace_once(read_text(under_root(root, REVIEW_CHECKLIST)), REVIEW_CHECKLIST_MARKERS[1], ""))
         assert ("MISSING_REVIEW_CHECKLIST_MARKERS", REVIEW_CHECKLIST_MARKERS[1]) in collect_issues(root)
         checks_run += 1
 
