@@ -8,6 +8,7 @@
     "shared_runtime_loader_contract_present": true,
     "shared_loader_shared_tests_route_present": true,
     "shared_phase9_bundle_route_present": true,
+    "shared_lifecycle_boundary_guard_present": true,
     "dedicated_validate_phase9_present": false,
     "review_checklist_cross_phase_non_owner_boundary_present": false,
     "current_honest_gate": "make -C zigux phase9-runtime-loader-shared-tests"
@@ -48,12 +49,17 @@
     {
       "surface": "zigux/tests/runtime_loader_gap_manifest.json",
       "kind": "packet_truth_manifest",
-      "why_now": "Pins the current shared loader route, its still-blocked publication boundary, the cleared trace-events parity evidence, and the remaining checklist-local cross-phase reminder gap."
+      "why_now": "Pins the current shared loader route, its still-blocked publication boundary, the cleared trace-events parity evidence, the focused lifecycle-boundary guard, and the remaining checklist-local cross-phase reminder gap."
     },
     {
       "surface": "zigux/tests/runtime_loader_gap_survey.zig",
       "kind": "survey_gate",
       "why_now": "Machine-checks the live shared loader packet markers."
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_lifecycle_boundary_guard.zig",
+      "kind": "shared_lifecycle_boundary_guard",
+      "why_now": "Fail-closes the manifest-backed no-live-initcall and metadata-only registration boundary without reopening the broader shared note packet."
     },
     {
       "surface": "zigux/tests/runtime_trace_events_loader_substrate_drift.zig",
@@ -121,6 +127,12 @@
       "boundary": "Machine-checks the shared loader-gap packet without widening pilot-family behavior."
     },
     {
+      "surface": "zigux/tests/runtime_loader_lifecycle_boundary_guard.zig",
+      "role": "shared_lifecycle_boundary_guard",
+      "owner": "P9-L17",
+      "boundary": "Owns the focused no-live-initcall and metadata-only registration boundary guard inside the shared loader packet without reopening notes-only or pilot-family-local surfaces."
+    },
+    {
       "surface": "zigux/tests/runtime_trace_events_loader_substrate_drift.zig",
       "role": "loader_drift_replay",
       "owner": "P9-L18",
@@ -146,6 +158,13 @@
       "kind": "shared_validation_gate",
       "zigux_destination": "zigux/tests/phase9_build.zig",
       "why_now": "The shared loader-facing replay routes are shipped and should stay explicit."
+    },
+    {
+      "id": "runtime-loader-lifecycle-boundary-summary-guard",
+      "status": "starter_landed",
+      "kind": "shared_lifecycle_boundary_validation",
+      "zigux_destination": "zigux/tests/runtime_loader_lifecycle_boundary_guard.zig",
+      "why_now": "The manifest's shared-request states, boundary guard, review-only loader-plan surfaces, and metadata-only registration surfaces now fail closed through a focused shared-loader guard."
     },
     {
       "id": "runtime-loader-live-runtime-binding",
