@@ -64,13 +64,13 @@ Base raw URL prefix:
   - `Documentation/zigux/phase12-virtio-scsi-survey.md` -> blob `a1fa942a65be4611e2fe008c84faa628ac8a092a`
   - `Documentation/zigux/README.md` -> blob `78a2a98c221831105b48986aad48e91d4884a1d4`
   - `zigux/tests/README.md` -> blob `bf048e32d25df0fb822789e7af1a30d91a3035d4`
-  - `scripts/zigux/README.md` -> blob `6f6dc7489e3d13a73e8982af2040f5416787b7b9`
+  - `scripts/zigux/README.md` -> blob `4e47c9ed4a7d5c9398f58944237bcd302b49a073`
   - `zigux/tests/phase12_build.zig` -> blob `d5746e7fc71d926e8e72310f29bca9c9fcdad5fc`
   - `zigux/tests/phase12_virtio_scsi.zig` -> blob `f829de9b39576c67e81e75fe1e9d849e583db62f`
   - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` -> blob `89173ebd7f2c66d9673375e8d15f32cb645b60db`
   - `zigux/tests/phase12_virtio_scsi_survey.zig` -> blob `c99597ec217e9d456e658a9942ebb2eaef535203`
   - `zigux/tests/phase12_virtio_scsi_manifest.json` -> blob `6e0ed13c124baa6d2e845cd954ccdf93a148a4ca`
-  - `zigux/Makefile` -> blob `0dd002e3731182c264cf040cbe56c275591d7c0d`
+  - `zigux/Makefile` -> blob `3e19e8da0be49eaa7a4f75d29d324648261aad8e`
 - current-master support-material boundary rechecked beside the same packet:
   - `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `524041f460157539a034f7dd9fd98ec1423d4f6a`
   - `scripts/zigux/validate-phase12.py` -> blob `c548ea93121984ab3926c38ab64fbaf1022c0343`
