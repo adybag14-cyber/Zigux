@@ -14,7 +14,7 @@ HELPER_PATH = "fs/libfs.zig"
 REPLAY_PATH = "zigux/tests/phase13_libfs.zig"
 REVIEWABILITY_PATH = "zigux/tests/phase13_libfs_reviewability.zig"
 
-EXPECTED_LANE = "P13-L01"
+EXPECTED_LANE = "P13-L04"
 EXPECTED_COMMIT = "master-readback-2026-05-15"
 EXPECTED_GAP_COUNT = 13
 EXPECTED_STARTER_COUNT = 10
@@ -43,6 +43,7 @@ SURVEY_MARKERS = [
     "`zigux/tests/phase13_libfs.zig`",
     "`zigux/tests/phase13_libfs_reviewability.zig`",
     "`zigux/tests/phase13_libfs_manifest.json`",
+    "survey ownership for this packet is tracked under `P13-L04`",
     "simple_offset_add()",
     "simple_offset_remove()",
     "simple_transaction_get()",
@@ -66,6 +67,7 @@ HELPER_MARKERS = [
 
 REPLAY_MARKERS = [
     "phase13 libfs manifest records the current helper-first filesystem packet",
+    "\"lane_key\": \"P13-L04\"",
     "\"phase13-libfs-offset-remove-planner\"",
     "\"phase13-libfs-transaction-release-helper\"",
     "\"phase13-libfs-addressability-helper\"",
@@ -192,6 +194,17 @@ def run_self_test() -> int:
         seed_fixture_tree(root)
         (root / REPLAY_PATH).unlink()
         assert_only(validate(root), [f"missing:{REPLAY_PATH}"], "missing_replay_failed")
+        case_count += 1
+
+        seed_fixture_tree(root)
+        manifest = json.loads(read_text(root / MANIFEST_PATH))
+        manifest["lane_key"] = "P13-L01"
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        assert_only(
+            validate(root),
+            ["manifest:lane_key_mismatch:P13-L01"],
+            "manifest_lane_key_failed",
+        )
         case_count += 1
 
         seed_fixture_tree(root)
