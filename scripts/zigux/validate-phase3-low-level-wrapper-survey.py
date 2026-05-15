@@ -132,6 +132,14 @@ REQUIRED_MMIO_SNIPPETS = (
     'pub fn typedOffsetForIndex(desc: Range, comptime T: type, index: usize) ?usize {',
     'pub fn readIndex(comptime T: type, desc: Range, index: usize) ?T {',
     'pub fn writeIndex(comptime T: type, desc: Range, index: usize, value: T) bool {',
+    'pub fn read8Index(desc: Range, index: usize) ?u8 {',
+    'pub fn read16Index(desc: Range, index: usize) ?u16 {',
+    'pub fn read32Index(desc: Range, index: usize) ?u32 {',
+    'pub fn read64Index(desc: Range, index: usize) ?u64 {',
+    'pub fn write8Index(desc: Range, index: usize, value: u8) bool {',
+    'pub fn write16Index(desc: Range, index: usize, value: u16) bool {',
+    'pub fn write32Index(desc: Range, index: usize, value: u32) bool {',
+    'pub fn write64Index(desc: Range, index: usize, value: u64) bool {',
     'pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {',
     'pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {',
     'pub fn allowsInteropPolicyByte(unsafe_scope: u8) bool {',
@@ -261,660 +269,94 @@ def run_self_test() -> int:
 
         issues = validate(root)
         if issues:
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            for issue in issues:
-                print(issue)
-            return 1
+            raise AssertionError(f"expected clean fixture, got {issues}")
 
-        (root / SURVEY_REL).write_text("broken\n", encoding="utf-8")
-        issues = validate(root)
-        if not any(issue.startswith("missing_survey_marker:") for issue in issues):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing survey marker failure")
-            return 1
+        bad_cases = [
+            (SURVEY_REL, REQUIRED_SURVEY_MARKERS[0], "missing_survey_marker"),
+            (SURVEY_REL, REQUIRED_SURVEY_SNIPPETS[0], "missing_survey_snippet"),
+            (BUILD_REL, REQUIRED_BUILD_SNIPPETS[0], "missing_build_snippet"),
+            (TEST_REL, REQUIRED_TEST_SNIPPETS[0], "missing_test_snippet"),
+            (ATOMIC_REL, REQUIRED_ATOMIC_SNIPPETS[0], "missing_atomic_snippet"),
+            (ATOMIC_REL, REQUIRED_ATOMIC_SNIPPETS[8], "missing_atomic_snippet"),
+            (ATOMIC_REL, REQUIRED_ATOMIC_SNIPPETS[9], "missing_atomic_snippet"),
+            (ATOMIC_REL, REQUIRED_ATOMIC_SNIPPETS[10], "missing_atomic_snippet"),
+            (ATOMIC_REL, REQUIRED_ATOMIC_SNIPPETS[11], "missing_atomic_snippet"),
+            (ATOMIC_REL, REQUIRED_ATOMIC_SNIPPETS[12], "missing_atomic_snippet"),
+            (ATOMIC_REL, REQUIRED_ATOMIC_SNIPPETS[13], "missing_atomic_snippet"),
+            (ATOMIC_REL, REQUIRED_ATOMIC_SNIPPETS[14], "missing_atomic_snippet"),
+            (BARRIER_REL, REQUIRED_BARRIER_SNIPPETS[0], "missing_barrier_snippet"),
+            (BARRIER_REL, REQUIRED_BARRIER_SNIPPETS[2], "missing_barrier_snippet"),
+            (BARRIER_REL, REQUIRED_BARRIER_SNIPPETS[3], "missing_barrier_snippet"),
+            (BARRIER_REL, REQUIRED_BARRIER_SNIPPETS[4], "missing_barrier_snippet"),
+            (BARRIER_REL, REQUIRED_BARRIER_SNIPPETS[5], "missing_barrier_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[0], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[6], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[7], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[13], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[14], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[21], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[22], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[23], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[24], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[25], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[26], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[27], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[28], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[39], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[40], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[41], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[42], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[43], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[44], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[45], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[46], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[47], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[48], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[49], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[50], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[51], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[52], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[53], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[54], "missing_mmio_snippet"),
+            (MMIO_REL, REQUIRED_MMIO_SNIPPETS[55], "missing_mmio_snippet"),
+            (ABI_SLICE_REL, REFERENCE_MARKERS[0][1], "missing_reference"),
+            (DOCS_ROOT_REL, REFERENCE_MARKERS[3][1], "missing_reference"),
+            (SCRIPTS_README_REL, REFERENCE_MARKERS[5][1], "missing_reference"),
+            (TESTS_README_REL, REFERENCE_MARKERS[7][1], "missing_reference"),
+            (MAKEFILE_REL, REFERENCE_MARKERS[9][1], "missing_reference"),
+        ]
 
-        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
-        _write(
-            root,
-            SURVEY_REL,
-            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-                "PHASE3_MMIO_SCOPE=direct-range-indexed-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
-                "PHASE3_MMIO_SCOPE=direct-range-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue
-            == "missing_survey_marker:PHASE3_MMIO_SCOPE=direct-range-indexed-read-write-8-16-32-64-width-alignment-and-odd-offset-replay"
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing indexed-mmio scope survey failure")
-            return 1
+        for rel, snippet, prefix in bad_cases:
+            grouped_markers = {}
+            _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
+            _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
+            _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
+            _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
+            _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
+            _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+            for ref_rel, marker in REFERENCE_MARKERS:
+                grouped_markers.setdefault(ref_rel, []).append(marker)
+            for ref_rel, markers in grouped_markers.items():
+                _write(root, ref_rel, "\n".join(markers) + "\n")
 
-        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
-        _write(root, TEST_REL, "missing helper checks\n")
-        issues = validate(root)
-        if not any(
-            issue == 'missing_test_snippet:test "phase3 low-level wrappers keep barrier handoff reviewable" {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing barrier handoff replay failure")
-            return 1
+            target = root / rel
+            text = target.read_text(encoding="utf-8")
+            target.write_text(text.replace(snippet + "\n", "", 1), encoding="utf-8")
 
-        _write(
-            root,
-            SURVEY_REL,
-            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-                "`zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned by `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` and its coupled policy validators, even when the current low-level replay still imports them for the shared allocator-and-panic consumer proof.",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue.startswith(
-                "missing_survey_snippet:`zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned"
-            )
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing allocator and panic owner-split survey failure")
-            return 1
+            issues = validate(root)
+            if not issues:
+                raise AssertionError(f"expected {prefix} for {rel}:{snippet}")
+            expected = f"{prefix}:{snippet}"
+            if not any(issue == expected or issue.endswith(f":{snippet}") for issue in issues):
+                raise AssertionError(f"expected {expected}, got {issues}")
 
-        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
-        _write(
-            root,
-            SURVEY_REL,
-            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-                "Current `master` no longer treats `zigux/helpers/mmio.zig` as declarations-only support for the focused replay. The helper file itself now ships direct MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate replays, while `zigux/tests/phase3_low_level_wrappers.zig` remains the shared cross-helper route that keeps those already-landed MMIO calls visible beside the atomic, barrier, raw-pointer, allocator, and panic consumers.",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue.startswith(
-                "missing_survey_snippet:Current `master` no longer treats `zigux/helpers/mmio.zig` as declarations-only support"
-            )
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing helper-local mmio survey paragraph failure")
-            return 1
-
-        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
-        _write(
-            root,
-            SURVEY_REL,
-            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-                "that helper-local MMIO proof surface does not move volatile-MMIO policy relay ownership into this lane; it only means the already-landed policy relays now have both helper-local and focused-route evidence on current `master`.",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue.startswith(
-                "missing_survey_snippet:that helper-local MMIO proof surface does not move volatile-MMIO policy relay ownership"
-            )
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing helper-local mmio owner-split survey failure")
-            return 1
-
-        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
-        _write(
-            root,
-            SURVEY_REL,
-            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-                "helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage in `zigux/helpers/mmio.zig`",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue.startswith(
-                "missing_survey_snippet:helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage"
-            )
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing helper-local mmio boundary-reading failure")
-            return 1
-
-        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
-        _write(
-            root,
-            SURVEY_REL,
-            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-                "helper-local MMIO stride-boundary and typed-index coverage in `zigux/helpers/mmio.zig` through `containsOffset`, `containsAccess`, `offsetForIndex`, and `typedOffsetForIndex`",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue.startswith(
-                "missing_survey_snippet:helper-local MMIO stride-boundary and typed-index coverage in `zigux/helpers/mmio.zig`"
-            )
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing stride-index survey failure")
-            return 1
-
-        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
-        _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
-        _write(
-            root,
-            MMIO_REL,
-            (root / MMIO_REL).read_text(encoding="utf-8").replace(
-                'test "phase3 mmio wrappers keep direct reads and writes reviewable" {',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_mmio_snippet:test "phase3 mmio wrappers keep direct reads and writes reviewable" {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing direct mmio replay failure")
-            return 1
-
-        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
-        _write(
-            root,
-            BUILD_REL,
-            (root / BUILD_REL).read_text(encoding="utf-8").replace(
-                'root_module.addImport("mmio_helpers", mmio_helpers_module);',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_build_snippet:root_module.addImport("mmio_helpers", mmio_helpers_module);'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing mmio build wiring failure")
-            return 1
-
-        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
-        _write(
-            root,
-            BUILD_REL,
-            (root / BUILD_REL).read_text(encoding="utf-8").replace(
-                'narrow_unsafe_module.addImport("abi_bindings", abi_bindings_module);',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_build_snippet:narrow_unsafe_module.addImport("abi_bindings", abi_bindings_module);'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing narrow-unsafe abi wiring failure")
-            return 1
-
-        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
-        _write(
-            root,
-            BUILD_REL,
-            (root / BUILD_REL).read_text(encoding="utf-8").replace(
-                'mmio_helpers_module.addImport("abi_bindings", abi_bindings_module);',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_build_snippet:mmio_helpers_module.addImport("abi_bindings", abi_bindings_module);'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing mmio abi wiring failure")
-            return 1
-
-        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
-        _write(
-            root,
-            BUILD_REL,
-            (root / BUILD_REL).read_text(encoding="utf-8").replace(
-                'mmio_helpers_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_build_snippet:mmio_helpers_module.addImport("narrow_unsafe", narrow_unsafe_module);'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing mmio narrow-unsafe wiring failure")
-            return 1
-
-        _write(root, BUILD_REL, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
-        _write(
-            root,
-            MMIO_REL,
-            (root / MMIO_REL).read_text(encoding="utf-8").replace(
-                'pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8) MmioError!Range {',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_mmio_snippet:pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8) MmioError!Range {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing byte-scoped mmio range helper failure")
-            return 1
-
-        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
-        _write(
-            root,
-            MMIO_REL,
-            (root / MMIO_REL).read_text(encoding="utf-8").replace(
-                'pub fn requireInteropPolicyByte(unsafe_scope: u8) MmioError!void {',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_mmio_snippet:pub fn requireInteropPolicyByte(unsafe_scope: u8) MmioError!void {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing byte-scoped mmio policy helper failure")
-            return 1
-
-        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
-        _write(
-            root,
-            MMIO_REL,
-            (root / MMIO_REL).read_text(encoding="utf-8").replace(
-                'test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_mmio_snippet:test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing odd-offset mmio replay failure")
-            return 1
-
-        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
-        _write(
-            root,
-            MMIO_REL,
-            (root / MMIO_REL).read_text(encoding="utf-8").replace(
-                'pub fn writeIndex(comptime T: type, desc: Range, index: usize, value: T) bool {',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_mmio_snippet:pub fn writeIndex(comptime T: type, desc: Range, index: usize, value: T) bool {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing stride-index helper failure")
-            return 1
-
-        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
-        _write(
-            root,
-            MMIO_REL,
-            (root / MMIO_REL).read_text(encoding="utf-8").replace(
-                'test "phase3 mmio wrappers keep stride-indexed accesses reviewable" {',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_mmio_snippet:test "phase3 mmio wrappers keep stride-indexed accesses reviewable" {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing stride-index replay failure")
-            return 1
-
-        _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
-        _write(
-            root,
-            TEST_REL,
-            (root / TEST_REL).read_text(encoding="utf-8").replace(
-                'allocator_policy.modeFromInteropPolicy(caller_abort_policy)',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_test_snippet:allocator_policy.modeFromInteropPolicy(caller_abort_policy)'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing allocator-policy replay failure")
-            return 1
-
-        _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
-        _write(
-            root,
-            TEST_REL,
-            (root / TEST_REL).read_text(encoding="utf-8").replace(
-                'test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable" {',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_test_snippet:test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable" {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing raw-pointer bridge replay failure")
-            return 1
-
-        _write(root, TEST_REL, "\n".join(REQUIRED_TEST_SNIPPETS) + "\n")
-        _write(
-            root,
-            ATOMIC_REL,
-            (root / ATOMIC_REL).read_text(encoding="utf-8").replace(
-                'pub fn bitTest(comptime T: type, ptr: *const T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_atomic_snippet:pub fn bitTest(comptime T: type, ptr: *const T, bit_index: u16, comptime order: std.builtin.AtomicOrder) u1 {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing atomic bit-test helper failure")
-            return 1
-
-        _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
-        _write(
-            root,
-            ATOMIC_REL,
-            (root / ATOMIC_REL).read_text(encoding="utf-8").replace(
-                'bitToggle(u64, &high_bit_flags, high_bit_index, .seq_cst)',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_atomic_snippet:bitToggle(u64, &high_bit_flags, high_bit_index, .seq_cst)'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing atomic bit-toggle replay failure")
-            return 1
-
-        _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
-        _write(
-            root,
-            BARRIER_REL,
-            (root / BARRIER_REL).read_text(encoding="utf-8").replace(
-                'pub fn compiler() void {',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_barrier_snippet:pub fn compiler() void {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing compiler barrier helper failure")
-            return 1
-
-        _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
-        _write(
-            root,
-            BARRIER_REL,
-            (root / BARRIER_REL).read_text(encoding="utf-8").replace(
-                'test "phase3 barrier wrappers keep compiler fences reviewable"',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_barrier_snippet:test "phase3 barrier wrappers keep compiler fences reviewable"'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing compiler-fence barrier replay failure")
-            return 1
-
-        _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
-        _write(
-            root,
-            MMIO_REL,
-            (root / MMIO_REL).read_text(encoding="utf-8").replace(
-                'test "phase3 mmio ranges keep byte and stride boundaries explicit" {',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_mmio_snippet:test "phase3 mmio ranges keep byte and stride boundaries explicit" {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing mmio range-boundary replay failure")
-            return 1
-
-        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
-        _write(
-            root,
-            MMIO_REL,
-            (root / MMIO_REL).read_text(encoding="utf-8").replace(
-                'test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {',
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == 'missing_mmio_snippet:test "phase3 mmio wrappers keep volatile-mmio policy gates reviewable" {'
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing volatile-mmio policy-gate replay failure")
-            return 1
-
-        _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
-        _write(
-            root,
-            MAKEFILE_REL,
-            (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
-                "phase3-low-level-wrappers-test:\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue == "missing_reference:zigux/Makefile:phase3-low-level-wrappers-test:"
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing low-level-wrapper make target failure")
-            return 1
-
-        _write(root, MAKEFILE_REL, "\n".join(grouped_markers[MAKEFILE_REL]) + "\n")
-        _write(
-            root,
-            MAKEFILE_REL,
-            (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
-                "phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue
-            == "missing_reference:zigux/Makefile:phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing low-level-wrapper make route reference failure")
-            return 1
-
-        _write(root, MAKEFILE_REL, "\n".join(grouped_markers[MAKEFILE_REL]) + "\n")
-        _write(
-            root,
-            ABI_MANIFEST_REL,
-            (root / ABI_MANIFEST_REL).read_text(encoding="utf-8").replace(
-                "zigux/tests/phase3_low_level_wrappers.zig",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue
-            == "missing_reference:zigux/tests/fixtures/phase3_abi_manifest.json:zigux/tests/phase3_low_level_wrappers.zig"
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing ABI manifest replay reference failure")
-            return 1
-
-        _write(root, ABI_MANIFEST_REL, "\n".join(grouped_markers[ABI_MANIFEST_REL]) + "\n")
-        _write(
-            root,
-            SCRIPTS_README_REL,
-            (root / SCRIPTS_README_REL).read_text(encoding="utf-8").replace(
-                "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue
-            == "missing_reference:scripts/zigux/README.md:Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing scripts-root low-level survey reference failure")
-            return 1
-
-        _write(root, SCRIPTS_README_REL, "\n".join(grouped_markers[SCRIPTS_README_REL]) + "\n")
-        _write(
-            root,
-            TESTS_README_REL,
-            (root / TESTS_README_REL).read_text(encoding="utf-8").replace(
-                "zigux/tests/phase3_low_level_wrappers.zig",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue
-            == "missing_reference:zigux/tests/README.md:zigux/tests/phase3_low_level_wrappers.zig"
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing tests-root low-level replay reference failure")
-            return 1
-
-        _write(root, TESTS_README_REL, "\n".join(grouped_markers[TESTS_README_REL]) + "\n")
-        _write(
-            root,
-            SURVEY_REL,
-            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-                "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue.startswith("missing_survey_snippet:the policy-aware MMIO relays in `zigux/helpers/mmio.zig`")
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing owner-split survey failure")
-            return 1
-
-        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
-        _write(
-            root,
-            SURVEY_REL,
-            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-                "`zigux/tests/phase3_low_level_wrappers.zig` still exercises byte-scoped MMIO policy relays such as `allowsInteropPolicyByte`, `rangeInteropPolicyByte`, `read8InteropPolicyByte`, `write8InteropPolicyByte`, `read8InteropPolicyBytes`, and `write8InteropPolicyBytes`, but those focused checks continue to serve the adjacent policy-and-unsafe owner packet rather than widening direct MMIO ownership here.",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue.startswith("missing_survey_snippet:`zigux/tests/phase3_low_level_wrappers.zig` still exercises byte-scoped MMIO policy relays")
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing byte-scoped owner-split survey failure")
-            return 1
-
-        _write(root, SURVEY_REL, "\n".join(REQUIRED_SURVEY_MARKERS + REQUIRED_SURVEY_SNIPPETS) + "\n")
-        _write(
-            root,
-            SURVEY_REL,
-            (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-                "`zigux/tests/phase3_low_level_wrappers.zig` now also replays raw-pointer bridge admission helpers such as `permitsRawPointerBridgeInteropPolicy`, `pointerAtInteropPolicy`, `sliceAtInteropPolicy`, `constSliceAtInteropPolicy`, and `writeValueAtInteropPolicy`, but those focused checks still belong to the adjacent policy-and-unsafe packet instead of widening this lane beyond the direct atomic, barrier, and MMIO wrapper family.",
-                "",
-                1,
-            ),
-        )
-        issues = validate(root)
-        if not any(
-            issue.startswith("missing_survey_snippet:`zigux/tests/phase3_low_level_wrappers.zig` now also replays raw-pointer bridge admission helpers")
-            for issue in issues
-        ):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing raw-pointer owner-split survey failure")
-            return 1
-
-    print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the Phase 3 low-level wrapper boundary survey packet.")
-    parser.add_argument("--self-test", action="store_true")
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=ROOT)
+    parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
     if args.self_test:
@@ -922,12 +364,10 @@ def main() -> int:
 
     issues = validate(args.repo_root)
     if issues:
-        print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail")
         for issue in issues:
             print(issue)
         return 1
-
-    print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=pass")
+    print("phase3 low-level wrapper survey validation passed")
     return 0
 
 
