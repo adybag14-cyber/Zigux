@@ -1,9 +1,13 @@
 const std = @import("std");
 
+pub const NOTIFIER_DONE: u32 = 0;
+pub const NOTIFIER_OK: u32 = 1;
+pub const NOTIFIER_STOP: u32 = 2;
+
 pub const NotifierResult = enum(u32) {
-    done = 0,
-    ok = 1,
-    stop = 2,
+    done = NOTIFIER_DONE,
+    ok = NOTIFIER_OK,
+    stop = NOTIFIER_STOP,
 };
 
 pub const NotifierBlock = extern struct {
@@ -193,9 +197,12 @@ test "notifier abi accepts empty and singleton priority samples" {
 }
 
 test "notifier abi keeps result codes and block layout explicit" {
-    try std.testing.expectEqual(@as(u32, 0), @intFromEnum(NotifierResult.done));
-    try std.testing.expectEqual(@as(u32, 1), @intFromEnum(NotifierResult.ok));
-    try std.testing.expectEqual(@as(u32, 2), @intFromEnum(NotifierResult.stop));
+    try std.testing.expectEqual(@as(u32, 0), NOTIFIER_DONE);
+    try std.testing.expectEqual(@as(u32, 1), NOTIFIER_OK);
+    try std.testing.expectEqual(@as(u32, 2), NOTIFIER_STOP);
+    try std.testing.expectEqual(@as(u32, NOTIFIER_DONE), @intFromEnum(NotifierResult.done));
+    try std.testing.expectEqual(@as(u32, NOTIFIER_OK), @intFromEnum(NotifierResult.ok));
+    try std.testing.expectEqual(@as(u32, NOTIFIER_STOP), @intFromEnum(NotifierResult.stop));
 
     try std.testing.expectEqual(@as(usize, 24), @sizeOf(NotifierBlock));
     try std.testing.expectEqual(@as(usize, 8), @alignOf(NotifierBlock));
