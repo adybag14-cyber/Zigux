@@ -104,12 +104,13 @@ CHECKER_RUNS = (
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
-    "`zigux/helpers/layout_assert.zig` is still a small generic helper, but it now centralizes compile-time layout checks for `BoundaryHeader`, `ExportStatus`, and `InteropPolicy` plus the current panic, allocator, and unsafe-scope byte values",
-    "`zigux/helpers/panic_policy.zig` keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes`",
-    "`zigux/helpers/allocator_policy.zig` keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte`",
-    "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small",
-    "`zigux/helpers/mmio.zig` consumes that same narrow layer for direct `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, `write32()`, `read64()`, and `write64()` access while also routing policy-aware MMIO through `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*` relays",
-    "`scripts/zigux/check-phase3-policy-byte-guards.py` gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard",
+    "`zigux/helpers/layout_assert.zig` is still a small generic helper, but it now centralizes compile-time layout checks for `BoundaryHeader`, `ExportStatus`, and `InteropPolicy` plus the current panic, allocator, and unsafe-scope byte values, and it now also keeps the current chrdev notify ack-window policy budget-window delivery-window view, summary, budget-view, and budget-summary layouts explicit so those ABI structs no longer live only in the shared replays.",
+    "`zigux/helpers/panic_policy.zig` keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
+    "`zigux/helpers/allocator_policy.zig` keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte or typed shared callers infer behavior elsewhere in the packet.",
+    "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.",
+    "`zigux/unsafe/narrow.zig` also mirrors the panic and allocator helper style with typed `InteropPolicy` entry points through `scopeFromInteropPolicy`, `recognizesInteropPolicy`, `permitsNoUnsafeInteropPolicy`, `permitsVolatileMmioInteropPolicy`, and `permitsRawPointerBridgeInteropPolicy`, while keeping the direct raw-pointer bridge relays narrowed to the `sliceAt*`, `constSliceAt*`, `constPointerAt*`, `pointerAt*`, and `writeValueAt*` helper family instead of widening into a broader unsafe facade.",
+    "`zigux/helpers/mmio.zig` consumes that same narrow layer for direct `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, `write32()`, `read64()`, and `write64()` access while also routing policy-aware MMIO through `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*` relays so volatile-MMIO callers stay inside the bounded unsafe contract.",
+    "`scripts/zigux/check-phase3-policy-byte-guards.py` gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, the paired `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` packet checks, and the explicit shared dump gate, so the existing `phase3-validate` path can fail closed on policy-byte drift instead of leaving that contract implicit.",
     "The current tree still does not ship a dedicated `phase3_policy_unsafe` replay pair",
 )
 
@@ -466,6 +467,26 @@ def run_self_test() -> int:
         )
 
         build_valid_workspace(root)
+        missing_layout_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            f"- {REQUIRED_SURVEY_SNIPPETS[0]}\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_layout_survey_snippet)
+        issues = validate(root)
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[0]}" in issues
+
+        build_valid_workspace(root)
+        missing_narrow_typed_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            f"- {REQUIRED_SURVEY_SNIPPETS[4]}\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_narrow_typed_survey_snippet)
+        issues = validate(root)
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[4]}" in issues
+
+        build_valid_workspace(root)
         broken_layout = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8").replace(
             REQUIRED_LAYOUT_ASSERT_SNIPPETS[2] + "\n",
             "",
@@ -565,7 +586,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
