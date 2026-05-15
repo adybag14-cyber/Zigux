@@ -9,7 +9,7 @@ This note records the current low-level wrapper packet that `master` still route
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
 - `PHASE3_BARRIER_SCOPE=compiler-acquire-release-full-acquirerelease`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_SCOPE=direct-range-read-write-8-16-32-64-width-alignment-and-odd-offset-replay`
+- `PHASE3_MMIO_SCOPE=direct-range-indexed-read-write-8-16-32-64-width-alignment-and-odd-offset-replay`
 - `PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
@@ -26,12 +26,12 @@ The direct helper files plus the focused replay keep that surface explicit.
 - `zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `bitTest`, `bitSet`, `bitReset`, `bitToggle`, `compareExchange`, and `compareExchangeWeak`, including helper-local non-`seq_cst` ordering, signed min/max, and bit-wrapper replays.
 - the same atomic helper now also makes compare-exchange failure-order rules explicit in helper code instead of leaving them implicit in the Zig builtin, and helper-local replay now covers the valid `.monotonic`, `.acquire`, and `.seq_cst` failure-order combinations that the current contract allows.
 - `zigux/helpers/barrier.zig` keeps the approved barrier surface explicit through `compiler`, `acquire`, `release`, `full`, and `acquireRelease`, with `compiler()` staying helper-local while current `master` still ships the barrier-locality and handoff replays in the focused route.
-- `zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.
+- `zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, width-specific indexed reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.
 - `zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, odd-offset, and byte-scoped interop-policy checks plus the non-`seq_cst` atomic, barrier locality or handoff, and shared allocator-or-panic consumer proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` and `compiler()` stays helper-local in `zigux/helpers/barrier.zig` to keep this focused route bounded.
 - `zigux/tests/phase3_low_level_wrappers_build.zig` is the focused build route that lets this packet stay reviewable without reopening the broader `zigux/tests/build.zig` lane.
 
 Current `master` no longer treats `zigux/helpers/mmio.zig` as declarations-only support for the focused replay. The helper file itself now ships direct MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate replays, while `zigux/tests/phase3_low_level_wrappers.zig` remains the shared cross-helper route that keeps those already-landed MMIO calls visible beside the atomic, barrier, raw-pointer, allocator, and panic consumers.
-The same helper-local MMIO packet now also keeps stride-indexed access replays through `readIndex()` and `writeIndex()` explicit in `zigux/helpers/mmio.zig` instead of leaving that direct-access slice visible only through the focused route.
+The same helper-local MMIO packet now also keeps stride-indexed access replays through `readIndex()` and `writeIndex()` plus width-specific indexed relays through `read8Index()`, `read16Index()`, `read32Index()`, `read64Index()`, `write8Index()`, `write16Index()`, `write32Index()`, and `write64Index()` explicit in `zigux/helpers/mmio.zig` instead of leaving that direct-access slice visible only through the focused route.
 
 ## Adjacent Packet Boundary
 
@@ -68,7 +68,7 @@ The current helper-and-replay packet shows that the shipped direct wrapper surfa
 - direct MMIO width, alignment, and odd-offset behavior in the focused test route
 - helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage in `zigux/helpers/mmio.zig`
 - helper-local MMIO stride-boundary and typed-index coverage in `zigux/helpers/mmio.zig` through `containsOffset`, `containsAccess`, `offsetForIndex`, and `typedOffsetForIndex`
-- helper-local MMIO stride-indexed access coverage in `zigux/helpers/mmio.zig` through `readIndex` and `writeIndex`
+- helper-local MMIO stride-indexed access coverage in `zigux/helpers/mmio.zig` through `readIndex` and `writeIndex` plus width-specific indexed relays through `read8Index`, `read16Index`, `read32Index`, `read64Index`, `write8Index`, `write16Index`, `write32Index`, and `write64Index`
 - non-`seq_cst` ordering coverage and signed atomic edges in the focused test route
 - barrier-locality and handoff replays
 
