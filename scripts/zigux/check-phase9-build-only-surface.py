@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import shutil
 import tempfile
+from pathlib import Path
 
 
 SELF_PATH = Path(__file__).resolve()
@@ -34,8 +34,8 @@ RUNTIME_LOADER_CONTRACT_PATH = "zigux/kernel/runtime_loader_contract.zig"
 ALLOCATOR_INIT_FLOW_PATH = "zigux/tests/runtime_loader_allocator_init_flow.zig"
 LOADER_GAP_MANIFEST_PATH = "zigux/tests/runtime_loader_gap_manifest.json"
 LOADER_GAP_SURVEY_PATH = "zigux/tests/runtime_loader_gap_survey.zig"
-TRACE_EVENTS_SUBSTRATE_DRIFT_PATH = "zigux/tests/runtime_trace_events_loader_substrate_drift.zig"
 RUNTIME_LOADER_LIFECYCLE_BOUNDARY_GUARD_PATH = "zigux/tests/runtime_loader_lifecycle_boundary_guard.zig"
+TRACE_EVENTS_SUBSTRATE_DRIFT_PATH = "zigux/tests/runtime_trace_events_loader_substrate_drift.zig"
 
 FREEZE_MAP_TRACE_BOUNDARY_MARKER = (
     "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`"
@@ -43,7 +43,7 @@ FREEZE_MAP_TRACE_BOUNDARY_MARKER = (
 PREPARED_STATE_LANDED_MARKER = (
     "direct readback now also shows `zigux/tests/runtime_loader_allocator_init_flow.zig` already keeps the prepared-plan drift replay explicit across rejected `requestRuntimeLoad()` calls"
 )
-PREPARED_STATE_EXPLICIT_ASSERTION_MARKER = """request.plan.module_name = \"runtime_trace_events_drift\";
+PREPARED_STATE_EXPLICIT_ASSERTION_MARKER = """request.plan.module_name = \\"runtime_trace_events_drift\\";
     try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
     try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
@@ -59,9 +59,7 @@ GAP_SURVEY_DRIFT_MARKER = (
 GAP_SURVEY_NEXT_STEP_MARKER = (
     "If the shared reminder packet already defers correctly to this note, refresh the smallest shipped shared summary that still drifts around the blocked module-metadata and depmod-publication boundary and the stale repo-root loader inventory, starting with `Documentation/zigux/README.md`, then `zigux/tests/README.md`, while keeping `scripts/zigux/README.md` parked unless a later reread shows it reclaiming family-local owner-map detail again."
 )
-PHASE9_GAP_SURVEY_NOTE_TRACE_EVENTS_PROOF_MARKER = (
-    "`zigux/tests/runtime_trace_events_loader_substrate_drift.zig`"
-)
+PHASE9_GAP_SURVEY_NOTE_TRACE_EVENTS_PROOF_MARKER = "`zigux/tests/runtime_trace_events_loader_substrate_drift.zig`"
 DEP_MOD_BOUNDARY_MARKER = (
     "the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces"
 )
@@ -308,6 +306,49 @@ FORBIDDEN_MARKERS = {
     WORKFLOW_PATH: ["validate-phase9.py", "check-phase9-loader-substrate-plan.py"],
 }
 
+SELF_TEST_REMOVALS = [
+    (FREEZE_MAP_PATH, "`scripts/zigux/check-phase9-build-only-surface.py`", 1),
+    (PHASE9_LANE_SEQUENCING_PATH, PREPARED_STATE_LANDED_MARKER, 1),
+    (PHASE9_LANE_SEQUENCING_PATH, DEP_MOD_BOUNDARY_MARKER, 1),
+    (PHASE9_LANE_SEQUENCING_PATH, PHASE9_LANE_SEQUENCING_PHASE8_BOUNDARY_MARKER, 1),
+    (PHASE9_LANE_SEQUENCING_PATH, GAP_SURVEY_DRIFT_MARKER, 1),
+    (PHASE9_LANE_SEQUENCING_PATH, GAP_SURVEY_NEXT_STEP_MARKER, 1),
+    (PHASE9_LANE_SEQUENCING_PATH, LANE_NOTE_BITMAP_TOP_BIT_SPLIT_MARKER, 1),
+    (PHASE9_GAP_SURVEY_NOTE_PATH, PHASE9_GAP_SURVEY_NOTE_ROUTE_MARKER, 1),
+    (PHASE9_GAP_SURVEY_NOTE_PATH, PHASE9_GAP_SURVEY_NOTE_TRACE_EVENTS_PROOF_MARKER, 1),
+    (PHASE9_GAP_SURVEY_NOTE_PATH, PHASE9_GAP_SURVEY_NOTE_BOUNDARY_MARKER, 1),
+    (LOADER_GAP_MANIFEST_PATH, LOADER_GAP_MANIFEST_ROUTE_MARKER, 1),
+    (LOADER_GAP_MANIFEST_PATH, LOADER_GAP_MANIFEST_BOUNDARY_MARKER, 1),
+    (LOADER_GAP_MANIFEST_PATH, LOADER_GAP_MANIFEST_CHECKLIST_BOUNDARY_FLAG_MARKER, 1),
+    (LOADER_GAP_MANIFEST_PATH, LOADER_GAP_MANIFEST_CHECKLIST_REMINDER_GAP_MARKER, 1),
+    (REVIEW_CHECKLIST_PATH, "the owner of the exact shared-loader target list, convenience-target names, and repo-reality blocker posture", 1),
+    (REVIEW_CHECKLIST_PATH, "workflow-backed `make -C zigux phase9` route", 1),
+    (REVIEW_CHECKLIST_PATH, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`", 1),
+    (REVIEW_CHECKLIST_PATH, "no-dedicated-`validate-phase9.py` posture", 1),
+    (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_TRACE_EVENTS_LOADER_MARKER, 1),
+    (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_DEPMOD_BOUNDARY_MARKER, 1),
+    (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_PHASE8_BOUNDARY_MARKER, 1),
+    (README_PATH, DOCS_ROOT_DEPMOD_BOUNDARY_MARKER, 1),
+    (SCRIPTS_README_PATH, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map", 1),
+    (TESTS_README_PATH, "`zigux/tests/runtime_loader_gap_survey.zig`", 1),
+    (RUNTIME_LOADER_CONTRACT_PATH, RUNTIME_LOADER_CONTRACT_TEST_MARKER, 1),
+    (RUNTIME_LOADER_CONTRACT_PATH, RUNTIME_LOADER_CONTRACT_MODULE_SYMVERS_PATH_MARKER, 1),
+    (RUNTIME_LOADER_CONTRACT_PATH, RUNTIME_LOADER_CONTRACT_DEPMOD_ALIASES_MARKER, 1),
+    (MAKEFILE_PATH, "phase9-runtime-loader-shared-tests:", 1),
+    (MAKEFILE_PATH, PHASE9_TRACE_EVENTS_SUBSTRATE_DRIFT_MAKE_MARKER, 1),
+    (PHASE9_BUILD_PATH, "runtime_loader_gap_survey.zig", 1),
+    (PHASE9_BUILD_PATH, "runtime_trace_events_loader_substrate_drift.zig", 1),
+    (PHASE9_BUILD_PATH, "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);", 1),
+    (RUNTIME_LOADER_LIFECYCLE_BOUNDARY_GUARD_PATH, "phase 9 runtime loader lifecycle boundary guard keeps manifest lifecycle summary aligned with the shared registration boundary", 1),
+    (ALLOCATOR_INIT_FLOW_PATH, "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs", 1),
+    (ALLOCATOR_INIT_FLOW_PATH, "request.plan.allocator_handoff = .arena;", 2),
+    (ALLOCATOR_INIT_FLOW_PATH, PREPARED_STATE_EXPLICIT_ASSERTION_MARKER, 1),
+    (ALLOCATOR_INIT_FLOW_PATH, PREPARED_STATE_ALLOCATOR_HANDOFF_EXPLICIT_ASSERTION_MARKER, 1),
+    (LOADER_GAP_SURVEY_PATH, "shared_phase9_bundle_route_present", 1),
+    (TRACE_EVENTS_SUBSTRATE_DRIFT_PATH, TRACE_EVENTS_SUBSTRATE_DRIFT_PREPARED_PLAN_MARKER, 1),
+    (TRACE_EVENTS_SUBSTRATE_DRIFT_PATH, TRACE_EVENTS_SUBSTRATE_DRIFT_SELFTEST_HOOK_EXPLICIT_MARKER, 1),
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -320,30 +361,24 @@ def write_text(path: Path, content: str) -> None:
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
-
     for rel_path in REQUIRED_FILES:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
-
     for rel_path in FORBIDDEN_FILES:
         if (root / rel_path).exists():
             failures.append(f"unexpected_file:{rel_path}")
-
     if failures:
         return failures
-
     for rel_path, markers in REQUIRED_MARKERS.items():
         text = read_text(root, rel_path)
         for marker in markers:
             if marker not in text:
                 failures.append(f"missing_marker:{rel_path}:{marker}")
-
     for rel_path, markers in FORBIDDEN_MARKERS.items():
         text = read_text(root, rel_path)
         for marker in markers:
             if marker in text:
                 failures.append(f"forbidden_marker:{rel_path}:{marker}")
-
     return failures
 
 
@@ -356,20 +391,17 @@ def expect_failure(root: Path, expected: str) -> None:
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
-
     for rel_path in REQUIRED_FILES:
-        markers = REQUIRED_MARKERS.get(rel_path)
-        if rel_path.endswith(".py"):
-            title = Path(rel_path).name
-            content = "\n".join([f"# {title}", *(markers or []), ""])
-        elif rel_path.endswith(".md") or rel_path.endswith(".json"):
-            title = Path(rel_path).name
-            content = "\n".join([f"# {title}", *(markers or []), ""])
-        else:
-            title = Path(rel_path).name
-            prefix = f"// {title}"
-            content = "\n".join([prefix, *(markers or []), ""])
-        write_text(root / rel_path, content)
+        markers = REQUIRED_MARKERS.get(rel_path, [])
+        title = Path(rel_path).name
+        prefix = f"# {title}" if rel_path.endswith((".py", ".md", ".json")) else f"// {title}"
+        write_text(root / rel_path, "\n".join([prefix, *markers, ""]))
+
+
+def remove_once(root: Path, rel_path: str, marker: str, count: int) -> None:
+    path = root / rel_path
+    text = path.read_text(encoding="utf-8")
+    path.write_text(text.replace(marker, "", count), encoding="utf-8")
 
 
 def run_self_test() -> int:
@@ -379,46 +411,36 @@ def run_self_test() -> int:
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
-
-        freeze_map_path = base / FREEZE_MAP_PATH
-        freeze_map = freeze_map_path.read_text(encoding="utf-8")
-        freeze_map_path.write_text(
-            freeze_map.replace("`scripts/zigux/check-phase9-build-only-surface.py`", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            "missing_marker:Documentation/zigux/freeze-map.md:`scripts/zigux/check-phase9-build-only-surface.py`",
-        )
-
+        for rel_path, marker, count in SELF_TEST_REMOVALS:
+            write_fixture_tree(base)
+            remove_once(base, rel_path, marker, count)
+            expect_failure(base, f"missing_marker:{rel_path}:{marker}")
         write_fixture_tree(base)
-        lane_note_path = base / PHASE9_LANE_SEQUENCING_PATH
-        lane_note = lane_note_path.read_text(encoding="utf-8")
-        lane_note_path.write_text(
-            lane_note.replace(PREPARED_STATE_LANDED_MARKER, "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(base, f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{PREPARED_STATE_LANDED_MARKER}")
+        write_text(base / "scripts/zigux/check-phase9-loader-substrate-plan.py", "# forbidden\n")
+        expect_failure(base, "unexpected_file:scripts/zigux/check-phase9-loader-substrate-plan.py")
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
+    return 0
 
-        write_fixture_tree(base)
-        lane_note_path = base / PHASE9_LANE_SEQUENCING_PATH
-        lane_note = lane_note_path.read_text(encoding="utf-8")
-        lane_note_path.write_text(
-            lane_note.replace(DEP_MOD_BOUNDARY_MARKER, "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(base, f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{DEP_MOD_BOUNDARY_MARKER}")
 
-        write_fixture_tree(base)
-        lane_note_path = base / PHASE9_LANE_SEQUENCING_PATH
-        lane_note = lane_note_path.read_text(encoding="utf-8")
-        lane_note_path.write_text(
-            lane_note.replace(PHASE9_LANE_SEQUENCING_PHASE8_BOUNDARY_MARKER, "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            base,
-            f"missing_marker:{PHASE9_LANE_SEQUENCING_PATH}:{PHASE9_LANE_SEQUENCING_PHASE8_BOUNDARY_MARKER}",
-        )
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Check the shared Phase 9 runtime-pilot build-only packet.")
+    parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
+    parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test and exit")
+    args = parser.parse_args()
+    if args.self_test:
+        return run_self_test()
+    failures = validate(args.repo_root)
+    if failures:
+        for failure in failures:
+            print(f"PHASE9_BUILD_ONLY_SURFACE_ERROR={failure}")
+        return 1
+    print(f"PHASE9_BUILD_ONLY_SURFACE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(f"PHASE9_BUILD_ONLY_SURFACE_REQUIRED_SURFACE_COUNT={len(REQUIRED_MARKERS)}")
+    print("PHASE9_BUILD_ONLY_SURFACE=pass")
+    return 0
 
-        write_fixtureTree(base)
+
+if __name__ == "__main__":
+    raise SystemExit(main())
