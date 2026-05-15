@@ -22,6 +22,8 @@
       "reviewable_sibling_paths": [
         "lib/string_helpers.zig",
         "zigux/tests/phase7_string_helpers.zig",
+        "lib/cmdline.zig",
+        "zigux/tests/phase7_cmdline.zig",
         "lib/rbtree.zig",
         "zigux/tests/phase7_rbtree.zig"
       ]
@@ -81,7 +83,7 @@
       "current_replay_status": "route_present_on_master",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_build.zig",
-      "why_now": "The shared Phase 7 build step remains the intended cross-helper review gate for the argv_split runtime leaf helper, and fresh 2026-05-13 current-master readback now confirms that `zigux/tests/phase7_build.zig` imports directly readable sibling `string_helpers` and `rbtree` helper-plus-test files again. Keep this manifest limited to that route-present reminder instead of the older missing-sibling blocker wording unless a new shared replay gap appears."
+      "why_now": "The shared Phase 7 build step remains the intended cross-helper review gate for the argv_split runtime leaf helper, and fresh 2026-05-13 current-master readback now confirms that `zigux/tests/phase7_build.zig` imports directly readable sibling `string_helpers`, `cmdline`, and `rbtree` helper-plus-test files again. Keep this manifest limited to that route-present reminder instead of the older missing-sibling blocker wording unless a new shared replay gap appears."
     },
     {
       "id": "phase7-argv-split-helper",
