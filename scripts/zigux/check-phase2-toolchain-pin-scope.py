@@ -100,7 +100,7 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",',
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",',
     "PHASE2_MAKEFILE_RUN_COUNTS = {",
-    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig \"$(ZIG)\"": 1,',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig \\"$(ZIG)\\"": 1,',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,',
     'issues.extend(validate_exact_lines(PHASE2_MAKEFILE.read_text(encoding="utf-8"), PHASE2_MAKEFILE_RUN_COUNTS, "makefile"))',
@@ -149,6 +149,11 @@ WORKFLOW_FORBIDDEN_FRAGMENTS = [
 
 TOOLCHAIN_TARGET_NAME = "phase2-toolchain"
 PHASE2_VALIDATE_TARGET_NAME = "phase2-validate"
+PHASE2_TOOLCHAIN_DEPENDENCY_HEADERS = {
+    "phase2-tools": "phase2-tools: phase2-toolchain",
+    "phase2-kconfig": "phase2-kconfig: phase2-toolchain",
+    "phase2-cross": "phase2-cross: phase2-toolchain",
+}
 TOOLCHAIN_TARGET_REQUIRED_LINES = [
     'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -377,13 +382,21 @@ def extract_makefile_target_lines(text: str, target_name: str) -> list[str] | No
         if line.startswith(target_header):
             target_lines: list[str] = []
             for following in lines[index + 1 :]:
-                if following.startswith("	"):
+                if following.startswith("\t"):
                     target_lines.append(following.strip())
                     continue
                 if not following.strip():
                     continue
                 break
             return target_lines
+    return None
+
+
+def extract_makefile_target_header(text: str, target_name: str) -> str | None:
+    target_header = f"{target_name}:"
+    for line in text.splitlines():
+        if line.startswith(target_header):
+            return line.strip()
     return None
 
 
@@ -407,6 +420,16 @@ def validate_toolchain_target_scope(text: str) -> list[str]:
             issues.append(
                 "makefile_target_scope:"
                 f"{PHASE2_VALIDATE_TARGET_NAME}:unexpected_toolchain_lines={forbidden!r}"
+            )
+
+    for target_name, expected_header in PHASE2_TOOLCHAIN_DEPENDENCY_HEADERS.items():
+        actual_header = extract_makefile_target_header(text, target_name)
+        if actual_header is None:
+            issues.append(f"makefile_target_missing:{target_name}")
+        elif actual_header != expected_header:
+            issues.append(
+                "makefile_target_dependency:"
+                f"{target_name}:actual={actual_header!r}:expected={expected_header!r}"
             )
     return issues
 
@@ -451,10 +474,13 @@ def run_self_test() -> int:
             "ZIG_LOCAL_TOOLCHAIN := $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),$(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig)))",
             "ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)",
             "phase2-toolchain:",
-            '	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
-            "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-            "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+            '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+            "phase2-tools: phase2-toolchain",
+            "phase2-kconfig: phase2-toolchain",
             "phase2-validate: phase2-tools phase2-kconfig",
+            "phase2-cross: phase2-toolchain",
             "phase2: phase2-validate phase2-cross",
         ]
     )
@@ -563,16 +589,20 @@ def run_self_test() -> int:
     leaked_scope = "\n".join(
         [
             "phase2-toolchain:",
-            '	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
+            '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
             "phase2-validate: phase2-tools phase2-kconfig",
-            "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-            "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "phase2: phase2-validate phase2-cross",
         ]
     )
     leaked_issues = validate_toolchain_target_scope(leaked_scope)
     assert any(issue.startswith("makefile_target_scope:phase2-toolchain:") for issue in leaked_issues)
     assert any(issue.startswith("makefile_target_scope:phase2-validate:") for issue in leaked_issues)
+    missing_dependency_issues = validate_toolchain_target_scope(
+        valid_makefile.replace("phase2-cross: phase2-toolchain", "phase2-cross:", 1)
+    )
+    assert any(issue.startswith("makefile_target_dependency:phase2-cross:") for issue in missing_dependency_issues)
 
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
@@ -581,7 +611,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=30")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
