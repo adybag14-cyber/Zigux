@@ -46,18 +46,22 @@ test "phase 15 readiness manifest preserves the parked validator-first route" {
     try std.testing.expect(manifest.repo_evidence.phase15_test_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
-    try std.testing.expectEqual(@as(usize, 3), manifest.phase15_validate_checkers.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.phase15_validate_checkers.len);
     try std.testing.expectEqualStrings(
-        "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+        "scripts/zigux/check-phase15-docs-readme-alignment.py",
         manifest.phase15_validate_checkers[0],
     );
     try std.testing.expectEqualStrings(
-        "scripts/zigux/check-phase15-review-process-handoff.py",
+        "scripts/zigux/check-phase15-scripts-readme-alignment.py",
         manifest.phase15_validate_checkers[1],
     );
     try std.testing.expectEqualStrings(
-        "scripts/zigux/check-phase15-shared-summary-gap.py",
+        "scripts/zigux/check-phase15-review-process-handoff.py",
         manifest.phase15_validate_checkers[2],
+    );
+    try std.testing.expectEqualStrings(
+        "scripts/zigux/check-phase15-shared-summary-gap.py",
+        manifest.phase15_validate_checkers[3],
     );
 }
 
@@ -107,6 +111,8 @@ test "phase 15 readiness note and replay routes stay aligned" {
     try expectContains(tests_readme, "zigux/tests/phase15_build.zig");
     try expectContains(makefile, "PHONY += phase15-validate phase15-test phase15");
     try expectContains(makefile, "scripts/zigux/validate-phase15.py");
+    try expectContains(makefile, "scripts/zigux/check-phase15-docs-readme-alignment.py --self-test");
+    try expectContains(makefile, "scripts/zigux/check-phase15-docs-readme-alignment.py");
     try expectContains(makefile, "scripts/zigux/check-phase15-review-process-handoff.py --self-test");
     try expectContains(makefile, "scripts/zigux/check-phase15-shared-summary-gap.py --self-test");
     try expectContains(makefile, "scripts/zigux/check-phase15-shared-summary-gap.py");
