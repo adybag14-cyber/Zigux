@@ -83,6 +83,20 @@ fn focusName(focus: string_helpers_sample.SampleFocus) []const u8 {
     };
 }
 
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    var count: usize = 0;
+    var start: usize = 0;
+    while (std.mem.indexOfPos(u8, haystack, start, needle)) |index| {
+        count += 1;
+        start = index + needle.len;
+    }
+    return count;
+}
+
+fn expectExactCount(haystack: []const u8, needle: []const u8, expected_count: usize) !void {
+    try std.testing.expectEqual(expected_count, countOccurrences(haystack, needle));
+}
+
 test "phase 7 string helper sample survey manifest records the bounded sample-backed review packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -167,7 +181,7 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expectEqual(@as(usize, 6), manifest.sample_replay_contract.checked_focus.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.sample_replay_contract.lifecycle_states.len);
     try std.testing.expectEqual(@as(usize, 12), manifest.sample_replay_contract.helper_call_markers.len);
-    try std.testing.expectEqual(@as(usize, 19), manifest.sample_replay_contract.test_assertions.len);
+    try std.testing.expectEqual(@as(usize, 22), manifest.sample_replay_contract.test_assertions.len);
     try std.testing.expectEqual(@as(usize, 17), manifest.verification_checks.len);
 
     const expected_focuses = [_][]const u8{
@@ -205,7 +219,14 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
         try std.testing.expectEqualStrings(expected, manifest.verification_checks[index]);
     }
 
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".name = \"string_helpers_sample\"") != null);
+    for (manifest.sample_replay_contract.helper_call_markers) |marker| {
+        try expectExactCount(sample_source, marker, 1);
+    }
+    for (manifest.sample_replay_contract.test_assertions) |assertion| {
+        try expectExactCount(sample_source, assertion, 1);
+    }
+
+    try expectExactCount(sample_source, ".name = \"string_helpers_sample\"", 1);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "_ = string_helpers.strreplace(replaced_text.bytes[0..11], '-', '_');") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "string_helpers.memcpyAndPad(padded_text.bytes[0..5], \"xy\", 2, '.');") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "bounded_escape_text.bytes[0..5],") != null);
