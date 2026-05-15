@@ -18,6 +18,8 @@ same checker family:
 - `python3 scripts/zigux/check-phase7-make-wrapper.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
+- `python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test`
+- `python3 scripts/zigux/check-phase7-cmdline-packet.py`
 - `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`
 - `python3 scripts/zigux/check-phase7-argv-split-packet.py`
 - `python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`
@@ -91,6 +93,7 @@ Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `scripts/zigux/validate-phase7.py`,
 `scripts/zigux/check-phase7-make-wrapper.py`,
 `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`,
+`scripts/zigux/check-phase7-cmdline-packet.py`,
 `scripts/zigux/check-phase7-argv-split-packet.py`,
 `scripts/zigux/check-phase7-rbtree-parity.py`,
 `scripts/zigux/check-phase7-build-wiring.py`, `lib/string_helpers.zig`,
