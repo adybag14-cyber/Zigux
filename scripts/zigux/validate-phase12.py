@@ -23,10 +23,12 @@ RUNTIME_EVIDENCE_ERROR = (
     "and .github/workflows/zigux-bootstrap.yml"
 )
 RUNTIME_EVIDENCE_SUFFIX = (
-    "; the bounded degraded-workflow support route is now shipped as "
-    "`make -C zigux phase12-validate`, while the shared fallback packet still keeps "
-    "that validator-first support bundle distinct from the smoke-first direct replay "
-    "surface rather than treating it as a second direct replay packet."
+    "; `zigux/Makefile` now first tries the repo-local `.zig-toolchain` fallback through "
+    "`ZIG_PINNED_TOOLCHAIN`, `ZIG_LOCAL_TOOLCHAIN`, and `ZIG ?= $(if "
+    "$(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)` before any attached override is "
+    "needed, so the bounded degraded-workflow support route stays the shipped "
+    "`make -C zigux phase12-validate` plus the same `phase12-smoke` and `phase12` "
+    "Make routes rather than a second direct replay packet."
 )
 
 REQUIRED_FILES = [
