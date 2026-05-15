@@ -634,6 +634,42 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
+        survey_path = root / SURVEY_PATH
+        survey_path.write_text(
+            _read(survey_path).replace("zigux/uapi/dev_t.zig", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey current packet marker count drift: "
+            "zigux/uapi/dev_t.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-family survey dev_t companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _replace_in_section(
+                _read(survey_path),
+                HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX,
+                None,
+                "zigux/uapi/dev_t.zig",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "zigux/uapi/dev_t.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-family survey shared-reminder dev_t companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
         note_path = root / NOTE_PATH
         note_path.write_text(_read(note_path).replace(NOTE_POLICY_MARKERS[0], "", 1), encoding="utf-8")
         issues = validate_repo(root)
@@ -714,6 +750,21 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected validator-support current-packet version companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace("zigux/uapi/dev_t.zig", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support current packet marker count drift: "
+            "zigux/uapi/dev_t.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support current-packet dev_t companion drift was not reported")
             return 1
 
         _populate_repo(root)
@@ -813,6 +864,26 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected validator-support version companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
+                "zigux/uapi/dev_t.zig",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "zigux/uapi/dev_t.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support dev_t companion drift was not reported")
             return 1
 
         _populate_repo(root)
