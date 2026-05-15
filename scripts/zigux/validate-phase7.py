@@ -120,6 +120,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_string_helpers.zig",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "zigux/tests/phase7_argv_split_manifest.json",
+        "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
     ],
     "Documentation/zigux/review-checklist.md": [
         "Documentation/zigux/phase7-string-helpers-slice.md",
@@ -359,6 +360,12 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase7-string-helpers-slice.md",
                 "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
                 "Documentation/zigux/phase7-string-helpers-slice.md: `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
+            ),
+            (
+                "phase7 docs-root strarray ownership marker",
+                "Documentation/zigux/README.md",
+                "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
+                "Documentation/zigux/README.md: `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
             ),
             (
                 "phase7 cmdline slice parked status marker",
