@@ -254,6 +254,8 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14: phase14-validate phase14-smoke phase14-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14-smoke:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py\n") != null);
 
     const workflow = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
