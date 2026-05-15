@@ -43,6 +43,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_devres.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
+    "zigux/tests/phase13_devres_boundary_evidence.zig",
     "zigux/tests/phase13_devres_manifest.json",
     "zigux/tests/phase13_landlock_ruleset.zig",
     "zigux/tests/phase13_landlock_ruleset_manifest.json",
@@ -80,6 +81,7 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "`scripts/zigux/validate-phase13-release.py`",
+        "`zigux/tests/phase13_devres_boundary_evidence.zig`",
         "`Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`",
         "rather than through an older shared-build bundle.",
     ],
@@ -364,6 +366,15 @@ def run_self_test() -> int:
         write_text(root, "zigux/tests/phase13_devres_reviewability.zig", "// stub\n")
         case_count += 1
 
+        (root / "zigux/tests/phase13_devres_boundary_evidence.zig").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:zigux/tests/phase13_devres_boundary_evidence.zig"],
+            "missing_devres_boundary_evidence_failed",
+        )
+        write_text(root, "zigux/tests/phase13_devres_boundary_evidence.zig", "// stub\n")
+        case_count += 1
+
         (root / "drivers/tty/hvc/hvc_console.h").unlink()
         assert_only(
             validate(root),
@@ -463,6 +474,27 @@ def run_self_test() -> int:
                 "`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`"
             ],
             "missing_docs_root_contributor_surface_sync_marker_failed",
+        )
+        write_text(root, "Documentation/zigux/README.md", "\n".join(REQUIRED_MARKERS["Documentation/zigux/README.md"]) + "\n")
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/README.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/README.md"]
+                if marker != "`zigux/tests/phase13_devres_boundary_evidence.zig`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/README.md:"
+                "`zigux/tests/phase13_devres_boundary_evidence.zig`"
+            ],
+            "missing_docs_root_devres_boundary_evidence_marker_failed",
         )
         write_text(root, "Documentation/zigux/README.md", "\n".join(REQUIRED_MARKERS["Documentation/zigux/README.md"]) + "\n")
         case_count += 1
@@ -612,7 +644,8 @@ def run_self_test() -> int:
         write_text(
             root,
             "Documentation/zigux/phase13-release-coordination-matrix.md",
-            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-release-coordination-matrix.md"]) + "\n",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-release-coordination-matrix.md"])
+            + "\n",
         )
         case_count += 1
 
@@ -637,7 +670,8 @@ def run_self_test() -> int:
         write_text(
             root,
             "Documentation/zigux/phase13-contributor-workflow-guide.md",
-            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-contributor-workflow-guide.md"]) + "\n",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-contributor-workflow-guide.md"])
+            + "\n",
         )
         case_count += 1
 
@@ -662,7 +696,8 @@ def run_self_test() -> int:
         write_text(
             root,
             "Documentation/zigux/phase13-landlock-syscalls-governance.md",
-            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-governance.md"]) + "\n",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-landlock-syscalls-governance.md"])
+            + "\n",
         )
         case_count += 1
 
