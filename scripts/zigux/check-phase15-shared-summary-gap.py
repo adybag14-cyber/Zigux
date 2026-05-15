@@ -41,9 +41,9 @@ VALIDATE_MARKER = "scripts/zigux/validate-phase15.py"
 HANDOFF_CHECKER_MARKER = "scripts/zigux/check-phase15-review-process-handoff.py"
 HANDOFF_MANIFEST_MARKER = "zigux/tests/phase15_handoff_next_steps_manifest.json"
 READINESS_MANIFEST_MARKER = "zigux/tests/phase15_readiness_gate_manifest.json"
-PHASE15_VALIDATE_ROUTE = "make -C zigux phase15-validate"
-PHASE15_TEST_ROUTE = "make -C zigux phase15-test"
-PHASE15_ROUTE = "make -C zigux phase15"
+PHASE15_VALIDATE_ROUTE = "`make -C zigux phase15-validate`"
+PHASE15_TEST_ROUTE = "`make -C zigux phase15-test`"
+PHASE15_ROUTE = "`make -C zigux phase15`"
 NO_APPROVAL_MARKER = "no-approval-yet posture"
 
 FILE_MARKERS = {
@@ -329,6 +329,49 @@ def run_self_test() -> int:
             validate(root),
             [f"{TESTS_README_REL}:missing:{SEQUENCING_MARKER}"],
             "tests_readme_missing_lane_note",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / TESTS_README_REL
+        _write(
+            path,
+            _read(path).replace("zigux/tests/phase15_governance_lane_sequencing.zig" + "\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            [f"{TESTS_README_REL}:missing:zigux/tests/phase15_governance_lane_sequencing.zig"],
+            "tests_readme_missing_lane_sequencing_replay",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / TESTS_README_REL
+        _write(path, _read(path).replace(PHASE15_VALIDATE_ROUTE + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{TESTS_README_REL}:missing:{PHASE15_VALIDATE_ROUTE}"],
+            "tests_readme_missing_phase15_validate_route",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / TESTS_README_REL
+        _write(path, _read(path).replace(PHASE15_TEST_ROUTE + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{TESTS_README_REL}:missing:{PHASE15_TEST_ROUTE}"],
+            "tests_readme_missing_phase15_test_route",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / TESTS_README_REL
+        _write(path, _read(path).replace(PHASE15_ROUTE + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{TESTS_README_REL}:missing:{PHASE15_ROUTE}"],
+            "tests_readme_missing_phase15_route",
         )
         _seed(root)
         case_count += 1
