@@ -90,13 +90,15 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
 - `scripts/zigux/README.md` now keeps the canonical `include/zigux/dev_t.h`
   plus `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` starter companions
   explicit beside `Documentation/zigux/phase3-linux-zigux-header-governance.md`
-- `Documentation/zigux/README.md` is the next broader shared reminder to check
-  here: it still keeps the narrower `zigux/uapi/version.zig` wording while the
-  dedicated survey, this next-step note, `Documentation/zigux/review-checklist.md`,
+- `Documentation/zigux/README.md` now matches that same broad reminder
+  wording, keeping `include/zigux/dev_t.h` plus `zigux/uapi/version.zig` and
+  `zigux/uapi/dev_t.zig` explicit beside the dedicated survey, this next-step
+  note, `Documentation/zigux/review-checklist.md`,
   `Documentation/zigux/phase3-validator-support-surface.md`, and
-  `scripts/zigux/README.md` already keep the starter-companion pair explicit
-  beside `include/zigux/dev_t.h`; if this header-family packet reopens next,
-  start there instead of replaying the already-landed scripts-root repair
+  `scripts/zigux/README.md`; if this header-family packet reopens next, start
+  with the direct replay files, focused validator, focused checker, or
+  manifest-backed ABI packet instead of reopening an already-aligned broad
+  reminder
 
 ## Non-goals
 
