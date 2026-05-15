@@ -53,6 +53,19 @@ ROLLBACK_TRIGGER_MARKERS = [
     "  - compile shard matrix drift",
     "  - shared replay wiring drift",
 ]
+PARKED_NEXT_STEP_MARKER = (
+    "Keep this core-adjacent lane parked unless a fresh Phase 14 validator-local or checker-local drift appears. "
+    "Current `master` already carries the restored scripts-root reminder and the validator exactness follow-through, "
+    "so the next same-lane reread should compare `scripts/zigux/README.md`, `scripts/zigux/validate-phase14.py`, "
+    "`Documentation/zigux/phase14-release-boundary-survey.md`, and `zigux/tests/phase14_end_to_end_smoke_manifest.json` "
+    "only when a new already-landed shared-packet marker needs dedicated checker coverage. All four anchor packets "
+    "remain parked on blocked or governance-only posture, so no anchor-local reopen is justified from this lane unless "
+    "a new shared-packet mismatch appears."
+)
+STALE_NEXT_STEP_MARKERS = [
+    "`scripts/zigux/README.md` still omits `Documentation/zigux/phase14-core-boundary-traceability.md` from the shared smoke packet",
+    "Any follow-up should therefore stay limited to restoring that scripts-root marker and then tightening `scripts/zigux/validate-phase14.py`",
+]
 RELEASE_BOUNDARY_MARKERS = [
     "- bounded-internal sequencing guard: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain the two study-only anchors that can still receive same-phase bounded boundary-map or concurrency-audit follow-through, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors carried by the current Phase 14 shared smoke packet through their dedicated Phase 14 survey and manifest evidence instead of active delivery lanes; any status-change or reopen request still belongs to the Phase 15 freeze-map governance packet",
     "- `kernel/rcu/tree.c`: remains blocked from active delivery and is currently governed by the shared smoke packet plus its dedicated Phase 14 survey note `Documentation/zigux/phase14-rcu-tree-survey.md` and manifest `zigux/tests/phase14_rcu_tree_manifest.json`; the Phase 15 readiness and handoff packet only governs any later freeze-map status review, so `zigux/tests/phase14_rcu_tree_survey.zig` remains the current full-bundle-only freeze-in-C survey replay rather than a placeholder bridge or status-change claim",
@@ -206,7 +219,7 @@ def check(root: Path) -> list[str]:
         *ROLLBACK_TRIGGER_MARKERS,
         "- attached-toolchain fallback examples for this note's shared replay routes only:",
         SMOKE_NOTE_SHARED_GUARD_MARKER,
-        "Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
+        PARKED_NEXT_STEP_MARKER,
     ]:
         if marker not in smoke_note:
             errors.append(f"missing marker in {SMOKE_NOTE_PATH.as_posix()}: {marker}")
@@ -217,6 +230,12 @@ def check(root: Path) -> list[str]:
             errors.append(
                 f"marker count drift in {SMOKE_NOTE_PATH.as_posix()}: {marker} "
                 f"(expected 1, found {count})"
+            )
+
+    for marker in STALE_NEXT_STEP_MARKERS:
+        if marker in smoke_note:
+            errors.append(
+                f"stale marker still present in {SMOKE_NOTE_PATH.as_posix()}: {marker}"
             )
 
     release_boundary = read_text(root, RELEASE_BOUNDARY_PATH)
@@ -318,7 +337,7 @@ def current_smoke_note_text() -> str:
         ],
         *ANCHOR_MANIFEST_MARKERS,
         SMOKE_NOTE_SHARED_GUARD_MARKER,
-        "Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
+        PARKED_NEXT_STEP_MARKER,
     ]
     return "\n".join(parts) + "\n"
 
@@ -472,6 +491,26 @@ def run_self_test() -> int:
             return 1
         write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
 
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            current_smoke_note_text().replace(PARKED_NEXT_STEP_MARKER + "\n", "", 1),
+        )
+        if not any(PARKED_NEXT_STEP_MARKER in error for error in check(root)):
+            print("self-test expected parked next-step marker failure", file=sys.stderr)
+            return 1
+        write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
+
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            current_smoke_note_text() + STALE_NEXT_STEP_MARKERS[0] + "\n",
+        )
+        if not any("stale marker still present" in error for error in check(root)):
+            print("self-test expected stale next-step marker failure", file=sys.stderr)
+            return 1
+        write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
+
         write(root, CHECKLIST_PATH, "")
         if not any(CHECKLIST_PATH.as_posix() in error for error in check(root)):
             print("self-test expected checklist drift failure", file=sys.stderr)
@@ -596,7 +635,7 @@ def run_self_test() -> int:
         write(root, MAKEFILE_PATH, current_makefile_text())
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=16")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
