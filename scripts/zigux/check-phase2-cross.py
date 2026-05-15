@@ -2,15 +2,19 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
+CHECK_ZIG_TOOLCHAIN = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
 
 FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 
@@ -118,7 +122,40 @@ def validate_fixture(root: Path) -> list[str]:
     return issues
 
 
-def run_cross_compile(root: Path, target: str, zig_executable: str | None = None) -> int:
+def run_toolchain_preflight(
+    root: Path,
+    zig_executable: str,
+    *,
+    runner=subprocess.run,
+) -> str | None:
+    try:
+        completed = runner(
+            [sys.executable, str(root / "scripts" / "zigux" / "check-zig-toolchain.py"), "--zig", zig_executable],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError as exc:
+        return f"toolchain preflight failed: {exc}"
+    except OSError as exc:
+        return f"toolchain preflight failed: {exc}"
+
+    if completed.returncode == 0:
+        return None
+
+    detail = completed.stderr.strip() or completed.stdout.strip() or f"exit code {completed.returncode}"
+    return f"toolchain preflight failed: {detail}"
+
+
+def run_cross_compile(
+    root: Path,
+    target: str,
+    zig_executable: str | None = None,
+    *,
+    toolchain_runner=subprocess.run,
+    zig_runner=subprocess.run,
+) -> int:
     try:
         zig = resolve_zig_executable(zig_executable, root=root)
     except ValueError as exc:
@@ -129,6 +166,13 @@ def run_cross_compile(root: Path, target: str, zig_executable: str | None = None
     if zig is None:
         print("PHASE2_CROSS=fail")
         print("PHASE2_CROSS_NOTE=zig not found on PATH or in repo-local .zig-toolchain")
+        return 1
+
+    toolchain_note = run_toolchain_preflight(root, zig, runner=toolchain_runner)
+    if toolchain_note is not None:
+        print("PHASE2_CROSS=fail")
+        print(f"PHASE2_CROSS_TARGET={target}")
+        print(f"PHASE2_CROSS_NOTE={toolchain_note}")
         return 1
 
     payload = load_fixture(root / "zigux/tests/fixtures/phase2_cross_targets.json")
@@ -148,7 +192,7 @@ def run_cross_compile(root: Path, target: str, zig_executable: str | None = None
         return 1
 
     for rel_path in zig_test_files:
-        completed = subprocess.run(
+        completed = zig_runner(
             [zig, "test", rel_path, "-target", target],
             cwd=root,
             check=False,
@@ -329,6 +373,96 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         assert resolve_zig_executable("/custom/zig", root=root, which=lambda _: None) == "/custom/zig"
+        case_count += 1
+
+        preflight_ok = run_toolchain_preflight(
+            root,
+            "/custom/zig",
+            runner=lambda *args, **kwargs: subprocess.CompletedProcess(args[0], 0, stdout="ok\n", stderr=""),
+        )
+        assert preflight_ok is None
+        case_count += 1
+
+        preflight_stdout_failure = run_toolchain_preflight(
+            root,
+            "/custom/zig",
+            runner=lambda *args, **kwargs: subprocess.CompletedProcess(
+                args[0],
+                1,
+                stdout="ZIG_TOOLCHAIN_NOTE=expected pinned Zig channel 0.17.0-dev.87+9b177a7d2\n",
+                stderr="",
+            ),
+        )
+        assert preflight_stdout_failure == (
+            "toolchain preflight failed: ZIG_TOOLCHAIN_NOTE=expected pinned Zig channel 0.17.0-dev.87+9b177a7d2"
+        )
+        case_count += 1
+
+        preflight_stderr_failure = run_toolchain_preflight(
+            root,
+            "/custom/zig",
+            runner=lambda *args, **kwargs: subprocess.CompletedProcess(
+                args[0],
+                1,
+                stdout="",
+                stderr="permission denied\n",
+            ),
+        )
+        assert preflight_stderr_failure == "toolchain preflight failed: permission denied"
+        case_count += 1
+
+        preflight_exec_failure = run_toolchain_preflight(
+            root,
+            "/custom/zig",
+            runner=lambda *args, **kwargs: (_ for _ in ()).throw(FileNotFoundError("missing checker")),
+        )
+        assert preflight_exec_failure == "toolchain preflight failed: missing checker"
+        case_count += 1
+
+        build_self_test_root(root)
+        success_output = io.StringIO()
+        zig_invocations: list[list[str]] = []
+
+        def success_zig_runner(command, cwd, check=False):
+            zig_invocations.append(command)
+            return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+        with contextlib.redirect_stdout(success_output):
+            success_rc = run_cross_compile(
+                root,
+                EXPECTED_TARGETS[0],
+                zig_executable="/custom/zig",
+                toolchain_runner=lambda *args, **kwargs: subprocess.CompletedProcess(
+                    args[0], 0, stdout="ZIG_TOOLCHAIN_STATUS=present\n", stderr=""
+                ),
+                zig_runner=success_zig_runner,
+            )
+        assert success_rc == 0
+        assert "PHASE2_CROSS=pass" in success_output.getvalue()
+        assert len(zig_invocations) == len(EXPECTED_ZIG_TEST_FILES)
+        case_count += 1
+
+        build_self_test_root(root)
+        preflight_failure_output = io.StringIO()
+        with contextlib.redirect_stdout(preflight_failure_output):
+            preflight_failure_rc = run_cross_compile(
+                root,
+                EXPECTED_TARGETS[0],
+                zig_executable="/custom/zig",
+                toolchain_runner=lambda *args, **kwargs: subprocess.CompletedProcess(
+                    args[0],
+                    1,
+                    stdout="ZIG_TOOLCHAIN_NOTE=expected pinned Zig channel 0.17.0-dev.87+9b177a7d2\n",
+                    stderr="",
+                ),
+                zig_runner=lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("zig runner should not execute")),
+            )
+        assert preflight_failure_rc == 1
+        assert "PHASE2_CROSS=fail" in preflight_failure_output.getvalue()
+        assert (
+            "PHASE2_CROSS_NOTE=toolchain preflight failed: ZIG_TOOLCHAIN_NOTE=expected pinned Zig channel 0.17.0-dev.87+9b177a7d2"
+            in preflight_failure_output.getvalue()
+        )
         case_count += 1
 
     print("PHASE2_CROSS_SELF_TEST=pass")
