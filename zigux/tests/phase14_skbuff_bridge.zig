@@ -55,6 +55,29 @@ fn hasGap(manifest: Manifest, id: []const u8, status: []const u8) bool {
     return false;
 }
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn readRootFile(path: []const u8, limit: usize) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+    return try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        path,
+        std.testing.allocator,
+        .limited(limit),
+    );
+}
+
+fn readBuildSource() ![]u8 {
+    return readRootFile("zigux/tests/phase14_build.zig", 32 * 1024);
+}
+
+fn readSurveySource() ![]u8 {
+    return readRootFile("Documentation/zigux/phase14-skbuff-bridge-survey.md", 16 * 1024);
+}
+
 test "phase14 skbuff bridge manifest records the live blocked ownership packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -138,6 +161,29 @@ test "phase14 skbuff survey note keeps the blocker wording explicit" {
     try std.testing.expect(std.mem.indexOf(u8, note, "checksum ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "destructor coordination") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "final sock-owned tail transfer") != null);
+}
+
+test "phase14 skbuff compile evidence stays full-bundle only" {
+    const build_source = try readBuildSource();
+    defer std.testing.allocator.free(build_source);
+
+    const survey_source = try readSurveySource();
+    defer std.testing.allocator.free(survey_source);
+
+    try expectContains(build_source, "phase14-skbuff-bridge-tests");
+    try expectContains(build_source, "phase14_skbuff_bridge.zig");
+    try expectContains(build_source, "../../net/core/skbuff_bridge.zig");
+    try expectContains(build_source, "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);");
+    try std.testing.expect(std.mem.indexOf(u8, build_source, "smoke_step.dependOn(&run_phase14_skbuff_bridge_tests.step);") == null);
+
+    try expectContains(survey_source, "`phase14-skbuff-bridge-tests`");
+    try expectContains(survey_source, "`phase14_skbuff_bridge.zig`");
+    try expectContains(survey_source, "`../../net/core/skbuff_bridge.zig`");
+    try expectContains(survey_source, "`full_bundle_only`");
+    try expectContains(survey_source, "`zig build test --build-file zigux/tests/phase14_build.zig --summary all`");
+    try expectContains(survey_source, "`make -C zigux phase14-test`");
+    try expectContains(survey_source, "`make -C zigux phase14`");
+    try expectContains(survey_source, "does not claim a dedicated skbuff replay route");
 }
 
 test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
