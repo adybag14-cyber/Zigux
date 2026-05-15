@@ -140,8 +140,9 @@ test "phase 7 string helper boundary keeps the expanded helper packet and curren
     try expectContains(review_checklist, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(review_checklist, "do those shared reminders keep the explicit ownership-focus packet visible so");
     try expectContains(review_checklist, "first-NUL trimming and prefix skipping stop at the exported C-string boundary");
-    try expectContains(review_checklist, "exact-fit or zero-capacity unescape destinations stay caller-owned");
+    try expectContains(review_checklist, "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned");
     try expectContains(review_checklist, "append-limited escape accounting stays inside caller storage");
+    try expectContains(review_checklist, "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results");
     try expectContains(review_checklist, "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations");
 
     const samples_root = try readRepoFile(allocator, "samples/zigux/README.md");
