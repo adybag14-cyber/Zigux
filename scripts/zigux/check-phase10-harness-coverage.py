@@ -85,6 +85,9 @@ DOC_README_MARKERS = [
     "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
     "`Documentation/zigux/phase10-closure-evidence.md`",
     "`Documentation/zigux/phase10-virtio-core-survey.md`",
+    "`Documentation/zigux/phase10-virtio-ring-survey.md`",
+    "`Documentation/zigux/phase10-virtio-input-survey.md`",
+    "`Documentation/zigux/phase10-virtio-mmio-survey.md`",
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`scripts/zigux/check-phase10-mmio-packet.py`",
@@ -435,6 +438,21 @@ def run_self_test() -> int:
 
         doc_readme_path.write_text(
             original_doc_readme.replace(
+                "`Documentation/zigux/phase10-virtio-mmio-survey.md`",
+                "`Documentation/zigux/phase10-virtio-mmio-survey-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_mmio_survey_note",
+            root,
+            "doc_readme:`Documentation/zigux/phase10-virtio-mmio-survey.md`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
                 "`scripts/zigux/check-phase10-mmio-packet.py`",
                 "`scripts/zigux/check-phase10-mmio-packet-missing.py`",
                 1,
@@ -517,7 +535,7 @@ def run_self_test() -> int:
         expect_missing_file("checker_file", root, "scripts/zigux/check-phase10-tests-readme-core-surfaces.py")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
