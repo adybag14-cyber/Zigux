@@ -154,7 +154,7 @@
       "status": "landed_on_master",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries bounded io-map and recovery summaries through recoveryEventBufferOwnershipSummary() and recoveryHostScanSummary() without claiming runtime queue execution."
+      "why_now": "Current master now carries bounded io-map and recovery summaries through recoveryEventBufferOwnershipSummary(), recoveryRequestQueueRestoreSummary(), and recoveryHostScanSummary() without claiming runtime queue execution."
     },
     {
       "id": "phase12-virtio-scsi-runtime-request-flow",
