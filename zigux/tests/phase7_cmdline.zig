@@ -128,11 +128,23 @@ test "phase 7 getOption and getOptions preserve oversized wrap semantics" {
     try std.testing.expectEqual(@as(i32, -1), positive_full_value);
     try std.testing.expectEqualStrings("", positive_full);
 
+    var positive_overflow: []const u8 = "18446744073709551616";
+    var positive_overflow_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&positive_overflow, &positive_overflow_value));
+    try std.testing.expectEqual(@as(i32, -1), positive_overflow_value);
+    try std.testing.expectEqualStrings("", positive_overflow);
+
     var negative_full: []const u8 = "-18446744073709551615";
     var negative_full_value: i32 = 0;
     try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&negative_full, &negative_full_value));
     try std.testing.expectEqual(@as(i32, 1), negative_full_value);
     try std.testing.expectEqualStrings("", negative_full);
+
+    var negative_overflow: []const u8 = "-18446744073709551616";
+    var negative_overflow_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&negative_overflow, &negative_overflow_value));
+    try std.testing.expectEqual(@as(i32, 1), negative_overflow_value);
+    try std.testing.expectEqualStrings("", negative_overflow);
 
     var values = [_]i32{ 0, 0, 0 };
     const rest = cmdline.getOptions("2147483648,-2147483649", values.len, &values);
@@ -149,10 +161,20 @@ test "phase 7 getOption and getOptions preserve oversized wrap semantics" {
     try std.testing.expectEqualStrings("", full_rest);
     try std.testing.expectEqualSlices(i32, &[_]i32{ 2, -1, 1 }, &full_values);
 
+    var overflow_values = [_]i32{ 0, 0, 0 };
+    const overflow_rest = cmdline.getOptions("18446744073709551616,-18446744073709551616", overflow_values.len, &overflow_values);
+    try std.testing.expectEqualStrings("", overflow_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, -1, 1 }, &overflow_values);
+
     var full_validate_only = [_]i32{0};
     const full_validate_rest = cmdline.getOptions("18446744073709551615,-18446744073709551615", 0, &full_validate_only);
     try std.testing.expectEqualStrings("", full_validate_rest);
     try std.testing.expectEqual(@as(i32, 2), full_validate_only[0]);
+
+    var overflow_validate_only = [_]i32{0};
+    const overflow_validate_rest = cmdline.getOptions("18446744073709551616,-18446744073709551616", 0, &overflow_validate_only);
+    try std.testing.expectEqualStrings("", overflow_validate_rest);
+    try std.testing.expectEqual(@as(i32, 2), overflow_validate_only[0]);
 }
 
 test "phase 7 getOption preserves validator-only numeric acceptance" {
@@ -183,6 +205,16 @@ test "phase 7 memparse preserves suffix scaling, leading plus, and stop index se
     try std.testing.expectEqual(@as(usize, 1), index);
     try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("krest", &index));
     try std.testing.expectEqual(@as(usize, 1), index);
+}
+
+test "phase 7 memparse saturates oversized unsigned prefixes before applying suffix handling" {
+    var index: usize = 0;
+
+    try std.testing.expectEqual(std.math.maxInt(u64), cmdline.memparse("18446744073709551616", &index));
+    try std.testing.expectEqual(@as(usize, 20), index);
+
+    try std.testing.expectEqual(std.math.maxInt(u64), cmdline.memparse("+18446744073709551616", &index));
+    try std.testing.expectEqual(@as(usize, 21), index);
 }
 
 test "phase 7 memparse keeps saturated prefixes aligned when size suffixes still apply" {
