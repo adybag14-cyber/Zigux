@@ -18,6 +18,15 @@ DOCS_ROOT_PHASE2_REVIEWER_GUARDS_CLAUSE = (
     "including the shipped `scripts/zigux/check-phase2-kconfig-readme-alignment.py` and "
     "`scripts/zigux/check-phase2-tool-manifest-packets.py` reviewer-surface guards"
 )
+DOCS_ROOT_PHASE2_BOUNDARY_SENTENCE = (
+    "the docs-root Phase 2 summary should also keep the current bootstrap-versus-cross "
+    "verification split explicit: the dedicated `phase2-cross` workflow job still reuses "
+    "the pinned installer path but stops at installer-side archive verification plus "
+    "`python3 scripts/zigux/check-phase2-cross.py --target <matrix-zig-target>`, while "
+    "the Linux-style `make -C zigux phase2-cross` route still picks up `phase2-toolchain` "
+    "and its `python3 scripts/zigux/check-zig-toolchain.py --zig \"$(ZIG)\"` replay "
+    "through `zigux/Makefile`."
+)
 SCRIPTS_PHASE2_LIVE_SENTENCE = (
     "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, "
     "`validate-phase2-closure.py`, `check-phase2-toolchain-pin-scope.py`, "
@@ -115,6 +124,7 @@ FILE_MARKERS = {
         "make -C zigux phase2-cross",
         "repo-local `.zig-toolchain` fallback reused by those Linux-style Phase 2 routes when `ZIG` is unset",
         DOCS_ROOT_PHASE2_REVIEWER_GUARDS_CLAUSE,
+        DOCS_ROOT_PHASE2_BOUNDARY_SENTENCE,
         "The broader Phase 2 fixdep, genksyms, kconfig bridge, artifact-tools, manifest, cross-target, and closure-route inventory should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile`",
     ],
     "Documentation/zigux/phase2-closure.md": [
@@ -249,6 +259,7 @@ FORBIDDEN_FILE_MARKERS = {
 EXACT_COUNT_CHECKS = {
     "Documentation/zigux/README.md": {
         DOCS_ROOT_PHASE2_REVIEWER_GUARDS_CLAUSE: 1,
+        DOCS_ROOT_PHASE2_BOUNDARY_SENTENCE: 1,
         "The broader Phase 2 fixdep, genksyms, kconfig bridge, artifact-tools, manifest, cross-target, and closure-route inventory should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile`": 1,
     },
     "Documentation/zigux/review-checklist.md": {
