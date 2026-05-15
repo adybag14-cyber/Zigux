@@ -33,6 +33,7 @@ test "phase 8 cpu mask starter slice keeps the C delimiter loop bounded while st
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, ",\n\r"));
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "2-1"));
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "cpu0"));
+    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "0-1\r4"));
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "0-1,4 \n"));
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "0-1,\t"));
 }
@@ -106,6 +107,34 @@ test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     try std.testing.expect(!parsed.values[6]);
     try std.testing.expect(parsed.values[7]);
     try std.testing.expect(parsed.values[8]);
+}
+
+test "phase 8 cpu mask reader interface rejects chunked carriage-return-delimited fragments" {
+    const ReaderState = struct {
+        chunks: []const []const u8,
+        index: usize = 0,
+
+        fn read(context: ?*anyopaque, buffer: []u8) !?usize {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            if (self.index >= self.chunks.len) {
+                return null;
+            }
+            const chunk = self.chunks[self.index];
+            self.index += 1;
+            std.mem.copyForwards(u8, buffer[0..chunk.len], chunk);
+            return chunk.len;
+        }
+    };
+
+    var state = ReaderState{
+        .chunks = &.{ "0-1", "\r4\n" },
+    };
+    var scratch: [8]u8 = undefined;
+
+    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
+        .context = &state,
+        .readFn = ReaderState.read,
+    }));
 }
 
 test "phase 8 cpu mask helper summarizes reader-backed possible CPUs without stepping into routing" {
