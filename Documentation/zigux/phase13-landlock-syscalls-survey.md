@@ -6,7 +6,7 @@ This document records the bounded Phase 13 survey lane around `security/landlock
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=landlock-syscalls-helper-policy-survey`
-- reviewed against live `master` `master-readback-2026-05-13`
+- reviewed against live `master` `master-readback-2026-05-15`
 - scope: the shipped `security/landlock/syscalls.zig` helper starter, the paired governance note, the direct helper-local replay packet, and the remaining shared-build and live-state gaps that still keep this packet bounded
 - product boundary:
   - `security/landlock/syscalls.zig`
