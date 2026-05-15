@@ -35,6 +35,38 @@ test "runtime trace-events diff gate keeps count-gated main-thread replay explic
     try std.testing.expectEqualStrings("iter=%d", replay.last_format_template orelse return error.ExpectedMainPayload);
 }
 
+test "runtime trace-events diff gate keeps single-conditional main-thread replay explicit through the diagnostics summary" {
+    var module = sample.RuntimeTraceEventsSample{};
+    try module.init();
+
+    const emitted = try module.emitMainIteration(8);
+    try std.testing.expectEqual(@as(usize, 5), emitted);
+
+    const replay = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, replay.stage);
+    try std.testing.expectEqual(@as(usize, 1), replay.main_iterations);
+    try std.testing.expectEqual(@as(usize, 5), replay.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), replay.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 5), replay.total_events);
+    try std.testing.expectEqual(@as(?usize, 5), replay.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), replay.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 1), replay.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(i32, 8), replay.last_main_count);
+    try std.testing.expect(replay.saw_vararg_payload);
+    try std.testing.expect(replay.saw_rel_loc_payload);
+    try std.testing.expect(replay.saw_conditional_path);
+    try std.testing.expectEqualStrings("hello", replay.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Frodo", replay.last_main_random_choice_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqual(@as(usize, 3), replay.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
+    try std.testing.expect(replay.last_main_vararg_array_terminator_zero orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("HELLO", replay.last_main_template_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqual(@as(?[]const u8, null), replay.last_main_conditional_message);
+    try std.testing.expectEqualStrings("prints other times", replay.last_main_template_cond_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("I have to be different", replay.last_main_template_print_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Hello __rel_loc", replay.last_main_relative_location_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("iter=%d", replay.last_format_template orelse return error.ExpectedMainPayload);
+}
+
 test "runtime trace-events diff gate keeps function-callback registration balance and replay labels explicit through the diagnostics summary" {
     var module = sample.RuntimeTraceEventsSample{};
     try module.init();
