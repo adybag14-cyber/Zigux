@@ -152,6 +152,19 @@ REQUIRED_MARKERS = {
         "phase 7 rbtree postorder traversal matches committed parity fixture",
         "phase 7 rbtree cleared detached nodes stop postorder traversal",
     ],
+    # Fail closed on the committed manifest packet too, not just its path, so
+    # the parked ownership and parity record cannot silently drift.
+    "zigux/tests/phase7_rbtree_manifest.json": [
+        '"lane_key": "P7-L13"',
+        '"anchor": "lib/rbtree.c"',
+        '"current_replay_status": "route_present_on_master"',
+        '"zigux_destination": "lib/rbtree.zig"',
+        '"zigux_destination": "zigux/tests/fixtures/phase7_rbtree.json"',
+        '"zigux_destination": "scripts/zigux/check-phase7-rbtree-parity.py"',
+        "duplicate-key range helpers keep ordered match ownership explicit through findFirst() and nextMatch() instead of hidden cursors",
+        "linked-node teardown reconnects prev and next ownership together with leftmost continuity during eraseLinked()",
+        "postorder traversal helpers treat cleared detached nodes as empty so stale parent walks do not leak past the reusable leaf packet",
+    ],
     # Fail closed on the concrete alias exercise points, not just the alias
     # names, so the parked rbtree packet keeps its Linux-style wrapper surface
     # actively covered.
@@ -215,7 +228,6 @@ def write_fixture_root(tmp_root: Path) -> None:
     fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
     fixture_text.update(
         {
-            "zigux/tests/phase7_rbtree_manifest.json": "{}\n",
             "zigux/tests/fixtures/phase7_rbtree.json": "{}\n",
             "zigux/tests/fixtures/phase7_rbtree_c_harness.c": "/* fixture */\n",
         }
@@ -463,6 +475,41 @@ def run_self_test() -> None:
             "phase 7 rbtree cleared detached nodes stop postorder traversal",
             "",
             "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree cleared detached nodes stop postorder traversal",
+        ),
+        (
+            "manifest_lane_key_marker",
+            "zigux/tests/phase7_rbtree_manifest.json",
+            '"lane_key": "P7-L13"',
+            "",
+            'zigux/tests/phase7_rbtree_manifest.json: "lane_key": "P7-L13"',
+        ),
+        (
+            "manifest_anchor_marker",
+            "zigux/tests/phase7_rbtree_manifest.json",
+            '"anchor": "lib/rbtree.c"',
+            "",
+            'zigux/tests/phase7_rbtree_manifest.json: "anchor": "lib/rbtree.c"',
+        ),
+        (
+            "manifest_build_route_marker",
+            "zigux/tests/phase7_rbtree_manifest.json",
+            '"current_replay_status": "route_present_on_master"',
+            "",
+            'zigux/tests/phase7_rbtree_manifest.json: "current_replay_status": "route_present_on_master"',
+        ),
+        (
+            "manifest_checker_destination_marker",
+            "zigux/tests/phase7_rbtree_manifest.json",
+            '"zigux_destination": "scripts/zigux/check-phase7-rbtree-parity.py"',
+            "",
+            'zigux/tests/phase7_rbtree_manifest.json: "zigux_destination": "scripts/zigux/check-phase7-rbtree-parity.py"',
+        ),
+        (
+            "manifest_postorder_ownership_marker",
+            "zigux/tests/phase7_rbtree_manifest.json",
+            "postorder traversal helpers treat cleared detached nodes as empty so stale parent walks do not leak past the reusable leaf packet",
+            "",
+            "zigux/tests/phase7_rbtree_manifest.json: postorder traversal helpers treat cleared detached nodes as empty so stale parent walks do not leak past the reusable leaf packet",
         ),
         (
             "helper_impl_alias_find_first_marker",
