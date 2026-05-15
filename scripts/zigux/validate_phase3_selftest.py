@@ -64,6 +64,9 @@ SELFTEST_OUTPUT_MARKERS = {
         "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass",
         "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST_CASE_COUNT=10",
     ),
+    Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"): (
+        "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
+    ),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"): (
         "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass",
         "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=15",
