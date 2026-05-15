@@ -220,6 +220,8 @@ VERIFY_HELPER_MARKERS = [
     'test "hvc_console verify keeps remove handoff explicit when tty is already absent" {',
     'test "hvc_console verify keeps cleanup prerequisite failures explicit" {',
     'test "hvc_console verify keeps hangup-only cleanup prerequisites explicit" {',
+    'test "hvc_console verify keeps combined cleanup trigger explicit" {',
+    "try std.testing.expectEqual(CleanupTrigger.final_close_and_hangup, summary.trigger);",
     'test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces" {',
     'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks" {',
     'test "hvc_console verify keeps non-kernel sysrq literal fallback from implying notifier callbacks" {',
@@ -240,11 +242,15 @@ CONSOLE_REPLAY_MARKERS = [
 ]
 
 CLEANUP_REPLAY_MARKERS = [
+    "pub const CleanupTrigger = enum {",
     'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable" {',
-    "try std.testing.expect(hangup_cleanup.drops_tty_port_reference);",
+    "try std.testing.expectEqual(console.CleanupTrigger.hangup_only, hangup_cleanup.trigger);",
     "try std.testing.expectError(error.CleanupRequiresFinalCloseOrHangup, console.summarizeCleanupHandoff(.{",
     'test "phase11 hvc console keeps final-close cleanup distinct from hangup cleanup" {',
-    "try std.testing.expect(!final_close_cleanup.hangup_cleanup_boundary);",
+    "try std.testing.expectEqual(console.CleanupTrigger.final_close_only, final_close_cleanup.trigger);",
+    'test "phase11 hvc console keeps combined cleanup trigger explicit" {',
+    "console.CleanupTrigger.final_close_and_hangup,",
+    "combined_cleanup.trigger,",
 ]
 
 MODEM_CONTROL_SPLIT_MARKERS = [
@@ -491,7 +497,9 @@ def run_self_test() -> None:
             (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[8]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[1]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[2]),
-            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[5]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[3]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[4]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[7]),
             (REQUIRED_FILES["survey_note"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["survey_note"], "khvcd sleep-and-reschedule handoff summary"),
             (REQUIRED_FILES["survey_note"], "`__hvc_poll` drain-order summary"),
@@ -508,8 +516,12 @@ def run_self_test() -> None:
             (REQUIRED_FILES["validation_matrix"], "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove-handoff path explicit when the tty is already absent"),
             (REQUIRED_FILES["survey_gate"], 'try std.testing.expect(manifest.survey_summary.hvc_console_test_present);'),
             (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[-1]),
-            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[-2]),
-            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[-1]),
+            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[0]),
+            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[2]),
+            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[5]),
+            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[6]),
+            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[7]),
+            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[8]),
             (REQUIRED_FILES["modem_control_split"], MODEM_CONTROL_SPLIT_MARKERS[0]),
             (REQUIRED_FILES["modem_control_split"], MODEM_CONTROL_SPLIT_MARKERS[1]),
             (REQUIRED_FILES["poll_retry_split"], POLL_RETRY_SPLIT_MARKERS[0]),
