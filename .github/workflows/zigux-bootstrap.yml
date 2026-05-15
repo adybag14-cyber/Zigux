@@ -319,6 +319,9 @@ jobs:
       - name: Check discovered Phase 3 parity
         run: python3 scripts/zigux/run-phase3-checks.py
 
+      - name: Run Phase 3 ABI dump replay
+        run: zig build phase3-dump --build-file zigux/tests/build.zig
+
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
 
