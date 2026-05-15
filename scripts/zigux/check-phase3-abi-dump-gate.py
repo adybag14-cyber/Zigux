@@ -102,6 +102,13 @@ REQUIRED_REPLAY_DEV_T_KEYS = (
     "range_last_encoded",
 )
 
+REQUIRED_REPLAY_NOTIFIER_CHAIN_KEYS = (
+    "empty_ok",
+    "single_ok",
+    "descending_ok",
+    "rising_ok",
+)
+
 REQUIRED_REPLAY_CONSTANT_KEYS = (
     "facility_kernel",
     "facility_helpers",
@@ -118,7 +125,7 @@ REQUIRED_REPLAY_CONSTANT_KEYS = (
     "unsafe_scope_raw_pointer_bridge",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied",
-    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_window_flag_window_applied",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped",
     "notifier_done",
     "notifier_ok",
@@ -161,6 +168,13 @@ REQUIRED_EXPECTED_DEV_T_VALUES = {
     "range_count": 4,
     "range_fits": 1,
     "range_last_encoded": 44040202,
+}
+
+REQUIRED_EXPECTED_NOTIFIER_CHAIN_VALUES = {
+    "empty_ok": 1,
+    "single_ok": 1,
+    "descending_ok": 1,
+    "rising_ok": 0,
 }
 
 REQUIRED_REPLAY_STRUCT_MARKERS = (
@@ -287,6 +301,12 @@ def _validate_replay_dev_t_keys(path: Path, label: str) -> list[str]:
     return _validate_replay_markers(path, REQUIRED_REPLAY_DEV_T_KEYS, f"{label} dev_t key")
 
 
+def _validate_replay_notifier_chain_keys(path: Path, label: str) -> list[str]:
+    return _validate_replay_markers(
+        path, REQUIRED_REPLAY_NOTIFIER_CHAIN_KEYS, f"{label} notifier_chain key"
+    )
+
+
 def _validate_expected_fixture(path: Path) -> list[str]:
     try:
         payload = json.loads(_read(path))
@@ -327,6 +347,19 @@ def _validate_expected_fixture(path: Path) -> list[str]:
             elif actual_value != expected_value:
                 issues.append(
                     f"{path}:wrong_expected_dev_t_field:{field_name}:{actual_value}"
+                )
+
+    notifier_chain = payload.get("notifier_chain")
+    if not isinstance(notifier_chain, dict):
+        issues.append(f"{path}:missing_notifier_chain_object")
+    else:
+        for field_name, expected_value in REQUIRED_EXPECTED_NOTIFIER_CHAIN_VALUES.items():
+            actual_value = notifier_chain.get(field_name)
+            if actual_value is None:
+                issues.append(f"{path}:missing_expected_notifier_chain_field:{field_name}")
+            elif actual_value != expected_value:
+                issues.append(
+                    f"{path}:wrong_expected_notifier_chain_field:{field_name}:{actual_value}"
                 )
 
     structs = payload.get("structs")
@@ -402,10 +435,12 @@ def validate_repo(repo_root: Path) -> list[str]:
     issues.extend(_validate_replay_constant_markers(repo_root / DUMP_PATH, "dump"))
     issues.extend(_validate_replay_top_level_keys(repo_root / DUMP_PATH, "dump"))
     issues.extend(_validate_replay_dev_t_keys(repo_root / DUMP_PATH, "dump"))
+    issues.extend(_validate_replay_notifier_chain_keys(repo_root / DUMP_PATH, "dump"))
     issues.extend(_validate_replay_struct_markers(repo_root / HARNESS_PATH, "harness"))
     issues.extend(_validate_replay_constant_markers(repo_root / HARNESS_PATH, "harness"))
     issues.extend(_validate_replay_top_level_keys(repo_root / HARNESS_PATH, "harness"))
     issues.extend(_validate_replay_dev_t_keys(repo_root / HARNESS_PATH, "harness"))
+    issues.extend(_validate_replay_notifier_chain_keys(repo_root / HARNESS_PATH, "harness"))
     issues.extend(_validate_expected_fixture(repo_root / EXPECTED_PATH))
     return issues
 
@@ -421,6 +456,7 @@ def _expected_fixture_stub() -> str:
             "abi_version": REQUIRED_EXPECTED_ABI_VERSION,
             "constants": REQUIRED_EXPECTED_CONSTANT_VALUES,
             "dev_t": REQUIRED_EXPECTED_DEV_T_VALUES,
+            "notifier_chain": REQUIRED_EXPECTED_NOTIFIER_CHAIN_VALUES,
             "structs": REQUIRED_EXPECTED_STRUCT_LAYOUTS,
         },
         indent=2,
@@ -448,6 +484,7 @@ def _populate_repo(root: Path) -> None:
     replay_stub = "\n".join(
         REQUIRED_REPLAY_TOP_LEVEL_KEYS
         + REQUIRED_REPLAY_DEV_T_KEYS
+        + REQUIRED_REPLAY_NOTIFIER_CHAIN_KEYS
         + REQUIRED_REPLAY_CONSTANT_KEYS
         + REQUIRED_REPLAY_STRUCT_MARKERS
     ) + "\n"
@@ -663,6 +700,18 @@ def run_self_test() -> int:
         case_count += 1
 
         _populate_repo(root)
+        broken = root / DUMP_PATH
+        broken.write_text(_read(broken).replace("descending_ok\n", "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            "missing dump notifier_chain key marker: descending_ok",
+            "expected missing dump notifier-chain field was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
         broken = root / HARNESS_PATH
         broken.write_text(
             _read(broken).replace(
@@ -701,6 +750,18 @@ def run_self_test() -> int:
             issues,
             "missing harness dev_t key marker: range_last_encoded",
             "expected missing harness dev_t key was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / HARNESS_PATH
+        broken.write_text(_read(broken).replace("rising_ok\n", "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            "missing harness notifier_chain key marker: rising_ok",
+            "expected missing harness notifier-chain field was not reported",
         ):
             return 1
         case_count += 1
@@ -785,6 +846,48 @@ def run_self_test() -> int:
             issues,
             f"{root / EXPECTED_PATH}:wrong_expected_dev_t_field:range_count:6",
             "expected wrong expected-fixture dev_t field was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
+        payload.pop("notifier_chain", None)
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:missing_notifier_chain_object",
+            "expected missing expected-fixture notifier_chain object was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
+        payload["notifier_chain"].pop("descending_ok", None)
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:missing_expected_notifier_chain_field:descending_ok",
+            "expected missing expected-fixture notifier_chain field was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
+        payload["notifier_chain"]["rising_ok"] = 1
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:wrong_expected_notifier_chain_field:rising_ok:1",
+            "expected wrong expected-fixture notifier_chain field was not reported",
         ):
             return 1
         case_count += 1
