@@ -408,7 +408,7 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_loader,
-        "try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));",
+        "try std.testing.expectError(error.PreparedPlanDrift, init_flow_loader.requestSharedRuntimeLoad(&init_flow_request));",
     );
     try expectContains(
         runtime_kretprobe_loader,
