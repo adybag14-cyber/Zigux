@@ -611,6 +611,45 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         broken_makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py --self-test\n",
+            "",
+            1,
+        )
+        write_file(root / MAKEFILE_REL, broken_makefile)
+        issues = validate(root)
+        assert (
+            "missing_makefile_line:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py --self-test"
+            in issues
+        )
+
+        build_valid_workspace(root)
+        broken_makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py\n",
+            "",
+            1,
+        )
+        write_file(root / MAKEFILE_REL, broken_makefile)
+        issues = validate(root)
+        assert (
+            "missing_makefile_line:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"
+            in issues
+        )
+
+        build_valid_workspace(root)
+        broken_makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test\n",
+            "",
+            1,
+        )
+        write_file(root / MAKEFILE_REL, broken_makefile)
+        issues = validate(root)
+        assert (
+            "missing_makefile_line:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py --self-test"
+            in issues
+        )
+
+        build_valid_workspace(root)
+        broken_makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py\n",
             "",
             1,
@@ -623,7 +662,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=17")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
