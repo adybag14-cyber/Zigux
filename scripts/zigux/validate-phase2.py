@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
+CHECK_ZIG_TOOLCHAIN = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
 FIXDEP_GATE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"
 FIXDEP_DIFF_CHECKER = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"
 GENKSYMS_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"
@@ -35,6 +36,10 @@ KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 
 PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_MARKER = "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"
 PHASE2_TOOLCHAIN_PIN_SCOPE_MARKER = "PHASE2_TOOLCHAIN_PIN_SCOPE=pass"
+PHASE2_VALIDATION_TOOLCHAIN_PY_COMMAND_SPECS: tuple[tuple[Path | str, ...], ...] = (
+    (CHECK_ZIG_TOOLCHAIN, "--self-test"),
+    (CHECK_ZIG_TOOLCHAIN,),
+)
 PHASE2_VALIDATION_PY_COMMAND_SPECS: tuple[tuple[Path | str, ...], ...] = (
     (TESTS_README_ALIGNMENT_CHECKER, "--self-test"),
     (TESTS_README_ALIGNMENT_CHECKER,),
@@ -66,6 +71,12 @@ PHASE2_VALIDATION_DIRECT_COMMAND_SPECS: tuple[tuple[Path | str, ...], ...] = (
     ("zig", "test", ROOT / "scripts" / "zigux" / "genksyms.zig"),
     ("zig", "test", ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"),
     ("zig", "test", ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"),
+)
+PHASE2_VALIDATION_TOOLCHAIN_EXPECTED_COMMAND_TAILS = frozenset(
+    {
+        "scripts/zigux/check-zig-toolchain.py --self-test",
+        "scripts/zigux/check-zig-toolchain.py",
+    }
 )
 PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
     {
@@ -99,6 +110,7 @@ PHASE2_VALIDATION_EXPECTED_COMMAND_TAILS = frozenset(
         "zig test scripts/zigux/kconfig/confdata_bridge.zig",
     }
 )
+PHASE2_VALIDATION_TOOLCHAIN_EXPECTED_COMMAND_COUNT = 2
 PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28
 PHASE2_REQUIRED_RELATIVE_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
@@ -141,14 +153,26 @@ PHASE2_REQUIRED_RELATIVE_PATHS = (
 )
 PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_PATHS)
 PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 33
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 36
+
+
+def build_python_commands(
+    py_command_specs: tuple[tuple[Path | str, ...], ...],
+) -> list[list[str]]:
+    return [[sys.executable, str(spec[0]), *[str(part) for part in spec[1:]]] for spec in py_command_specs]
+
+
+def build_toolchain_validation_commands(
+    py_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_TOOLCHAIN_PY_COMMAND_SPECS,
+) -> list[list[str]]:
+    return build_python_commands(py_command_specs)
 
 
 def build_validation_commands(
     py_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_PY_COMMAND_SPECS,
     direct_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_DIRECT_COMMAND_SPECS,
 ) -> list[list[str]]:
-    commands = [[sys.executable, str(spec[0]), *[str(part) for part in spec[1:]]] for spec in py_command_specs]
+    commands = build_python_commands(py_command_specs)
     commands.extend([[str(part) for part in spec] for spec in direct_command_specs])
     return commands
 
@@ -171,6 +195,35 @@ def command_tail_from_parts(parts: tuple[Path | str, ...]) -> str:
                 pass
         tail_parts.append(str(part))
     return " ".join(tail_parts)
+
+
+def collect_toolchain_command_inventory_issues(
+    py_command_specs: tuple[tuple[Path | str, ...], ...] = PHASE2_VALIDATION_TOOLCHAIN_PY_COMMAND_SPECS,
+    *,
+    expected_count: int = PHASE2_VALIDATION_TOOLCHAIN_EXPECTED_COMMAND_COUNT,
+    expected_tails: frozenset[str] = PHASE2_VALIDATION_TOOLCHAIN_EXPECTED_COMMAND_TAILS,
+) -> list[str]:
+    issues: list[str] = []
+    commands = build_toolchain_validation_commands(py_command_specs)
+    if len(commands) != expected_count:
+        issues.append(
+            "phase2_validation_toolchain_commands:count="
+            f"{len(commands)}:expected={expected_count}"
+        )
+
+    tails: list[str] = []
+    for command in commands:
+        parts = tuple(command[1:])
+        tails.append(command_tail_from_parts(parts))
+    if len(set(tails)) != len(tails):
+        issues.append("phase2_validation_toolchain_commands:duplicate_command_tail")
+
+    for tail in sorted(expected_tails):
+        if tail not in tails:
+            issues.append(f"phase2_validation_toolchain_commands:missing:{tail}")
+    for tail in sorted(set(tails) - expected_tails):
+        issues.append(f"phase2_validation_toolchain_commands:unexpected:{tail}")
+    return issues
 
 
 def collect_command_inventory_issues(
@@ -232,6 +285,49 @@ def collect_required_file_inventory_issues(
 
 def run_self_test() -> list[str]:
     checks = [
+        (
+            "toolchain_command_inventory_ok",
+            collect_toolchain_command_inventory_issues(),
+            [],
+        ),
+        (
+            "toolchain_command_inventory_missing_self_test",
+            collect_toolchain_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_TOOLCHAIN_PY_COMMAND_SPECS
+                    if spec != (CHECK_ZIG_TOOLCHAIN, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_toolchain_commands:count=1:expected=2",
+                "phase2_validation_toolchain_commands:missing:scripts/zigux/check-zig-toolchain.py --self-test",
+            ],
+        ),
+        (
+            "toolchain_command_inventory_missing_gate",
+            collect_toolchain_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_TOOLCHAIN_PY_COMMAND_SPECS
+                    if spec != (CHECK_ZIG_TOOLCHAIN,)
+                )
+            ),
+            [
+                "phase2_validation_toolchain_commands:count=1:expected=2",
+                "phase2_validation_toolchain_commands:missing:scripts/zigux/check-zig-toolchain.py",
+            ],
+        ),
+        (
+            "toolchain_command_inventory_duplicate_gate",
+            collect_toolchain_command_inventory_issues(
+                PHASE2_VALIDATION_TOOLCHAIN_PY_COMMAND_SPECS + ((CHECK_ZIG_TOOLCHAIN,),)
+            ),
+            [
+                "phase2_validation_toolchain_commands:count=3:expected=2",
+                "phase2_validation_toolchain_commands:duplicate_command_tail",
+            ],
+        ),
         (
             "command_inventory_ok",
             collect_command_inventory_issues(),
@@ -703,12 +799,13 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    toolchain_command_issues = collect_toolchain_command_inventory_issues()
     command_issues = collect_command_inventory_issues()
     file_inventory_issues = collect_required_file_inventory_issues()
-    if command_issues or file_inventory_issues:
+    if toolchain_command_issues or command_issues or file_inventory_issues:
         label = "PHASE2_VALIDATION_SELF_TEST" if args.self_test else "PHASE2_VALIDATION"
         print(f"{label}=fail")
-        for issue in [*command_issues, *file_inventory_issues]:
+        for issue in [*toolchain_command_issues, *command_issues, *file_inventory_issues]:
             print(issue)
         return 1
 
@@ -723,6 +820,10 @@ def main() -> int:
         print(
             "PHASE2_VALIDATION_SELF_TEST_REQUIRED_FILE_COUNT="
             f"{PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT}"
+        )
+        print(
+            "PHASE2_VALIDATION_SELF_TEST_TOOLCHAIN_COMMAND_COUNT="
+            f"{PHASE2_VALIDATION_TOOLCHAIN_EXPECTED_COMMAND_COUNT}"
         )
         print(
             "PHASE2_VALIDATION_SELF_TEST_COMMAND_COUNT="
@@ -745,7 +846,7 @@ def main() -> int:
         print("PHASE2_VALIDATION_MISSING_FILES_END")
         return 1
 
-    commands = build_validation_commands()
+    commands = build_toolchain_validation_commands() + build_validation_commands()
     for command in commands:
         if run(command) != 0:
             print("PHASE2_VALIDATION=fail")
@@ -753,7 +854,10 @@ def main() -> int:
             return 1
 
     print("PHASE2_VALIDATION=pass")
-    print(f"PHASE2_VALIDATION_COMMAND_COUNT={PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT}")
+    print(
+        "PHASE2_VALIDATION_COMMAND_COUNT="
+        f"{PHASE2_VALIDATION_TOOLCHAIN_EXPECTED_COMMAND_COUNT + PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT}"
+    )
     return 0
 
 
