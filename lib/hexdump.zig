@@ -166,7 +166,8 @@ fn formatFullLine(buf: []const u8, rowsize: usize, groupsize: usize, linebuf: []
 }
 
 fn asciiRangeMask(ch: i16, lo: i16, hi: i16) i16 {
-    return ((ch - hi - 1) & (lo - 1 - ch)) >> 15;
+    const masked: u16 = @bitCast((ch - hi - 1) & (lo - 1 - ch));
+    return -@as(i16, @intCast(masked >> 15));
 }
 
 fn referenceHexToBin(ch: u8) ?u8 {
@@ -329,6 +330,17 @@ test "hex_to_bin arithmetic decode matches the straightforward reference across 
         const byte: u8 = @intCast(raw);
         try std.testing.expectEqual(referenceHexToBin(byte), hexToBin(byte));
     }
+}
+
+test "ascii range mask stays boolean-shaped for digit and alpha windows" {
+    try std.testing.expectEqual(@as(i16, -1), asciiRangeMask('0', '0', '9'));
+    try std.testing.expectEqual(@as(i16, -1), asciiRangeMask('9', '0', '9'));
+    try std.testing.expectEqual(@as(i16, 0), asciiRangeMask('/', '0', '9'));
+    try std.testing.expectEqual(@as(i16, 0), asciiRangeMask(':', '0', '9'));
+    try std.testing.expectEqual(@as(i16, -1), asciiRangeMask('A', 'A', 'F'));
+    try std.testing.expectEqual(@as(i16, -1), asciiRangeMask('F', 'A', 'F'));
+    try std.testing.expectEqual(@as(i16, 0), asciiRangeMask('@', 'A', 'F'));
+    try std.testing.expectEqual(@as(i16, 0), asciiRangeMask('G', 'A', 'F'));
 }
 
 test "hex2bin decodes mixed-case input" {
