@@ -37,9 +37,9 @@ Keep the current owner map explicit:
 ## Current Backlog Evidence
 
 Current `master` already keeps the shared Phase 2 toolchain packet bounded around the six Linux-style routes in `zigux/Makefile`, the closure wording in `Documentation/zigux/phase2-closure.md`, the shared manifest plus checker packet, and this dedicated owner-map note. The remaining shared anti-overlap risk is narrower:
-- this sequencing note was still speaking in the older three-way genksyms split even though current same-family follow-through now lives across the separate `P2-L07` roadmap survey packet, the `P2-L12` genksyms note-truthfulness packet, the `P2-L10` fixture packet, the `P2-L11` workflow-backed gate packet, the `P2-X05` versus `P2-L18` conf-bridge split, and the `P2-L19` versus `P2-Y07` or `P2-L24` confdata split
-- current `master` already carries the separate genksyms dual-implementation survey, conf bridge survey, confdata survey, fixdep next-step note, and the newer bridge-checker or gate follow-through records, so the highest-value shared correction is owner-map truthfulness rather than reopening tests-root backlog wording or tool behavior from this lane
-- the next safe shared correction is therefore a sequencing-note refresh only: realign this note with the currently visible survey, note-truthfulness, fixture, checker, and gate splits without touching Makefile routes, fixtures, bridge behavior, or shared validator logic
+- current `master` already carries the separate genksyms dual-implementation survey, conf bridge survey, confdata survey, fixdep next-step note, and the newer bridge-checker or gate follow-through records, so the shared owner map should now stay parked unless one of those already-split lane boundaries drifts again on a closure-facing reminder surface
+- the remaining shared correction path is therefore narrower than a fresh sequencing-note rewrite: reopen `P2-Y10` only for multi-family route, manifest, validator, or reminder-surface drift, and reopen `P2-Y12` only when a shared backlog note points at the wrong next safe Phase 2 follow-through
+- tool-local behavior, fixture, checker, and gate work should continue to stay in the dedicated fixdep, genksyms, conf bridge, and confdata lanes already named above instead of treating this shared owner-map note as another reopen cue by itself
 
 ## Shared Packet Surfaces
 
