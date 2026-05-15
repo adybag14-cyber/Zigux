@@ -127,7 +127,7 @@ REQUIRED_GAP_SPECS = {
         "status": "starter_landed",
         "kind": "header_constants",
         "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-        "why_now_contains": "MAX_NR_HVC_CONSOLES",
+        "why_now_contains": "HVC_ALLOC_TTY_ADAPTERS",
     },
     "phase11-hvc-console-export-signature-assert": {
         "status": "starter_landed",
@@ -148,6 +148,7 @@ REQUIRED_NOTE_MARKERS = [
     "phase11-hvc-console-export-signature-assert",
     "phase11-uapi-header-parity-surface",
     "MAX_NR_HVC_CONSOLES",
+    "HVC_ALLOC_TTY_ADAPTERS",
     "notifier_hangup_irq",
     "dedicated `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` step",
     "rather than the shared `test` step",
@@ -173,6 +174,7 @@ REQUIRED_SURVEY_MARKERS = [
     'try expectContains(note, "phase11-hvc-console-hv-ops-layout-assert");',
     'try expectContains(note, "phase11-hvc-console-header-constant-assert");',
     'try expectContains(note, "MAX_NR_HVC_CONSOLES");',
+    'try expectContains(note, "HVC_ALLOC_TTY_ADAPTERS");',
     "layout_assert.assertSize(WatchdogInfo, 40);",
     "layout_assert.assertAlign(WatchdogInfo, 4);",
     'layout_assert.assertFieldType(WatchdogInfo, "options", u32);',
@@ -517,6 +519,13 @@ def run_self_test() -> int:
         expect_failure(
             root,
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+            "HVC_ALLOC_TTY_ADAPTERS",
+            "HVC_ALLOC_TTY_ADAPTERS_MARKER_MISSING",
+            "note missing markers",
+        )
+        expect_failure(
+            root,
+            "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "rather than the shared `test` step",
             "through the shared test step",
             "note missing markers",
@@ -533,6 +542,13 @@ def run_self_test() -> int:
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             'layout_assert.assertFieldType(WinSize, "ws_ypixel", u16);',
             'layout_assert.assertFieldType(WinSize, "ws_ypixel", u32);',
+            "survey missing markers",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            'try expectContains(note, "HVC_ALLOC_TTY_ADAPTERS");',
+            'try expectContains(note, "HVC_ALLOC_TTY_ADAPTERS_MARKER_MISSING");',
             "survey missing markers",
         )
         expect_failure(
@@ -622,8 +638,8 @@ def run_self_test() -> int:
         expect_failure(
             root,
             "zigux/tests/phase11_uapi_header_parity_manifest.json",
-            'fixture size 72, alignment 8',
-            'fixture size 80, alignment 8',
+            'fixture HVC_ALLOC_TTY_ADAPTERS',
+            'fixture HVC_ALLOC_TTY_ADAPTERS_MARKER_MISSING',
             "why_now mismatch",
         )
         expect_failure(
@@ -697,7 +713,7 @@ def run_self_test() -> int:
             "build inventory shared_split_replays mismatch",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=29")
+    print("phase11-header-boundary-packet: self-test cases=31")
     return 0
 
 
