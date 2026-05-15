@@ -38,7 +38,14 @@
     "empty_ok": 1,
     "single_ok": 1,
     "descending_ok": 1,
-    "rising_ok": 0
+    "rising_ok": 0,
+    "rising_first_increase": {
+      "found": 1,
+      "previous_index": 0,
+      "current_index": 1,
+      "previous_priority": 3,
+      "current_priority": 5
+    }
   },
   "structs": {
     "boundary_header": {
@@ -67,6 +74,16 @@
         "allocator_mode": 1,
         "unsafe_scope": 2,
         "reserved": 3
+      }
+    },
+    "notifier_chain_priority_increase": {
+      "size": 24,
+      "align": 8,
+      "offsets": {
+        "previous_index": 0,
+        "current_index": 8,
+        "previous_priority": 16,
+        "current_priority": 20
       }
     },
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_view": {
