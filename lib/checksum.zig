@@ -107,6 +107,18 @@ pub fn compute(bytes: []const u8) u16 {
     return fold(partial(bytes, 0));
 }
 
+pub fn ipFastCsum(header: []const u8) u16 {
+    std.debug.assert((header.len & 3) == 0);
+
+    var sum: u64 = 0;
+    var index: usize = 0;
+    while (index < header.len) : (index += 4) {
+        sum += readBigEndianU32(header[index .. index + 4]);
+    }
+
+    return fold(normalizeWide(sum));
+}
+
 fn normalize(sum: u32) u32 {
     var value = sum;
     while ((value >> 16) != 0) {
@@ -296,4 +308,43 @@ test "folded pseudo-header helpers match direct pseudo-header plus payload recom
         0x70, 0x68, 0x61, 0x73, 0x65, 0x36, 0xaa,
     };
     try std.testing.expectEqual(compute(&ipv6_packet), ipv6_expected);
+}
+
+test "ipFastCsum stays aligned with compute across aligned IPv4 headers" {
+    const HeaderCase = struct {
+        name: []const u8,
+        header: []const u8,
+    };
+
+    const minimal_ipv4 = [_]u8{
+        0x45, 0x00, 0x00, 0x3c,
+        0x1c, 0x46, 0x40, 0x00,
+        0x40, 0x06, 0x00, 0x00,
+        0xc0, 0xa8, 0x00, 0x01,
+        0xc0, 0xa8, 0x00, 0xc7,
+    };
+    const ttl_and_length_update = [_]u8{
+        0x45, 0x00, 0x00, 0x40,
+        0x1c, 0x46, 0x40, 0x00,
+        0x3f, 0x11, 0x00, 0x00,
+        0xc0, 0xa8, 0x00, 0x02,
+        0xc0, 0xa8, 0x00, 0xc7,
+    };
+    const ipv4_with_options = [_]u8{
+        0x46, 0x00, 0x00, 0x30,
+        0x12, 0x34, 0x20, 0x00,
+        0x40, 0x11, 0x00, 0x00,
+        0xc0, 0xa8, 0x01, 0x01,
+        0xc0, 0xa8, 0x01, 0x02,
+        0x01, 0x01, 0x00, 0x00,
+    };
+    const headers = [_]HeaderCase{
+        .{ .name = "minimal ipv4 header", .header = &minimal_ipv4 },
+        .{ .name = "ttl and length update keeps aligned header fast path", .header = &ttl_and_length_update },
+        .{ .name = "header with 4-byte options stays on the aligned fast path", .header = &ipv4_with_options },
+    };
+
+    for (headers) |case| {
+        try std.testing.expectEqual(compute(case.header), ipFastCsum(case.header));
+    }
 }
