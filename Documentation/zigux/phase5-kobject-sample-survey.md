@@ -4,10 +4,10 @@ This note tracks the bounded Phase 5 approved-idiom packet for the roadmap's `sa
 
 ## Status
 
-- `PHASE5_STATUS=parked`
+- `PHASE5_STATUS=verified-public-tree-backed-packet`
 - `PHASE5_LANE_KEY=P5-L20`
 - `PHASE5_SURVEYED_COMMIT=28a3bde2b3d68612f18d9bdd786be50c71c3173e`
-- scope: keep the approved idiom truthful against the roadmap while recording the current directly readable kobject packet only
+- scope: keep the approved idiom truthful against the roadmap while recording the current directly reviewable kobject packet only
 - current kobject packet evidence on `master`:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
   - `Documentation/zigux/phase5-sample-review-guide.md`
@@ -15,16 +15,18 @@ This note tracks the bounded Phase 5 approved-idiom packet for the roadmap's `sa
   - `samples/zigux/kobject_example.zig`
   - `zigux/tests/phase5_kobject_example.zig`
   - `zigux/tests/phase5_kobject_example_manifest.json`
+  - `zigux/tests/phase5_kobject_example_survey.zig`
+  - `zigux/tests/phase5_build.zig`
 
 ## Why this note exists
 
 The roadmap's Phase 5 target is still "Samples and Reference Patterns" and still names `samples/kobject/kobject-example.c` as one of the approved Linux anchors. The same product goal still says to make approved Zigux idioms reviewable and repeatable.
 
-This note exists to keep that approved idiom scoped to one landed non-runtime packet. On the current tree, that packet is the sample root, the focused test, the manifest-backed contract, and the reminder surfaces that describe them. The note should not imply that the missing `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig` files are present current-`master` evidence.
+This note exists to keep that approved idiom scoped to one landed non-runtime packet. On the current tree, that packet is the sample root, the focused test, the manifest-backed contract, the dedicated survey replay, the shared Phase 5 build route, and the reminder surfaces that describe them. Authenticated contents readback in this environment still flakes on some `zigux/tests` paths, so the note should record the strongest current repo truth instead of freezing an older narrower packet after a connector-local 404.
 
 ## Approved idiom for the landed kobject-style sample
 
-The current kobject packet still describes the approved Phase 5 in-memory ownership-and-lifetime idiom for the roadmap anchor without implying runtime parity. That approved idiom stays reviewable through the sample root, focused test, manifest-backed replay, and the shared reminder surfaces that name those same files.
+The current kobject packet still describes the approved Phase 5 in-memory ownership-and-lifetime idiom for the roadmap anchor without implying runtime parity. That approved idiom stays reviewable through the sample root, focused test, manifest-backed replay, dedicated survey replay, shared build route, and the shared reminder surfaces that name those same files.
 
 - `runAnchorReplay()` still requires `init()` first, registers exactly three attributes, leaves the sample in the registered stage, keeps the unnamed attribute group explicit, and still reads back default values `42`, `7`, and `-5` for `foo`, `baz`, and `bar`
 - before `registerAttributes()`, the sample still reports zero active attributes and blocks `showValue()` or `storeValue()`
@@ -37,15 +39,16 @@ The current kobject packet still describes the approved Phase 5 in-memory owners
 - the exit split still stays explicit as `abandoned_before_registration` for the initialized-only exit path and `tore_down_registered_attributes` for the registered exit path
 - keep sysfs creation, `kernel_kobj` integration, uevents, and module-registration claims out of scope
 
-## Current repo reality on 2026-05-14
+## Current repo reality on 2026-05-15
 
-Fresh repo-first inspection on 2026-05-14 confirmed that the live packet is narrower than some older reminder wording implied:
+Fresh repo-first inspection on 2026-05-15 confirmed that the live packet is broader than the older narrower-note wording implied:
 
-- the current public `zigux/tests/` tree lists `zigux/tests/phase5_kobject_example.zig` and `zigux/tests/phase5_kobject_example_manifest.json`
-- that same tree does not list `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig`
-- the current `zigux/tests/README.md` guidance already treats the kobject packet as this narrower directly readable set and warns reminder surfaces not to present the missing survey or shared build paths as current direct evidence
+- GitHub contents readback in this environment still returns `404` for `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig`
+- public current-`master` readback now shows both `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` present again
+- `zigux/tests/phase5_kobject_example_survey.zig` still reads the shared review surfaces, checks the dedicated kobject survey markers, and requires the `phase5_build.zig`, `zigux/Makefile`, and workflow route markers for the kobject packet
+- `zigux/tests/phase5_build.zig` still wires `phase5_kobject_example.zig` and `phase5_kobject_example_survey.zig` into the named `phase5-kobject-example-tests` and `phase5-kobject-example-survey-tests` routes
 
-That means the same-lane maintenance target is reminder-surface truthfulness only. Shared reminders should keep the directly readable packet explicit and describe the missing survey or build files as absent, not as recovered fallback evidence.
+That means the same-lane maintenance target is reminder-surface truthfulness only. Shared reminders should keep the broader public-tree-backed packet explicit while also saying clearly that an authenticated contents `404` here is a connector-local readback gap, not proof that the survey or shared build files vanished from `master`.
 
 ## Exact checks recorded today
 
@@ -69,10 +72,10 @@ The current manifest-backed exact checks for the kobject packet remain the bound
 When a contributor updates `samples/zigux/kobject_example.zig` or one of its directly coupled review surfaces, keep these packet-local questions explicit here instead of relying on the broader shared guides alone:
 
 - does the packet still keep the one-time `init()` rule explicit so a second `init()` returns `InvalidLifecycleTransition` without advancing `register_runs` or `exit_runs`?
-- do `runSingleInitBoundaryReplay()`, `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()` still describe the same bounded ownership-and-lifetime packet across the sample root, focused test, manifest, and this survey note?
-- if a reminder surface mentions `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig`, does it say clearly that those files are not current direct evidence on the live `zigux/tests/` tree?
+- do `runSingleInitBoundaryReplay()`, `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()` still describe the same bounded ownership-and-lifetime packet across the sample root, focused test, manifest, dedicated survey replay, and shared Phase 5 build route?
+- if a reminder surface mentions `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig`, did a fresh reread confirm whether the current public tree still carries those files instead of treating a connector-local `404` as repo absence?
 - shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too: `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
-- keep the directly readable packet explicit instead of restating missing survey or shared build routes as current evidence
+- keep the directly reviewable packet explicit instead of collapsing back to the older narrower packet unless fresh repo readback truly drops the dedicated survey or shared build routes again
 
 ## Non-goals
 
@@ -87,7 +90,7 @@ This note still does not claim:
 
 Leave this lane parked unless a fresh kobject reread changes one bounded fact inside the same packet:
 
-- `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig` returns to the live tree and the note can widen back to those files honestly
-- another shared reminder surface still presents the kobject packet as if those missing `zigux/tests` files were current direct evidence and needs one more lane-local truthfulness repair
+- authenticated contents readback starts returning `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` too, so the note can drop the connector-flakiness warning and treat the broader packet as both public-tree-backed and connector-readable
+- another shared reminder surface still undercounts the dedicated kobject survey replay or shared Phase 5 build route and needs one more lane-local truthfulness repair
 
-Do not widen that follow-up into sample behavior unless the sample-root file, focused test, or manifest-backed contract actually changes.
+Do not widen that follow-up into sample behavior unless the sample-root file, focused test, manifest-backed contract, dedicated survey replay, or shared build route actually changes.
