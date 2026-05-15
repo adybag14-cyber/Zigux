@@ -49,7 +49,7 @@ fn findGap(manifest: Manifest, id: []const u8) ?Gap {
     return null;
 }
 
-test "phase11 gpio_wdt archived survey gate keeps the visible starter and missing replay packet honest" {
+test "phase11 gpio_wdt archived survey gate keeps the visible starter, timeout replay, main replay, and missing shared route honest" {
     const manifest_json = try readFile(std.testing.allocator, "zigux/tests/phase11_gpio_wdt_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
@@ -62,7 +62,7 @@ test "phase11 gpio_wdt archived survey gate keeps the visible starter and missin
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.gpio_wdt_c_lines >= 190);
-    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_phase11_test_files);
+    try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.preexisting_phase11_test_files);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_gpio_wdt_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_gpio_wdt_test_present);
@@ -74,7 +74,9 @@ test "phase11 gpio_wdt archived survey gate keeps the visible starter and missin
     const survey_gate = findGap(manifest, "phase11-gpio-wdt-survey-gate") orelse return error.MissingSurveyGateGap;
     try std.testing.expectEqualStrings("starter_landed", survey_gate.status);
     try std.testing.expectEqualStrings("zigux/tests/phase11_gpio_wdt_survey.zig", survey_gate.zigux_destination);
-    try std.testing.expect(std.mem.indexOf(u8, survey_gate.why_now, "focused drvdata replays") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_gate.why_now, "visible starter") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_gate.why_now, "visible main replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_gate.why_now, "timeout-property") != null);
 
     const build_gate = findGap(manifest, "phase11-build-gate") orelse return error.MissingBuildGateGap;
     try std.testing.expectEqualStrings("blocked_on_driver_scaffold", build_gate.status);
@@ -88,14 +90,25 @@ test "phase11 gpio_wdt archived survey gate keeps the visible starter and missin
     const test_gap = findGap(manifest, "phase11-gpio-wdt-driver-tests") orelse return error.MissingDriverTestGap;
     try std.testing.expectEqualStrings("starter_landed", test_gap.status);
     try std.testing.expectEqualStrings("zigux/tests/phase11_gpio_wdt.zig", test_gap.zigux_destination);
+    try std.testing.expect(std.mem.indexOf(u8, test_gap.why_now, "dedicated `zigux/tests/phase11_gpio_wdt.zig` replay") != null);
+
+    const timeout_gap = findGap(manifest, "phase11-gpio-wdt-timeout-property-checkpoint") orelse return error.MissingTimeoutGap;
+    try std.testing.expectEqualStrings("starter_landed", timeout_gap.status);
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.zig", timeout_gap.zigux_destination);
+    try std.testing.expect(std.mem.indexOf(u8, timeout_gap.why_now, "phase11_gpio_wdt_timeout_property.zig") != null);
+
+    const timeout_test_gap = findGap(manifest, "phase11-gpio-wdt-timeout-property-tests") orelse return error.MissingTimeoutTestGap;
+    try std.testing.expectEqualStrings("starter_landed", timeout_test_gap.status);
+    try std.testing.expectEqualStrings("zigux/tests/phase11_gpio_wdt_timeout_property.zig", timeout_test_gap.zigux_destination);
+    try std.testing.expect(std.mem.indexOf(u8, timeout_test_gap.why_now, "toggle and level modes") != null);
 
     const survey_note_gap = findGap(manifest, "phase11-gpio-wdt-survey-note") orelse return error.MissingSurveyNoteGap;
     try std.testing.expectEqualStrings("starter_landed", survey_note_gap.status);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note_gap.why_now, "current-master evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note_gap.why_now, "focused timeout-property replay") != null);
 
     const matrix_gap = findGap(manifest, "phase11-gpio-wdt-validation-matrix") orelse return error.MissingMatrixGap;
     try std.testing.expectEqualStrings("starter_landed", matrix_gap.status);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_gap.why_now, "visible main replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_gap.why_now, "focused timeout-property replay") != null);
 
     const drvdata_gap = findGap(manifest, "phase11-gpio-wdt-platform-drvdata-tests") orelse return error.MissingDrvdataGap;
     try std.testing.expectEqualStrings("starter_landed", drvdata_gap.status);
@@ -105,19 +118,16 @@ test "phase11 gpio_wdt archived survey gate keeps the visible starter and missin
     try std.testing.expectEqualStrings("starter_landed", watchdog_drvdata_gap.status);
     try std.testing.expectEqualStrings("zigux/tests/phase11_gpio_wdt_watchdog_drvdata.zig", watchdog_drvdata_gap.zigux_destination);
 
-    const codebacked_drvdata_gap = findGap(manifest, "phase11-gpio-wdt-drvdata-checkpoint") orelse return error.MissingCodebackedDrvdataGap;
-    try std.testing.expectEqualStrings("starter_landed", codebacked_drvdata_gap.status);
-    try std.testing.expect(std.mem.indexOf(u8, codebacked_drvdata_gap.why_now, "watchdogDrvdataCheckpointSummary()") != null);
-
     const archived_reboot_gap = findGap(manifest, "phase11-gpio-wdt-reboot-glue-checkpoint") orelse return error.MissingArchivedRebootGap;
     try std.testing.expectEqualStrings("note_only_archived", archived_reboot_gap.status);
 
     const blocker = findGap(manifest, "phase11-gpio-wdt-platform-registration") orelse return error.MissingPlatformRegistrationGap;
     try std.testing.expectEqualStrings("blocked_on_driver_scaffold", blocker.status);
+    try std.testing.expect(std.mem.indexOf(u8, blocker.why_now, "shared Phase 11 build route") != null);
     try std.testing.expect(std.mem.indexOf(u8, blocker.why_now, "hardware-backed validation") != null);
 }
 
-test "phase11 gpio_wdt archived notes stay aligned with the visible starter and the missing replay boundary" {
+test "phase11 gpio_wdt archived notes stay aligned with the visible starter, timeout replay, main replay, and missing shared build boundary" {
     const survey_note = try readFile(std.testing.allocator, "Documentation/zigux/phase11-gpio-wdt-survey.md", 32 * 1024);
     defer std.testing.allocator.free(survey_note);
 
@@ -130,24 +140,26 @@ test "phase11 gpio_wdt archived notes stay aligned with the visible starter and 
     const teardown_note = try readFile(std.testing.allocator, "Documentation/zigux/phase11-gpio-wdt-teardown-note.md", 32 * 1024);
     defer std.testing.allocator.free(teardown_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/watchdog/gpio_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase11_gpio_wdt_timeout_property.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase11_gpio_wdt_platform_drvdata.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase11_gpio_wdt_watchdog_drvdata.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase11_gpio_wdt.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase11_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "do not expose `drivers/watchdog/gpio_wdt.zig`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "still do not expose `zigux/tests/phase11_gpio_wdt.zig`") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "drivers/watchdog/gpio_wdt.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zigux/tests/phase11_gpio_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zigux/tests/phase11_gpio_wdt_timeout_property.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zigux/tests/phase11_gpio_wdt_watchdog_drvdata.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zigux/tests/phase11_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "platformDrvdataCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "probeSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "watchdogDrvdataCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "registerDeviceFailureSummary()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "all three current blockers explicit: descriptor preflight, platform-driver registration, and reboot glue") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "preserves the pre-registration running, line-state, and output-state handoff markers") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "summarizeTeardown()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "do not expose `drivers/watchdog/gpio_wdt.zig`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "still do not expose `zigux/tests/phase11_gpio_wdt.zig`") == null);
 
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "zigux/tests/phase11_gpio_wdt_timeout_property.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "platformDriverIdentitySummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "watchdogMetadataSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "descriptorRequestSummary()") != null);
@@ -160,17 +172,22 @@ test "phase11 gpio_wdt archived notes stay aligned with the visible starter and 
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "registerDeviceCallSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "registerDeviceFailureSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "summarizeTeardown()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "zigux/tests/phase11_gpio_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "zigux/tests/phase11_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "main replay and shared Phase 11 build route are not visible yet") == null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "timeoutPropertyCheckpointSummary()") == null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "drvdataCheckpointSummary()") == null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "rebootGlueCheckpointSummary()") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "drivers/watchdog/gpio_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "zigux/tests/phase11_gpio_wdt_timeout_property.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "summarizeTeardown()") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "watchdogDrvdataCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "requestStop()") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "registerDeviceFailureSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "zigux/tests/phase11_gpio_wdt.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "zigux/tests/phase11_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "do not expose `drivers/watchdog/gpio_wdt.zig`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "still do not expose `zigux/tests/phase11_gpio_wdt.zig`") == null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "teardownSummary()") == null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "rebootGlueCheckpointSummary()") == null);
 }
