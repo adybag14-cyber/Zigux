@@ -216,6 +216,10 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "first-NUL C-string bounds on both counting and splitting");
     try expectContains(slice_note, "strict non-goal behavior where quote characters stay inside the returned tokens");
     try expectContains(slice_note, "keep copied-buffer ownership so later source mutation does not affect split results");
+    try expectContains(slice_note, "keep stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path");
+    try expectContains(slice_note, "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results");
+    try expectContains(slice_note, "exported storage and argv views resetting back to the canonical empty sentinels after teardown");
+    try expectContains(slice_note, "allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns");
     try expectContains(slice_note, "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`");
     try expectContains(slice_note, "non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact");
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
@@ -270,6 +274,9 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy");
     try expectContains(helper_tests, "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer");
     try expectContains(helper_tests, "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too");
+    try expectContains(helper_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter");
+    try expectContains(helper_tests, "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned");
+    try expectContains(helper_tests, "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty exported argv view");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space");
     try expectContains(helper_tests, "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space");
@@ -278,7 +285,9 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result");
     try expectContains(helper_tests, "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact");
     try expectContains(helper_tests, "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact");
+    try expectContains(helper_tests, "phase 7 argvFree on a non-blank result restores the canonical blank sentinels");
     try expectContains(helper_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable");
+    try expectContains(helper_tests, "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup");
     try expectContains(helper_tests, "split.cArgv()");
 
     try expectContains(fixture_module, ".name = \"whitespace before first NUL stays blank\",\n");
