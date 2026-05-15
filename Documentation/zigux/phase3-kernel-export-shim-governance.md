@@ -49,7 +49,7 @@ This note closes the dedicated ownership and boundary-note gap for `zigux/kernel
 
 ## Maintenance-Mode Handoff
 
-- reopen `P3-Y07` only when `zigux/kernel/export_shim.zig` adds, removes, or rehomes a kernel-facing relay, or when this note stops matching `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-abi-slice.md`, or `zigux/tests/fixtures/phase3_abi_manifest.json` about the kernel-facing ownership split
+- reopen `P3-X07` only when `zigux/kernel/export_shim.zig` adds, removes, or rehomes a kernel-facing relay, or when this note stops matching `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-abi-slice.md`, or `zigux/tests/fixtures/phase3_abi_manifest.json` about the kernel-facing ownership split
 - before trusting a reopened packet, reread `zigux/kernel/export_shim.zig` together with `Documentation/zigux/phase3-kernel-export-shim-governance.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-boundary-lane-sequencing.md`, `Documentation/zigux/phase3-abi-slice.md`, and `zigux/tests/fixtures/phase3_abi_manifest.json`
 - keep the next bounded step to one same-packet note or manifest correction unless a real kernel-facing starter relay lands in `zigux/kernel/export_shim.zig`
 - if repo drift is only about starter UAPI wording, Linux-facing header aggregation, helper policy, or low-level wrapper proof, leave this lane parked and route the follow-up to `P3-Y02`, `P3-Y05`, `P3-Y04`, or `P3-Y03` instead of reopening kernel-facing governance by habit
