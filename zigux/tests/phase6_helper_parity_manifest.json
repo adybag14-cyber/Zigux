@@ -169,6 +169,22 @@
           "iterations": 12000,
           "max_encode_slowdown_pct": 150,
           "max_decode_slowdown_pct": 325
+        },
+        {
+          "label": "IMAP_PAD",
+          "variant_name": "imap",
+          "padding": true,
+          "iterations": 12000,
+          "max_encode_slowdown_pct": 150,
+          "max_decode_slowdown_pct": 325
+        },
+        {
+          "label": "IMAP_NO_PAD",
+          "variant_name": "imap",
+          "padding": false,
+          "iterations": 12000,
+          "max_encode_slowdown_pct": 150,
+          "max_decode_slowdown_pct": 325
         }
       ]
     },
@@ -258,7 +274,7 @@
       "transient_generated_include": "zigux/tests/fixtures/phase6_base64_c_generated_cases.inc",
       "transient_generated_include_committed": false,
       "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py",
-      "perf_corpus_boundary": "keep the committed std and urlsafe slowdown baselines in phase6_base64_vectors.zig and gate IMAP slowdown coverage behind a later explicit perfReferenceSupportedVariant() baseline change"
+      "perf_corpus_boundary": "keep the committed std, urlsafe, and imap slowdown baselines in phase6_base64_vectors.zig aligned with the helper-local perf replay instead of drifting back toward older std-and-urlsafe-only packet wording"
     },
     "hexdump": {
       "focused_replay": "zigux/tests/phase6_hexdump.zig",
@@ -315,7 +331,7 @@
       "variant_decode_vectors": 4,
       "invalid_decode_vectors": 24,
       "perf_payload_cases": 1,
-      "perf_replay_cases": 4,
+      "perf_replay_cases": 6,
       "c_parity_cases": 24,
       "transient_generated_include_committed": false
     },
