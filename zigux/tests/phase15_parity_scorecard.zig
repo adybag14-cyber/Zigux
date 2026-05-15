@@ -47,8 +47,24 @@ const Manifest = struct {
     anchors: []const Anchor,
 };
 
+const FreezeMapBlockerOwnership = struct {
+    anchor: []const u8,
+    owner: []const u8,
+    phase: []const u8,
+    status_bucket: []const u8,
+    required_approver_set: []const u8,
+    validation_gate: []const u8,
+    rollback_owner: []const u8,
+    evidence_archive_path: []const u8,
+    benchmark_notes: []const u8,
+    replay_command: []const u8,
+    latest_blocker_disposition: []const u8,
+};
+
 const FreezeMapManifest = struct {
+    freeze_in_c_targets: []const []const u8,
     study_only_targets: []const []const u8,
+    blocker_ownership: []const FreezeMapBlockerOwnership,
 };
 
 fn readRepoFile(path: []const u8, limit: usize) ![]u8 {
@@ -111,6 +127,20 @@ fn expectAnchorPacketAlignment(scorecard_doc: []const u8, governance_note: []con
     try expectContains(governance_note, anchor.evidence_archive.benchmark_notes_status);
     try expectContains(governance_note, anchor.evidence_archive.replay_command);
     try expectContains(governance_note, anchor.evidence_archive.latest_blocker_disposition);
+}
+
+fn expectFreezeMapAnchorAlignment(anchor: Anchor, blocker_ownership: FreezeMapBlockerOwnership) !void {
+    try std.testing.expectEqualStrings(anchor.path, blocker_ownership.anchor);
+    try std.testing.expectEqualStrings(anchor.lane_owner, blocker_ownership.owner);
+    try std.testing.expectEqualStrings(anchor.phase, blocker_ownership.phase);
+    try std.testing.expectEqualStrings(anchor.current_status_bucket, blocker_ownership.status_bucket);
+    try std.testing.expectEqualStrings(anchor.required_approver_set, blocker_ownership.required_approver_set);
+    try std.testing.expectEqualStrings(anchor.validation_gate_summary, blocker_ownership.validation_gate);
+    try std.testing.expectEqualStrings(anchor.rollback_owner, blocker_ownership.rollback_owner);
+    try std.testing.expectEqualStrings(anchor.evidence_archive.decision_record_path, blocker_ownership.evidence_archive_path);
+    try std.testing.expectEqualStrings(anchor.evidence_archive.benchmark_notes_status, blocker_ownership.benchmark_notes);
+    try std.testing.expectEqualStrings(anchor.evidence_archive.replay_command, blocker_ownership.replay_command);
+    try std.testing.expectEqualStrings(anchor.evidence_archive.latest_blocker_disposition, blocker_ownership.latest_blocker_disposition);
 }
 
 fn expectAnchorsOmitPath(anchors: []const Anchor, forbidden_path: []const u8) !void {
@@ -280,7 +310,25 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
         try expectAnchorsOmitPath(parsed.value.anchors, study_only_target);
     }
 
-    for (parsed.value.anchors) |anchor| {
+    try std.testing.expectEqual(
+        freeze_map_manifest.value.freeze_in_c_targets.len,
+        parsed.value.metrics.blocked_status_change_anchor_count,
+    );
+    try std.testing.expectEqual(
+        freeze_map_manifest.value.freeze_in_c_targets.len,
+        freeze_map_manifest.value.blocker_ownership.len,
+    );
+    try std.testing.expectEqual(
+        parsed.value.anchors.len,
+        freeze_map_manifest.value.blocker_ownership.len,
+    );
+    for (
+        parsed.value.anchors,
+        freeze_map_manifest.value.blocker_ownership,
+        freeze_map_manifest.value.freeze_in_c_targets,
+    ) |anchor, blocker_ownership, freeze_target| {
+        try std.testing.expectEqualStrings(anchor.path, freeze_target);
+        try expectFreezeMapAnchorAlignment(anchor, blocker_ownership);
         try expectAnchorPacketAlignment(scorecard_doc, governance_note, anchor);
         try expectContains(freeze_map, anchor.path);
     }
