@@ -22,14 +22,15 @@ EXPECTED_TARGETS = [
 
 EXPECTED_ZIG_TEST_FILES = [
     "scripts/zigux/fixdep.zig",
+    "scripts/zigux/genksyms.zig",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
 
 def require_files(root: Path) -> list[str]:
-    required = [
-        Path("zigux/tests/fixtures/phase2_cross_targets.json"),
-        Path("scripts/zigux/fixdep.zig"),
-    ]
+    required = [Path("zigux/tests/fixtures/phase2_cross_targets.json")]
+    required.extend(Path(rel_path) for rel_path in EXPECTED_ZIG_TEST_FILES)
     return [str(rel) for rel in required if not (root / rel).is_file()]
 
 
@@ -124,7 +125,8 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
     )
-    write_text(root / "scripts/zigux/fixdep.zig", 'test "stub" {}\n')
+    for rel_path in EXPECTED_ZIG_TEST_FILES:
+        write_text(root / rel_path, 'test "stub" {}\n')
 
 
 def run_self_test() -> int:
@@ -176,6 +178,7 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").writeText if False else None
         (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
             json.dumps(
                 {
@@ -183,7 +186,7 @@ def run_self_test() -> int:
                     "status": EXPECTED_STATUS,
                     "target_count": len(EXPECTED_TARGETS),
                     "targets": EXPECTED_TARGETS,
-                    "zig_test_files": ["scripts/zigux/genksyms.zig"],
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES[:-1],
                 },
                 indent=2,
             )
@@ -191,14 +194,18 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = validate_fixture(root)
-        assert "fixture:zig_test_files:['scripts/zigux/genksyms.zig']" in issues
+        assert (
+            "fixture:zig_test_files:"
+            f"{EXPECTED_ZIG_TEST_FILES[:-1]!r}"
+        ) in issues
         case_count += 1
 
-        build_self_test_root(root)
-        (root / "scripts/zigux/fixdep.zig").unlink()
-        missing = require_files(root)
-        assert "scripts/zigux/fixdep.zig" in missing
-        case_count += 1
+        for rel_path in EXPECTED_ZIG_TEST_FILES:
+            build_self_test_root(root)
+            (root / rel_path).unlink()
+            missing = require_files(root)
+            assert rel_path in missing
+            case_count += 1
 
     print("PHASE2_CROSS_SELF_TEST=pass")
     print(f"PHASE2_CROSS_SELF_TEST_CASE_COUNT={case_count}")
