@@ -64,6 +64,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
   - `make -C zigux phase14-smoke`
 - attached-toolchain fallback examples for this note's shared replay routes only:
+  - extract the attached `.tar.xz` archive first, then point `ZIG=` at the unpacked `.../zig` binary path
   - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`
   - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`
   - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`
@@ -94,7 +95,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - the shared compile shard matrix now records exact coverage counts of `6` total shards, `1` `focused_and_full_bundle` shard, and `5` `full_bundle_only` shards while keeping the workqueue reviewability replay plus the four anchor-local replays parked as `full_bundle_only` and `phase14-end-to-end-smoke-tests` as the only `focused_and_full_bundle` shard. That keeps the roadmap's validation-before-expansion discipline explicit without inventing new focused bridge claims.
 - the same packet also keeps the two landed bridge-backed roadmap destinations explicit by tying `phase14-workqueue-bridge-tests` to `../../kernel/workqueue_bridge.zig` and `phase14-skbuff-bridge-tests` to `../../net/core/skbuff_bridge.zig`, instead of letting the matrix collapse to test-root names alone.
 - `zigux/tests/phase14_build.zig` still exposes a dedicated `phase14-smoke` shard so the shared smoke packet can be replayed without compiling the heavier anchor-local bundle.
-- `zigux/Makefile` still exposes `make -C zigux phase14-test` as the wrapper-backed full-bundle replay, still exposes `make -C zigux phase14-smoke` as the focused shared smoke shard, and still honors the standard `ZIG` environment override so the attached archive can be injected with the literal `ZIG=/absolute/path/to/attached-zig/zig` examples above when neither the repo-local `.zig-toolchain` fallback nor the shell's default `zig` binary is available in the local environment.
+- `zigux/Makefile` still exposes `make -C zigux phase14-test` as the wrapper-backed full-bundle replay, still exposes `make -C zigux phase14-smoke` as the focused shared smoke shard, and still honors the standard `ZIG` environment override so the attached archive can be extracted first and the resulting `.../zig` binary can be injected with the literal `ZIG=/absolute/path/to/attached-zig/zig` examples above when neither the repo-local `.zig-toolchain` fallback nor the shell's default `zig` binary is available in the local environment.
 - `.github/workflows/zigux-bootstrap.yml` still runs the validator-backed shared smoke packet, the focused smoke shard, and the full Phase 14 build command, so the shared packet gets both a fast contract check and the existing end-to-end replay.
 - `Documentation/zigux/README.md` and `zigux/tests/README.md` now remain part of the explicit shared smoke surface inventory, so the docs root and tests root keep the same study-only packet visible without depending on phase-local notes alone.
 - `Documentation/zigux/freeze-map.md` still names the four Phase 14 anchors, which keeps the smoke packet grounded in the roadmap's study-only and freeze posture rather than implying a bridge-first expansion.
@@ -141,7 +142,8 @@ This shared smoke slice does not claim:
 - `make -C zigux phase14`
 - `make -C zigux phase14-smoke`
 
-4. rerun the same note with the attached toolchain when neither the repo-local `.zig-toolchain` fallback nor the shell's default `zig` binary is available
+4. rerun the same note with the attached toolchain after extracting the archive when neither the repo-local `.zig-toolchain` fallback nor the shell's default `zig` binary is available
+- extract the attached `.tar.xz` archive and point `ZIG=` at the unpacked `.../zig` binary path
 - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`
 - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`
 - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`
