@@ -18,7 +18,9 @@ FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_closure_manifest.json",
+    "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
 ]
 
@@ -266,12 +268,14 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 def write_fixture(root: Path) -> None:
     text_files = {
+        "Documentation/zigux/phase10-closure-evidence.md": "fixture\n",
         "Documentation/zigux/phase10-virtio-mmio-slice.md": "fixture\n",
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "fixture\n",
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(
             TESTS_ROOT_COMPANION_MARKERS
         )
         + "\n",
+        "Documentation/zigux/review-checklist.md": "fixture\n",
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
         "scripts/zigux/check-phase10-mmio-packet.py": "fixture\n",
@@ -378,6 +382,24 @@ def run_self_test() -> int:
             "mmio_verify_surface",
             root,
             "drivers/virtio/virtio_mmio_verify.zig",
+        )
+        write_fixture(root)
+
+        closure_evidence_path = root / "Documentation/zigux/phase10-closure-evidence.md"
+        closure_evidence_path.unlink()
+        expect_missing_file(
+            "closure_evidence_surface",
+            root,
+            "Documentation/zigux/phase10-closure-evidence.md",
+        )
+        write_fixture(root)
+
+        review_checklist_path = root / "Documentation/zigux/review-checklist.md"
+        review_checklist_path.unlink()
+        expect_missing_file(
+            "review_checklist_surface",
+            root,
+            "Documentation/zigux/review-checklist.md",
         )
         write_fixture(root)
 
@@ -699,7 +721,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=32")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
