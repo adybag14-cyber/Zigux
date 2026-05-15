@@ -77,6 +77,6 @@ Base raw URL prefix:
   - `zigux/Makefile` -> blob `767510ae3aa2a2ad0e574e6ad2cddc5adb4ff40e`
 - current-master support-material boundary rechecked beside the same packet:
   - `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `196cc338346d7ce39e88c8c45bb49cc04d2b08a1`
-  - `scripts/zigux/validate-phase12.py` -> blob `82ec805559aafad5f80947cef01ed4869763a5ff`
+  - `scripts/zigux/validate-phase12.py` -> blob `6f95fa12c8813c494cace0e66cb06178c12ee9fb`
   - `.github/workflows/zigux-bootstrap.yml` -> blob `1ee77591a9bbf6b3b36060ba44f56f6e2fd929a0`
 - this exact-evidence recheck preserves the existing split: this catalog stays pinned to `ee64eec272a352da1d967999c99bb3c3560c9b97` for direct raw replay, while the blob list above records what the broader current-master packet looked like immediately before this note refresh.
