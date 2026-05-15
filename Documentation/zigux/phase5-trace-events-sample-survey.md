@@ -14,7 +14,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 
 The roadmap's Phase 5 target is still "Samples and Reference Patterns" and explicitly names `samples/trace_events/trace-events-sample.c` as one of the four approved Linux anchors.
 
-The bounded same-lane job here is not to widen runtime behavior. It is to keep the current sample-backed trace-events packet honest on current `master`: record the directly readable sample, focused replay, manifest, and survey replay; keep the missing shared `zigux/tests/phase5_build.zig` route explicit; and avoid borrowing exact replay wording from shared reminder surfaces that are still lagging the landed packet.
+The bounded same-lane job here is not to widen runtime behavior. It is to keep the current sample-backed trace-events packet honest on current `master`: record the directly readable sample, focused replay, manifest, and survey replay; keep later rereads of the shared `zigux/tests/phase5_build.zig` route explicit at the same time; and avoid borrowing exact replay wording from shared reminder surfaces that are still lagging the landed packet.
 
 ## Current repo reality on `master`
 
@@ -32,13 +32,13 @@ Fresh repo-first inspection on 2026-05-14 directly confirmed these trace-events 
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-That same direct readback still did not recover this older shared build path:
+A later public-tree reread in the 2026-05-15 lane pass also confirmed this shared build path:
 
 - `zigux/tests/phase5_build.zig`
 
-Treat the current trace-events packet as directly readable through the sample root, focused replay, manifest, and survey replay above, while keeping the missing shared build entrypoint explicit until a fresh reread proves it returned.
+Treat the current trace-events packet as directly readable through the sample root, focused replay, manifest, survey replay, and the shared Phase 5 build entrypoint above. The focused `zig test` routes remain the most sample-local replays, while `zig build test --build-file zigux/tests/phase5_build.zig --summary all` is again current shared proof rather than an absent older path.
 
-The manifest-backed review packet still routes exact validation through `zig test samples/zigux/trace_events_sample.zig`, `zig test zigux/tests/phase5_trace_events_sample.zig`, and `zig test zigux/tests/phase5_trace_events_sample_survey.zig` instead of the older missing shared `phase5_build.zig` route.
+The manifest-backed review packet still routes exact validation through `zig test samples/zigux/trace_events_sample.zig`, `zig test zigux/tests/phase5_trace_events_sample.zig`, and `zig test zigux/tests/phase5_trace_events_sample_survey.zig`, and it now keeps the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route explicit as returned public-tree proof.
 
 ## Shared reminder posture
 
@@ -52,12 +52,12 @@ Aligned reminder surfaces in this run:
 - `samples/zigux/README.md`
 - `scripts/zigux/README.md`
 
-Those surfaces already keep the landed trace-events packet explicit, keep the missing shared `zigux/tests/phase5_build.zig` route explicit, keep the selected-string plus `iter=%d` replay positioned as the approved formatting idiom cue instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
+Those surfaces already keep the landed trace-events packet explicit, keep the shared `zigux/tests/phase5_build.zig` route visible in the current review story, keep the selected-string plus `iter=%d` replay positioned as the approved formatting idiom cue instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
 
 The tests-root shared reminder is only inventory-aligned in this run:
 
 - `zigux/tests/README.md` names `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
-- it also keeps the current public-tree Phase 5 shared-build gap explicit through `zigux/tests/phase5_build.zig`
+- it also keeps the current public-tree Phase 5 shared-build route explicit through `zigux/tests/phase5_build.zig`
 - it does not restate helper-level trace-events cues such as `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, the selected-string plus `iter=%d` formatting cue, or `OutstandingRegistration`; those cues remain explicit in this survey note, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
 
 Treat the tests-root reminder as packet-inventory support material on current `master`, not as the place where the helper-level trace-events cue list is spelled out.
@@ -81,10 +81,10 @@ The focused tests-root packet in `zigux/tests/phase5_trace_events_sample.zig` an
 The precise current gap is no longer "Zigux lacks a trace-events reference sample." The more accurate same-lane state is:
 
 - the roadmap-backed trace-events anchor already has a directly readable non-runtime sample plus focused tests-root evidence
-- current `master` still does not directly expose the older shared `zigux/tests/phase5_build.zig` route
+- the shared `zigux/tests/phase5_build.zig` route is back in current public-tree readback, so this packet no longer has a same-lane shared-build visibility gap
 - broader shared-surface cleanup can stay parked unless a future reread finds a new one-file reminder drift, because the directly coupled shared docs-root, sample-root, scripts-root, and tests-root surfaces already align around the landed packet today
 
-So the honest same-lane follow-through is to keep this survey note anchored to the directly readable trace-events packet and to leave broader shared-surface cleanup for separate one-file repairs.
+So the honest same-lane follow-through is to keep this survey note anchored to the directly readable trace-events packet, keep the returned shared build route explicit as current public-tree proof, and leave broader shared-surface cleanup for separate one-file repairs.
 
 ## Non-goals
 
