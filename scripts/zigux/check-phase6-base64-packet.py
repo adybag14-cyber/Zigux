@@ -14,6 +14,7 @@ REQUIRED_FILES = {
     "build": "zigux/tests/phase6_build.zig",
     "focused_replay": "zigux/tests/phase6_base64.zig",
     "focused_vectors": "zigux/tests/fixtures/phase6_base64_vectors.zig",
+    "perf_replay": "zigux/tests/phase6_base64_perf.zig",
     "parity_runner": "zigux/tests/phase6_base64_c_parity.zig",
     "casegen": "zigux/tests/phase6_base64_c_casegen.zig",
     "parity_vectors": "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
@@ -21,8 +22,14 @@ REQUIRED_FILES = {
     "parity_script": "scripts/zigux/check-phase6-base64-c-parity.py",
 }
 
-REQUIRED_ABSENT_FILES = [
-    "zigux/tests/phase6_base64_perf.zig",
+PERF_REPLAY_MARKERS = [
+    'const base64 = @import("base64");',
+    'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
+    'const expected_perf_cases = [_]ExpectedPerfCase{',
+    '.{ .label = "STD_PAD", .variant_name = "std", .reference_kind = "std_padded", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
+    '.{ .label = "IMAP_NO_PAD", .variant_name = "imap", .reference_kind = "imap_no_pad", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
+    'test "phase 6 base64 perf matrix keeps all shipped variant-and-padding replays" {',
+    'test "phase 6 base64 perf cases keep helper and reference codecs aligned before timing" {',
 ]
 
 HELPER_MARKERS = [
@@ -36,21 +43,25 @@ HELPER_MARKERS = [
 ]
 
 SLICE_MARKERS = [
-    "`PHASE6_STATUS=partially_blocked`",
+    "`PHASE6_STATUS=reviewable`",
     "`PHASE6_SLICE=base64-leaf-helper`",
-    "current `master` still keeps `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
-    "current `master` lacks `zigux/tests/phase6_base64_perf.zig`",
+    "current `master` keeps `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_base64_perf.zig`",
+    "current `master` still keeps the direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+    "direct focused helper replay route: `zig build test --build-file zigux/tests/phase6_build.zig`",
+    "direct focused perf route: `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
     "direct local C parity checker route: `python3 scripts/zigux/check-phase6-base64-c-parity.py`",
-    "direct local packet checker route: `python3 scripts/zigux/check-phase6-base64-packet.py`",
     "built-in parity-script self-test route: `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test`",
-    "helper-local truthfulness note: the focused helper replay and shared vectors are directly readable again on current `master`",
-    "this slice remains partially blocked until the dedicated perf replay returns",
+    "helper-local perf note: the dedicated perf replay now covers the shared committed payload plus the standard, URL-safe, and IMAP padded and unpadded branches under the same helper-local slowdown thresholds",
 ]
 
 BUILD_MARKERS = [
     '.root_source_file = b.path("phase6_base64.zig"),',
     '.name = "phase6-base64-tests"',
     'base64_root_module.addImport("base64", base64_module);',
+    '.root_source_file = b.path("phase6_base64_perf.zig"),',
+    '.name = "phase6-base64-perf-tests"',
+    'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
+    'base64_perf_step.dependOn(&run_base64_perf.step);',
 ]
 
 FOCUSED_REPLAY_MARKERS = [
@@ -152,13 +163,12 @@ def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["build"], read_text(root, REQUIRED_FILES["build"]), BUILD_MARKERS)
     expect_markers(REQUIRED_FILES["focused_replay"], read_text(root, REQUIRED_FILES["focused_replay"]), FOCUSED_REPLAY_MARKERS)
     expect_markers(REQUIRED_FILES["focused_vectors"], read_text(root, REQUIRED_FILES["focused_vectors"]), FOCUSED_VECTOR_MARKERS)
+    expect_markers(REQUIRED_FILES["perf_replay"], read_text(root, REQUIRED_FILES["perf_replay"]), PERF_REPLAY_MARKERS)
     expect_markers(REQUIRED_FILES["parity_runner"], read_text(root, REQUIRED_FILES["parity_runner"]), PARITY_RUNNER_MARKERS)
     expect_markers(REQUIRED_FILES["casegen"], read_text(root, REQUIRED_FILES["casegen"]), CASEGEN_MARKERS)
     expect_markers(REQUIRED_FILES["parity_vectors"], read_text(root, REQUIRED_FILES["parity_vectors"]), PARITY_VECTOR_MARKERS)
     expect_markers(REQUIRED_FILES["parity_script"], read_text(root, REQUIRED_FILES["parity_script"]), PARITY_SCRIPT_MARKERS)
     expect_markers(REQUIRED_FILES["c_harness"], read_text(root, REQUIRED_FILES["c_harness"]), C_HARNESS_MARKERS)
-    for relative_path in REQUIRED_ABSENT_FILES:
-        expect_absent(root, relative_path)
 
 
 def write(path: Path, text: str) -> None:
@@ -172,6 +182,7 @@ def build_self_test_fixture(root: Path) -> None:
     write(root / REQUIRED_FILES["build"], "\n".join(BUILD_MARKERS) + "\n")
     write(root / REQUIRED_FILES["focused_replay"], "\n".join(FOCUSED_REPLAY_MARKERS) + "\n")
     write(root / REQUIRED_FILES["focused_vectors"], "\n".join(FOCUSED_VECTOR_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["perf_replay"], "\n".join(PERF_REPLAY_MARKERS) + "\n")
     write(root / REQUIRED_FILES["parity_runner"], "\n".join(PARITY_RUNNER_MARKERS) + "\n")
     write(root / REQUIRED_FILES["casegen"], "\n".join(CASEGEN_MARKERS) + "\n")
     write(root / REQUIRED_FILES["parity_vectors"], "\n".join(PARITY_VECTOR_MARKERS) + "\n")
@@ -204,7 +215,7 @@ def run_self_test() -> None:
         build_self_test_fixture(tmpdir)
         slice_note = tmpdir / REQUIRED_FILES["slice"]
         slice_note.write_text(slice_note.read_text(encoding="utf-8").replace(SLICE_MARKERS[5], "", 1), encoding="utf-8")
-        expect_failure(tmpdir, "check-phase6-base64-packet.py")
+        expect_failure(tmpdir, SLICE_MARKERS[5])
 
         build_self_test_fixture(tmpdir)
         build_file = tmpdir / REQUIRED_FILES["build"]
@@ -241,8 +252,9 @@ def run_self_test() -> None:
         expect_failure(tmpdir, REQUIRED_FILES["parity_runner"])
 
         build_self_test_fixture(tmpdir)
-        write(tmpdir / REQUIRED_ABSENT_FILES[0], 'test "unexpected perf replay" {}\n')
-        expect_failure(tmpdir, REQUIRED_ABSENT_FILES[0])
+        perf_replay = tmpdir / REQUIRED_FILES["perf_replay"]
+        perf_replay.write_text(perf_replay.read_text(encoding="utf-8").replace(PERF_REPLAY_MARKERS[-1], "", 1), encoding="utf-8")
+        expect_failure(tmpdir, PERF_REPLAY_MARKERS[-1])
 
         build_self_test_fixture(tmpdir)
         (tmpdir / REQUIRED_FILES["slice"]).unlink()
