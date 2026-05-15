@@ -19,6 +19,7 @@ test "phase13 landlock ruleset descriptor keeps the bounded helper scope explici
     try std.testing.expect(descriptor.provides_rule_tree_search_planning);
     try std.testing.expect(descriptor.provides_rule_tree_link_planning);
     try std.testing.expect(descriptor.provides_rule_tree_replacement_planning);
+    try std.testing.expect(descriptor.provides_insert_rule_branch_planning);
     try std.testing.expect(!descriptor.touches_live_object_trees);
     try std.testing.expect(!descriptor.touches_live_hierarchy);
 }
