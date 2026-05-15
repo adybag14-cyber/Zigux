@@ -28,11 +28,14 @@ UAPI_DEV_T = Path("zigux/uapi/dev_t.zig")
 ABI_MANIFEST = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 ABI_SLICE = Path("Documentation/zigux/phase3-abi-slice.md")
 ABI_NEXT_STEP = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
+LAYOUT_REPLAY = Path("zigux/tests/phase3_export_uapi_layout.zig")
+LAYOUT_BUILD = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 BUILD_FILE = Path("zigux/tests/build.zig")
 ABI_DUMP = Path("zigux/tests/phase3_abi_dump.zig")
 MAKEFILE = Path("zigux/Makefile")
 VALIDATOR = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
 
+LAYOUT_GATE = "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"
 COMPILE_GATE = "zig build phase3-test --build-file zigux/tests/build.zig"
 DUMP_GATE = "zig build phase3-dump --build-file zigux/tests/build.zig"
 INTEROP_ROUTE = "python3 scripts/zigux/run-phase3-checks.py --slug abi"
@@ -65,6 +68,8 @@ REQUIRED_FILES = (
     ABI_MANIFEST,
     ABI_SLICE,
     ABI_NEXT_STEP,
+    LAYOUT_REPLAY,
+    LAYOUT_BUILD,
     BUILD_FILE,
     ABI_DUMP,
     MAKEFILE,
@@ -84,6 +89,9 @@ SURVEY_EXACT = (
     f"`PHASE3_DEV_T_HEADER_PATH={DEV_T_HEADER.as_posix()}`",
     f"`PHASE3_LINUX_ZIGUX_H_PATH={LINUX_HEADER.as_posix()}`",
     f"`PHASE3_SHARED_MANIFEST_PATH={ABI_MANIFEST.as_posix()}`",
+    f"`PHASE3_LAYOUT_REPLAY_PATH={LAYOUT_REPLAY.as_posix()}`",
+    f"`PHASE3_LAYOUT_BUILD_PATH={LAYOUT_BUILD.as_posix()}`",
+    f"`PHASE3_LAYOUT_GATE={LAYOUT_GATE}`",
     f"`PHASE3_SHARED_BUILD_PATH={BUILD_FILE.as_posix()}`",
     f"`PHASE3_SHARED_COMPILE_GATE={COMPILE_GATE}`",
     f"`PHASE3_SHARED_DUMP_PATH={ABI_DUMP.as_posix()}`",
@@ -97,9 +105,9 @@ SURVEY_EXACT = (
     f"`PHASE3_EXPORT_UAPI_WORKFLOW_PATH={WORKFLOW.as_posix()}`",
 )
 REVIEW_OWNERSHIP_LINES = (
-    "`Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
+    "`Documentation/zigux/phase3-kernel-export-shim-governance.md` owns the kernel-facing relay ownership for `zigux/kernel/export_shim.zig`, while this survey owns its own wording, its packet-local validator, the focused layout replay reminder, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
     "`Documentation/zigux/phase3-linux-zigux-header-governance.md` still owns the Linux-facing aggregation-header growth rules for `include/linux/zigux.h`, whose starter boundary-header relays now expose both the canonical and forward-compatible constructor names needed to keep the C-facing side aligned with the shipped UAPI contract.",
-    "the broader shared ABI slice and shared Phase 3 validator still own the wider interop packet; this survey only records the export shim, the starter UAPI companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the shared manifest marker, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.",
+    "the broader shared ABI slice and shared Phase 3 validator still own the wider interop packet; this survey only records the export shim, the starter UAPI companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the focused layout replay pair, the shared manifest marker, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.",
     "any future top-level export or UAPI growth should land with a refreshed survey, the kernel-facing governance note when `zigux/kernel/export_shim.zig` changes, and one shared review-surface refresh instead of being implied by broader Phase 3 wording alone.",
 )
 MANIFEST_REQUIRED_ENTRIES = (
@@ -109,6 +117,8 @@ MANIFEST_REQUIRED_ENTRIES = (
     EXPORT_SHIM,
     UAPI_VERSION,
     UAPI_DEV_T,
+    LAYOUT_BUILD,
+    LAYOUT_REPLAY,
     BUILD_FILE,
     ABI_DUMP,
 )
@@ -359,7 +369,7 @@ def validate(root: Path) -> list[str]:
             "pub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 {",
         ),
         ABI_DUMP: (
-            'try writer.writeAll("{\\\\\\"abi_version\\\\\\":");',
+            'try writer.writeAll("{\\\"abi_version\\\":");',
             "try writeDevT(writer);",
             'try writeStruct(writer, "boundary_header", abi.BoundaryHeader);',
         ),
@@ -422,10 +432,12 @@ def build_valid_workspace(root: Path) -> None:
         "static inline int zigux_boundary_header_is_canonical_size(uint32_t size) { return size == (uint32_t)sizeof(struct zigux_boundary_header); }\n",
     )
     write(root / ABI_HEADER, "#define ZIGUX_ABI_VERSION 1\nstruct zigux_export_status { int code; };\n")
+    write(root / LAYOUT_REPLAY, "const export_shim = @import(\"export_shim\");\nconst uapi_version = @import(\"uapi_version\");\ntest \"layout\" { try std.testing.expectEqual(export_shim.boundaryHeader(0), uapi_version.boundaryHeader(0)); }\n")
+    write(root / LAYOUT_BUILD, "const root_module = b.createModule(.{ .root_source_file = b.path(\"phase3_export_uapi_layout.zig\") });\nconst test_step = b.step(\"phase3-export-uapi-layout-test\", \"Run Phase 3 export/UAPI layout tests\");\n")
     write(root / BUILD_FILE, "// build\n")
     write(
         root / ABI_DUMP,
-        'try writer.writeAll("{\\\\\\"abi_version\\\\\\":");\n'
+        'try writer.writeAll("{\\\"abi_version\\\":");\n'
         "try writeDevT(writer);\n"
         'try writeStruct(writer, "boundary_header", abi.BoundaryHeader);\n',
     )
@@ -547,8 +559,41 @@ def run_self_test() -> int:
         build_valid_workspace(root)
         case_count += 1
 
+        write(
+            root / ABI_MANIFEST,
+            manifest_payload(tuple(entry for entry in MANIFEST_REQUIRED_ENTRIES if entry != LAYOUT_BUILD)),
+        )
+        issues = validate(root)
+        assert f"missing_manifest_entry:{LAYOUT_BUILD.as_posix()}" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(
+            root / ABI_MANIFEST,
+            manifest_payload(tuple(entry for entry in MANIFEST_REQUIRED_ENTRIES if entry != LAYOUT_REPLAY)),
+        )
+        issues = validate(root)
+        assert f"missing_manifest_entry:{LAYOUT_REPLAY.as_posix()}" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
         write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_SHARED_MANIFEST_PATH={ABI_MANIFEST.as_posix()}`\n", "", 1))
         assert validate(root) == [f"missing_survey_marker:`PHASE3_SHARED_MANIFEST_PATH={ABI_MANIFEST.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_LAYOUT_REPLAY_PATH={LAYOUT_REPLAY.as_posix()}`\n", "", 1))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_LAYOUT_REPLAY_PATH={LAYOUT_REPLAY.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_LAYOUT_BUILD_PATH={LAYOUT_BUILD.as_posix()}`\n", "", 1))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_LAYOUT_BUILD_PATH={LAYOUT_BUILD.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_LAYOUT_GATE={LAYOUT_GATE}`\n", "", 1))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_LAYOUT_GATE={LAYOUT_GATE}`"]
         build_valid_workspace(root)
         case_count += 1
 
@@ -574,6 +619,32 @@ def run_self_test() -> int:
 
         write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_LINUX_ZIGUX_H_PATH={LINUX_HEADER.as_posix()}`\n", "", 1))
         assert validate(root) == [f"missing_survey_marker:`PHASE3_LINUX_ZIGUX_H_PATH={LINUX_HEADER.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(
+            root / SURVEY,
+            (root / SURVEY).read_text(encoding="utf-8").replace(
+                "its packet-local validator, the focused layout replay reminder, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
+                "its packet-local validator, and the shared `phase3-interop`, `phase3-test`, and `phase3-dump` route reminders that prove the currently shipped starter surface.",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert any(issue.startswith("missing_review_ownership_rule:`Documentation/zigux/phase3-kernel-export-shim-governance.md`") for issue in issues), issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(
+            root / SURVEY,
+            (root / SURVEY).read_text(encoding="utf-8").replace(
+                "the paired `include/zigux/dev_t.h` contract, the focused layout replay pair, the shared manifest marker, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.",
+                "the paired `include/zigux/dev_t.h` contract, the shared manifest marker, the shared dump anchor, and the shared replay routes that are readable in the current export/UAPI lane.",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert any(issue.startswith("missing_review_ownership_rule:the broader shared ABI slice") for issue in issues), issues
         build_valid_workspace(root)
         case_count += 1
 
