@@ -298,6 +298,10 @@ REQUIRED_EXACT_LINES = {
 }
 
 EXACT_COUNT_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": {
+        "make -C zigux phase7-validate": 1,
+        "make -C zigux phase7-test": 1,
+    },
     "Documentation/zigux/README.md": {
         "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results": 1,
     },
@@ -642,6 +646,28 @@ def run_self_test() -> None:
             expect_missing_marker(tmp_root, expected)
             write_fixture_tree(tmp_root)
 
+        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8") + "make -C zigux phase7-validate\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: expected 1 occurrence(s) of 'make -C zigux phase7-validate', found 2",
+        )
+        write_fixture_tree(tmp_root)
+
+        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8") + "make -C zigux phase7-test\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: expected 1 occurrence(s) of 'make -C zigux phase7-test', found 2",
+        )
+        write_fixture_tree(tmp_root)
+
         docs_root_path = tmp_root / "Documentation/zigux/README.md"
         docs_root_marker = (
             "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer "
@@ -685,7 +711,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={4 + len(cases)}")
+    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={6 + len(cases)}")
 
 
 def main() -> int:
