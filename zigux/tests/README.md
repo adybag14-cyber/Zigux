@@ -70,6 +70,7 @@ Key entrypoints
   * `zigux/tests/phase1_bench.zig`
   * `zigux/tests/fixtures/phase1_helper_manifest.json`
   * `zigux/tests/fixtures/phase1_bench_expectations.json`
+  * current public-tree-backed Phase 1 parity packet: `zigux/tests/fixtures/phase1_helpers.json` and `zigux/tests/fixtures/phase1_helpers_c_harness.c`
   * `zigux/tests/phase6_build.zig`
   * `zigux/tests/phase6_helper_parity_manifest.json`
   * `Documentation/zigux/phase6-helper-parity-catalog.md`
