@@ -230,12 +230,12 @@
       "measurement_mode": "relative_slowdown",
       "cases": [
         {
-          "label": "64B",
+          "label": "64",
           "iterations": 20000,
           "max_slowdown_pct": 150
         },
         {
-          "label": "1501B",
+          "label": "1501",
           "iterations": 4000,
           "max_slowdown_pct": 150
         }
