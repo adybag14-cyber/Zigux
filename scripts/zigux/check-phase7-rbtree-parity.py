@@ -125,9 +125,13 @@ REQUIRED_MARKERS = {
         "phase7-rbtree-survey-tests",
         'run_rbtree_survey_tests.setCwd(b.path("../.."));',
     ],
+    # Keep the checker aligned with the cached-root ownership cues that the
+    # live slice note already claims are reviewable inside the shared tests.
     "zigux/tests/phase7_rbtree.zig": [
         "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable",
         "phase 7 rbtree cached helpers return leftmost handoff state",
+        "phase 7 rbtree eraseInitCached clears detached cached nodes and keeps cached roots reusable",
+        "phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
         "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
         "phase 7 rbtree detached nodes stay non-empty until callers clear them",
         "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
@@ -341,6 +345,20 @@ def run_self_test() -> None:
             "phase 7 rbtree cached helpers return leftmost handoff state",
             "",
             "zigux/tests/phase7_rbtree.zig: phase 7 rbtree cached helpers return leftmost handoff state",
+        ),
+        (
+            "helper_erase_init_cached_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "phase 7 rbtree eraseInitCached clears detached cached nodes and keeps cached roots reusable",
+            "",
+            "zigux/tests/phase7_rbtree.zig: phase 7 rbtree eraseInitCached clears detached cached nodes and keeps cached roots reusable",
+        ),
+        (
+            "helper_erase_cached_final_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
+            "",
+            "zigux/tests/phase7_rbtree.zig: phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
         ),
         (
             "helper_erase_init_marker",
