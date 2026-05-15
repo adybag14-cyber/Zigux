@@ -82,11 +82,19 @@ REQUIRED_MARKERS = {
         "pub fn classifyWaitClass(",
         "pub fn summarizePollExecutionResultFromWaitResult(",
         "ReadyBufferProcessingExceedsObservedEvents",
+        "pub fn summarizeBufferFdLookup(",
+        "pub fn resolveBufferFdLookupReturn(",
+        "pub fn summarizeBufferWindowLookup(",
+        "pub fn resolveBufferWindowLookupReturn(",
         'test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {',
         'test "summarizePollExecution rejects processing more ready buffers than the helper counted as ready" {',
         'test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing accounting summaries" {',
         'test "summarizePollExecutionResultFromWaitResult keeps buffer-state failures explicit when ready events surface only error buffers" {',
         'test "summarizePoll rejects impossible buffer state for timeout interrupt and failed wait results" {',
+        'test "summarizeBufferFdLookup keeps perf_buffer__buffer_fd slot classification compact and reviewable" {',
+        'test "resolveBufferFdLookupReturn keeps errno-shaped buffer-fd lookup returns explicit" {',
+        'test "summarizeBufferWindowLookup keeps perf_buffer__buffer slot classification and mapped-size passthrough compact" {',
+        'test "resolveBufferWindowLookupReturn keeps errno-shaped perf_buffer__buffer returns explicit" {',
     ),
     PACKET_TEST_PATH: (
         'test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit" {',
@@ -95,10 +103,14 @@ REQUIRED_MARKERS = {
         'test "phase 8 perf-buffer poll helper keeps buffer-state-only ready events explicit below routing parity" {',
         'test "phase 8 perf-buffer poll helper rejects inconsistent processing accounting summaries before return shaping" {',
         'test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {',
+        'test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {',
+        'test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {',
         'try expectContains(note, "ready-buffer processing attempts cannot exceed the helper-counted ready buffers");',
         'try expectContains(gate, "\\"ready-buffer processing attempts cannot exceed the helper-counted ready buffers\\"");',
         "perf_buffer_poll.PollReturnDisposition.buffer_state_failed",
         "perf_buffer_poll.PollError.InconsistentProcessingAccountingSummary",
+        "perf_buffer_poll.BufferFdLookupDisposition.found_fd",
+        "perf_buffer_poll.BufferWindowLookupDisposition.found_window",
     ),
     PACKET_ONLY_BUILD_PATH: (
         "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
@@ -202,6 +214,10 @@ def run_self_test() -> int:
             (PACKET_HELPER_PATH, "pub fn classifyWaitClass("),
             (PACKET_HELPER_PATH, "pub fn summarizePollExecutionResultFromWaitResult("),
             (PACKET_HELPER_PATH, "ReadyBufferProcessingExceedsObservedEvents"),
+            (PACKET_HELPER_PATH, "pub fn summarizeBufferFdLookup("),
+            (PACKET_HELPER_PATH, "pub fn resolveBufferFdLookupReturn("),
+            (PACKET_HELPER_PATH, "pub fn summarizeBufferWindowLookup("),
+            (PACKET_HELPER_PATH, "pub fn resolveBufferWindowLookupReturn("),
             (
                 PACKET_HELPER_PATH,
                 'test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {',
@@ -221,6 +237,22 @@ def run_self_test() -> int:
             (
                 PACKET_HELPER_PATH,
                 'test "summarizePoll rejects impossible buffer state for timeout interrupt and failed wait results" {',
+            ),
+            (
+                PACKET_HELPER_PATH,
+                'test "summarizeBufferFdLookup keeps perf_buffer__buffer_fd slot classification compact and reviewable" {',
+            ),
+            (
+                PACKET_HELPER_PATH,
+                'test "resolveBufferFdLookupReturn keeps errno-shaped buffer-fd lookup returns explicit" {',
+            ),
+            (
+                PACKET_HELPER_PATH,
+                'test "summarizeBufferWindowLookup keeps perf_buffer__buffer slot classification and mapped-size passthrough compact" {',
+            ),
+            (
+                PACKET_HELPER_PATH,
+                'test "resolveBufferWindowLookupReturn keeps errno-shaped perf_buffer__buffer returns explicit" {',
             ),
             (
                 PACKET_TEST_PATH,
@@ -248,6 +280,14 @@ def run_self_test() -> int:
             ),
             (
                 PACKET_TEST_PATH,
+                'test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {',
+            ),
+            (
+                PACKET_TEST_PATH,
+                'test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {',
+            ),
+            (
+                PACKET_TEST_PATH,
                 'try expectContains(note, "ready-buffer processing attempts cannot exceed the helper-counted ready buffers");',
             ),
             (
@@ -256,6 +296,8 @@ def run_self_test() -> int:
             ),
             (PACKET_TEST_PATH, "perf_buffer_poll.PollReturnDisposition.buffer_state_failed"),
             (PACKET_TEST_PATH, "perf_buffer_poll.PollError.InconsistentProcessingAccountingSummary"),
+            (PACKET_TEST_PATH, "perf_buffer_poll.BufferFdLookupDisposition.found_fd"),
+            (PACKET_TEST_PATH, "perf_buffer_poll.BufferWindowLookupDisposition.found_window"),
             (PACKET_ONLY_BUILD_PATH, "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
             (PACKET_ONLY_BUILD_PATH, "phase8-perf-buffer-poll-tests"),
         )
