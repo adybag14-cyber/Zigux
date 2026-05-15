@@ -99,7 +99,7 @@ Contributor reminder:
 
 ## Phase 13 contributor packet
 
-Keep the shared-subsystems packet explicit through the verified docs-root, validator-first, and contributor-facing replay surfaces:
+Keep the shared-helper packet explicit through the verified docs-root, validator-first, and contributor-facing replay surfaces:
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
