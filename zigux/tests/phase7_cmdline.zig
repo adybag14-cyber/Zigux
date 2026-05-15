@@ -298,3 +298,18 @@ test "phase 7 nextArg keeps empty-input and leading-whitespace ownership explici
     try std.testing.expectEqual(@as(usize, @intFromPtr(&whitespace_only[3])), @as(usize, @intFromPtr(parsed_whitespace_only.rest.ptr)));
     try std.testing.expectEqual(@as(u8, 0), whitespace_only[0]);
 }
+
+test "phase 7 nextArg keeps leading quoted param, value, and rest borrowed from the caller buffer" {
+    var buffer = [_]u8{ '"', 'k', 'e', 'y', '=', 'v', 'a', 'l', 'u', 'e', '"', ' ', 'n', 'e', 'x', 't', 0 };
+    const parsed = cmdline.nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("key", parsed.param);
+    try std.testing.expectEqualStrings("value", parsed.value.?);
+    try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[1])), @as(usize, @intFromPtr(parsed.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[5])), @as(usize, @intFromPtr(parsed.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[12])), @as(usize, @intFromPtr(parsed.rest.ptr)));
+    try std.testing.expectEqual(@as(u8, 0), buffer[4]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[10]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[11]);
+}
