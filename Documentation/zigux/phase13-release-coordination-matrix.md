@@ -30,6 +30,8 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 3. `make -C zigux phase13`
 4. If direct file reads are degraded, keep the release wording anchored to that same validator-first handle instead of inventing a shared `zigux/tests/phase13_build.zig` replay route, a notifier-only replay route, or a closure-only checklist.
 
+Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`, but that broader convenience route currently fans out to `phase13-test`, which still calls `zig build test --build-file zigux/tests/phase13_build.zig --summary all` while `zigux/tests/phase13_build.zig` remains a repo-reality gap. Keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands, and treat the broader `phase13` route as blocked convenience wiring rather than direct shipped current-`master` evidence.
+
 ## Repo-Reality Gaps
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `zigux/tests/phase13_build.zig`
