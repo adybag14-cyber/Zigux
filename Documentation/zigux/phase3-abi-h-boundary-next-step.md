@@ -89,10 +89,14 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   export/UAPI packet actually grows
 - `scripts/zigux/README.md` now keeps the canonical `include/zigux/dev_t.h`
   plus `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` starter companions
-  explicit beside `Documentation/zigux/phase3-linux-zigux-header-governance.md`;
-  if this header-family packet reopens, start with the next broader shared
-  reminder that drops the dedicated survey packet instead of replaying the
-  already-landed scripts-root repair
+  explicit beside `Documentation/zigux/phase3-linux-zigux-header-governance.md`
+- `Documentation/zigux/README.md` is the next broader shared reminder to check
+  here: it still keeps the narrower `zigux/uapi/version.zig` wording while the
+  dedicated survey, this next-step note, `Documentation/zigux/review-checklist.md`,
+  `Documentation/zigux/phase3-validator-support-surface.md`, and
+  `scripts/zigux/README.md` already keep the starter-companion pair explicit
+  beside `include/zigux/dev_t.h`; if this header-family packet reopens next,
+  start there instead of replaying the already-landed scripts-root repair
 
 ## Non-goals
 
