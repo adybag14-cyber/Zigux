@@ -52,6 +52,9 @@ PHASE15_VALIDATE_ROUTE = "`make -C zigux phase15-validate`"
 PHASE15_TEST_ROUTE = "`make -C zigux phase15-test`"
 PHASE15_ROUTE = "`make -C zigux phase15`"
 NO_APPROVAL_MARKER = "no-approval-yet posture"
+DOCS_NO_APPROVAL_MARKER = "no Architecture Council approval is recorded yet"
+DOCS_REOPEN_TRIGGER_MARKER = "named reopen trigger"
+DOCS_BLOCKER_POSTURE_MARKER = "deep-core blocker-posture change"
 
 FILE_MARKERS = {
     DOCS_README_REL: (
@@ -72,6 +75,9 @@ FILE_MARKERS = {
         PHASE15_VALIDATE_ROUTE,
         PHASE15_TEST_ROUTE,
         PHASE15_ROUTE,
+        DOCS_NO_APPROVAL_MARKER,
+        DOCS_REOPEN_TRIGGER_MARKER,
+        DOCS_BLOCKER_POSTURE_MARKER,
     ),
     REVIEW_CHECKLIST_REL: (
         "shared Phase 15 governance packet",
@@ -175,6 +181,9 @@ def _seed(root: Path) -> None:
                 PHASE15_VALIDATE_ROUTE,
                 PHASE15_TEST_ROUTE,
                 PHASE15_ROUTE,
+                DOCS_NO_APPROVAL_MARKER,
+                DOCS_REOPEN_TRIGGER_MARKER,
+                DOCS_BLOCKER_POSTURE_MARKER,
                 "",
             )
         ),
@@ -317,6 +326,36 @@ def run_self_test() -> int:
             validate(root),
             [f"{DOCS_README_REL}:missing:{SURVEY_MARKER}"],
             "docs_readme_missing_survey",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace(DOCS_NO_APPROVAL_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{DOCS_README_REL}:missing:{DOCS_NO_APPROVAL_MARKER}"],
+            "docs_readme_missing_no_approval_posture",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace(DOCS_REOPEN_TRIGGER_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{DOCS_README_REL}:missing:{DOCS_REOPEN_TRIGGER_MARKER}"],
+            "docs_readme_missing_reopen_trigger_wording",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace(DOCS_BLOCKER_POSTURE_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{DOCS_README_REL}:missing:{DOCS_BLOCKER_POSTURE_MARKER}"],
+            "docs_readme_missing_blocker_posture_wording",
         )
         _seed(root)
         case_count += 1
