@@ -45,6 +45,45 @@ pub const RequestState = enum(u8) {
     released_without_substrate,
 };
 
+pub const blocked_command_fields = [_][]const u8{
+    "command",
+    "command_name",
+    "argv_policy",
+    "exec_path",
+};
+
+pub const blocked_environment_fields = [_][]const u8{
+    "environment",
+    "activation_env",
+    "perf_exec_path",
+    "path_env",
+    "lines_env",
+    "columns_env",
+};
+
+pub const blocked_registration_summary_fields = [_][]const u8{
+    "register_api",
+    "unregister_api",
+    "summary",
+    "registration_snapshot",
+};
+
+pub const blocked_publication_fields = [_][]const u8{
+    "modinfo",
+    "module_alias",
+    "module_aliases",
+    "modules_alias_path",
+    "module_install_root",
+    "modules_order_path",
+    "modules_builtin_path",
+};
+
+pub const blocked_depmod_fields = [_][]const u8{
+    "depmod_script",
+    "depmod_manifest",
+    "depmod_aliases",
+};
+
 pub fn keepsLoadPlanExplicit(actual: LoadPlan, expected: LoadPlan) bool {
     return std.mem.eql(u8, actual.module_name, expected.module_name) and
         std.mem.eql(u8, actual.anchor, expected.anchor) and
@@ -59,30 +98,39 @@ pub fn keepsLoadPlanExplicit(actual: LoadPlan, expected: LoadPlan) bool {
         actual.init_flow.exit_runs == expected.init_flow.exit_runs;
 }
 
-fn keepsRequestContractBoundaryExplicit() bool {
-    const blocked_request_control_fields = [_][]const u8{
-        "command",
-        "environment",
-        "register_api",
-        "unregister_api",
-        "summary",
-        "modinfo",
-        "module_alias",
-        "module_aliases",
-        "modules_alias_path",
-        "module_install_root",
-        "modules_order_path",
-        "modules_builtin_path",
-        "depmod_script",
-        "depmod_manifest",
-        "depmod_aliases",
-    };
-
-    inline for (blocked_request_control_fields) |field_name| {
-        if (@hasField(LoadPlan, field_name)) return false;
+fn loadPlanDeclaresAnyField(comptime field_names: []const []const u8) bool {
+    inline for (field_names) |field_name| {
+        if (@hasField(LoadPlan, field_name)) return true;
     }
+    return false;
+}
 
-    return true;
+pub fn keepsCommandBoundaryExplicit() bool {
+    return !loadPlanDeclaresAnyField(&blocked_command_fields);
+}
+
+pub fn keepsEnvironmentBoundaryExplicit() bool {
+    return !loadPlanDeclaresAnyField(&blocked_environment_fields);
+}
+
+pub fn keepsRegistrationSummaryBoundaryExplicit() bool {
+    return !loadPlanDeclaresAnyField(&blocked_registration_summary_fields);
+}
+
+pub fn keepsPublicationBoundaryExplicit() bool {
+    return !loadPlanDeclaresAnyField(&blocked_publication_fields);
+}
+
+pub fn keepsDepmodBoundaryExplicit() bool {
+    return !loadPlanDeclaresAnyField(&blocked_depmod_fields);
+}
+
+pub fn keepsReviewOnlyControlBoundaryExplicit() bool {
+    return keepsCommandBoundaryExplicit() and
+        keepsEnvironmentBoundaryExplicit() and
+        keepsRegistrationSummaryBoundaryExplicit() and
+        keepsPublicationBoundaryExplicit() and
+        keepsDepmodBoundaryExplicit();
 }
 
 test "InitFlow.readyForRuntimeLoad keeps the staged handoff rules explicit" {
@@ -191,30 +239,48 @@ test "keepsLoadPlanExplicit compares every shared handoff field" {
     try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
 }
 
-test "shared runtime loader contract keeps command, environment, registration-summary, depmod-facing, and study-only core-boundary control surfaces outside the request contract" {
-    try std.testing.expect(keepsRequestContractBoundaryExplicit());
+test "shared runtime loader contract keeps command and environment surfaces outside the request contract" {
+    try std.testing.expect(keepsCommandBoundaryExplicit());
+    try std.testing.expect(keepsEnvironmentBoundaryExplicit());
 
-    const blocked_publication_markers = [_][]const u8{
-        ".modinfo",
-        "MODULE_ALIAS()",
-        "modules.alias",
-        "modules.order",
-        "modules.builtin",
-    };
-    try std.testing.expectEqual(@as(usize, 5), blocked_publication_markers.len);
-    try std.testing.expect(std.mem.eql(u8, blocked_publication_markers[0], ".modinfo"));
-    try std.testing.expect(std.mem.eql(u8, blocked_publication_markers[1], "MODULE_ALIAS()"));
-    try std.testing.expect(std.mem.eql(u8, blocked_publication_markers[2], "modules.alias"));
-    try std.testing.expect(std.mem.eql(u8, blocked_publication_markers[3], "modules.order"));
-    try std.testing.expect(std.mem.eql(u8, blocked_publication_markers[4], "modules.builtin"));
+    try std.testing.expectEqual(@as(usize, 4), blocked_command_fields.len);
+    try std.testing.expect(std.mem.eql(u8, blocked_command_fields[0], "command"));
+    try std.testing.expect(std.mem.eql(u8, blocked_command_fields[1], "command_name"));
+    try std.testing.expect(std.mem.eql(u8, blocked_command_fields[2], "argv_policy"));
+    try std.testing.expect(std.mem.eql(u8, blocked_command_fields[3], "exec_path"));
 
-    const blocked_depmod_boundary_fields = [_][]const u8{
-        "depmod_script",
-        "depmod_manifest",
-        "depmod_aliases",
-    };
-    try std.testing.expectEqual(@as(usize, 3), blocked_depmod_boundary_fields.len);
-    try std.testing.expect(std.mem.eql(u8, blocked_depmod_boundary_fields[0], "depmod_script"));
-    try std.testing.expect(std.mem.eql(u8, blocked_depmod_boundary_fields[1], "depmod_manifest"));
-    try std.testing.expect(std.mem.eql(u8, blocked_depmod_boundary_fields[2], "depmod_aliases"));
+    try std.testing.expectEqual(@as(usize, 6), blocked_environment_fields.len);
+    try std.testing.expect(std.mem.eql(u8, blocked_environment_fields[0], "environment"));
+    try std.testing.expect(std.mem.eql(u8, blocked_environment_fields[1], "activation_env"));
+    try std.testing.expect(std.mem.eql(u8, blocked_environment_fields[2], "perf_exec_path"));
+    try std.testing.expect(std.mem.eql(u8, blocked_environment_fields[3], "path_env"));
+    try std.testing.expect(std.mem.eql(u8, blocked_environment_fields[4], "lines_env"));
+    try std.testing.expect(std.mem.eql(u8, blocked_environment_fields[5], "columns_env"));
+}
+
+test "shared runtime loader contract keeps registration-summary, publication, and depmod surfaces outside the request contract" {
+    try std.testing.expect(keepsRegistrationSummaryBoundaryExplicit());
+    try std.testing.expect(keepsPublicationBoundaryExplicit());
+    try std.testing.expect(keepsDepmodBoundaryExplicit());
+    try std.testing.expect(keepsReviewOnlyControlBoundaryExplicit());
+
+    try std.testing.expectEqual(@as(usize, 4), blocked_registration_summary_fields.len);
+    try std.testing.expect(std.mem.eql(u8, blocked_registration_summary_fields[0], "register_api"));
+    try std.testing.expect(std.mem.eql(u8, blocked_registration_summary_fields[1], "unregister_api"));
+    try std.testing.expect(std.mem.eql(u8, blocked_registration_summary_fields[2], "summary"));
+    try std.testing.expect(std.mem.eql(u8, blocked_registration_summary_fields[3], "registration_snapshot"));
+
+    try std.testing.expectEqual(@as(usize, 7), blocked_publication_fields.len);
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[0], "modinfo"));
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[1], "module_alias"));
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[2], "module_aliases"));
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[3], "modules_alias_path"));
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[4], "module_install_root"));
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[5], "modules_order_path"));
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[6], "modules_builtin_path"));
+
+    try std.testing.expectEqual(@as(usize, 3), blocked_depmod_fields.len);
+    try std.testing.expect(std.mem.eql(u8, blocked_depmod_fields[0], "depmod_script"));
+    try std.testing.expect(std.mem.eql(u8, blocked_depmod_fields[1], "depmod_manifest"));
+    try std.testing.expect(std.mem.eql(u8, blocked_depmod_fields[2], "depmod_aliases"));
 }
