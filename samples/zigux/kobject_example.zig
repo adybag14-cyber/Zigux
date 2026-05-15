@@ -155,6 +155,26 @@ pub const TeardownReplay = struct {
     rejected_anchor_replay: bool,
 };
 
+pub const ReviewContract = struct {
+    focus: [5][]const u8,
+    non_goals: [4][]const u8,
+};
+
+const sample_review_focus = [5][]const u8{
+    "descriptor",
+    "registration",
+    "shared_b_dispatch",
+    "value_roundtrip",
+    "lifecycle_boundary",
+};
+
+const sample_review_non_goals = [4][]const u8{
+    "sysfs file creation parity",
+    "kernel_kobj integration",
+    "uevent delivery",
+    "loadable module registration",
+};
+
 pub const KobjectExampleSample = struct {
     const Self = @This();
 
@@ -173,6 +193,13 @@ pub const KobjectExampleSample = struct {
             .anchor = "samples/kobject/kobject-example.c",
             .requires_runtime_substrate = false,
             .provides_selfcheck = true,
+        };
+    }
+
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = sample_review_focus,
+            .non_goals = sample_review_non_goals,
         };
     }
 
@@ -281,13 +308,7 @@ pub const KobjectExampleSample = struct {
             .foo_value = try self.showValue("foo"),
             .baz_value = try self.showValue("baz"),
             .bar_value = try self.showValue("bar"),
-            .checked_focus = .{
-                "descriptor",
-                "registration",
-                "shared_b_dispatch",
-                "value_roundtrip",
-                "lifecycle_boundary",
-            },
+            .checked_focus = reviewContract().focus,
         };
     }
 
@@ -646,11 +667,19 @@ test "kobject example sample keeps the anchor replay self-check local to the sam
     var sample = KobjectExampleSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
+    const contract = KobjectExampleSample.reviewContract();
 
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
     try std.testing.expectEqualStrings("42\n", replay.foo_value.text[0..replay.foo_value.len]);
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
+    inline for (contract.focus, 0..) |focus, idx| {
+        try std.testing.expectEqualStrings(focus, replay.checked_focus[idx]);
+    }
+    try std.testing.expectEqualStrings("sysfs file creation parity", contract.non_goals[0]);
+    try std.testing.expectEqualStrings("kernel_kobj integration", contract.non_goals[1]);
+    try std.testing.expectEqualStrings("uevent delivery", contract.non_goals[2]);
+    try std.testing.expectEqualStrings("loadable module registration", contract.non_goals[3]);
     try std.testing.expectEqual(SampleStage.registered, sample.stage());
 }
 
