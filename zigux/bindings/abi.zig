@@ -25,6 +25,10 @@ pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_F
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED: u32 = 1;
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED: u32 = 1;
 
+pub const NOTIFIER_DONE: u32 = 0;
+pub const NOTIFIER_OK: u32 = 1;
+pub const NOTIFIER_STOP: u32 = 2;
+
 pub const BoundaryHeader = extern struct {
     size: u32,
     abi_version: u16,
@@ -68,6 +72,25 @@ pub const UnsafeScope = enum(u8) {
     raw_pointer_bridge = UNSAFE_RAW_POINTER_BRIDGE,
 };
 
+pub const NotifierResult = enum(u32) {
+    done = NOTIFIER_DONE,
+    ok = NOTIFIER_OK,
+    stop = NOTIFIER_STOP,
+};
+
+pub const NotifierBlock = extern struct {
+    notifier_call: usize,
+    next: usize,
+    priority: i32,
+};
+
+pub const ChainPriorityIncrease = struct {
+    previous_index: usize,
+    current_index: usize,
+    previous_priority: i32,
+    current_priority: i32,
+};
+
 pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView = extern struct {
     ack_window: u32,
     delivery_window: u32,
@@ -91,6 +114,34 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = e
     applied: u32,
     skipped: u32,
 };
+
+pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {
+    var current = head orelse return null;
+    var previous_index: usize = 0;
+    var previous_priority = current.priority;
+
+    while (current.next != 0) {
+        const next: *const NotifierBlock = @ptrFromInt(current.next);
+        const current_index = previous_index + 1;
+        if (next.priority > previous_priority) {
+            return .{
+                .previous_index = previous_index,
+                .current_index = current_index,
+                .previous_priority = previous_priority,
+                .current_priority = next.priority,
+            };
+        }
+        previous_index = current_index;
+        previous_priority = next.priority;
+        current = next;
+    }
+
+    return null;
+}
+
+pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
+    return firstChainPriorityIncrease(head) == null;
+}
 
 pub fn defaultHeader(flags: u16) BoundaryHeader {
     return .{
@@ -124,6 +175,10 @@ test "abi binding enums stay aligned with exported constants" {
     try std.testing.expectEqual(@as(u8, UNSAFE_NONE), @intFromEnum(UnsafeScope.none));
     try std.testing.expectEqual(@as(u8, UNSAFE_VOLATILE_MMIO), @intFromEnum(UnsafeScope.volatile_mmio));
     try std.testing.expectEqual(@as(u8, UNSAFE_RAW_POINTER_BRIDGE), @intFromEnum(UnsafeScope.raw_pointer_bridge));
+
+    try std.testing.expectEqual(@as(u32, NOTIFIER_DONE), @intFromEnum(NotifierResult.done));
+    try std.testing.expectEqual(@as(u32, NOTIFIER_OK), @intFromEnum(NotifierResult.ok));
+    try std.testing.expectEqual(@as(u32, NOTIFIER_STOP), @intFromEnum(NotifierResult.stop));
 }
 
 test "abi binding chrdev structs keep the published layout" {
@@ -150,4 +205,56 @@ test "abi binding chrdev structs keep the published layout" {
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted"));
     try std.testing.expectEqual(@as(usize, 4), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied"));
     try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"));
+}
+
+test "abi binding keeps notifier block layout and chain helper explicit" {
+    const single = NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 7,
+    };
+    const descending_third = NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = -4,
+    };
+    const descending_second = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&descending_third),
+        .priority = 8,
+    };
+    const descending_first = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&descending_second),
+        .priority = 8,
+    };
+    const rising_second = NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 5,
+    };
+    const rising_first = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&rising_second),
+        .priority = 3,
+    };
+
+    try std.testing.expectEqual(@as(usize, 24), @sizeOf(NotifierBlock));
+    try std.testing.expectEqual(@as(usize, 8), @alignOf(NotifierBlock));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
+    try std.testing.expectEqual(@as(usize, 8), @offsetOf(NotifierBlock, "next"));
+    try std.testing.expectEqual(@as(usize, 16), @offsetOf(NotifierBlock, "priority"));
+
+    try std.testing.expect(firstChainPriorityIncrease(null) == null);
+    try std.testing.expect(chainHasNonincreasingPriority(null));
+    try std.testing.expect(chainHasNonincreasingPriority(&single));
+    try std.testing.expect(firstChainPriorityIncrease(&single) == null);
+    try std.testing.expect(chainHasNonincreasingPriority(&descending_first));
+    try std.testing.expect(!chainHasNonincreasingPriority(&rising_first));
+
+    const increase = firstChainPriorityIncrease(&rising_first).?;
+    try std.testing.expectEqual(@as(usize, 0), increase.previous_index);
+    try std.testing.expectEqual(@as(usize, 1), increase.current_index);
+    try std.testing.expectEqual(@as(i32, 3), increase.previous_priority);
+    try std.testing.expectEqual(@as(i32, 5), increase.current_priority);
 }
