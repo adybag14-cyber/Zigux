@@ -153,6 +153,16 @@
     "expected": "version_expected.json"
   },
   {
+    "name": "version_then_missing_long_reference_argument",
+    "argv": [
+      "-V",
+      "--reference"
+    ],
+    "mode": "process_json",
+    "expected": "version_then_missing_long_reference_argument_expected.json",
+    "normalize_stderr": true
+  },
+  {
     "name": "abbreviated_version",
     "argv": [
       "--ver"
