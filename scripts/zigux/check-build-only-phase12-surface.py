@@ -57,11 +57,14 @@ PHASE12_NVME_PCI_SURVEY_NOTE_PATH = "Documentation/zigux/phase12-nvme-pci-survey
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
+PHASE12_VIRTIO_NET_SURVEY_NOTE_PATH = "Documentation/zigux/phase12-virtio-net-survey.md"
 PHASE12_VIRTIO_NET_DRIVER_PATH = "drivers/net/virtio_net.zig"
 PHASE12_VIRTIO_NET_TEST_PATH = "zigux/tests/phase12_virtio_net.zig"
 PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH = "zigux/tests/phase12_virtio_net_syntax_lab.zig"
 PHASE12_VIRTIO_NET_MANIFEST_PATH = "zigux/tests/phase12_virtio_net_manifest.json"
 PHASE12_VIRTIO_NET_SURVEY_PATH = "zigux/tests/phase12_virtio_net_survey.zig"
+PHASE12_VIRTIO_SCSI_SLICE_PATH = "Documentation/zigux/phase12-virtio-scsi-slice.md"
+PHASE12_VIRTIO_SCSI_SURVEY_NOTE_PATH = "Documentation/zigux/phase12-virtio-scsi-survey.md"
 PHASE12_VIRTIO_SCSI_DRIVER_PATH = "drivers/scsi/virtio_scsi.zig"
 PHASE12_VIRTIO_SCSI_TEST_PATH = "zigux/tests/phase12_virtio_scsi.zig"
 PHASE12_VIRTIO_SCSI_SYNTAX_LAB_PATH = "zigux/tests/phase12_virtio_scsi_syntax_lab.zig"
@@ -76,6 +79,9 @@ PHASE12_NVME_PCI_TEST_PATH = "zigux/tests/phase12_nvme_pci.zig"
 PHASE12_NVME_PCI_SURVEY_PATH = "zigux/tests/phase12_nvme_pci_survey.zig"
 PHASE12_NVME_PCI_MANIFEST_PATH = "zigux/tests/phase12_nvme_pci_manifest.json"
 PHASE12_LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+PHASE12_RELEASE_READINESS_PACKET_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-release-readiness-packet.py"
+)
 PHASE12_VALIDATE_PATH = "scripts/zigux/validate-phase12.py"
 
 REQUIRED_FILES = [
@@ -99,11 +105,14 @@ REQUIRED_FILES = [
     WORKFLOW_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
+    PHASE12_VIRTIO_NET_SURVEY_NOTE_PATH,
     PHASE12_VIRTIO_NET_DRIVER_PATH,
     PHASE12_VIRTIO_NET_TEST_PATH,
     PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH,
     PHASE12_VIRTIO_NET_MANIFEST_PATH,
     PHASE12_VIRTIO_NET_SURVEY_PATH,
+    PHASE12_VIRTIO_SCSI_SLICE_PATH,
+    PHASE12_VIRTIO_SCSI_SURVEY_NOTE_PATH,
     PHASE12_VIRTIO_SCSI_DRIVER_PATH,
     PHASE12_VIRTIO_SCSI_TEST_PATH,
     PHASE12_VIRTIO_SCSI_SYNTAX_LAB_PATH,
@@ -118,6 +127,7 @@ REQUIRED_FILES = [
     PHASE12_NVME_PCI_SURVEY_PATH,
     PHASE12_NVME_PCI_MANIFEST_PATH,
     PHASE12_LIBBPF_SNAPSHOT_PATH,
+    PHASE12_RELEASE_READINESS_PACKET_CHECKER_PATH,
     PHASE12_VALIDATE_PATH,
 ]
 
@@ -633,6 +643,18 @@ def run_self_test() -> int:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
         write_fixture_tree(base)
+        (base / PHASE12_VIRTIO_NET_SURVEY_NOTE_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_VIRTIO_NET_SURVEY_NOTE_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_VIRTIO_SCSI_SLICE_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_VIRTIO_SCSI_SLICE_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_VIRTIO_SCSI_SURVEY_NOTE_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_VIRTIO_SCSI_SURVEY_NOTE_PATH}")
+
+        write_fixture_tree(base)
         (base / PHASE12_VIRTIO_SCSI_MANIFEST_PATH).unlink()
         expect_failure(base, f"missing_file:{PHASE12_VIRTIO_SCSI_MANIFEST_PATH}")
 
@@ -671,6 +693,10 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         (base / PHASE12_NVME_PCI_MANIFEST_PATH).unlink()
         expect_failure(base, f"missing_file:{PHASE12_NVME_PCI_MANIFEST_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE12_RELEASE_READINESS_PACKET_CHECKER_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_RELEASE_READINESS_PACKET_CHECKER_PATH}")
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
@@ -805,7 +831,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=7:actual=6")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=21")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=25")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
