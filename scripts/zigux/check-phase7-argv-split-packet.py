@@ -119,6 +119,9 @@ REQUIRED_MARKERS = {
         "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");",
         "phase 7 argvSplit matches focused parity fixtures",
         "phase 7 argvSplit token buffer does not alias the source text",
+        "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy",
+        "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
+        "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too",
         "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
         "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
         "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact",
@@ -179,6 +182,7 @@ REQUIRED_MARKERS = {
         ".name = \"repeated whitespace collapses into separators\"",
         ".name = \"whitespace before first NUL stays blank\"",
         ".name = \"leading NUL truncates to zero argv entries\"",
+        ".name = \"first NUL stops counting and splitting\"",
         ".name = \"quote characters stay inside returned tokens\"",
     ],
     "zigux/tests/phase7_build.zig": [
@@ -243,6 +247,18 @@ MISSING_MARKER_CASES = [
     ("zigux/tests/README.md", "  * `make -C zigux phase7`"),
     (
         "zigux/tests/phase7_argv_split.zig",
+        "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy",
+    ),
+    (
+        "zigux/tests/phase7_argv_split.zig",
+        "phase 7 argvSplit zeroes copied whitespace separators across the tokenized buffer",
+    ),
+    (
+        "zigux/tests/phase7_argv_split.zig",
+        "phase 7 argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too",
+    ),
+    (
+        "zigux/tests/phase7_argv_split.zig",
         "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
     ),
     (
@@ -255,7 +271,15 @@ MISSING_MARKER_CASES = [
     ),
     (
         "zigux/tests/phase7_argv_split_manifest.json",
+        "owned-storage reuse keeps token pointers inside caller-managed storage",
+    ),
+    (
+        "zigux/tests/phase7_argv_split_manifest.json",
         "canonical blank sentinels, repeatable teardown, and a null-terminated argv view",
+    ),
+    (
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+        ".name = \"first NUL stops counting and splitting\"",
     ),
     (
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
