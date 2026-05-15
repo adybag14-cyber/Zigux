@@ -76,6 +76,7 @@ pub const blocked_publication_fields = [_][]const u8{
     "module_install_root",
     "modules_order_path",
     "modules_builtin_path",
+    "module_symvers_path",
 };
 
 pub const blocked_depmod_fields = [_][]const u8{
@@ -270,7 +271,7 @@ test "shared runtime loader contract keeps registration-summary, publication, an
     try std.testing.expect(std.mem.eql(u8, blocked_registration_summary_fields[2], "summary"));
     try std.testing.expect(std.mem.eql(u8, blocked_registration_summary_fields[3], "registration_snapshot"));
 
-    try std.testing.expectEqual(@as(usize, 7), blocked_publication_fields.len);
+    try std.testing.expectEqual(@as(usize, 8), blocked_publication_fields.len);
     try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[0], "modinfo"));
     try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[1], "module_alias"));
     try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[2], "module_aliases"));
@@ -278,6 +279,7 @@ test "shared runtime loader contract keeps registration-summary, publication, an
     try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[4], "module_install_root"));
     try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[5], "modules_order_path"));
     try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[6], "modules_builtin_path"));
+    try std.testing.expect(std.mem.eql(u8, blocked_publication_fields[7], "module_symvers_path"));
 
     try std.testing.expectEqual(@as(usize, 3), blocked_depmod_fields.len);
     try std.testing.expect(std.mem.eql(u8, blocked_depmod_fields[0], "depmod_script"));
