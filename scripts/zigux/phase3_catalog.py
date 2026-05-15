@@ -13,6 +13,7 @@ RUNNER_MARKER_RE = re.compile(
     r"python3 scripts/zigux/run-phase3-checks.py --slug (?P<slug>[a-z0-9-]+)"
 )
 BUILD_DUMP_RE = re.compile(r"phase3_(?P<family>[a-z0-9_]+)_dump\.zig")
+SLICE_DOC_RE = re.compile(r"phase3-(?P<slug>[a-z0-9-]+)-slice\.md")
 LEGACY_WRAPPER_PATH_RE = re.compile(
     r"scripts/zigux/check-phase3-(?P<slug>[a-z0-9-]+)\.py"
 )
@@ -119,6 +120,15 @@ def discover_phase3_dump_families(root: Path = ROOT) -> set[str]:
         if family is not None:
             families.add(family)
     return families
+
+
+def discover_phase3_doc_slugs(root: Path = ROOT) -> set[str]:
+    slugs: set[str] = set()
+    for doc_path in sorted((root / "Documentation/zigux").glob("phase3-*-slice.md")):
+        match = SLICE_DOC_RE.fullmatch(doc_path.name)
+        if match is not None:
+            slugs.add(match.group("slug"))
+    return slugs
 
 
 def discover_phase3_build_dump_families(root: Path = ROOT) -> set[str]:
@@ -263,6 +273,18 @@ def audit_artifact_diff_reality(root: Path = ROOT) -> list[str]:
     return issues
 
 
+def audit_slug_sanity(root: Path = ROOT) -> list[str]:
+    issues: list[str] = []
+    discovered = {entry.slug for entry in discover_phase3_slices(root)}
+    documented = discover_phase3_doc_slugs(root)
+    for slug in sorted(documented - discovered):
+        issues.append(f"documented Phase 3 slug lacks full slice packet: {slug}")
+    issues.extend(audit_artifact_diff_reality(root))
+    issues.extend(audit_dump_surface_reality(root))
+    issues.extend(audit_build_surface_reality(root))
+    return issues
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_catalog_selftest_") as tmp_dir_str:
         root = Path(tmp_dir_str)
@@ -292,6 +314,7 @@ def run_self_test() -> int:
         assert audit_doc_sync(root) == []
         assert audit_artifact_diff_reality(root) == []
         assert audit_build_surface_reality(root) == []
+        assert audit_slug_sanity(root) == []
         assert audit_legacy_wrapper_docs(root) == []
         assert audit_legacy_wrapper_references(root) == []
 
@@ -308,6 +331,7 @@ def run_self_test() -> int:
         )
         assert audit_dump_surface_reality(root) == [expected_dump_issue]
         assert audit_doc_sync(root) == [expected_dump_issue]
+        assert audit_slug_sanity(root) == [expected_dump_issue]
         stray_dump.unlink()
 
         (root / "zigux/tests/build.zig").write_text(
@@ -321,10 +345,17 @@ def run_self_test() -> int:
         )
         assert audit_build_surface_reality(root) == [expected_build_issue]
         assert audit_doc_sync(root) == [expected_build_issue]
+        assert audit_slug_sanity(root) == [expected_build_issue]
         (root / "zigux/tests/build.zig").write_text(
             'const abi_dump = "phase3_abi_dump.zig";\n',
             encoding="utf-8",
         )
+
+        missing_doc = root / "Documentation/zigux/phase3-missing-slice.md"
+        missing_doc.write_text("# stray\n", encoding="utf-8")
+        expected_missing_doc_issue = "documented Phase 3 slug lacks full slice packet: missing"
+        assert audit_slug_sanity(root) == [expected_missing_doc_issue]
+        missing_doc.unlink()
 
         artifact = root / "Documentation/zigux/artifact-diff.md"
         artifact.write_text(
@@ -337,6 +368,7 @@ def run_self_test() -> int:
         )
         assert audit_artifact_diff_reality(root) == [expected_artifact_issue]
         assert audit_doc_sync(root) == [expected_artifact_issue]
+        assert audit_slug_sanity(root) == [expected_artifact_issue]
 
         artifact.write_text(_shared_runner_marker("abi") + "\n", encoding="utf-8")
         (root / "zigux/tests/build.zig").write_text(
@@ -381,6 +413,7 @@ def main() -> int:
     parser.add_argument("--audit-artifact-diff-reality", action="store_true")
     parser.add_argument("--legacy-wrapper-docs", action="store_true")
     parser.add_argument("--legacy-wrapper-references", action="store_true")
+    parser.add_argument("--slug-sanity", action="store_true")
     parser.add_argument("--print-slices", action="store_true")
     args = parser.parse_args()
 
@@ -437,6 +470,16 @@ def main() -> int:
             return 0
         for reference in references:
             print(reference)
+        return 0
+
+    if args.slug_sanity:
+        issues = audit_slug_sanity()
+        if issues:
+            print("PHASE3_SLUG_SANITY=fail")
+            for issue in issues:
+                print(issue)
+            return 1
+        print("PHASE3_SLUG_SANITY=pass")
         return 0
 
     parser.print_help()
