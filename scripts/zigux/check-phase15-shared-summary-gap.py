@@ -113,6 +113,7 @@ FILE_MARKERS = {
         VALIDATE_MARKER,
         ALIGNMENT_CHECKER_MARKER,
         HANDOFF_CHECKER_MARKER,
+        CHECKER_MARKER,
         HANDOFF_MANIFEST_MARKER,
         READINESS_MANIFEST_MARKER,
         BLOCKER_EVIDENCE_MARKER,
@@ -241,6 +242,7 @@ def _seed(root: Path) -> None:
                 VALIDATE_MARKER,
                 ALIGNMENT_CHECKER_MARKER,
                 HANDOFF_CHECKER_MARKER,
+                CHECKER_MARKER,
                 HANDOFF_MANIFEST_MARKER,
                 READINESS_MANIFEST_MARKER,
                 BLOCKER_EVIDENCE_MARKER,
@@ -418,6 +420,16 @@ def run_self_test() -> int:
         _seed(root)
         case_count += 1
 
+        path = root / SCRIPTS_README_REL
+        _write(path, _read(path).replace(CHECKER_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{SCRIPTS_README_REL}:missing:{CHECKER_MARKER}"],
+            "scripts_readme_missing_shared_summary_checker",
+        )
+        _seed(root)
+        case_count += 1
+
         path = root / TESTS_README_REL
         _write(path, _read(path).replace(SEQUENCING_MARKER + "\n", "", 1))
         _assert_only(
@@ -502,10 +514,11 @@ def main() -> int:
         description=(
             "Check that the current Phase 15 shared summaries keep the freeze-map governance packet, the review-process "
             "survey marker, the parity-scorecard survey, the dedicated parity-scorecard and indefinite-C policy surfaces, "
-            "readiness and handoff reminders, the review-process handoff checker, the tests-root no-approval wording, "
-            "the scripts-root blocker-evidence marker, the lane-sequencing note, the docs-root and scripts-root alignment "
-            "checkers, the replay-build surface, the validator-route packet, the review-checklist reopen-trigger wording, "
-            "the manifest reminders, the lane-owner alignment surface, and the replay-route packet explicit."
+            "readiness and handoff reminders, the review-process handoff checker, the dedicated shared-summary checker, "
+            "the tests-root no-approval wording, the scripts-root blocker-evidence marker, the lane-sequencing note, "
+            "the docs-root and scripts-root alignment checkers, the replay-build surface, the validator-route packet, "
+            "the review-checklist reopen-trigger wording, the manifest reminders, the lane-owner alignment surface, "
+            "and the replay-route packet explicit."
         )
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
