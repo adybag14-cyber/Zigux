@@ -375,6 +375,22 @@ def run_self_test() -> int:
         write_text(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
+                RELEASE_READINESS_MARKERS[5],
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "The smaller validator-first boundary in the lane is now shipped",
+            "missing validator-first support-bundle marker",
+        )
+
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
+        write_text(
+            tmp_root / RELEASE_READINESS_PATH,
+            good_release_readiness_text().replace(
                 RELEASE_READINESS_MARKERS[6],
                 "",
                 1,
