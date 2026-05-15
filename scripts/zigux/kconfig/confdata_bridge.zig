@@ -31,6 +31,13 @@ pub const Summary = struct {
     unset_count: usize,
 };
 
+fn deinitEntries(allocator: std.mem.Allocator, entries: []Entry) void {
+    for (entries) |entry| {
+        allocator.free(entry.name);
+        allocator.free(entry.value);
+    }
+}
+
 fn writeHexLower(writer: anytype, value: u8) !void {
     const digits = "0123456789abcdef";
     try writer.writeByte(digits[value >> 4]);
@@ -148,7 +155,10 @@ fn findEntryIndex(entries: []Entry, name: []const u8) ?usize {
 
 pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
     var entries = std.ArrayList(Entry).empty;
-    errdefer entries.deinit(allocator);
+    errdefer {
+        deinitEntries(allocator, entries.items);
+        entries.deinit(allocator);
+    }
 
     var set_count: usize = 0;
     var unset_count: usize = 0;
@@ -169,10 +179,14 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
                 existing.kind = .unset;
                 existing.value = try allocator.dupe(u8, "n");
             } else {
+                const owned_name = try allocator.dupe(u8, name);
+                errdefer allocator.free(owned_name);
+                const owned_value = try allocator.dupe(u8, "n");
+                errdefer allocator.free(owned_value);
                 try entries.append(allocator, .{
-                    .name = try allocator.dupe(u8, name),
+                    .name = owned_name,
                     .kind = .unset,
-                    .value = try allocator.dupe(u8, "n"),
+                    .value = owned_value,
                 });
             }
             unset_count += 1;
@@ -212,8 +226,11 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
             existing.kind = kind;
             existing.value = cooked_value;
         } else {
+            const owned_name = try allocator.dupe(u8, name);
+            errdefer allocator.free(owned_name);
+            errdefer allocator.free(cooked_value);
             try entries.append(allocator, .{
-                .name = try allocator.dupe(u8, name),
+                .name = owned_name,
                 .kind = kind,
                 .value = cooked_value,
             });
@@ -229,10 +246,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
 }
 
 pub fn deinitSummary(allocator: std.mem.Allocator, summary: *Summary) void {
-    for (summary.entries) |entry| {
-        allocator.free(entry.name);
-        allocator.free(entry.value);
-    }
+    deinitEntries(allocator, summary.entries);
     allocator.free(summary.entries);
 }
 
