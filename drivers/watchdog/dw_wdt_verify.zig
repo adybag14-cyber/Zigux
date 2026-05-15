@@ -1,432 +1,147 @@
 const std = @import("std");
 
-pub const TeardownState = enum {
-    blocked_missing_drvdata,
-    inactive_teardown,
-    running_teardown,
-};
+const testing = std.testing;
+const dw_wdt = @import("dw_wdt.zig");
 
-pub const StopTeardownRequest = struct {
-    drvdata_ready: bool,
-    watchdog_registered: bool,
-    hardware_running: bool,
-    restart_priority_registered: bool,
-    stop_on_reboot_registered: bool,
-};
-
-pub const StopTeardownSummary = struct {
-    anchor: []const u8,
-    unregister_device_call: []const u8,
-    stop_on_reboot_call: []const u8,
-    restart_priority_call: []const u8,
-    stop_call: []const u8,
-    control_anchor: []const u8,
-    unregister_device_requested: bool,
-    unregister_stop_on_reboot_requested: bool,
-    clear_restart_priority_requested: bool,
-    stop_requested: bool,
-    keeps_missing_drvdata_explicit: bool,
-    state: TeardownState,
-};
-
-pub fn summarizeStopTeardown(request: StopTeardownRequest) StopTeardownSummary {
-    if (!request.drvdata_ready) {
-        return .{
-            .anchor = "drivers/watchdog/dw_wdt.c",
-            .unregister_device_call = "watchdog_unregister_device",
-            .stop_on_reboot_call = "watchdog_stop_on_reboot",
-            .restart_priority_call = "watchdog_set_restart_priority",
-            .stop_call = "dw_wdt_stop",
-            .control_anchor = "WDOG_CONTROL_REG_OFFSET",
-            .unregister_device_requested = false,
-            .unregister_stop_on_reboot_requested = false,
-            .clear_restart_priority_requested = false,
-            .stop_requested = false,
-            .keeps_missing_drvdata_explicit = true,
-            .state = .blocked_missing_drvdata,
-        };
-    }
-
-    return .{
-        .anchor = "drivers/watchdog/dw_wdt.c",
-        .unregister_device_call = "watchdog_unregister_device",
-        .stop_on_reboot_call = "watchdog_stop_on_reboot",
-        .restart_priority_call = "watchdog_set_restart_priority",
-        .stop_call = "dw_wdt_stop",
-        .control_anchor = "WDOG_CONTROL_REG_OFFSET",
-        .unregister_device_requested = request.watchdog_registered,
-        .unregister_stop_on_reboot_requested = request.stop_on_reboot_registered,
-        .clear_restart_priority_requested = request.restart_priority_registered,
-        .stop_requested = request.hardware_running,
-        .keeps_missing_drvdata_explicit = false,
-        .state = if (request.hardware_running) .running_teardown else .inactive_teardown,
-    };
-}
-
-pub const RestartFailureState = enum {
-    blocked_missing_drvdata,
-    blocked_missing_timeout_image,
-    restart_ready,
-};
-
-pub const RestartFailureModeRequest = struct {
-    drvdata_ready: bool,
-    timeout_image_ready: bool,
-    restart_priority_registered: bool,
-    reset_pulse_available: bool,
-};
-
-pub const RestartFailureModeSummary = struct {
-    anchor: []const u8,
-    restart_call: []const u8,
-    timeout_range_anchor: []const u8,
-    control_anchor: []const u8,
-    restart_priority_call: []const u8,
-    restart_requested: bool,
-    writes_timeout_range: bool,
-    writes_control: bool,
-    restart_priority_registered: bool,
-    expects_reset_pulse: bool,
-    keeps_missing_drvdata_explicit: bool,
-    keeps_missing_timeout_image_explicit: bool,
-    state: RestartFailureState,
-};
-
-pub fn summarizeRestartFailureMode(request: RestartFailureModeRequest) RestartFailureModeSummary {
-    if (!request.drvdata_ready) {
-        return .{
-            .anchor = "drivers/watchdog/dw_wdt.c",
-            .restart_call = "dw_wdt_restart",
-            .timeout_range_anchor = "WDOG_TIMEOUT_RANGE_REG_OFFSET",
-            .control_anchor = "WDOG_CONTROL_REG_OFFSET",
-            .restart_priority_call = "watchdog_set_restart_priority",
-            .restart_requested = false,
-            .writes_timeout_range = false,
-            .writes_control = false,
-            .restart_priority_registered = request.restart_priority_registered,
-            .expects_reset_pulse = request.reset_pulse_available,
-            .keeps_missing_drvdata_explicit = true,
-            .keeps_missing_timeout_image_explicit = false,
-            .state = .blocked_missing_drvdata,
-        };
-    }
-
-    if (!request.timeout_image_ready) {
-        return .{
-            .anchor = "drivers/watchdog/dw_wdt.c",
-            .restart_call = "dw_wdt_restart",
-            .timeout_range_anchor = "WDOG_TIMEOUT_RANGE_REG_OFFSET",
-            .control_anchor = "WDOG_CONTROL_REG_OFFSET",
-            .restart_priority_call = "watchdog_set_restart_priority",
-            .restart_requested = false,
-            .writes_timeout_range = false,
-            .writes_control = false,
-            .restart_priority_registered = request.restart_priority_registered,
-            .expects_reset_pulse = request.reset_pulse_available,
-            .keeps_missing_drvdata_explicit = false,
-            .keeps_missing_timeout_image_explicit = true,
-            .state = .blocked_missing_timeout_image,
-        };
-    }
-
-    return .{
-        .anchor = "drivers/watchdog/dw_wdt.c",
-        .restart_call = "dw_wdt_restart",
-        .timeout_range_anchor = "WDOG_TIMEOUT_RANGE_REG_OFFSET",
-        .control_anchor = "WDOG_CONTROL_REG_OFFSET",
-        .restart_priority_call = "watchdog_set_restart_priority",
-        .restart_requested = true,
-        .writes_timeout_range = true,
-        .writes_control = true,
-        .restart_priority_registered = request.restart_priority_registered,
-        .expects_reset_pulse = request.reset_pulse_available,
-        .keeps_missing_drvdata_explicit = false,
-        .keeps_missing_timeout_image_explicit = false,
-        .state = .restart_ready,
-    };
-}
-
-pub const RemoveTeardownState = enum {
-    idle_remove,
-    continued_heartbeat,
-    reset_control_shutdown,
-};
-
-pub const RemoveTeardownRequest = struct {
-    reset_control_available: bool,
-    hardware_running: bool,
-    interrupt_pending: bool,
-};
-
-pub const RemoveTeardownSummary = struct {
-    anchor: []const u8,
-    debugfs_clear_requested: bool,
-    unregister_device_requested: bool,
-    reset_control_available: bool,
-    reset_assert_requested: bool,
-    hardware_running_before_remove: bool,
-    hardware_running_after_remove: bool,
-    interrupt_pending_before_remove: bool,
-    interrupt_pending_after_remove: bool,
-    remove_leaves_hardware_running: bool,
-    state: RemoveTeardownState,
-};
-
-pub fn summarizeRemoveTeardown(request: RemoveTeardownRequest) RemoveTeardownSummary {
-    const reset_assert_requested = request.reset_control_available and request.hardware_running;
-    const hardware_running_after_remove = request.hardware_running and !request.reset_control_available;
-
-    return .{
-        .anchor = "drivers/watchdog/dw_wdt.c",
-        .debugfs_clear_requested = true,
-        .unregister_device_requested = true,
-        .reset_control_available = request.reset_control_available,
-        .reset_assert_requested = reset_assert_requested,
-        .hardware_running_before_remove = request.hardware_running,
-        .hardware_running_after_remove = hardware_running_after_remove,
-        .interrupt_pending_before_remove = request.interrupt_pending,
-        .interrupt_pending_after_remove = false,
-        .remove_leaves_hardware_running = hardware_running_after_remove,
-        .state = if (!request.hardware_running)
-            .idle_remove
-        else if (request.reset_control_available)
-            .reset_control_shutdown
-        else
-            .continued_heartbeat,
-    };
-}
-
-test "phase11 dw_wdt verify keeps stop teardown ownership explicit" {
-    const summary = summarizeStopTeardown(.{
-        .drvdata_ready = true,
-        .watchdog_registered = true,
-        .hardware_running = true,
-        .restart_priority_registered = true,
-        .stop_on_reboot_registered = true,
+test "phase11 dw_wdt verify keeps registration-blocking failure paths explicit" {
+    const missing_drvdata = dw_wdt.registrationOrderSummary(.{
+        .drvdata_published = false,
+        .timeout_programmed = true,
+        .imported_running = false,
     });
 
-    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", summary.anchor);
-    try std.testing.expectEqualStrings("watchdog_unregister_device", summary.unregister_device_call);
-    try std.testing.expectEqualStrings("watchdog_stop_on_reboot", summary.stop_on_reboot_call);
-    try std.testing.expectEqualStrings("watchdog_set_restart_priority", summary.restart_priority_call);
-    try std.testing.expectEqualStrings("dw_wdt_stop", summary.stop_call);
-    try std.testing.expectEqualStrings("WDOG_CONTROL_REG_OFFSET", summary.control_anchor);
-    try std.testing.expect(summary.unregister_device_requested);
-    try std.testing.expect(summary.unregister_stop_on_reboot_requested);
-    try std.testing.expect(summary.clear_restart_priority_requested);
-    try std.testing.expect(summary.stop_requested);
-    try std.testing.expectEqual(TeardownState.running_teardown, summary.state);
+    try testing.expectEqualStrings(dw_wdt.anchor_path, missing_drvdata.anchor);
+    try testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_missing_drvdata, missing_drvdata.state);
+    try testing.expect(!missing_drvdata.publishes_drvdata_before_register);
+    try testing.expect(!missing_drvdata.registration_requested);
+    try testing.expect(missing_drvdata.blocked_on_live_platform_registration);
+    try testing.expect(!missing_drvdata.blocked_on_live_mmio);
+
+    const missing_timer_clock = dw_wdt.platformRegistrationScaffoldSummary(.{
+        .has_named_tclk = false,
+        .has_shared_clock = false,
+        .has_pclk = true,
+        .has_reset_control = true,
+        .has_pretimeout_irq = true,
+        .drvdata_published = true,
+        .timeout_programmed = true,
+        .imported_running = false,
+    });
+
+    try testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_missing_timer_clock, missing_timer_clock.state);
+    try testing.expectEqual(dw_wdt.TimerClockPath.blocked_no_timer_clock, missing_timer_clock.timer_clock_path);
+    try testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.blocked_missing_timer_clock, missing_timer_clock.probe_timeout_origin);
+    try testing.expect(!missing_timer_clock.registration_requested);
+    try testing.expect(!missing_timer_clock.stop_on_reboot_requested);
+    try testing.expect(!missing_timer_clock.reset_release_requested);
+    try testing.expect(missing_timer_clock.blocked_on_live_platform_registration);
+    try testing.expect(!missing_timer_clock.blocked_on_live_mmio);
 }
 
-test "phase11 dw_wdt verify keeps inactive and missing-drvdata teardown paths distinct" {
-    const inactive = summarizeStopTeardown(.{
-        .drvdata_ready = true,
-        .watchdog_registered = true,
-        .hardware_running = false,
-        .restart_priority_registered = false,
-        .stop_on_reboot_registered = false,
+test "phase11 dw_wdt verify keeps imported-running handoff and shared-clock fallback explicit" {
+    const handoff = dw_wdt.platformHandoffSummary(.{
+        .has_named_tclk = false,
+        .has_shared_clock = true,
+        .has_pclk = false,
+        .has_reset_control = true,
+        .has_pretimeout_irq = true,
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = true,
     });
-    try std.testing.expect(inactive.unregister_device_requested);
-    try std.testing.expect(!inactive.unregister_stop_on_reboot_requested);
-    try std.testing.expect(!inactive.clear_restart_priority_requested);
-    try std.testing.expect(!inactive.stop_requested);
-    try std.testing.expectEqual(TeardownState.inactive_teardown, inactive.state);
 
-    const blocked = summarizeStopTeardown(.{
-        .drvdata_ready = false,
-        .watchdog_registered = true,
-        .hardware_running = true,
-        .restart_priority_registered = true,
-        .stop_on_reboot_registered = true,
-    });
-    try std.testing.expect(!blocked.unregister_device_requested);
-    try std.testing.expect(!blocked.unregister_stop_on_reboot_requested);
-    try std.testing.expect(!blocked.clear_restart_priority_requested);
-    try std.testing.expect(!blocked.stop_requested);
-    try std.testing.expect(blocked.keeps_missing_drvdata_explicit);
-    try std.testing.expectEqual(TeardownState.blocked_missing_drvdata, blocked.state);
+    try testing.expectEqualStrings(dw_wdt.anchor_path, handoff.anchor);
+    try testing.expectEqual(dw_wdt.RegistrationScaffoldState.import_running_state_then_register, handoff.state);
+    try testing.expectEqual(dw_wdt.TimerClockPath.unnamed_shared_fallback, handoff.timer_clock_path);
+    try testing.expectEqual(dw_wdt.ApbClockPath.optional_absent, handoff.apb_clock_path);
+    try testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.imported_running_counter, handoff.probe_timeout_origin);
+    try testing.expect(handoff.timer_clock_available);
+    try testing.expect(handoff.imported_running_state);
+    try testing.expect(!handoff.timeout_programming_requested);
+    try testing.expect(handoff.registration_ready);
+    try testing.expect(handoff.stop_on_reboot_requested);
+    try testing.expect(handoff.reset_release_requested);
+    try testing.expect(handoff.pretimeout_irq_optional);
+    try testing.expect(handoff.pretimeout_irq_present);
+    try testing.expectEqualStrings("platform_get_irq_optional", handoff.pretimeout_irq_call);
+    try testing.expect(handoff.blocked_on_live_platform_registration);
+    try testing.expect(!handoff.blocked_on_live_mmio);
 }
 
-test "phase11 dw_wdt verify keeps inactive registered teardown hooks explicit" {
-    const summary = summarizeStopTeardown(.{
-        .drvdata_ready = true,
-        .watchdog_registered = true,
-        .hardware_running = false,
-        .restart_priority_registered = true,
-        .stop_on_reboot_registered = true,
-    });
+test "phase11 dw_wdt verify keeps continued-heartbeat teardown and remove failure modes explicit" {
+    var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(9, false);
+    _ = try unstoppable.start();
+    try unstoppable.setInterruptPending(true);
 
-    try std.testing.expect(summary.unregister_device_requested);
-    try std.testing.expect(summary.unregister_stop_on_reboot_requested);
-    try std.testing.expect(summary.clear_restart_priority_requested);
-    try std.testing.expect(!summary.stop_requested);
-    try std.testing.expect(!summary.keeps_missing_drvdata_explicit);
-    try std.testing.expectEqual(TeardownState.inactive_teardown, summary.state);
+    const stop_summary = unstoppable.stopSummary();
+    try testing.expectEqual(dw_wdt.TeardownOutcome.continued_heartbeat, stop_summary.outcome);
+    try testing.expect(stop_summary.stop_requested);
+    try testing.expect(!stop_summary.enable_bit_cleared);
+    try testing.expect(stop_summary.interrupt_cleared);
+    try testing.expect(stop_summary.running_after_stop);
+    try testing.expect(stop_summary.hardware_running_after_stop);
+    try testing.expect(stop_summary.keeps_heartbeat_running);
+
+    var teardown_unstoppable = try dw_wdt.DwWdtLab.initFixedTops(9, false);
+    _ = try teardown_unstoppable.start();
+    try teardown_unstoppable.setInterruptPending(true);
+    const teardown_summary = try teardown_unstoppable.teardownSummary();
+    try testing.expectEqual(dw_wdt.TeardownOutcome.continued_heartbeat, teardown_summary.outcome);
+    try testing.expect(!teardown_summary.can_stop);
+    try testing.expect(teardown_summary.stop_invoked);
+    try testing.expect(teardown_summary.interrupt_cleared);
+    try testing.expect(teardown_summary.running_after_teardown);
+    try testing.expect(teardown_summary.hardware_running_after_teardown);
+
+    var remove_unstoppable = try dw_wdt.DwWdtLab.initFixedTops(9, false);
+    _ = try remove_unstoppable.start();
+    try remove_unstoppable.setInterruptPending(true);
+    const remove_summary = remove_unstoppable.removeSummary();
+    try testing.expectEqualStrings(dw_wdt.anchor_path, remove_summary.anchor);
+    try testing.expect(remove_summary.debugfs_clear_requested);
+    try testing.expect(remove_summary.unregister_device_requested);
+    try testing.expect(!remove_summary.reset_assert_requested);
+    try testing.expect(remove_summary.hardware_running_before_remove);
+    try testing.expect(remove_summary.hardware_running_after_remove);
+    try testing.expect(remove_summary.running_after_remove);
+    try testing.expect(!remove_summary.interrupt_pending_after_remove);
+    try testing.expect(remove_summary.remove_leaves_hardware_running);
 }
 
-test "phase11 dw_wdt verify keeps inactive unregistered teardown hooks explicit" {
-    const summary = summarizeStopTeardown(.{
-        .drvdata_ready = true,
-        .watchdog_registered = false,
-        .hardware_running = false,
-        .restart_priority_registered = true,
-        .stop_on_reboot_registered = true,
-    });
+test "phase11 dw_wdt verify keeps reset-backed teardown and remove cleanup distinct" {
+    var stoppable = try dw_wdt.DwWdtLab.initFixedTops(9, true);
+    _ = try stoppable.start();
+    try stoppable.setInterruptPending(true);
 
-    try std.testing.expect(!summary.unregister_device_requested);
-    try std.testing.expect(summary.unregister_stop_on_reboot_requested);
-    try std.testing.expect(summary.clear_restart_priority_requested);
-    try std.testing.expect(!summary.stop_requested);
-    try std.testing.expect(!summary.keeps_missing_drvdata_explicit);
-    try std.testing.expectEqual(TeardownState.inactive_teardown, summary.state);
-}
+    const stop_summary = stoppable.stopSummary();
+    try testing.expectEqual(dw_wdt.TeardownOutcome.reset_control_stop, stop_summary.outcome);
+    try testing.expect(stop_summary.stop_requested);
+    try testing.expect(stop_summary.enable_bit_cleared);
+    try testing.expect(stop_summary.interrupt_cleared);
+    try testing.expect(!stop_summary.running_after_stop);
+    try testing.expect(!stop_summary.hardware_running_after_stop);
+    try testing.expect(!stop_summary.keeps_heartbeat_running);
 
-test "phase11 dw_wdt verify keeps unregistered teardown hooks distinct from watchdog unregister" {
-    const summary = summarizeStopTeardown(.{
-        .drvdata_ready = true,
-        .watchdog_registered = false,
-        .hardware_running = true,
-        .restart_priority_registered = true,
-        .stop_on_reboot_registered = true,
-    });
+    var teardown_stoppable = try dw_wdt.DwWdtLab.initFixedTops(9, true);
+    _ = try teardown_stoppable.start();
+    try teardown_stoppable.setInterruptPending(true);
+    const teardown_summary = try teardown_stoppable.teardownSummary();
+    try testing.expectEqual(dw_wdt.TeardownOutcome.reset_control_stop, teardown_summary.outcome);
+    try testing.expect(teardown_summary.can_stop);
+    try testing.expect(teardown_summary.stop_invoked);
+    try testing.expect(teardown_summary.enable_bit_cleared);
+    try testing.expect(teardown_summary.interrupt_cleared);
+    try testing.expect(!teardown_summary.running_after_teardown);
+    try testing.expect(!teardown_summary.hardware_running_after_teardown);
 
-    try std.testing.expect(!summary.unregister_device_requested);
-    try std.testing.expect(summary.unregister_stop_on_reboot_requested);
-    try std.testing.expect(summary.clear_restart_priority_requested);
-    try std.testing.expect(summary.stop_requested);
-    try std.testing.expect(!summary.keeps_missing_drvdata_explicit);
-    try std.testing.expectEqual(TeardownState.running_teardown, summary.state);
-}
-
-test "phase11 dw_wdt verify keeps restart failure modes explicit" {
-    const blocked_timeout = summarizeRestartFailureMode(.{
-        .drvdata_ready = true,
-        .timeout_image_ready = false,
-        .restart_priority_registered = true,
-        .reset_pulse_available = true,
-    });
-    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", blocked_timeout.anchor);
-    try std.testing.expectEqualStrings("dw_wdt_restart", blocked_timeout.restart_call);
-    try std.testing.expectEqualStrings("WDOG_TIMEOUT_RANGE_REG_OFFSET", blocked_timeout.timeout_range_anchor);
-    try std.testing.expectEqualStrings("WDOG_CONTROL_REG_OFFSET", blocked_timeout.control_anchor);
-    try std.testing.expect(!blocked_timeout.restart_requested);
-    try std.testing.expect(!blocked_timeout.writes_timeout_range);
-    try std.testing.expect(!blocked_timeout.writes_control);
-    try std.testing.expect(blocked_timeout.keeps_missing_timeout_image_explicit);
-    try std.testing.expectEqual(RestartFailureState.blocked_missing_timeout_image, blocked_timeout.state);
-
-    const ready = summarizeRestartFailureMode(.{
-        .drvdata_ready = true,
-        .timeout_image_ready = true,
-        .restart_priority_registered = true,
-        .reset_pulse_available = false,
-    });
-    try std.testing.expect(ready.restart_requested);
-    try std.testing.expect(ready.writes_timeout_range);
-    try std.testing.expect(ready.writes_control);
-    try std.testing.expect(ready.restart_priority_registered);
-    try std.testing.expect(!ready.expects_reset_pulse);
-    try std.testing.expectEqual(RestartFailureState.restart_ready, ready.state);
-}
-
-test "phase11 dw_wdt verify keeps ready restart distinct from restart-priority registration" {
-    const ready_without_priority = summarizeRestartFailureMode(.{
-        .drvdata_ready = true,
-        .timeout_image_ready = true,
-        .restart_priority_registered = false,
-        .reset_pulse_available = true,
-    });
-
-    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", ready_without_priority.anchor);
-    try std.testing.expectEqualStrings("dw_wdt_restart", ready_without_priority.restart_call);
-    try std.testing.expectEqualStrings("watchdog_set_restart_priority", ready_without_priority.restart_priority_call);
-    try std.testing.expect(ready_without_priority.restart_requested);
-    try std.testing.expect(ready_without_priority.writes_timeout_range);
-    try std.testing.expect(ready_without_priority.writes_control);
-    try std.testing.expect(!ready_without_priority.restart_priority_registered);
-    try std.testing.expect(ready_without_priority.expects_reset_pulse);
-    try std.testing.expect(!ready_without_priority.keeps_missing_drvdata_explicit);
-    try std.testing.expect(!ready_without_priority.keeps_missing_timeout_image_explicit);
-    try std.testing.expectEqual(RestartFailureState.restart_ready, ready_without_priority.state);
-}
-
-test "phase11 dw_wdt verify keeps missing-drvdata restart failures explicit" {
-    const blocked_drvdata = summarizeRestartFailureMode(.{
-        .drvdata_ready = false,
-        .timeout_image_ready = true,
-        .restart_priority_registered = false,
-        .reset_pulse_available = true,
-    });
-    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", blocked_drvdata.anchor);
-    try std.testing.expectEqualStrings("dw_wdt_restart", blocked_drvdata.restart_call);
-    try std.testing.expectEqualStrings("WDOG_TIMEOUT_RANGE_REG_OFFSET", blocked_drvdata.timeout_range_anchor);
-    try std.testing.expectEqualStrings("WDOG_CONTROL_REG_OFFSET", blocked_drvdata.control_anchor);
-    try std.testing.expect(!blocked_drvdata.restart_requested);
-    try std.testing.expect(!blocked_drvdata.writes_timeout_range);
-    try std.testing.expect(!blocked_drvdata.writes_control);
-    try std.testing.expect(!blocked_drvdata.restart_priority_registered);
-    try std.testing.expect(blocked_drvdata.expects_reset_pulse);
-    try std.testing.expect(blocked_drvdata.keeps_missing_drvdata_explicit);
-    try std.testing.expect(!blocked_drvdata.keeps_missing_timeout_image_explicit);
-    try std.testing.expectEqual(RestartFailureState.blocked_missing_drvdata, blocked_drvdata.state);
-}
-
-test "phase11 dw_wdt verify keeps remove teardown heartbeat continuation explicit" {
-    const summary = summarizeRemoveTeardown(.{
-        .reset_control_available = false,
-        .hardware_running = true,
-        .interrupt_pending = true,
-    });
-
-    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", summary.anchor);
-    try std.testing.expect(summary.debugfs_clear_requested);
-    try std.testing.expect(summary.unregister_device_requested);
-    try std.testing.expect(!summary.reset_control_available);
-    try std.testing.expect(!summary.reset_assert_requested);
-    try std.testing.expect(summary.hardware_running_before_remove);
-    try std.testing.expect(summary.hardware_running_after_remove);
-    try std.testing.expect(summary.interrupt_pending_before_remove);
-    try std.testing.expect(!summary.interrupt_pending_after_remove);
-    try std.testing.expect(summary.remove_leaves_hardware_running);
-    try std.testing.expectEqual(RemoveTeardownState.continued_heartbeat, summary.state);
-}
-
-test "phase11 dw_wdt verify keeps remove teardown reset-backed shutdown explicit" {
-    const summary = summarizeRemoveTeardown(.{
-        .reset_control_available = true,
-        .hardware_running = true,
-        .interrupt_pending = true,
-    });
-
-    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", summary.anchor);
-    try std.testing.expect(summary.debugfs_clear_requested);
-    try std.testing.expect(summary.unregister_device_requested);
-    try std.testing.expect(summary.reset_control_available);
-    try std.testing.expect(summary.reset_assert_requested);
-    try std.testing.expect(summary.hardware_running_before_remove);
-    try std.testing.expect(!summary.hardware_running_after_remove);
-    try std.testing.expect(summary.interrupt_pending_before_remove);
-    try std.testing.expect(!summary.interrupt_pending_after_remove);
-    try std.testing.expect(!summary.remove_leaves_hardware_running);
-    try std.testing.expectEqual(RemoveTeardownState.reset_control_shutdown, summary.state);
-}
-
-test "phase11 dw_wdt verify keeps idle remove distinct from running teardown" {
-    const summary = summarizeRemoveTeardown(.{
-        .reset_control_available = true,
-        .hardware_running = false,
-        .interrupt_pending = true,
-    });
-
-    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", summary.anchor);
-    try std.testing.expect(summary.debugfs_clear_requested);
-    try std.testing.expect(summary.unregister_device_requested);
-    try std.testing.expect(summary.reset_control_available);
-    try std.testing.expect(!summary.reset_assert_requested);
-    try std.testing.expect(!summary.hardware_running_before_remove);
-    try std.testing.expect(!summary.hardware_running_after_remove);
-    try std.testing.expect(summary.interrupt_pending_before_remove);
-    try std.testing.expect(!summary.interrupt_pending_after_remove);
-    try std.testing.expect(!summary.remove_leaves_hardware_running);
-    try std.testing.expectEqual(RemoveTeardownState.idle_remove, summary.state);
+    var remove_stoppable = try dw_wdt.DwWdtLab.initFixedTops(9, true);
+    _ = try remove_stoppable.start();
+    try remove_stoppable.setInterruptPending(true);
+    const remove_summary = remove_stoppable.removeSummary();
+    try testing.expect(remove_summary.reset_assert_requested);
+    try testing.expect(remove_summary.hardware_running_before_remove);
+    try testing.expect(!remove_summary.hardware_running_after_remove);
+    try testing.expect(!remove_summary.running_after_remove);
+    try testing.expect(!remove_summary.interrupt_pending_after_remove);
+    try testing.expect(!remove_summary.remove_leaves_hardware_running);
 }
