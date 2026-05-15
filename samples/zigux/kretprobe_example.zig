@@ -240,7 +240,6 @@ pub const KretprobeExampleSample = struct {
         var double_init_rejected = false;
         self.init() catch |err| switch (err) {
             error.InvalidLifecycleTransition => double_init_rejected = true,
-            else => return err,
         };
 
         var post_init_retarget_rejected = false;
@@ -289,12 +288,14 @@ pub const KretprobeExampleSample = struct {
         };
 
         var invalid_timestamp_order_rejected = false;
-        _ = self.retHandler(9, 199) catch |err| switch (err) {
-            error.InvalidTimestampOrder => {
-                invalid_timestamp_order_rejected = true;
-                return 0;
-            },
-            else => return err,
+        _ = self.retHandler(9, 199) catch |err| blk: {
+            switch (err) {
+                error.InvalidTimestampOrder => {
+                    invalid_timestamp_order_rejected = true;
+                    break :blk 0;
+                },
+                else => return err,
+            }
         };
 
         const recovered_duration_ns = try self.retHandler(9, 260);
@@ -303,7 +304,6 @@ pub const KretprobeExampleSample = struct {
         var post_exit_entry_rejected = false;
         _ = self.entryHandler(false, 300) catch |err| switch (err) {
             error.InvalidLifecycleTransition => post_exit_entry_rejected = true,
-            else => return err,
         };
 
         var post_exit_ret_rejected = false;
@@ -344,4 +344,50 @@ test "phase5 kretprobe anchor replay keeps the bounded return-probe cues explici
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
     try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
+}
+
+test "phase5 kretprobe helper replays keep the retarget, lifecycle, ownership, and recovery packet executable" {
+    {
+        var sample = KretprobeExampleSample{};
+        const replay = try sample.runRetargetReplay("do_sys_openat2");
+        try std.testing.expect(replay.rejected_empty_symbol);
+        try std.testing.expect(replay.rejected_post_init_retarget);
+        try std.testing.expectEqualStrings("do_sys_openat2", replay.symbol_name);
+        try std.testing.expectEqual(SampleStage.initialized, replay.stage_after_init);
+    }
+
+    {
+        var sample = KretprobeExampleSample{};
+        const replay = try sample.runLifecycleGuardReplay();
+        try std.testing.expect(replay.pre_init_anchor_rejected);
+        try std.testing.expect(replay.pre_init_exit_rejected);
+        try std.testing.expect(replay.double_init_rejected);
+        try std.testing.expect(replay.post_init_retarget_rejected);
+        try std.testing.expectEqual(SampleStage.initialized, replay.stage_after_checks);
+    }
+
+    {
+        var sample = KretprobeExampleSample{};
+        const replay = try sample.runOwnershipReplay();
+        try std.testing.expectEqual(SampleStage.cold, replay.cold.stage);
+        try std.testing.expectEqual(SampleStage.initialized, replay.initialized.stage);
+        try std.testing.expectEqual(SampleStage.armed, replay.armed.stage);
+        try std.testing.expectEqual(SampleStage.replay_complete, replay.replay_complete.stage);
+        try std.testing.expectEqual(SampleStage.exited, replay.exited.stage);
+        try std.testing.expectEqual(@as(usize, 1), replay.armed.active_instances);
+        try std.testing.expect(replay.armed.entry_timestamp_armed);
+        try std.testing.expectEqual(@as(i64, 75), replay.replay_complete.last_duration_ns);
+        try std.testing.expectEqual(@as(i64, 75), replay.exited.last_duration_ns);
+    }
+
+    {
+        var sample = KretprobeExampleSample{};
+        const replay = try sample.runRecoveryReplay();
+        try std.testing.expect(replay.outstanding_instance_exit_rejected);
+        try std.testing.expect(replay.invalid_timestamp_order_rejected);
+        try std.testing.expectEqual(@as(i64, 60), replay.recovered_duration_ns);
+        try std.testing.expect(replay.post_exit_entry_rejected);
+        try std.testing.expect(replay.post_exit_ret_rejected);
+        try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    }
 }
