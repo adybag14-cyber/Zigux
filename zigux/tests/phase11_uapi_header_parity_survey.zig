@@ -240,6 +240,11 @@ test "phase11 shared header parity survey keeps the exported hvc header declarat
     const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 64 * 1024);
     defer std.testing.allocator.free(hvc_header);
 
+    try expectContains(hvc_header, "struct winsize {");
+    try expectContains(hvc_header, "uint16_t ws_row;");
+    try expectContains(hvc_header, "uint16_t ws_col;");
+    try expectContains(hvc_header, "uint16_t ws_xpixel;");
+    try expectContains(hvc_header, "uint16_t ws_ypixel;");
     try expectContains(hvc_header, "struct hv_ops {");
     try expectContains(hvc_header, "int (*get_chars)(uint32_t vtermno, char *buf, int count);");
     try expectContains(hvc_header, "int (*put_chars)(uint32_t vtermno, const char *buf, int count);");
@@ -252,6 +257,8 @@ test "phase11 shared header parity survey keeps the exported hvc header declarat
     try expectContains(hvc_header, "void (*dtr_rts)(struct hvc_struct *hp, bool active);");
     try expectContains(hvc_header, "MAX_NR_HVC_CONSOLES");
     try expectContains(hvc_header, "HVC_ALLOC_TTY_ADAPTERS");
+    try expectContains(hvc_header, "#define MAX_NR_HVC_CONSOLES 16");
+    try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS 1U");
     try expectContains(hvc_header, "extern int hvc_instantiate(uint32_t vtermno, int index,");
     try expectContains(hvc_header, "extern struct hvc_struct * hvc_alloc(uint32_t vtermno, int data,");
     try expectContains(hvc_header, "extern void hvc_remove(struct hvc_struct *hp);");
