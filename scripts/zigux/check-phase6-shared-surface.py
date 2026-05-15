@@ -63,10 +63,11 @@ EXPECTED_PACKET_STATE_SUMMARY = {
 EXPECTED_SHARED_ROUTE_NOTE = (
     "base64, bsearch, checksum, and hexdump now keep committed helper-local or direct "
     "review surfaces on current `master`, while the Linux-style `zigux/Makefile` "
-    "inventory still advertises `phase6-base64-perf`, `phase6-checksum-perf`, "
-    "`phase6-perf`, and `phase6` as wrapper names without committed target bodies "
-    "and the bootstrap workflow still reruns only the shared surface checkers, the "
-    "base64 C parity packet, the bsearch packet, and the hexdump perf gate."
+    "inventory still advertises `phase6-base64-perf`, `phase6-perf`, and `phase6` as "
+    "wrapper names without committed target bodies, `phase6-checksum-perf` now reruns "
+    "through a committed Linux-style target body, and the bootstrap workflow still "
+    "reruns only the shared surface checkers, the base64 C parity packet, the bsearch "
+    "packet, and the hexdump perf gate."
 )
 
 REQUIRED_SHARED_GATES = {
@@ -127,6 +128,7 @@ REQUIRED_EXACT_CHECKS = {
     "python3 scripts/zigux/check-phase6-present-entrypoints.py",
     "python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test",
     "make -C zigux phase6-bsearch-test",
+    "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-hexdump-test",
     "make -C zigux phase6-hexdump-perf",
     "make -C zigux phase6-hexdump-review",
@@ -137,7 +139,6 @@ EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES = {
     "make -C zigux phase6-base64-c-parity",
     "make -C zigux phase6-base64-perf",
     "make -C zigux phase6-checksum-c-parity",
-    "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-validate",
     "make -C zigux phase6-perf",
     "make -C zigux phase6",
@@ -153,19 +154,22 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- focused helper replay on current `master`: `zigux/tests/phase6_checksum.zig`",
     "- dedicated helper-local perf replay on current `master`: `zigux/tests/phase6_checksum_perf.zig`",
     "- focused checksum fixture companion on current `master`: `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
-    "- current review posture: the checksum helper-owned packet is directly readable on current `master`, while the broader shared route inventory stays partially blocked only because the Linux-style wrapper surfaces and bootstrap workflow still lag those direct checksum build routes",
-    "- current blocked-route posture: the helper-local checksum replay and slowdown gate are now directly readable through `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, and `zigux/tests/phase6_build.zig`, but the Linux-style wrapper inventory in `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` still treats `phase6-checksum-perf` as documentary shared-route evidence",
+    "- direct Linux-style perf rerun route: `make -C zigux phase6-checksum-perf`",
+    "- current review posture: the checksum helper-owned packet is directly readable on current `master`, while the broader shared route inventory stays partially blocked only because the aggregate wrappers and bootstrap workflow still lag the restored checksum perf wrapper",
     "### hexdump",
     "- direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
     "- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet, `16B-plain-g1`, `32B-ascii-g2`, `16B-ascii-g4`, and `16B-ascii-g8`, with helper-local caps of `175`, `550`, `550`, and `600`",
-}
+    "- `make -C zigux phase6-checksum-perf`",
+    "- current blocked-route posture: the helper-local checksum replay and slowdown gate are now directly readable through `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, and `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now exposes a committed `phase6-checksum-perf` target body, but the bootstrap workflow plus the aggregate `phase6-validate`, `phase6-perf`, and `phase6` route inventory still lag that restored checksum wrapper",
+    "- current shared-lane posture: the broader `phase6-base64-perf`, `phase6-validate`, `phase6-perf`, and `phase6` wrappers remain part of the shared route inventory, but the directly readable base64 and checksum build steps in `zigux/tests/phase6_build.zig` plus the committed `phase6-checksum-perf` Linux-style route now carry the current helper-local perf gates while the remaining wrapper surfaces continue to lag",
+]
 
 REQUIRED_BASE64_SLICE_SNIPPETS = [
     "- current `master` still keeps the direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- present direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- direct local C parity checker route: `python3 scripts/zigux/check-phase6-base64-c-parity.py`",
     "- built-in parity-script self-test route: `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test`",
-}
+]
 
 REQUIRED_BSEARCH_SLICE_SNIPPETS = [
     "- `PHASE6_SLICE=bsearch-leaf-helper`",
@@ -193,15 +197,17 @@ REQUIRED_BSEARCH_SLICE_SNIPPETS = [
     "The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains helper-local support inside that packet today: `phase6_bsearch.zig` still imports it for representative ascending and descending raw-array reuse, and the bounds-focused plus direct C ABI budget replays still reuse its dynamic-length and packed-record seed corpus.",
     "Reviewers should treat that fixture as compact shared packet support rather than as a separate standalone timing-style route.",
     "the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable`, while the direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` wrappers hand those typed slice and raw byte views back without forcing callers to peel `IndexRange` apart by hand or widening Phase 6 into a separate fixture or routing packet.",
-}
+]
 
 REQUIRED_CHECKSUM_SLICE_SNIPPETS = [
     "- `PHASE6_STATUS=parked_reviewable`",
     "- current `master` keeps `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+    "- current routed build packet now defines checksum helper and perf steps in `zigux/tests/phase6_build.zig`, while `zigux/Makefile` now exposes a committed `phase6-checksum-perf` target body and still advertises only `phase6-checksum-c-parity` as a phony route without a corresponding target body",
     "- direct focused perf route: `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`",
-    "- route nuance note: the checksum helper-owned replay and slowdown gate are readable from the committed helper packet again, but the shared `zigux/Makefile` and workflow surfaces still need their own route-truthfulness follow-up before reviewers should treat those wrappers as equivalent packet summaries",
-    "- current review posture: parked reviewable; the checksum roadmap anchor now keeps the helper-owned replay, slowdown gate, and direct C parity scaffolding readable on current `master`, while the remaining gap has narrowed to shared route inventory truthfulness rather than a missing checksum helper packet",
-}
+    "- direct Linux-style perf route: `make -C zigux phase6-checksum-perf`",
+    "- route nuance note: the checksum helper-owned replay, slowdown gate, and Linux-style perf wrapper are readable from the committed helper packet again, but the aggregate `zigux/Makefile` and workflow surfaces still need their own route-truthfulness follow-up before reviewers should treat the broader `phase6-validate`, `phase6-perf`, and `phase6` wrappers as equivalent packet summaries",
+    "- current review posture: parked reviewable; the checksum roadmap anchor now keeps the helper-owned replay, slowdown gate, direct C parity scaffolding, aligned IPv4 fast-path helper proof, and Linux-style perf wrapper readable on current `master`, while the remaining gap has narrowed to aggregate shared-route inventory truthfulness rather than a missing checksum helper packet",
+]
 
 REQUIRED_HEXDUMP_SLICE_SNIPPETS = [
     "- `PHASE6_STATUS=parked_reviewable`",
@@ -215,7 +221,7 @@ REQUIRED_HEXDUMP_SLICE_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf`",
     "- `make -C zigux phase6-hexdump-review`",
     "- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet, `16B-plain-g1`, `32B-ascii-g2`, `16B-ascii-g4`, and `16B-ascii-g8`, with helper-local caps of `175`, `550`, `550`, and `600`",
-}
+]
 
 REQUIRED_PERF_SURVEY_SNIPPETS = [
     "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig`, not a separate wall-clock perf harness",
@@ -223,7 +229,7 @@ REQUIRED_PERF_SURVEY_SNIPPETS = [
     "* checksum exact thresholds: `zigux/tests/phase6_checksum_perf.zig` now keeps two helper-local slowdown cases, `64` at `reps = 20_000` and `1501` at `reps = 4_000`, each capped at `max_slowdown_pct = 150`, so the checksum perf packet is reviewable from committed evidence today even while the Linux-style wrapper inventory still lags that direct build route",
     "* hexdump shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and the committed `phase6-hexdump-perf` plus `phase6-hexdump-review` target bodies in `zigux/Makefile`",
     "* hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
-}
+]
 
 REQUIRED_BUILD_SNIPPETS = [
     'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
@@ -231,11 +237,13 @@ REQUIRED_BUILD_SNIPPETS = [
     'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
     "hexdump_perf_step.dependOn(&run_hexdump_perf_matrix_tests.step);",
     "hexdump_perf_step.dependOn(&run_hexdump_perf.step);",
-}
+]
 
 REQUIRED_MAKEFILE_SNIPPETS = [
     "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
-}
+    "phase6-checksum-perf:",
+    '	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig',
+]
 
 REQUIRED_WORKFLOW_SNIPPETS = [
     "- name: Self-test Phase 6 shared-surface checker",
@@ -243,17 +251,17 @@ REQUIRED_WORKFLOW_SNIPPETS = [
     "- name: Self-test Phase 6 checksum C parity checker",
     "- name: Run Phase 6 bsearch focused packet",
     "- name: Run Phase 6 hexdump perf gate",
-}
+]
 
 ABSENT_WORKFLOW_SNIPPETS = [
     "- name: Run Phase 6 checksum perf gate",
-}
+]
 
 REQUIRED_PRESENT_ENTRYPOINTS_SNIPPETS = [
     'EXPECTED_HEXDUMP_PACKET_CHECKER = HEXDUMP_CHECKER_PATH.as_posix()',
     'EXPECTED_HEXDUMP_PERF_REFRESH = HEXDUMP_PERF_REFRESH_PATH.as_posix()',
     'raise ValidationError(f"missing hexdump helper row in {MANIFEST_PATH.as_posix()}")',
-}
+]
 
 
 def read_text(path: Path) -> str:
@@ -693,6 +701,12 @@ def run_self_test() -> None:
             PRESENT_ENTRYPOINTS_CHECKER_PATH,
             'EXPECTED_HEXDUMP_PACKET_CHECKER = HEXDUMP_CHECKER_PATH.as_posix()',
             'EXPECTED_HEXDUMP_PACKET_CHECKER = "scripts/zigux/check-phase6-hexdump-review.py"',
+        )
+        assert_failure(
+            root,
+            MAKEFILE_PATH,
+            "phase6-checksum-perf:",
+            "phase6-checksum-perf-missing:",
         )
         assert_failure(
             root,
