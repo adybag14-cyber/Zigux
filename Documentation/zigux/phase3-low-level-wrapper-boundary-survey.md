@@ -30,6 +30,7 @@ The direct helper files plus the focused replay keep that surface explicit.
 - `zigux/tests/phase3_low_level_wrappers_build.zig` is the focused build route that lets this packet stay reviewable without reopening the broader `zigux/tests/build.zig` lane.
 
 Current `master` no longer treats `zigux/helpers/mmio.zig` as declarations-only support for the focused replay. The helper file itself now ships direct MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate replays, while `zigux/tests/phase3_low_level_wrappers.zig` remains the shared cross-helper route that keeps those already-landed MMIO calls visible beside the atomic, barrier, raw-pointer, allocator, and panic consumers.
+The same helper-local MMIO packet now also keeps stride-indexed access replays through `readIndex()` and `writeIndex()` explicit in `zigux/helpers/mmio.zig` instead of leaving that direct-access slice visible only through the focused route.
 
 ## Adjacent Packet Boundary
 
@@ -65,6 +66,7 @@ The current helper-and-replay packet shows that the shipped direct wrapper surfa
 - direct MMIO width, alignment, and odd-offset behavior in the focused test route
 - helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage in `zigux/helpers/mmio.zig`
 - helper-local MMIO stride-boundary and typed-index coverage in `zigux/helpers/mmio.zig` through `containsOffset`, `containsAccess`, `offsetForIndex`, and `typedOffsetForIndex`
+- helper-local MMIO stride-indexed access coverage in `zigux/helpers/mmio.zig` through `readIndex` and `writeIndex`
 - non-`seq_cst` ordering coverage and signed atomic edges in the focused test route
 - barrier-locality and handoff replays
 
