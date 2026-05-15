@@ -549,6 +549,21 @@ test "phase 7 rbtree eraseLinked clears detached linked ownership state and reco
     try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[2].linked.next);
     try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[0].linked), root.leftmost);
     try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[0].linked.prev);
+
+    try std.testing.expect(rbtree.eraseLinked(&entries[0].linked, &root));
+    try std.testing.expect(rbtree.emptyNode(&entries[0].linked.node));
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[0].linked.prev);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[0].linked.next);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[1].linked), root.leftmost);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[1].linked.prev);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[1].linked.next);
+
+    try std.testing.expect(!rbtree.eraseLinked(&entries[1].linked, &root));
+    try std.testing.expect(rbtree.emptyNode(&entries[1].linked.node));
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[1].linked.prev);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[1].linked.next);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), root.leftmost);
+    try std.testing.expect(rbtree.emptyRoot(&root.root));
 }
 
 test "phase 7 rbtree find helpers walk duplicate-key ranges" {
