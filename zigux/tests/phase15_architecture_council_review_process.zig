@@ -101,6 +101,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expectEqualStrings("replay command", manifest.required_review_packet_fields[13]);
     try std.testing.expectEqualStrings("rollback threshold", manifest.required_review_packet_fields[14]);
     try std.testing.expectEqualStrings("trigger-specific evidence refresh", manifest.required_review_packet_fields[17]);
+    try std.testing.expectEqualStrings("parity scorecard link or blocker record", manifest.required_review_packet_fields[18]);
     try std.testing.expectEqualStrings("indefinite-C policy link or non-applicability note", manifest.required_review_packet_fields[19]);
     try std.testing.expectEqualStrings("narrower_followup_answers_blocker", manifest.reopen_trigger_catalog[0]);
     try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", manifest.reopen_trigger_catalog[1]);
