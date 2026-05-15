@@ -212,7 +212,7 @@ test "phase12 virtio net survey note stays aligned with the bounded queue-resume
     const manifest = parsed.value;
 
     try std.testing.expectEqualStrings("2026-05-15", manifest.verified_on);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-transmit-recycle-followup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-queue-resume-transmit-recycle-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `drivers/net/virtio_net.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now also carries `drivers/net/virtio_net_queue_resume.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now also carries `drivers/net/virtio_net_transmit_recycle.zig`") != null);
