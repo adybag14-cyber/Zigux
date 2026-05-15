@@ -37,6 +37,49 @@ test "phase11 bcm2835 watchdog replay keeps probe ownership and poweroff conflic
     try std.testing.expect(!conflicting.sets_hw_running_bit);
 }
 
+test "phase11 bcm2835 watchdog replay keeps platform handoff readiness and poweroff claim blocking explicit" {
+    const ready = try bcm2835_wdt.summarizePlatformHandoff(.{
+        .heartbeat_sec = 8,
+        .nowayout = true,
+        .bootloader_running = true,
+        .system_power_controller = true,
+        .poweroff_handler_present = false,
+        .parent_attached = true,
+        .pm_base_present = true,
+    });
+    try std.testing.expectEqualStrings(bcm2835_wdt.anchor_path, ready.anchor);
+    try std.testing.expect(ready.parent_attached);
+    try std.testing.expect(ready.parent_supplies_pm_base);
+    try std.testing.expect(ready.pm_base_required);
+    try std.testing.expect(ready.pm_base_handoff_ready);
+    try std.testing.expect(ready.timeout_init_requested);
+    try std.testing.expect(ready.register_device_requested);
+    try std.testing.expect(ready.stop_on_reboot_requested);
+    try std.testing.expect(ready.poweroff_handler_claimed);
+    try std.testing.expect(!ready.poweroff_handler_conflict);
+    try std.testing.expect(ready.blocked_on_live_platform_registration);
+
+    const blocked = try bcm2835_wdt.summarizePlatformHandoff(.{
+        .heartbeat_sec = 8,
+        .nowayout = false,
+        .bootloader_running = false,
+        .system_power_controller = true,
+        .poweroff_handler_present = true,
+        .parent_attached = true,
+        .pm_base_present = false,
+    });
+    try std.testing.expect(blocked.parent_attached);
+    try std.testing.expect(!blocked.parent_supplies_pm_base);
+    try std.testing.expect(blocked.pm_base_required);
+    try std.testing.expect(!blocked.pm_base_handoff_ready);
+    try std.testing.expect(blocked.timeout_init_requested);
+    try std.testing.expect(!blocked.register_device_requested);
+    try std.testing.expect(blocked.stop_on_reboot_requested);
+    try std.testing.expect(!blocked.poweroff_handler_claimed);
+    try std.testing.expect(!blocked.poweroff_handler_conflict);
+    try std.testing.expect(blocked.blocked_on_live_platform_registration);
+}
+
 test "phase11 bcm2835 watchdog replay keeps start stop restart and poweroff lifecycle explicit" {
     var watchdog = try bcm2835_wdt.Bcm2835WdtLab.init(5);
 
