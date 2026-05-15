@@ -43,6 +43,17 @@ These shared surfaces keep the Phase 11 packet reviewable as a reminder-and-chec
 * no shared `make -C zigux phase11-validate` target on `master`
 * the shared packet currently uses the shipped `check-phase11-*.py` reminder scripts together with the materialized build-backed replay files and the landed inventory fixture rather than a broader validator stack
 
+## Exact Current Checks
+
+These are the exact bounded checks that keep the current shared packet deterministic and reviewable:
+
+* shared reminder packet self-tests: `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`, `python3 scripts/zigux/check-phase11-shared-summary-surfaces.py --self-test`, and `python3 scripts/zigux/check-phase11-build-inventory.py --self-test`
+* shared reminder packet live route: `make -C zigux phase11-contract`
+* shared build replay: `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+* dedicated HVC archival packet self-test and live checker: `python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-survey-packet.py`
+* dedicated HVC archival replay route: `make -C zigux phase11-hvc-survey`
+* aggregate wrapper: `make -C zigux phase11`
+
 ## Driver-Local Evidence That Still Stays Beside The Shared Route
 
 The dedicated archival HVC evidence still stays explicit beside that shared route:
