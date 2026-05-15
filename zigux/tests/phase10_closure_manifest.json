@@ -128,7 +128,7 @@
       "core": "P10-L01",
       "ring": "P10-L10",
       "input": "P10-L13",
-      "mmio": "P10-L10"
+      "mmio": "P10-L11"
     },
     "surveyed_commits": {
       "core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
