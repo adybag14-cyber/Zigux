@@ -8,17 +8,12 @@ pub const Action = enum {
 };
 
 pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.PanicMode {
-    if (reserved != 0) return null;
-    return switch (mode) {
-        @intFromEnum(abi.PanicMode.abort) => .abort,
-        @intFromEnum(abi.PanicMode.bug) => .bug,
-        @intFromEnum(abi.PanicMode.warn) => .warn,
-        else => null,
-    };
+    const decoded = abi.decodeInteropPolicyBytes(mode, abi.ALLOC_CALLER_PROVIDED, abi.UNSAFE_NONE, reserved) orelse return null;
+    return decoded.panic_mode;
 }
 
 pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.PanicMode {
-    return modeFromInteropPolicyBytes(policy.panic_mode, policy.reserved);
+    return (abi.decodeInteropPolicy(policy) orelse return null).panic_mode;
 }
 
 pub fn modeFromByte(mode: u8) ?abi.PanicMode {
