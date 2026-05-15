@@ -259,6 +259,7 @@ MARKERS = {
         "PHASE10_STATUS=parked",
         "PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport",
         "fifteen dedicated Phase 10 virtio test or survey files under `zigux/tests/`",
+        "phase10-mmio-feature-negotiation-summary-helper",
         "phase10-mmio-transport-identity-helper",
         "phase10-mmio-config-write-disposition-helper",
         "phase10-mmio-probe-preflight-helper",
@@ -324,6 +325,7 @@ EXPECTED_GAPS = {
     "phase10-mmio-queue-size-helper": "starter_landed",
     "phase10-virtio-mmio-slice-note": "starter_landed",
     "phase10-mmio-feature-word-selector-helper": "starter_landed",
+    "phase10-mmio-feature-negotiation-summary-helper": "starter_landed",
     "phase10-mmio-config-window-helper": "starter_landed",
     "phase10-mmio-config-write-plan-helper": "starter_landed",
     "phase10-mmio-transport-identity-helper": "starter_landed",
@@ -470,6 +472,20 @@ def run_self_test() -> int:
                 raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
             case_count += 1
 
+        def run_feature_negotiation_manifest_case() -> None:
+            nonlocal case_count
+            manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            for gap in manifest["gaps"]:
+                if gap["id"] == "phase10-mmio-feature-negotiation-summary-helper":
+                    gap["status"] = "repo_reality_gap"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            _, markers = validate(root)
+            expected = "manifest:gap_status:phase10-mmio-feature-negotiation-summary-helper='repo_reality_gap'"
+            if expected not in markers:
+                raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
+            case_count += 1
+
         drift_cases = [
             (
                 "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
@@ -537,6 +553,7 @@ def run_self_test() -> int:
             run_missing_case(rel_path, old, new, expected)
 
         run_manifest_case()
+        run_feature_negotiation_manifest_case()
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
     print(f"PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT={case_count}")
