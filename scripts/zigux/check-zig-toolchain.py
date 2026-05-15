@@ -15,7 +15,8 @@ ARCHIVE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 FALLBACK_MIN_VERSION = "0.16.0"
-EXPECTED_SELF_TEST_CASE_COUNT = 40
+EXPECTED_SELF_TEST_CASE_COUNT = 46
+ARCHIVE_CACHE_DIRNAME = "archives"
 
 
 @dataclass(frozen=True, order=True)
@@ -114,6 +115,17 @@ def resolve_archive_target(
     raise ValueError("archive target must be specified when multiple archive digests exist in the toolchain policy")
 
 
+def resolve_default_archive_target(policy_path: Path = TOOLCHAIN_POLICY) -> str | None:
+    digests = load_policy_archive_digests(policy_path)
+    if len(digests) == 1:
+        return next(iter(digests))
+    return None
+
+
+def infer_archive_suffix(target_key: str) -> str:
+    return ".zip" if target_key.rsplit("-", 1)[-1] == "windows" else ".tar.xz"
+
+
 def calculate_sha256(path: Path) -> str:
     sha256 = hashlib.sha256()
     with path.open("rb") as fh:
@@ -162,6 +174,44 @@ def iter_repo_local_zig_candidates(
             add_candidate(child / "zig")
             add_candidate(child / "bin" / "zig")
     return candidates
+
+
+def iter_repo_local_archive_candidates(
+    *,
+    root: Path = ROOT,
+    pinned_channel: str | None = None,
+    archive_target: str | None = None,
+) -> list[Path]:
+    if pinned_channel is None or archive_target is None:
+        return []
+
+    toolchain_root = root / ".zig-toolchain"
+    archive_name = f"zig-{archive_target}-{pinned_channel}{infer_archive_suffix(archive_target)}"
+    candidates: list[Path] = []
+
+    def add_candidate(path: Path) -> None:
+        if path not in candidates:
+            candidates.append(path)
+
+    add_candidate(toolchain_root / ARCHIVE_CACHE_DIRNAME / archive_name)
+    add_candidate(toolchain_root / archive_name)
+    return candidates
+
+
+def resolve_repo_local_archive(
+    *,
+    root: Path = ROOT,
+    pinned_channel: str | None = None,
+    archive_target: str | None = None,
+) -> Path | None:
+    for candidate in iter_repo_local_archive_candidates(
+        root=root,
+        pinned_channel=pinned_channel,
+        archive_target=archive_target,
+    ):
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 def resolve_zig_executable(
@@ -311,6 +361,7 @@ def run_self_test() -> int:
         expect_equal(load_pinned_channel(policy_path), None)
         expect_equal(load_policy_archive_sha256(policy_path, "x86_64-linux"), None)
         expect_equal(resolve_archive_target(policy_path=policy_path), None)
+        expect_equal(resolve_default_archive_target(policy_path=policy_path), None)
         policy_path.write_text(
             '{"channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"}}\n',
             encoding="utf-8",
@@ -321,6 +372,7 @@ def run_self_test() -> int:
         expect_equal(load_policy_archive_sha256(policy_path, "aarch64-linux"), None)
         expect_equal(resolve_archive_target(policy_path=policy_path), "x86_64-linux")
         expect_equal(resolve_archive_target("aarch64-linux", policy_path=policy_path), "aarch64-linux")
+        expect_equal(resolve_default_archive_target(policy_path=policy_path), "x86_64-linux")
         toolchain_dir = root / ".zig-toolchain" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
         toolchain_dir.mkdir(parents=True)
         pinned_zig = toolchain_dir / "zig"
@@ -345,7 +397,27 @@ def run_self_test() -> int:
             '{"channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + expected_archive_sha256 + '"}}\n',
             encoding="utf-8",
         )
+        cached_archive = root / ".zig-toolchain" / ARCHIVE_CACHE_DIRNAME / archive_path.name
+        cached_archive.parent.mkdir(parents=True)
+        cached_archive.write_bytes(b"zigux-archive")
+        expect_equal(
+            iter_repo_local_archive_candidates(
+                root=root,
+                pinned_channel="0.17.0-dev.87+9b177a7d2",
+                archive_target="x86_64-linux",
+            ),
+            [cached_archive, root / ".zig-toolchain" / archive_path.name],
+        )
+        expect_equal(
+            resolve_repo_local_archive(
+                root=root,
+                pinned_channel="0.17.0-dev.87+9b177a7d2",
+                archive_target="x86_64-linux",
+            ),
+            cached_archive,
+        )
         expect_equal(verify_archive_sha256(archive_path, expected_archive_sha256), expected_archive_sha256)
+        expect_equal(verify_archive_sha256(cached_archive, expected_archive_sha256), expected_archive_sha256)
         expect_raises(lambda: verify_archive_sha256(archive_path, "0" * 64), "zig archive sha256 mismatch")
         expect_raises(lambda: verify_archive_sha256(root / "missing.tar.xz", expected_archive_sha256), "zig archive not found")
         policy_path.write_text('{"minimum_version":7,"channel":"0.17.0-dev.87+9b177a7d2"}\n', encoding="utf-8")
@@ -353,6 +425,7 @@ def run_self_test() -> int:
         policy_path.write_text('{"minimum_version":"0.17.0-dev.87+9b177a7d2","channel":7}\n', encoding="utf-8")
         expect_raises(lambda: load_pinned_channel(policy_path), "invalid channel")
         expect_raises(lambda: resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: None), "invalid channel")
+        expect_equal(resolve_default_archive_target(policy_path=policy_path), None)
         policy_path.write_text('{"minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":7}\n', encoding="utf-8")
         expect_raises(lambda: load_policy_archive_sha256(policy_path, "x86_64-linux"), "invalid archive_sha256")
         policy_path.write_text('{"minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"short"}}\n', encoding="utf-8")
@@ -461,6 +534,16 @@ def main() -> int:
                 raise ValueError(f"toolchain policy does not define archive sha256 for target {archive_target}")
             actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)
             archive_status = "verified"
+        elif args.min_version is None:
+            archive_target = resolve_default_archive_target()
+            expected_archive_sha256 = load_policy_archive_sha256(TOOLCHAIN_POLICY, archive_target)
+            archive_path = resolve_repo_local_archive(
+                pinned_channel=expected_channel_raw,
+                archive_target=archive_target,
+            )
+            if archive_path is not None and expected_archive_sha256 is not None:
+                actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)
+                archive_status = "verified"
     except ValueError as exc:
         print("ZIG_TOOLCHAIN_STATUS=invalid")
         print(f"ZIG_TOOLCHAIN_PATH={zig or 'unresolved'}")
