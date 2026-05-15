@@ -65,9 +65,15 @@ PHASE12_VIRTIO_NET_DRIVER_PATH = "drivers/net/virtio_net.zig"
 PHASE12_VIRTIO_NET_TRANSMIT_RECYCLE_DRIVER_PATH = (
     "drivers/net/virtio_net_transmit_recycle.zig"
 )
+PHASE12_VIRTIO_NET_QUEUE_RESUME_DRIVER_PATH = (
+    "drivers/net/virtio_net_queue_resume.zig"
+)
 PHASE12_VIRTIO_NET_TEST_PATH = "zigux/tests/phase12_virtio_net.zig"
 PHASE12_VIRTIO_NET_TRANSMIT_RECYCLE_TEST_PATH = (
     "zigux/tests/phase12_virtio_net_transmit_recycle.zig"
+)
+PHASE12_VIRTIO_NET_QUEUE_RESUME_TEST_PATH = (
+    "zigux/tests/phase12_virtio_net_queue_resume.zig"
 )
 PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH = "zigux/tests/phase12_virtio_net_syntax_lab.zig"
 PHASE12_VIRTIO_NET_MANIFEST_PATH = "zigux/tests/phase12_virtio_net_manifest.json"
@@ -118,8 +124,10 @@ REQUIRED_FILES = [
     PHASE12_VIRTIO_NET_SURVEY_NOTE_PATH,
     PHASE12_VIRTIO_NET_DRIVER_PATH,
     PHASE12_VIRTIO_NET_TRANSMIT_RECYCLE_DRIVER_PATH,
+    PHASE12_VIRTIO_NET_QUEUE_RESUME_DRIVER_PATH,
     PHASE12_VIRTIO_NET_TEST_PATH,
     PHASE12_VIRTIO_NET_TRANSMIT_RECYCLE_TEST_PATH,
+    PHASE12_VIRTIO_NET_QUEUE_RESUME_TEST_PATH,
     PHASE12_VIRTIO_NET_SYNTAX_LAB_PATH,
     PHASE12_VIRTIO_NET_MANIFEST_PATH,
     PHASE12_VIRTIO_NET_SURVEY_PATH,
@@ -354,8 +362,10 @@ MAKEFILE_MARKERS = [
 PHASE12_BUILD_MARKERS = [
     '../../drivers/net/virtio_net.zig',
     '../../drivers/net/virtio_net_transmit_recycle.zig',
+    '../../drivers/net/virtio_net_queue_resume.zig',
     '"phase12_virtio_net.zig"',
     '"phase12_virtio_net_transmit_recycle.zig"',
+    '"phase12_virtio_net_queue_resume.zig"',
     '"phase12_virtio_net_syntax_lab.zig"',
     '"phase12_virtio_scsi.zig"',
     '"phase12_virtio_scsi_syntax_lab.zig"',
@@ -364,6 +374,7 @@ PHASE12_BUILD_MARKERS = [
     '"phase12_virtio_scsi_packet.zig"',
     '.name = "phase12-virtio-net-tests"',
     '.name = "phase12-virtio-net-transmit-recycle-tests"',
+    '.name = "phase12-virtio-net-queue-resume-tests"',
     '.name = "phase12-virtio-net-syntax-lab-tests"',
     '.name = "phase12-virtio-scsi-tests"',
     '.name = "phase12-virtio-scsi-syntax-lab-tests"',
@@ -372,6 +383,7 @@ PHASE12_BUILD_MARKERS = [
     '.name = "phase12-virtio-scsi-packet-tests"',
     'run_virtio_net_contract_tests.setCwd(b.path("../.."));',
     'run_virtio_net_transmit_recycle_tests.setCwd(b.path("../.."));',
+    'run_virtio_net_queue_resume_tests.setCwd(b.path("../.."));',
     'run_virtio_net_syntax_tests.setCwd(b.path("../.."));',
     'run_contract_tests.setCwd(b.path("../.."));',
     'run_syntax_tests.setCwd(b.path("../.."));',
@@ -381,6 +393,7 @@ PHASE12_BUILD_MARKERS = [
     'const smoke_step = b.step("smoke", "Run Phase 12 virtio syntax smoke");',
     'smoke_step.dependOn(&run_virtio_net_syntax_tests.step);',
     'smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);',
+    'smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);',
     'smoke_step.dependOn(&run_syntax_tests.step);',
     'smoke_step.dependOn(&run_repeated_replan_tests.step);',
     'smoke_step.dependOn(&run_repeated_rollback_tests.step);',
@@ -388,6 +401,7 @@ PHASE12_BUILD_MARKERS = [
     'const test_step = b.step("test", "Run Phase 12 virtio packet tests");',
     'test_step.dependOn(&run_virtio_net_contract_tests.step);',
     'test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);',
+    'test_step.dependOn(&run_virtio_net_queue_resume_tests.step);',
     'test_step.dependOn(&run_virtio_net_syntax_tests.step);',
     'test_step.dependOn(&run_contract_tests.step);',
     'test_step.dependOn(&run_syntax_tests.step);',
@@ -397,10 +411,10 @@ PHASE12_BUILD_MARKERS = [
 ]
 
 PHASE12_BUILD_EXACT_COUNTS = {
-    "b.addTest(.{": 8,
-    "setCwd(": 8,
-    "smoke_step.dependOn(": 6,
-    "test_step.dependOn(": 8,
+    "b.addTest(.{": 9,
+    "setCwd(": 9,
+    "smoke_step.dependOn(": 7,
+    "test_step.dependOn(": 9,
 }
 
 
@@ -503,6 +517,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const virtio_net_queue_resume_module = b.createModule(.{
+        .root_source_file = b.path(\"../../drivers/net/virtio_net_queue_resume.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const virtio_scsi_module = b.createModule(.{
         .root_source_file = b.path(\"../../drivers/scsi/virtio_scsi.zig\"),
         .target = target,
@@ -524,6 +544,16 @@ pub fn build(b: *std.Build) void {
     virtio_net_transmit_recycle_root_module.addImport(
         \"virtio_net_transmit_recycle\",
         virtio_net_transmit_recycle_module,
+    );
+
+    const virtio_net_queue_resume_root_module = b.createModule(.{
+        .root_source_file = b.path(\"phase12_virtio_net_queue_resume.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_queue_resume_root_module.addImport(
+        \"virtio_net_queue_resume\",
+        virtio_net_queue_resume_module,
     );
 
     const virtio_net_syntax_root_module = b.createModule(.{
@@ -581,6 +611,13 @@ pub fn build(b: *std.Build) void {
     const run_virtio_net_transmit_recycle_tests = b.addRunArtifact(virtio_net_transmit_recycle_tests);
     run_virtio_net_transmit_recycle_tests.setCwd(b.path(\"../..\"));
 
+    const virtio_net_queue_resume_tests = b.addTest(.{
+        .name = \"phase12-virtio-net-queue-resume-tests\",
+        .root_module = virtio_net_queue_resume_root_module,
+    });
+    const run_virtio_net_queue_resume_tests = b.addRunArtifact(virtio_net_queue_resume_tests);
+    run_virtio_net_queue_resume_tests.setCwd(b.path(\"../..\"));
+
     const virtio_net_syntax_tests = b.addTest(.{
         .name = \"phase12-virtio-net-syntax-lab-tests\",
         .root_module = virtio_net_syntax_root_module,
@@ -626,6 +663,7 @@ pub fn build(b: *std.Build) void {
     const smoke_step = b.step(\"smoke\", \"Run Phase 12 virtio syntax smoke\");
     smoke_step.dependOn(&run_virtio_net_syntax_tests.step);
     smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
+    smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     smoke_step.dependOn(&run_syntax_tests.step);
     smoke_step.dependOn(&run_repeated_replan_tests.step);
     smoke_step.dependOn(&run_repeated_rollback_tests.step);
@@ -634,6 +672,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step(\"test\", \"Run Phase 12 virtio packet tests\");
     test_step.dependOn(&run_virtio_net_contract_tests.step);
     test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
+    test_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     test_step.dependOn(&run_virtio_net_syntax_tests.step);
     test_step.dependOn(&run_contract_tests.step);
     test_step.dependOn(&run_syntax_tests.step);
@@ -702,9 +741,21 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        (base / PHASE12_VIRTIO_NET_QUEUE_RESUME_DRIVER_PATH).unlink()
+        expect_failure(
+            base, f"missing_file:{PHASE12_VIRTIO_NET_QUEUE_RESUME_DRIVER_PATH}"
+        )
+
+        write_fixture_tree(base)
         (base / PHASE12_VIRTIO_NET_TRANSMIT_RECYCLE_TEST_PATH).unlink()
         expect_failure(
             base, f"missing_file:{PHASE12_VIRTIO_NET_TRANSMIT_RECYCLE_TEST_PATH}"
+        )
+
+        write_fixture_tree(base)
+        (base / PHASE12_VIRTIO_NET_QUEUE_RESUME_TEST_PATH).unlink()
+        expect_failure(
+            base, f"missing_file:{PHASE12_VIRTIO_NET_QUEUE_RESUME_TEST_PATH}"
         )
 
         write_fixture_tree(base)
@@ -977,6 +1028,21 @@ def run_self_test() -> int:
         build_path = base / PHASE12_BUILD_PATH
         build_path.write_text(
             build_path.read_text(encoding="utf-8").replace(
+                'smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "phase12_build:smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
+        )
+
+        write_fixture_tree(base)
+        build_path = base / PHASE12_BUILD_PATH
+        build_path.write_text(
+            build_path.read_text(encoding="utf-8").replace(
                 'test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);\n',
                 "",
                 1,
@@ -992,16 +1058,31 @@ def run_self_test() -> int:
         build_path = base / PHASE12_BUILD_PATH
         build_path.write_text(
             build_path.read_text(encoding="utf-8").replace(
-                "const virtio_net_transmit_recycle_tests = b.addTest(.{",
-                "const virtio_net_transmit_recycle_tests = b.addExecutable(.{",
+                'test_step.dependOn(&run_virtio_net_queue_resume_tests.step);\n',
+                "",
                 1,
             ),
             encoding="utf-8",
         )
-        expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=8:actual=7")
+        expect_failure(
+            base,
+            "phase12_build:test_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
+        )
+
+        write_fixture_tree(base)
+        build_path = base / PHASE12_BUILD_PATH
+        build_path.write_text(
+            build_path.read_text(encoding="utf-8").replace(
+                "const virtio_net_queue_resume_tests = b.addTest(.{",
+                "const virtio_net_queue_resume_tests = b.addExecutable(.{",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=9:actual=8")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=36")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=41")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -1012,7 +1093,7 @@ def main() -> int:
         description=(
             "Validate the current bounded Phase 12 build-only contract around the "
             "starter-present virtio-net packet, the bounded virtio-net transmit-recycle "
-            "follow-up, the shipped virtio-scsi smoke route, the driver-local NVMe docs-root "
+            "and queue-resume follow-up, the shipped virtio-scsi smoke route, the driver-local NVMe docs-root "
             "packet, and the shared complex-driver release reminders."
         )
     )
