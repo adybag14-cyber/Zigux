@@ -149,6 +149,7 @@ REQUIRED_MANIFEST_EXACT_CHECKS = {
     "make -C zigux phase6-bsearch-test",
     "make -C zigux phase6-hexdump-review",
     "make -C zigux phase6-hexdump-perf",
+    "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
 }
 
 REQUIRED_PACKET_SUMMARY = {
@@ -172,6 +173,7 @@ MAKEFILE_PHONY = (
 
 MAKEFILE_LIVE_TARGETS = (
     "phase6-bsearch-test:",
+    "phase6-base64-perf:",
     "phase6-hexdump-test:",
     "phase6-hexdump-review:",
     "phase6-checksum-perf:",
@@ -181,7 +183,6 @@ MAKEFILE_INVENTORY_ONLY_TARGETS = (
     "phase6-validate",
     "phase6-perf",
     "phase6",
-    "phase6-base64-perf",
 )
 
 WORKFLOW_ABSENT_MARKERS = (
@@ -190,7 +191,7 @@ WORKFLOW_ABSENT_MARKERS = (
     "make -C zigux phase6-validate",
 )
 
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 6
 
 
 def read_text(path: Path) -> str:
@@ -429,6 +430,8 @@ def scaffold_repo(root: Path) -> None:
                 MAKEFILE_PHONY,
                 "phase6-bsearch-test:",
                 "\ttrue",
+                "phase6-base64-perf:",
+                "\ttrue",
                 "phase6-hexdump-test:",
                 "\ttrue",
                 "phase6-hexdump-review:",
@@ -471,6 +474,37 @@ def run_self_test() -> None:
             pass
         else:
             raise ValidationError("self-test expected marker failure did not occur")
+
+        scaffold_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"] = [
+            check
+            for check in manifest["exact_checks"]
+            if check != "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        try:
+            run_validation(root)
+        except ValidationError as exc:
+            if "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig" not in str(exc):
+                raise
+        else:
+            raise ValidationError("self-test expected base64 perf exact-check failure did not occur")
+
+        scaffold_repo(root)
+        makefile_path = root / MAKEFILE_PATH
+        makefile_path.write_text(
+            makefile_path.read_text(encoding="utf-8").replace("phase6-base64-perf:", "phase6-base64-perf-missing:", 1),
+            encoding="utf-8",
+        )
+        try:
+            run_validation(root)
+        except ValidationError as exc:
+            if "phase6-base64-perf:" not in str(exc):
+                raise
+        else:
+            raise ValidationError("self-test expected base64 perf makefile failure did not occur")
 
 
 def main() -> int:
