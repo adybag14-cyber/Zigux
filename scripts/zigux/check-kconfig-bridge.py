@@ -11,11 +11,15 @@ import sys
 import tempfile
 
 
+# Keep inline JSON-style literals in the synthetic self-test fixtures readable.
+true = True
+false = False
+
 ROOT = Path(__file__).resolve().parents[2]
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
-CONFDATA_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
+CONFDATA_BRIDGE = ROOT / "scripts" / "zigux" / "confdata_bridge.zig"
 FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
 
 REQUIRED_CONF_HELPER_ANCHORS = [
