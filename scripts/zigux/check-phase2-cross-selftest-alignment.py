@@ -14,6 +14,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
@@ -135,6 +136,16 @@ BOOTSTRAP_NOTES_CROSS_WORKFLOW_BOUNDARY_SENTENCE = (
     "but not identical routes until a later bounded follow-up adds the live checker there too"
 )
 
+DOCS_ROOT_README_BOUNDARY_SENTENCE = (
+    "the docs-root Phase 2 summary should also keep the current bootstrap-versus-cross "
+    "verification split explicit: the dedicated `phase2-cross` workflow job still reuses "
+    "the pinned installer path but stops at installer-side archive verification plus "
+    "`python3 scripts/zigux/check-phase2-cross.py --target <matrix-zig-target>`, while "
+    "the Linux-style `make -C zigux phase2-cross` route still picks up `phase2-toolchain` "
+    'and its `python3 scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"` replay through '
+    "`zigux/Makefile`."
+)
+
 CLOSURE_MARKERS = [
     "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
@@ -155,6 +166,12 @@ BOOTSTRAP_NOTES_MARKERS = [
 
 BOOTSTRAP_NOTES_FORBIDDEN_MARKERS = [
     "the direct kconfig and confdata Zig replays reviewable",
+]
+
+DOCS_ROOT_README_MARKERS = [
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    DOCS_ROOT_README_BOUNDARY_SENTENCE,
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -183,7 +200,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 40
+EXPECTED_SELF_TEST_CASE_COUNT = 42
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
@@ -702,6 +719,28 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:bootstrap_forbidden_failure")
     checks_run += 1
 
+    docs_root_readme_issues = validate_required_markers(
+        "\n".join(DOCS_ROOT_README_MARKERS),
+        label="phase2_docs_root_readme",
+        markers=DOCS_ROOT_README_MARKERS,
+    )
+    if docs_root_readme_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:docs_root_readme_marker_presence")
+    checks_run += 1
+
+    docs_root_readme_missing = validate_required_markers(
+        "\n".join(DOCS_ROOT_README_MARKERS[:-1]),
+        label="phase2_docs_root_readme",
+        markers=DOCS_ROOT_README_MARKERS,
+    )
+    expected_docs_root_issue = (
+        "phase2_docs_root_readme:missing_marker:"
+        + DOCS_ROOT_README_BOUNDARY_SENTENCE
+    )
+    if docs_root_readme_missing != [expected_docs_root_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:docs_root_readme_marker_failure")
+    checks_run += 1
+
     scripts_readme_issues = validate_required_markers(
         "\n".join(SCRIPTS_README_MARKERS),
         label="phase2_scripts_readme",
@@ -817,6 +856,7 @@ def main() -> int:
         MAKEFILE,
         CLOSURE_DOC,
         BOOTSTRAP_NOTES,
+        DOCS_ROOT_README,
         SCRIPTS_README,
         TESTS_README,
         REVIEW_CHECKLIST,
@@ -870,6 +910,13 @@ def main() -> int:
             bootstrap_text,
             label="phase2_bootstrap_notes",
             markers=BOOTSTRAP_NOTES_FORBIDDEN_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            DOCS_ROOT_README.read_text(encoding="utf-8"),
+            label="phase2_docs_root_readme",
+            markers=DOCS_ROOT_README_MARKERS,
         )
     )
     issues.extend(
