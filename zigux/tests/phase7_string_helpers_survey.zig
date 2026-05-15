@@ -68,13 +68,14 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes");
     try expectContains(helper_tests, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
     try expectContains(helper_tests, "phase 7 string helpers starter reuses the blank string-array sentinel when no names are requested");
+    try expectContains(helper_tests, "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes");
     try expectContains(helper_tests, "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result");
     try expectContains(helper_tests, "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent");
     try expectContains(helper_tests, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
     try expectContains(helper_tests, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
-    try expectContains(helper_tests, "string_helpers.string_escape_mem_any_np(&[_]u8{ '\n', 0x7f }, &alias_dst, 0, null);");
+    try expectContains(helper_tests, "string_helpers.string_escape_mem_any_np(&[_]u8{ '\\n', 0x7f }, &alias_dst, 0, null);");
     try expectContains(helper_tests, "const string_written = string_helpers.stringEscapeStr(");
-    try expectContains(helper_tests, "const any_np_written = string_helpers.string_escape_str_any_np(&[_]u8{ '\n', 0 }, &any_np_dst, 0, null);");
+    try expectContains(helper_tests, "const any_np_written = string_helpers.string_escape_str_any_np(&[_]u8{ '\\n', 0 }, &any_np_dst, 0, null);");
     try expectContains(helper_tests, "string_helpers.kasprintfStrarray(std.testing.allocator, \"phase7-helper\", 3)");
     try expectContains(helper_tests, "string_helpers.kfreeStrarray(std.testing.allocator, &first);");
     try expectContains(helper_tests, "string_helpers.kfree_strarray(std.testing.allocator, &result);");
