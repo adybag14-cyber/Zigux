@@ -58,6 +58,7 @@ test "phase11 bcm2835 survey keeps the replay and verify helpers reviewable" {
 
     try std.testing.expect(std.mem.indexOf(u8, replay, "phase11 bcm2835 watchdog replay keeps timeout helpers explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, replay, "phase11 bcm2835 watchdog replay keeps probe ownership and poweroff conflict distinct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, replay, "phase11 bcm2835 watchdog replay keeps platform handoff readiness and poweroff claim blocking explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, replay, "phase11 bcm2835 watchdog replay keeps start stop restart and poweroff lifecycle explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, verify, "phase11 bcm2835 watchdog verify keeps PM-base readiness and ownership explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, verify, "phase11 bcm2835 watchdog verify keeps poweroff ownership distinct") != null);
