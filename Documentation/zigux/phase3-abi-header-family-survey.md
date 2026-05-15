@@ -14,9 +14,11 @@ active Phase 3 ABI and interop packet.
 - `zigux/kernel/export_shim.zig`
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
+- `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase3_abi_dump.zig`
 - `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
 - `zigux/tests/fixtures/phase3_abi/expected.json`
+- `scripts/zigux/check-phase3-abi.py`
 - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
 - `scripts/zigux/validate-phase3-export-uapi-survey.py`
 - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
@@ -54,14 +56,16 @@ constant-parity packet should keep this survey explicit beside
 `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/uapi/dev_t.zig`,
 `zigux/bindings/dev_t.zig`, `zigux/bindings/abi.zig`,
-`zigux/bindings/notifier_abi.zig`, `zigux/tests/phase3_abi_dump.zig`,
+`zigux/bindings/notifier_abi.zig`, `zigux/tests/phase3_abi.zig`,
+`zigux/tests/phase3_abi_dump.zig`,
 `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`,
 `zigux/tests/fixtures/phase3_abi/expected.json`,
+`scripts/zigux/check-phase3-abi.py`,
 `scripts/zigux/validate-phase3-export-uapi-survey.py`,
 `scripts/zigux/validate-phase3-abi-bindings-syntax.py`, and
 `scripts/zigux/survey-phase3-abi-constant-parity.py`; the narrower
 `include/zigux/dev_t.h` plus `zigux/uapi/version.zig` starter-companion detail
 should stay anchored in this dedicated survey and the paired next-step note,
-while the already-listed sibling ABI companions stay explicit beside that
-dedicated packet instead of being treated as a required broad-summary repeat
-everywhere.
+while the already-listed sibling ABI companions plus the focused `phase3_abi`
+replay and checker stay explicit beside that dedicated packet instead of being
+ treated as a required broad-summary repeat everywhere.
