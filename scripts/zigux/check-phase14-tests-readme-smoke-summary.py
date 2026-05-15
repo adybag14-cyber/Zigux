@@ -96,6 +96,16 @@ EXPECTED_COMPILE_SHARDS = [
         "coverage": "focused_and_full_bundle",
     },
 ]
+EXPECTED_SMOKE_COMMANDS = [
+    "make -C zigux phase14-validate",
+    "make -C zigux phase14-test",
+    "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14",
+]
+EXPECTED_SMOKE_SHARD_COMMANDS = [
+    "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14-smoke",
+]
 
 
 def repo_root() -> Path:
@@ -245,6 +255,18 @@ def require_manifest_alignment(errors: list[str], manifest: dict[str, object]) -
             f"manifest compile_shard drift in {SMOKE_MANIFEST_PATH.as_posix()}: expected current six-row matrix"
         )
 
+    smoke_commands = manifest.get("smoke_commands")
+    if smoke_commands != EXPECTED_SMOKE_COMMANDS:
+        errors.append(
+            f"manifest smoke_command drift in {SMOKE_MANIFEST_PATH.as_posix()}: expected current full replay command list"
+        )
+
+    smoke_shard_commands = manifest.get("smoke_shard_commands")
+    if smoke_shard_commands != EXPECTED_SMOKE_SHARD_COMMANDS:
+        errors.append(
+            f"manifest smoke_shard_command drift in {SMOKE_MANIFEST_PATH.as_posix()}: expected current focused smoke command list"
+        )
+
 
 def check(root: Path, source_text: str | None = None) -> list[str]:
     errors: list[str] = []
@@ -336,6 +358,8 @@ def good_smoke_manifest_text() -> str:
             {"manifest_path": path} for path in REQUIRED_ANCHOR_MANIFESTS
         ],
         "compile_shards": EXPECTED_COMPILE_SHARDS,
+        "smoke_commands": EXPECTED_SMOKE_COMMANDS,
+        "smoke_shard_commands": EXPECTED_SMOKE_SHARD_COMMANDS,
     }
     return json.dumps(manifest, indent=2, sort_keys=True) + "\n"
 
@@ -974,6 +998,32 @@ def run_self_test() -> int:
         )
         write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
 
+        manifest = json.loads(good_smoke_manifest_text())
+        manifest["smoke_commands"] = EXPECTED_SMOKE_COMMANDS[:-1]
+        write_text(
+            root / SMOKE_MANIFEST_PATH,
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "manifest smoke_command drift",
+            "self-test expected missing combined replay command failure",
+        )
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
+
+        manifest = json.loads(good_smoke_manifest_text())
+        manifest["smoke_shard_commands"] = EXPECTED_SMOKE_SHARD_COMMANDS[:1]
+        write_text(
+            root / SMOKE_MANIFEST_PATH,
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "manifest smoke_shard_command drift",
+            "self-test expected missing focused smoke command failure",
+        )
+        write_text(root / SMOKE_MANIFEST_PATH, good_smoke_manifest_text())
+
         write_text(root / SMOKE_MANIFEST_PATH, "{\n")
         expect_contains(
             check(root, source_text=MARKER),
@@ -989,7 +1039,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=41")
+    print("PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=43")
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_PACKET_LINE_COUNT="
         f"{len(TESTS_README_AFTER_ANCHOR_LINES)}"
@@ -1017,6 +1067,14 @@ def run_self_test() -> int:
     print(
         "PHASE14_TESTS_README_SMOKE_SUMMARY_SCRIPTS_MARKER_COUNT="
         f"{len(SCRIPTS_README_MARKERS)}"
+    )
+    print(
+        "PHASE14_TESTS_README_SMOKE_SUMMARY_SMOKE_COMMAND_COUNT="
+        f"{len(EXPECTED_SMOKE_COMMANDS)}"
+    )
+    print(
+        "PHASE14_TESTS_README_SMOKE_SUMMARY_SMOKE_SHARD_COMMAND_COUNT="
+        f"{len(EXPECTED_SMOKE_SHARD_COMMANDS)}"
     )
     return 0
 
