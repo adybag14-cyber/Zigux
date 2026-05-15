@@ -32,7 +32,7 @@
       "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "Current master ships helper-first managed ioremap lifetime, exact `devm_iounmap()` matching, pure `devm_of_iomap()` handoff, and arch WC planner surfaces without claiming live MMIO side effects."
+      "why_now": "Current master ships helper-first managed ioremap lifetime, exact `devm_iounmap()` matching, pure `devm_of_iomap()` handoff, and arch WC planner surfaces without claiming live MMIO side effects, live DMA-backed mappings, or live scatterlist ownership."
     },
     {
       "id": "phase13-devres-slice-note",
@@ -46,7 +46,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-devres-survey.md",
-      "why_now": "The survey note now keeps the current helper-first MMIO packet, the adjacent coherent-DMA evidence shard, the direct boundary-evidence replay, the helper-only DMA/scatterlist boundary, and the blocked live-state boundaries explicit in `P13-L01` terms."
+      "why_now": "The survey note now keeps the current helper-first MMIO packet, the adjacent coherent-DMA evidence shard, the direct boundary-evidence replay, the dedicated blocked live-DMA mapping gap, the blocked live scatterlist-ownership gap, and the surrounding helper-only DMA/scatterlist boundary explicit in `P13-L01` terms."
     },
     {
       "id": "phase13-devres-test-gate",
@@ -60,7 +60,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
-      "why_now": "The dedicated reviewability gate is present on current master and keeps the manifest-backed `P13-L01` MMIO packet honest, including the direct boundary-evidence replay, the adjacent coherent-DMA evidence summary, the helper-only DMA/scatterlist boundary, and the blocked live-state boundaries."
+      "why_now": "The dedicated reviewability gate is present on current master and keeps the manifest-backed `P13-L01` MMIO packet honest, including the direct boundary-evidence replay, the adjacent coherent-DMA evidence summary, the dedicated blocked live-DMA mapping gap, the blocked live scatterlist-ownership gap, and the helper-only DMA/scatterlist boundary."
     },
     {
       "id": "phase13-devres-boundary-evidence-gate",
@@ -131,6 +131,13 @@
       "kind": "runtime_boundary",
       "zigux_destination": "lib/devres.zig",
       "why_now": "Live arch memtype state remains blocked because the current `devm_arch_io_reserve_memtype_wc()` and `devm_arch_phys_wc_add()` helpers stop at detach-time bookkeeping and failure shaping instead of mutating real memtype state."
+    },
+    {
+      "id": "phase13-devres-live-dma-mappings",
+      "status": "blocked_on_live_dma_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Live DMA-backed mappings remain blocked because the current helper packet and adjacent coherent-DMA evidence shard still stop at a helper-only DMA/scatterlist boundary instead of claiming `dmam_*`, `dma_alloc_*`, `dma_map_*`, `dma_unmap_*`, or DMA synchronization ownership."
     },
     {
       "id": "phase13-devres-live-scatterlist-ownership",
