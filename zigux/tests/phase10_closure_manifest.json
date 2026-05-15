@@ -5,7 +5,7 @@
   "doc_count": 7,
   "manifest_count": 4,
   "driver_count": 4,
-  "test_count": 16,
+  "test_count": 17,
   "has_virtio_mmio_zig": true,
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
@@ -56,6 +56,7 @@
       "evidence": [
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
         "zigux/tests/phase10_build.zig",
+        "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
         "zigux/tests/phase10_virtio_core_reset_queue.zig",
         "zigux/tests/phase10_virtio_driver_id.zig",
         "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
@@ -195,6 +196,9 @@
     ]
   },
   "focused_harness_replays": {
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig": [
+      "phase10 core compound-ack replay"
+    ],
     "zigux/tests/phase10_virtio_core_reset_queue.zig": [
       "phase10 core reset-queue replay"
     ],
@@ -276,6 +280,7 @@
   ],
   "tests": [
     "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
     "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_core_survey.zig",
     "zigux/tests/phase10_virtio_driver_id.zig",
