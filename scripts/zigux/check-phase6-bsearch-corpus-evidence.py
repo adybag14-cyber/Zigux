@@ -15,7 +15,8 @@ class ValidationError(RuntimeError):
 
 
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
-BSEARCH_PATH = Path("zigux/tests/phase6_bsearch.zig")
+HELPER_PATH = Path("lib/bsearch.zig")
+TEST_PATH = Path("zigux/tests/phase6_bsearch.zig")
 LOWER_UPPER_PATH = Path("zigux/tests/phase6_bsearch_lower_bound_c_abi.zig")
 EQUALITY_PATH = Path("zigux/tests/phase6_bsearch_c_abi_budget.zig")
 FIXTURE_PATH = Path("zigux/tests/fixtures/phase6_bsearch_vectors.zig")
@@ -24,19 +25,20 @@ SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 
 
-FIXTURE_BASELINE = """const std = @import("std");
+FIXTURE_BASELINE = """const std = @import(\"std\");
 
 pub const representative_ascending_values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
 pub const representative_descending_values = [_]u32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
+pub const representative_duplicate_values = [_]u32{ 3, 6, 9, 12, 21, 21, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
 
 pub const representative_hit_queries = [_]u32{ 3, 21, 24, 39, 45 };
 pub const representative_miss_queries = [_]u32{ 1, 10, 26, 44, 50 };
 
 pub const sorted_symbols = [_][]const u8{
-    "do_exit",
-    "kfree",
-    "kmalloc",
-    "schedule",
+    \"do_exit\",
+    \"kfree\",
+    \"kmalloc\",
+    \"schedule\",
 };
 
 pub const RawRecord = extern struct {
@@ -69,9 +71,10 @@ pub fn rawQuerySeed(index: usize) u32 {
     return representative_miss_queries[index % representative_miss_queries.len];
 }
 
-test "phase 6 bsearch vectors stay deterministic and sorted" {
+test \"phase 6 bsearch vectors stay deterministic, sorted, and duplicate-aware\" {
     try std.testing.expectEqual(@as(usize, 15), representative_ascending_values.len);
     try std.testing.expectEqual(@as(usize, 15), representative_descending_values.len);
+    try std.testing.expectEqual(@as(usize, 15), representative_duplicate_values.len);
     try std.testing.expectEqual(@as(usize, 33), dynamic_case_lengths.len);
 
     for (representative_ascending_values, 0..) |value, index| {
@@ -81,6 +84,10 @@ test "phase 6 bsearch vectors stay deterministic and sorted" {
         try std.testing.expectEqual(value, representative_descending_values[representative_descending_values.len - 1 - index]);
     }
 
+    try std.testing.expectEqual(@as(u32, 21), representative_duplicate_values[4]);
+    try std.testing.expectEqual(@as(u32, 21), representative_duplicate_values[5]);
+    try std.testing.expectEqual(@as(u32, 21), representative_duplicate_values[6]);
+
     for (dynamic_case_lengths, 0..) |length, index| {
         try std.testing.expectEqual(index, length);
     }
@@ -89,20 +96,24 @@ test "phase 6 bsearch vectors stay deterministic and sorted" {
 
 
 REQUIRED_SNIPPETS = {
-    BSEARCH_PATH.as_posix(): [
-        'pub fn equalRange(',
-        'pub fn equalRangeMutable(',
-        'pub fn bsearchEqualRange(',
-        'pub fn bsearchEqualRangeMutable(',
-        'const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };',
-        'const values = [_]u32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };',
+    HELPER_PATH.as_posix(): [
+        "pub fn equalRange(",
+        "pub fn equalRangeMutable(",
+        "pub fn bsearchEqualRange(",
+        "pub fn bsearchEqualRangeMutable(",
+        'test "equalRange wrappers keep direct duplicate-span views"',
+        'test "bsearchEqualRange wrappers keep raw duplicate-span views"',
+    ],
+    TEST_PATH.as_posix(): [
+        'const fixtures = @import("fixtures/phase6_bsearch_vectors.zig");',
+        "const values = fixtures.representative_ascending_values;",
+        "const values = fixtures.representative_descending_values;",
+        "const duplicates = fixtures.representative_duplicate_values;",
         'test "phase 6 bsearch keeps representative lookup work inside a binary-search budget"',
         'test "phase 6 bsearch keeps descending lookup work inside a binary-search budget"',
         'test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget"',
         'test "phase 6 bsearch bounded typed and raw equality probes stay inside a binary-search budget"',
         'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers"',
-        'test "equalRange wrappers keep direct duplicate-span views"',
-        'test "bsearchEqualRange wrappers keep raw duplicate-span views"',
     ],
     LOWER_UPPER_PATH.as_posix(): [
         "var ascending_storage: [32]u32 = undefined;",
@@ -159,7 +170,7 @@ REQUIRED_SNIPPETS = {
 
 
 EXACT_OCCURRENCE_MARKERS = {
-    BSEARCH_PATH.as_posix(): [
+    TEST_PATH.as_posix(): [
         ("try std.testing.expect(counted_compare_calls <= 4);", 10),
         ("try std.testing.expect(counted_raw_compare_calls <= 4);", 10),
     ],
@@ -307,7 +318,7 @@ def validate_fixture_content(repo_root: Path) -> None:
         'return representative_hit_queries[index % representative_hit_queries.len];',
         'pub fn rawQuerySeed(index: usize) u32 {',
         'return representative_miss_queries[index % representative_miss_queries.len];',
-        'test "phase 6 bsearch vectors stay deterministic and sorted"',
+        'test "phase 6 bsearch vectors stay deterministic, sorted, and duplicate-aware"',
     ]:
         if marker not in content:
             raise ValidationError(f"missing expected Phase 6 bsearch fixture marker in {rel_path}: {marker}")
@@ -317,6 +328,9 @@ def validate_fixture_content(repo_root: Path) -> None:
     )
     descending = parse_int_array(
         extract_array_body(content, "pub const representative_descending_values = [_]u32{", rel_path)
+    )
+    duplicates = parse_int_array(
+        extract_array_body(content, "pub const representative_duplicate_values = [_]u32{", rel_path)
     )
     hits = parse_int_array(extract_array_body(content, "pub const representative_hit_queries = [_]u32{", rel_path))
     misses = parse_int_array(extract_array_body(content, "pub const representative_miss_queries = [_]u32{", rel_path))
@@ -329,6 +343,8 @@ def validate_fixture_content(repo_root: Path) -> None:
         raise ValidationError(f"unexpected ascending fixture corpus in {rel_path}: {ascending!r}")
     if descending != [45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3]:
         raise ValidationError(f"unexpected descending fixture corpus in {rel_path}: {descending!r}")
+    if duplicates != [3, 6, 9, 12, 21, 21, 21, 24, 27, 30, 33, 36, 39, 42, 45]:
+        raise ValidationError(f"unexpected duplicate-aware fixture corpus in {rel_path}: {duplicates!r}")
     if hits != [3, 21, 24, 39, 45]:
         raise ValidationError(f"unexpected representative hit queries in {rel_path}: {hits!r}")
     if misses != [1, 10, 26, 44, 50]:
@@ -506,31 +522,37 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
-            BSEARCH_PATH.as_posix(),
+            HELPER_PATH.as_posix(),
             'pub fn equalRange(',
             'pub fn equalRangeDrift(',
         )
         assert_failure(
             root,
-            BSEARCH_PATH.as_posix(),
+            HELPER_PATH.as_posix(),
             'pub fn bsearchEqualRangeMutable(',
             'pub fn bsearchEqualRangeMutableDrift(',
         )
         assert_failure(
             root,
-            BSEARCH_PATH.as_posix(),
+            HELPER_PATH.as_posix(),
             'test "equalRange wrappers keep direct duplicate-span views"',
             'test "equalRange wrappers drift"',
         )
         assert_failure(
             root,
-            BSEARCH_PATH.as_posix(),
-            'const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };',
-            'const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42 };',
+            TEST_PATH.as_posix(),
+            'const values = fixtures.representative_ascending_values;',
+            'const values = drift.representative_ascending_values;',
         )
         assert_failure(
             root,
-            BSEARCH_PATH.as_posix(),
+            TEST_PATH.as_posix(),
+            'const duplicates = fixtures.representative_duplicate_values;',
+            'const duplicates = fixtures.representative_duplicate_drift;',
+        )
+        assert_failure(
+            root,
+            TEST_PATH.as_posix(),
             'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers"',
             'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointer drift"',
         )
@@ -549,8 +571,8 @@ def run_self_test() -> None:
         assert_failure(
             root,
             FIXTURE_PATH.as_posix(),
-            'pub const representative_miss_queries = [_]u32{ 1, 10, 26, 44, 50 };',
-            'pub const representative_miss_queries = [_]u32{ 1, 10, 26, 44 };',
+            'pub const representative_duplicate_values = [_]u32{ 3, 6, 9, 12, 21, 21, 21, 24, 27, 30, 33, 36, 39, 42, 45 };',
+            'pub const representative_duplicate_values = [_]u32{ 3, 6, 9, 12, 21, 21, 24, 27, 30, 33, 36, 39, 42, 45 };',
         )
         assert_failure(
             root,
