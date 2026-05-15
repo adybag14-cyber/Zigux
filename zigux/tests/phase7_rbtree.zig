@@ -237,6 +237,52 @@ test "phase 7 rbtree cached helpers return leftmost handoff state" {
     try std.testing.expectEqual(@as(?*rbtree.Node, &entries[0].node), rbtree.first(&root.root));
 }
 
+test "phase 7 rbtree replaceNodeCached rewires cached leftmost ownership over dirty replacement nodes" {
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var left_entry = Entry{ .key = 5 };
+    var right_entry = Entry{ .key = 15 };
+    var replacement = Entry{ .key = 5 };
+    var stale_parent = rbtree.Node.init();
+    var stale_left = rbtree.Node.init();
+    var stale_right = rbtree.Node.init();
+    var root = rbtree.RootCached.init();
+
+    try std.testing.expectEqual(@as(?*rbtree.Node, &root_entry.node), rbtree.addCached(&root_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &left_entry.node), rbtree.addCached(&left_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.addCached(&right_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &left_entry.node), rbtree.firstCached(&root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &left_entry.node), rbtree.first(&root.root));
+
+    replacement.node.parent = &stale_parent;
+    replacement.node.left = &stale_left;
+    replacement.node.right = &stale_right;
+    replacement.node.color = .red;
+
+    rbtree.replaceNodeCached(&left_entry.node, &replacement.node, &root);
+
+    try std.testing.expectEqual(@as(?*rbtree.Node, &replacement.node), rbtree.firstCached(&root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &replacement.node), rbtree.first(&root.root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &replacement.node), root_entry.node.left);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &root_entry.node), replacement.node.parent);
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), replacement.node.left);
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), replacement.node.right);
+    try std.testing.expectEqual(left_entry.node.color, replacement.node.color);
+    try std.testing.expect(!rbtree.emptyNode(&left_entry.node));
+
+    rbtree.clearNode(&left_entry.node);
+    try std.testing.expect(rbtree.emptyNode(&left_entry.node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.next(&left_entry.node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.prev(&left_entry.node));
+}
+
 test "phase 7 rbtree eraseInitCached clears detached cached nodes and keeps cached roots reusable" {
     const less = struct {
         fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
