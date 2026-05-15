@@ -17,6 +17,7 @@ MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 BASE64_SLICE_PATH = Path("Documentation/zigux/phase6-base64-slice.md")
+BSEARCH_SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 CHECKSUM_SLICE_PATH = Path("Documentation/zigux/phase6-checksum-slice.md")
 HEXDUMP_SLICE_PATH = Path("Documentation/zigux/phase6-hexdump-slice.md")
 HEXDUMP_PERF_REFRESH_PATH = Path("Documentation/zigux/phase6-hexdump-perf-refresh.md")
@@ -33,6 +34,12 @@ BASE64_C_PARITY_PATH = Path("zigux/tests/phase6_base64_c_parity.zig")
 BASE64_C_PARITY_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")
 BASE64_C_HARNESS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_harness.c")
 BASE64_C_PARITY_CHECKER_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
+BSEARCH_HELPER_PATH = Path("lib/bsearch.zig")
+BSEARCH_REPLAY_PATH = Path("zigux/tests/phase6_bsearch.zig")
+BSEARCH_LOWER_UPPER_PATH = Path("zigux/tests/phase6_bsearch_lower_bound_c_abi.zig")
+BSEARCH_EQUALITY_PATH = Path("zigux/tests/phase6_bsearch_c_abi_budget.zig")
+BSEARCH_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_bsearch_vectors.zig")
+BSEARCH_CORPUS_EVIDENCE_CHECKER_PATH = Path("scripts/zigux/check-phase6-bsearch-corpus-evidence.py")
 CHECKSUM_HELPER_PATH = Path("lib/checksum.zig")
 CHECKSUM_REPLAY_PATH = Path("zigux/tests/phase6_checksum.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
@@ -86,6 +93,11 @@ REQUIRED_PRESENT_ENTRYPOINTS = {
     BASE64_C_PARITY_VECTORS_PATH.as_posix(),
     BASE64_C_HARNESS_PATH.as_posix(),
     BASE64_C_PARITY_CHECKER_PATH.as_posix(),
+    BSEARCH_REPLAY_PATH.as_posix(),
+    BSEARCH_LOWER_UPPER_PATH.as_posix(),
+    BSEARCH_EQUALITY_PATH.as_posix(),
+    BSEARCH_VECTORS_PATH.as_posix(),
+    BSEARCH_CORPUS_EVIDENCE_CHECKER_PATH.as_posix(),
     CHECKSUM_HELPER_PATH.as_posix(),
     CHECKSUM_REPLAY_PATH.as_posix(),
     CHECKSUM_PERF_PATH.as_posix(),
@@ -134,6 +146,9 @@ EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES = {
 REQUIRED_CATALOG_SNIPPETS = [
     "- still-present direct C parity scaffolding: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records `24` direct C parity cases and preserves the dedicated slowdown packet as six case labels, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`",
+    "### bsearch",
+    "- direct local corpus evidence checker: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
+    "- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a 15-element representative inline corpus, `10` typed and `10` raw lookup budget checks capped at `4` comparator calls, plus lower- and upper-bound as well as direct C ABI equality sweeps across dynamic lengths `0...32` and packed-record `member_size` ranges under the same `std.math.log2_int_ceil(len) + 1` budget",
     "- slice note: `Documentation/zigux/phase6-checksum-slice.md`",
     "- focused helper replay on current `master`: `zigux/tests/phase6_checksum.zig`",
     "- dedicated helper-local perf replay on current `master`: `zigux/tests/phase6_checksum_perf.zig`",
@@ -143,14 +158,42 @@ REQUIRED_CATALOG_SNIPPETS = [
     "### hexdump",
     "- direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
     "- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet, `16B-plain-g1`, `32B-ascii-g2`, `16B-ascii-g4`, and `16B-ascii-g8`, with helper-local caps of `175`, `550`, `550`, and `600`",
-]
+}
 
 REQUIRED_BASE64_SLICE_SNIPPETS = [
     "- current `master` still keeps the direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- present direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- direct local C parity checker route: `python3 scripts/zigux/check-phase6-base64-c-parity.py`",
     "- built-in parity-script self-test route: `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test`",
-]
+}
+
+REQUIRED_BSEARCH_SLICE_SNIPPETS = [
+    "- `PHASE6_SLICE=bsearch-leaf-helper`",
+    "- `searchIndex`",
+    "- `search`",
+    "- `searchMutable`",
+    "- `lowerBoundIndex`",
+    "- `upperBoundIndex`",
+    "- `IndexRange`",
+    "- `equalRangeIndex`",
+    "- `equalRange`",
+    "- `equalRangeMutable`",
+    "- `bsearchIndex`",
+    "- `bsearch`",
+    "- `bsearchMutable`",
+    "- `bsearchLowerBoundIndex`",
+    "- `bsearchUpperBoundIndex`",
+    "- `bsearchEqualRangeIndex`",
+    "- `bsearchEqualRange`",
+    "- `bsearchEqualRangeMutable`",
+    "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+    "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
+    "- direct local corpus evidence checker route: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
+    "- direct local corpus evidence checker self-test: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`",
+    "The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains helper-local support inside that packet today: `phase6_bsearch.zig` still imports it for representative ascending and descending raw-array reuse, and the bounds-focused plus direct C ABI budget replays still reuse its dynamic-length and packed-record seed corpus.",
+    "Reviewers should treat that fixture as compact shared packet support rather than as a separate standalone timing-style route.",
+    "the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable`, while the direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` wrappers hand those typed slice and raw byte views back without forcing callers to peel `IndexRange` apart by hand or widening Phase 6 into a separate fixture or routing packet.",
+}
 
 REQUIRED_CHECKSUM_SLICE_SNIPPETS = [
     "- `PHASE6_STATUS=parked_reviewable`",
@@ -158,7 +201,7 @@ REQUIRED_CHECKSUM_SLICE_SNIPPETS = [
     "- direct focused perf route: `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`",
     "- route nuance note: the checksum helper-owned replay and slowdown gate are readable from the committed helper packet again, but the shared `zigux/Makefile` and workflow surfaces still need their own route-truthfulness follow-up before reviewers should treat those wrappers as equivalent packet summaries",
     "- current review posture: parked reviewable; the checksum roadmap anchor now keeps the helper-owned replay, slowdown gate, and direct C parity scaffolding readable on current `master`, while the remaining gap has narrowed to shared route inventory truthfulness rather than a missing checksum helper packet",
-]
+}
 
 REQUIRED_HEXDUMP_SLICE_SNIPPETS = [
     "- `PHASE6_STATUS=parked_reviewable`",
@@ -172,13 +215,15 @@ REQUIRED_HEXDUMP_SLICE_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf`",
     "- `make -C zigux phase6-hexdump-review`",
     "- exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet, `16B-plain-g1`, `32B-ascii-g2`, `16B-ascii-g4`, and `16B-ascii-g8`, with helper-local caps of `175`, `550`, `550`, and `600`",
-]
+}
 
 REQUIRED_PERF_SURVEY_SNIPPETS = [
+    "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig`, not a separate wall-clock perf harness",
+    "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline equality probes plus a compact shared seed fixture companion for representative arrays, dynamic lengths, and packed-record corpus reuse, without widening into a separate timing route",
     "* checksum exact thresholds: `zigux/tests/phase6_checksum_perf.zig` now keeps two helper-local slowdown cases, `64` at `reps = 20_000` and `1501` at `reps = 4_000`, each capped at `max_slowdown_pct = 150`, so the checksum perf packet is reviewable from committed evidence today even while the Linux-style wrapper inventory still lags that direct build route",
     "* hexdump shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and the committed `phase6-hexdump-perf` plus `phase6-hexdump-review` target bodies in `zigux/Makefile`",
     "* hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
-]
+}
 
 REQUIRED_BUILD_SNIPPETS = [
     'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
@@ -186,11 +231,11 @@ REQUIRED_BUILD_SNIPPETS = [
     'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
     "hexdump_perf_step.dependOn(&run_hexdump_perf_matrix_tests.step);",
     "hexdump_perf_step.dependOn(&run_hexdump_perf.step);",
-]
+}
 
 REQUIRED_MAKEFILE_SNIPPETS = [
     "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
-]
+}
 
 REQUIRED_WORKFLOW_SNIPPETS = [
     "- name: Self-test Phase 6 shared-surface checker",
@@ -198,17 +243,17 @@ REQUIRED_WORKFLOW_SNIPPETS = [
     "- name: Self-test Phase 6 checksum C parity checker",
     "- name: Run Phase 6 bsearch focused packet",
     "- name: Run Phase 6 hexdump perf gate",
-]
+}
 
 ABSENT_WORKFLOW_SNIPPETS = [
     "- name: Run Phase 6 checksum perf gate",
-]
+}
 
 REQUIRED_PRESENT_ENTRYPOINTS_SNIPPETS = [
     'EXPECTED_HEXDUMP_PACKET_CHECKER = HEXDUMP_CHECKER_PATH.as_posix()',
     'EXPECTED_HEXDUMP_PERF_REFRESH = HEXDUMP_PERF_REFRESH_PATH.as_posix()',
     'raise ValidationError(f"missing hexdump helper row in {MANIFEST_PATH.as_posix()}")',
-]
+}
 
 
 def read_text(path: Path) -> str:
@@ -323,6 +368,19 @@ def validate_manifest(repo_root: Path) -> None:
     )
     require_helper_packet(
         manifest,
+        "bsearch",
+        {
+            "zigux/tests/phase6_bsearch.zig",
+            "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+            "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+        },
+        {
+            "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
+        },
+        {"corpus_evidence_checker": "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"},
+    )
+    require_helper_packet(
+        manifest,
         "checksum",
         {
             "zigux/tests/phase6_checksum.zig",
@@ -359,6 +417,7 @@ def validate_paths(repo_root: Path) -> None:
         CATALOG_PATH.as_posix(),
         PERF_SURVEY_PATH.as_posix(),
         BASE64_SLICE_PATH.as_posix(),
+        BSEARCH_SLICE_PATH.as_posix(),
         CHECKSUM_SLICE_PATH.as_posix(),
         HEXDUMP_SLICE_PATH.as_posix(),
         HEXDUMP_PERF_REFRESH_PATH.as_posix(),
@@ -375,6 +434,12 @@ def validate_paths(repo_root: Path) -> None:
         BASE64_C_PARITY_VECTORS_PATH.as_posix(),
         BASE64_C_HARNESS_PATH.as_posix(),
         BASE64_C_PARITY_CHECKER_PATH.as_posix(),
+        BSEARCH_HELPER_PATH.as_posix(),
+        BSEARCH_REPLAY_PATH.as_posix(),
+        BSEARCH_LOWER_UPPER_PATH.as_posix(),
+        BSEARCH_EQUALITY_PATH.as_posix(),
+        BSEARCH_VECTORS_PATH.as_posix(),
+        BSEARCH_CORPUS_EVIDENCE_CHECKER_PATH.as_posix(),
         CHECKSUM_HELPER_PATH.as_posix(),
         CHECKSUM_REPLAY_PATH.as_posix(),
         CHECKSUM_PERF_PATH.as_posix(),
@@ -398,6 +463,7 @@ def run_checks(repo_root: Path) -> None:
     validate_manifest(repo_root)
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
     require_snippets(repo_root / BASE64_SLICE_PATH, REQUIRED_BASE64_SLICE_SNIPPETS)
+    require_snippets(repo_root / BSEARCH_SLICE_PATH, REQUIRED_BSEARCH_SLICE_SNIPPETS)
     require_snippets(repo_root / CHECKSUM_SLICE_PATH, REQUIRED_CHECKSUM_SLICE_SNIPPETS)
     require_snippets(repo_root / HEXDUMP_SLICE_PATH, REQUIRED_HEXDUMP_SLICE_SNIPPETS)
     require_snippets(repo_root / PERF_SURVEY_PATH, REQUIRED_PERF_SURVEY_SNIPPETS)
@@ -426,6 +492,12 @@ def scaffold_repo(root: Path) -> None:
         BASE64_C_PARITY_VECTORS_PATH.as_posix(),
         BASE64_C_HARNESS_PATH.as_posix(),
         BASE64_C_PARITY_CHECKER_PATH.as_posix(),
+        BSEARCH_HELPER_PATH.as_posix(),
+        BSEARCH_REPLAY_PATH.as_posix(),
+        BSEARCH_LOWER_UPPER_PATH.as_posix(),
+        BSEARCH_EQUALITY_PATH.as_posix(),
+        BSEARCH_VECTORS_PATH.as_posix(),
+        BSEARCH_CORPUS_EVIDENCE_CHECKER_PATH.as_posix(),
         CHECKSUM_HELPER_PATH.as_posix(),
         CHECKSUM_REPLAY_PATH.as_posix(),
         CHECKSUM_PERF_PATH.as_posix(),
@@ -443,6 +515,7 @@ def scaffold_repo(root: Path) -> None:
 
     write(root / CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS + ["- surveyed head: `test-head`", ""]))
     write(root / BASE64_SLICE_PATH, "\n".join(REQUIRED_BASE64_SLICE_SNIPPETS + [""]))
+    write(root / BSEARCH_SLICE_PATH, "\n".join(REQUIRED_BSEARCH_SLICE_SNIPPETS + [""]))
     write(root / CHECKSUM_SLICE_PATH, "\n".join(REQUIRED_CHECKSUM_SLICE_SNIPPETS + [""]))
     write(root / HEXDUMP_SLICE_PATH, "\n".join(REQUIRED_HEXDUMP_SLICE_SNIPPETS + [""]))
     write(root / PERF_SURVEY_PATH, "\n".join(REQUIRED_PERF_SURVEY_SNIPPETS + [""]))
@@ -476,6 +549,22 @@ def scaffold_repo(root: Path) -> None:
                     ]
                 ),
                 "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py",
+            },
+            {
+                "id": "bsearch",
+                "tests": sorted(
+                    [
+                        "zigux/tests/phase6_bsearch.zig",
+                        "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+                        "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+                    ]
+                ),
+                "fixtures": sorted(
+                    [
+                        "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
+                    ]
+                ),
+                "corpus_evidence_checker": "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
             },
             {
                 "id": "checksum",
@@ -542,6 +631,36 @@ def run_self_test() -> None:
         assert_failure(
             root,
             MANIFEST_PATH,
+            '"bsearch": "parked_reviewable"',
+            '"bsearch": "blocked_helper_packet_missing"',
+        )
+        assert_failure(
+            root,
+            MANIFEST_PATH,
+            '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
+            '"scripts/zigux/check-phase6-bsearch-proof.py"',
+        )
+        assert_failure(
+            root,
+            MANIFEST_PATH,
+            '"zigux/tests/phase6_bsearch_c_abi_budget.zig"',
+            '"zigux/tests/phase6_bsearch_c_abi_budget_missing.zig"',
+        )
+        assert_failure(
+            root,
+            BSEARCH_SLICE_PATH,
+            "- `bsearchEqualRangeMutable`",
+            "- `bsearchEqualRangeMutableDrift`",
+        )
+        assert_failure(
+            root,
+            PERF_SURVEY_PATH,
+            "without widening into a separate timing route",
+            "while widening into a separate timing route",
+        )
+        assert_failure(
+            root,
+            MANIFEST_PATH,
             '"hexdump": "parked_reviewable"',
             '"hexdump": "blocked_helper_packet_missing"',
         )
@@ -593,7 +712,7 @@ def main() -> int:
         run_self_test()
         return 0
     run_checks(Path(args.repo_root).resolve())
-    print("Phase 6 shared checker matches the current checksum, hexdump, and shared packet.")
+    print("Phase 6 shared checker matches the current bsearch, checksum, hexdump, and shared packet.")
     return 0
 
 
