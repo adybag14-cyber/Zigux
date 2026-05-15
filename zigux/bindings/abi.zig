@@ -84,7 +84,7 @@ pub const NotifierBlock = extern struct {
     priority: i32,
 };
 
-pub const ChainPriorityIncrease = struct {
+pub const ChainPriorityIncrease = extern struct {
     previous_index: usize,
     current_index: usize,
     previous_priority: i32,
@@ -245,11 +245,19 @@ test "abi binding keeps notifier block layout and chain helper explicit" {
     try std.testing.expectEqual(@as(usize, 8), @offsetOf(NotifierBlock, "next"));
     try std.testing.expectEqual(@as(usize, 16), @offsetOf(NotifierBlock, "priority"));
 
+    try std.testing.expectEqual(@as(usize, 24), @sizeOf(ChainPriorityIncrease));
+    try std.testing.expectEqual(@as(usize, 8), @alignOf(ChainPriorityIncrease));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChainPriorityIncrease, "previous_index"));
+    try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChainPriorityIncrease, "current_index"));
+    try std.testing.expectEqual(@as(usize, 16), @offsetOf(ChainPriorityIncrease, "previous_priority"));
+    try std.testing.expectEqual(@as(usize, 20), @offsetOf(ChainPriorityIncrease, "current_priority"));
+
     try std.testing.expect(firstChainPriorityIncrease(null) == null);
     try std.testing.expect(chainHasNonincreasingPriority(null));
     try std.testing.expect(chainHasNonincreasingPriority(&single));
     try std.testing.expect(firstChainPriorityIncrease(&single) == null);
     try std.testing.expect(chainHasNonincreasingPriority(&descending_first));
+    try std.testing.expect(firstChainPriorityIncrease(&descending_first) == null);
     try std.testing.expect(!chainHasNonincreasingPriority(&rising_first));
 
     const increase = firstChainPriorityIncrease(&rising_first).?;
