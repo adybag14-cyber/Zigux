@@ -27,6 +27,9 @@ EXPECTED_UPGRADE_POLICY_REQUIRED_MAKE_ROUTES = [
     "phase2-toolchain",
     "phase2-validate",
 ]
+PHASE2_CROSS_BOUNDARY_MARKER = (
+    "the dedicated `phase2-cross` workflow job currently reuses the same pinned installer path but stops at installer-side archive verification plus `scripts/zigux/check-phase2-cross.py`, so the broader closure packet should treat bootstrap and cross-target verification as adjacent but not identical routes until a later bounded follow-up adds the live checker there too"
+)
 ARCHIVE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 NOTE_STATIC_MARKERS = [
@@ -34,6 +37,7 @@ NOTE_STATIC_MARKERS = [
     "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
     "the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the docs-root summary, the shared validators, the closure note, and the shared review checklist",
     "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
+    PHASE2_CROSS_BOUNDARY_MARKER,
 ]
 UPGRADE_POLICY_NOTE_MARKERS = [
     "the Phase 2 toolchain policy keeps `channel` and `minimum_version` in lockstep so the pinned bootstrap archive and the minimum accepted Zig version do not drift apart",
@@ -172,6 +176,7 @@ EXACT_SURFACE_COUNTS = {
     "phase2_toolchain_notes": {
         PHASE2_ROUTE_COUNT_MARKER: 1,
         PHASE2_ROUTE_LIST_MARKER: 1,
+        PHASE2_CROSS_BOUNDARY_MARKER: 1,
         "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note": 1,
     },
     "scripts_readme": {
@@ -472,6 +477,14 @@ def run_self_test() -> int:
         ]
     )
     assert validate_phase2_notes(valid_notes, payload=valid_policy) == []
+    missing_cross_boundary_issues = validate_phase2_notes(
+        valid_notes.replace(f"- {PHASE2_CROSS_BOUNDARY_MARKER}\n", "", 1),
+        payload=valid_policy,
+    )
+    assert (
+        f"phase2_toolchain_notes:missing_marker:{PHASE2_CROSS_BOUNDARY_MARKER}"
+        in missing_cross_boundary_issues
+    )
 
     valid_makefile = "\n".join(
         [
@@ -661,7 +674,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=34")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
