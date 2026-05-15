@@ -311,6 +311,22 @@ def run_self_test() -> int:
         write_text(
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
+                "- shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`\n",
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
+            "missing build-only-contract marker",
+        )
+
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
+        write_text(
+            tmp_root / RELEASE_READINESS_PATH,
+            good_release_readiness_text().replace(
                 "- support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`\n",
                 "",
                 1,
@@ -435,6 +451,22 @@ def run_self_test() -> int:
             "missing scripts-readme phase12-flow marker",
         )
 
+        write_text(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
+        write_text(
+            tmp_root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                SCRIPTS_README_MARKERS[1],
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            SCRIPTS_README_MARKERS[1],
+            "missing scripts-readme degraded-workflow marker",
+        )
+
         write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
         write_text(
             tmp_root / REVIEW_CHECKLIST_PATH,
@@ -451,6 +483,22 @@ def run_self_test() -> int:
             "missing review-checklist marker",
         )
 
+        write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
+        write_text(
+            tmp_root / REVIEW_CHECKLIST_PATH,
+            good_review_checklist_text().replace(
+                REVIEW_CHECKLIST_MARKERS[1],
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            REVIEW_CHECKLIST_MARKERS[1],
+            "missing review-checklist support-route marker",
+        )
+
         write_text(tmp_root / FREEZE_MAP_PATH, good_freeze_map_text())
         write_text(
             tmp_root / FREEZE_MAP_PATH,
@@ -465,6 +513,86 @@ def run_self_test() -> int:
             check(tmp_root, source_text=MARKER),
             FREEZE_MAP_MARKERS[0],
             "missing freeze-map marker",
+        )
+
+        write_text(tmp_root / FREEZE_MAP_PATH, good_freeze_map_text())
+        write_text(
+            tmp_root / FREEZE_MAP_PATH,
+            good_freeze_map_text().replace(
+                FREEZE_MAP_MARKERS[1],
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            FREEZE_MAP_MARKERS[1],
+            "missing freeze-map support-bundle boundary marker",
+        )
+
+        write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
+        write_text(
+            tmp_root / MAKEFILE_PATH,
+            good_makefile_text().replace(
+                "phase12-validate:",
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "phase12-validate:",
+            "missing makefile validate target marker",
+        )
+
+        write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
+        write_text(
+            tmp_root / MAKEFILE_PATH,
+            good_makefile_text().replace(
+                "scripts/zigux/check-build-only-phase12-surface.py --self-test",
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "scripts/zigux/check-build-only-phase12-surface.py --self-test",
+            "missing makefile build-only checker marker",
+        )
+
+        write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
+        write_text(
+            tmp_root / MAKEFILE_PATH,
+            good_makefile_text().replace(
+                "scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+            "missing makefile readiness-checker marker",
+        )
+
+        write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
+        write_text(
+            tmp_root / MAKEFILE_PATH,
+            good_makefile_text().replace(
+                "scripts/zigux/validate-phase12.py",
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "scripts/zigux/validate-phase12.py",
+            "missing makefile validate-phase12 marker",
         )
 
         write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
@@ -487,6 +615,22 @@ def run_self_test() -> int:
         write_text(
             tmp_root / WORKFLOW_PATH,
             good_workflow_text().replace(
+                "Validate Phase 12 degraded-workflow bundle",
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "Validate Phase 12 degraded-workflow bundle",
+            "missing workflow validate-step title",
+        )
+
+        write_text(tmp_root / WORKFLOW_PATH, good_workflow_text())
+        write_text(
+            tmp_root / WORKFLOW_PATH,
+            good_workflow_text().replace(
                 "run: make -C zigux phase12-validate",
                 "run: make -C zigux phase12-smoke",
                 1,
@@ -497,6 +641,38 @@ def run_self_test() -> int:
             check(tmp_root, source_text=MARKER),
             "run: make -C zigux phase12-validate",
             "missing workflow route",
+        )
+
+        write_text(tmp_root / WORKFLOW_PATH, good_workflow_text())
+        write_text(
+            tmp_root / WORKFLOW_PATH,
+            good_workflow_text().replace(
+                "Run focused Phase 12 smoke shard",
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "Run focused Phase 12 smoke shard",
+            "missing workflow smoke-step title",
+        )
+
+        write_text(tmp_root / WORKFLOW_PATH, good_workflow_text())
+        write_text(
+            tmp_root / WORKFLOW_PATH,
+            good_workflow_text().replace(
+                "Run Phase 12 complex driver tests",
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            "Run Phase 12 complex driver tests",
+            "missing workflow test-step title",
         )
 
         write_text(tmp_root / ROADMAP_PATH, good_roadmap_text())
