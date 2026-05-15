@@ -280,7 +280,6 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").writeText if False else None
         (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
             json.dumps(
                 {
@@ -358,7 +357,6 @@ def run_self_test() -> int:
             json.dumps({"channel": "0.17.0-dev.87+9b177a7d2"}) + "\n",
         )
         pinned_root = root / ".zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
-        writeText if False else None
         write_text(pinned_root / "zig", "#!/bin/sh\n")
         resolved = resolve_zig_executable(root=root, policy_path=root / "scripts/zigux/zig-toolchain-policy.json", which=lambda _: "/usr/bin/zig")
         assert resolved == str(pinned_root / "zig")
