@@ -460,6 +460,18 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader keeps direct shared runtime-load transitions from desynchronizing shared release state\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "const pending_plan = try shared_request.requestRuntimeLoad();",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "test \"runtime kretprobe loader rejects idle shared-loader handoff before any live registration claim\"",
     );
     try expectContains(
