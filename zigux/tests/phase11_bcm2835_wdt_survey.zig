@@ -66,8 +66,11 @@ test "phase11 bcm2835 survey keeps survey, slice, teardown, and matrix notes ali
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "PHASE11_BCM2835_WDT_TEARDOWN_STATUS=manifest_teardown_truthful") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "drivers/watchdog/bcm2835_wdt_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "zigux/tests/phase11_bcm2835_wdt_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "manifest-backed reminder packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "one slice-note extension") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "zigux/tests/phase11_bcm2835_wdt_registration_scaffold.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "Documentation/zigux/phase11-bcm2835-wdt-slice.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "slice-backed reminder packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "one execution bridge") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "one slice-note extension") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_BCM2835_WDT_STATUS=survey_gate_truthful") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zigux/tests/phase11_bcm2835_wdt_survey.zig") != null);
