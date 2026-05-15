@@ -135,11 +135,13 @@ REVIEW_CHECKLIST_PHASE3_PROMPT_NEXT_PREFIX = (
 )
 REVIEW_CHECKLIST_PHASE3_PROMPT_MARKER_COUNTS = {
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "Documentation/zigux/review-checklist.md": 1,
     "include/zigux/dev_t.h": 1,
     "zigux/uapi/version.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
     "bounded header-family and starter-companion packet": 1,
+    "dedicated survey plus paired next-step note": 1,
 }
 
 TESTS_README_MARKERS = (
@@ -828,6 +830,26 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected validator-support kernel-governance wording drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        review_checklist_path.write_text(
+            _read(review_checklist_path).replace(
+                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "review checklist Phase 3 prompt marker count drift: "
+            "Documentation/zigux/phase3-abi-h-boundary-next-step.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected review checklist next-step drift was not reported")
             return 1
 
         _populate_repo(root)
