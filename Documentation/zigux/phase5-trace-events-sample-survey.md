@@ -51,11 +51,12 @@ Aligned reminder surfaces in this run:
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
 - `scripts/zigux/README.md`
-- `zigux/tests/README.md`
 
 Those surfaces already keep the landed trace-events packet explicit, keep the missing shared `zigux/tests/phase5_build.zig` route explicit, keep the selected-string plus `iter=%d` replay positioned as the approved formatting idiom cue instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
 
-The tests-root shared reminder now keeps the current landed helper vocabulary aligned too: `zigux/tests/README.md` names `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, the selected-string plus `iter=%d` cue, and the public `lifecycleSummary()` route instead of falling back to the older helper labels.
+The tests-root shared reminder is close, but it is not fully aligned yet: current `zigux/tests/README.md` still points one trace-events tests-root path at mixed-case `zigux/tests/phase5_trace_EVENTS_sample.zig` even though the shipped file on current `master` is `zigux/tests/phase5_trace_events_sample.zig`.
+
+Treat that tests-root path typo as the next one-file same-lane reminder-surface repair rather than as already-aligned current evidence.
 
 ## Landed sample and exact checks
 
@@ -77,7 +78,7 @@ The precise current gap is no longer "Zigux lacks a trace-events reference sampl
 
 - the roadmap-backed trace-events anchor already has a directly readable non-runtime sample plus focused tests-root evidence
 - current `master` still does not directly expose the older shared `zigux/tests/phase5_build.zig` route
-- broader shared-surface cleanup should stay limited to one reminder surface at a time if another wording drift appears
+- broader shared-surface cleanup should stay limited to one reminder surface at a time, starting with the remaining tests-root path typo if it is still present on the next reread
 
 So the honest same-lane follow-through is to keep this survey note anchored to the directly readable trace-events packet and to leave broader shared-surface cleanup for separate one-file repairs.
 
@@ -94,4 +95,4 @@ This survey does not claim:
 
 Leave this lane parked unless a fresh same-lane reread finds one more exact shared-surface truthfulness repair to make for the landed Phase 5 sample packet.
 
-The best next bounded follow-up remains one shared-surface repair only if it is visible from current master readback rather than inferred from older lane notes.
+The best next bounded follow-up is the one-file tests-root repair only if current `master` still points `zigux/tests/README.md` at mixed-case `zigux/tests/phase5_trace_EVENTS_sample.zig` instead of the shipped `zigux/tests/phase5_trace_events_sample.zig`. 
