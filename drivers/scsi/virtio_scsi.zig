@@ -918,6 +918,34 @@ test "virtio scsi recovery control path governance summary rejects invalid timin
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryControlPathGovernanceSummary());
 }
 
+test "virtio scsi recovery event buffer ownership summary records reserved event buffers and rearm ordering" {
+    var lab = VirtioScsiQueueLab.init();
+    _ = try lab.planQueueLayout(6, 2);
+    _ = try lab.freezeForTransportReset();
+
+    const summary = try lab.recoveryEventBufferOwnershipSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, event_queue_index), summary.event_queue_index);
+    try std.testing.expectEqual(@as(u16, event_buffer_count), summary.remembered_event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 6), summary.request_queue_count);
+    try std.testing.expectEqual(@as(u16, 2), summary.poll_queue_count);
+    try std.testing.expect(summary.event_buffers_reserved_for_event_queue);
+    try std.testing.expect(!summary.request_queues_can_borrow_event_buffers);
+    try std.testing.expect(summary.requires_device_ready_before_event_rearm);
+    try std.testing.expect(summary.requires_event_rearm_before_request_queue_reuse);
+}
+
+test "virtio scsi recovery event buffer ownership summary rejects invalid timing" {
+    var lab = VirtioScsiQueueLab.init();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventBufferOwnershipSummary());
+
+    _ = try lab.planQueueLayout(4, 1);
+    _ = try lab.freezeForTransportReset();
+    _ = try lab.restoreAfterTransportReset();
+
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventBufferOwnershipSummary());
+}
+
 test "virtio scsi recovery request queue restore summary records queue ordering and remembered depth" {
     var lab = VirtioScsiQueueLab.init();
     _ = try lab.captureQueueDepthSummary(.{
