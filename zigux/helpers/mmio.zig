@@ -88,6 +88,38 @@ pub fn writeIndex(comptime T: type, desc: Range, index: usize, value: T) bool {
     return true;
 }
 
+pub fn read8Index(desc: Range, index: usize) ?u8 {
+    return readIndex(u8, desc, index);
+}
+
+pub fn read16Index(desc: Range, index: usize) ?u16 {
+    return readIndex(u16, desc, index);
+}
+
+pub fn read32Index(desc: Range, index: usize) ?u32 {
+    return readIndex(u32, desc, index);
+}
+
+pub fn read64Index(desc: Range, index: usize) ?u64 {
+    return readIndex(u64, desc, index);
+}
+
+pub fn write8Index(desc: Range, index: usize, value: u8) bool {
+    return writeIndex(u8, desc, index, value);
+}
+
+pub fn write16Index(desc: Range, index: usize, value: u16) bool {
+    return writeIndex(u16, desc, index, value);
+}
+
+pub fn write32Index(desc: Range, index: usize, value: u32) bool {
+    return writeIndex(u32, desc, index, value);
+}
+
+pub fn write64Index(desc: Range, index: usize, value: u64) bool {
+    return writeIndex(u64, desc, index, value);
+}
+
 pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return narrow.permitsVolatileMmioPolicyBytes(unsafe_scope, reserved);
 }
@@ -387,9 +419,16 @@ test "phase3 mmio wrappers keep stride-indexed accesses reviewable" {
     var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     const base = narrow.addressOf(&bytes[0]);
     const desc = range(base, 24, 4);
+    const byte_desc = range(base, 24, 1);
+    const halfword_desc = range(base, 24, 2);
+    const word_desc = range(base, 24, 4);
+    const dword_desc = range(base, 24, 8);
     const first_word: *align(1) const u32 = @ptrCast(&bytes[0]);
     const third_word: *align(1) const u32 = @ptrCast(&bytes[8]);
     const last_doubleword: *align(1) const u64 = @ptrCast(&bytes[16]);
+    const indexed_halfword: *align(1) const u16 = @ptrCast(&bytes[10]);
+    const indexed_word: *align(1) const u32 = @ptrCast(&bytes[12]);
+    const indexed_doubleword: *align(1) const u64 = @ptrCast(&bytes[16]);
 
     try std.testing.expect(writeIndex(u32, desc, 0, 0x1122_3344));
     try std.testing.expect(writeIndex(u32, desc, 2, 0xaabb_ccdd));
@@ -407,6 +446,30 @@ test "phase3 mmio wrappers keep stride-indexed accesses reviewable" {
     try std.testing.expectEqual(@as(?u64, null), readIndex(u64, desc, 5));
     try std.testing.expect(!writeIndex(u32, desc, 6, 0x5566_7788));
     try std.testing.expect(!writeIndex(u64, desc, 5, 0xfedc_ba98_7654_3210));
+
+    try std.testing.expect(write8Index(byte_desc, 23, 0x5a));
+    try std.testing.expectEqual(@as(u8, 0x5a), bytes[23]);
+    try std.testing.expectEqual(@as(?u8, 0x5a), read8Index(byte_desc, 23));
+    try std.testing.expect(!write8Index(byte_desc, 24, 0));
+    try std.testing.expectEqual(@as(?u8, null), read8Index(byte_desc, 24));
+
+    try std.testing.expect(write16Index(halfword_desc, 5, 0x4567));
+    try std.testing.expectEqual(@as(u16, 0x4567), indexed_halfword.*);
+    try std.testing.expectEqual(@as(?u16, 0x4567), read16Index(halfword_desc, 5));
+    try std.testing.expect(!write16Index(halfword_desc, 12, 0x9999));
+    try std.testing.expectEqual(@as(?u16, null), read16Index(halfword_desc, 12));
+
+    try std.testing.expect(write32Index(word_desc, 3, 0x89ab_cdef));
+    try std.testing.expectEqual(@as(u32, 0x89ab_cdef), indexed_word.*);
+    try std.testing.expectEqual(@as(?u32, 0x89ab_cdef), read32Index(word_desc, 3));
+    try std.testing.expect(!write32Index(word_desc, 6, 0xfeed_beef));
+    try std.testing.expectEqual(@as(?u32, null), read32Index(word_desc, 6));
+
+    try std.testing.expect(write64Index(dword_desc, 2, 0x0246_8ace_1357_9bdf));
+    try std.testing.expectEqual(@as(u64, 0x0246_8ace_1357_9bdf), indexed_doubleword.*);
+    try std.testing.expectEqual(@as(?u64, 0x0246_8ace_1357_9bdf), read64Index(dword_desc, 2));
+    try std.testing.expect(!write64Index(dword_desc, 3, 0xfedc_ba98_7654_3210));
+    try std.testing.expectEqual(@as(?u64, null), read64Index(dword_desc, 3));
 }
 
 test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {
