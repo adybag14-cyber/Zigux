@@ -33,3 +33,31 @@ test "phase10 virtio input drains queued status completions without touching sup
 
     try std.testing.expectError(error.StatusCompletionCountExceedsQueued, device.drainStatusQueue(1));
 }
+
+test "phase10 virtio input zero-completion status drain keeps pending and suppressed counters stable" {
+    var device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-zero-drain", 27, null);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(8);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+    device.setMultitouch(true);
+
+    _ = try device.sendStatus(0x11, 0x01, 1);
+    _ = try device.sendStatus(virtio_input.ev_msc, virtio_input.msc_timestamp, 2);
+
+    var summary = try device.drainStatusQueue(0);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
+    try std.testing.expectEqual(@as(usize, 0), summary.completed_status_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.pending_status_count_before);
+    try std.testing.expectEqual(@as(usize, 1), summary.pending_status_count_after);
+    try std.testing.expectEqual(@as(usize, 1), summary.suppressed_status_count);
+    try std.testing.expect(summary.ready);
+
+    summary = try device.drainStatusQueue(1);
+    try std.testing.expectEqual(@as(usize, 1), summary.completed_status_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.pending_status_count_before);
+    try std.testing.expectEqual(@as(usize, 0), summary.pending_status_count_after);
+    try std.testing.expectEqual(@as(usize, 1), summary.suppressed_status_count);
+    try std.testing.expect(summary.ready);
+}
