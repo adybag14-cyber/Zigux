@@ -69,6 +69,19 @@ WORKFLOW_SCOPE_REQUIRED_FRAGMENTS = [
     ".github/workflows/zigux-bootstrap.yml",
 ]
 
+WORKFLOW_SCOPE_PATTERN_MARKERS = [
+    "\\.github/workflows/zigux-bootstrap\\.yml",
+    "scripts/zigux/install-zig\\.py",
+    "scripts/zigux/check-phase2-cross\\.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment\\.py",
+    "scripts/zigux/fixdep\\.zig",
+    "scripts/zigux/genksyms\\.zig",
+    "scripts/zigux/kconfig/conf_bridge\\.zig",
+    "scripts/zigux/kconfig/confdata_bridge\\.zig",
+    "scripts/zigux/zig-toolchain-policy\\.json",
+    "zigux/tests/fixtures/phase2_cross_targets\\.json",
+]
+
 PHASE2_CROSS_CHECKER_MARKERS = [
     "EXPECTED_TARGETS = [",
     "EXPECTED_ZIG_TEST_FILES = [",
@@ -203,6 +216,29 @@ def validate_workflow_scope_fragments(text: str) -> list[str]:
     )
 
 
+def extract_workflow_scope_pattern(text: str) -> str | None:
+    marker = "if printf '%s\\n' \"$changed_files\" | grep -Eq '"
+    start = text.find(marker)
+    if start == -1:
+        return None
+    start += len(marker)
+    end = text.find("'; then", start)
+    if end == -1:
+        return None
+    return text[start:end]
+
+
+def validate_workflow_scope_pattern(text: str) -> list[str]:
+    pattern = extract_workflow_scope_pattern(text)
+    if pattern is None:
+        return ["workflow_scope_pattern:missing"]
+    return validate_required_markers(
+        pattern,
+        label="workflow_scope_pattern",
+        markers=WORKFLOW_SCOPE_PATTERN_MARKERS,
+    )
+
+
 def validate_exact_workflow_runs(text: str) -> list[str]:
     issues: list[str] = []
     for command, expected_count in EXACT_WORKFLOW_RUN_COUNTS.items():
@@ -330,6 +366,35 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_failure")
     if "workflow_scope:missing_marker:.github/workflows/zigux-bootstrap.yml" not in scope_issues:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_workflow_failure")
+
+    scope_pattern_text = (
+        "if printf '%s\\n' \"$changed_files\" | grep -Eq '^(\\"
+        ".github/workflows/zigux-bootstrap\\.yml|scripts/zigux/install-zig\\.py|"
+        "scripts/zigux/check-phase2-cross\\.py|scripts/zigux/check-phase2-cross-selftest-alignment\\.py|"
+        "scripts/zigux/fixdep\\.zig|scripts/zigux/genksyms\\.zig|"
+        "scripts/zigux/kconfig/conf_bridge\\.zig|scripts/zigux/kconfig/confdata_bridge\\.zig|"
+        "scripts/zigux/zig-toolchain-policy\\.json|zigux/tests/fixtures/phase2_cross_targets\\.json)$'; then"
+    )
+    if validate_workflow_scope_pattern(scope_pattern_text):
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern")
+
+    missing_scope_pattern = scope_pattern_text.replace("scripts/zigux/genksyms\\.zig|", "", 1)
+    missing_scope_pattern_issues = validate_workflow_scope_pattern(missing_scope_pattern)
+    expected_scope_pattern_issue = "workflow_scope_pattern:missing_marker:scripts/zigux/genksyms\\.zig"
+    if missing_scope_pattern_issues != [expected_scope_pattern_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_failure")
+
+    missing_confdata_scope_pattern = scope_pattern_text.replace(
+        "scripts/zigux/kconfig/confdata_bridge\\.zig|", "", 1
+    )
+    missing_confdata_scope_pattern_issues = validate_workflow_scope_pattern(
+        missing_confdata_scope_pattern
+    )
+    expected_confdata_scope_pattern_issue = (
+        "workflow_scope_pattern:missing_marker:scripts/zigux/kconfig/confdata_bridge\\.zig"
+    )
+    if missing_confdata_scope_pattern_issues != [expected_confdata_scope_pattern_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_confdata_failure")
 
     makefile_text = "\n".join(
         [
@@ -516,7 +581,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_zig_test_files_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=24")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
@@ -615,6 +680,7 @@ def main() -> int:
     )
     issues.extend(validate_exact_workflow_runs(workflow_text))
     issues.extend(validate_workflow_scope_fragments(workflow_text))
+    issues.extend(validate_workflow_scope_pattern(workflow_text))
 
     makefile_text = MAKEFILE.read_text(encoding="utf-8")
     issues.extend(validate_exact_makefile_runs(makefile_text))
