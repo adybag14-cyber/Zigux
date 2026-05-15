@@ -187,14 +187,26 @@ def validate(root: Path) -> list[str]:
     return errors
 
 
+def render_manifest_fixture() -> str:
+    fixture = {
+        'lane_key': EXPECTED_LANE,
+        'surveyed_commit': EXPECTED_COMMIT,
+        'gaps': [
+            {'id': gap_id, 'status': status}
+            for gap_id, status in EXPECTED_GAPS.items()
+        ],
+    }
+    return json.dumps(fixture, indent=2) + '\n'
+
+
 def seed_fixture_tree(root: Path) -> None:
-    write_text(root / MANIFEST_PATH, read_text(Path('/workspace/shared-subsystems-run/candidate/zigux/tests/phase13_devres_manifest.json')))
-    write_text(root / SLICE_PATH, read_text(Path('/workspace/shared-subsystems-run/validation/Documentation/zigux/phase13-devres-slice.md')))
-    write_text(root / SURVEY_PATH, read_text(Path('/workspace/shared-subsystems-run/candidate/Documentation/zigux/phase13-devres-survey.md')))
-    write_text(root / HELPER_PATH, read_text(Path('/workspace/shared-subsystems-run/validation/lib/devres.zig')))
-    write_text(root / REVIEWABILITY_PATH, read_text(Path('/workspace/shared-subsystems-run/candidate/zigux/tests/phase13_devres_reviewability.zig')))
-    write_text(root / BOUNDARY_REPLAY_PATH, read_text(Path('/workspace/shared-subsystems-run/candidate/zigux/tests/phase13_devres_boundary_evidence.zig')))
-    write_text(root / DMA_REPLAY_PATH, read_text(Path('/workspace/shared-subsystems-run/validation/zigux/tests/phase13_devres_dma_coherent.zig')))
+    write_text(root / MANIFEST_PATH, render_manifest_fixture())
+    write_text(root / SLICE_PATH, '\n'.join(SLICE_MARKERS) + '\n')
+    write_text(root / SURVEY_PATH, '\n'.join(SURVEY_MARKERS) + '\n')
+    write_text(root / HELPER_PATH, '\n'.join(HELPER_MARKERS) + '\n')
+    write_text(root / REVIEWABILITY_PATH, '\n'.join(REVIEWABILITY_MARKERS) + '\n')
+    write_text(root / BOUNDARY_REPLAY_PATH, '\n'.join(BOUNDARY_REPLAY_MARKERS) + '\n')
+    write_text(root / DMA_REPLAY_PATH, '\n'.join(DMA_REPLAY_MARKERS) + '\n')
 
 
 def assert_only(actual: list[str], expected: list[str], label: str) -> None:
@@ -231,6 +243,22 @@ def run_self_test() -> int:
         missing = validate(root)
         expected = [f'survey:missing_marker:{marker}' for marker in SURVEY_MARKERS]
         assert_only(missing, expected, 'survey_missing_markers_failed')
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / HELPER_PATH,
+            '\n'.join(
+                marker
+                for marker in HELPER_MARKERS
+                if marker != '.releases_region_on_remap_failure = true'
+            ) + '\n',
+        )
+        assert_only(
+            validate(root),
+            ['helper:missing_marker:.releases_region_on_remap_failure = true'],
+            'helper_missing_marker_failed',
+        )
         case_count += 1
 
     print('PHASE13_DEVRES_ALIGNMENT_SELF_TEST=pass')
