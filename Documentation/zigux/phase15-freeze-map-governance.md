@@ -21,8 +21,10 @@ This document records the bounded Phase 15 governance lane around `Documentation
   - `Documentation/zigux/phase15-indefinite-c-policy.md`
   - `scripts/zigux/README.md`
   - `scripts/zigux/validate-phase15.py`
+  - `scripts/zigux/check-phase15-docs-readme-alignment.py`
   - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
   - `scripts/zigux/check-phase15-review-process-handoff.py`
+  - `scripts/zigux/check-phase15-shared-summary-gap.py`
   - `zigux/tests/README.md`
   - `zigux/tests/phase15_build.zig`
   - `zigux/tests/phase15_parity_scorecard.zig`
@@ -79,15 +81,17 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
 - current lane posture: `maintenance_mode`
 - replay before trusting this parked handoff:
   - `python3 scripts/zigux/validate-phase15.py`
+  - `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`
   - `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
   - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
+  - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
   - `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - the same parked packet also stays reachable through `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15`; if a later reviewer starts from the Linux-style wrapper route instead of the direct script and Zig commands above, confirm those wrapper routes still land on the exact same freeze-map-local checks before widening anything else
 - reopen only when one of the packet-local conditions below becomes true:
   - a freeze-map anchor changes status bucket, blocker disposition, or required approver set
   - the freeze-in-C or study-only anchor set changes in `Documentation/zigux/freeze-map.md`
   - the shared validator-first route or an adjacent Phase 15 governance packet drifts enough to change the per-anchor evidence-archive, replay-command, stay-in-C, or no-silent-exception posture recorded here
-- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_freeze_map_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, and `zigux/Makefile`, then keep the repair inside the freeze-map packet and its direct machine-checkable guard instead of reopening shared-summary, parity-scorecard, or readiness packets
+- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_freeze_map_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `scripts/zigux/validate-phase15.py`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `zigux/Makefile`, then keep the repair inside the freeze-map packet and its direct machine-checkable guard instead of reopening shared-summary, parity-scorecard, or readiness packets
 
 ## Recorded gaps
 
@@ -111,7 +115,7 @@ The current lane state is:
 
 This keeps the lane tight: Zigux keeps the same reviewable governance rule for the freeze map, the same current stay-in-C policy family, the same parity-scorecard lane-owner and rollback-owner records, the same machine-checkable scorecard manifest, the same shared validator-first route, the same per-anchor required-approver-set inventory and evidence-archive reporting posture already expected by the broader Phase 15 packet, the same compact crosswalk that says which blocker comes straight from the roadmap freeze and which current repo evidence still keeps each deep-core anchor parked, and an explicit maintenance-mode handoff that says when the packet may reopen and which replay route should be rerun before trusting it again.
 
-The only new maintenance claim is truthfulness: the parked note now records the current 2026-05-15 dated readback, the shared Linux-style `phase15-validate`, `phase15-test`, and `phase15` wrapper routes that still land on this packet, and the current shared owner-map reuse of skbuff lane P14-L11 instead of implying a stale separate shared-lane label still covered skbuff evidence.
+The only new maintenance claim is truthfulness: the parked note now records the current 2026-05-15 dated readback, the full shared Linux-style `phase15-validate`, `phase15-test`, and `phase15` wrapper routes, including the docs-root alignment checker and shared-summary gap checker that the shipped validator-first packet already runs, and the current shared owner-map reuse of skbuff lane P14-L11 instead of implying a stale separate shared-lane label still covered skbuff evidence.
 
 ## Non-goals
 
@@ -125,8 +129,10 @@ This slice does not claim:
 
 1. run the validator-first route
    - `python3 scripts/zigux/validate-phase15.py`
+   - `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`
    - `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
    - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
+   - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
 2. run the dedicated freeze-map governance gate
    - `zig test zigux/tests/phase15_freeze_map_governance.zig`
 
