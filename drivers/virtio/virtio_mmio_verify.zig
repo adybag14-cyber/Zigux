@@ -1,6 +1,25 @@
 const std = @import("std");
 const virtio_mmio = @import("virtio_mmio");
 
+test "virtio mmio wrapper-facing transport identity keeps legacy page-size posture visible" {
+    var device = try virtio_mmio.VirtioMmioLab.init(76, &[_]u16{ 8, 16 });
+
+    device.version = virtio_mmio.mmio_version_legacy;
+    var summary = device.transportIdentitySummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expect(summary.magic_matches);
+    try std.testing.expect(summary.version_supported);
+    try std.testing.expect(summary.device_present);
+    try std.testing.expect(summary.vendor_id_present);
+    try std.testing.expect(summary.requires_legacy_guest_page_size);
+
+    device.vendor_id = 0;
+    summary = device.transportIdentitySummary();
+    try std.testing.expect(summary.device_present);
+    try std.testing.expect(!summary.vendor_id_present);
+    try std.testing.expect(summary.requires_legacy_guest_page_size);
+}
+
 test "virtio mmio wrapper-facing probe preflight keeps bounded blockers visible" {
     var device = try virtio_mmio.VirtioMmioLab.init(73, &[_]u16{ 8, 16 });
 
