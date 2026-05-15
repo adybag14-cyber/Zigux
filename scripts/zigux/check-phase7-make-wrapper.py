@@ -65,6 +65,12 @@ REQUIRED_MARKERS = {
     ],
 }
 
+REQUIRED_EXACT_LINES = {
+    "zigux/Makefile": [
+        "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
+    ],
+}
+
 EXACT_COUNT_MARKERS = {
     "scripts/zigux/validate-phase7.py": {
         '"scripts/zigux/check-phase7-make-wrapper.py": [': 1,
@@ -84,6 +90,11 @@ def collect_missing_markers(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
+    for rel, lines in REQUIRED_EXACT_LINES.items():
+        text_lines = (root / rel).read_text(encoding="utf-8").splitlines()
+        for line in lines:
+            if line not in text_lines:
+                missing.append(f"{rel}: {line}")
     return missing
 
 
@@ -110,7 +121,10 @@ def write_fixture_root(tmp_root: Path) -> None:
     for rel in REQUIRED_FILES:
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(fixture_text.get(rel, "# fixture\n"), encoding="utf-8")
+        lines = fixture_text.get(rel, "# fixture\n")
+        if rel in REQUIRED_EXACT_LINES:
+            lines += "".join(f"{line}\n" for line in REQUIRED_EXACT_LINES[rel])
+        path.write_text(lines, encoding="utf-8")
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -204,6 +218,13 @@ def run_self_test() -> None:
             "zig build test --build-file zigux/tests/phase7_build.zig",
             "zigux/Makefile: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
         ),
+        (
+            "makefile_phase7_test_pinned_toolchain_route",
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
+            "cd $(ZIGUX_ROOT) && zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
+        ),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_make_wrapper_") as tmp_dir_str:
@@ -229,7 +250,7 @@ def run_self_test() -> None:
         expect_count_mismatch(
             "duplicate_validator_wrapper_packet_key",
             tmp_root,
-            "scripts/zigux/validate-phase7.py: expected 1 occurrence(s) of '\"scripts/zigux/check-phase7-make-wrapper.py\": [', found 2",
+            'scripts/zigux/validate-phase7.py: expected 1 occurrence(s) of \'"scripts/zigux/check-phase7-make-wrapper.py": [\', found 2',
         )
         write_fixture_root(tmp_root)
 
@@ -241,7 +262,7 @@ def run_self_test() -> None:
         expect_count_mismatch(
             "duplicate_validator_wrapper_success_marker",
             tmp_root,
-            "scripts/zigux/validate-phase7.py: expected 1 occurrence(s) of '\"PHASE7_MAKE_WRAPPER_SELF_TEST=pass\"', found 2",
+            'scripts/zigux/validate-phase7.py: expected 1 occurrence(s) of \'"PHASE7_MAKE_WRAPPER_SELF_TEST=pass"\', found 2',
         )
 
     case_count = len(missing_file_cases) + len(marker_cases) + 2
@@ -285,7 +306,7 @@ def main() -> int:
 
     print("PHASE7_MAKE_WRAPPER=pass")
     print(f"PHASE7_MAKE_WRAPPER_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE7_MAKE_WRAPPER_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    print(f"PHASE7_MAKE_WRAPPER_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values()) + sum(len(lines) for lines in REQUIRED_EXACT_LINES.values())}")
     print(
         "PHASE7_MAKE_WRAPPER_COUNT_RULE_COUNT="
         f"{sum(len(markers) for markers in EXACT_COUNT_MARKERS.values())}"
