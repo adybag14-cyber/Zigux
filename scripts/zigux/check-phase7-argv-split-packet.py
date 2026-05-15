@@ -62,7 +62,7 @@ REQUIRED_MARKERS = {
         "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
         "scheduled alias note: recurring scheduled lane `P7-Y07` is the older schedule label for this same argv-split packet and must be treated as the same owner, not as a second helper lane",
         "`argv_split` is parked as a landed helper-local packet with its helper, dedicated test, survey, manifest, and fixture module still visible",
-        "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, or reminder drift.",
+        "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, checker, or reminder drift.",
     ],
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
         "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
@@ -214,6 +214,7 @@ MISSING_MARKER_CASES = [
     ("zigux/tests/fixtures/phase7_argv_split_vectors.zig", ".name = \"quote characters stay inside returned tokens\""),
     ("zigux/tests/phase7_build.zig", "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));"),
     ("zigux/Makefile", "phase7-argv-split-survey:"),
+    ("Documentation/zigux/phase7-helper-lane-sequencing.md", "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, checker, or reminder drift."),
 ]
 
 
