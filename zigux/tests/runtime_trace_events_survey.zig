@@ -480,7 +480,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(runtime_trace_events_loader_substrate_drift, "shared_request.plan.requires_runtime_substrate = false;");
     try expectContains(
         runtime_trace_events_loader_substrate_drift,
-        "try std.testing.expectError(error.LoaderNotRequired, loader.requestSharedRuntimeLoad(&shared_request));",
+        "try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));",
     );
 
     try expectContains(phase9_build, "runtime_trace_events.zig");
