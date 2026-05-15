@@ -126,6 +126,7 @@ REQUIRED_MARKERS = {
         "release validator: `scripts/zigux/validate-phase13-release.py`",
         "shared replay handle: `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`",
         "shared-summary reread target: `scripts/zigux/README.md`, `zigux/tests/README.md`, this matrix, the docs-root Phase 13 companions, and the tests-root companion note are the shared surfaces to reread together;",
+        "Keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands, and treat the broader `phase13` route as blocked convenience wiring rather than direct shipped current-`master` evidence.",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche.",
@@ -803,6 +804,32 @@ def run_self_test() -> int:
                 "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:shared-summary reread target: `scripts/zigux/README.md`, `zigux/tests/README.md`, this matrix, the docs-root Phase 13 companions, and the tests-root companion note are the shared surfaces to reread together;"
             ],
             "missing_release_coordination_reread_target_failed",
+        )
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-coordination-matrix.md",
+            "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase13-release-coordination-matrix.md"])
+            + "\n",
+        )
+        case_count += 1
+
+        write_text(
+            root,
+            "Documentation/zigux/phase13-release-coordination-matrix.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["Documentation/zigux/phase13-release-coordination-matrix.md"]
+                if marker
+                != "Keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands, and treat the broader `phase13` route as blocked convenience wiring rather than direct shipped current-`master` evidence."
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:Keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands, and treat the broader `phase13` route as blocked convenience wiring rather than direct shipped current-`master` evidence."
+            ],
+            "missing_release_coordination_blocked_convenience_phrase_failed",
         )
         write_text(
             root,
