@@ -2,18 +2,19 @@
   "lane_key": "P11-L08",
   "phase": "Phase 11",
   "scope": "drivers/watchdog bcm2835 and dw_wdt | straightforward watchdog lifecycle parity",
-  "bounded_task": "manifest-backed extension for the directly readable bcm2835 starter packet",
+  "bounded_task": "platform-registration scaffold for the directly readable bcm2835 starter packet",
   "anchor": "drivers/watchdog/bcm2835_wdt.c",
   "current_repo_reality": {
     "driver_starter_present": true,
     "verify_helper_present": true,
     "replay_present": true,
+    "registration_scaffold_replay_present": true,
     "survey_gate_present": true,
     "manifest_present": true,
     "survey_note_present": true,
     "teardown_note_present": true,
     "validation_matrix_present": true,
-    "slice_note_present": false
+    "slice_note_present": true
   },
   "delivery_evidence_catalog": [
     {
@@ -32,29 +33,39 @@
       "why_now": "Replays timeout, probe, lifecycle, poweroff, and remove cleanup behavior for the bcm2835 packet."
     },
     {
+      "surface": "zigux/tests/phase11_bcm2835_wdt_registration_scaffold.zig",
+      "kind": "registration_scaffold_replay",
+      "why_now": "Keeps parent attachment, PM-base readiness, and controller-versus-non-controller handoff states explicit before any live platform execution claim."
+    },
+    {
       "surface": "zigux/tests/phase11_bcm2835_wdt_survey.zig",
       "kind": "survey_gate",
-      "why_now": "Fail-closes the current bcm2835 starter packet markers."
+      "why_now": "Fail-closes the current bcm2835 starter packet markers, including the new registration-scaffold replay and slice note."
     },
     {
       "surface": "zigux/tests/phase11_bcm2835_wdt_manifest.json",
       "kind": "packet_truth_manifest",
-      "why_now": "Pins the directly readable bcm2835 starter packet so the reminder notes and survey gate can stay aligned."
+      "why_now": "Pins the directly readable bcm2835 starter packet so the reminder notes, slice note, and survey gate can stay aligned."
     },
     {
       "surface": "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
       "kind": "survey_note",
-      "why_now": "Records the current manifest-backed starter packet without overstating a slice-note closure."
+      "why_now": "Records the current manifest-backed starter packet plus the dedicated registration-scaffold replay without overstating live platform-backed closure."
+    },
+    {
+      "surface": "Documentation/zigux/phase11-bcm2835-wdt-slice.md",
+      "kind": "slice_note",
+      "why_now": "Turns the previously blocked explicit validation plan into a directly reviewable bcm2835-local slice now that the scaffold replay exists."
     },
     {
       "surface": "Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md",
       "kind": "teardown_note",
-      "why_now": "Keeps the restart, poweroff, and remove cleanup packet truthful beside the new manifest."
+      "why_now": "Keeps the restart, poweroff, and remove cleanup packet truthful beside the new scaffolded slice."
     },
     {
       "surface": "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
       "kind": "validation_matrix",
-      "why_now": "Records the current manifest-backed bcm2835 validation packet and its still-blocked slice-note follow-through."
+      "why_now": "Records the current bcm2835 validation packet and its still-blocked boundary at live platform execution rather than planning-only drift."
     }
   ],
   "gaps": [
@@ -80,32 +91,39 @@
       "why_now": "The dedicated replay keeps the bounded bcm2835 lifecycle and ownership packet reviewable in tests."
     },
     {
+      "id": "phase11-bcm2835-registration-scaffold",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_bcm2835_wdt_registration_scaffold.zig",
+      "why_now": "The new scaffold replay makes the PM-base prerequisite, parent attachment gate, and controller ownership boundary directly reviewable before any live platform-backed follow-through."
+    },
+    {
       "id": "phase11-bcm2835-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_bcm2835_wdt_survey.zig",
-      "why_now": "The survey gate now has a manifest-backed packet to guard instead of only notes-only reminders."
+      "why_now": "The survey gate now guards the registration-scaffold replay and real slice note alongside the older starter packet."
     },
     {
       "id": "phase11-bcm2835-manifest",
       "status": "starter_landed",
       "kind": "packet_truth_manifest",
       "zigux_destination": "zigux/tests/phase11_bcm2835_wdt_manifest.json",
-      "why_now": "The starter packet is now substantive enough to pin its directly readable surfaces in one bcm2835-local manifest."
+      "why_now": "The starter packet is now substantive enough to pin its directly readable scaffold and slice surfaces in one bcm2835-local manifest."
     },
     {
       "id": "phase11-bcm2835-slice-note",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-bcm2835-wdt-slice.md",
-      "why_now": "The manifest-backed starter is reviewable, but a slice note should wait for another dedicated bcm2835 proof surface instead of overstating platform-backed progress."
+      "why_now": "The dedicated registration-scaffold replay now supports a truthful slice note and explicit validation plan without overstating live platform execution."
     },
     {
       "id": "phase11-bcm2835-platform-registration",
-      "status": "blocked_on_driver_scaffold",
+      "status": "blocked_on_live_platform_execution",
       "kind": "validation",
       "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
-      "why_now": "Live platform registration, PM-base plumbing, shared callback installation, and hardware-backed execution remain intentionally blocked outside this starter packet."
+      "why_now": "Live platform registration, PM-base plumbing, shared callback installation, and hardware-backed execution remain intentionally blocked outside this starter-plus-scaffold packet."
     }
   ]
 }
