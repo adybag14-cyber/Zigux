@@ -37,8 +37,7 @@ This note records the next bounded same-lane follow-through for the Zigux-owned
   syntax-guard, or layout-survey adjustment at a time
 - `scripts/zigux/survey-phase3-abi-constant-parity.py` now holds four exact
   nested chrdev ack-window policy budget family constants, four direct
-  header-and-binding type markers, the direct notifier-chain
-  priority-increase header-and-binding type marker, the dedicated
+  header-and-binding type markers, the dedicated
   `zigux/helpers/layout_assert.zig` three-`u32` helper quartet, and the
   committed dump, C harness, and expected-fixture keys across
   `include/zigux/abi.h`, `zigux/bindings/abi.zig`,
