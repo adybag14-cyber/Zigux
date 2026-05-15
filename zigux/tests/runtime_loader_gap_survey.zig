@@ -146,6 +146,15 @@ test "phase 9 runtime loader gap survey keeps the shared replay routes and no-de
     try expectContains(phase9_build, "../kernel/runtime_loader_contract.zig");
     try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
     try expectContains(phase9_build, "runtime_loader_allocator_init_flow.zig");
+    try expectContains(phase9_build, "\"phase9-runtime-loader-allocator-init-flow-tests\"");
+    try expectContains(
+        phase9_build,
+        "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);",
+    );
+    try expectContains(
+        phase9_build,
+        "test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);",
+    );
     try expectContains(phase9_build, "runtime_loader_gap_survey.zig");
 
     try expectContains(docs_readme, "`zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`");
