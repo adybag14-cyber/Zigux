@@ -114,6 +114,11 @@
       "coverage": "focused_and_full_bundle"
     }
   ],
+  "compile_shard_counts": {
+    "total": 6,
+    "focused_and_full_bundle": 1,
+    "full_bundle_only": 5
+  },
   "survey_summary": {
     "phase14_validate_script_present": true,
     "phase14_validate_entrypoint_present": true,
