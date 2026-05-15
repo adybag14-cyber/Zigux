@@ -33,7 +33,8 @@ Fresh repo-first inspection on 2026-05-15 confirmed these same-lane facts:
 - `samples/kfifo/bytestream-example.c` remains the Linux anchor for this slice.
 - `samples/zigux/bytestream_fifo.zig` is directly readable on current `master`.
 - that sample file still makes the non-runtime idiom explicit through `BytestreamFifoSample.descriptor()`, `StorageBacking.embedded_fixed_buffer`, `reviewContract().focus`, `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `runRemainingCapacityReplay()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle.
-- the shared Phase 5 guide in `Documentation/zigux/phase5-sample-review-guide.md`, the sample-root summary in `samples/zigux/README.md`, and the scripts-root plus tests-root summaries in `scripts/zigux/README.md` and `zigux/tests/README.md` already keep this anchor routed through the survey note, the directly readable manifest companion, and the broader bytestream packet wording instead of pretending the sample stands alone.
+- the shared Phase 5 guide in `Documentation/zigux/phase5-sample-review-guide.md`, the sample-root summary in `samples/zigux/README.md`, and the scripts-root summary in `scripts/zigux/README.md` already keep this anchor routed through the survey note, the directly readable manifest companion, and the broader bytestream packet wording instead of pretending the sample stands alone.
+- `zigux/tests/README.md` still names the bytestream survey note and sample-root anchor from the tests root, but it does not currently list the directly readable bytestream manifest companion in its Phase 5 entrypoints.
 - authenticated GitHub contents reads in this environment still did not recover these companion paths:
   - `zigux/tests/phase5_bytestream_fifo.zig`
   - `zigux/tests/phase5_bytestream_fifo_survey.zig`
@@ -45,7 +46,7 @@ That means the honest same-lane posture today is:
 
 - the roadmap-backed kfifo sample idiom is still present at the sample root
 - the manifest-backed packet is directly readable through authenticated contents readback, and the broader focused replay, survey replay, and shared Phase 5 build route are publicly visible on current `master`
-- authenticated connector readback for the remaining focused replay, survey replay, and shared-build files still fails in this environment, so reminder surfaces should describe the split readback honestly instead of calling those files absent or pretending the connector path already recovered them all
+- authenticated connector readback for the remaining focused replay, survey replay, and shared-build files still fails in this environment, and the tests-root README still trails the direct-manifest wording by one same-lane entrypoint line, so reminder surfaces should describe the split readback honestly instead of calling those files absent or pretending the connector path already recovered them all
 
 ## Approved idiom for the current bytestream sample
 
