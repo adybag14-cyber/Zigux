@@ -26,7 +26,8 @@ test "phase11 bcm2835 survey keeps direct handoff and lifecycle helpers explicit
     try std.testing.expect(std.mem.indexOf(u8, driver, "pub fn importBootloaderRunning(self: *Bcm2835WdtLab) !void") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver, "pub fn poweroff(self: *Bcm2835WdtLab, handler_claimed: bool) PoweroffSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver, ".blocked_on_live_platform_registration = true,") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver, ".poweroff_handler_claimed = probe.poweroff_handler_claimed and pm_base_handoff_ready,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver, ".poweroff_handler_claimed = probe.poweroff_handler_claimed,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver, ".poweroff_handler_conflict = probe.poweroff_handler_conflict,") != null);
 }
 
 test "phase11 bcm2835 survey keeps survey, teardown, and matrix notes aligned with the direct packet" {
