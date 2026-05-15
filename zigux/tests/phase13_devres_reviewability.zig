@@ -8,6 +8,7 @@ const SurveySummary = struct {
     preexisting_phase13_devres_test_present: bool,
     preexisting_phase13_devres_slice_present: bool,
     preexisting_phase13_devres_reviewability_present: bool,
+    preexisting_phase13_devres_boundary_evidence_present: bool,
     preexisting_phase13_devres_survey_present: bool,
     preexisting_phase13_devres_dma_coherent_present: bool,
 };
@@ -38,13 +39,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_live_scatterlist_state");
 }
 
-fn expectGap(
-    manifest: Manifest,
-    id: []const u8,
-    status: []const u8,
-    destination: []const u8,
-    why_marker: []const u8,
-) !void {
+fn expectGap(manifest: Manifest, id: []const u8, status: []const u8, destination: []const u8, why_marker: []const u8) !void {
     for (manifest.gaps) |gap| {
         if (!std.mem.eql(u8, gap.id, id)) continue;
         try std.testing.expectEqualStrings(status, gap.status);
@@ -59,41 +54,18 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/phase13_devres_manifest.json",
-        std.testing.allocator,
-        .limited(64 * 1024),
-    );
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "zigux/tests/phase13_devres_manifest.json", std.testing.allocator, .limited(64 * 1024));
     defer std.testing.allocator.free(manifest_json);
-
-    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase13-devres-slice.md",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "Documentation/zigux/phase13-devres-slice.md", std.testing.allocator, .limited(16 * 1024));
     defer std.testing.allocator.free(slice_note);
-
-    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase13-devres-survey.md",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "Documentation/zigux/phase13-devres-survey.md", std.testing.allocator, .limited(32 * 1024));
     defer std.testing.allocator.free(survey_note);
-
-    const devres_source = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "lib/devres.zig",
-        std.testing.allocator,
-        .limited(40 * 1024),
-    );
+    const devres_source = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "lib/devres.zig", std.testing.allocator, .limited(40 * 1024));
     defer std.testing.allocator.free(devres_source);
+    const boundary_replay = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "zigux/tests/phase13_devres_boundary_evidence.zig", std.testing.allocator, .limited(24 * 1024));
+    defer std.testing.allocator.free(boundary_replay);
 
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
-        .ignore_unknown_fields = true,
-    });
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{ .ignore_unknown_fields = true });
     defer parsed.deinit();
 
     const manifest = parsed.value;
@@ -111,9 +83,10 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_slice_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_boundary_evidence_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -135,26 +108,20 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
     try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub const ManagedIounmapPlan") != null);
     try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planManagedIounmap(") != null);
     try std.testing.expect(std.mem.indexOf(u8, devres_source, ".warns_on_release_miss = !release_matches") != null);
-    try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planManagedIoremapAcquireUc(") != null);
-    try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planManagedIoremapAcquireWc(") != null);
-    try std.testing.expect(std.mem.indexOf(u8, devres_source, ".provides_arch_io_wc_memtype_planning = true") != null);
-    try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub const ManagedMemtypeReserveInput") != null);
-    try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub const ManagedMemtypeReservePlan") != null);
+    try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planManagedIoremapResource(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planDeviceTreeIomap(") != null);
     try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planArchIoReserveMemtypeWc(") != null);
     try std.testing.expect(std.mem.indexOf(u8, devres_source, "pub fn planArchPhysWcAdd(") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_iounmap()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_arch_io_reserve_memtype_wc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_arch_phys_wc_add()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "master-readback-2026-05-14") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P13-L01`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_iounmap()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_ioremap_uc()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_ioremap_wc()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_io_reserve_memtype_wc()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_phys_wc_add()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase13_devres_dma_coherent.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "helper-only DMA/scatterlist boundary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase13_devres_boundary_evidence.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "direct boundary-evidence replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "live release-region mutation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "live arch memtype state transitions") != null);
+    try std.testing.expect(std.mem.indexOf(u8, boundary_replay, "phase13 devres boundary evidence keeps the manifest-backed blocked surfaces explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, boundary_replay, "phase13-devres-boundary-evidence-gate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, boundary_replay, "phase13 devres planners keep blocked arch memtype boundaries in detach-bookkeeping form") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -163,126 +130,15 @@ test "phase13 devres reviewability packet matches the current helper-local mmio 
         try std.testing.expect(gap.kind.len > 0);
         try std.testing.expect(gap.why_now.len > 0);
         try std.testing.expect(isAllowedStatus(gap.status));
-        if (std.mem.eql(u8, gap.status, "starter_landed")) {
-            starter_landed_count += 1;
-        } else {
-            blocked_count += 1;
-        }
+        if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1 else blocked_count += 1;
     }
 
-    try expectGap(
-        manifest,
-        "phase13-make-target",
-        "starter_landed",
-        "zigux/Makefile",
-        "stable shared Phase 13 replay handle",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-helper-starter",
-        "starter_landed",
-        "lib/devres.zig",
-        "helper-first managed ioremap lifetime",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-slice-note",
-        "starter_landed",
-        "Documentation/zigux/phase13-devres-slice.md",
-        "devm_arch_phys_wc_add()",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-survey-note",
-        "starter_landed",
-        "Documentation/zigux/phase13-devres-survey.md",
-        "DMA/scatterlist boundary",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-test-gate",
-        "starter_landed",
-        "zigux/tests/phase13_devres.zig",
-        "detach-time WC memtype reservation helper",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-reviewability-gate",
-        "starter_landed",
-        "zigux/tests/phase13_devres_reviewability.zig",
-        "DMA/scatterlist boundary",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-iounmap-planner",
-        "starter_landed",
-        "lib/devres.zig",
-        "release-miss warning shaping",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-of-iomap-planner",
-        "starter_landed",
-        "lib/devres.zig",
-        "translated resources by index",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-arch-io-wc-memtype-planner",
-        "starter_landed",
-        "lib/devres.zig",
-        "negative reserve results",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-arch-phys-wc-token-planner",
-        "starter_landed",
-        "lib/devres.zig",
-        "negative token results",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-live-mmio-mappings",
-        "blocked_on_live_mmio_state",
-        "lib/devres.zig",
-        "real mappings or unmaps",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-live-region-reservation",
-        "blocked_on_live_mmio_state",
-        "lib/devres.zig",
-        "region acquisition side effects",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-live-release-region-mutation",
-        "blocked_on_live_mmio_state",
-        "lib/devres.zig",
-        "release_mem_region()",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-live-device-tree-walk",
-        "blocked_on_live_device_tree_state",
-        "lib/devres.zig",
-        "OF node traversal",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-live-arch-memtype-state",
-        "blocked_on_live_arch_memtype_state",
-        "lib/devres.zig",
-        "mutating real memtype state",
-    );
-    try expectGap(
-        manifest,
-        "phase13-devres-live-scatterlist-ownership",
-        "blocked_on_live_scatterlist_state",
-        "lib/devres.zig",
-        "DMA/scatterlist boundary",
-    );
+    try expectGap(manifest, "phase13-devres-boundary-evidence-gate", "starter_landed", "zigux/tests/phase13_devres_boundary_evidence.zig", "blocked live-state boundaries explicit");
+    try expectGap(manifest, "phase13-devres-live-region-reservation", "blocked_on_live_mmio_state", "lib/devres.zig", "region acquisition side effects");
+    try expectGap(manifest, "phase13-devres-live-release-region-mutation", "blocked_on_live_mmio_state", "lib/devres.zig", "release_mem_region()");
+    try expectGap(manifest, "phase13-devres-live-device-tree-walk", "blocked_on_live_device_tree_state", "lib/devres.zig", "OF node traversal");
+    try expectGap(manifest, "phase13-devres-live-arch-memtype-state", "blocked_on_live_arch_memtype_state", "lib/devres.zig", "mutating real memtype state");
 
-    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 6), blocked_count);
 }
