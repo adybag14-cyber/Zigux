@@ -37,6 +37,8 @@ COMPILE_GATE = "zig build phase3-test --build-file zigux/tests/build.zig"
 DUMP_GATE = "zig build phase3-dump --build-file zigux/tests/build.zig"
 INTEROP_ROUTE = "python3 scripts/zigux/run-phase3-checks.py --slug abi"
 INTEROP_MAKE = "make -C zigux phase3-interop"
+ABI_MAKE = "make -C zigux phase3-abi"
+AGGREGATE_MAKE = "make -C zigux phase3"
 MAKEFILE_RUN_PREFIX = "cd $(ZIGUX_ROOT) && "
 MAKEFILE_COMPILE_GATE = "$(ZIG) build phase3-test --build-file zigux/tests/build.zig"
 LOW_LEVEL_WRAPPERS_GATE = (
@@ -88,6 +90,8 @@ SURVEY_EXACT = (
     f"`PHASE3_SHARED_DUMP_GATE={DUMP_GATE}`",
     f"`PHASE3_SHARED_INTEROP_ROUTE={INTEROP_ROUTE}`",
     f"`PHASE3_SHARED_INTEROP_MAKE={INTEROP_MAKE}`",
+    f"`PHASE3_SHARED_ABI_MAKE={ABI_MAKE}`",
+    f"`PHASE3_SHARED_AGGREGATE_MAKE={AGGREGATE_MAKE}`",
     f"`PHASE3_SHARED_MAKEFILE_PATH={MAKEFILE.as_posix()}`",
     f"`PHASE3_EXPORT_UAPI_VALIDATOR_PATH={VALIDATOR.as_posix()}`",
     f"`PHASE3_EXPORT_UAPI_WORKFLOW_PATH={WORKFLOW.as_posix()}`",
@@ -550,6 +554,16 @@ def run_self_test() -> int:
 
         write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_SHARED_COMPILE_GATE={COMPILE_GATE}`\n", "", 1))
         assert validate(root) == [f"missing_survey_marker:`PHASE3_SHARED_COMPILE_GATE={COMPILE_GATE}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_SHARED_ABI_MAKE={ABI_MAKE}`\n", "", 1))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_SHARED_ABI_MAKE={ABI_MAKE}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_SHARED_AGGREGATE_MAKE={AGGREGATE_MAKE}`\n", "", 1))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_SHARED_AGGREGATE_MAKE={AGGREGATE_MAKE}`"]
         build_valid_workspace(root)
         case_count += 1
 
