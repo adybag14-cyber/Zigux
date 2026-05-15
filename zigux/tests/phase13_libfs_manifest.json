@@ -74,11 +74,25 @@
       "why_now": "The libfs helper lab now models pure generic_check_addressable() planning, keeping sector and page-index window checks, zero-block short-circuiting, and explicit overflow status reporting visible without claiming live inode, buffer-head, or page-cache ownership."
     },
     {
+      "id": "phase13-libfs-dcache-cursor-preconditions",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models bounded dcache_dir_open() cursor allocation and dcache_readdir() cursor-precondition planning, keeping allocation failure, dir_emit_dots() gating, first-child-versus-private-cursor resume selection, and missing-private-data blocking explicit without claiming live sibling-list mutation, lock ordering, or cursor dentry ownership."
+    },
+    {
+      "id": "phase13-libfs-dcache-cursor-reposition-bookkeeping",
+      "status": "ready_next",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The next honest step is to model the post-scan cursor reposition bookkeeping around hlist_del_init() plus hlist_add_before() / hlist_add_behind() without claiming live sibling-list mutation, lock ordering, or cursor dentry ownership."
+    },
+    {
       "id": "phase13-libfs-reviewability-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs_reviewability.zig",
-      "why_now": "A dedicated reviewability replay now keeps the current libfs helper surface explicit, including the landed offset-add and offset-remove planners alongside the transaction, addressability, and offset-rename planners in fs/libfs.zig."
+      "why_now": "A dedicated reviewability replay now keeps the current libfs helper surface explicit, including the landed cursor-precondition planner alongside the transaction, addressability, and offset-based planners in fs/libfs.zig."
     },
     {
       "id": "phase13-libfs-survey-note",
