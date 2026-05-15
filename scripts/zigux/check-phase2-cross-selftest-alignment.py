@@ -12,8 +12,8 @@ PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
-CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
-BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+CLOSURE_DOC = ROOT / "Documentation" / "zigux/phase2-closure.md"
+BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux/phase2-toolchain-bootstrap-notes.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
@@ -23,6 +23,7 @@ PHASE2_VALIDATE_TARGET_NAME = "phase2-validate"
 PHASE2_VALIDATE_TARGET_HEADER = "phase2-validate: phase2-tools phase2-kconfig"
 PHASE2_CROSS_TARGET_NAME = "phase2-cross"
 PHASE2_CROSS_TARGET_HEADER = "phase2-cross: phase2-toolchain"
+PHASE2_CROSS_WORKFLOW_JOB_NAME = "phase2-cross"
 
 EXPECTED_TARGETS = [
     "x86_64-linux-musl",
@@ -82,6 +83,18 @@ WORKFLOW_SCOPE_PATTERN_MARKERS = [
     "zigux/tests/fixtures/phase2_cross_targets\\.json",
 ]
 
+PHASE2_CROSS_WORKFLOW_JOB_MARKERS = [
+    "      - name: Install Zig",
+    "        run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
+    "      - name: Check bounded Phase 2 cross-target compile",
+    "        run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
+]
+
+PHASE2_CROSS_WORKFLOW_JOB_FORBIDDEN_MARKERS = [
+    "python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "python3 scripts/zigux/check-zig-toolchain.py",
+]
+
 PHASE2_CROSS_CHECKER_MARKERS = [
     "EXPECTED_TARGETS = [",
     "EXPECTED_ZIG_TEST_FILES = [",
@@ -115,6 +128,13 @@ BOOTSTRAP_NOTES_MATRIX_BOUNDARY_SENTENCE = (
     "dedicated genksyms or kconfig lanes from this bootstrap note"
 )
 
+BOOTSTRAP_NOTES_CROSS_WORKFLOW_BOUNDARY_SENTENCE = (
+    "the dedicated `phase2-cross` workflow job currently reuses the same pinned installer "
+    "path but stops at installer-side archive verification plus `scripts/zigux/check-phase2-cross.py`, "
+    "so the broader closure packet should treat bootstrap and cross-target verification as adjacent "
+    "but not identical routes until a later bounded follow-up adds the live checker there too"
+)
+
 CLOSURE_MARKERS = [
     "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
@@ -130,6 +150,7 @@ BOOTSTRAP_NOTES_MARKERS = [
     "shared cross selftest-alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
     BOOTSTRAP_NOTES_MATRIX_BOUNDARY_SENTENCE,
+    BOOTSTRAP_NOTES_CROSS_WORKFLOW_BOUNDARY_SENTENCE,
 ]
 
 BOOTSTRAP_NOTES_FORBIDDEN_MARKERS = [
@@ -217,7 +238,7 @@ def validate_workflow_scope_fragments(text: str) -> list[str]:
 
 
 def extract_workflow_scope_pattern(text: str) -> str | None:
-    marker = "if printf '%s\\n' \"$changed_files\" | grep -Eq '"
+    marker = "if printf '%s\\n' \\\"$changed_files\\\" | grep -Eq '"
     start = text.find(marker)
     if start == -1:
         return None
@@ -237,6 +258,47 @@ def validate_workflow_scope_pattern(text: str) -> list[str]:
         label="workflow_scope_pattern",
         markers=WORKFLOW_SCOPE_PATTERN_MARKERS,
     )
+
+
+def extract_workflow_job_block(text: str, job_name: str) -> str | None:
+    header = f"  {job_name}:"
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line == header:
+            block: list[str] = [line]
+            for following in lines[index + 1 :]:
+                if not following:
+                    block.append(following)
+                    continue
+                if not following.startswith("  ") and not following.startswith(" "):
+                    break
+                if following.startswith("  ") and not following.startswith("    "):
+                    break
+                block.append(following)
+            return "\n".join(block)
+    return None
+
+
+def validate_phase2_cross_workflow_job(text: str) -> list[str]:
+    block = extract_workflow_job_block(text, PHASE2_CROSS_WORKFLOW_JOB_NAME)
+    if block is None:
+        return ["workflow_phase2_cross_job:missing"]
+    issues: list[str] = []
+    issues.extend(
+        validate_required_markers(
+            block,
+            label="workflow_phase2_cross_job",
+            markers=PHASE2_CROSS_WORKFLOW_JOB_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_forbidden_markers(
+            block,
+            label="workflow_phase2_cross_job",
+            markers=PHASE2_CROSS_WORKFLOW_JOB_FORBIDDEN_MARKERS,
+        )
+    )
+    return issues
 
 
 def validate_exact_workflow_runs(text: str) -> list[str]:
@@ -357,6 +419,55 @@ def run_self_test() -> int:
     if not any(issue.startswith("workflow_exact_run:") for issue in issues):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_count_failure")
 
+    valid_workflow_job = "\n".join(
+        [
+            "  phase2-cross:",
+            "    if: needs.phase2_cross_scope.outputs.should_run == 'true'",
+            "    needs: [bootstrap, phase2_cross_scope]",
+            "    runs-on: ubuntu-latest",
+            "    steps:",
+            "      - name: Install Zig",
+            "        run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
+            "      - name: Check bounded Phase 2 cross-target compile",
+            "        run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
+            "",
+            "  next-job:",
+            "    runs-on: ubuntu-latest",
+        ]
+    )
+    if validate_phase2_cross_workflow_job(valid_workflow_job):
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_job_markers")
+
+    missing_workflow_job_issues = validate_phase2_cross_workflow_job("jobs:\n  bootstrap:\n    runs-on: ubuntu-latest")
+    if missing_workflow_job_issues != ["workflow_phase2_cross_job:missing"]:
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_job_missing")
+
+    workflow_job_missing_install = valid_workflow_job.replace(
+        "      - name: Install Zig\n",
+        "",
+        1,
+    )
+    expected_workflow_job_install_issue = (
+        "workflow_phase2_cross_job:missing_marker:      - name: Install Zig"
+    )
+    if validate_phase2_cross_workflow_job(workflow_job_missing_install) != [
+        expected_workflow_job_install_issue
+    ]:
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_job_install_marker_failure")
+
+    workflow_job_with_forbidden_toolchain_gate = valid_workflow_job.replace(
+        "      - name: Check bounded Phase 2 cross-target compile\n",
+        "      - name: Check Zig toolchain\n        run: python3 scripts/zigux/check-zig-toolchain.py\n      - name: Check bounded Phase 2 cross-target compile\n",
+        1,
+    )
+    expected_workflow_job_forbidden_issue = (
+        "workflow_phase2_cross_job:forbidden_marker:python3 scripts/zigux/check-zig-toolchain.py"
+    )
+    if validate_phase2_cross_workflow_job(workflow_job_with_forbidden_toolchain_gate) != [
+        expected_workflow_job_forbidden_issue
+    ]:
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_job_forbidden_failure")
+
     scope_text = "\n".join(WORKFLOW_SCOPE_REQUIRED_FRAGMENTS)
     if validate_workflow_scope_fragments(scope_text):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope")
@@ -368,7 +479,7 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_workflow_failure")
 
     scope_pattern_text = (
-        "if printf '%s\\n' \"$changed_files\" | grep -Eq '^(\\"
+        "if printf '%s\\n' \\\"$changed_files\\\" | grep -Eq '^(\\"
         ".github/workflows/zigux-bootstrap\\.yml|scripts/zigux/install-zig\\.py|"
         "scripts/zigux/check-phase2-cross\\.py|scripts/zigux/check-phase2-cross-selftest-alignment\\.py|"
         "scripts/zigux/fixdep\\.zig|scripts/zigux/genksyms\\.zig|"
@@ -610,7 +721,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_zig_test_files_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=28")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
@@ -710,6 +821,7 @@ def main() -> int:
     issues.extend(validate_exact_workflow_runs(workflow_text))
     issues.extend(validate_workflow_scope_fragments(workflow_text))
     issues.extend(validate_workflow_scope_pattern(workflow_text))
+    issues.extend(validate_phase2_cross_workflow_job(workflow_text))
 
     makefile_text = MAKEFILE.read_text(encoding="utf-8")
     issues.extend(validate_exact_makefile_runs(makefile_text))
