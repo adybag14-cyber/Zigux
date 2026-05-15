@@ -19,6 +19,9 @@ pub const review_packet = [_][]const u8{
     "zigux/tests/phase14_rcu_tree_survey.zig",
     "Documentation/zigux/phase14-rcu-tree-survey.md",
     "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase14-core-boundary-traceability.md",
+    "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
 };
 
 pub const blocked_boundaries = [_]BridgeBoundary{
@@ -93,6 +96,10 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", roadmap_destination);
     try std.testing.expectEqualStrings("phase14-rcu-tree-bridge-blocker", blocked_gap);
     try std.testing.expect(!live_bridge_claim);
+    try std.testing.expectEqual(@as(usize, 7), review_packet.len);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase14-core-boundary-traceability.md", review_packet[4]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase14-end-to-end-smoke-survey.md", review_packet[5]);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_end_to_end_smoke_manifest.json", review_packet[6]);
     try std.testing.expectEqual(@as(usize, 9), blockedBoundaryCount());
     try std.testing.expectEqualStrings("idle_watch_reentry_and_core_invocation", blocked_boundaries[4].id);
     try std.testing.expect(contains(blocked_boundaries[4].summary, "idle-watch"));
