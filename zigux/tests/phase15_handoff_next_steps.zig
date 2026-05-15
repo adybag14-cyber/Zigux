@@ -39,6 +39,7 @@ const Manifest = struct {
     roadmap_requirements: []const []const u8,
     bootstrap_ledger_anchor: []const u8,
     repo_evidence: RepoEvidence,
+    future_target_companions: []const []const u8,
     adjacent_lane_boundaries: []const AdjacentLaneBoundary,
     named_reopen_triggers: []const Trigger,
     pending_next_steps: []const []const u8,
@@ -79,6 +80,23 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(manifest.repo_evidence.named_reopen_trigger_catalog_present);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
     try std.testing.expect(manifest.repo_evidence.tests_root_validator_routes_explicit);
+    try std.testing.expectEqual(@as(usize, 4), manifest.future_target_companions.len);
+    try std.testing.expectEqualStrings(
+        "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+        manifest.future_target_companions[0],
+    );
+    try std.testing.expectEqualStrings(
+        "zigux/tests/phase14_workqueue_bridge_manifest.json",
+        manifest.future_target_companions[1],
+    );
+    try std.testing.expectEqualStrings(
+        "Documentation/zigux/phase14-ring-buffer-survey.md",
+        manifest.future_target_companions[2],
+    );
+    try std.testing.expectEqualStrings(
+        "zigux/tests/phase14_ring_buffer_manifest.json",
+        manifest.future_target_companions[3],
+    );
     try std.testing.expectEqual(@as(usize, 5), manifest.adjacent_lane_boundaries.len);
     try std.testing.expect(std.mem.eql(u8, "shared-summaries", manifest.adjacent_lane_boundaries[0].lane_family));
     try std.testing.expect(std.mem.indexOf(u8, manifest.adjacent_lane_boundaries[0].why_out_of_scope, "docs-root and checklist reminders are already aligned") != null);
