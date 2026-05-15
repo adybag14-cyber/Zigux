@@ -44,6 +44,19 @@ PHASE4_VALIDATE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py",
 )
+PHASE15_VALIDATE_TARGET = "phase15-validate"
+PHASE15_VALIDATE_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase15.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase15.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-docs-readme-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py",
+)
 PHASE4_VALIDATE_ROUTE_SNIPPET = (
     "- `make -C zigux phase4-validate` reruns the validator-first Phase 4 route, including "
     "`scripts/zigux/check-artifact-diff-contract.py`, "
@@ -254,18 +267,30 @@ def validate_makefile(repo_root: Path) -> list[str]:
             if command not in phase3_interop_commands
         )
 
-    commands = _extract_make_target_commands(makefile_text, PHASE4_VALIDATE_TARGET)
-    if commands is None:
+    phase4_commands = _extract_make_target_commands(makefile_text, PHASE4_VALIDATE_TARGET)
+    if phase4_commands is None:
         issues.append(f"missing_makefile_target:{PHASE4_VALIDATE_TARGET}")
+    else:
+        issues.extend(
+            f"missing_makefile_command:{PHASE4_VALIDATE_TARGET}:{command}"
+            for command in PHASE4_VALIDATE_COMMANDS
+            if command not in phase4_commands
+        )
+        if tuple(phase4_commands) != PHASE4_VALIDATE_COMMANDS:
+            issues.append(f"makefile_command_order_drift:{PHASE4_VALIDATE_TARGET}")
+
+    phase15_commands = _extract_make_target_commands(makefile_text, PHASE15_VALIDATE_TARGET)
+    if phase15_commands is None:
+        issues.append(f"missing_makefile_target:{PHASE15_VALIDATE_TARGET}")
         return issues
 
     issues.extend(
-        f"missing_makefile_command:{PHASE4_VALIDATE_TARGET}:{command}"
-        for command in PHASE4_VALIDATE_COMMANDS
-        if command not in commands
+        f"missing_makefile_command:{PHASE15_VALIDATE_TARGET}:{command}"
+        for command in PHASE15_VALIDATE_COMMANDS
+        if command not in phase15_commands
     )
-    if tuple(commands) != PHASE4_VALIDATE_COMMANDS:
-        issues.append(f"makefile_command_order_drift:{PHASE4_VALIDATE_TARGET}")
+    if tuple(phase15_commands) != PHASE15_VALIDATE_COMMANDS:
+        issues.append(f"makefile_command_order_drift:{PHASE15_VALIDATE_TARGET}")
     return issues
 
 
@@ -304,10 +329,12 @@ def _baseline_makefile() -> str:
         f"\t{command}" for command in PHASE3_INTEROP_COMMANDS
     )
     phase4_body = "\n".join(f"\t{command}" for command in PHASE4_VALIDATE_COMMANDS)
+    phase15_body = "\n".join(f"\t{command}" for command in PHASE15_VALIDATE_COMMANDS)
     return (
         f"{PHASE3_VALIDATE_TARGET}:\n{phase3_body}\n\n"
         f"{PHASE3_INTEROP_TARGET}:\n{phase3_interop_body}\n\n"
-        f"{PHASE4_VALIDATE_TARGET}:\n{phase4_body}\n"
+        f"{PHASE4_VALIDATE_TARGET}:\n{phase4_body}\n\n"
+        f"{PHASE15_VALIDATE_TARGET}:\n{phase15_body}\n"
     )
 
 
@@ -417,8 +444,6 @@ def run_self_test() -> int:
         return 1
 
     broken = validate_text(sample.replace("check-phase6-shared-surface.py", "", 1))
-    if "check-phase6-shared-surface.py" not in broken:
-        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
         print("expected Phase 6 shared-surface marker was not reported")
         return 1
 
@@ -904,7 +929,6 @@ def run_self_test() -> int:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
             print("expected missing Phase 3 interop runner command was not reported")
             return 1
-
         _write(root / MAKEFILE_REL, _baseline_makefile())
         makefile = _baseline_makefile().replace(
             "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig\n",
@@ -920,6 +944,41 @@ def run_self_test() -> int:
         if expected not in broken:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
             print("expected missing Phase 3 interop dump command was not reported")
+            return 1
+
+        _write(root / MAKEFILE_REL, _baseline_makefile())
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py --self-test\n",
+            "",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        broken = validate_makefile(root)
+        expected = (
+            "missing_makefile_command:phase15-validate:"
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py --self-test"
+        )
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 15 shared-summary-gap self-test command was not reported")
+            return 1
+        if f"makefile_command_order_drift:{PHASE15_VALIDATE_TARGET}" not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected Phase 15 makefile command order drift was not reported")
+            return 1
+
+        _write(root / MAKEFILE_REL, _baseline_makefile())
+        makefile = _baseline_makefile().replace(
+            "phase15-validate:\n",
+            "phase15-validate-shadow:\n",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        broken = validate_makefile(root)
+        expected = f"missing_makefile_target:{PHASE15_VALIDATE_TARGET}"
+        if expected not in broken:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing Phase 15 validate target was not reported")
             return 1
 
         _write(root / WORKFLOW_REL, _baseline_workflow().replace(
