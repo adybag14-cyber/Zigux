@@ -67,6 +67,14 @@ reviewable through:
 - `python3 scripts/zigux/validate-phase8.py --self-test`
 - `python3 scripts/zigux/validate-phase8.py`
 
+Current 2026-05-15 authenticated contents readback from this environment still
+returned `404` for `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`,
+`zigux/tests/phase8_file_path_handle_bridge.zig`,
+`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`,
+`zigux/tests/phase8_libbpf_segments_only_build.zig`, and
+`zigux/tests/phase8_build.zig`, so treat that landed bridge-plus-build packet as
+mixed-source review evidence rather than uniformly stable contents-route proof.
+
 That queued bridge packet stays helper-first and planning-only: it names
 `mapReuseObservationFromFdinfo()`, `resolveReusePinnedMapAttempt()`, and
 `planTokenPreparation()` as a planning-only gate around a non-empty pinned path
@@ -154,7 +162,13 @@ readback: public tree, public raw, and authenticated helper readback still carry
 the direct exec-cmd shard, while authenticated contents reads for
 `zigux/tests/phase8_exec_cmd.zig` and
 `zigux/tests/phase8_exec_cmd_only_build.zig` remain intermittent from this
-environment.
+environment, and the landed file-path bridge plus shared-build shard still
+depends on mixed-source review evidence because authenticated contents reads
+also remain unstable for `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`,
+`zigux/tests/phase8_file_path_handle_bridge.zig`,
+`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`,
+`zigux/tests/phase8_libbpf_segments_only_build.zig`, and
+`zigux/tests/phase8_build.zig`.
 
 Current `master` also shows that `Documentation/zigux/README.md` and
 `Documentation/zigux/review-checklist.md` already carry the refreshed shared-wording
