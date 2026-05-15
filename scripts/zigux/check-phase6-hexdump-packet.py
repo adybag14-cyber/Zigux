@@ -124,15 +124,20 @@ MAKEFILE_MARKERS = [
 ]
 
 FOCUSED_TEST_MARKERS = [
-    "fn assertLengthCase(case: fixtures.LengthCase) !void {",
-    "hexdump.hexDumpLineLength(case.len, case.rowsize, case.groupsize, case.ascii),",
+    'fn assertLengthCase(case: fixtures.LengthCase) !void {',
+    'hexdump.hexDumpLineLength(case.len, case.rowsize, case.groupsize, case.ascii),',
+    'hexdump.hexDumpToBuffer(fixtures.data_b[0..case.len], case.rowsize, case.groupsize, &[_]u8{}, case.ascii),',
     'test "phase 6 hexdump helper packet preserves the curated length matrix" {',
-    "for (fixtures.length_cases) |case| {",
+    'for (fixtures.length_cases) |case| {',
     'test "phase 6 hexdump direct helper aliases stay aligned with the packet" {',
     "try std.testing.expectEqual(@as(?u8, 10), hexdump.hexToBin('a'));",
+    "try std.testing.expectEqual(@as(isize, 15), hexdump.hex_to_bin('f'));",
+    "try std.testing.expectEqual(@as(?u8, null), hexdump.hexToBin('x'));",
     'try hexdump.hex2Bin(decoded[0..], "be32db7b");',
+    'try std.testing.expectError(error.InvalidLength, hexdump.hex2Bin(decoded[0..], "be32db"));',
     'try std.testing.expectError(error.InvalidHex, hexdump.hex2bin(decoded[0..], "be32dz7b"));',
     "const text = hexdump.bin2Hex(encoded[0..], fixtures.data_b[0..4]);",
+    'try std.testing.expectEqualStrings("be32db7b", text);',
 ]
 
 PERF_MATRIX_MARKERS = [
@@ -158,7 +163,7 @@ FIXTURE_MARKERS = [
     '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
 ]
 
-SELF_TEST_CASE_COUNT = 24
+SELF_TEST_CASE_COUNT = 27
 
 
 class CheckError(RuntimeError):
@@ -417,7 +422,7 @@ def run_self_test() -> None:
             ),
             encoding="utf-8",
         )
-        expect_failure(tmpdir, "phase 6 hexdump helper packet preserves the curated length matrix")
+        expect_failure(tmpdir, "curated length matrix")
 
         build_self_test_fixture(tmpdir)
         focused_test = tmpdir / REQUIRED_FILES["focused_test"]
@@ -435,6 +440,54 @@ def run_self_test() -> None:
         focused_test = tmpdir / REQUIRED_FILES["focused_test"]
         focused_test.write_text(
             focused_test.read_text(encoding="utf-8").replace(
+                "hexdump.hexDumpToBuffer(fixtures.data_b[0..case.len], case.rowsize, case.groupsize, &[_]u8{}, case.ascii),\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "hexdump.hexDumpToBuffer(fixtures.data_b[0..case.len], case.rowsize, case.groupsize, &[_]u8{}, case.ascii),")
+
+        build_self_test_fixture(tmpdir)
+        focused_test = tmpdir / REQUIRED_FILES["focused_test"]
+        focused_test.write_text(
+            focused_test.read_text(encoding="utf-8").replace(
+                "try std.testing.expectEqual(@as(?u8, 10), hexdump.hexToBin('a'));",
+                "try std.testing.expectEqual(@as(?u8, 11), hexdump.hexToBin('a'));",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "try std.testing.expectEqual(@as(?u8, 10), hexdump.hexToBin('a'));")
+
+        build_self_test_fixture(tmpdir)
+        focused_test = tmpdir / REQUIRED_FILES["focused_test"]
+        focused_test.write_text(
+            focused_test.read_text(encoding="utf-8").replace(
+                "try std.testing.expectEqual(@as(isize, 15), hexdump.hex_to_bin('f'));",
+                "try std.testing.expectEqual(@as(isize, 14), hexdump.hex_to_bin('f'));",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "try std.testing.expectEqual(@as(isize, 15), hexdump.hex_to_bin('f'));")
+
+        build_self_test_fixture(tmpdir)
+        focused_test = tmpdir / REQUIRED_FILES["focused_test"]
+        focused_test.write_text(
+            focused_test.read_text(encoding="utf-8").replace(
+                'try std.testing.expectError(error.InvalidLength, hexdump.hex2Bin(decoded[0..], "be32db"));',
+                'try std.testing.expectError(error.InvalidLength, hexdump.hex2Bin(decoded[0..], "be32da"));',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, 'try std.testing.expectError(error.InvalidLength, hexdump.hex2Bin(decoded[0..], "be32db"));')
+
+        build_self_test_fixture(tmpdir)
+        focused_test = tmpdir / REQUIRED_FILES["focused_test"]
+        focused_test.write_text(
+            focused_test.read_text(encoding="utf-8").replace(
                 "const text = hexdump.bin2Hex(encoded[0..], fixtures.data_b[0..4]);\n",
                 "",
                 1,
@@ -442,6 +495,18 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "const text = hexdump.bin2Hex(encoded[0..], fixtures.data_b[0..4]);")
+
+        build_self_test_fixture(tmpdir)
+        focused_test = tmpdir / REQUIRED_FILES["focused_test"]
+        focused_test.write_text(
+            focused_test.read_text(encoding="utf-8").replace(
+                'try std.testing.expectEqualStrings("be32db7b", text);',
+                'try std.testing.expectEqualStrings("be32db7a", text);',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, 'try std.testing.expectEqualStrings("be32db7b", text);')
 
         build_self_test_fixture(tmpdir)
         (tmpdir / REQUIRED_FILES["helper_source"]).unlink()
