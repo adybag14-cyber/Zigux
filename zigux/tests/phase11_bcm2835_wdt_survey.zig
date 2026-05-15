@@ -31,6 +31,9 @@ test "phase11 bcm2835 survey keeps direct handoff and lifecycle helpers explicit
 }
 
 test "phase11 bcm2835 survey keeps survey, slice, teardown, and matrix notes aligned with the direct packet" {
+    const manifest = try readFile(std.testing.allocator, "zigux/tests/phase11_bcm2835_wdt_manifest.json", 16 * 1024);
+    defer std.testing.allocator.free(manifest);
+
     const survey_note = try readFile(std.testing.allocator, "Documentation/zigux/phase11-bcm2835-wdt-survey.md", 16 * 1024);
     defer std.testing.allocator.free(survey_note);
 
@@ -43,16 +46,22 @@ test "phase11 bcm2835 survey keeps survey, slice, teardown, and matrix notes ali
     const validation_matrix = try readFile(std.testing.allocator, "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md", 16 * 1024);
     defer std.testing.allocator.free(validation_matrix);
 
+    try std.testing.expect(std.mem.indexOf(u8, manifest, "\"lane_key\": \"P11-L08\"") != null);
+
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE11_BCM2835_WDT_SURVEY_STATUS=survey_gate_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase11_bcm2835_wdt_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase11_bcm2835_wdt_registration_scaffold.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase11-bcm2835-wdt-slice.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "explicit validation plan") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L08`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L12`") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE11_BCM2835_WDT_SLICE_STATUS=registration_scaffold_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase11_bcm2835_wdt_registration_scaffold.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PM-base handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "explicit validation plan") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "`P11-L08`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "`P11-L12`") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "PHASE11_BCM2835_WDT_TEARDOWN_STATUS=manifest_teardown_truthful") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "drivers/watchdog/bcm2835_wdt_verify.zig") != null);
@@ -65,6 +74,8 @@ test "phase11 bcm2835 survey keeps survey, slice, teardown, and matrix notes ali
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zigux/tests/phase11_bcm2835_wdt_registration_scaffold.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "Documentation/zigux/phase11-bcm2835-wdt-slice.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "explicit validation plan") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L08`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L12`") == null);
 }
 
 test "phase11 bcm2835 survey keeps the replay and verify helpers reviewable" {
