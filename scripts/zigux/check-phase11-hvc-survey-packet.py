@@ -449,7 +449,7 @@ def build_fixture(root: Path, surveyed_commit: str) -> None:
     write(root / REQUIRED_FILES["validation_matrix"], "\n".join(VALIDATION_MATRIX_MARKERS + [surveyed_commit]) + "\n")
     write(root / REQUIRED_FILES["modem_control_split"], "\n".join(MODEM_CONTROL_SPLIT_MARKERS) + "\n")
     write(root / REQUIRED_FILES["poll_retry_split"], "\n".join(POLL_RETRY_SPLIT_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["sysrq_helper"], "\n".join(SYSRQ_HELPER_MARKERS) + "\n")
+    write(root / REQUIRED_FILES["sysrq_helper"], "\n".join(SYSRQ_HELPERS_MARKERS) + "\n")
     write(root / REQUIRED_FILES["makefile"], "\n".join(MAKEFILE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["workflow"], "\n".join(WORKFLOW_MARKERS) + "\n")
 
@@ -512,12 +512,15 @@ def run_self_test() -> None:
             (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[3]),
             (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[6]),
             (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[8]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[0]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[1]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[2]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[3]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[4]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[5]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[6]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[7]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[8]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[9]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[10]),
             (REQUIRED_FILES["survey_note"], PRESENT_DIRECT_COMPANION_MARKER),
@@ -548,7 +551,10 @@ def run_self_test() -> None:
             (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[1]),
             (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[-1]),
             (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[0]),
+            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[1]),
             (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[2]),
+            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[3]),
+            (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[4]),
             (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[5]),
             (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[6]),
             (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[7]),
