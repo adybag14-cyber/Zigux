@@ -118,7 +118,7 @@ test "phase 8 libbpf manifest keeps the current helper-first segment catalog ali
     try expectContains(bridge_note.why_now, "live descriptor or reopen side effects");
 }
 
-test "phase 8 libbpf survey note stays grounded in the directly readable helper packet" {
+test "phase 8 libbpf survey note stays grounded in the current helper-plus-build packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -136,16 +136,27 @@ test "phase 8 libbpf survey note stays grounded in the directly readable helper 
     );
     try expectContains(
         phase8_note,
-        "exact readable helper-side files currently include `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`.",
+        "`Documentation/zigux/README.md` now names the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note in the broad Phase 8 docs summary, public Phase 8 readback still serves `Documentation/zigux/phase8-bpf-type-names-slice.md`, and `scripts/zigux/README.md` keeps the broader Phase 8 libbpf helper packet visible through the shared sequencing, bridge-boundary, bridge-slice, checker, and build-surface reminders.",
     );
     try expectContains(
         phase8_note,
-        "current authenticated contents readback from this environment returns `404` for `tools/lib/bpf/zigux_segments/verify.zig`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, and `zigux/tests/phase8_build.zig`.",
+        "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
     );
     try expectContains(
         phase8_note,
-        "this dedicated survey should stay grounded in the narrower directly readable helper packet plus the manifest-backed segment catalog",
+        "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
     );
+    try expectContains(
+        phase8_note,
+        "current shared reminder surfaces already keep the landed bridge-plus-build packet explicit through `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, `zigux/tests/phase8_build.zig`, `zigux/Makefile`, and `scripts/zigux/validate-phase8.py`.",
+    );
+    try expectContains(
+        phase8_note,
+        "current `master` also carries helper-local routing evidence in `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
+    );
+    try expectContains(phase8_note, "advanceOnlineCpuCursor()");
+    try expectContains(phase8_note, "summarizeNextOnlineCpuRoute()");
+    try expectContains(phase8_note, "summarizeOnlineCpuRouting()");
     try expectContains(
         phase8_note,
         "The manifest currently records twelve bounded segments: seven landed helper or helper-adjacent slices and five deferred or blocked follow-ons.",
@@ -156,28 +167,28 @@ test "phase 8 libbpf survey note stays grounded in the directly readable helper 
     );
     try expectContains(
         phase8_note,
-        "The real current gap is now survey truthfulness about which parts of the helper-first libbpf packet stay directly readable on current `master` and which parts remain manifest-backed or shared-reminder claims.",
+        "The real current gap is now survey truthfulness about the already-landed checker packet, helper-local routing evidence, and the landed bridge-plus-build packet itself, not environment-specific contents-route flakiness or a missing checker rule.",
     );
     try expectContains(
         phase8_note,
-        "they do not currently confirm the bridge helper, the focused bridge build shard, the focused libbpf-segment build shard, or the broader Phase 8 build replay.",
+        "The older mixed-source caveat is now too weak for this packet.",
     );
     try expectContains(
         phase8_note,
-        "Current shared reminder surfaces still carry broader wording outside this lane, but that shared-packet follow-through belongs to the shared wording lane, not to this dedicated survey file.",
+        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
     );
     try expectContains(
         phase8_note,
-        "keep the helper-local `online_cpu_routing.zig` evidence explicit while staying smaller than deferred `perf-buffer-online-cpu-routing`",
+        "Keep the libbpf survey packet parked after this survey-and-route sync unless a fresh shared reminder-surface drift reappears against the current helper-plus-build evidence.",
     );
 
     try expectNotContains(
         phase8_note,
-        "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet",
+        "current authenticated contents readback from this environment returns `404` for `tools/lib/bpf/zigux_segments/verify.zig`",
     );
     try expectNotContains(
         phase8_note,
-        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`",
+        "they do not currently confirm the bridge helper, the focused bridge build shard, the focused libbpf-segment build shard, or the broader Phase 8 build replay.",
     );
 }
 
@@ -198,7 +209,7 @@ test "phase 8 libbpf survey keeps routing helper and perf-buffer boundary explic
     try expectContains(routing_helper, "pub fn summarizeOnlineCpuRouting(");
     try expectContains(
         routing_helper,
-        "test \"summarizeOnlineCpuRouting reports the first routed online CPU whose fd slot is empty\" {",
+        "test \\\"summarizeOnlineCpuRouting reports the first routed online CPU whose fd slot is empty\\\" {",
     );
 
     const boundary_note = try readFileAlloc(
