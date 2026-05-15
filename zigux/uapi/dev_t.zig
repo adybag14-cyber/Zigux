@@ -24,6 +24,10 @@ pub fn encode(major_id: u32, minor_id: u32) EncodeError!u32 {
     return dev_t_bindings.encode(major_id, minor_id);
 }
 
+pub fn validate(major_id: u32, minor_id: u32) EncodeError!void {
+    _ = try encode(major_id, minor_id);
+}
+
 pub fn major(dev: u32) u32 {
     return dev_t_bindings.major(dev);
 }
@@ -36,13 +40,26 @@ pub fn rangeFits(first_minor: u32, count: u32) bool {
     return dev_t_bindings.rangeFits(first_minor, count);
 }
 
+pub fn validateRange(major_id: u32, first_minor: u32, count: u32) EncodeError!void {
+    if (!majorValid(major_id)) return error.MajorOutOfRange;
+    if (count == 0) {
+        if (!minorValid(first_minor)) return error.MinorOutOfRange;
+        return;
+    }
+    if (!minorValid(first_minor)) return error.MinorOutOfRange;
+    if (!rangeFits(first_minor, count)) return error.RangeExhausted;
+}
+
 pub fn lastInRange(major_id: u32, first_minor: u32, count: u32) EncodeError!u32 {
-    return dev_t_bindings.lastInRange(major_id, first_minor, count);
+    try validateRange(major_id, first_minor, count);
+    const last_minor = if (count == 0) first_minor else first_minor + count - 1;
+    return packMasked(major_id, last_minor);
 }
 
 test "phase3 uapi dev_t starter keeps encode and range parity explicit" {
     const encoded = try encode(73, 0x34567);
 
+    try validate(73, 0x34567);
     try std.testing.expectEqual(dev_t_bindings.minor_bits, minor_bits);
     try std.testing.expectEqual(dev_t_bindings.minor_mask, minor_mask);
     try std.testing.expectEqual(dev_t_bindings.max_major, major_max);
@@ -63,6 +80,13 @@ test "phase3 uapi dev_t starter keeps masked pack parity explicit" {
 }
 
 test "phase3 uapi dev_t starter rejects out-of-range inputs" {
+    try validateRange(12, 8, 4);
+    try validateRange(12, minor_mask, 0);
+    try std.testing.expectError(error.MajorOutOfRange, validate(major_max + 1, 0));
+    try std.testing.expectError(error.MinorOutOfRange, validate(0, minor_mask + 1));
+    try std.testing.expectError(error.MajorOutOfRange, validateRange(major_max + 1, 0, 1));
+    try std.testing.expectError(error.MinorOutOfRange, validateRange(0, minor_mask + 1, 0));
+    try std.testing.expectError(error.RangeExhausted, validateRange(5, minor_mask - 1, 3));
     try std.testing.expectError(error.MajorOutOfRange, encode(major_max + 1, 0));
     try std.testing.expectError(error.MinorOutOfRange, encode(0, minor_mask + 1));
     try std.testing.expectError(error.RangeExhausted, lastInRange(5, minor_mask - 1, 3));
