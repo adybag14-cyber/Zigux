@@ -5,7 +5,7 @@ This note tracks the bounded Phase 9 runtime bitmap review packet under `samples
 ## Status
 - `PHASE9_STATUS=active`
 - `PHASE9_LANE_KEY=P9-L08`
-- `PHASE9_SURVEYED_COMMIT=66e60700501fc8bb08d645b081064c4698562427`
+- `PHASE9_SURVEYED_COMMIT=6726fdd9da4eef55498fb06c38815317a684bcbf`
 - scope: direct sample, sample-root summary, diff gate, loader scaffold, top-bit companion replay, module gate, survey gate, manifest-backed ownership packet, and shared loader handoff plus shared build routes only
 
 ## Boundaries
