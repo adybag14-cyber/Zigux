@@ -30,6 +30,8 @@ REQUIRED_MARKERS = {
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
         "make -C zigux phase7-cmdline-survey",
         "shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`;",
+        "getOption() and getOptions() keep the oversized wrap contract explicit across both 32-bit boundary inputs and full-width unsigned parses,",
+        "memparse() preserves suffix scaling, `simple_strtoull()`-style leading-plus rejection, stop-index reporting, and saturated oversized-prefix handling before any size-suffix shift is applied",
         "leading-whitespace handling keeps the Linux-style empty sentinel token",
         "Treat any fresh shared `phase7_build.zig` replay claim as a cross-packet follow-through that should be backed by a new direct shared replay, not just by current-master readback.",
     ],
@@ -67,6 +69,8 @@ REQUIRED_MARKERS = {
         "test \"getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull consumption\"",
         "test \"nextArg returns an empty sentinel token before leading whitespace and trims the following rest\"",
         "test \"getOption and getOptions preserve oversized wrap semantics\"",
+        "test \"memparse saturates oversized unsigned prefixes before applying suffix handling\"",
+        "test \"memparse keeps saturated prefixes aligned when size suffixes still apply\"",
     ],
     "zigux/tests/phase7_cmdline.zig": [
         "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");",
@@ -75,6 +79,8 @@ REQUIRED_MARKERS = {
         "phase 7 getOption and getOptions preserve oversized wrap semantics",
         "phase 7 nextArg matches serialized edge fixtures",
         "phase 7 nextArg keeps empty-input and leading-whitespace ownership explicit",
+        "phase 7 memparse saturates oversized unsigned prefixes before applying suffix handling",
+        "phase 7 memparse keeps saturated prefixes aligned when size suffixes still apply",
     ],
     "zigux/tests/phase7_cmdline_survey.zig": [
         "P7-L05",
@@ -229,6 +235,18 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase7-cmdline-slice.md: shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`;",
             ),
             (
+                "slice_wrap_marker",
+                "Documentation/zigux/phase7-cmdline-slice.md",
+                "getOption() and getOptions() keep the oversized wrap contract explicit across both 32-bit boundary inputs and full-width unsigned parses,",
+                "Documentation/zigux/phase7-cmdline-slice.md: getOption() and getOptions() keep the oversized wrap contract explicit across both 32-bit boundary inputs and full-width unsigned parses,",
+            ),
+            (
+                "slice_memparse_saturation_marker",
+                "Documentation/zigux/phase7-cmdline-slice.md",
+                "memparse() preserves suffix scaling, `simple_strtoull()`-style leading-plus rejection, stop-index reporting, and saturated oversized-prefix handling before any size-suffix shift is applied",
+                "Documentation/zigux/phase7-cmdline-slice.md: memparse() preserves suffix scaling, `simple_strtoull()`-style leading-plus rejection, stop-index reporting, and saturated oversized-prefix handling before any size-suffix shift is applied",
+            ),
+            (
                 "helper_lane_checker_marker",
                 "Documentation/zigux/phase7-helper-lane-sequencing.md",
                 "scripts/zigux/check-phase7-cmdline-packet.py",
@@ -265,6 +283,18 @@ def run_self_test() -> None:
                 "lib/cmdline.zig: test \"getOption and getOptions preserve oversized wrap semantics\"",
             ),
             (
+                "helper_memparse_saturation_marker",
+                "lib/cmdline.zig",
+                "test \"memparse saturates oversized unsigned prefixes before applying suffix handling\"",
+                "lib/cmdline.zig: test \"memparse saturates oversized unsigned prefixes before applying suffix handling\"",
+            ),
+            (
+                "helper_memparse_suffix_saturation_marker",
+                "lib/cmdline.zig",
+                "test \"memparse keeps saturated prefixes aligned when size suffixes still apply\"",
+                "lib/cmdline.zig: test \"memparse keeps saturated prefixes aligned when size suffixes still apply\"",
+            ),
+            (
                 "tests_fixture_marker",
                 "zigux/tests/phase7_cmdline.zig",
                 "phase 7 nextArg matches serialized edge fixtures",
@@ -275,6 +305,24 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_cmdline.zig",
                 "phase 7 nextArg keeps empty-input and leading-whitespace ownership explicit",
                 "zigux/tests/phase7_cmdline.zig: phase 7 nextArg keeps empty-input and leading-whitespace ownership explicit",
+            ),
+            (
+                "tests_wrap_marker",
+                "zigux/tests/phase7_cmdline.zig",
+                "phase 7 getOption and getOptions preserve oversized wrap semantics",
+                "zigux/tests/phase7_cmdline.zig: phase 7 getOption and getOptions preserve oversized wrap semantics",
+            ),
+            (
+                "tests_memparse_saturation_marker",
+                "zigux/tests/phase7_cmdline.zig",
+                "phase 7 memparse saturates oversized unsigned prefixes before applying suffix handling",
+                "zigux/tests/phase7_cmdline.zig: phase 7 memparse saturates oversized unsigned prefixes before applying suffix handling",
+            ),
+            (
+                "tests_memparse_suffix_saturation_marker",
+                "zigux/tests/phase7_cmdline.zig",
+                "phase 7 memparse keeps saturated prefixes aligned when size suffixes still apply",
+                "zigux/tests/phase7_cmdline.zig: phase 7 memparse keeps saturated prefixes aligned when size suffixes still apply",
             ),
             (
                 "survey_checker_marker",
