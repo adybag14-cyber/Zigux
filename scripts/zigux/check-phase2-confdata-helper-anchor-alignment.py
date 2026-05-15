@@ -15,9 +15,10 @@ CONFDATA_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
 CONFDATA_MANIFEST = (
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json"
 )
+CONFDATA_SURVEY = ROOT / "Documentation" / "zigux" / "phase2-confdata-bridge-survey.md"
 
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_SELF_TEST_CASE_COUNT = 6
+EXPECTED_SELF_TEST_CASE_COUNT = 8
 
 SELFTEST_CONFDATA_HELPER_ANCHORS = (
     "confdata bridge parses bounded config states",
@@ -40,6 +41,13 @@ SELFTEST_CONFDATA_HELPER_ANCHORS = (
     "confdata bridge keeps only the last assignment for duplicate symbols",
     "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
     "confdata bridge keeps only the last state across unset and set transitions",
+)
+
+REQUIRED_SURVEY_MARKERS = (
+    "`20` helper-local tests covering the current bridge-local edge cases.",
+    "`confdata_cases` packet with 13 fixture cases:",
+    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.",
+    "`scripts/zigux/check-kconfig-bridge.py` gate plus the direct `zig test scripts/zigux/kconfig/confdata_bridge.zig` replay",
 )
 
 
@@ -150,6 +158,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 f"actual={manifest_helper_anchors!r}:expected={checker_helper_anchors!r}",
             )
         )
+
+    survey_text = read_text(resolve_path(root, CONFDATA_SURVEY))
+    for marker in REQUIRED_SURVEY_MARKERS:
+        if marker not in survey_text:
+            issues.append(("CONFDATA_HELPER_ANCHOR_SURVEY_MISSING_MARKER", marker))
+
     return issues
 
 
@@ -188,6 +202,20 @@ def render_confdata_bridge_source(anchors: tuple[str, ...]) -> str:
     return "".join(blocks)
 
 
+def render_confdata_survey() -> str:
+    return "\n".join(
+        (
+            "# Phase 2 Confdata Bridge Survey",
+            "",
+            "- `scripts/zigux/kconfig/confdata_bridge.zig` is present on `master` and ships a bounded `runConfdataBridge()` entrypoint plus a CLI `main()` wrapper that reads one config path and emits a JSON summary, alongside `20` helper-local tests covering the current bridge-local edge cases.",
+            "- `zigux/tests/fixtures/kconfig_bridge/cases.json` currently carries a `confdata_cases` packet with 13 fixture cases: `sample`, `escaped_strings`, `escaped_control_sequences`, `trailing_escaped_backslash`, `sample_crlf`, `explicit_n_tristate`, `final_trailing_carriage_return`, `final_unterminated_unset_comment`, `uppercase_tristate`, `non_config_lines`, `empty_config_symbol_names`, `last_state_transitions`, and `duplicate_malformed_quoted_assignment`.",
+            "- `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.",
+            "- `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already describe the same shared kconfig packet and keep the bridge reviewable through the shared `scripts/zigux/check-kconfig-bridge.py` gate plus the direct `zig test scripts/zigux/kconfig/confdata_bridge.zig` replay instead of implying either current-`master` surface is missing.",
+            "",
+        )
+    )
+
+
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, KCONFIG_BRIDGE_CHECKER), render_checker_source(SELFTEST_CONFDATA_HELPER_ANCHORS))
     write_text(resolve_path(root, CONFDATA_BRIDGE), render_confdata_bridge_source(SELFTEST_CONFDATA_HELPER_ANCHORS))
@@ -202,6 +230,7 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
     )
+    write_text(resolve_path(root, CONFDATA_SURVEY), render_confdata_survey())
 
 
 def replace_once(text: str, marker: str, replacement: str) -> str:
@@ -266,6 +295,23 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        path = resolve_path(root, CONFDATA_SURVEY)
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                "`20` helper-local tests covering the current bridge-local edge cases.",
+                "`19` helper-local tests covering the current bridge-local edge cases.",
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "CONFDATA_HELPER_ANCHOR_SURVEY_MISSING_MARKER",
+            "`20` helper-local tests covering the current bridge-local edge cases.",
+        ) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
         resolve_path(root, CONFDATA_BRIDGE).unlink()
         try:
             collect_issues(root)
@@ -285,6 +331,16 @@ def run_self_test() -> int:
             raise AssertionError("missing manifest file did not abort")
         checks_run += 1
 
+        build_self_test_root(root)
+        resolve_path(root, CONFDATA_SURVEY).unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+        else:
+            raise AssertionError("missing survey file did not abort")
+        checks_run += 1
+
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_CONFDATA_HELPER_ANCHOR_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_CONFDATA_HELPER_ANCHOR_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
@@ -293,7 +349,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 2 confdata helper-local anchor packet stays aligned across the live checker, source, and manifest."
+        description="Check that the Phase 2 confdata helper-local anchor packet stays aligned across the live checker, source, manifest, and survey note."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
