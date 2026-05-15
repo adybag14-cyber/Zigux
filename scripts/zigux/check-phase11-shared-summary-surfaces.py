@@ -93,19 +93,13 @@ REQUIRED_MARKERS = {
         "`drivers/tty/hvc/hvc_console_verify.zig`",
     ],
     "scripts_root": [
-        "Phase 11 flow -",
-        "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
-        "`scripts/zigux/check-phase11-build-inventory.py`",
-        "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
-        "`zigux/tests/fixtures/phase11_build_inventory.json`",
-        "`zigux/tests/phase11_hvc_console.zig`",
-        "`drivers/tty/hvc/hvc_console_verify.zig`",
-        "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-        "`zigux/tests/phase11_hvc_console_modem_control_split.zig`",
-        "`zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
-        "`drivers/tty/hvc/hvc_console_sysrq.zig`",
-        "`make -C zigux phase11-contract`",
-        "`make -C zigux phase11-hvc-survey`",
+        "Current bootstrap helpers -",
+        "`check-phase11-shared-replay-contract.py`",
+        "`check-phase11-shared-summary-surfaces.py`",
+        "`check-phase11-bcm2835-wdt-packet.py`",
+        "`check-phase11-dw-wdt-packet.py`",
+        "`check-phase11-header-boundary-packet.py`",
+        "`check-phase11-hvc-survey-packet.py`",
     ],
     "tests_root": [
         "keep the shared Phase 11 simple-driver packet explicit in the tests root too",
@@ -210,102 +204,10 @@ def run_self_test() -> None:
         build_self_test_fixture(fixture_root)
         run_check(fixture_root)
 
-        required_cases = [
-            (FILES["contract_note"], CONTRACT_MARKERS[0]),
-            (FILES["contract_note"], CONTRACT_MARKERS[1]),
-            (FILES["contract_note"], CONTRACT_MARKERS[2]),
-            (FILES["contract_note"], CONTRACT_MARKERS[3]),
-            (FILES["contract_note"], CONTRACT_MARKERS[4]),
-            (FILES["contract_note"], CONTRACT_MARKERS[5]),
-            (FILES["contract_note"], CONTRACT_MARKERS[6]),
-            (FILES["contract_note"], CONTRACT_MARKERS[7]),
-            (FILES["contract_note"], CONTRACT_MARKERS[8]),
-            (FILES["contract_note"], CONTRACT_MARKERS[9]),
-            (FILES["contract_note"], CONTRACT_MARKERS[10]),
-            (FILES["contract_note"], CONTRACT_MARKERS[11]),
-            (FILES["contract_note"], "`Documentation/zigux/phase11-hvc-console-slice.md`"),
-            (FILES["contract_note"], "`drivers/tty/hvc/hvc_console.zig`"),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][0]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][1]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][2]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][3]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][4]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][5]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][6]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][7]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][8]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][9]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][10]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][11]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][12]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][13]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][14]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][15]),
-            (FILES["closure_note"], REQUIRED_MARKERS["closure_note"][16]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][0]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][1]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][2]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][3]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][4]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][5]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][6]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][7]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][8]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][9]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][10]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][11]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][12]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][13]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][14]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][15]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][16]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][17]),
-            (FILES["lane_note"], REQUIRED_MARKERS["lane_note"][18]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][0]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][1]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][2]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][3]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][4]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][5]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][6]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][7]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][8]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][9]),
-            (FILES["docs_root"], REQUIRED_MARKERS["docs_root"][10]),
-            (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][0]),
-            (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][1]),
-            (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][2]),
-            (FILES["review_checklist"], REQUIRED_MARKERS["review_checklist"][3]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][0]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][1]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][2]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][3]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][4]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][5]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][6]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][7]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][8]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][9]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][10]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][11]),
-            (FILES["scripts_root"], REQUIRED_MARKERS["scripts_root"][12]),
-            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][0]),
-            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][1]),
-            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][2]),
-            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][3]),
-            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][4]),
-            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][5]),
-            (FILES["tests_root"], REQUIRED_MARKERS["tests_root"][6]),
-            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][0]),
-            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][1]),
-            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][2]),
-            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][3]),
-            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][4]),
-            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][5]),
-            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][6]),
-            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][7]),
-            (FILES["tests_companion"], REQUIRED_MARKERS["tests_companion"][8]),
-        ]
+        required_cases: list[tuple[str, str]] = []
+        required_cases.extend((FILES["contract_note"], marker) for marker in CONTRACT_MARKERS)
+        for label, markers in REQUIRED_MARKERS.items():
+            required_cases.extend((FILES[label], marker) for marker in markers)
 
         for idx, (relative_path, marker) in enumerate(required_cases, start=1):
             case_root = tmpdir / f"required_{idx}"
@@ -317,28 +219,20 @@ def run_self_test() -> None:
             )
             expect_failure(case_root, marker)
 
-        forbidden_cases = [
-            ("contract_note", FORBIDDEN_MARKERS["contract_note"][0]),
-            ("contract_note", FORBIDDEN_MARKERS["contract_note"][1]),
-            ("contract_note", FORBIDDEN_MARKERS["contract_note"][2]),
-            ("contract_note", FORBIDDEN_MARKERS["contract_note"][3]),
-            ("lane_note", FORBIDDEN_MARKERS["lane_note"][0]),
-            ("lane_note", FORBIDDEN_MARKERS["lane_note"][1]),
-            ("scripts_root", FORBIDDEN_MARKERS["scripts_root"][0]),
-            ("scripts_root", FORBIDDEN_MARKERS["scripts_root"][1]),
-            ("scripts_root", FORBIDDEN_MARKERS["scripts_root"][2]),
-        ]
+        forbidden_cases: list[tuple[str, str]] = []
+        for label, markers in FORBIDDEN_MARKERS.items():
+            forbidden_cases.extend((FILES[label], marker) for marker in markers)
 
-        for idx, (label, marker) in enumerate(forbidden_cases, start=1):
+        for idx, (relative_path, marker) in enumerate(forbidden_cases, start=1):
             case_root = tmpdir / f"forbidden_{idx}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
-            path = case_root / FILES[label]
+            path = case_root / relative_path
             path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
             expect_failure(case_root, marker)
 
         print("PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST=pass")
         print(
-            f"PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST_CASE_COUNT="
+            "PHASE11_SHARED_SUMMARY_SURFACES_SELF_TEST_CASE_COUNT="
             f"{len(required_cases) + len(forbidden_cases)}"
         )
     finally:
