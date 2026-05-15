@@ -68,6 +68,8 @@ REQUIRED_MARKERS = {
         "The current starter replay also keeps these ownership-focused boundaries explicit:",
         "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
         "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
+        "leading whitespace skipping that stops at the first NUL",
+        "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting",
     ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
         "PHASE7_STATUS=parked",
@@ -419,6 +421,18 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase7-string-helpers-slice.md",
                 "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
                 "Documentation/zigux/phase7-string-helpers-slice.md: `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
+            ),
+            (
+                "phase7-string-helpers-slice whitespace coverage marker",
+                "Documentation/zigux/phase7-string-helpers-slice.md",
+                "leading whitespace skipping that stops at the first NUL",
+                "Documentation/zigux/phase7-string-helpers-slice.md: leading whitespace skipping that stops at the first NUL",
+            ),
+            (
+                "phase7-string-helpers-slice bounded-size coverage marker",
+                "Documentation/zigux/phase7-string-helpers-slice.md",
+                "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting",
+                "Documentation/zigux/phase7-string-helpers-slice.md: bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting",
             ),
             (
                 "phase7 shared-note ownership heading marker",
