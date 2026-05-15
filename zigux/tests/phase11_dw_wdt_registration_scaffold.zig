@@ -16,6 +16,7 @@ test "platform resource preflight keeps named acquisition surfaces explicit" {
     try std.testing.expect(!summary.uses_shared_clock_fallback);
     try std.testing.expect(summary.timer_clock_available);
     try std.testing.expectEqualStrings("devm_clk_get_enabled", summary.timer_clock_get_call);
+    try std.testing.expectEqual(dw_wdt.ApbClockSelection.optional_present, summary.apb_clock_selection);
     try std.testing.expect(summary.apb_clock_optional);
     try std.testing.expect(summary.apb_clock_present);
     try std.testing.expectEqualStrings("devm_clk_get_optional_enabled", summary.apb_clock_get_call);
@@ -42,6 +43,7 @@ test "platform resource preflight keeps shared fallback and missing-clock block 
     );
     try std.testing.expect(shared.uses_shared_clock_fallback);
     try std.testing.expect(shared.timer_clock_available);
+    try std.testing.expectEqual(dw_wdt.ApbClockSelection.optional_absent, shared.apb_clock_selection);
     try std.testing.expect(!shared.apb_clock_present);
     try std.testing.expect(shared.reset_control_available);
     try std.testing.expect(!shared.pretimeout_irq_present);
@@ -61,6 +63,7 @@ test "platform resource preflight keeps shared fallback and missing-clock block 
     );
     try std.testing.expect(!blocked.uses_shared_clock_fallback);
     try std.testing.expect(!blocked.timer_clock_available);
+    try std.testing.expectEqual(dw_wdt.ApbClockSelection.optional_absent, blocked.apb_clock_selection);
     try std.testing.expect(!blocked.apb_clock_present);
     try std.testing.expect(!blocked.reset_control_available);
     try std.testing.expect(!blocked.pretimeout_irq_present);
@@ -86,6 +89,7 @@ test "platform handoff stays blocked when drvdata publication is missing" {
         summary.state,
     );
     try std.testing.expect(summary.timer_clock_available);
+    try std.testing.expectEqual(dw_wdt.ApbClockPath.optional_present, summary.apb_clock_path);
     try std.testing.expect(!summary.timeout_programming_requested);
     try std.testing.expect(!summary.registration_ready);
     try std.testing.expect(summary.blocked_on_live_platform_registration);
@@ -105,6 +109,7 @@ test "platform handoff keeps timeout-programming registration state explicit whe
     });
 
     try std.testing.expectEqual(dw_wdt.TimerClockPath.named_tclk, summary.timer_clock_path);
+    try std.testing.expectEqual(dw_wdt.ApbClockPath.optional_present, summary.apb_clock_path);
     try std.testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.programmed_top_window, summary.probe_timeout_origin);
     try std.testing.expect(summary.apb_clock_present);
     try std.testing.expect(summary.reset_control_available);
@@ -136,6 +141,7 @@ test "platform handoff keeps imported-running registration state explicit" {
         dw_wdt.TimerClockPath.unnamed_shared_fallback,
         summary.timer_clock_path,
     );
+    try std.testing.expectEqual(dw_wdt.ApbClockPath.optional_absent, summary.apb_clock_path);
     try std.testing.expectEqual(
         dw_wdt.ProbeTimeoutOrigin.imported_running_counter,
         summary.probe_timeout_origin,
@@ -217,6 +223,7 @@ test "platform registration scaffold summary keeps ready imported-state probe an
         dw_wdt.TimerClockPath.unnamed_shared_fallback,
         summary.timer_clock_path,
     );
+    try std.testing.expectEqual(dw_wdt.ApbClockPath.optional_absent, summary.apb_clock_path);
     try std.testing.expectEqual(
         dw_wdt.ProbeTimeoutOrigin.imported_running_counter,
         summary.probe_timeout_origin,
@@ -244,6 +251,7 @@ test "platform registration scaffold summary keeps blocked timeout-programming b
         dw_wdt.RegistrationScaffoldState.blocked_on_live_mmio,
         summary.state,
     );
+    try std.testing.expectEqual(dw_wdt.ApbClockPath.optional_present, summary.apb_clock_path);
     try std.testing.expectEqual(
         dw_wdt.ProbeTimeoutOrigin.blocked_on_live_mmio,
         summary.probe_timeout_origin,
@@ -272,6 +280,7 @@ test "platform registration scaffold summary keeps optional reset-control absenc
         summary.state,
     );
     try std.testing.expectEqual(dw_wdt.TimerClockPath.named_tclk, summary.timer_clock_path);
+    try std.testing.expectEqual(dw_wdt.ApbClockPath.optional_present, summary.apb_clock_path);
     try std.testing.expectEqual(
         dw_wdt.ProbeTimeoutOrigin.programmed_top_window,
         summary.probe_timeout_origin,
@@ -305,6 +314,7 @@ test "platform registration scaffold summary keeps missing timer clock block exp
         dw_wdt.RegistrationScaffoldState.blocked_missing_timer_clock,
         summary.state,
     );
+    try std.testing.expectEqual(dw_wdt.ApbClockPath.optional_present, summary.apb_clock_path);
     try std.testing.expectEqual(
         dw_wdt.ProbeTimeoutOrigin.blocked_missing_timer_clock,
         summary.probe_timeout_origin,
