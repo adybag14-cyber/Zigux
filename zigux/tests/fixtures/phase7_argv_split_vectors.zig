@@ -10,6 +10,13 @@ const whitespace_expected = [_][]const u8{
     "panic=-1",
 };
 
+const ascii_control_whitespace_expected = [_][]const u8{
+    "alpha",
+    "beta",
+    "gamma",
+    "delta",
+};
+
 const blank_expected = [_][]const u8{};
 
 const leading_nul_expected = [_][]const u8{};
@@ -30,6 +37,11 @@ pub const argv_split_cases = [_]ArgvSplitCase{
         .name = "repeated whitespace collapses into separators",
         .input = " init=/init   console=ttyS0\tpanic=-1 ",
         .expected = &whitespace_expected,
+    },
+    .{
+        .name = "ASCII control whitespace splits like spaces",
+        .input = "\ralpha\x0bbeta\x0cgamma\r\n\tdelta",
+        .expected = &ascii_control_whitespace_expected,
     },
     .{
         .name = "blank input stays empty",
