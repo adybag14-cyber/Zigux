@@ -4,7 +4,7 @@ This directory is the sample-root boundary for Zigux.
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-14 directly recovered these approved non-runtime Phase 5 sample-root files from current `master`:
+Fresh repo-first inspection on 2026-05-15 directly recovered these approved non-runtime Phase 5 sample-root files from current `master`:
 
 * `samples/zigux/bytestream_fifo.zig`
 * `samples/zigux/kobject_example.zig`
