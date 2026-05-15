@@ -259,10 +259,12 @@ test "phase14 workqueue survey keeps reviewer guardrails explicit" {
     try expectContains(workqueue_survey_source, "Do not treat this lane as permission to claim wrapper ownership");
 }
 
-test "phase14 workqueue survey keeps the wrapper-backed full-bundle replay explicit" {
+test "phase14 workqueue survey keeps the summarized full-bundle replay explicit" {
     const workqueue_survey_source = try readWorkqueueSurveySource();
     defer std.testing.allocator.free(workqueue_survey_source);
 
+    try expectContains(workqueue_survey_source, "`zig build test --build-file zigux/tests/phase14_build.zig --summary all`");
+    try std.testing.expect(std.mem.indexOf(u8, workqueue_survey_source, "- `zig build test --build-file zigux/tests/phase14_build.zig`\n") == null);
     try expectContains(workqueue_survey_source, "`make -C zigux phase14-test`");
     try std.testing.expect(std.mem.indexOf(u8, workqueue_survey_source, "`make -C zigux phase14-smoke`") == null);
 }
