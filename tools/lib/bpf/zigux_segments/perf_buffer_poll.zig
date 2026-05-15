@@ -124,6 +124,7 @@ pub const PollError = error{
     ReadyBufferProcessingExceedsReadyCount,
     ReadyBufferProcessingExceedsObservedEvents,
     NonReadyWaitHasProcessedRecords,
+    InconsistentProcessingFailureSummary,
     WaitResultDisagreesWithExecutionOutcome,
     WaitResultDisagreesWithReadyEventCount,
     WaitResultDisagreesWithFailureCode,
@@ -131,6 +132,10 @@ pub const PollError = error{
 
 fn hasAnyBufferState(summary: ReadyBufferSummary) bool {
     return summary.ready_count != 0 or summary.first_error != null;
+}
+
+fn hasConsistentProcessFailure(summary: PollExecutionSummary) bool {
+    return (summary.first_process_error_index == null) == (summary.first_process_error == null);
 }
 
 pub fn classifyObservedWaitResult(wait_result: i32) WaitObservation {
@@ -372,6 +377,10 @@ pub fn resolvePollExecutionResultFromWaitResult(
     wait_result: i32,
     execution: PollExecutionSummary,
 ) PollError!PollExecutionResult {
+    if (!hasConsistentProcessFailure(execution)) {
+        return PollError.InconsistentProcessingFailureSummary;
+    }
+
     return switch (classifyObservedWaitResult(wait_result)) {
         .timed_out => {
             if (execution.poll.outcome != .timeout) {
@@ -726,6 +735,48 @@ test "resolvePollExecutionResultFromWaitResult keeps the final ready-count retur
     ));
     try std.testing.expectEqual(PollReturnDisposition.processing_failed, processing_failure.disposition);
     try std.testing.expectEqual(@as(i32, -11), processing_failure.return_value);
+}
+
+test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing-failure bookkeeping" {
+    const missing_error = PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 2,
+            .ready_count = 2,
+            .first_ready_index = 0,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 1,
+        .completed_ready_buffer_count = 0,
+        .processed_record_count = 0,
+        .first_process_error_index = 0,
+        .first_process_error = null,
+    };
+    try std.testing.expectError(
+        PollError.InconsistentProcessingFailureSummary,
+        resolvePollExecutionResultFromWaitResult(2, missing_error),
+    );
+
+    const missing_index = PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 2,
+            .ready_count = 2,
+            .first_ready_index = 0,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 1,
+        .completed_ready_buffer_count = 0,
+        .processed_record_count = 0,
+        .first_process_error_index = null,
+        .first_process_error = -11,
+    };
+    try std.testing.expectError(
+        PollError.InconsistentProcessingFailureSummary,
+        resolvePollExecutionResultFromWaitResult(2, missing_index),
+    );
 }
 
 test "summarizePollExecutionResultFromWaitResult keeps buffer-state failures explicit when ready events surface only error buffers" {
