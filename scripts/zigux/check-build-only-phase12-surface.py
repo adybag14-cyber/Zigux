@@ -150,7 +150,7 @@ DOCS_ROOT_MARKERS = [
     "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
     "`scripts/zigux/validate-phase12.py`",
     "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet reviewable from the docs root through the shipped build-only contract",
-    "while broader `nvme_pci` and direct libbpf replay files stay recorded only through the shared fallback, survey, verify-shard, or anti-overlap notes until they actually land on `master`",
+    "while the bounded `nvme_pci` driver-local packet is now explicit through `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` even though `zigux/tests/phase12_build.zig` and `zigux/Makefile` still keep it outside the shared smoke-first route",
     "`make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12` keep the shipped validator-first then smoke-first release order visible",
     "`scripts/zigux/check-phase12-release-readiness-packet.py`",
     "only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts",
@@ -159,12 +159,11 @@ DOCS_ROOT_MARKERS = [
     "`zigux/tests/phase12_virtio_net_survey.zig`",
     "`Documentation/zigux/phase12-virtio-scsi-slice.md`",
     "`Documentation/zigux/phase12-virtio-scsi-survey.md`",
-]
-
-DOCS_ROOT_FORBIDDEN_MARKERS = [
     "`Documentation/zigux/phase12-nvme-pci-slice.md`",
     "`Documentation/zigux/phase12-nvme-pci-survey.md`",
 ]
+
+DOCS_ROOT_FORBIDDEN_MARKERS = []
 
 REVIEW_CHECKLIST_MARKERS = [
     "`Documentation/zigux/phase12-release-sequencing.md`",
@@ -774,6 +773,30 @@ def run_self_test() -> int:
         expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[22]}")
 
         write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_MARKERS[23],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[23]}")
+
+        write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_MARKERS[24],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[24]}")
+
+        write_fixture_tree(base)
         sequencing_path = base / RELEASE_SEQUENCING_PATH
         sequencing_path.write_text(
             sequencing_path.read_text(encoding="utf-8").replace(
@@ -909,7 +932,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=7:actual=6")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=31")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=33")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -920,7 +943,7 @@ def main() -> int:
         description=(
             "Validate the current bounded Phase 12 build-only contract around the "
             "starter-present virtio-net packet, the shipped virtio-scsi smoke route, "
-            "and the shared complex-driver release reminders."
+            "the driver-local NVMe docs-root packet, and the shared complex-driver release reminders."
         )
     )
     parser.add_argument(
@@ -947,7 +970,7 @@ def main() -> int:
 
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(f"PHASE12_BUILD_ONLY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE12_BUILD_ONLY_EXPECTED_ABSENT_FILE_COUNT={len(DOCS_ROOT_FORBIDDEN_MARKERS)}")
+    print(f"PHASE12_BUILD_ONLY_DOCS_ROOT_MARKER_COUNT={len(DOCS_ROOT_MARKERS)}")
     return 0
 
 
