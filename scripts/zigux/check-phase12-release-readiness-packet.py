@@ -13,6 +13,7 @@ from pathlib import Path
 
 MARKER = "PHASE12_CHECK_PACKET=release_readiness_packet"
 RELEASE_READINESS_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
+RELEASE_COORDINATION_MATRIX_PATH = "Documentation/zigux/phase12-release-coordination-matrix.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
@@ -36,10 +37,14 @@ RELEASE_READINESS_MARKERS = [
     "The shared release packet now also carries the bounded `virtio_net_transmit_recycle` follow-up through `drivers/net/virtio_net_transmit_recycle.zig` and `zigux/tests/phase12_virtio_net_transmit_recycle.zig`: current `zigux/tests/phase12_build.zig` runs that replay in both `smoke` and `test`, but the release reading must keep it framed as transmit-disposition reviewability rather than as live interrupt-backed completion, refill execution, or DMA parity.",
     "The broader shared-summary packet is now aligned on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, `zigux/tests/README.md` does the same in its Phase 12 inventory, and `scripts/zigux/README.md` now carries a dedicated Phase 12 flow block naming `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and the shipped validator-first then smoke-first routes.",
     "`scripts/zigux/check-build-only-phase12-surface.py` now matches that shipped support-checker-plus-validate-route reminder too, so `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and this readiness note can stay parked together until another shared reminder surface actually drifts, rather than reopening driver-local, fallback-catalog, or verify-shard wording first.",
-    "If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped Phase 12 surface.",
+    "If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped Phase 12 surface.",
     "The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
     "Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
     "Current `master` keeps the release-order, readiness, coordination, closure, workflow, Makefile, docs-root, review-checklist, scripts-root, and tests-root companions aligned around the starter-present `virtio_net` plus smoke-first `virtio_scsi` packet, including the parked `zigux/tests/fixtures/phase12_libbpf_snapshot.json` anchor and the shipped `phase12-validate` support bundle. Leave this same-lane packet parked unless one of those shared reminder surfaces drifts again; if it reopens, refresh only the smallest reminder that moved before widening into any new driver claims.",
+]
+
+RELEASE_COORDINATION_MATRIX_MARKERS = [
+    "If `zig` is unavailable on `PATH`, keep the shipped degraded-workflow bundle plus that same smoke-first order explicit through the Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped PMO surface.",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -126,6 +131,7 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
     errors: list[str] = []
     required_files = [
         RELEASE_READINESS_PATH,
+        RELEASE_COORDINATION_MATRIX_PATH,
         SCRIPTS_README_PATH,
         REVIEW_CHECKLIST_PATH,
         FREEZE_MAP_PATH,
@@ -150,6 +156,12 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
         RELEASE_READINESS_PATH,
         read_text(root / RELEASE_READINESS_PATH),
         RELEASE_READINESS_MARKERS,
+    )
+    require_exact_count(
+        errors,
+        RELEASE_COORDINATION_MATRIX_PATH,
+        read_text(root / RELEASE_COORDINATION_MATRIX_PATH),
+        RELEASE_COORDINATION_MATRIX_MARKERS,
     )
     require_exact_count(
         errors,
@@ -203,12 +215,23 @@ def good_release_readiness_text() -> str:
             "- The shared release packet now also carries the bounded `virtio_net_transmit_recycle` follow-up through `drivers/net/virtio_net_transmit_recycle.zig` and `zigux/tests/phase12_virtio_net_transmit_recycle.zig`: current `zigux/tests/phase12_build.zig` runs that replay in both `smoke` and `test`, but the release reading must keep it framed as transmit-disposition reviewability rather than as live interrupt-backed completion, refill execution, or DMA parity.",
             "- The broader shared-summary packet is now aligned on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` already keep the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard plus the shipped `make -C zigux phase12-validate` route explicit, `zigux/tests/README.md` does the same in its Phase 12 inventory, and `scripts/zigux/README.md` now carries a dedicated Phase 12 flow block naming `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and the shipped validator-first then smoke-first routes.",
             "- `scripts/zigux/check-build-only-phase12-surface.py` now matches that shipped support-checker-plus-validate-route reminder too, so `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and this readiness note can stay parked together until another shared reminder surface actually drifts, rather than reopening driver-local, fallback-catalog, or verify-shard wording first.",
-            "- If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped Phase 12 surface.",
+            "- If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped Phase 12 surface.",
             "- The smaller validator-first boundary in the lane is now shipped: current `master` carries `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, the Linux-style `make -C zigux phase12-validate` route, and the bootstrap workflow step that reruns that same route, but it still does not expose a focused libbpf-only replay or a cross-build replay, so release-planning notes should treat `phase12-validate` as shipped validation evidence while keeping the parked survey and fallback companions explicit.",
             "- Keep the same degraded-workflow validation trio explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` should stay ahead of the attached-toolchain smoke and full replay routes so contract drift still fails closed when the local runtime needs the fallback path.",
             "",
             "## Next Bounded Step",
             "- Current `master` keeps the release-order, readiness, coordination, closure, workflow, Makefile, docs-root, review-checklist, scripts-root, and tests-root companions aligned around the starter-present `virtio_net` plus smoke-first `virtio_scsi` packet, including the parked `zigux/tests/fixtures/phase12_libbpf_snapshot.json` anchor and the shipped `phase12-validate` support bundle. Leave this same-lane packet parked unless one of those shared reminder surfaces drifts again; if it reopens, refresh only the smallest reminder that moved before widening into any new driver claims.",
+            "",
+        ]
+    )
+
+
+def good_release_coordination_matrix_text() -> str:
+    return "\n".join(
+        [
+            "# Phase 12 Release Coordination Matrix",
+            "",
+            "If `zig` is unavailable on `PATH`, keep the shipped degraded-workflow bundle plus that same smoke-first order explicit through the Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped PMO surface.",
             "",
         ]
     )
@@ -301,6 +324,10 @@ def run_self_test() -> int:
     case_count = 0
     try:
         write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
+        write_text(
+            tmp_root / RELEASE_COORDINATION_MATRIX_PATH,
+            good_release_coordination_matrix_text(),
+        )
         write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
         write_text(tmp_root / FREEZE_MAP_PATH, good_freeze_map_text())
         write_text(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
@@ -524,6 +551,33 @@ def run_self_test() -> int:
             check(tmp_root, source_text=MARKER),
             "Leave this same-lane packet parked unless one of those shared reminder surfaces drifts again",
             "missing parked-next-step marker",
+        )
+
+        write_text(tmp_root / RELEASE_COORDINATION_MATRIX_PATH, good_release_coordination_matrix_text())
+        write_text(
+            tmp_root / RELEASE_COORDINATION_MATRIX_PATH,
+            good_release_coordination_matrix_text().replace(
+                RELEASE_COORDINATION_MATRIX_MARKERS[0],
+                "",
+                1,
+            ),
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            RELEASE_COORDINATION_MATRIX_MARKERS[0],
+            "missing coordination-matrix attached-toolchain marker",
+        )
+
+        write_text(
+            tmp_root / RELEASE_COORDINATION_MATRIX_PATH,
+            good_release_coordination_matrix_text() + f"{RELEASE_COORDINATION_MATRIX_MARKERS[0]}\n",
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            f"marker count drift in {RELEASE_COORDINATION_MATRIX_PATH}: {RELEASE_COORDINATION_MATRIX_MARKERS[0]} (expected 1, found 2)",
+            "duplicate coordination-matrix attached-toolchain marker not detected",
         )
 
         write_text(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
