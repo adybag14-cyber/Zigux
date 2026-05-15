@@ -566,7 +566,7 @@ test "runtime kretprobe loader rejects prepared shared approved-family anchor an
     ));
     anchor_request.plan.anchor = "samples/kprobes/kretprobe_example_drift.c";
 
-    try std.testing.expectError(error.SharedLoadPlanDrift, anchor_loader.requestSharedRuntimeLoad(&anchor_request));
+    try std.testing.expectError(error.PreparedPlanDrift, anchor_loader.requestSharedRuntimeLoad(&anchor_request));
     try std.testing.expectEqual(LoaderStage.prepared, anchor_loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, anchor_request.state);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
@@ -586,7 +586,7 @@ test "runtime kretprobe loader rejects prepared shared approved-family anchor an
     ));
     entry_request.plan.entry_symbol = "zigux_runtime_kretprobe_init_drift";
 
-    try std.testing.expectError(error.SharedLoadPlanDrift, entry_loader.requestSharedRuntimeLoad(&entry_request));
+    try std.testing.expectError(error.PreparedPlanDrift, entry_loader.requestSharedRuntimeLoad(&entry_request));
     try std.testing.expectEqual(LoaderStage.prepared, entry_loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, entry_request.state);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
@@ -606,7 +606,7 @@ test "runtime kretprobe loader rejects prepared shared approved-family anchor an
     ));
     exit_request.plan.exit_symbol = "zigux_runtime_kretprobe_exit_drift";
 
-    try std.testing.expectError(error.SharedLoadPlanDrift, exit_loader.requestSharedRuntimeLoad(&exit_request));
+    try std.testing.expectError(error.PreparedPlanDrift, exit_loader.requestSharedRuntimeLoad(&exit_request));
     try std.testing.expectEqual(LoaderStage.prepared, exit_loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, exit_request.state);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
@@ -633,7 +633,7 @@ test "runtime kretprobe loader rejects prepared shared runtime-substrate drift b
     ));
     shared_request.plan.requires_runtime_substrate = false;
 
-    try std.testing.expectError(error.LoaderNotRequired, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
@@ -744,7 +744,7 @@ test "runtime kretprobe loader surfaces shared request drift before any live reg
     const prepared_request_plan = shared_request.plan;
     shared_request.plan.module_name = "runtime_kretprobe_drift";
 
-    try std.testing.expectError(error.SharedLoadPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
     try std.testing.expectEqualStrings(prepared_plan.module_name, (loader.cached_plan orelse unreachable).module_name);
