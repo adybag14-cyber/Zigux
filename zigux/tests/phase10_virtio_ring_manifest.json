@@ -41,7 +41,7 @@
     "virtio_ring_c_lines": 3940,
     "preexisting_phase10_test_files": 11,
     "preexisting_virtio_core_zig_present": false,
-    "preexisting_phase10_build_present": false,
+    "preexisting_phase10_build_present": true,
     "preexisting_phase10_core_doc_present": true,
     "preexisting_virtio_ring_zig_present": false,
     "preexisting_virtio_ring_doc_present": true,
@@ -50,10 +50,10 @@
   "gaps": [
     {
       "id": "phase10-build-gate",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_build.zig",
-      "why_now": "Current master does not currently ship zigux/tests/phase10_build.zig even though older ring reminders still name it as the shared validation route."
+      "why_now": "The shared Phase 10 build gate is already landed as part of the broader validation packet even though the direct ring helper, verify, replay, and dedicated survey-gate files still lack one consistent contents-bridge read path."
     },
     {
       "id": "phase10-virtio-core-lab-starter",
