@@ -10,7 +10,11 @@
 - `search`
 - `searchMutable`
 - `lowerBoundIndex`
+- `lowerBound`
+- `lowerBoundMutable`
 - `upperBoundIndex`
+- `upperBound`
+- `upperBoundMutable`
 - `IndexRange`
 - `equalRangeIndex`
 - `equalRange`
@@ -19,7 +23,11 @@
 - `bsearch`
 - `bsearchMutable`
 - `bsearchLowerBoundIndex`
+- `bsearchLowerBound`
+- `bsearchLowerBoundMutable`
 - `bsearchUpperBoundIndex`
+- `bsearchUpperBound`
+- `bsearchUpperBoundMutable`
 - `bsearchEqualRangeIndex`
 - `bsearchEqualRange`
 - `bsearchEqualRangeMutable`
@@ -44,5 +52,9 @@ Reviewers should treat that fixture as compact shared packet support rather than
 
 Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable`, while the direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` wrappers hand those typed slice and raw byte views back without forcing callers to peel `IndexRange` apart by hand or widening Phase 6 into a separate fixture or routing packet.
 
+The helper now also exports direct `lowerBound`, `lowerBoundMutable`, `upperBound`, `upperBoundMutable`, `bsearchLowerBound`, `bsearchLowerBoundMutable`, `bsearchUpperBound`, and `bsearchUpperBoundMutable` companions so callers can reuse the existing insertion-point semantics as typed or raw pointers without manually translating lower- and upper-bound indexes back into aliases.
+
 ## Current Bounded Next Step
 If this helper reopens, start with `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`, then rerun `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py` plus `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`, and keep the next repair inside one helper-local surface only. Current `master` still shows `zigux/tests/phase6_bsearch.zig` importing `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, and `lib/bsearch.zig` now also exports direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` companions on top of `IndexRange`, so if the reopen comes from note-or-checker drift rather than helper behavior, the first safe repair is aligning that helper-local checker wording to the compact shared seed companion posture and the direct wrapper surface before widening into helper semantics, shared Phase 6 routing, a separate fixture module, or a standalone timing-style perf target unless the current bsearch packet itself actually drifts.
+
+If the reopen instead comes from insertion-point wrapper behavior, keep the follow-through inside `lib/bsearch.zig` and the existing bsearch packet rather than splitting direct lower- and upper-bound pointer aliases into a new helper, fixture, or tests-root route.
