@@ -368,6 +368,8 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.root_source) != null);
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.coverage) != null);
     }
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "- `phase14-workqueue-bridge-tests` -> `phase14_workqueue_bridge.zig` -> `full_bundle_only` -> roadmap destination `../../kernel/workqueue_bridge.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "- `phase14-skbuff-bridge-tests` -> `phase14_skbuff_bridge.zig` -> `full_bundle_only` -> roadmap destination `../../net/core/skbuff_bridge.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "the shared compile shard matrix now records that the workqueue reviewability replay plus the four anchor-local replays remain `full_bundle_only`, while `phase14-end-to-end-smoke-tests` is the only `focused_and_full_bundle` shard.") != null);
 
     const release_boundary_note = try std.Io.Dir.cwd().readFileAlloc(
