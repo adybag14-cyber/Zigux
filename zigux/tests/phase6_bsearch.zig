@@ -176,6 +176,7 @@ test "phase 6 bsearch keeps descending lookup work inside a binary-search budget
 test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget" {
     const values = fixtures.representative_ascending_values;
     const descending_values = fixtures.representative_descending_values;
+    const miss_queries = fixtures.representative_miss_queries;
 
     {
         const counted_raw_compare_calls = try rawProbe(values[0..], 3, true, compareCountedOpaqueInt);
@@ -198,23 +199,23 @@ test "phase 6 bsearch raw lookup keeps representative work inside a binary-searc
         try std.testing.expect(counted_raw_compare_calls <= 4);
     }
     {
-        const counted_raw_compare_calls = try rawProbe(descending_values[0..], 45, true, compareCountedOpaqueDescendingInt);
+        const counted_raw_compare_calls = try rawProbe(descending_values[0..], miss_queries[4], false, compareCountedOpaqueDescendingInt);
         try std.testing.expect(counted_raw_compare_calls <= 4);
     }
     {
-        const counted_raw_compare_calls = try rawProbe(descending_values[0..], 39, true, compareCountedOpaqueDescendingInt);
+        const counted_raw_compare_calls = try rawProbe(descending_values[0..], miss_queries[3], false, compareCountedOpaqueDescendingInt);
         try std.testing.expect(counted_raw_compare_calls <= 4);
     }
     {
-        const counted_raw_compare_calls = try rawProbe(descending_values[0..], 24, true, compareCountedOpaqueDescendingInt);
+        const counted_raw_compare_calls = try rawProbe(descending_values[0..], miss_queries[2], false, compareCountedOpaqueDescendingInt);
         try std.testing.expect(counted_raw_compare_calls <= 4);
     }
     {
-        const counted_raw_compare_calls = try rawProbe(descending_values[0..], 21, true, compareCountedOpaqueDescendingInt);
+        const counted_raw_compare_calls = try rawProbe(descending_values[0..], miss_queries[1], false, compareCountedOpaqueDescendingInt);
         try std.testing.expect(counted_raw_compare_calls <= 4);
     }
     {
-        const counted_raw_compare_calls = try rawProbe(descending_values[0..], 3, true, compareCountedOpaqueDescendingInt);
+        const counted_raw_compare_calls = try rawProbe(descending_values[0..], miss_queries[0], false, compareCountedOpaqueDescendingInt);
         try std.testing.expect(counted_raw_compare_calls <= 4);
     }
 }
