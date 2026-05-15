@@ -65,6 +65,13 @@ pub const ConcurrencyAudit = struct {
     next_step: []const u8,
 };
 
+pub const MaintenanceHandoff = struct {
+    posture: []const u8,
+    reread_surfaces: []const []const u8,
+    reopen_conditions: []const []const u8,
+    next_future_target: []const u8,
+};
+
 const boundary_areas = [_]BoundaryArea{
     .{
         .id = "submission-routing",
@@ -272,6 +279,21 @@ const blocked_live_behaviors = [_][]const u8{
     "hotplug-driven worker migration and topology rebinding",
 };
 
+const maintenance_reread_surfaces = [_][]const u8{
+    "kernel/workqueue_bridge.zig",
+    "zigux/tests/phase14_workqueue_bridge.zig",
+    "zigux/tests/phase14_workqueue_reviewability.zig",
+    "zigux/tests/phase14_workqueue_bridge_manifest.json",
+    "Documentation/zigux/phase14-workqueue-bridge-slice.md",
+    "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+};
+
+const maintenance_reopen_conditions = [_][]const u8{
+    "the bridge, dedicated test, reviewability test, manifest, slice note, or survey note drifts on the blocked-maintenance posture or the blocked live-execution boundary",
+    "the directly coupled shared smoke or core traceability packet reintroduces a stale owner label, ready-next record, or blocked-gap record for the workqueue anchor",
+    "genuinely narrower stay-in-C evidence appears around delayed-work requeue governance, flush-drain ownership, hotplug topology rebinding, or scheduler-visible worker-state transitions without implying live execution ownership",
+};
+
 pub const WorkqueueBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -306,6 +328,15 @@ pub const WorkqueueBridgeLab = struct {
         };
     }
 
+    pub fn maintenanceHandoff() MaintenanceHandoff {
+        return .{
+            .posture = "blocked_maintenance",
+            .reread_surfaces = maintenance_reread_surfaces[0..],
+            .reopen_conditions = maintenance_reopen_conditions[0..],
+            .next_future_target = "Keep the packet in blocked maintenance and reread the bridge, dedicated tests, manifest, slice note, and survey note together before touching any broader Phase 14 shared reminder surface.",
+        };
+    }
+
     pub fn stayInCDecisionCount() usize {
         var count: usize = 0;
         for (boundary_areas) |area| {
@@ -323,7 +354,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Keep the packet in blocked maintenance and only reopen for bridge-local truthfulness drift across the bridge, dedicated test, manifest, slice note, or survey note.";
+        return maintenanceHandoff().next_future_target;
     }
 };
 
@@ -369,6 +400,7 @@ test "workqueue bridge concurrency audit matches blocked-maintenance packet" {
     try std.testing.expectEqual(@as(usize, 15), WorkqueueBridgeLab.auditCheckpointCount());
     try std.testing.expectEqualStrings("phase14-workqueue-scheduler-visible-worker-state-refinement", audit.current_slice_id);
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "blocked maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "shared reminder surface") != null);
     try std.testing.expectEqualStrings("pending-bit-claim-window", audit.checkpoints[8].id);
     try std.testing.expect(audit.checkpoints[8].guard == .pending_bit_claim_window);
     try std.testing.expectEqualStrings("delayed-submission-aliases", audit.checkpoints[9].id);
@@ -379,4 +411,24 @@ test "workqueue bridge concurrency audit matches blocked-maintenance packet" {
     try std.testing.expectEqualStrings("scheduler-visible-worker-state-refinement", audit.checkpoints[14].id);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "chained flushers") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[13].blocked_by, "POOL_DISASSOCIATED") != null);
+}
+
+test "workqueue bridge maintenance handoff keeps blocked-maintenance reread surfaces explicit" {
+    const handoff = WorkqueueBridgeLab.maintenanceHandoff();
+
+    try std.testing.expectEqualStrings("blocked_maintenance", handoff.posture);
+    try std.testing.expectEqual(@as(usize, 6), handoff.reread_surfaces.len);
+    try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", handoff.reread_surfaces[0]);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_workqueue_bridge.zig", handoff.reread_surfaces[1]);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_workqueue_reviewability.zig", handoff.reread_surfaces[2]);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_workqueue_bridge_manifest.json", handoff.reread_surfaces[3]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase14-workqueue-bridge-slice.md", handoff.reread_surfaces[4]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase14-workqueue-bridge-survey.md", handoff.reread_surfaces[5]);
+    try std.testing.expectEqual(@as(usize, 3), handoff.reopen_conditions.len);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[0], "reviewability test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[1], "shared smoke or core traceability packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[2], "delayed-work requeue governance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[2], "scheduler-visible worker-state transitions") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "blocked maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "shared reminder surface") != null);
 }
