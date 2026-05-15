@@ -43,6 +43,7 @@ Phase 3 ABI and runtime tranche.
 - `zigux/uapi/dev_t.zig`
 - `zigux/bindings/abi.zig`
 - `zigux/bindings/dev_t.zig`
+- `zigux/bindings/notifier_abi.zig`
 - `zigux/tests/phase3_low_level_wrappers.zig`
 - `zigux/tests/phase3_low_level_wrappers_build.zig`
 - `zigux/Makefile`
@@ -107,8 +108,8 @@ note explicit beside `scripts/zigux/README.md`, `zigux/tests/README.md`,
 `zigux/tests/phase3_low_level_wrappers_build.zig`,
 `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`,
 `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`,
-`zigux/bindings/abi.zig`, and `zigux/bindings/dev_t.zig`,
-`make -C zigux phase3-selftest`, and
+`zigux/bindings/abi.zig`, `zigux/bindings/dev_t.zig`, and
+`zigux/bindings/notifier_abi.zig`, `make -C zigux phase3-selftest`, and
 `make -C zigux phase3-low-level-wrappers-test`; keep the dedicated ABI gate,
 policy-survey validator, policy-byte guard, focused low-level wrapper replay,
 and dedicated build-anchor route explicit beside the validator-support packet,
