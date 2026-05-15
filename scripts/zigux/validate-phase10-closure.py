@@ -99,7 +99,7 @@ MANIFEST_MARKERS = [
     '"source": "manifest_derived"',
     '"surveyed_commits": {',
     '"core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8"',
-    '"ring": "bdfe88e865b94387b3c3bd41ca98054c452f78b9"',
+    '"ring": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d"',
     '"input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231"',
     '"mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"',
     '"phase10-notification-data-summary-helper"',
@@ -239,14 +239,14 @@ EXPECTED_SURVEY_PROVENANCE_SOURCE = "manifest_derived"
 
 EXPECTED_SURVEY_LANE_KEYS = {
     "core": "P10-L01",
-    "ring": "P10-L07",
+    "ring": "P10-L10",
     "input": "P10-L13",
-    "mmio": "P10-L10",
+    "mmio": "P10-L11",
 }
 
 EXPECTED_SURVEYED_COMMITS = {
     "core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
-    "ring": "bdfe88e865b94387b3c3bd41ca98054c452f78b9",
+    "ring": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
     "input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
     "mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43",
 }
@@ -395,13 +395,13 @@ def build_fixture_manifest_text() -> str:
                 "source": "manifest_derived",
                 "lane_keys": {
                     "core": "P10-L01",
-                    "ring": "P10-L07",
+                    "ring": "P10-L10",
                     "input": "P10-L13",
-                    "mmio": "P10-L10",
+                    "mmio": "P10-L11",
                 },
                 "surveyed_commits": {
                     "core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
-                    "ring": "bdfe88e865b94387b3c3bd41ca98054c452f78b9",
+                    "ring": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
                     "input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
                     "mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43",
                 },
