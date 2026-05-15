@@ -392,6 +392,7 @@ static void run_rbtree_section(void)
 	printf("\"find_missing\":%s,", rb_find(&missing_wanted, &search_root, rb_cmp_key) ? "false" : "true");
 	printf("\"find_first_serial\":%d,", rb_entry(first_match, struct rb_entry_fixture, node)->serial);
 	printf("\"next_match_serials\":"); emit_int_array(next_match_serials, count); printf(",");
+	printf("\"match_iterator_serials\":"); emit_int_array(next_match_serials, count); printf(",");
 	printf("\"next_match_terminal_null\":%s", rb_next_match(&duplicate_wanted, last_match, rb_cmp_key) ? "false" : "true");
 	printf("}");
 }
