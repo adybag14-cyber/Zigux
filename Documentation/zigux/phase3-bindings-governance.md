@@ -27,6 +27,9 @@ When contributors touch the bindings packet, keep this note aligned with:
 - `zigux/bindings/abi.zig`
 - `zigux/bindings/dev_t.zig`
 - `zigux/bindings/notifier_abi.zig`
+- `zigux/tests/phase3_abi_dump.zig`
+- `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
+- `zigux/tests/fixtures/phase3_abi/expected.json`
 - `zigux/tests/fixtures/phase3_abi_manifest.json`
 - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
 
@@ -38,7 +41,7 @@ Use this note to keep these boundaries explicit:
 - bindings-owned wording, curated field names, and interop disclaimers belong here
 - `zigux/bindings/abi.zig` mirrors the exported ABI constants and layout-tracked structs that already ship through `include/zigux/abi.h`; changes here should stay coupled to `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`
 - `zigux/bindings/dev_t.zig` stays the canonical Zig-side companion for `include/zigux/dev_t.h` and the starter `zigux/uapi/dev_t.zig` packet; keep same-lane follow-through here inside range, encoding, or reminder-surface truthfulness rather than broad UAPI expansion
-- `zigux/bindings/notifier_abi.zig` remains curated adjacent ABI evidence for later notifier-facing work; it may mirror the shipped notifier result codes, block layout, and bounded priority-order review helpers from `include/zigux/abi.h`, but should not claim callback execution, registration, SRCU, or blocking-notifier semantics while the broader notifier packet remains bounded elsewhere
+- `zigux/bindings/notifier_abi.zig` remains curated adjacent ABI evidence for later notifier-facing work; it may mirror the shipped notifier result codes, block layout, and bounded priority-order review helpers from `include/zigux/abi.h`, and those notifier-facing bindings should stay coupled to `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json` because the shared ABI replay already emits notifier constants, notifier-chain proof, and `notifier_block` layout there, but it should not claim callback execution, registration, SRCU, or blocking-notifier semantics while the broader notifier packet remains bounded elsewhere
 - broad Phase 3 summaries should keep this note explicit whenever they name the bindings trio so `zigux/bindings/notifier_abi.zig` does not disappear behind only the header-family or later notifier reminder packets
 
 ## Review Prompts
@@ -46,6 +49,7 @@ Use this note to keep these boundaries explicit:
 If a change updates the bindings packet, verify that:
 - the bindings trio listed above still matches current `master`
 - `zigux/bindings/notifier_abi.zig` stays framed as adjacent notifier ABI evidence with bounded priority-order review helpers, not full notifier parity
+- notifier-facing binding changes keep `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json` aligned with the shipped notifier constants, notifier-chain proof, and `notifier_block` layout
 - `zigux/bindings/abi.zig` and `zigux/bindings/dev_t.zig` stay coupled to their current C header companions
 - the shared ABI reminder packet keeps this note explicit beside the manifest-backed file inventory instead of leaving the bindings slice readable only through broader Phase 3 or Phase 13 notes
 
