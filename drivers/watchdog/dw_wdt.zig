@@ -408,6 +408,19 @@ pub const TeardownOutcome = enum {
     reset_control_stop,
 };
 
+pub const StopSummary = struct {
+    anchor: []const u8,
+    outcome: TeardownOutcome,
+    reset_control_available: bool,
+    stop_requested: bool,
+    enable_bit_cleared: bool,
+    interrupt_cleared: bool,
+    running_before_stop: bool,
+    running_after_stop: bool,
+    hardware_running_after_stop: bool,
+    keeps_heartbeat_running: bool,
+};
+
 pub const TeardownSummary = struct {
     outcome: TeardownOutcome,
     can_stop: bool,
@@ -455,28 +468,45 @@ pub const DwWdtLab = struct {
         self.interrupt_pending = pending;
     }
 
-    pub fn teardownSummary(self: *DwWdtLab) !TeardownSummary {
-        const running_before_teardown = self.running;
-        const can_stop = self.reset_control_available and running_before_teardown;
-        const stop_invoked = running_before_teardown;
+    pub fn stopSummary(self: *DwWdtLab) StopSummary {
+        const running_before_stop = self.running;
+        const can_stop = self.reset_control_available and running_before_stop;
+        const stop_requested = running_before_stop;
 
         self.interrupt_pending = false;
         if (can_stop) self.running = false;
 
         return .{
-            .outcome = if (!running_before_teardown)
+            .anchor = anchor_path,
+            .outcome = if (!running_before_stop)
                 .idle_noop
             else if (can_stop)
                 .reset_control_stop
             else
                 .continued_heartbeat,
-            .can_stop = can_stop,
-            .running_before_teardown = running_before_teardown,
-            .stop_invoked = stop_invoked,
+            .reset_control_available = self.reset_control_available,
+            .stop_requested = stop_requested,
             .enable_bit_cleared = can_stop,
             .interrupt_cleared = true,
-            .running_after_teardown = self.running,
-            .hardware_running_after_teardown = self.running,
+            .running_before_stop = running_before_stop,
+            .running_after_stop = self.running,
+            .hardware_running_after_stop = self.running,
+            .keeps_heartbeat_running = running_before_stop and !can_stop,
+        };
+    }
+
+    pub fn teardownSummary(self: *DwWdtLab) !TeardownSummary {
+        const stop_summary = self.stopSummary();
+
+        return .{
+            .outcome = stop_summary.outcome,
+            .can_stop = stop_summary.reset_control_available and stop_summary.running_before_stop,
+            .running_before_teardown = stop_summary.running_before_stop,
+            .stop_invoked = stop_summary.stop_requested,
+            .enable_bit_cleared = stop_summary.enable_bit_cleared,
+            .interrupt_cleared = stop_summary.interrupt_cleared,
+            .running_after_teardown = stop_summary.running_after_stop,
+            .hardware_running_after_teardown = stop_summary.hardware_running_after_stop,
         };
     }
 
@@ -638,6 +668,50 @@ test "phase11 dw_wdt platform registration scaffold keeps shared-clock fallback 
     try std.testing.expect(!blocked.reset_release_requested);
     try std.testing.expect(blocked.blocked_on_live_platform_registration);
     try std.testing.expect(!blocked.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt stop summary keeps idle, stoppable, and unstoppable paths distinct" {
+    var idle = try DwWdtLab.initFixedTops(7, true);
+    try idle.setInterruptPending(true);
+    const idle_summary = idle.stopSummary();
+    try std.testing.expectEqualStrings(anchor_path, idle_summary.anchor);
+    try std.testing.expectEqual(TeardownOutcome.idle_noop, idle_summary.outcome);
+    try std.testing.expect(idle_summary.reset_control_available);
+    try std.testing.expect(!idle_summary.stop_requested);
+    try std.testing.expect(!idle_summary.enable_bit_cleared);
+    try std.testing.expect(idle_summary.interrupt_cleared);
+    try std.testing.expect(!idle_summary.running_before_stop);
+    try std.testing.expect(!idle_summary.running_after_stop);
+    try std.testing.expect(!idle_summary.hardware_running_after_stop);
+    try std.testing.expect(!idle_summary.keeps_heartbeat_running);
+
+    var unstoppable = try DwWdtLab.initFixedTops(7, false);
+    _ = try unstoppable.start();
+    try unstoppable.setInterruptPending(true);
+    const unstoppable_summary = unstoppable.stopSummary();
+    try std.testing.expectEqual(TeardownOutcome.continued_heartbeat, unstoppable_summary.outcome);
+    try std.testing.expect(!unstoppable_summary.reset_control_available);
+    try std.testing.expect(unstoppable_summary.stop_requested);
+    try std.testing.expect(!unstoppable_summary.enable_bit_cleared);
+    try std.testing.expect(unstoppable_summary.interrupt_cleared);
+    try std.testing.expect(unstoppable_summary.running_before_stop);
+    try std.testing.expect(unstoppable_summary.running_after_stop);
+    try std.testing.expect(unstoppable_summary.hardware_running_after_stop);
+    try std.testing.expect(unstoppable_summary.keeps_heartbeat_running);
+
+    var stoppable = try DwWdtLab.initFixedTops(7, true);
+    _ = try stoppable.start();
+    try stoppable.setInterruptPending(true);
+    const stoppable_summary = stoppable.stopSummary();
+    try std.testing.expectEqual(TeardownOutcome.reset_control_stop, stoppable_summary.outcome);
+    try std.testing.expect(stoppable_summary.reset_control_available);
+    try std.testing.expect(stoppable_summary.stop_requested);
+    try std.testing.expect(stoppable_summary.enable_bit_cleared);
+    try std.testing.expect(stoppable_summary.interrupt_cleared);
+    try std.testing.expect(stoppable_summary.running_before_stop);
+    try std.testing.expect(!stoppable_summary.running_after_stop);
+    try std.testing.expect(!stoppable_summary.hardware_running_after_stop);
+    try std.testing.expect(!stoppable_summary.keeps_heartbeat_running);
 }
 
 test "phase11 dw_wdt teardown summary keeps idle, stoppable, and unstoppable paths distinct" {
