@@ -10,6 +10,8 @@ pub const ModuleDescriptor = struct {
     provides_ioremap_np_wrapper_planning: bool,
     provides_release_pointer_match: bool,
     provides_iounmap_call_planning: bool,
+    provides_ioport_lifetime_planning: bool,
+    provides_ioport_unmap_call_planning: bool,
     provides_ioremap_resource_planning: bool,
     provides_of_iomap_planning: bool,
     provides_pretty_name_helper: bool,
@@ -49,6 +51,32 @@ pub const ManagedIoremapAcquireResult = struct {
 };
 
 pub const ManagedIounmapPlan = struct {
+    anchor: []const u8,
+    tracked_address: usize,
+    candidate_address: usize,
+    release_matches: bool,
+    warns_on_release_miss: bool,
+};
+
+pub const ManagedIoportMapInput = struct {
+    port: u64,
+    count: u64,
+    release_record_allocated: bool,
+    mapped_address: ?usize,
+};
+
+pub const ManagedIoportMapResult = struct {
+    anchor: []const u8,
+    port: u64,
+    count: u64,
+    mapped_address: ?usize,
+    added_to_devres: bool,
+    release_record_retained: bool,
+    release_record_freed: bool,
+    should_unmap_on_detach: bool,
+};
+
+pub const ManagedIoportUnmapPlan = struct {
     anchor: []const u8,
     tracked_address: usize,
     candidate_address: usize,
@@ -244,6 +272,8 @@ pub const DevresHelperLab = struct {
             .provides_ioremap_np_wrapper_planning = true,
             .provides_release_pointer_match = true,
             .provides_iounmap_call_planning = true,
+            .provides_ioport_lifetime_planning = true,
+            .provides_ioport_unmap_call_planning = true,
             .provides_ioremap_resource_planning = true,
             .provides_of_iomap_planning = true,
             .provides_pretty_name_helper = true,
@@ -334,6 +364,49 @@ pub const DevresHelperLab = struct {
 
     pub fn planManagedIounmap(tracked_address: usize, candidate_address: usize) ManagedIounmapPlan {
         return planReleaseCall(tracked_address, candidate_address);
+    }
+
+    pub fn planManagedIoportMap(input: ManagedIoportMapInput) !ManagedIoportMapResult {
+        if (!input.release_record_allocated) {
+            return error.OutOfMemory;
+        }
+        if (input.mapped_address == null) {
+            return .{
+                .anchor = descriptor().anchor,
+                .port = input.port,
+                .count = input.count,
+                .mapped_address = null,
+                .added_to_devres = false,
+                .release_record_retained = false,
+                .release_record_freed = true,
+                .should_unmap_on_detach = false,
+            };
+        }
+        return .{
+            .anchor = descriptor().anchor,
+            .port = input.port,
+            .count = input.count,
+            .mapped_address = input.mapped_address,
+            .added_to_devres = true,
+            .release_record_retained = true,
+            .release_record_freed = false,
+            .should_unmap_on_detach = true,
+        };
+    }
+
+    pub fn ioportReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
+        return releaseMatches(tracked_address, candidate_address);
+    }
+
+    pub fn planManagedIoportUnmap(tracked_address: usize, candidate_address: usize) ManagedIoportUnmapPlan {
+        const release_matches = ioportReleaseMatches(tracked_address, candidate_address);
+        return .{
+            .anchor = descriptor().anchor,
+            .tracked_address = tracked_address,
+            .candidate_address = candidate_address,
+            .release_matches = release_matches,
+            .warns_on_release_miss = !release_matches,
+        };
     }
 
     pub fn resolveIoremapType(resource: Resource, requested_type: IoremapType) IoremapType {
@@ -611,6 +684,30 @@ pub const DevresHelperLab = struct {
     }
 };
 
+test "phase13 devres descriptor stays anchored to lib/devres.c" {
+    const descriptor = DevresHelperLab.descriptor();
+
+    try std.testing.expectEqualStrings("devres_helper_lab", descriptor.name);
+    try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
+    try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
+    try std.testing.expect(descriptor.provides_ioremap_plain_wrapper_planning);
+    try std.testing.expect(descriptor.provides_ioremap_uc_wrapper_planning);
+    try std.testing.expect(descriptor.provides_ioremap_wc_wrapper_planning);
+    try std.testing.expect(descriptor.provides_ioremap_np_wrapper_planning);
+    try std.testing.expect(descriptor.provides_release_pointer_match);
+    try std.testing.expect(descriptor.provides_iounmap_call_planning);
+    try std.testing.expect(descriptor.provides_ioport_lifetime_planning);
+    try std.testing.expect(descriptor.provides_ioport_unmap_call_planning);
+    try std.testing.expect(descriptor.provides_ioremap_resource_planning);
+    try std.testing.expect(descriptor.provides_of_iomap_planning);
+    try std.testing.expect(descriptor.provides_pretty_name_helper);
+    try std.testing.expect(descriptor.provides_arch_io_wc_memtype_planning);
+    try std.testing.expect(descriptor.provides_arch_phys_wc_token_planning);
+    try std.testing.expect(!descriptor.touches_live_device_lists);
+    try std.testing.expect(!descriptor.touches_live_mmio);
+    try std.testing.expect(!descriptor.touches_live_arch_memtype);
+}
+
 test "phase13 devres plain ioremap wrapper preserves the managed lifetime path" {
     const result = try DevresHelperLab.planManagedIoremapAcquirePlain(.{
         .release_record_allocated = true,
@@ -737,6 +834,74 @@ test "phase13 devres iounmap plan warns on release pointer mismatch" {
     try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
     try std.testing.expectEqual(@as(usize, 0x5000), plan.tracked_address);
     try std.testing.expectEqual(@as(usize, 0x5100), plan.candidate_address);
+    try std.testing.expect(!plan.release_matches);
+    try std.testing.expect(plan.warns_on_release_miss);
+}
+
+test "phase13 devres retains the ioport release record when mapping succeeds" {
+    const result = try DevresHelperLab.planManagedIoportMap(.{
+        .port = 0x3f8,
+        .count = 8,
+        .release_record_allocated = true,
+        .mapped_address = 0xf000,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
+    try std.testing.expectEqual(@as(u64, 0x3f8), result.port);
+    try std.testing.expectEqual(@as(u64, 8), result.count);
+    try std.testing.expectEqual(@as(?usize, 0xf000), result.mapped_address);
+    try std.testing.expect(result.added_to_devres);
+    try std.testing.expect(result.release_record_retained);
+    try std.testing.expect(!result.release_record_freed);
+    try std.testing.expect(result.should_unmap_on_detach);
+}
+
+test "phase13 devres frees the ioport release record when mapping fails after allocation" {
+    const result = try DevresHelperLab.planManagedIoportMap(.{
+        .port = 0x2f8,
+        .count = 4,
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(@as(u64, 0x2f8), result.port);
+    try std.testing.expectEqual(@as(u64, 4), result.count);
+    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
+    try std.testing.expect(!result.added_to_devres);
+    try std.testing.expect(!result.release_record_retained);
+    try std.testing.expect(result.release_record_freed);
+    try std.testing.expect(!result.should_unmap_on_detach);
+}
+
+test "phase13 devres rejects ioport planning when the release record cannot be allocated" {
+    try std.testing.expectError(error.OutOfMemory, DevresHelperLab.planManagedIoportMap(.{
+        .port = 0x378,
+        .count = 3,
+        .release_record_allocated = false,
+        .mapped_address = 0xe000,
+    }));
+}
+
+test "phase13 devres ioport release matching stays pointer-exact" {
+    try std.testing.expect(DevresHelperLab.ioportReleaseMatches(0xf000, 0xf000));
+    try std.testing.expect(!DevresHelperLab.ioportReleaseMatches(0xf000, 0xf010));
+}
+
+test "phase13 devres plans managed ioport unmap success without a warning" {
+    const plan = DevresHelperLab.planManagedIoportUnmap(0xf000, 0xf000);
+
+    try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+    try std.testing.expectEqual(@as(usize, 0xf000), plan.tracked_address);
+    try std.testing.expectEqual(@as(usize, 0xf000), plan.candidate_address);
+    try std.testing.expect(plan.release_matches);
+    try std.testing.expect(!plan.warns_on_release_miss);
+}
+
+test "phase13 devres plans managed ioport unmap release misses as warnable" {
+    const plan = DevresHelperLab.planManagedIoportUnmap(0xf000, 0xf010);
+
+    try std.testing.expectEqual(@as(usize, 0xf000), plan.tracked_address);
+    try std.testing.expectEqual(@as(usize, 0xf010), plan.candidate_address);
     try std.testing.expect(!plan.release_matches);
     try std.testing.expect(plan.warns_on_release_miss);
 }
