@@ -33,6 +33,15 @@ EXPECTED_ZIG_TEST_FILES = [
 ]
 
 
+def reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    payload: dict[str, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise ValueError(f"duplicate key {key!r}")
+        payload[key] = value
+    return payload
+
+
 def require_files(root: Path) -> list[str]:
     required = [Path("zigux/tests/fixtures/phase2_cross_targets.json")]
     required.extend(Path(rel_path) for rel_path in EXPECTED_ZIG_TEST_FILES)
@@ -40,7 +49,10 @@ def require_files(root: Path) -> list[str]:
 
 
 def load_fixture(path: Path) -> dict[str, object]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload = json.loads(
+        path.read_text(encoding="utf-8"),
+        object_pairs_hook=reject_duplicate_json_keys,
+    )
     if not isinstance(payload, dict):
         raise ValueError("fixture must be a JSON object")
     return payload
@@ -49,7 +61,13 @@ def load_fixture(path: Path) -> dict[str, object]:
 def load_toolchain_policy_channel(policy_path: Path = TOOLCHAIN_POLICY) -> str | None:
     if not policy_path.exists():
         return None
-    payload = json.loads(policy_path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(
+            policy_path.read_text(encoding="utf-8"),
+            object_pairs_hook=reject_duplicate_json_keys,
+        )
+    except ValueError as exc:
+        raise ValueError(f"invalid toolchain policy JSON: {exc}") from exc
     if not isinstance(payload, dict):
         raise ValueError("toolchain policy must be a JSON object")
     channel = payload.get("channel")
@@ -262,6 +280,7 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").writeText if False else None
         (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
             json.dumps(
                 {
@@ -339,6 +358,7 @@ def run_self_test() -> int:
             json.dumps({"channel": "0.17.0-dev.87+9b177a7d2"}) + "\n",
         )
         pinned_root = root / ".zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
+        writeText if False else None
         write_text(pinned_root / "zig", "#!/bin/sh\n")
         resolved = resolve_zig_executable(root=root, policy_path=root / "scripts/zigux/zig-toolchain-policy.json", which=lambda _: "/usr/bin/zig")
         assert resolved == str(pinned_root / "zig")
@@ -372,7 +392,37 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/zig-toolchain-policy.json",
+            '{"channel":"0.17.0-dev.87+9b177a7d2","channel":"0.18.0"}\n',
+        )
+        try:
+            resolve_zig_executable(
+                root=root,
+                policy_path=root / "scripts/zigux/zig-toolchain-policy.json",
+                which=lambda _: None,
+            )
+        except ValueError as exc:
+            assert "invalid toolchain policy JSON: duplicate key 'channel'" in str(exc)
+        else:
+            raise AssertionError("expected duplicate toolchain policy key to fail")
+        case_count += 1
+
+        build_self_test_root(root)
         assert resolve_zig_executable("/custom/zig", root=root, which=lambda _: None) == "/custom/zig"
+        case_count += 1
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/fixtures/phase2_cross_targets.json",
+            '{"phase":"Phase 2","phase":"Phase 3","status":"closed","target_count":3,"targets":["x86_64-linux-musl","aarch64-linux-musl","riscv64-linux-musl"],"zig_test_files":["scripts/zigux/fixdep.zig","scripts/zigux/genksyms.zig","scripts/zigux/kconfig/conf_bridge.zig","scripts/zigux/kconfig/confdata_bridge.zig"]}\n',
+        )
+        try:
+            validate_fixture(root)
+        except ValueError as exc:
+            assert "duplicate key 'phase'" in str(exc)
+        else:
+            raise AssertionError("expected duplicate fixture key to fail")
         case_count += 1
 
         preflight_ok = run_toolchain_preflight(
@@ -465,6 +515,7 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+    assert case_count == 22
     print("PHASE2_CROSS_SELF_TEST=pass")
     print(f"PHASE2_CROSS_SELF_TEST_CASE_COUNT={case_count}")
     return 0
