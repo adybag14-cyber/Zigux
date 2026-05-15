@@ -43,6 +43,13 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_rest = "next",
     },
     .{
+        .name = "leading quoted token with equals and no trailing token leaves empty rest",
+        .input = "\"key=value\"",
+        .expected_param = "key",
+        .expected_value = "value",
+        .expected_rest = "",
+    },
+    .{
         .name = "unquoted value keeps punctuation until whitespace",
         .input = "console=ttyS0,115200n8 panic=-1",
         .expected_param = "console",
