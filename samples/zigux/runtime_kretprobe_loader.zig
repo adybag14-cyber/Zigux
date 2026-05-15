@@ -221,7 +221,7 @@ test "runtime kretprobe loader keeps unavailable substrate and lifecycle guards 
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectError(error.InvalidLoaderState, loader.requestRuntimeLoad());
 
-    try module.exit();
+    _ = try module.exit();
     try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeKretprobeLoader.planFor(&module));
 }
 
@@ -361,6 +361,92 @@ test "runtime kretprobe loader keeps initialized shared-request snapshots stable
     try std.testing.expectEqualStrings(prepared_plan.entry_symbol, pending_plan.entry_symbol);
     try std.testing.expectEqualStrings(prepared_plan.exit_symbol, pending_plan.exit_symbol);
     try std.testing.expect(pending_plan.provides_selftest_hook);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        pending_plan,
+        .kernel_heap,
+        .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending_plan));
+
+    try loader.releaseSharedWithoutSubstrate(&shared_request);
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .released_without_substrate,
+        pending_plan,
+    ));
+}
+
+test "runtime kretprobe loader keeps initialized shared-request snapshots stable across later clean exit activity" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+
+    var loader = RuntimeKretprobeLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    const prepared_plan = shared_request.plan;
+    const initialized_summary = module.summary();
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, prepared_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), prepared_plan.init_flow.selftest_runs);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_plan,
+    ));
+    try std.testing.expectEqualStrings("do_sys_openat2", initialized_summary.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.active_instances);
+    try std.testing.expect(!initialized_summary.entry_timestamp_armed);
+
+    const exit_report = try module.exit();
+    const exited_summary = module.summary();
+    try std.testing.expectEqualStrings("do_sys_openat2", exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.missed_instances);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.last_retval);
+    try std.testing.expectEqual(@as(i64, 0), exit_report.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.selftest_runs);
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.exited, exited_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), exited_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+    try std.testing.expectEqualStrings(initialized_summary.symbol_name, exited_summary.symbol_name);
+    try std.testing.expectEqual(initialized_summary.maxactive, exited_summary.maxactive);
+    try std.testing.expectEqual(initialized_summary.active_instances, exited_summary.active_instances);
+    try std.testing.expectEqual(initialized_summary.skipped_kernel_threads, exited_summary.skipped_kernel_threads);
+    try std.testing.expectEqual(initialized_summary.nmissed, exited_summary.nmissed);
+    try std.testing.expectEqual(initialized_summary.last_retval, exited_summary.last_retval);
+    try std.testing.expectEqual(initialized_summary.last_duration_ns, exited_summary.last_duration_ns);
+    try std.testing.expectEqual(initialized_summary.entry_timestamp_armed, exited_summary.entry_timestamp_armed);
+    try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeKretprobeLoader.planFor(&module));
+
+    const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
+    try std.testing.expectEqualStrings(prepared_plan.module_name, pending_plan.module_name);
+    try std.testing.expectEqualStrings(prepared_plan.anchor, pending_plan.anchor);
+    try std.testing.expectEqualStrings(prepared_plan.entry_symbol, pending_plan.entry_symbol);
+    try std.testing.expectEqualStrings(prepared_plan.exit_symbol, pending_plan.exit_symbol);
     try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);
     try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
