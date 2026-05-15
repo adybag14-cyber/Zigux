@@ -23,6 +23,7 @@ FILES = [
     "zigux/tests/README.md",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
     "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_core_manifest.json",
@@ -87,6 +88,14 @@ EXPECTED_CORE_TEST_MARKERS = [
     "const lifecycle = device.lifecycleGuardSummary();",
 ]
 
+EXPECTED_INTERRUPT_COMPOUND_ACK_MARKERS = [
+    "phase10 virtio core clears combined interrupt reasons in one acknowledgement",
+    "try device.noteInterruptReason(",
+    "virtio_core.VirtioInterruptReason.queue_used |",
+    "virtio_core.VirtioInterruptReason.config_change,",
+    "try device.acknowledgeInterrupt(",
+]
+
 EXPECTED_RESET_QUEUE_MARKERS = [
     "phase10 virtio core keeps reset replay teardown bookkeeping after driver validation narrows queue features",
     "try device.markDriverReady();",
@@ -102,11 +111,13 @@ EXPECTED_SURVEY_MARKERS = [
     "phase10-driver-id-coverage-disposition-helper",
     "phase10-lifecycle-guard-bookkeeping-helper",
     "phase10-core-lab-validation-evidence",
+    "phase10-interrupt-compound-ack-gate",
     "phase10-virtio-core-slice.md",
     "phase10-core-slice-note",
     "phase10-core-dual-implementation-bridge",
     "phase10-core-probe-remove-lifecycle",
     "phase10_virtio_core_manifest.json",
+    "phase10_virtio_core_interrupt_compound_ack.zig",
     "phase10_virtio_core_survey.zig",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "drivers/virtio/virtio.zig",
@@ -123,6 +134,7 @@ EXPECTED_SLICE_MARKERS = [
     "drivers/virtio/virtio.zig",
     "drivers/virtio/virtio_driver_id.zig",
     "drivers/virtio/virtio_verify.zig",
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
     "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_core_manifest.json",
@@ -153,6 +165,7 @@ EXPECTED_GAPS = {
     "phase10-core-attribute-summary-helper": "starter_landed",
     "phase10-reset-replay-bookkeeping-helper": "starter_landed",
     "phase10-core-lab-validation-evidence": "starter_landed",
+    "phase10-interrupt-compound-ack-gate": "starter_landed",
     "phase10-core-dual-implementation-bridge": "blocked_on_risky_transport",
     "phase10-core-probe-remove-lifecycle": "blocked_on_risky_transport",
 }
@@ -199,6 +212,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_CORE_TEST_MARKERS:
         if marker not in core_test_text:
             missing_markers.append(f"core_test:{marker}")
+
+    interrupt_compound_ack_text = read_text(root, "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig")
+    for marker in EXPECTED_INTERRUPT_COMPOUND_ACK_MARKERS:
+        if marker not in interrupt_compound_ack_text:
+            missing_markers.append(f"interrupt_compound_ack:{marker}")
 
     reset_queue_text = read_text(root, "zigux/tests/phase10_virtio_core_reset_queue.zig")
     for marker in EXPECTED_RESET_QUEUE_MARKERS:
@@ -247,7 +265,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 21:
+    if len(gaps) < 22:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     blocked_count = 0
@@ -318,6 +336,7 @@ def build_fixture_files() -> dict[str, str]:
         "zigux/tests/README.md": "\n".join(EXPECTED_TESTS_README_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": build_markers + "\n",
         "zigux/tests/phase10_virtio_core.zig": "\n".join(EXPECTED_CORE_TEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig": "\n".join(EXPECTED_INTERRUPT_COMPOUND_ACK_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_core_reset_queue.zig": "\n".join(EXPECTED_RESET_QUEUE_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_driver_id.zig": "phase10 virtio driver id coverage helper\n",
         "zigux/tests/phase10_virtio_core_survey.zig": f'const surveyed_commit = "{SURVEYED_COMMIT}";\n',
@@ -355,6 +374,17 @@ def run_self_test() -> int:
         if "drivers/virtio/virtio_verify.zig" not in missing_files:
             raise SystemExit("phase10-core-self-test:expected_verify_replay_file_missing")
         write_fixture(root, "drivers/virtio/virtio_verify.zig", fixture["drivers/virtio/virtio_verify.zig"])
+
+        interrupt_compound_ack_path = root / "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig"
+        interrupt_compound_ack_path.unlink()
+        missing_files, _ = validate(root)
+        if "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig" not in missing_files:
+            raise SystemExit("phase10-core-self-test:expected_interrupt_compound_ack_file_missing")
+        write_fixture(
+            root,
+            "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+            fixture["zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig"],
+        )
 
         tests_readme_checker_path = root / "scripts/zigux/check-phase10-tests-readme-core-surfaces.py"
         tests_readme_checker_path.unlink()
@@ -424,6 +454,15 @@ def run_self_test() -> int:
         _, missing_markers = validate(root)
         if "survey_note:phase10-core-slice-note" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_slice_gap_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace("phase10-interrupt-compound-ack-gate", "phase10-interrupt-compound-ack-drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(root)
+        if "survey_note:phase10-interrupt-compound-ack-gate" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_interrupt_compound_ack_survey_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
         survey_path.write_text(
@@ -500,7 +539,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_tests_readme_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
