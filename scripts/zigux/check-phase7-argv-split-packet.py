@@ -196,6 +196,14 @@ REQUIRED_MARKERS = {
     ],
 }
 
+REQUIRED_EXACT_LINES = {
+    "zigux/tests/README.md": [
+        "  * `scripts/zigux/check-phase7-argv-split-packet.py`",
+        "  * `make -C zigux phase7-validate`",
+        "  * `make -C zigux phase7`",
+    ],
+}
+
 MISSING_FILE_CASES = [
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase7_argv_split_manifest.json",
@@ -230,6 +238,9 @@ MISSING_MARKER_CASES = [
     ("scripts/zigux/validate-phase7.py", "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\""),
     ("lib/argv_split.zig", "pub fn cArgv"),
     ("zigux/tests/README.md", "zigux/tests/phase7_argv_split_manifest.json"),
+    ("zigux/tests/README.md", "  * `scripts/zigux/check-phase7-argv-split-packet.py`"),
+    ("zigux/tests/README.md", "  * `make -C zigux phase7-validate`"),
+    ("zigux/tests/README.md", "  * `make -C zigux phase7`"),
     (
         "zigux/tests/phase7_argv_split.zig",
         "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
@@ -258,7 +269,6 @@ MISSING_MARKER_CASES = [
     ),
 ]
 
-
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
@@ -270,6 +280,11 @@ def collect_missing_markers(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
+    for rel, lines in REQUIRED_EXACT_LINES.items():
+        text_lines = (root / rel).read_text(encoding="utf-8").splitlines()
+        for line in lines:
+            if line not in text_lines:
+                missing.append(f"{rel}: {line}")
     return missing
 
 
@@ -284,7 +299,9 @@ def write_fixture_root(tmp_root: Path) -> None:
     for rel in REQUIRED_FILES:
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("\n".join(REQUIRED_MARKERS[rel]) + "\n", encoding="utf-8")
+        marker_lines = list(REQUIRED_MARKERS[rel])
+        exact_lines = list(REQUIRED_EXACT_LINES.get(rel, []))
+        path.write_text("\n".join(marker_lines + exact_lines) + "\n", encoding="utf-8")
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -302,8 +319,9 @@ def expect_missing_marker(case: str, tmp_root: Path, expected: str) -> None:
 def mutate_file(tmp_root: Path, rel: str, marker: str, case: str) -> None:
     path = tmp_root / rel
     original = path.read_text(encoding="utf-8")
-    updated = original.replace(marker, "", 1)
-    assert updated != original, case
+    index = original.rfind(marker)
+    assert index != -1, case
+    updated = original[:index] + original[index + len(marker):]
     path.write_text(updated, encoding="utf-8")
 
 
