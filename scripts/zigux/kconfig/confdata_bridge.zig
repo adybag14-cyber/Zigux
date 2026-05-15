@@ -726,6 +726,24 @@ test "confdata bridge keeps the prior duplicate value when a later quoted assign
     try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[2].name);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[2].kind);
     try std.testing.expectEqualStrings("y", summary.entries[2].value);
+
+    var unset_preserved = try parseConfig(allocator,
+        \\# CONFIG_DELTA is not set
+        \\CONFIG_DELTA="broken
+        \\CONFIG_EPSILON=7
+        \\
+    );
+    defer deinitSummary(allocator, &unset_preserved);
+
+    try std.testing.expectEqual(@as(usize, 1), unset_preserved.set_count);
+    try std.testing.expectEqual(@as(usize, 1), unset_preserved.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), unset_preserved.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_DELTA", unset_preserved.entries[0].name);
+    try std.testing.expectEqual(EntryKind.unset, unset_preserved.entries[0].kind);
+    try std.testing.expectEqualStrings("n", unset_preserved.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_EPSILON", unset_preserved.entries[1].name);
+    try std.testing.expectEqual(EntryKind.value, unset_preserved.entries[1].kind);
+    try std.testing.expectEqualStrings("7", unset_preserved.entries[1].value);
 }
 
 test "confdata bridge keeps only the last state across unset and set transitions" {
