@@ -120,6 +120,14 @@ pub fn encodeStd(dst: []u8, src: []const u8, padding: bool) EncodeError!usize {
     return encode(dst, src, padding, .std);
 }
 
+pub fn encodeUrlsafe(dst: []u8, src: []const u8, padding: bool) EncodeError!usize {
+    return encode(dst, src, padding, .urlsafe);
+}
+
+pub fn encodeImap(dst: []u8, src: []const u8, padding: bool) EncodeError!usize {
+    return encode(dst, src, padding, .imap);
+}
+
 pub fn encodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool, variant: Variant) EncodeAllocError![]u8 {
     const needed = chars(src.len, padding);
     var out = try allocator.alloc(u8, needed);
@@ -133,6 +141,14 @@ pub fn encodeStdAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bo
     return encodeAlloc(allocator, src, padding, .std);
 }
 
+pub fn encodeUrlsafeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) EncodeAllocError![]u8 {
+    return encodeAlloc(allocator, src, padding, .urlsafe);
+}
+
+pub fn encodeImapAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) EncodeAllocError![]u8 {
+    return encodeAlloc(allocator, src, padding, .imap);
+}
+
 pub fn encodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) EncodeError![]u8 {
     const written = try encode(dst, src, padding, variant);
     return dst[0..written];
@@ -140,6 +156,14 @@ pub fn encodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) 
 
 pub fn encodeStdSlice(dst: []u8, src: []const u8, padding: bool) EncodeError![]u8 {
     return encodeSlice(dst, src, padding, .std);
+}
+
+pub fn encodeUrlsafeSlice(dst: []u8, src: []const u8, padding: bool) EncodeError![]u8 {
+    return encodeSlice(dst, src, padding, .urlsafe);
+}
+
+pub fn encodeImapSlice(dst: []u8, src: []const u8, padding: bool) EncodeError![]u8 {
+    return encodeSlice(dst, src, padding, .imap);
 }
 
 pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
@@ -209,6 +233,14 @@ pub fn decodeStd(dst: []u8, src: []const u8, padding: bool) DecodeError!usize {
     return decode(dst, src, padding, .std);
 }
 
+pub fn decodeUrlsafe(dst: []u8, src: []const u8, padding: bool) DecodeError!usize {
+    return decode(dst, src, padding, .urlsafe);
+}
+
+pub fn decodeImap(dst: []u8, src: []const u8, padding: bool) DecodeError!usize {
+    return decode(dst, src, padding, .imap);
+}
+
 pub fn decodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool, variant: Variant) DecodeAllocError![]u8 {
     const exact_len = try bytes(src, padding, variant);
     var out = try allocator.alloc(u8, exact_len);
@@ -222,6 +254,14 @@ pub fn decodeStdAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bo
     return decodeAlloc(allocator, src, padding, .std);
 }
 
+pub fn decodeUrlsafeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) DecodeAllocError![]u8 {
+    return decodeAlloc(allocator, src, padding, .urlsafe);
+}
+
+pub fn decodeImapAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) DecodeAllocError![]u8 {
+    return decodeAlloc(allocator, src, padding, .imap);
+}
+
 pub fn decodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError![]u8 {
     const written = try decode(dst, src, padding, variant);
     return dst[0..written];
@@ -229,6 +269,14 @@ pub fn decodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) 
 
 pub fn decodeStdSlice(dst: []u8, src: []const u8, padding: bool) DecodeError![]u8 {
     return decodeSlice(dst, src, padding, .std);
+}
+
+pub fn decodeUrlsafeSlice(dst: []u8, src: []const u8, padding: bool) DecodeError![]u8 {
+    return decodeSlice(dst, src, padding, .urlsafe);
+}
+
+pub fn decodeImapSlice(dst: []u8, src: []const u8, padding: bool) DecodeError![]u8 {
+    return decodeSlice(dst, src, padding, .imap);
 }
 
 fn alphabetFor(variant: Variant) []const u8 {
@@ -621,6 +669,74 @@ fn expectStdWrapperRoundTripSweep(padding: bool) !void {
     }
 }
 
+fn expectVariantConvenienceWrapperRoundTrip(variant: Variant, padding: bool) !void {
+    const payload = [_]u8{ 0xfb, 0xff };
+    const expected_encoded = switch (variant) {
+        .urlsafe => if (padding) "-_8=" else "-_8",
+        .imap => if (padding) "+,8=" else "+,8",
+        .std => unreachable,
+    };
+
+    var direct_encoded_buf: [8]u8 = [_]u8{0xab} ** 8;
+    var slice_encoded_buf: [8]u8 = [_]u8{0xbc} ** 8;
+    var direct_decoded_buf: [3]u8 = [_]u8{0xcd} ** 3;
+    var slice_decoded_buf: [3]u8 = [_]u8{0xde} ** 3;
+
+    @memset(direct_encoded_buf[0..], 0xab);
+    const direct_encoded_len = switch (variant) {
+        .urlsafe => try encodeUrlsafe(direct_encoded_buf[0..], payload[0..], padding),
+        .imap => try encodeImap(direct_encoded_buf[0..], payload[0..], padding),
+        .std => unreachable,
+    };
+    try std.testing.expectEqualStrings(expected_encoded, direct_encoded_buf[0..direct_encoded_len]);
+    try std.testing.expectEqual(@as(usize, expected_encoded.len), direct_encoded_len);
+    try std.testing.expectEqual(@as(u8, 0xab), direct_encoded_buf[direct_encoded_len]);
+
+    @memset(slice_encoded_buf[0..], 0xbc);
+    const slice_encoded = switch (variant) {
+        .urlsafe => try encodeUrlsafeSlice(slice_encoded_buf[0..], payload[0..], padding),
+        .imap => try encodeImapSlice(slice_encoded_buf[0..], payload[0..], padding),
+        .std => unreachable,
+    };
+    try std.testing.expectEqualStrings(expected_encoded, slice_encoded);
+    try std.testing.expectEqual(@as(u8, 0xbc), slice_encoded_buf[slice_encoded.len]);
+
+    const alloc_encoded = switch (variant) {
+        .urlsafe => try encodeUrlsafeAlloc(std.testing.allocator, payload[0..], padding),
+        .imap => try encodeImapAlloc(std.testing.allocator, payload[0..], padding),
+        .std => unreachable,
+    };
+    defer std.testing.allocator.free(alloc_encoded);
+    try std.testing.expectEqualStrings(expected_encoded, alloc_encoded);
+
+    @memset(direct_decoded_buf[0..], 0xcd);
+    const direct_decoded_len = switch (variant) {
+        .urlsafe => try decodeUrlsafe(direct_decoded_buf[0..], expected_encoded, padding),
+        .imap => try decodeImap(direct_decoded_buf[0..], expected_encoded, padding),
+        .std => unreachable,
+    };
+    try std.testing.expectEqual(@as(usize, payload.len), direct_decoded_len);
+    try std.testing.expectEqualSlices(u8, payload[0..], direct_decoded_buf[0..direct_decoded_len]);
+    try std.testing.expectEqual(@as(u8, 0xcd), direct_decoded_buf[direct_decoded_len]);
+
+    @memset(slice_decoded_buf[0..], 0xde);
+    const slice_decoded = switch (variant) {
+        .urlsafe => try decodeUrlsafeSlice(slice_decoded_buf[0..], expected_encoded, padding),
+        .imap => try decodeImapSlice(slice_decoded_buf[0..], expected_encoded, padding),
+        .std => unreachable,
+    };
+    try std.testing.expectEqualSlices(u8, payload[0..], slice_decoded);
+    try std.testing.expectEqual(@as(u8, 0xde), slice_decoded_buf[slice_decoded.len]);
+
+    const alloc_decoded = switch (variant) {
+        .urlsafe => try decodeUrlsafeAlloc(std.testing.allocator, expected_encoded, padding),
+        .imap => try decodeImapAlloc(std.testing.allocator, expected_encoded, padding),
+        .std => unreachable,
+    };
+    defer std.testing.allocator.free(alloc_decoded);
+    try std.testing.expectEqualSlices(u8, payload[0..], alloc_decoded);
+}
+
 test "base64 standard encoding matches Linux-style padded output" {
     var out: [8]u8 = undefined;
     const written = try encode(out[0..], "hi", true, .std);
@@ -677,7 +793,7 @@ test "base64 urlsafe encoding swaps the variant alphabet and omits padding when 
 
 test "base64 imap decoding accepts comma as the variant-specific 63rd symbol" {
     var out: [8]u8 = undefined;
-    const written = try decode(out[0..], "+,,," , false, .imap);
+    const written = try decode(out[0..], "+,,,", false, .imap);
     try std.testing.expectEqual(@as(usize, 3), written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xfb, 0xff, 0xff }, out[0..written]);
 }
@@ -721,6 +837,13 @@ test "base64 standard convenience wrappers pin the common variant across direct,
     const direct_decoded_len = try decodeStd(direct_decoded_buf[0..], "Zg==", true);
     try std.testing.expectEqualStrings("f", direct_decoded_buf[0..direct_decoded_len]);
     try std.testing.expectEqual(@as(u8, 0xee), direct_decoded_buf[direct_decoded_len]);
+}
+
+test "base64 urlsafe and imap convenience wrappers pin their variant across direct, slice, and allocator paths" {
+    try expectVariantConvenienceWrapperRoundTrip(.urlsafe, true);
+    try expectVariantConvenienceWrapperRoundTrip(.urlsafe, false);
+    try expectVariantConvenienceWrapperRoundTrip(.imap, true);
+    try expectVariantConvenienceWrapperRoundTrip(.imap, false);
 }
 
 test "base64 generic slice and allocator wrappers sweep exact round-trips across variants and padding modes" {
@@ -777,6 +900,26 @@ test "base64 standard convenience wrappers preserve destination-too-small errors
     var decoded: [1]u8 = [_]u8{0xdd} ** 1;
     try std.testing.expectError(error.DestinationTooSmall, decodeStd(decoded[0..], "Zm8=", true));
     try std.testing.expectEqual(@as(u8, 0xdd), decoded[0]);
+}
+
+test "base64 urlsafe and imap convenience wrappers preserve destination-too-small errors" {
+    const payload = [_]u8{ 0xfb, 0xff };
+
+    var urlsafe_encoded: [2]u8 = [_]u8{0xaa} ** 2;
+    try std.testing.expectError(error.DestinationTooSmall, encodeUrlsafe(urlsafe_encoded[0..], payload[0..], true));
+    try std.testing.expectEqual(@as(u8, 0xaa), urlsafe_encoded[0]);
+
+    var imap_encoded: [2]u8 = [_]u8{0xbb} ** 2;
+    try std.testing.expectError(error.DestinationTooSmall, encodeImap(imap_encoded[0..], payload[0..], true));
+    try std.testing.expectEqual(@as(u8, 0xbb), imap_encoded[0]);
+
+    var urlsafe_decoded: [1]u8 = [_]u8{0xcc} ** 1;
+    try std.testing.expectError(error.DestinationTooSmall, decodeUrlsafe(urlsafe_decoded[0..], "-_8=", true));
+    try std.testing.expectEqual(@as(u8, 0xcc), urlsafe_decoded[0]);
+
+    var imap_decoded: [1]u8 = [_]u8{0xdd} ** 1;
+    try std.testing.expectError(error.DestinationTooSmall, decodeImap(imap_decoded[0..], "+,8=", true));
+    try std.testing.expectEqual(@as(u8, 0xdd), imap_decoded[0]);
 }
 
 test "base64 reports exact destination-too-small errors" {
