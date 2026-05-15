@@ -44,6 +44,7 @@ The shared reminder surfaces presently present on `master` are:
 The directly readable sample-local evidence recovered in this run is:
 
 * the bytestream sample-root packet through `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, and the directly readable companion manifest `zigux/tests/phase5_bytestream_fifo_manifest.json`, with that survey note also carrying the current public-tree-backed companion packet through `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig` while authenticated contents readback for those remaining broader bytestream paths still fails in this environment
+* `zigux/tests/README.md` still keeps the bytestream anchor one line narrower than the sibling docs-root and scripts-root reminders by naming `Documentation/zigux/phase5-kfifo-sample-survey.md` and `samples/zigux/bytestream_fifo.zig` but not yet the directly readable companion manifest `zigux/tests/phase5_bytestream_fifo_manifest.json`, so shared-guide wording should keep that tests-root lag explicit instead of flattening the reminder surfaces into a fully aligned packet
 * the kobject packet through `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`
 * the restored kretprobe packet through `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`
 * the trace-events packet through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
@@ -122,7 +123,7 @@ Respect the freeze map too. Do not widen Phase 5 work toward freeze-in-C anchors
 
 Before landing a Phase 5 change, confirm:
 
-* the roadmap anchor is one of the four approved Linux sample paths listed above
+* the roadmap anchor is still one of the four approved Linux sample paths listed above
 * the change says clearly whether it touches shared contributor guidance or one specific landed sample packet
 * if a shared Phase 5 guide, README, checklist, survey note, manifest, test entrypoint, or make wrapper mentions a sample or replay route, that surface is directly readable on current `master`
 * if a shared doc claims a sample-local replay route or build route, do not infer it from older wording alone; confirm the exact path is directly readable first
@@ -162,7 +163,7 @@ Keep the restored non-runtime `kernel_clone` default plus `runRetargetReplay()`,
 
 Review the currently readable trace-events packet through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`.
 
-Keep `runAnchorReplay()`, `formattedMessage()`, `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, and `unregisterFunctionCallback()` explicit together with the selected-string plus `iter=%d` formatting cue, the exact `checked_focus` order, the full modulo-selected string cycle across counts `0` through `4`, the registration-first callback path, the restored zero-depth registration balance, the `OutstandingRegistration` rejection packet, and the post-`exit()` replay rejection boundary as one bounded non-runtime packet.
+Keep `runAnchorReplay()`, `formattedMessage()`, `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, and `runLifecycleBoundaryReplay()` explicit together with the selected-string plus `iter=%d` formatting cue, the exact `checked_focus` order, the full modulo-selected string cycle across counts `0` through `4`, the registration-first callback path, the restored zero-depth registration balance, the `OutstandingRegistration` rejection packet, and the post-`exit()` replay rejection boundary as one bounded non-runtime packet.
 
 ## Non-goals
 
