@@ -122,6 +122,14 @@ REQUIRED_LAYOUT_ASSERT_SNIPPETS = (
     "pub fn fieldType(comptime T: type, comptime field_name: []const u8, comptime Expected: type) void {",
     "pub fn byteValue(comptime label: []const u8, comptime actual: u8, comptime expected: u8) void {",
     'test "phase3 layout assertions cover canonical bindings" {',
+    "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() !void {",
+    "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout() !void {",
+    "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout() !void {",
+    "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() !void {",
+    'try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();',
+    'try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();',
+    'try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();',
+    'try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout();',
 )
 
 REQUIRED_PANIC_POLICY_SNIPPETS = (
@@ -497,6 +505,16 @@ def run_self_test() -> int:
         assert f"missing_layout_assert_snippet:{REQUIRED_LAYOUT_ASSERT_SNIPPETS[2]}" in issues
 
         build_valid_workspace(root)
+        broken_layout = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8").replace(
+            REQUIRED_LAYOUT_ASSERT_SNIPPETS[-1] + "\n",
+            "",
+            1,
+        )
+        write_file(root / LAYOUT_ASSERT_REL, broken_layout)
+        issues = validate(root)
+        assert f"missing_layout_assert_snippet:{REQUIRED_LAYOUT_ASSERT_SNIPPETS[-1]}" in issues
+
+        build_valid_workspace(root)
         broken_panic = (root / PANIC_POLICY_REL).read_text(encoding="utf-8").replace(
             REQUIRED_PANIC_POLICY_SNIPPETS[-1] + "\n",
             "",
@@ -586,7 +604,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=16")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
