@@ -245,6 +245,10 @@ REQUIRED_MARKERS = {
         "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
         "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
     ],
+    "zigux/tests/phase7_rbtree_manifest.json": [
+        "\"ownership_focus\": [",
+        "duplicate-key range helpers keep ordered match ownership explicit through findFirst() and nextMatch() instead of hidden cursors",
+    ],
     "zigux/tests/phase7_string_helpers_survey.zig": [
         "expanded starter packet",
         "stringEscapeMem()",
@@ -600,6 +604,18 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_string_helpers_manifest.json",
                 "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
                 "zigux/tests/phase7_string_helpers_manifest.json: memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
+            ),
+            (
+                "rbtree manifest ownership block marker",
+                "zigux/tests/phase7_rbtree_manifest.json",
+                "\"ownership_focus\": [",
+                "zigux/tests/phase7_rbtree_manifest.json: \"ownership_focus\": [",
+            ),
+            (
+                "rbtree manifest duplicate-range ownership marker",
+                "zigux/tests/phase7_rbtree_manifest.json",
+                "duplicate-key range helpers keep ordered match ownership explicit through findFirst() and nextMatch() instead of hidden cursors",
+                "zigux/tests/phase7_rbtree_manifest.json: duplicate-key range helpers keep ordered match ownership explicit through findFirst() and nextMatch() instead of hidden cursors",
             ),
             (
                 "lib string helpers escape function",
