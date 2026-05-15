@@ -28,7 +28,7 @@ pub fn summarize(device: *const virtio_input.VirtioInputLab) ProbePreflightSumma
     const name_ready = device.name_len != 0;
     const serial_ready = device.serial_len != 0;
     const phys_ready = device.phys_len != 0;
-    const identity_ready = name_ready and serial_ready and phys_ready;
+    const identity_ready = name_ready and phys_ready;
 
     const blocker: ?ProbePreflightBlocker = if (!identity_ready)
         .identity_incomplete
