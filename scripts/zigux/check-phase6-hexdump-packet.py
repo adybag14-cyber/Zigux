@@ -123,6 +123,18 @@ MAKEFILE_MARKERS = [
     "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
 ]
 
+FOCUSED_TEST_MARKERS = [
+    "fn assertLengthCase(case: fixtures.LengthCase) !void {",
+    "hexdump.hexDumpLineLength(case.len, case.rowsize, case.groupsize, case.ascii),",
+    'test "phase 6 hexdump helper packet preserves the curated length matrix" {',
+    "for (fixtures.length_cases) |case| {",
+    'test "phase 6 hexdump direct helper aliases stay aligned with the packet" {',
+    "try std.testing.expectEqual(@as(?u8, 10), hexdump.hexToBin('a'));",
+    'try hexdump.hex2Bin(decoded[0..], "be32db7b");',
+    'try std.testing.expectError(error.InvalidHex, hexdump.hex2bin(decoded[0..], "be32dz7b"));',
+    "const text = hexdump.bin2Hex(encoded[0..], fixtures.data_b[0..4]);",
+]
+
 PERF_MATRIX_MARKERS = [
     'const fixtures = @import("phase6_hexdump_vectors");',
     '.label = "16B-plain-g1"',
@@ -146,7 +158,7 @@ FIXTURE_MARKERS = [
     '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
 ]
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 24
 
 
 class CheckError(RuntimeError):
@@ -176,11 +188,11 @@ def run_check(root: Path) -> None:
     expect_markers(REQUIRED_FILES["manifest"], read_text(root, REQUIRED_FILES["manifest"]), MANIFEST_MARKERS)
     expect_markers(REQUIRED_FILES["build_file"], read_text(root, REQUIRED_FILES["build_file"]), BUILD_FILE_MARKERS)
     expect_markers(REQUIRED_FILES["makefile"], read_text(root, REQUIRED_FILES["makefile"]), MAKEFILE_MARKERS)
+    expect_markers(REQUIRED_FILES["focused_test"], read_text(root, REQUIRED_FILES["focused_test"]), FOCUSED_TEST_MARKERS)
     expect_markers(REQUIRED_FILES["perf_matrix_test"], read_text(root, REQUIRED_FILES["perf_matrix_test"]), PERF_MATRIX_MARKERS)
     expect_markers(REQUIRED_FILES["fixtures"], read_text(root, REQUIRED_FILES["fixtures"]), FIXTURE_MARKERS)
 
-    for key in ("focused_test", "perf_test"):
-        read_text(root, REQUIRED_FILES[key])
+    read_text(root, REQUIRED_FILES["perf_test"])
 
 
 def write(path: Path, text: str) -> None:
@@ -198,7 +210,7 @@ def build_self_test_fixture(root: Path) -> None:
     write(root / REQUIRED_FILES["manifest"], "\n".join(MANIFEST_MARKERS) + "\n")
     write(root / REQUIRED_FILES["build_file"], "\n".join(BUILD_FILE_MARKERS) + "\n")
     write(root / REQUIRED_FILES["makefile"], "\n".join(MAKEFILE_MARKERS) + "\n")
-    write(root / REQUIRED_FILES["focused_test"], 'test "phase6 placeholder" {}\n')
+    write(root / REQUIRED_FILES["focused_test"], "\n".join(FOCUSED_TEST_MARKERS) + "\n")
     write(root / REQUIRED_FILES["perf_test"], "pub fn main() void {}\n")
     write(root / REQUIRED_FILES["perf_matrix_test"], "\n".join(PERF_MATRIX_MARKERS) + "\n")
     write(root / REQUIRED_FILES["fixtures"], "\n".join(FIXTURE_MARKERS) + "\n")
@@ -394,6 +406,42 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "scripts/zigux/check-phase6-hexdump-packet.py")
+
+        build_self_test_fixture(tmpdir)
+        focused_test = tmpdir / REQUIRED_FILES["focused_test"]
+        focused_test.write_text(
+            focused_test.read_text(encoding="utf-8").replace(
+                'test "phase 6 hexdump helper packet preserves the curated length matrix" {\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "phase 6 hexdump helper packet preserves the curated length matrix")
+
+        build_self_test_fixture(tmpdir)
+        focused_test = tmpdir / REQUIRED_FILES["focused_test"]
+        focused_test.write_text(
+            focused_test.read_text(encoding="utf-8").replace(
+                "hexdump.hexDumpLineLength(case.len, case.rowsize, case.groupsize, case.ascii),\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "hexdump.hexDumpLineLength(case.len, case.rowsize, case.groupsize, case.ascii),")
+
+        build_self_test_fixture(tmpdir)
+        focused_test = tmpdir / REQUIRED_FILES["focused_test"]
+        focused_test.write_text(
+            focused_test.read_text(encoding="utf-8").replace(
+                "const text = hexdump.bin2Hex(encoded[0..], fixtures.data_b[0..4]);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "const text = hexdump.bin2Hex(encoded[0..], fixtures.data_b[0..4]);")
 
         build_self_test_fixture(tmpdir)
         (tmpdir / REQUIRED_FILES["helper_source"]).unlink()
