@@ -183,6 +183,8 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
+EXPECTED_SELF_TEST_CASE_COUNT = 40
+
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -375,6 +377,7 @@ def validate_makefile_target_scope(text: str) -> list[str]:
 
 
 def run_self_test() -> int:
+    checks_run = 0
     valid_targets = {
         "phase": "Phase 2",
         "status": "closed",
@@ -384,24 +387,28 @@ def run_self_test() -> int:
     }
     if validate_targets_manifest(valid_targets):
         raise SystemExit("phase2-cross-alignment:self-test:valid_targets_manifest")
+    checks_run += 1
 
     bad_count = dict(valid_targets)
     bad_count["target_count"] = 2
     issues = validate_targets_manifest(bad_count)
     if "targets:target_count=2:expected=3" not in issues:
         raise SystemExit("phase2-cross-alignment:self-test:target_count_mismatch")
+    checks_run += 1
 
     bad_targets = dict(valid_targets)
     bad_targets["targets"] = ["x86_64-linux-musl"]
     issues = validate_targets_manifest(bad_targets)
     if "targets:targets=expected_exact_list" not in issues:
         raise SystemExit("phase2-cross-alignment:self-test:target_list_mismatch")
+    checks_run += 1
 
     bad_zig_test_files = dict(valid_targets)
     bad_zig_test_files["zig_test_files"] = ["scripts/zigux/genksyms.zig"]
     issues = validate_targets_manifest(bad_zig_test_files)
     if "targets:zig_test_files=expected_exact_list" not in issues:
         raise SystemExit("phase2-cross-alignment:self-test:zig_test_file_list_mismatch")
+    checks_run += 1
 
     workflow_text = "\n".join(
         [
@@ -413,11 +420,22 @@ def run_self_test() -> int:
     )
     if validate_exact_workflow_runs(workflow_text):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_counts")
+    checks_run += 1
 
     bad_workflow = ""
     issues = validate_exact_workflow_runs(bad_workflow)
     if not any(issue.startswith("workflow_exact_run:") for issue in issues):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_count_failure")
+    checks_run += 1
+
+    duplicate_workflow = workflow_text + "\nrun: python3 scripts/zigux/check-phase2-cross.py --self-test"
+    duplicate_workflow_issues = validate_exact_workflow_runs(duplicate_workflow)
+    expected_duplicate_workflow_issue = (
+        "workflow_exact_run:python3 scripts/zigux/check-phase2-cross.py --self-test:count=2:expected=1"
+    )
+    if duplicate_workflow_issues != [expected_duplicate_workflow_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_duplicate_failure")
+    checks_run += 1
 
     valid_workflow_job = "\n".join(
         [
@@ -437,10 +455,12 @@ def run_self_test() -> int:
     )
     if validate_phase2_cross_workflow_job(valid_workflow_job):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_job_markers")
+    checks_run += 1
 
     missing_workflow_job_issues = validate_phase2_cross_workflow_job("jobs:\n  bootstrap:\n    runs-on: ubuntu-latest")
     if missing_workflow_job_issues != ["workflow_phase2_cross_job:missing"]:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_job_missing")
+    checks_run += 1
 
     workflow_job_missing_install = valid_workflow_job.replace(
         "      - name: Install Zig\n",
@@ -454,6 +474,7 @@ def run_self_test() -> int:
         expected_workflow_job_install_issue
     ]:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_job_install_marker_failure")
+    checks_run += 1
 
     workflow_job_with_forbidden_toolchain_gate = valid_workflow_job.replace(
         "      - name: Check bounded Phase 2 cross-target compile\n",
@@ -467,16 +488,19 @@ def run_self_test() -> int:
         expected_workflow_job_forbidden_issue
     ]:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_job_forbidden_failure")
+    checks_run += 1
 
     scope_text = "\n".join(WORKFLOW_SCOPE_REQUIRED_FRAGMENTS)
     if validate_workflow_scope_fragments(scope_text):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope")
+    checks_run += 1
 
     scope_issues = validate_workflow_scope_fragments("scripts/zigux/**")
     if "workflow_scope:missing_marker:Documentation/zigux/**" not in scope_issues:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_failure")
     if "workflow_scope:missing_marker:.github/workflows/zigux-bootstrap.yml" not in scope_issues:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_workflow_failure")
+    checks_run += 1
 
     scope_pattern_text = (
         "if printf '%s\\n' \\\"$changed_files\\\" | grep -Eq '^(\\"
@@ -488,12 +512,14 @@ def run_self_test() -> int:
     )
     if validate_workflow_scope_pattern(scope_pattern_text):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern")
+    checks_run += 1
 
     missing_scope_pattern = scope_pattern_text.replace("scripts/zigux/genksyms\\.zig|", "", 1)
     missing_scope_pattern_issues = validate_workflow_scope_pattern(missing_scope_pattern)
     expected_scope_pattern_issue = "workflow_scope_pattern:missing_marker:scripts/zigux/genksyms\\.zig"
     if missing_scope_pattern_issues != [expected_scope_pattern_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_failure")
+    checks_run += 1
 
     missing_confdata_scope_pattern = scope_pattern_text.replace(
         "scripts/zigux/kconfig/confdata_bridge\\.zig|", "", 1
@@ -506,6 +532,7 @@ def run_self_test() -> int:
     )
     if missing_confdata_scope_pattern_issues != [expected_confdata_scope_pattern_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_confdata_failure")
+    checks_run += 1
 
     missing_install_scope_pattern = scope_pattern_text.replace(
         "scripts/zigux/install-zig\\.py|", "", 1
@@ -518,6 +545,7 @@ def run_self_test() -> int:
     )
     if missing_install_scope_pattern_issues != [expected_install_scope_pattern_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_install_failure")
+    checks_run += 1
 
     missing_toolchain_policy_scope_pattern = scope_pattern_text.replace(
         "scripts/zigux/zig-toolchain-policy\\.json|", "", 1
@@ -535,6 +563,7 @@ def run_self_test() -> int:
         raise SystemExit(
             "phase2-cross-alignment:self-test:workflow_scope_pattern_toolchain_policy_failure"
         )
+    checks_run += 1
 
     makefile_text = "\n".join(
         [
@@ -549,8 +578,31 @@ def run_self_test() -> int:
     )
     if validate_exact_makefile_runs(makefile_text):
         raise SystemExit("phase2-cross-alignment:self-test:makefile_counts")
+    checks_run += 1
+
+    missing_makefile_issues = validate_exact_makefile_runs("")
+    expected_missing_makefile_issue = (
+        "makefile_exact_run:scripts/zigux/check-phase2-cross.py --self-test:count=0:expected=1"
+    )
+    if expected_missing_makefile_issue not in missing_makefile_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:makefile_count_failure")
+    checks_run += 1
+
+    duplicate_makefile = (
+        makefile_text
+        + "\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test"
+    )
+    duplicate_makefile_issues = validate_exact_makefile_runs(duplicate_makefile)
+    expected_duplicate_makefile_issue = (
+        "makefile_exact_run:scripts/zigux/check-phase2-cross.py --self-test:count=2:expected=1"
+    )
+    if duplicate_makefile_issues != [expected_duplicate_makefile_issue]:
+        raise SystemExit("phase2-cross-alignment:self-test:makefile_duplicate_failure")
+    checks_run += 1
+
     if validate_makefile_target_scope(makefile_text):
         raise SystemExit("phase2-cross-alignment:self-test:makefile_target_scope")
+    checks_run += 1
 
     moved_cross_gate = "\n".join(
         [
@@ -574,6 +626,7 @@ def run_self_test() -> int:
         for issue in moved_cross_issues
     ):
         raise SystemExit("phase2-cross-alignment:self-test:moved_cross_gate_cross_failure")
+    checks_run += 2
 
     bad_cross_header = makefile_text.replace(
         "phase2-cross: phase2-toolchain",
@@ -586,6 +639,7 @@ def run_self_test() -> int:
     )
     if bad_cross_header_issues != [expected_bad_cross_header_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:cross_header_failure")
+    checks_run += 1
 
     marker_issues = validate_required_markers(
         "alpha\nbeta\ngamma",
@@ -594,6 +648,7 @@ def run_self_test() -> int:
     )
     if marker_issues:
         raise SystemExit("phase2-cross-alignment:self-test:marker_presence")
+    checks_run += 1
 
     marker_issues = validate_required_markers(
         "alpha\nbeta\ngamma",
@@ -602,6 +657,7 @@ def run_self_test() -> int:
     )
     if marker_issues != ["sample:missing_marker:delta"]:
         raise SystemExit("phase2-cross-alignment:self-test:marker_failure_shape")
+    checks_run += 1
 
     bootstrap_issues = validate_required_markers(
         "\n".join(BOOTSTRAP_NOTES_MARKERS),
@@ -610,6 +666,7 @@ def run_self_test() -> int:
     )
     if bootstrap_issues:
         raise SystemExit("phase2-cross-alignment:self-test:bootstrap_marker_presence")
+    checks_run += 1
 
     bootstrap_missing = validate_required_markers(
         "\n".join(BOOTSTRAP_NOTES_MARKERS[1:]),
@@ -622,6 +679,7 @@ def run_self_test() -> int:
     )
     if bootstrap_missing != [expected_bootstrap_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:bootstrap_marker_failure")
+    checks_run += 1
 
     bootstrap_forbidden_issues = validate_forbidden_markers(
         "\n".join(BOOTSTRAP_NOTES_MARKERS),
@@ -630,6 +688,7 @@ def run_self_test() -> int:
     )
     if bootstrap_forbidden_issues:
         raise SystemExit("phase2-cross-alignment:self-test:bootstrap_forbidden_presence")
+    checks_run += 1
 
     bootstrap_forbidden_failure = validate_forbidden_markers(
         "\n".join(BOOTSTRAP_NOTES_MARKERS + BOOTSTRAP_NOTES_FORBIDDEN_MARKERS),
@@ -641,6 +700,7 @@ def run_self_test() -> int:
     )
     if bootstrap_forbidden_failure != [expected_forbidden_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:bootstrap_forbidden_failure")
+    checks_run += 1
 
     scripts_readme_issues = validate_required_markers(
         "\n".join(SCRIPTS_README_MARKERS),
@@ -649,6 +709,7 @@ def run_self_test() -> int:
     )
     if scripts_readme_issues:
         raise SystemExit("phase2-cross-alignment:self-test:scripts_readme_marker_presence")
+    checks_run += 1
 
     scripts_readme_missing = validate_required_markers(
         "\n".join(SCRIPTS_README_MARKERS[1:]),
@@ -661,6 +722,7 @@ def run_self_test() -> int:
     )
     if scripts_readme_missing != [expected_scripts_readme_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:scripts_readme_marker_failure")
+    checks_run += 1
 
     tests_readme_issues = validate_required_markers(
         "\n".join(TESTS_README_MARKERS),
@@ -669,6 +731,7 @@ def run_self_test() -> int:
     )
     if tests_readme_issues:
         raise SystemExit("phase2-cross-alignment:self-test:tests_readme_marker_presence")
+    checks_run += 1
 
     tests_readme_missing = validate_required_markers(
         "\n".join(TESTS_README_MARKERS[:-1]),
@@ -678,6 +741,7 @@ def run_self_test() -> int:
     expected_tests_issue = "phase2_tests_readme:missing_marker:make -C zigux phase2-cross"
     if tests_readme_missing != [expected_tests_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:tests_readme_marker_failure")
+    checks_run += 1
 
     review_checklist_issues = validate_required_markers(
         "\n".join(REVIEW_CHECKLIST_MARKERS),
@@ -686,6 +750,7 @@ def run_self_test() -> int:
     )
     if review_checklist_issues:
         raise SystemExit("phase2-cross-alignment:self-test:review_checklist_marker_presence")
+    checks_run += 1
 
     review_checklist_missing = validate_required_markers(
         "\n".join(REVIEW_CHECKLIST_MARKERS[:-1]),
@@ -697,6 +762,7 @@ def run_self_test() -> int:
     )
     if review_checklist_missing != [expected_review_checklist_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:review_checklist_marker_failure")
+    checks_run += 1
 
     closure_missing = validate_required_markers(
         "\n".join(CLOSURE_MARKERS[:2] + CLOSURE_MARKERS[3:]),
@@ -709,6 +775,7 @@ def run_self_test() -> int:
     )
     if closure_missing != [expected_closure_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:closure_marker_failure")
+    checks_run += 1
 
     with tempfile.TemporaryDirectory(prefix="phase2_cross_alignment_selftest_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
@@ -717,11 +784,19 @@ def run_self_test() -> int:
         round_trip = load_json_object(manifest_path, label="targets")
         if round_trip["targets"] != EXPECTED_TARGETS:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
+        checks_run += 1
         if round_trip["zig_test_files"] != EXPECTED_ZIG_TEST_FILES:
             raise SystemExit("phase2-cross-alignment:self-test:json_zig_test_files_round_trip")
+        checks_run += 1
+
+    if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
+        raise SystemExit(
+            "phase2-cross-alignment:self-test:case_count:"
+            f"actual={checks_run}:expected={EXPECTED_SELF_TEST_CASE_COUNT}"
+        )
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=32")
+    print(f"PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
 
 
