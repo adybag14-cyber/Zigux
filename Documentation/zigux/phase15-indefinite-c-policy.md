@@ -37,7 +37,7 @@ When an anchor is recorded under the indefinite-C policy, the reviewable record 
 - the exact Linux anchor path, the current roadmap phase, the current status bucket, and the requested decision bucket
 - the decision record ID, the lane owner, the required approver set, and the rollback owner
 - the validation gate summary, the current benchmark-notes status, the replay command, the latest blocker disposition, and the evidence archive path
-- the automatic return-to-blocked trigger, the retained discussion state that closes the packet as `retired_from_active_discussion` when active review ends without a status change, and the named reopen-trigger catalog item or items that justify later reopening
+- the automatic return-to-blocked trigger, the retained discussion state that closes the packet as `retired_from_active_discussion` when active review ends without a status change, the trigger-specific evidence refresh, and the named reopen-trigger catalog item or items that justify later reopening
 - the parity scorecard link or blocker record, the explicit non-goals, and the written rationale for why the anchor remains in C
 
 ## Allowed work after an indefinite-C outcome
