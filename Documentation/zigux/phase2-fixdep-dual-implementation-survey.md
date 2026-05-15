@@ -2,7 +2,7 @@
 
 Lane: `P2-L01`
 
-This note records the current `master` readback for the roadmap-backed `scripts/zigux/fixdep.zig` packet so Phase 2 review stays grounded in the live dual-implementation packet instead of reviving either the older missing-tool story or the stale eleven-case summary.
+This note records the current `master` readback for the roadmap-backed `scripts/zigux/fixdep.zig` packet so Phase 2 review stays grounded in the live dual-implementation packet instead of reviving either the older missing-tool story or the already-closed twelve-case undercount.
 
 ## Roadmap target
 
@@ -16,19 +16,20 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 - The live helper-local packet already covers the core bounded parser and error surface: embedded-NUL truncation, escaped whitespace, escaped `#` and `:` tokens, dependency-token continuation across escaped newlines, concatenated target entries, escaped-newline comment skipping, C-style file-read wording, preserved partial stdout on failure, and stdout-write error mapping.
 - `zigux/tests/fixtures/fixdep/cases.json` is present and currently names a `12-case` external packet, including `sample_dependency_continuation` and the bounded `/dev/full` write-failure replays `sample_comment_only_stdout_full`, `sample_missing_dep_stdout_full`, and `sample_output_write`.
 - `zigux/tests/fixtures/fixdep/sample_dependency_continuation.d` plus `sample_dependency_continuation_expected.txt` prove the escaped-newline dependency-token continuation path as an external artifact packet instead of leaving that behavior helper-local only.
-- `scripts/zigux/check-fixdep-diff.py` and `scripts/zigux/check-phase2-fixdep-gate.py` still hard-code the older `11-case` fixdep packet and currently omit `sample_dependency_continuation` from their expected-case inventories.
-- `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase2-closure.md`, and `Documentation/zigux/phase2-fixdep-next-step-note.md` still describe the older `eleven-case` fixdep packet, so the dedicated shared reminder surfaces trail the live external fixture packet.
+- `scripts/zigux/check-fixdep-diff.py` now hard-codes that same twelve-case packet, including `sample_dependency_continuation`, and keeps the fixture inventory, case order, and expected outputs aligned with both `scripts/basic/fixdep.c` and `scripts/zigux/fixdep.zig`.
+- `scripts/zigux/check-phase2-fixdep-gate.py` now matches that same twelve-case packet in its expected-case inventory and in the dedicated reminder-surface markers for `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase2-fixdep-next-step-note.md`, `Documentation/zigux/phase2-closure.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/README.md`.
+- `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase2-closure.md`, and `Documentation/zigux/phase2-fixdep-next-step-note.md` now describe the same twelve-case fixdep packet instead of trailing the live fixture packet.
 - `scripts/zigux/validate-phase2.py` still reruns `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `zig test scripts/zigux/fixdep.zig`, so the dual-implementation lane remains an active bounded validation packet on current `master`.
 
 ## Survey result
 
-- Current `master` does not have a remaining roadmap gap at the level of fixdep dual-implementation scaffolding. The Zig entrypoint, direct replay, external fixture packet, diff checker, and shared validation route are already present.
-- The honest remaining gap is smaller and fixdep-local: the shared checkers and reminder notes undercount the live packet by one external case, because `sample_dependency_continuation` is present in the fixtures and aligned with helper-local coverage but not yet reflected in the dedicated fixdep governance surfaces.
-- Future reopening in this file family should therefore stay inside fixdep-local packet truthfulness, parity, or validation maintenance, not shared Phase 2 closure churn or revived missing-scaffold narratives.
+- Current `master` does not have a remaining roadmap gap at the level of fixdep dual-implementation scaffolding. The Zig entrypoint, direct replay, external fixture packet, diff checker, dedicated gate, and shared validation route are already present.
+- The previously recorded same-family undercount is now closed: the direct checker, gate checker, fixture packet, and directly coupled reminder notes all model the same live twelve-case packet.
+- Future reopening in this file family should therefore stay inside fixdep-local packet truthfulness, parity, or validation maintenance only if a fresh reread finds new drift. This lane does not currently justify new dual-implementation scaffolding work.
 
 ## Next bounded step
 
-1. Update `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/check-phase2-fixdep-gate.py`, `Documentation/zigux/artifact-diff.md`, and `Documentation/zigux/phase2-fixdep-next-step-note.md` so they model the live `12-case` packet, including `sample_dependency_continuation`.
+1. Keep this lane parked unless current `master` shows a new fixdep-local mismatch in `scripts/zigux/fixdep.zig`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/check-phase2-fixdep-gate.py`, `zigux/tests/fixtures/fixdep/cases.json`, or the directly coupled fixdep reminder surfaces.
 2. When a writable checkout with Zig is available, re-run `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`, `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py --self-test`, `python3 scripts/zigux/check-fixdep-diff.py`, and `zig test scripts/zigux/fixdep.zig` so the direct replay and the external artifact packet stay aligned.
 
 ## Boundary
