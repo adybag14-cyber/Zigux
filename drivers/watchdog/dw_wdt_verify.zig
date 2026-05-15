@@ -38,6 +38,79 @@ test "phase11 dw_wdt verify keeps registration-blocking failure paths explicit" 
     try testing.expect(!missing_timer_clock.blocked_on_live_mmio);
 }
 
+test "phase11 dw_wdt verify keeps mmio-blocked registration handoff explicit" {
+    const blocked_order = dw_wdt.registrationOrderSummary(.{
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = false,
+    });
+
+    try testing.expectEqualStrings(dw_wdt.anchor_path, blocked_order.anchor);
+    try testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_on_live_mmio, blocked_order.state);
+    try testing.expect(blocked_order.publishes_drvdata_before_register);
+    try testing.expect(!blocked_order.imports_running_state_before_register);
+    try testing.expect(!blocked_order.programs_timeout_before_register);
+    try testing.expect(!blocked_order.stop_on_reboot_requested);
+    try testing.expectEqualStrings("watchdog_register_device", blocked_order.register_call);
+    try testing.expect(!blocked_order.registration_requested);
+    try testing.expect(blocked_order.blocked_on_live_platform_registration);
+    try testing.expect(blocked_order.blocked_on_live_mmio);
+
+    const blocked_handoff = dw_wdt.platformHandoffSummary(.{
+        .has_named_tclk = true,
+        .has_shared_clock = false,
+        .has_pclk = false,
+        .has_reset_control = true,
+        .has_pretimeout_irq = false,
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = false,
+    });
+
+    try testing.expectEqualStrings(dw_wdt.anchor_path, blocked_handoff.anchor);
+    try testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_on_live_mmio, blocked_handoff.state);
+    try testing.expectEqual(dw_wdt.TimerClockPath.named_tclk, blocked_handoff.timer_clock_path);
+    try testing.expectEqual(dw_wdt.ApbClockPath.optional_absent, blocked_handoff.apb_clock_path);
+    try testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.blocked_on_live_mmio, blocked_handoff.probe_timeout_origin);
+    try testing.expect(blocked_handoff.timer_clock_available);
+    try testing.expect(!blocked_handoff.apb_clock_present);
+    try testing.expect(blocked_handoff.reset_control_available);
+    try testing.expect(blocked_handoff.reset_release_requested);
+    try testing.expect(blocked_handoff.pretimeout_irq_optional);
+    try testing.expect(!blocked_handoff.pretimeout_irq_present);
+    try testing.expect(blocked_handoff.timeout_programming_requested);
+    try testing.expect(!blocked_handoff.imported_running_state);
+    try testing.expect(!blocked_handoff.stop_on_reboot_requested);
+    try testing.expect(!blocked_handoff.registration_ready);
+    try testing.expect(blocked_handoff.blocked_on_live_platform_registration);
+    try testing.expect(blocked_handoff.blocked_on_live_mmio);
+
+    const blocked_scaffold = dw_wdt.platformRegistrationScaffoldSummary(.{
+        .has_named_tclk = true,
+        .has_shared_clock = false,
+        .has_pclk = false,
+        .has_reset_control = true,
+        .has_pretimeout_irq = false,
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = false,
+    });
+
+    try testing.expectEqualStrings(dw_wdt.anchor_path, blocked_scaffold.anchor);
+    try testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_on_live_mmio, blocked_scaffold.state);
+    try testing.expectEqual(dw_wdt.TimerClockPath.named_tclk, blocked_scaffold.timer_clock_path);
+    try testing.expectEqual(dw_wdt.ApbClockPath.optional_absent, blocked_scaffold.apb_clock_path);
+    try testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.blocked_on_live_mmio, blocked_scaffold.probe_timeout_origin);
+    try testing.expect(!blocked_scaffold.registration_requested);
+    try testing.expect(!blocked_scaffold.stop_on_reboot_requested);
+    try testing.expect(blocked_scaffold.reset_release_ready);
+    try testing.expect(blocked_scaffold.reset_release_requested);
+    try testing.expect(blocked_scaffold.pretimeout_irq_optional);
+    try testing.expect(!blocked_scaffold.pretimeout_irq_present);
+    try testing.expect(blocked_scaffold.blocked_on_live_platform_registration);
+    try testing.expect(blocked_scaffold.blocked_on_live_mmio);
+}
+
 test "phase11 dw_wdt verify keeps imported-running handoff and shared-clock fallback explicit" {
     const handoff = dw_wdt.platformHandoffSummary(.{
         .has_named_tclk = false,
