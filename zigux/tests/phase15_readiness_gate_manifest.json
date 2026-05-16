@@ -1,0 +1,18 @@
+{
+  "surveyed_commit_mode": "dated_master_readback",
+  "surveyed_commit": "current-master-readback-2026-05-15",
+  "repo_evidence": {
+    "phase15_validator_script_present": true,
+    "phase15_docs_readme_checker_present": true,
+    "phase15_validate_target_present": true,
+    "phase15_test_target_present": true,
+    "shared_ci_phase15_present": true,
+    "phase15_replay_green_on_current_master": true
+  },
+  "phase15_validate_checkers": [
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py"
+  ]
+}
