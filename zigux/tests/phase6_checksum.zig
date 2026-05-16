@@ -105,6 +105,22 @@ test "kunit-inspired carry discipline stays stable on the helper surface" {
     }
 }
 
+test "fixture-backed 16-bit carry helpers keep one's-complement wrap and borrow stable" {
+    for (fixtures.add16_cases) |case| {
+        try std.testing.expectEqual(case.expected_sum, checksum.add16(case.sum, case.addend));
+    }
+    for (fixtures.sub16_cases) |case| {
+        try std.testing.expectEqual(case.expected_sum, checksum.sub16(case.sum, case.addend));
+        try std.testing.expectEqual(case.expected_sum, checksum.add16(case.sum, ~case.addend));
+    }
+
+    const original: u16 = 0x1234;
+    const addend: u16 = 0xabcd;
+    const updated = checksum.add16(original, addend);
+    try std.testing.expectEqual(@as(u16, 0xbe01), updated);
+    try std.testing.expectEqual(original, checksum.sub16(updated, addend));
+}
+
 test "kunit random prefix matrix keeps partial and folded checksum parity stable" {
     for (fixtures.kunit_random_prefix_cases) |case| {
         const partial = checksum.partial(case.bytes, case.seed);
