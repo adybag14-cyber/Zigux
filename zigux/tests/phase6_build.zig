@@ -22,6 +22,9 @@ pub fn build(b: *std.Build) void {
     });
     const run_base64_tests = b.addRunArtifact(base64_tests);
 
+    const base64_test_step = b.step("phase6-base64-test", "Run Phase 6 base64 helper tests");
+    base64_test_step.dependOn(&run_base64_tests.step);
+
     const base64_perf_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_base64_perf.zig"),
         .target = target,
@@ -107,6 +110,9 @@ pub fn build(b: *std.Build) void {
         .root_module = checksum_root_module,
     });
     const run_checksum_tests = b.addRunArtifact(checksum_tests);
+
+    const checksum_test_step = b.step("phase6-checksum-test", "Run Phase 6 checksum helper tests");
+    checksum_test_step.dependOn(&run_checksum_tests.step);
 
     const checksum_perf_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_checksum_perf.zig"),
