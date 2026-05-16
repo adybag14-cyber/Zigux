@@ -6,9 +6,10 @@ Current `master` still carries a coherent fixdep-local dual-implementation packe
 
 ## Current repo evidence
 
-- `Documentation/zigux/artifact-diff.md` and `zigux/tests/fixtures/fixdep/cases.json` both describe the live twelve-case packet, including `sample_dependency_continuation`, `sample_comment_continuation`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full`.
-- `Documentation/zigux/phase2-closure.md` repeats that same twelve-case fixdep packet and keeps the dedicated fixdep gate, diff, and direct replay entrypoints explicit.
-- `scripts/zigux/check-phase2-fixdep-gate.py` now matches that same twelve-case wording in both `PHASE2_FIXDEP_NEXT_STEP_MARKERS` and `ARTIFACT_DIFF_MARKERS`, so the dedicated checker no longer undercounts the live artifact-diff packet.
+- `Documentation/zigux/artifact-diff.md` and `Documentation/zigux/phase2-closure.md` both describe the live twelve-case fixdep packet and keep the dedicated fixdep gate, diff, and direct replay entrypoints explicit.
+- `scripts/zigux/check-phase2-fixdep-gate.py` validates the live twelve-case packet, including `sample_dependency_continuation`, `sample_comment_continuation`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full`.
+- `zigux/tests/fixtures/fixdep/cases.json` names that same twelve-case packet and uses `stdout_mode: "dev_full"` on the three bounded `/dev/full` write-failure replays.
+- The direct fixdep artifact packet now carries the additional plain escaped-newline dependency continuation case through `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `zigux/tests/fixtures/fixdep/cases.json`, while the broader shared reminder surfaces can be retold separately if they need to mention the new case count.
 - `scripts/zigux/fixdep.zig` already holds the helper-local replay coverage for embedded NUL truncation, plain escaped-newline dependency continuation, concatenated target entries, escaped colon and hash tokens, preserved stdout prefixes on failure, and output-write error mapping.
 - `scripts/zigux/README.md` still names the live fixdep checker and direct replay entrypoints as part of the shared Phase 2 helper inventory, but `.github/workflows/zigux-bootstrap.yml` still does not run `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`, `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py --self-test`, `python3 scripts/zigux/check-fixdep-diff.py`, or `zig test scripts/zigux/fixdep.zig` as dedicated workflow steps.
 
