@@ -936,6 +936,66 @@ def run_self_test() -> int:
         _populate_repo(root)
         scripts_path = root / SCRIPTS_README_PATH
         scripts_path.write_text(
+            _replace_in_section(
+                _read(scripts_path),
+                SCRIPTS_README_PHASE3_PREFIX,
+                SCRIPTS_README_PHASE3_NEXT_PREFIX,
+                "Documentation/zigux/phase3-validator-support-surface.md",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "scripts README Phase 3 flow marker count drift: "
+            "Documentation/zigux/phase3-validator-support-surface.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected scripts README validator-support drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        scripts_path.write_text(
+            _replace_in_section(
+                _read(scripts_path),
+                SCRIPTS_README_PHASE3_PREFIX,
+                SCRIPTS_README_PHASE3_NEXT_PREFIX,
+                "zigux/kernel/export_shim.zig",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "scripts README Phase 3 flow marker count drift: "
+            "zigux/kernel/export_shim.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected scripts README export-shim drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        scripts_path.write_text(
+            _replace_in_section(
+                _read(scripts_path),
+                SCRIPTS_README_PHASE3_PREFIX,
+                SCRIPTS_README_PHASE3_NEXT_PREFIX,
+                "zigux/uapi/dev_t.zig",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "scripts README Phase 3 flow marker count drift: "
+            "zigux/uapi/dev_t.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected scripts README dev_t UAPI drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        scripts_path.write_text(
             _read(scripts_path).replace("include/zigux/dev_t.h", "", 1),
             encoding="utf-8",
         )
