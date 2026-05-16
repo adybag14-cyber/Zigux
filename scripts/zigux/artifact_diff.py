@@ -11,7 +11,8 @@ import tempfile
 
 
 def read_text(path: Path) -> str:
-    return path.read_text(encoding='utf-8')
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        return handle.read()
 
 
 def canonical_json(path: Path):
@@ -231,7 +232,7 @@ def run_self_test() -> int:
             render_result_lines(matched, details),
         )
 
-        text_b.write_text('alpha\nBETA\n', encoding='utf-8', newline='\n')
+        text_b.write_text('alpha\r\nbeta\r\n', encoding='utf-8', newline='')
         matched, details = compare_artifacts('text', text_a, text_b)
         assert not matched
         assert_detail_shape(details, mode='text', expected=text_a, actual=text_b)
