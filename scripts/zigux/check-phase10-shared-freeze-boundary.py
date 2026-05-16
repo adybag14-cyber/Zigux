@@ -310,7 +310,7 @@ def run_self_test() -> int:
             "closure_manifest:study_only_anchors",
         )
         for rel_path, content in build_fixture_files().items():
-            (root / rel_path).writeText(content, encoding="utf-8")
+            (root / rel_path).write_text(content, encoding="utf-8")
 
         run_phase14_case(
             root,
