@@ -20,11 +20,12 @@ Adjacent notifier evidence matters for release-surface truthfulness, but it is s
 Treat the shared contributor-facing release handle as:
 
 1. `python3 scripts/zigux/validate-phase13-release.py`
-2. dedicated shared-summary guard `scripts/zigux/check-phase13-shared-summary-surfaces.py`
-3. stable `make -C zigux phase13-validate`
-4. blocked convenience route `make -C zigux phase13`
+2. stable `make -C zigux phase13-validate`
+3. blocked convenience route `make -C zigux phase13`
 
 Keep the broader `phase13` make route framed as blocked convenience wiring while `zigux/tests/phase13_build.zig` remains a repo-reality gap. Do not invent a broader shared replay route before that build companion lands.
+
+Current `master` still does not materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep that path recorded as the remaining shared-summary repo-reality gap instead of folding it into the stable shared handle.
 
 ## Shared Surfaces To Reread Together
 
@@ -38,9 +39,10 @@ When shared Phase 13 wording changes, reread these contributor-facing surfaces t
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
-- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+
+If current `master` still does not materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py`, keep that checker recorded as a repo-reality gap rather than a rereadable shared surface.
 
 If one of those broad reminder surfaces changes, refresh the others before widening helper-local claims.
 
@@ -127,6 +129,7 @@ Use the owner split from `Documentation/zigux/phase13-shared-helper-lane-sequenc
 
 When contributor wording references absent direct companions, keep the absence explicit instead of presenting those paths as shipped evidence:
 
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `zigux/tests/phase13_build.zig`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `zigux/tests/phase13_libfs_addressability.zig`
@@ -143,7 +146,7 @@ When contributor wording references absent direct companions, keep the absence e
 Before landing a broad Phase 13 reminder change, check that:
 
 - the shared contributor surfaces still describe the same active-not-closed helper packet
-- the stable release handle is still `validate-phase13-release.py`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, plus stable `make -C zigux phase13-validate`
+- the stable release handle is still `validate-phase13-release.py` plus stable `make -C zigux phase13-validate`, while `scripts/zigux/check-phase13-shared-summary-surfaces.py` stays explicit as a repo-reality gap
 - the broader `make -C zigux phase13` route is still framed as blocked convenience wiring while `zigux/tests/phase13_build.zig` is absent
 - `libfs`, `devres`, `landlock`, and adjacent notifier evidence still keep their separate owner maps
 - repo-reality gaps stay explicit instead of being promoted into shipped current-`master` evidence
