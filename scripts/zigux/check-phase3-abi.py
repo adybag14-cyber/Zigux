@@ -143,6 +143,7 @@ CHECK_LIB_MARKERS = (
 )
 HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+([A-Z0-9_]+)\b")
 HEADER_STRUCT_RE = re.compile(r"^\s*struct\s+([A-Za-z_][A-Za-z0-9_]*)\b")
+HEADER_TYPEDEF_ALIAS_RE = re.compile(r"^\s*}\s*([A-Za-z_][A-Za-z0-9_]*)\s*;")
 ZIG_CONST_RE = re.compile(r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*[:=]")
 ZIG_EXTERN_STRUCT_RE = re.compile(
     r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*extern struct\b"
@@ -300,6 +301,7 @@ def validate_abi_surface_sanity(repo_root: Path) -> list[str]:
                 (
                     ("ABI header #define", HEADER_DEFINE_RE),
                     ("ABI header struct", HEADER_STRUCT_RE),
+                    ("ABI header typedef alias", HEADER_TYPEDEF_ALIAS_RE),
                 ),
             )
         )
@@ -971,6 +973,27 @@ def run_self_test() -> int:
         if expected_duplicate_struct not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected duplicate ABI header struct was not reported")
+            return 1
+        case_count += 1
+        _write(root / Path("include/zigux/abi.h"))
+
+        _write(
+            root / Path("include/zigux/abi.h"),
+            "typedef struct zigux_layout {\n"
+            "    int value;\n"
+            "} zigux_layout;\n"
+            "typedef struct zigux_layout_alias {\n"
+            "    int value2;\n"
+            "} zigux_layout;\n",
+        )
+        issues = validate_repo(root)
+        expected_duplicate_typedef_alias = (
+            "duplicate ABI header typedef alias: zigux_layout "
+            "(first line 3, duplicate line 6)"
+        )
+        if expected_duplicate_typedef_alias not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected duplicate ABI header typedef alias was not reported")
             return 1
         case_count += 1
         _write(root / Path("include/zigux/abi.h"))
