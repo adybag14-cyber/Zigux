@@ -39,20 +39,20 @@ DOCS_ROOT_MARKERS = [
 SCRIPTS_README_MARKERS = [
     (
         "scripts_readme_phase1_installer_packet",
-        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the shared owner-map note, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
+        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the shared owner-map note, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the dedicated installer-companion checker packet, the dedicated direct-owner checker packet, the dedicated string-review checker packet, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
         1,
     ),
 ]
 
 TESTS_README_MARKERS = [
     (
-        "tests_readme_phase1_installer_packet",
-        "  * keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface",
+        "tests_readme_phase1_review_stack",
+        "  * current Phase 1 review-and-replay stack: `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`",
         1,
     ),
     (
-        "tests_readme_phase1_installer_companion_checks",
-        "  * keep `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` visible as focused companion checks for the closed Phase 1 installer-review surface without widening the counted tests-root packet line that `scripts/zigux/validate-phase1.py` currently enforces",
+        "tests_readme_phase1_parity_packet",
+        "  * current public-tree-backed Phase 1 parity packet: `zigux/tests/fixtures/phase1_helpers.json` and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
         1,
     ),
 ]
@@ -128,14 +128,14 @@ REVIEW_CHECKLIST_PACKET_MARKERS = [
 ]
 
 REVIEW_CHECKLIST_PHASE1_BLOCK_START = "  * if the change touches the closed Phase 1 host-tools packet,"
-REVIEW_CHECKLIST_PHASE1_BLOCK_END = "  * if the change touches the shared Phase 2 toolchain packet,"
+REVIEW_CHECKLIST_PHASE1_BLOCK_END = "  * if the change touches that same Phase 1 companion packet,"
 REVIEW_CHECKLIST_PHASE1_ROUTE_MARKERS = [
-    "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`",
-    "`python3 scripts/zigux/check-phase1-installer-review-surfaces.py`",
-    "`scripts/zigux/check-phase1-installer-companion-checks.py`",
-    "`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`",
-    "`python3 scripts/zigux/check-phase1-installer-companion-checks.py`",
+    ("review_checklist_phase1_route", "`python3 scripts/zigux/install-zig.py --self-test`", 1),
+    ("review_checklist_phase1_route", "`python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`", 1),
+    ("review_checklist_phase1_route", "`python3 scripts/zigux/check-phase1-installer-review-surfaces.py`", 1),
+    ("review_checklist_phase1_route", "`scripts/zigux/check-phase1-installer-companion-checks.py`", 1),
+    ("review_checklist_phase1_route", "`python3 scripts/zigux/check-phase1-installer-companion-checks.py --self-test`", 1),
+    ("review_checklist_phase1_route", "`python3 scripts/zigux/check-phase1-installer-companion-checks.py`", 1),
 ]
 
 
@@ -221,8 +221,7 @@ def validate_root(root: Path) -> list[str]:
     )
     issues.extend(block_errors)
     if not block_errors:
-        route_markers = [("review_checklist_phase1_route", marker, 1) for marker in REVIEW_CHECKLIST_PHASE1_ROUTE_MARKERS]
-        issues.extend(collect_exact_count_markers(review_phase1_block, route_markers))
+        issues.extend(collect_exact_count_markers(review_phase1_block, REVIEW_CHECKLIST_PHASE1_ROUTE_MARKERS))
 
     return issues
 
@@ -274,7 +273,7 @@ def build_self_test_root(root: Path) -> None:
             [
                 *REVIEW_CHECKLIST_PACKET_MARKERS,
                 REVIEW_CHECKLIST_PHASE1_BLOCK_START,
-                *REVIEW_CHECKLIST_PHASE1_ROUTE_MARKERS,
+                *(marker for _, marker, _ in REVIEW_CHECKLIST_PHASE1_ROUTE_MARKERS),
                 REVIEW_CHECKLIST_PHASE1_BLOCK_END,
             ]
         )
@@ -334,8 +333,8 @@ def run_self_test() -> int:
         write_text(root / "zigux/tests/README.md", "")
         expect(
             validate_root(root),
-            "tests_readme_phase1_installer_packet:expected=1:actual=0",
-            "tests_readme_phase1_installer_companion_checks:expected=1:actual=0",
+            "tests_readme_phase1_review_stack:expected=1:actual=0",
+            "tests_readme_phase1_parity_packet:expected=1:actual=0",
         )
         build_self_test_root(root)
 
