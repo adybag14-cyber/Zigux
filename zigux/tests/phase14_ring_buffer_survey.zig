@@ -79,6 +79,18 @@ fn hasGap(manifest: Manifest, id: []const u8, status: []const u8) bool {
     return false;
 }
 
+fn readTraceabilitySource() ![]u8 {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    return try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+}
+
 test "phase14 ring-buffer survey manifest records the current study-only packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -184,4 +196,19 @@ test "phase14 ring-buffer survey note keeps the parked study-only posture explic
     try std.testing.expect(std.mem.indexOf(u8, note, "zig build test --build-file zigux/tests/phase14_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "rerun the same parked packet with the attached toolchain when neither the repo-local `.zig-toolchain` fallback nor the shell's default `zig` binary is available") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "- `zig build test --build-file zigux/tests/phase14_build.zig`\n") == null);
+}
+
+test "phase14 ring-buffer traceability note keeps shared metadata aligned" {
+    const traceability = try readTraceabilitySource();
+    defer std.testing.allocator.free(traceability);
+
+    try std.testing.expect(std.mem.indexOf(u8, traceability, "`kernel/trace/ring_buffer.c`: `Study / Boundary Only`") != null);
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, traceability, "lane key: `P14-L08`"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, traceability, "surveyed commit: `99cd3249c4bab05b74227ed7ca3869284e818588`"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, traceability, "ready-next gap: none currently recorded"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, traceability, "blocked gap: `phase14-ring-buffer-zig-port-blocker`"));
+    try std.testing.expect(std.mem.indexOf(u8, traceability, "parked in maintenance mode") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability, "ring-buffer-local truthfulness drift") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability, "not for a fresh bridge claim") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability, "`reader_lock` arbitration") != null);
 }
