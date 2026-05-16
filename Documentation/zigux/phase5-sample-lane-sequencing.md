@@ -102,7 +102,7 @@ The kobject lane currently owns the directly readable landed packet for:
 - `zigux/tests/phase5_kobject_example.zig`
 - `zigux/tests/phase5_kobject_example_manifest.json`
 
-Keep kobject-local follow-through inside the approved ownership-and-lifetime packet: `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, `runTeardownReplay()`, `ownershipSummary()`, and the `abandoned_before_registration` versus `tore_down_registered_attributes` split.
+Keep kobject-local follow-through inside the approved ownership-and-lifetime packet: `runSingleInitBoundaryReplay()` for the one-time `init()` rule, `runPreRegistrationBoundaryReplay()`, `runRegistrationOwnershipReplay()` for the register-before-init rejection and cold-to-initialized-to-registered handoff, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, `runTeardownReplay()`, `ownershipSummary()`, and the `abandoned_before_registration` versus `tore_down_registered_attributes` split.
 
 Keep `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` visible as current public-tree-backed companion evidence when shared reminder work needs the broader packet, but do not restate either path as direct authenticated-contents evidence from this lane until a fresh reread proves the connector path returned.
 
