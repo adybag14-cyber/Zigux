@@ -34,7 +34,7 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 
 Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`, but that broader convenience route currently fans out to `phase13-test`, which still calls `zig build test --build-file zigux/tests/phase13_build.zig --summary all` while `zigux/tests/phase13_build.zig` remains a repo-reality gap. Keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands, and treat the broader `phase13` route as blocked convenience wiring rather than direct shipped current-`master` evidence.
 
-Current `master` also still carries `Run Phase 13 release tests` in `.github/workflows/zigux-bootstrap.yml`, but that workflow step routes through the same blocked `make -C zigux phase13-test` handle while `zigux/tests/phase13_build.zig` remains absent. Keep that workflow entry framed as blocked convenience wiring instead of stable release evidence until the shared build companion lands.
+Current `master` still carries `Run Phase 13 release tests` in `.github/workflows/zigux-bootstrap.yml`, but that workflow step now records that `make -C zigux phase13-test` remains blocked while `zigux/tests/phase13_build.zig` stays absent instead of trying to run the missing shared build companion. Keep that workflow entry framed as blocked convenience wiring instead of stable release evidence until the shared build companion lands.
 
 ## Closure Checklist
 1. Shared release surfaces still agree.
