@@ -17,22 +17,22 @@ This note records how the current Phase 15 governance packet is split so Archite
 The current Phase 15 lane family is:
 
 - `freeze-map-governance`: owns `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `zigux/tests/phase15_freeze_map_manifest.json`, and `zigux/tests/phase15_freeze_map_governance.zig`, and keeps the freeze-in-C anchors, blocker posture, and freeze-map-local maintenance handoff explicit without absorbing parity-scorecard, policy, or shared-summary follow-through
-- `review-process`: owns `Documentation/zigux/phase15-architecture-council-review-process.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_architecture_council_review_process.zig`, and keeps the required review-packet fields, decision buckets, and reopen-trigger catalog explicit
+- `review-process`: owns `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_architecture_council_review_process.zig`, and keeps the reusable decision-record template, required review-packet fields, decision buckets, and reopen-trigger catalog explicit
 - `parity-scorecard-survey`: owns `Documentation/zigux/phase15-parity-scorecard-survey.md`, and keeps the roadmap-versus-repo truthfulness question about whether the dedicated scorecard packet exists and is still the right bounded parity-accounting surface separate from the dedicated scorecard's packet-local metrics and blocker rows
 - `parity-scorecard`: owns `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/tests/phase15_parity_scorecard.json`, and `zigux/tests/phase15_parity_scorecard.zig`, and keeps the dedicated aggregate metrics, anchor rows, required approver sets, validation-gate summaries, rollback owners, current blockers, and reporting-governance follow-through explicit without widening into shared-summary or freeze-map-local maintenance
 - `indefinite-c-policy`: owns `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and keeps the stay-in-C policy fields, exception posture, blocker-evidence replay, and lane-owner-alignment maintenance explicit without borrowing parity-scorecard, freeze-map, or shared-summary ownership
 - `readiness-gate`: owns `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_readiness_gate.zig`, and `scripts/zigux/validate-phase15.py`, and keeps the validator-first maintenance posture explicit
 - `handoff-next-steps`: owns `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig`, and keeps the named reopen triggers plus the parked next-step record explicit
-- `shared-summaries`: owns `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and `scripts/zigux/check-phase15-shared-summary-gap.py`, and may only restate shipped governance evidence, validator routes, and owner-map boundaries instead of absorbing parity-scorecard-survey, parity-scorecard, or indefinite-C packet-local maintenance; inside that shared lane the direct parity-scorecard-survey reminder lives in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md`, while `zigux/tests/README.md` stays scoped to the sequencing-marker-plus-replay-route packet instead of duplicating every docs-root survey reminder
+- `shared-summaries`: owns `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and `scripts/zigux/check-phase15-shared-summary-gap.py`, and may only restate shipped governance evidence, validator routes, and owner-map boundaries instead of absorbing parity-scorecard-survey, parity-scorecard, or indefinite-C packet-local maintenance
 
 ## Current Repo Reality
 
-The current shared governance packet already includes the documented exception posture, the blocker-evidence replay, and the lane-local review packet around:
+The current shared governance packet already includes the documented exception posture, the blocker-evidence replay, the reusable decision-record template, and the lane-local review packet around:
 
-- `Documentation/zigux/README.md`
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase15-freeze-map-governance.md`
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `Documentation/zigux/phase15-parity-scorecard-survey.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
@@ -40,40 +40,21 @@ The current shared governance packet already includes the documented exception p
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/README.md`
 - `scripts/zigux/validate-phase15.py`
-- `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`
-- `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
-- `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
-- `zigux/tests/phase15_freeze_map_manifest.json`
-- `zigux/tests/phase15_parity_scorecard.json`
-- `zigux/tests/phase15_handoff_next_steps.zig`
-- `zigux/tests/phase15_readiness_gate.zig`
-- `zigux/tests/phase15_freeze_map_governance.zig`
-- `zigux/tests/phase15_parity_scorecard.zig`
-- `zigux/tests/phase15_architecture_council_review_process.zig`
-- `zigux/tests/phase15_indefinite_c_policy.json`
-- `zigux/tests/phase15_indefinite_c_policy.zig`
-- `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-- `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_build.zig`
-- `.github/workflows/zigux-bootstrap.yml`
-- `zigux/Makefile`
 - `make -C zigux phase15-validate`
 - `make -C zigux phase15-test`
 - `make -C zigux phase15`
 
-Because the dedicated parity roadmap-gap survey, the dedicated parity scorecard, and the dedicated indefinite-C packet are all already landed on current `master`, this sequencing note must keep those three owner boundaries explicit instead of letting freeze-map, review-process, readiness, handoff, or shared-summary maintenance reopen packet-local follow-through from the wrong lane.
+Because the dedicated parity roadmap-gap survey, the dedicated parity scorecard, and the dedicated indefinite-C packet are already landed on current `master`, this sequencing note must keep those owner boundaries explicit instead of letting freeze-map, review-process, readiness, handoff, or shared-summary maintenance reopen packet-local follow-through from the wrong lane.
 
 ## Sequencing Rules
 
 - keep every Phase 15 governance run parked unless a named reopen trigger fires or a current summary surface drifts away from the landed packet
+- route the reusable decision-record template, the required review-packet fields, the decision buckets, and the reopen-trigger catalog to `review-process` only
 - route roadmap-versus-repo truthfulness about whether the dedicated parity scorecard packet exists and stays aligned with the roadmap to `parity-scorecard-survey` only
 - route aggregate metrics, anchor rows, required approver sets, validation-gate summaries, rollback owners, blocker rows, and the dedicated scorecard JSON or Zig guard to `parity-scorecard` only
 - route stay-in-C policy fields, exception posture, blocker-evidence replay, and lane-owner-alignment maintenance to `indefinite-c-policy` only
@@ -89,15 +70,14 @@ Because the dedicated parity roadmap-gap survey, the dedicated parity scorecard,
 - shared summaries should point back here instead of duplicating the whole replay list
 - `parity-scorecard-survey` and `parity-scorecard` are separate maintenance lanes: the survey owns roadmap-gap truthfulness, while the dedicated scorecard owns metric, evidence, and reporting-governance follow-through
 - `indefinite-c-policy` owns the stay-in-C policy note, the direct JSON and Zig guard, and the dedicated blocker-evidence plus lane-owner-alignment replays; freeze-map, review-process, readiness, handoff, and shared-summary lanes may reference those surfaces but should not absorb their maintenance
-- the earlier docs-root parity-scorecard-survey omission and the later scripts-root validator-route undercount are both closed on current `master`: the fresh 2026-05-16 reread shows `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all keep the parity survey, the readiness and handoff notes, the governance-lane sequencing note, the shipped `make -C zigux phase15-validate` plus `make -C zigux phase15-test` routes, and the no-approval-yet governance posture explicit without duplicating packet-local docs reminders. No active shared-summary drift remains inside this lane today, so shared-summary follow-through should stay parked until one of those summary surfaces diverges from the landed packet again.
 - do not use this lane to change any deep-core blocker disposition
 
 ## Next Bounded Step
 
 The next honest Architecture Council follow-up is maintenance only:
 
-- if sequencing-note drift appears first, reread `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_parity_scorecard.json`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` together, then keep any repair scoped to this sequencing note plus its direct guard
-- if a shared-summary truthfulness drift appears first instead, reread `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` against `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `scripts/zigux/validate-phase15.py`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json`, then run `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `python3 scripts/zigux/validate-phase15.py` first, and keep the repair scoped to the first summary surface that actually drifted on current `master`; the fresh 2026-05-16 packet keeps `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` aligned with the parity survey, the readiness and handoff notes, the governance-lane sequencing note, and the shipped `make -C zigux phase15-validate` plus `make -C zigux phase15-test` routes, so shared-summary follow-through should stay parked unless one of those surfaces drifts again
+- if review-process drift appears first, reread `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_architecture_council_review_process.zig` together, then keep any repair scoped to that review-process packet and its direct guard
+- if sequencing-note drift appears first, reread `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-parity-scorecard.md`, and `Documentation/zigux/phase15-indefinite-c-policy.md` together, then keep any repair scoped to this sequencing note plus its direct guard
 - otherwise wait for a named reopen trigger or a real deep-core blocker-posture change
 
 Until one of those happens, keep the current governance packet parked and keep every freeze-map anchor in its existing blocked posture.
