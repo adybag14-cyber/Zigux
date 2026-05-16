@@ -50,6 +50,14 @@ This note keeps the current `abi` review surface explicit while the shared Phase
 - `zigux/tests/fixtures/phase3_abi_manifest.json`
 - `scripts/zigux/check-phase3-abi.py`
 - `scripts/zigux/check-phase3-abi-dump-gate.py`
+- `scripts/zigux/check-phase3-selftest-surface.py`
+- `scripts/zigux/check-phase3-readme-tooling-inventory.py`
+- `scripts/zigux/check-phase3-catalog-selftest.py`
+- `scripts/zigux/validate_phase3_selftest.py`
+- `scripts/zigux/phase3_catalog.py`
+- `scripts/zigux/phase3_check_lib.py`
+- `scripts/zigux/generate-phase3-check-wrappers.py`
+- `scripts/zigux/run-phase3-checks.py`
 - `scripts/zigux/validate-phase3-export-uapi-survey.py`
 - `scripts/zigux/validate-phase3-policy-unsafe-survey.py`
 - `scripts/zigux/check-phase3-policy-byte-guards.py`
@@ -62,23 +70,26 @@ This note keeps the current `abi` review surface explicit while the shared Phase
 - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `scripts/zigux/validate-phase3-validator-support-surface.py`
 - `python3 scripts/zigux/check-phase3-abi.py --self-test`
+- `python3 scripts/zigux/check-phase3-selftest-surface.py --self-test`
+- `python3 scripts/zigux/validate_phase3_selftest.py`
 - `python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test`
 - `python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
 - `zig build phase3-dump --build-file zigux/tests/build.zig`
 - `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `make -C zigux phase3-validate`
+- `make -C zigux phase3-selftest`
 - `make -C zigux phase3`
 
 ## Current Gap
 
-The Phase 3 roadmap still requires a narrow and explicit export shim plus starter UAPI boundary. On the current inspected `master`, the same-lane shared ABI reminder gap is no longer missing scaffold in the tree or in the manifest-backed packet: the live Phase 3 inventory already ships `include/zigux/dev_t.h`, `zigux/bindings/dev_t.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, and `zigux/tests/phase3_export_uapi_layout.zig`, while `scripts/zigux/validate-phase3-export-uapi-survey.py` and the shared manifest keep that starter packet explicit beside the direct `phase3_abi` replay, the focused export/UAPI layout replay pair, the shared ABI header, the starter UAPI pair, and the adjacent validator-support, policy-and-unsafe, export-UAPI, and low-level-wrapper reminder packet. The remaining same-lane job is keeping the shared ABI slice, the manifest-backed inventory, the dedicated bindings-governance note, the lane-owner map, the header-family reminders, the validator-support note, the direct `phase3_abi` replay, and the focused `phase3_export_uapi_layout` proof aligned so the current packet can be reread from repo evidence without reconstructing it from neighboring notes.
+The Phase 3 roadmap still requires a narrow and explicit export shim plus starter UAPI boundary. On the current inspected `master`, the same-lane shared ABI reminder gap is no longer missing scaffold in the tree or in the manifest-backed packet: the live Phase 3 inventory already ships `include/zigux/dev_t.h`, `zigux/bindings/dev_t.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, and `zigux/tests/phase3_export_uapi_layout.zig`, while `scripts/zigux/validate-phase3-export-uapi-survey.py` and the shared manifest keep that starter packet explicit beside the direct `phase3_abi` replay, the focused export/UAPI layout replay pair, the broader shared packet that `scripts/zigux/validate-phase3.py` already exact-requires, and the surviving selftest reminder surfaces that current `zigux/tests/README.md` and `scripts/zigux/check-phase3-selftest-surface.py` already treat as part of the shared ABI packet.
 
 - current `master` already ships `Documentation/zigux/phase3-bindings-governance.md`, `Documentation/zigux/phase3-abi-bindings-survey.md`, `Documentation/zigux/phase3-boundary-lane-sequencing.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-kernel-export-shim-governance.md`, `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`, `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `Documentation/zigux/phase3-abi-h-boundary-next-step.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `Documentation/zigux/phase3-validator-support-surface.md`, `include/zigux/dev_t.h`, `zigux/bindings/dev_t.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/fixtures/phase3_abi_manifest.json`, and `scripts/zigux/validate-phase3-export-uapi-survey.py`, while the manifest-backed packet and the dedicated export-UAPI survey keep that same starter packet explicit beside the broader shared packet that `scripts/zigux/validate-phase3.py` already exact-requires.
-- the remaining same-lane rule is to keep the shared ABI slice itself honest by naming the dedicated bindings-governance note, the lane-owner map, the direct `phase3_abi` replay, the focused `phase3_export_uapi_layout` proof pair, the focused low-level-wrapper build anchor, the policy helpers, and the `include/linux/zigux.h` governance validator alongside the surfaces it already listed.
+- the remaining same-lane rule is to keep the shared ABI slice itself honest by naming the dedicated bindings-governance note, the lane-owner map, the direct `phase3_abi` replay, the focused `phase3_export_uapi_layout` proof pair, the focused low-level-wrapper build anchor, the policy helpers, the shared selftest reminder surfaces, the stable `make -C zigux phase3-selftest` replay handle, and the `include/linux/zigux.h` governance validator alongside the surfaces it already listed.
 - broader Phase 3 completion still depends on the shared ABI slice, the bindings and governance packet, and any future top-level export or UAPI entry points staying explicit instead of treating this reminder-surface repair as whole-phase closure.
-- if a future run reopens this packet, keep it inside that exact shared reminder sync and refresh this note plus the touched survey, manifest, or validator-support surface in the same bounded step.
+- if a future run reopens this packet, keep it inside that exact shared reminder sync and refresh this note plus the touched survey, manifest, validator-support surface, or selftest reminder surface in the same bounded step.
 
 ## Scope
 
-This survey stays packet-local to the shipped starter export shim, the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the focused `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig` replay pair, the shared `zigux/tests/fixtures/phase3_abi_manifest.json` inventory marker, the shared `zigux/tests/phase3_abi_dump.zig` dump anchor, and the shared Phase 3 interop, compile, and dump routes that currently exercise them. It does not claim broader header-governance growth, a larger UAPI family, dedicated export/UAPI-only replay files, or deeper runtime ownership beyond the readable starter packet on the current inspected head.
+This survey stays packet-local to the shipped starter export shim, the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the focused `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig` replay pair, the shared `zigux/tests/fixtures/phase3_abi_manifest.json` inventory marker, the shared `zigux/tests/phase3_abi_dump.zig` dump anchor, the shared selftest reminder surfaces, and the shared Phase 3 interop, compile, dump, and selftest routes that currently exercise them. It does not claim broader header-governance growth, a larger UAPI family, dedicated export/UAPI-only replay files, or deeper runtime ownership beyond the readable starter packet on the current inspected head.
