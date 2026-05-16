@@ -294,6 +294,8 @@ Phase 11 review packet
   * `make -C zigux phase11-hvc-survey`
   * surviving DesignWare continuity stays explicit through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
   * dedicated HVC archival packet stays explicit through `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `scripts/zigux/check-phase11-hvc-survey-packet.py`
+  * standalone exported-helper proof stays explicit through `zigux/tests/phase11_hvc_export_surface_layout_proof.zig` and `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
+  * shared header-boundary survey stays explicit through `Documentation/zigux/phase11-uapi-header-parity-survey.md` and `zigux/tests/phase11_uapi_header_parity_survey.zig`
   * there is no shared `validate-phase11.py` or `make -C zigux phase11-validate` route on current `master`
 
 Phase 12 review packet
