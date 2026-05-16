@@ -343,6 +343,10 @@ def validate_exact_workflow_runs(text: str) -> list[str]:
     return issues
 
 
+# Keep the published self-test path tolerant of the older camel-cased helper name.
+validate_exact_workflowRuns = validate_exact_workflow_runs
+
+
 def validate_exact_makefile_runs(text: str) -> list[str]:
     issues: list[str] = []
     for command, expected_count in EXACT_MAKEFILE_RUN_COUNTS.items():
@@ -478,7 +482,7 @@ def run_self_test() -> int:
     checks_run += 1
 
     bad_workflow = ""
-    issues = validate_exact_workflowRuns(bad_workflow)
+    issues = validate_exact_workflow_runs(bad_workflow)
     if not any(issue.startswith("workflow_exact_run:") for issue in issues):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_count_failure")
     checks_run += 1
@@ -592,7 +596,7 @@ def run_self_test() -> int:
     expected_install_scope_pattern_issue = (
         "workflow_scope_pattern:missing_marker:scripts/zigux/install-zig\.py"
     )
-    if missing_install_scope_pattern_issues != [expected_install_scope_pattern_issue]:
+    if missing_install_scope_pattern_issues != [expected_install_scope_PATTERN_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_install_failure")
     checks_run += 1
 
@@ -689,7 +693,7 @@ def run_self_test() -> int:
         issue.startswith("makefile_target_scope:phase2-cross:actual=")
         for issue in moved_cross_issues
     ):
-        raise SystemExit("phase2-cross-alignment:self-test:moved_cross_gate_cross_failure")
+        raise SystemExit("phase2-cross-alignment:self-test:moved_cross_GATE_cross_failure")
     checks_run += 2
 
     bad_cross_header = makefile_text.replace(
