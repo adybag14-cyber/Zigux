@@ -117,6 +117,23 @@ fn requestBoundaryDeclaresAnyField(comptime field_names: []const []const u8) boo
         typeDeclaresAnyField(PreparedRequest, field_names);
 }
 
+pub fn keepsSourceLocalFieldFamilyOutsideSharedRequest(
+    comptime SourcePlan: type,
+    comptime field_names: []const []const u8,
+) bool {
+    return typeDeclaresAnyField(SourcePlan, field_names) and
+        !typeDeclaresAnyField(LoadPlan, field_names) and
+        !typeDeclaresAnyField(PreparedRequest, field_names);
+}
+
+pub fn keepsSourceLocalPublicationBoundaryExplicit(comptime SourcePlan: type) bool {
+    return keepsSourceLocalFieldFamilyOutsideSharedRequest(SourcePlan, &blocked_publication_fields);
+}
+
+pub fn keepsSourceLocalDepmodBoundaryExplicit(comptime SourcePlan: type) bool {
+    return keepsSourceLocalFieldFamilyOutsideSharedRequest(SourcePlan, &blocked_depmod_fields);
+}
+
 pub fn keepsCommandBoundaryExplicit() bool {
     return !requestBoundaryDeclaresAnyField(&blocked_command_fields);
 }
@@ -306,4 +323,33 @@ test "shared runtime loader contract keeps registration-summary, publication, an
     try std.testing.expect(std.mem.eql(u8, blocked_depmod_fields[0], "depmod_script"));
     try std.testing.expect(std.mem.eql(u8, blocked_depmod_fields[1], "depmod_manifest"));
     try std.testing.expect(std.mem.eql(u8, blocked_depmod_fields[2], "depmod_aliases"));
+}
+
+test "shared runtime loader contract can prove source-local publication and depmod metadata stay outside shared requests" {
+    const LocalPublicationPlan = struct {
+        module_alias: []const u8,
+        modules_alias_path: []const u8,
+        module_install_root: []const u8,
+        module_symvers_path: []const u8,
+    };
+    const LocalDepmodPlan = struct {
+        depmod_script: []const u8,
+        depmod_manifest: []const u8,
+        depmod_aliases: []const []const u8,
+    };
+    const SharedOnlyPlan = struct {
+        module_name: []const u8,
+        anchor: []const u8,
+        entry_symbol: []const u8,
+        exit_symbol: []const u8,
+    };
+
+    try std.testing.expect(keepsSourceLocalPublicationBoundaryExplicit(LocalPublicationPlan));
+    try std.testing.expect(keepsSourceLocalDepmodBoundaryExplicit(LocalDepmodPlan));
+    try std.testing.expect(!keepsSourceLocalPublicationBoundaryExplicit(SharedOnlyPlan));
+    try std.testing.expect(!keepsSourceLocalDepmodBoundaryExplicit(SharedOnlyPlan));
+    try std.testing.expect(typeDeclaresAnyField(LocalPublicationPlan, &blocked_publication_fields));
+    try std.testing.expect(typeDeclaresAnyField(LocalDepmodPlan, &blocked_depmod_fields));
+    try std.testing.expect(!typeDeclaresAnyField(SharedOnlyPlan, &blocked_publication_fields));
+    try std.testing.expect(!typeDeclaresAnyField(SharedOnlyPlan, &blocked_depmod_fields));
 }
