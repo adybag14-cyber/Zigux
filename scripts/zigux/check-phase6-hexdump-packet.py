@@ -65,9 +65,7 @@ SLICE_NOTE_MARKERS = [
 
 LANE_SEQUENCING_MARKERS = [
     "### `P6-L19`, `P6-Y07`, `P6-Y08`, and `P6-Y09` hexdump packet",
-    "Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane",
-    "Treat `P6-Y07` as the hexdump fixture-governance lane",
-    "Treat `P6-Y08` as the hexdump serialized empty-ASCII length-packet closure lane",
+    "Treat `P6-L19` as the hexdump parked-survey or slice-note truthfulness lane, `P6-Y07` as the hexdump fixture-governance lane, `P6-Y08` as the hexdump serialized empty-ASCII length-packet closure lane, and `P6-Y09` as the hexdump perf-refresh ownership lane when the same helper-local review packet could otherwise overlap itself.",
     "- `lib/hexdump.zig`",
     "- `zigux/tests/phase6_hexdump.zig`",
     "- `zigux/tests/phase6_hexdump_perf.zig`",
@@ -593,7 +591,6 @@ def run_self_test() -> None:
         )
         expect_failure(tmpdir, "phase6-hexdump-review:")
 
-        build_self_testFixture = None
         build_self_test_fixture(tmpdir)
         makefile = tmpdir / REQUIRED_FILES["makefile"]
         makefile.write_text("", encoding="utf-8")
