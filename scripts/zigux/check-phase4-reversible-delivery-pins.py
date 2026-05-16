@@ -172,10 +172,50 @@ REQUIRED_PROSE_MARKERS = [
     "repair the parked test_fsmount packet first",
 ]
 
+PROSE_SELF_TEST_MUTATIONS = [
+    (
+        "kprobe_replay_prose_drift",
+        "`make -C zigux phase4-kprobe-example-survey`",
+        "`make -C zigux phase4-kprobe-gap-survey`",
+        "prose_marker:`make -C zigux phase4-kprobe-example-survey`",
+    ),
+    (
+        "test_fsmount_replay_prose_drift",
+        "`make -C zigux phase4-test-fsmount-survey`",
+        "`make -C zigux phase4-test-fsmount-gap-survey`",
+        "prose_marker:`make -C zigux phase4-test-fsmount-survey`",
+    ),
+    (
+        "shared_repair_rule_drift",
+        "repair the shared exact-readback packet first.",
+        "repair the shared packet eventually.",
+        "prose_marker:repair the shared exact-readback packet first.",
+    ),
+    (
+        "local_perf_repair_rule_drift",
+        "repair the dedicated local-only perf packet first.",
+        "repair the dedicated local perf packet later.",
+        "prose_marker:repair the dedicated local-only perf packet first.",
+    ),
+    (
+        "kprobe_repair_rule_drift",
+        "repair the parked kprobe packet first",
+        "repair the parked kprobe packet later",
+        "prose_marker:repair the parked kprobe packet first",
+    ),
+    (
+        "test_fsmount_repair_rule_drift",
+        "repair the parked test_fsmount packet first",
+        "repair the parked test_fsmount packet later",
+        "prose_marker:repair the parked test_fsmount packet first",
+    ),
+]
+
 SELF_TEST_CASES = (
     ["baseline_round_trip", "missing_note_file"]
     + [f"missing_{slug}_file" for slug, _, _ in TARGETS]
     + [f"{slug}_blob_pin_drift" for slug, _, _ in TARGETS]
+    + [case_name for case_name, _, _, _ in PROSE_SELF_TEST_MUTATIONS]
     + ["missing_checker_presence_marker", "self_test_case_count_drift"]
 )
 
@@ -372,6 +412,18 @@ def run_self_test() -> int:
             if not expect_failure(root, f"{slug}_blob_pin:{key}="):
                 print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
                 print(f"{slug} blob pin drift case did not fail closed")
+                return 1
+            case_count += 1
+            build_fixture_tree(root)
+
+        for case_name, marker, drifted_marker, failure_prefix in PROSE_SELF_TEST_MUTATIONS:
+            note_path.write_text(
+                replace_once(read_text(note_path), marker, drifted_marker),
+                encoding="utf-8",
+            )
+            if not expect_failure(root, failure_prefix):
+                print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
+                print(f"{case_name} case did not fail closed")
                 return 1
             case_count += 1
             build_fixture_tree(root)
