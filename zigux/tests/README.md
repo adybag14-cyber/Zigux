@@ -40,12 +40,14 @@ Key entrypoints
   * `zigux/tests/phase5_trace_events_sample_manifest.json`
   * `zigux/tests/phase5_trace_events_sample_survey.zig`
   * current public-tree-backed Phase 5 shared-build companion: `zigux/tests/phase5_build.zig`
-  * `zigux/tests/phase1_helpers.zig`
-  * `zigux/tests/phase1_bench.zig`
+  * `Documentation/zigux/phase1-host-helper-lane-sequencing.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `Documentation/zigux/README.md`
   * `zigux/tests/fixtures/phase1_helper_manifest.json`
-  * `zigux/tests/fixtures/phase1_bench_expectations.json`
-  * current Phase 1 review-and-replay stack: `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`
-  * current public-tree-backed Phase 1 parity packet: `zigux/tests/fixtures/phase1_helpers.json` and `zigux/tests/fixtures/phase1_helpers_c_harness.c`
+  * `zigux/tests/fixtures/phase1_helpers.json`
+  * current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py`
+  * repo-reality warning for the broader Phase 1 closure-and-replay packet: repeated authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`
+  * keep current Phase 1 follow-through tied to the live owner-map plus string-review reminder packet instead of reconstructing the broader validator-first tranche from those older missing closure-side files and routes alone
   * `zigux/tests/phase6_build.zig`
   * `zigux/tests/phase6_helper_parity_manifest.json`
   * `Documentation/zigux/phase6-helper-parity-catalog.md`
