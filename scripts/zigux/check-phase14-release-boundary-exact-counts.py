@@ -94,6 +94,16 @@ EXPECTED_SMOKE_SHARD_COMMANDS = [
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-smoke",
 ]
+EXPECTED_OWNER = "Core-Adjacent Pod"
+EXPECTED_VALIDATION_GATE = (
+    "zig build test --build-file zigux/tests/phase14_build.zig --summary all "
+    "&& make -C zigux phase14"
+)
+EXPECTED_TRANSFER_RATIONALE = (
+    "Absorb ZAR runtime research as product discipline only: keep exported evidence "
+    "packets, machine-checked surveyed commits, and explicit blocker posture without "
+    "importing ZAR runtime-core behavior into Zigux."
+)
 RELEASE_BOUNDARY_FALLBACK_MARKER = (
     "attached-toolchain replay fallback: `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`, "
     "`ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`, and "
@@ -252,10 +262,18 @@ def check_manifest(errors: list[str], root: Path) -> None:
     if not isinstance(productization, dict):
         errors.append("phase14 manifest productization payload is not an object")
     else:
+        if productization.get("owner") != EXPECTED_OWNER:
+            errors.append(
+                f"phase14 manifest owner drifted from {EXPECTED_OWNER}"
+            )
         if productization.get("status_bucket") != "study_only":
             errors.append("phase14 manifest status_bucket drifted from study_only")
+        if productization.get("validation_gate") != EXPECTED_VALIDATION_GATE:
+            errors.append("phase14 manifest validation_gate drifted from the shared replay contract")
         if productization.get("rollback_owner") != "Repo Tooling Pod":
             errors.append("phase14 manifest rollback_owner drifted from Repo Tooling Pod")
+        if productization.get("transfer_rationale") != EXPECTED_TRANSFER_RATIONALE:
+            errors.append("phase14 manifest transfer_rationale drifted from the recorded ZAR-to-product rule")
 
     anchor_packets = manifest.get("anchor_packets")
     if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
@@ -423,8 +441,11 @@ def good_manifest_text() -> str:
         json.dumps(
             {
                 "productization": {
+                    "owner": EXPECTED_OWNER,
                     "status_bucket": "study_only",
+                    "validation_gate": EXPECTED_VALIDATION_GATE,
                     "rollback_owner": "Repo Tooling Pod",
+                    "transfer_rationale": EXPECTED_TRANSFER_RATIONALE,
                 },
                 "shared_smoke_surfaces": MANIFEST_REQUIRED_SURFACES,
                 "anchor_packets": [{}, {}, {}, {}],
@@ -788,8 +809,11 @@ def run_self_test() -> int:
                     "anchor_packets": [{}, {}, {}, {}],
                     "compile_shards": EXPECTED_COMPILE_SHARDS,
                     "productization": {
+                        "owner": EXPECTED_OWNER,
                         "status_bucket": "study_only",
+                        "validation_gate": EXPECTED_VALIDATION_GATE,
                         "rollback_owner": "Repo Tooling Pod",
+                        "transfer_rationale": EXPECTED_TRANSFER_RATIONALE,
                     },
                     "smoke_commands": EXPECTED_SMOKE_COMMANDS,
                     "smoke_shard_commands": EXPECTED_SMOKE_SHARD_COMMANDS,
@@ -825,8 +849,11 @@ def run_self_test() -> int:
                     "anchor_packets": [{}, {}, {}, {}],
                     "compile_shards": EXPECTED_COMPILE_SHARDS,
                     "productization": {
+                        "owner": EXPECTED_OWNER,
                         "status_bucket": "study_only",
+                        "validation_gate": EXPECTED_VALIDATION_GATE,
                         "rollback_owner": "Repo Tooling Pod",
+                        "transfer_rationale": EXPECTED_TRANSFER_RATIONALE,
                     },
                     "smoke_commands": EXPECTED_SMOKE_COMMANDS,
                     "smoke_shard_commands": EXPECTED_SMOKE_SHARD_COMMANDS,
@@ -839,6 +866,20 @@ def run_self_test() -> int:
             check(root, source_text=MARKER),
             "Documentation/zigux/phase14-release-boundary-survey.md",
             "self-test expected missing release-boundary manifest surface failure",
+        )
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+
+        manifest = json.loads(good_manifest_text())
+        manifest["productization"]["owner"] = "Release Planning Pod"
+        write(
+            root,
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            json.dumps(manifest, indent=2) + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            f"phase14 manifest owner drifted from {EXPECTED_OWNER}",
+            "self-test expected manifest owner drift failure",
         )
         write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
 
@@ -857,6 +898,20 @@ def run_self_test() -> int:
         write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
 
         manifest = json.loads(good_manifest_text())
+        manifest["productization"]["validation_gate"] = "make -C zigux phase14-test"
+        write(
+            root,
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            json.dumps(manifest, indent=2) + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "phase14 manifest validation_gate drifted from the shared replay contract",
+            "self-test expected manifest validation-gate drift failure",
+        )
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+
+        manifest = json.loads(good_manifest_text())
         manifest["productization"]["rollback_owner"] = "Core-Adjacent Pod"
         write(
             root,
@@ -867,6 +922,20 @@ def run_self_test() -> int:
             check(root, source_text=MARKER),
             "phase14 manifest rollback_owner drifted from Repo Tooling Pod",
             "self-test expected manifest rollback-owner drift failure",
+        )
+        write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
+
+        manifest = json.loads(good_manifest_text())
+        manifest["productization"]["transfer_rationale"] = "Different rationale"
+        write(
+            root,
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+            json.dumps(manifest, indent=2) + "\n",
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "phase14 manifest transfer_rationale drifted from the recorded ZAR-to-product rule",
+            "self-test expected manifest transfer-rationale drift failure",
         )
         write(root, "zigux/tests/phase14_end_to_end_smoke_manifest.json", good_manifest_text())
 
@@ -919,7 +988,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=30")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
