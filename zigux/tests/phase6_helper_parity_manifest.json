@@ -15,7 +15,7 @@
     "lib/checksum.c",
     "lib/hexdump.c"
   ],
-  "surveyed_commit": "a0f4d7e",
+  "surveyed_commit": "525a32e",
   "helpers": [
     {
       "id": "base64",
