@@ -25,3 +25,25 @@ test "phase3 export shim and uapi keep starter boundary layout explicit" {
     try std.testing.expect(export_shim.isCanonicalHeader(header));
     try std.testing.expect(uapi_version.isCanonical(uapi_header));
 }
+
+test "phase3 export shim and uapi reject undersized boundary headers symmetrically" {
+    const undersized = export_shim.compatibleHeader(export_shim.header_size - 1, 0x44);
+
+    try std.testing.expectEqual(undersized, uapi_version.compatibleHeader(uapi_version.header_size - 1, 0x44));
+
+    try std.testing.expect(export_shim.headerCompatibility(undersized) == null);
+    try std.testing.expect(uapi_version.compatibility(undersized) == null);
+
+    try std.testing.expect(export_shim.acceptHeader(undersized) == null);
+    try std.testing.expect(uapi_version.acceptHeader(undersized) == null);
+
+    try std.testing.expect(!export_shim.isCompatibleHeader(undersized));
+    try std.testing.expect(!uapi_version.isCompatible(undersized));
+    try std.testing.expect(!export_shim.isCanonicalHeader(undersized));
+    try std.testing.expect(!uapi_version.isCanonical(undersized));
+
+    try std.testing.expect(export_shim.canonicalizeHeader(undersized) == null);
+    try std.testing.expect(uapi_version.canonicalizeHeader(undersized) == null);
+    try std.testing.expect(export_shim.requestedExtraBytes(undersized) == null);
+    try std.testing.expect(uapi_version.evaluateHeader(undersized).requestedExtraBytes() == null);
+}
