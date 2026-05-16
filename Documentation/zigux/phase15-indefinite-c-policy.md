@@ -1,16 +1,16 @@
 # Phase 15 Indefinite-C Policy
 
-This note restores the roadmap-required Phase 15 stay-in-C policy surface for code that remains in C indefinitely.
+This note keeps the roadmap-required Phase 15 stay-in-C policy surface explicit for code that remains in C indefinitely.
 
 ## Status
 
 - `PHASE15_STATUS=indefinite_c_policy_packet_landed`
 - `PHASE15_LANE_KEY=P15-L13`
-- `PHASE15_SLICE=current-master-policy-gap-restoration`
+- `PHASE15_SLICE=maintenance-mode-policy-truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-16`
-- current repo reality before this lane: the roadmap still required a policy for code that remains in C indefinitely, `Documentation/zigux/README.md` already listed this packet, and `Documentation/zigux/phase15-architecture-council-review-process.md` still called it missing
-- scope: restore one dedicated indefinite-C policy note, one machine-readable manifest, one direct Zig guard, and one note-local review-process companion wording sync only
+- current repo reality: the roadmap-required stay-in-C policy packet is landed and remains maintenance-only under the same blocked deep-core posture
+- scope: keep the dedicated indefinite-C policy note and its direct policy vocabulary truthful without widening into neighboring Phase 15 packets
 
 ## Why this slice exists
 
@@ -18,7 +18,7 @@ Phase 15 is supposed to keep the mixed-language end state honest.
 
 That requires more than a freeze map and a parity scorecard. The repo also needs one reviewable place that says when a deep-core anchor remains in C, what must still be recorded about that choice, and what evidence is required before anyone may reopen the decision later.
 
-This packet restores that missing policy surface without claiming a new deep-core Zig bridge, a status change approval, or a broader Phase 15 closure.
+This packet keeps that policy surface explicit without claiming a new deep-core Zig bridge, a status change approval, or a broader Phase 15 closure.
 
 ## When the indefinite-C policy applies
 
