@@ -134,6 +134,16 @@ pub const NotifierResult = enum(u32) {
     stop = NOTIFIER_STOP,
 };
 
+pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowStatus = enum(u32) {
+    delivered = 0,
+    skipped = CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED,
+};
+
+pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowStatus = enum(u32) {
+    delivered = 0,
+    skipped = CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
+};
+
 pub const NotifierBlock = extern struct {
     notifier_call: usize,
     next: usize,
@@ -170,6 +180,30 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = e
     applied: u32,
     skipped: u32,
 };
+
+pub fn deliveryWindowStatus(raw: u32) ?ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowStatus {
+    return switch (raw) {
+        0 => .delivered,
+        CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED => .skipped,
+        else => null,
+    };
+}
+
+pub fn budgetWindowStatus(raw: u32) ?ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowStatus {
+    return switch (raw) {
+        0 => .delivered,
+        CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED => .skipped,
+        else => null,
+    };
+}
+
+pub fn budgetWasApplied(flags: u32) bool {
+    return (flags & CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED) != 0;
+}
+
+pub fn budgetWindowWasApplied(flags: u32) bool {
+    return (flags & CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED) != 0;
+}
 
 pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {
     var current = head orelse return null;
@@ -252,6 +286,63 @@ test "abi binding interop policy decode stays canonical" {
     try std.testing.expect(decodeInteropPolicyBytes(9, ALLOC_ARENA, UNSAFE_RAW_POINTER_BRIDGE, 0) == null);
     try std.testing.expect(decodeInteropPolicyBytes(PANIC_WARN, 9, UNSAFE_RAW_POINTER_BRIDGE, 0) == null);
     try std.testing.expect(decodeInteropPolicyBytes(PANIC_WARN, ALLOC_ARENA, 9, 0) == null);
+}
+
+test "abi binding keeps chrdev delivery helpers explicit" {
+    const delivery_view = ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView{
+        .ack_window = 4,
+        .delivery_window = 8,
+        .status = CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED,
+    };
+    const budget_view = ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView{
+        .budget = 16,
+        .window = 2,
+        .flags = CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED |
+            CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
+    };
+
+    try std.testing.expectEqual(
+        @as(u32, 0),
+        @intFromEnum(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowStatus.delivered),
+    );
+    try std.testing.expectEqual(
+        @as(u32, CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED),
+        @intFromEnum(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowStatus.skipped),
+    );
+    try std.testing.expectEqual(
+        ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowStatus.delivered,
+        deliveryWindowStatus(0).?,
+    );
+    try std.testing.expectEqual(
+        ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowStatus.skipped,
+        deliveryWindowStatus(delivery_view.status).?,
+    );
+    try std.testing.expect(deliveryWindowStatus(2) == null);
+
+    try std.testing.expectEqual(
+        @as(u32, 0),
+        @intFromEnum(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowStatus.delivered),
+    );
+    try std.testing.expectEqual(
+        @as(u32, CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED),
+        @intFromEnum(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowStatus.skipped),
+    );
+    try std.testing.expectEqual(
+        ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowStatus.delivered,
+        budgetWindowStatus(0).?,
+    );
+    try std.testing.expectEqual(
+        ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowStatus.skipped,
+        budgetWindowStatus(
+            CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
+        ).?,
+    );
+    try std.testing.expect(budgetWindowStatus(2) == null);
+
+    try std.testing.expect(!budgetWasApplied(0));
+    try std.testing.expect(budgetWasApplied(budget_view.flags));
+    try std.testing.expect(!budgetWindowWasApplied(0));
+    try std.testing.expect(budgetWindowWasApplied(budget_view.flags));
 }
 
 test "abi binding chrdev structs keep the published layout" {
