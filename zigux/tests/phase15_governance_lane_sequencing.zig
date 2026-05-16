@@ -28,6 +28,7 @@ test "phase 15 governance lane sequencing note keeps the lane family split expli
     try expectContains(note, "Documentation/zigux/phase15-parity-scorecard-survey.md");
     try expectContains(note, "Documentation/zigux/phase15-parity-scorecard.md");
     try expectContains(note, "Documentation/zigux/phase15-indefinite-c-policy.md");
+    try expectContains(note, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectContains(note, "zigux/tests/phase15_parity_scorecard.json");
     try expectContains(note, "zigux/tests/phase15_parity_scorecard.zig");
     try expectContains(note, "zigux/tests/phase15_indefinite_c_policy.json");
