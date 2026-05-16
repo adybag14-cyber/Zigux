@@ -226,16 +226,17 @@ test "phase 8 exec-cmd scripts root summary keeps the focused replay route expli
     try std.testing.expect(std.mem.indexOf(u8, scripts_root, "make -C zigux phase8-validate") != null);
 }
 
-test "phase 8 exec-cmd workflow keeps the focused replay ahead of sibling help shards" {
+test "phase 8 exec-cmd workflow keeps the focused replay ahead of the shared phase 8 bundle" {
     const workflow = try readRepoFile(".github/workflows/zigux-bootstrap.yml");
     defer std.testing.allocator.free(workflow);
 
-    const validate_index = std.mem.indexOf(u8, workflow, "Validate Phase 8 tooling packet") orelse unreachable;
+    const validate_index = std.mem.indexOf(u8, workflow, "Validate Phase 8 tooling routes") orelse unreachable;
     const exec_index = std.mem.indexOf(u8, workflow, "Run focused Phase 8 exec-cmd tests") orelse unreachable;
-    const help_index = std.mem.indexOf(u8, workflow, "Run focused Phase 8 help tests") orelse unreachable;
+    const phase8_index = std.mem.indexOf(u8, workflow, "Run Phase 8 tooling tests") orelse unreachable;
 
     try std.testing.expect(validate_index < exec_index);
-    try std.testing.expect(exec_index < help_index);
+    try std.testing.expect(exec_index < phase8_index);
+    try std.testing.expect(std.mem.indexOf(u8, workflow, "zig test tools/lib/subcmd/exec-cmd.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "make -C zigux phase8-exec-cmd-test") != null);
 }
 
