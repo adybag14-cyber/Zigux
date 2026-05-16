@@ -84,8 +84,22 @@ pub fn summarizeQueueResume(request: QueueResumeRequest) !QueueResumeSummary {
     if (!request.rss_enabled and request.requires_rss_config_sync) {
         return error.RssConfigSyncWithoutRss;
     }
+    if (request.requires_mergeable_buffer_refill and !request.requires_receive_buffer_refill) {
+        return error.MergeableRefillRequiresReceiveRefill;
+    }
     if (!request.requires_post_reset_probe_replay and request.requires_mergeable_buffer_refill) {
         return error.MergeableRefillRequiresReplay;
+    }
+    if (request.requires_post_reset_probe_replay) {
+        switch (request.post_reset_probe_replay_checkpoint) {
+            .after_transmit_queue_restore => return error.ProbeReplayCheckpointTooEarly,
+            .after_receive_refill => {
+                if (!request.requires_receive_buffer_refill) {
+                    return error.ReceiveRefillCheckpointWithoutRefill;
+                }
+            },
+            .after_control_queue_restore => {},
+        }
     }
 
     const checkpoint: QueueResumeCheckpoint = if (request.requires_post_reset_probe_replay)
