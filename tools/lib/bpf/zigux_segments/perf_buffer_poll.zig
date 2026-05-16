@@ -147,6 +147,9 @@ fn hasConsistentProcessAccounting(summary: PollExecutionSummary) bool {
             summary.first_process_error_index == null and
             summary.first_process_error == null,
         .ready => blk: {
+            if (summary.poll.ready_count == 0) break :blk false;
+            if (summary.poll.first_ready_index == null) break :blk false;
+            if (summary.poll.observed_ready_events == 0) break :blk false;
             if (summary.attempted_ready_buffer_count > summary.poll.ready_count) break :blk false;
             if (summary.attempted_ready_buffer_count > summary.poll.observed_ready_events) break :blk false;
             if (summary.completed_ready_buffer_count > summary.attempted_ready_buffer_count) break :blk false;
@@ -717,8 +720,7 @@ test "summarizePollExecution keeps ready-buffer processing inside the observed e
 }
 
 test "summarizePollExecutionFromWaitResult keeps raw wait-result normalization coupled to execution bookkeeping" {
-    const buffers = [_]BufferObservation{
-        .{ .ready = true },
+    const buffers = [_]BufferObservation{        .{ .ready = true },
         .{ .ready = true },
         .{ .error_code = -32 },
     };
@@ -882,6 +884,26 @@ test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing a
     try std.testing.expectError(
         PollError.InconsistentProcessingAccountingSummary,
         resolvePollExecutionResultFromWaitResult(4, impossible_extra_attempts_after_failure),
+    );
+
+    const impossible_ready_without_buffers = PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 2,
+            .ready_count = 0,
+            .first_ready_index = null,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 0,
+        .completed_ready_buffer_count = 0,
+        .processed_record_count = 0,
+        .first_process_error_index = null,
+        .first_process_error = null,
+    };
+    try std.testing.expectError(
+        PollError.InconsistentProcessingAccountingSummary,
+        resolvePollExecutionResultFromWaitResult(2, impossible_ready_without_buffers),
     );
 
     const failed_with_processing = PollExecutionSummary{
