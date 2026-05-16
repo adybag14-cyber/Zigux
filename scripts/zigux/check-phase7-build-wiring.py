@@ -227,10 +227,22 @@ def run_self_test() -> None:
             "zigux/tests/phase7_build.zig: const string_helpers_sample_boundary_root_module = createStandaloneRootModule(",
         ),
         (
+            "missing_string_helpers_sample_boundary_step_name",
+            "zigux/tests/phase7_build.zig",
+            "\"phase7-string-helpers-sample-boundary\",",
+            "zigux/tests/phase7_build.zig: \"phase7-string-helpers-sample-boundary\",",
+        ),
+        (
             "missing_cmdline_root_call",
             "zigux/tests/phase7_build.zig",
             "const cmdline_root_module = createImportedRootModule(",
             "zigux/tests/phase7_build.zig: const cmdline_root_module = createImportedRootModule(",
+        ),
+        (
+            "missing_cmdline_survey_dependency",
+            "zigux/tests/phase7_build.zig",
+            "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step);",
+            "zigux/tests/phase7_build.zig: cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step);",
         ),
         (
             "missing_argv_split_survey_cwd",
