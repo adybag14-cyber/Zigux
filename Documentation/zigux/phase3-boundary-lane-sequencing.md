@@ -43,6 +43,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `zigux/bindings/dev_t.zig`
   - `zigux/bindings/notifier_abi.zig`
   - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
+  - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
 - policy and unsafe packet, lane baseline `P3-Y04`, current survey maintenance `P3-L13`, helper-local unsafe bridge growth `P3-L18`:
   - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`
   - `zigux/helpers/panic_policy.zig`
