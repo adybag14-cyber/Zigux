@@ -141,7 +141,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    phase10_virtio_mmio_module.addImport("virtio_mmio", phase10_virtio_mmio_module);
+    phase10_virtio_mmio_module.addImport("virtio_mmio", virtio_mmio_module);
     const phase10_virtio_mmio_verify_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/virtio/virtio_mmio_verify.zig"),
         .target = target,
