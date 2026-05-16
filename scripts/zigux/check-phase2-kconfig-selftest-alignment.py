@@ -24,19 +24,21 @@ KCONFIG_BRIDGE_SURFACE_PATHS = (
 )
 
 VALIDATOR_MARKERS = (
+    "TESTS_README_ALIGNMENT_CHECKER = (",
+    "KCONFIG_README_ALIGNMENT_CHECKER = (",
+    'ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"',
+    'ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"',
     'ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"',
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"',
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"',
-    '"zigux/tests/fixtures/kconfig_bridge/conf_manifest.json"',
-    '"zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"',
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28",
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37",
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 19",
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25",
 )
 VALIDATOR_EXACT_COUNTS = {
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"': 1,
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 2,
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28": 1,
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37": 1,
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 19": 1,
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25": 1,
 }
 
 CLOSURE_VALIDATOR_MARKERS = (
@@ -207,11 +209,13 @@ def build_self_test_root(root: Path) -> None:
         VALIDATOR_MARKERS[0],
         VALIDATOR_MARKERS[1],
         VALIDATOR_MARKERS[2],
-        VALIDATOR_MARKERS[2],
         VALIDATOR_MARKERS[3],
         VALIDATOR_MARKERS[4],
         VALIDATOR_MARKERS[5],
         VALIDATOR_MARKERS[6],
+        VALIDATOR_MARKERS[6],
+        VALIDATOR_MARKERS[7],
+        VALIDATOR_MARKERS[8],
     ]
     write_text(resolve_path(root, PHASE2_VALIDATOR), "\n".join(validator_lines) + "\n")
     write_text(resolve_path(root, PHASE2_CLOSURE_VALIDATOR), "\n".join(CLOSURE_VALIDATOR_MARKERS) + "\n")
@@ -286,7 +290,7 @@ def run_self_test() -> int:
         path.write_text(
             replace_once(
                 path.read_text(encoding="utf-8"),
-                VALIDATOR_MARKERS[5],
+                VALIDATOR_MARKERS[7],
                 "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 14",
             ),
             encoding="utf-8",
@@ -294,7 +298,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "MISSING_VALIDATOR_MARKERS",
-            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28",
+            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 19",
         ) in issues
         checks_run += 1
 
@@ -303,7 +307,7 @@ def run_self_test() -> int:
         path.write_text(
             replace_once(
                 path.read_text(encoding="utf-8"),
-                VALIDATOR_MARKERS[6],
+                VALIDATOR_MARKERS[8],
                 "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 27",
             ),
             encoding="utf-8",
@@ -311,7 +315,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "MISSING_VALIDATOR_MARKERS",
-            "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37",
+            "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25",
         ) in issues
         checks_run += 1
 
@@ -320,15 +324,15 @@ def run_self_test() -> int:
         path.write_text(
             replace_once(
                 path.read_text(encoding="utf-8"),
-                VALIDATOR_MARKERS[1],
-                VALIDATOR_MARKERS[1] + "\n" + VALIDATOR_MARKERS[1],
+                VALIDATOR_MARKERS[5],
+                VALIDATOR_MARKERS[5] + "\n" + VALIDATOR_MARKERS[5],
             ),
             encoding="utf-8",
         )
         issues = collect_issues(root)
         assert (
             "DUPLICATE_VALIDATOR_MARKERS",
-            f'{VALIDATOR_MARKERS[1]}:count=2:expected=1',
+            f'{VALIDATOR_MARKERS[5]}:count=2:expected=1',
         ) in issues
         checks_run += 1
 
