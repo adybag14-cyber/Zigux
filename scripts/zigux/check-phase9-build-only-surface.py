@@ -126,6 +126,16 @@ RUNTIME_LOADER_CONTRACT_DEPMOD_ALIASES_MARKER = '"depmod_aliases"'
 RUNTIME_LOADER_LIFECYCLE_BOUNDARY_CHECKLIST_TEST_MARKER = (
     "phase 9 runtime loader lifecycle boundary guard keeps shared review-checklist boundary markers explicit"
 )
+ALLOCATOR_INIT_FLOW_LIFECYCLE_LABEL_FIELD_MARKER = "metadata_only_lifecycle_labels: []const []const u8,"
+ALLOCATOR_INIT_FLOW_LIFECYCLE_LABEL_LEN_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 2), kretprobe.value.lifecycle_boundary_summary.metadata_only_lifecycle_labels.len);"
+)
+ALLOCATOR_INIT_FLOW_KRETPROBE_INIT_LABEL_MARKER = (
+    '"zigux_runtime_kretprobe_init", kretprobe.value.lifecycle_boundary_summary.metadata_only_lifecycle_labels[0]'
+)
+ALLOCATOR_INIT_FLOW_KRETPROBE_EXIT_LABEL_MARKER = (
+    '"zigux_runtime_kretprobe_exit", kretprobe.value.lifecycle_boundary_summary.metadata_only_lifecycle_labels[1]'
+)
 OWNER_MAP_MARKERS = [
     "- `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet.",
     "- `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, focused top-bit companion replay, and survey gate packet.",
@@ -292,6 +302,10 @@ REQUIRED_MARKERS = {
         "request.plan.allocator_handoff = .arena;",
         PREPARED_STATE_EXPLICIT_ASSERTION_MARKER,
         PREPARED_STATE_ALLOCATOR_HANDOFF_EXPLICIT_ASSERTION_MARKER,
+        ALLOCATOR_INIT_FLOW_LIFECYCLE_LABEL_FIELD_MARKER,
+        ALLOCATOR_INIT_FLOW_LIFECYCLE_LABEL_LEN_MARKER,
+        ALLOCATOR_INIT_FLOW_KRETPROBE_INIT_LABEL_MARKER,
+        ALLOCATOR_INIT_FLOW_KRETPROBE_EXIT_LABEL_MARKER,
     ],
     RUNTIME_LOADER_SELFTEST_COMPLETE_EXIT_PARITY_PATH: [
         "phase 9 runtime loader keeps selftest-complete prepared snapshots stable even if later live state would look exited across all shipped pilot families",
@@ -399,6 +413,10 @@ SELF_TEST_REMOVALS = [
     (ALLOCATOR_INIT_FLOW_PATH, "request.plan.allocator_handoff = .arena;", 2),
     (ALLOCATOR_INIT_FLOW_PATH, PREPARED_STATE_EXPLICIT_ASSERTION_MARKER, 1),
     (ALLOCATOR_INIT_FLOW_PATH, PREPARED_STATE_ALLOCATOR_HANDOFF_EXPLICIT_ASSERTION_MARKER, 1),
+    (ALLOCATOR_INIT_FLOW_PATH, ALLOCATOR_INIT_FLOW_LIFECYCLE_LABEL_FIELD_MARKER, 1),
+    (ALLOCATOR_INIT_FLOW_PATH, ALLOCATOR_INIT_FLOW_LIFECYCLE_LABEL_LEN_MARKER, 1),
+    (ALLOCATOR_INIT_FLOW_PATH, ALLOCATOR_INIT_FLOW_KRETPROBE_INIT_LABEL_MARKER, 1),
+    (ALLOCATOR_INIT_FLOW_PATH, ALLOCATOR_INIT_FLOW_KRETPROBE_EXIT_LABEL_MARKER, 1),
     (LOADER_GAP_SURVEY_PATH, "shared_phase9_bundle_route_present", 1),
     (TRACE_EVENTS_SUBSTRATE_DRIFT_PATH, TRACE_EVENTS_SUBSTRATE_DRIFT_PREPARED_PLAN_MARKER, 1),
     (TRACE_EVENTS_SUBSTRATE_DRIFT_PATH, TRACE_EVENTS_SUBSTRATE_DRIFT_SELFTEST_HOOK_EXPLICIT_MARKER, 1),
