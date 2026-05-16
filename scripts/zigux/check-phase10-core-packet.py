@@ -132,6 +132,27 @@ EXPECTED_SURVEY_MARKERS = [
     "zigux/helpers/",
 ]
 
+EXPECTED_FREEZE_BOUNDARY_MARKERS = [
+    "Documentation/zigux/freeze-map.md",
+    "Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.",
+    "Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior.",
+    "Any status review beyond this blocked-on-risky-transport packet still needs an Architecture Council reopen request with fresh linked evidence attached; this survey does not attach one.",
+]
+
+EXPECTED_ALLOWED_EVIDENCE_KINDS = [
+    "driver_local_lab_slices",
+    "survey_manifests",
+    "shared_validation_gates",
+]
+
+EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
+    "queue_setup_reset_paths",
+    "irq_parity",
+    "dma_paths",
+    "input_registration_lifecycle",
+    "probe_remove_lifecycle",
+]
+
 EXPECTED_SLICE_MARKERS = [
     "# Phase 10 Virtio Core Slice",
     "drivers/virtio/virtio.c",
@@ -231,6 +252,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_SURVEY_MARKERS:
         if marker not in survey_note:
             missing_markers.append(f"survey_note:{marker}")
+    for marker in EXPECTED_FREEZE_BOUNDARY_MARKERS:
+        if marker not in survey_note:
+            missing_markers.append(f"survey_note_freeze:{marker}")
 
     slice_note = read_text(root, "Documentation/zigux/phase10-virtio-core-slice.md")
     for marker in EXPECTED_SLICE_MARKERS:
@@ -248,6 +272,22 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:surveyed_commit")
     if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]:
         missing_markers.append("manifest:roadmap_destinations")
+    if manifest.get("freeze_map") != "Documentation/zigux/freeze-map.md":
+        missing_markers.append("manifest:freeze_map=Documentation/zigux/freeze-map.md")
+    if manifest.get("freeze_boundary_status") != "aligned":
+        missing_markers.append("manifest:freeze_boundary_status=aligned")
+    if manifest.get("freeze_status_change_claimed") is not False:
+        missing_markers.append("manifest:freeze_status_change_claimed=false")
+    if manifest.get("risky_transport_posture") != "blocked_on_risky_transport":
+        missing_markers.append("manifest:risky_transport_posture=blocked_on_risky_transport")
+    if manifest.get("allowed_evidence_kinds") != EXPECTED_ALLOWED_EVIDENCE_KINDS:
+        missing_markers.append("manifest:allowed_evidence_kinds")
+    if manifest.get("forbidden_transport_claims") != EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS:
+        missing_markers.append("manifest:forbidden_transport_claims")
+    if manifest.get("architecture_council_reopen_required") is not True:
+        missing_markers.append("manifest:architecture_council_reopen_required=true")
+    if manifest.get("architecture_council_reopen_attached") is not False:
+        missing_markers.append("manifest:architecture_council_reopen_attached=false")
 
     summary = manifest.get("survey_summary", {})
     if summary.get("preexisting_phase10_test_files") != 11:
@@ -299,6 +339,14 @@ def build_fixture_manifest() -> str:
             "zigux/kernel/",
             "zigux/helpers/",
         ],
+        "freeze_map": "Documentation/zigux/freeze-map.md",
+        "freeze_boundary_status": "aligned",
+        "freeze_status_change_claimed": False,
+        "risky_transport_posture": "blocked_on_risky_transport",
+        "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
+        "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
+        "architecture_council_reopen_required": True,
+        "architecture_council_reopen_attached": False,
         "survey_summary": {
             "virtio_c_lines": 730,
             "preexisting_phase10_test_files": 11,
@@ -346,7 +394,7 @@ def build_fixture_files() -> dict[str, str]:
         "zigux/tests/phase10_virtio_core_survey.zig": f'const surveyed_commit = "{SURVEYED_COMMIT}";\n',
         "zigux/tests/phase10_virtio_core_manifest.json": build_fixture_manifest(),
         "Documentation/zigux/phase10-virtio-core-slice.md": "\n".join(EXPECTED_SLICE_MARKERS) + "\n",
-        "Documentation/zigux/phase10-virtio-core-survey.md": "\n".join(EXPECTED_SURVEY_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-core-survey.md": "\n".join(EXPECTED_SURVEY_MARKERS + EXPECTED_FREEZE_BOUNDARY_MARKERS) + "\n",
     }
 
 
@@ -450,6 +498,33 @@ def run_self_test() -> int:
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
+            original_manifest.replace('"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "drifted"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(root)
+        if "manifest:freeze_boundary_status=aligned" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_freeze_boundary_status_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('"survey_manifests"', '"survey_packets"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(root)
+        if "manifest:allowed_evidence_kinds" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_allowed_evidence_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('"architecture_council_reopen_attached": false', '"architecture_council_reopen_attached": true', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(root)
+        if "manifest:architecture_council_reopen_attached=false" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_architecture_reopen_attachment_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
             original_manifest.replace(
                 '"id": "phase10-virtio-core-slice-note",\n      "status": "starter_landed"',
                 '"id": "phase10-virtio-core-slice-note",\n      "status": "repo_reality_gap"',
@@ -493,6 +568,15 @@ def run_self_test() -> int:
         _, missing_markers = validate(root)
         if "survey_note:scripts/zigux/check-phase10-tests-readme-core-surfaces.py" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_tests_readme_checker_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace("Documentation/zigux/freeze-map.md", "Documentation/zigux/freeze-map-drift.md", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(root)
+        if "survey_note_freeze:Documentation/zigux/freeze-map.md" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_freeze_map_survey_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
         slice_path = root / "Documentation/zigux/phase10-virtio-core-slice.md"
@@ -569,7 +653,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_tests_readme_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=18")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
