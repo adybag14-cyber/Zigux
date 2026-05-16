@@ -298,6 +298,10 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(runtime_bitmap_sample, "try std.testing.expectEqual(@as(u32, 1), summary.first_zero);");
     try expectContains(runtime_bitmap_sample, "try std.testing.expectEqual(@as(u32, 4), summary.weight);");
     try expectContains(runtime_bitmap_sample, "try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);");
+    try expectContains(runtime_bitmap_sample, "runtime bitmap sample repeat init rejection preserves established state");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expectEqual(initialized_summary.weight, after_initialized_retry.weight);");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expectError(error.InvalidLifecycleTransition, module.initWithSetBits(&.{2}));");
+    try expectContains(runtime_bitmap_sample, "try std.testing.expectEqual(exited_summary.weight, after_exit_retry.weight);");
 
     try expectContains(top_bit_contract_source, "runtime bitmap top-bit contract keeps the highest valid bit explicit");
     try expectContains(top_bit_contract_source, "runtime bitmap top-bit contract keeps boundary mutation and bounds checks reviewable");
