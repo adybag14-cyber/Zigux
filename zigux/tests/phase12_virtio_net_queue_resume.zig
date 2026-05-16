@@ -54,6 +54,32 @@ test "phase12 virtio net queue resume keeps mergeable replay and throughput guar
     try std.testing.expect(summary.throughput_guard_active);
 }
 
+test "phase12 virtio net queue resume rejects queue-count drift away from the negotiated pairs" {
+    try std.testing.expectError(
+        error.QueueCountMismatch,
+        virtio_net_queue_resume.summarizeQueueResume(.{
+            .effective_queue_pairs = 2,
+            .receive_queue_count = 1,
+            .transmit_queue_count = 2,
+            .total_queue_count = 3,
+        }),
+    );
+}
+
+test "phase12 virtio net queue resume rejects control queue placement outside the data queue block" {
+    try std.testing.expectError(
+        error.ControlQueueIndexMismatch,
+        virtio_net_queue_resume.summarizeQueueResume(.{
+            .effective_queue_pairs = 2,
+            .receive_queue_count = 2,
+            .transmit_queue_count = 2,
+            .first_control_queue_index = 5,
+            .total_queue_count = 5,
+            .requires_control_queue_restore = true,
+        }),
+    );
+}
+
 test "phase12 virtio net queue resume rejects mergeable refill without receive refill" {
     try std.testing.expectError(
         error.MergeableRefillRequiresReceiveRefill,
