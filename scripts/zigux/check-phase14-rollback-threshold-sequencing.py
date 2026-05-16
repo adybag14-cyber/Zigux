@@ -90,7 +90,7 @@ CORE_TRACEABILITY_MARKERS = [
     "- rollback owner: `Repo Tooling Pod`",
     "- rollback threshold: `0` tolerated same-packet drifts across anchor-local manifests, anchor-local survey notes, the compile shard matrix, and shared replay wiring",
     "- fallback path: rerun `make -C zigux phase14-validate` before reopening any anchor-local or shared follow-up",
-    "Same-phase bounded-internal follow-up should stay only in the existing workqueue and ring-buffer lanes, while skbuff and RCU remain Phase 15-governed freeze-in-C evidence rather than bounded-internal next-step lanes.",
+    "Same-phase bounded-internal follow-up should stay only in the existing workqueue and ring-buffer lanes, while skbuff and RCU remain freeze-in-C anchors carried by the current Phase 14 shared smoke packet plus their dedicated Phase 14 survey and manifest evidence; Phase 15 owns only any later freeze-map status-review or reopen request.",
 ]
 SELF_TEST_ANCHOR_PACKETS = [
     {
