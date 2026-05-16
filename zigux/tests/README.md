@@ -178,6 +178,50 @@ Phase 3 review packet
   * the focused export/UAPI and low-level-wrapper support routes stay explicit here too: `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`, `make -C zigux phase3-export-uapi-layout-test`, `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`, and `make -C zigux phase3-low-level-wrappers-test`
   * `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` stay explicit as the current starter header-family companion packet rather than implying a broader shipped UAPI family
 
+Phase 8 review packet
+  * `Documentation/zigux/phase8-tooling-lane-sequencing.md`
+  * `Documentation/zigux/phase8-help-slice.md`
+  * `Documentation/zigux/phase8-kallsyms-slice.md`
+  * `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
+  * `Documentation/zigux/phase8-libbpf-segment-survey.md`
+  * `scripts/zigux/validate-phase8.py`
+  * `scripts/zigux/check-phase8-tests-readme-alignment.py`
+  * `scripts/zigux/check-phase8-exec-cmd-packet.py`
+  * `scripts/zigux/check-phase8-help-kallsyms-packet.py`
+  * `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+  * `scripts/zigux/check-phase8-libbpf-segment-gate.py`
+  * `scripts/zigux/check-phase8-libbpf-shard-routes.py`
+  * `zigux/tests/phase8_exec_cmd.zig`
+  * `zigux/tests/phase8_exec_cmd_only_build.zig`
+  * `zigux/tests/phase8_help.zig`
+  * `zigux/tests/phase8_help_only_build.zig`
+  * `zigux/tests/phase8_help_kallsyms_only_build.zig`
+  * `zigux/tests/phase8_kallsyms.zig`
+  * `zigux/tests/phase8_kallsyms_only_build.zig`
+  * `zigux/tests/phase8_cpu_mask.zig`
+  * `zigux/tests/phase8_cpu_mask_only_build.zig`
+  * `zigux/tests/phase8_logging.zig`
+  * `zigux/tests/phase8_pin_path.zig`
+  * `zigux/tests/phase8_bpf_type_names.zig`
+  * `zigux/tests/phase8_file_path_handle_bridge.zig`
+  * `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
+  * `zigux/tests/phase8_perf_buffer_poll.zig`
+  * `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+  * `zigux/tests/phase8_libbpf_segments.zig`
+  * `zigux/tests/phase8_libbpf_segments_only_build.zig`
+  * `make -C zigux phase8-validate`
+  * `make -C zigux phase8-exec-cmd-test`
+  * `make -C zigux phase8-help-test`
+  * `make -C zigux phase8-help-kallsyms-test`
+  * `make -C zigux phase8-kallsyms-test`
+  * `make -C zigux phase8-cpu-mask-test`
+  * `make -C zigux phase8-file-path-handle-bridge-test`
+  * `make -C zigux phase8-libbpf-segments-test`
+  * `make -C zigux phase8-perf-buffer-poll-test`
+  * `make -C zigux phase8-test`
+  * `make -C zigux phase8`
+  * keep the shared Phase 8 tooling packet explicit here too: the focused exec-cmd, help, symbol, cpu-mask, file-path bridge, segmented libbpf, and perf-buffer poll replay surfaces stay reviewable from the tests root without widening into deferred process-launch, handle-ownership, or online-CPU routing work
+
 Phase 9 review packet
   * `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
   * `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
