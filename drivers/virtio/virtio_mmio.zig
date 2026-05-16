@@ -1,13 +1,16 @@
 const std = @import("std");
+
 pub const anchor_path = "drivers/virtio/virtio_mmio.c";
 pub const mmio_magic_value: u32 = 0x7472_6976;
 pub const mmio_version_legacy: u32 = 1;
 pub const mmio_version_modern: u32 = 2;
 pub const default_vendor_id: u32 = 0x554d_4551;
 pub const mmio_window_bytes: u32 = 0x100;
+
 const max_queue_count = 8;
 const max_config_bytes = 128;
 const max_feature_words = 2;
+
 pub const Register = enum {
     queue_sel,
     queue_num,
@@ -17,6 +20,7 @@ pub const Register = enum {
     interrupt_ack,
     guest_page_size,
 };
+
 pub const ConfigWritePlanSummary = struct {
     anchor: []const u8,
     relative_offset: u32,
@@ -25,6 +29,7 @@ pub const ConfigWritePlanSummary = struct {
     config_generation: u32,
     within_config_window: bool,
 };
+
 pub const ConfigWriteDispositionSummary = struct {
     anchor: []const u8,
     relative_offset: u32,
@@ -37,6 +42,7 @@ pub const ConfigWriteDispositionSummary = struct {
     changed_byte_mask: u4,
     has_changes: bool,
 };
+
 pub const FeatureNegotiationSummary = struct {
     anchor: []const u8,
     selected_device_feature_word: u32,
@@ -47,6 +53,7 @@ pub const FeatureNegotiationSummary = struct {
     driver_features_known: bool,
     negotiation_possible: bool,
 };
+
 pub const TransportIdentitySummary = struct {
     anchor: []const u8,
     magic_matches: bool,
@@ -55,6 +62,7 @@ pub const TransportIdentitySummary = struct {
     vendor_id_present: bool,
     requires_legacy_guest_page_size: bool,
 };
+
 pub const ProbePreflightSummary = struct {
     anchor: []const u8,
     device_present: bool,
@@ -66,19 +74,23 @@ pub const ProbePreflightSummary = struct {
     consumes_identity_snapshot: bool,
     ready_for_probe_handoff: bool,
 };
+
 pub const SelectedQueueReadinessSummary = struct {
     anchor: []const u8,
     selected_queue: u16,
     queue_size_programmed: bool,
     queue_ready_for_handoff: bool,
 };
+
 const QueueState = struct {
     advertised_size: u16 = 0,
     programmed_size: u16 = 0,
     ready: bool = false,
 };
+
 pub const VirtioMmioLab = struct {
     const Self = @This();
+
     magic_value: u32 = mmio_magic_value,
     version: u32 = mmio_version_modern,
     device_id: u32 = 0,
@@ -96,6 +108,7 @@ pub const VirtioMmioLab = struct {
     device_feature_words: [max_feature_words]u32 = [_]u32{ 0, 0 },
     driver_feature_words: [max_feature_words]u32 = [_]u32{ 0, 0 },
     pending_config_write: ?ConfigWritePlanSummary = null,
+
     pub fn init(device_id: u32, queue_sizes: []const u16) !Self {
         if (queue_sizes.len == 0) return error.EmptyQueueSet;
         if (queue_sizes.len > max_queue_count) return error.QueueCountTooLarge;
@@ -109,26 +122,32 @@ pub const VirtioMmioLab = struct {
         }
         return self;
     }
+
     pub fn stageConfigBytes(self: *Self, bytes: []const u8) !void {
         if (bytes.len > self.config_bytes.len) return error.ConfigWindowTooLarge;
         @memset(&self.config_bytes, 0);
         @memcpy(self.config_bytes[0..bytes.len], bytes);
         self.config_bytes_len = bytes.len;
+        self.pending_config_write = null;
     }
+
     pub fn stageDeviceFeatureWord(self: *Self, word_index: u32, value: u32) !void {
         const index: usize = @intCast(word_index);
         if (index >= self.device_feature_words.len) return error.FeatureWordOutOfRange;
         self.device_feature_words[index] = value;
     }
+
     pub fn stageDriverFeatureWord(self: *Self, word_index: u32, value: u32) !void {
         const index: usize = @intCast(word_index);
         if (index >= self.driver_feature_words.len) return error.FeatureWordOutOfRange;
         self.driver_feature_words[index] = value;
     }
+
     pub fn bumpConfigGeneration(self: *Self) void {
         self.config_generation +%= 1;
         self.pending_config_write = null;
     }
+
     pub fn planConfigWriteOffset(self: *Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary {
         if (offset < mmio_window_bytes) return error.ConfigWindowOffsetOutOfRange;
         const relative_offset = offset - mmio_window_bytes;
@@ -145,6 +164,7 @@ pub const VirtioMmioLab = struct {
         self.pending_config_write = plan;
         return plan;
     }
+
     pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary {
         const plan = self.pending_config_write orelse return error.ConfigWritePlanUnavailable;
         if (plan.config_generation != self.config_generation) return error.ConfigWritePlanUnavailable;
@@ -163,6 +183,7 @@ pub const VirtioMmioLab = struct {
             .has_changes = changed_byte_mask != 0,
         };
     }
+
     pub fn featureNegotiationSummary(self: *const Self) FeatureNegotiationSummary {
         const device_index: usize = @min(self.selected_device_feature_word, self.device_feature_words.len - 1);
         const driver_index: usize = @min(self.selected_driver_feature_word, self.driver_feature_words.len - 1);
@@ -179,6 +200,7 @@ pub const VirtioMmioLab = struct {
             .negotiation_possible = device_feature_word != 0 and driver_feature_word != 0,
         };
     }
+
     pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {
         return .{
             .anchor = anchor_path,
@@ -189,6 +211,7 @@ pub const VirtioMmioLab = struct {
             .requires_legacy_guest_page_size = self.version == mmio_version_legacy,
         };
     }
+
     pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary {
         const queue = self.queueForSelection(self.selected_queue) orelse return error.QueueSelectionOutOfRange;
         return .{
@@ -198,6 +221,7 @@ pub const VirtioMmioLab = struct {
             .queue_ready_for_handoff = queue.programmed_size != 0 and queue.ready,
         };
     }
+
     pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {
         const identity = self.transportIdentitySummary();
         const queue_register_window_ready = self.queue_count != 0;
@@ -215,6 +239,7 @@ pub const VirtioMmioLab = struct {
             .ready_for_probe_handoff = identity.magic_matches and identity.version_supported and identity.device_present and identity.vendor_id_present and queue_register_window_ready and interrupt_ack_ready and legacy_guest_page_size_ready,
         };
     }
+
     pub fn writeRegister(self: *Self, register: Register, value: u32) !u32 {
         switch (register) {
             .queue_sel => {
@@ -254,6 +279,7 @@ pub const VirtioMmioLab = struct {
             },
         }
     }
+
     fn queueForSelection(self: *const Self, selected: u16) ?*QueueState {
         if (selected >= self.queue_count) return null;
         return @constCast(&self.queues[selected]);
@@ -292,6 +318,23 @@ test "phase10 virtio mmio config-generation bumps clear stale planned config wri
     device.bumpConfigGeneration();
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
 }
+
+test "phase10 virtio mmio restaging config bytes clears stale planned config writes" {
+    var device = try VirtioMmioLab.init(75, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+    _ = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0x0203_0407);
+    try std.testing.expect((try device.configWriteDispositionSummary()).has_changes);
+
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x08, 0x07, 0x06, 0x05 });
+    try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
+
+    _ = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0x0506_0709);
+    const refreshed = try device.configWriteDispositionSummary();
+    try std.testing.expectEqual(@as(u32, 0x0506_0708), refreshed.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x0506_0709), refreshed.planned_value);
+    try std.testing.expectEqual(@as(u4, 0b0001), refreshed.changed_byte_mask);
+}
+
 test "phase10 virtio mmio legacy probe preflight requires guest-page-size programming" {
     var device = try VirtioMmioLab.init(73, &[_]u16{ 8, 16 });
     device.version = mmio_version_legacy;
