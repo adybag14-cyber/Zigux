@@ -19,7 +19,7 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - freeze-map boundary companion: `Documentation/zigux/freeze-map.md`
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`
-- validator-first support bundle: `scripts/zigux/check-build-only-phase12-surface.py --self-test`, `scripts/zigux/check-phase12-cross.py --self-test`, `scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`
+- validator-first support bundle: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `python3 scripts/zigux/check-phase12-cross.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`
 - shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`
 
 ## Owner Split
@@ -61,7 +61,7 @@ Keep the degraded-workflow checker trio explicit beside that same order too:
 
 ## Boundaries
 - This matrix tracks only the shipped build-only contract and the active survey-backed packet on `master`.
-- Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`, and that same shipped support bundle still keeps the bounded `python3 scripts/zigux/check-phase12-cross.py --self-test` companion explicit rather than dropping it from the compact PMO summary. There is still no focused-libbpf-only replay or standalone cross-build replay, so release-planning notes should keep that validator-first support packet distinct from the smoke-first direct replay packet.
+- Current `master` now ships the degraded-workflow bundle `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `python3 scripts/zigux/check-phase12-cross.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`, and that same shipped support bundle keeps the dedicated release-readiness checker and the bounded `check-phase12-cross.py --self-test` companion explicit rather than dropping either live checker coverage or the cross self-test from the compact PMO summary. There is still no focused-libbpf-only replay or standalone cross-build replay, so release-planning notes should keep that validator-first support packet distinct from the smoke-first direct replay packet.
 - `Documentation/zigux/freeze-map.md` remains the boundary owner for deeper transport, queueing, throughput, rollback, and recovery anchors, so this PMO companion must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 
 ## Review Use
