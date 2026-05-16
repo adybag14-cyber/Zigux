@@ -27,9 +27,10 @@ It records the shared validator-first then smoke-first order for the starter-pre
 5. `make -C zigux phase12`
 6. If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, rerun only the shipped Make routes as `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only route, a cross-build route, or another unshipped Phase 12 replay surface.
 
-Keep the degraded-workflow validation trio explicit beside that same order too:
+Keep the degraded-workflow validation quartet explicit beside that same order too:
 
   * `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
+  * `python3 scripts/zigux/check-phase12-cross.py --self-test`
   * `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
   * `make -C zigux phase12-validate`
 
