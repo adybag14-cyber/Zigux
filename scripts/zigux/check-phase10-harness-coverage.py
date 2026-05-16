@@ -150,6 +150,7 @@ SCRIPTS_README_MARKERS = [
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`zigux/tests/phase10_closure_manifest.json`",
+    "`drivers/virtio/virtio_input_probe_preflight.zig`",
     "`Documentation/zigux/phase10-virtio-core-slice.md`",
     "`Documentation/zigux/phase10-virtio-ring-slice.md`",
     "`Documentation/zigux/phase10-virtio-input-slice.md`",
@@ -615,6 +616,21 @@ def run_self_test() -> int:
 
         scripts_readme_path.write_text(
             original_scripts_readme.replace(
+                "`drivers/virtio/virtio_input_probe_preflight.zig`",
+                "`drivers/virtio/virtio_input_probe_preflight_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_input_probe_preflight",
+            root,
+            "scripts_readme:`drivers/virtio/virtio_input_probe_preflight.zig`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
                 "`Documentation/zigux/phase10-virtio-ring-slice.md`",
                 "`Documentation/zigux/phase10-virtio-ring-slice-missing.md`",
                 1,
@@ -1045,7 +1061,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=52")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=53")
     return 0
 
 
