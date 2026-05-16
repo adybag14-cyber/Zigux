@@ -19,11 +19,13 @@ The current shared closure packet is the reminder-and-checker surface that still
 * `scripts/zigux/check-phase11-shared-summary-surfaces.py`
 * `scripts/zigux/check-phase11-build-inventory.py`
 * `zigux/tests/fixtures/phase11_build_inventory.json`
+* `zigux/tests/phase11_build.zig`
+* `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 * `zigux/Makefile`
 * `make -C zigux phase11-contract`
 * `.github/workflows/zigux-bootstrap.yml`
 
-These reminder surfaces plus the landed inventory-backed build-and-checker packet are the shared Phase 11 closure packet this note treats as current today.
+These reminder surfaces plus the landed inventory-backed build-and-replay packet are the shared Phase 11 closure packet this note treats as current today.
 
 ## Driver-Local Phase 11 Surfaces Still Parked Beside It
 
