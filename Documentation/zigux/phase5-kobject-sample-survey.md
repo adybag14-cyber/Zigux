@@ -61,14 +61,15 @@ The current manifest-backed exact checks for the kobject packet remain the bound
 - `registration-step`: `runAnchorReplay()` requires `init()` first, registers exactly three attributes, leaves the sample in the registered stage, and keeps duplicate `registerAttributes()` plus registered-stage `runAnchorReplay()` calls blocked by `InvalidLifecycleTransition`
 - `pre-registration-boundary`: `runPreRegistrationBoundaryReplay()` leaves the sample initialized, keeps the active attribute count at zero, and shows that `show` or `store` still return `InvalidLifecycleTransition` before `registerAttributes()` opens the sample
 - `single-init-boundary`: calling `init()` twice keeps the sample initialized, leaves the active attribute count at zero, and returns `InvalidLifecycleTransition` on the second init without advancing `register_runs` or `exit_runs`
-- `registered-boundary`: `runRegisteredBoundaryReplay()` leaves the sample registered, keeps the active attribute count at three, keeps `register_runs` pinned at one across duplicate registration plus registered-stage anchor-replay rejection, and still allows a bounded `foo` write/read roundtrip afterward
+- `registration-ownership-boundary`: `runRegistrationOwnershipReplay()` rejects `registerAttributes()` before init, then records the cold to initialized to registered handoff with activeAttrCount moving from `0` to `3`, `init_runs = 1`, `register_runs = 1`, `exit_runs = 0`, and duplicate `registerAttributes()` still rejected after registration`
+- `registered-boundary`: `runRegisteredBoundaryReplay()` leaves the sample registered, keeps activeAttrCount at three, keeps `register_runs` pinned at one across duplicate `registerAttributes()` plus registered-stage `runAnchorReplay()` rejection, and still allows a bounded `foo` write/read roundtrip afterward`
 - `ownership-summary`: `ownershipSummary()` and `runOwnershipReplay()` report the cold, initialized, registered, and exited stages with active attribute counts `0`, `0`, `3`, and `0`
-- `ownership-counters`: `runOwnershipReplay()` keeps the init/register/exit counter progression explicit as `0/0/0`, `1/0/0`, `1/1/0`, and `1/1/1`
-- `initialized-exit-disposition`: `exit()` reports `abandoned_before_registration` when the sample leaves the initialized stage before attributes are registered
-- `foo-roundtrip`: storing `42` into `foo` renders back as the string `42` followed by a newline
-- `shared-b-dispatch`: `runInputValidationReplay()` keeps `baz` and `bar` on the same `show` and `store` path while rendering `9` and `10` through their own attribute names after the replay stores those exact values
-- `parse-failure`: `runInputValidationReplay()` keeps invalid-integer writes returning `InvalidInteger` and unknown attribute names as explicit errors while the sample remains in the registered stage
-- `exit-boundary`: `runTeardownReplay()` reports `tore_down_registered_attributes`, clears the tracked values, removes the active attribute count, and keeps reinit, reregister, post-exit `show`, post-exit `store`, second `exit()`, and anchor-replay rejection explicit
+- `ownership-counters`: `runOwnershipReplay()` keeps the init/register/exit counter progression explicit as `0/0/0`, `1/0/0`, `1/1/0`, and `1/1/1` across the cold, initialized, registered, and exited snapshots`
+- `initialized-exit-disposition`: `exit()` reports `abandoned_before_registration` when the sample leaves the initialized stage before attributes are registered`
+- `foo-roundtrip`: storing `42` into `foo` renders back as the string `42` followed by a newline`
+- `shared-b-dispatch`: `runInputValidationReplay()` keeps `baz` and `bar` on the same `show` and `store` path while rendering `9` and `10` through their own attribute names after the replay stores those exact values`
+- `parse-failure`: `runInputValidationReplay()` keeps invalid-integer writes returning `InvalidInteger` and unknown attribute names as explicit errors while the sample remains in the registered stage`
+- `exit-boundary`: `runTeardownReplay()` reports `tore_down_registered_attributes`, clears the tracked values, removes the active attribute count, and keeps reinit, reregister, post-exit `show`, post-exit `store`, second-`exit`, and anchor-replay rejection explicit`
 
 ## Contributor Checklist
 
@@ -95,7 +96,7 @@ This note still does not claim:
 Leave this lane parked unless a fresh kobject reread changes one bounded fact inside the same packet:
 
 - authenticated contents readback starts returning `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` too, so the note can drop the connector-flakiness warning and treat the broader packet as both public-tree-backed and connector-readable
-- the shared tests-root reminder still describes `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig` as gaps and needs one more lane-local truthfulness repair
+- another shared reminder surface outside `zigux/tests/README.md` still describes `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig` as gaps and needs one more lane-local truthfulness repair
 - another shared reminder surface still undercounts the dedicated kobject survey replay or shared Phase 5 build route and needs one more lane-local truthfulness repair
 
 Do not widen that follow-up into sample behavior unless the sample-root file, focused test, manifest-backed contract, dedicated survey replay, or shared build route actually changes.
