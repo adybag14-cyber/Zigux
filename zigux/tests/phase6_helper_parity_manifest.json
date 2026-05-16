@@ -8,7 +8,7 @@
     "checksum": "parked_reviewable",
     "hexdump": "parked_reviewable"
   },
-  "shared_route_truthfulness_note": "base64, bsearch, checksum, and hexdump now keep committed helper-local or direct review surfaces on current `master`, `zigux/Makefile` now exposes committed `phase6-base64-perf` and `phase6-checksum-perf` Linux-style target bodies, the aggregate `phase6-validate`, `phase6-perf`, and `phase6` wrappers still remain inventory-only route names without committed target bodies, and the bootstrap workflow still reruns only the shared surface checkers, the base64 C parity packet, the bsearch packet, and the hexdump perf gate.",
+  "shared_route_truthfulness_note": "base64, bsearch, checksum, and hexdump now keep committed helper-local or direct review surfaces on current `master`, `zigux/Makefile` now exposes committed `phase6-base64-perf` and `phase6-checksum-perf` Linux-style target bodies, the aggregate `phase6-validate`, `phase6-perf`, and `phase6` wrappers still remain inventory-only route names without committed target bodies, and the bootstrap workflow still reruns the shared surface checkers, the base64 C parity packet, the bsearch packet, the checksum C parity packet, and the hexdump perf gate.",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
