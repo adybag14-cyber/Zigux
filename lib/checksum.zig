@@ -315,12 +315,12 @@ test "folded pseudo-header helpers match direct pseudo-header plus payload recom
 
     const ipv6_payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36, 0xaa };
     const ipv6_saddr = [_]u8{
-        0x20, 0x01, 0x0d, 0xb8,              0x00, 0x00, 0x00, 0x01,
-        0xde, 0xad, 0xbe, 0xef,              0xca, 0xfe, 0xba, 0xbe,
+        0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01,
+        0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe,
     };
     const ipv6_daddr = [_]u8{
-        0x20, 0x01, 0x0d, 0xb8,              0x00, 0x00, 0x00, 0x02,
-        0xde, 0xad, 0xbe, 0xef,              0xca, 0xfe, 0xba, 0xbf,
+        0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02,
+        0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf,
     };
     const ipv6_len: u32 = ipv6_payload.len;
     const ipv6_proto: u8 = 58;
@@ -373,4 +373,40 @@ test "ipFastCsum stays aligned with compute across aligned IPv4 headers" {
     for (headers) |case| {
         try std.testing.expectEqual(compute(case.header), ipFastCsum(case.header));
     }
+}
+
+test "add16 and sub16 keep one's-complement 16-bit carry edges stable" {
+    const Add16Case = struct {
+        sum: u16,
+        addend: u16,
+        expected: u16,
+    };
+    const add_cases = [_]Add16Case{
+        .{ .sum = 0xffff, .addend = 0x0001, .expected = 0x0001 },
+        .{ .sum = 0xffff, .addend = 0x0000, .expected = 0xffff },
+        .{ .sum = 0xffff, .addend = 0xffff, .expected = 0xffff },
+    };
+    for (add_cases) |case| {
+        try std.testing.expectEqual(case.expected, add16(case.sum, case.addend));
+    }
+
+    const Sub16Case = struct {
+        sum: u16,
+        addend: u16,
+        expected: u16,
+    };
+    const sub_cases = [_]Sub16Case{
+        .{ .sum = 0x0000, .addend = 0x0001, .expected = 0xfffe },
+        .{ .sum = 0xbe01, .addend = 0xabcd, .expected = 0x1234 },
+    };
+    for (sub_cases) |case| {
+        try std.testing.expectEqual(case.expected, sub16(case.sum, case.addend));
+        try std.testing.expectEqual(case.expected, add16(case.sum, ~case.addend));
+    }
+
+    const original: u16 = 0x1234;
+    const addend: u16 = 0xabcd;
+    const updated = add16(original, addend);
+    try std.testing.expectEqual(@as(u16, 0xbe01), updated);
+    try std.testing.expectEqual(original, sub16(updated, addend));
 }
