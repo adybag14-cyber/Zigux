@@ -80,6 +80,38 @@ test "phase 8 file-path handle bridge helper keeps linux-style make routes wired
     );
 }
 
+test "phase 8 file-path handle bridge proof keeps helper-local routing evidence smaller than deferred setup-side routing" {
+    const boundary_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(boundary_note);
+
+    try expectContains(boundary_note, "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`");
+    try expectContains(boundary_note, "advanceOnlineCpuCursor()");
+    try expectContains(boundary_note, "summarizeNextOnlineCpuRoute()");
+    try expectContains(boundary_note, "summarizeOnlineCpuRouting()");
+    try expectContains(boundary_note, "It also does not claim the deferred `perf-buffer-online-cpu-routing` packet");
+    try expectContains(boundary_note, "per-CPU `perf_event_open()` setup");
+    try expectContains(boundary_note, "epoll-backed perf FD registration");
+
+    const routing_helper = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(routing_helper);
+
+    try expectContains(routing_helper, "pub fn advanceOnlineCpuCursor(");
+    try expectContains(routing_helper, "pub fn summarizeNextOnlineCpuRoute(");
+    try expectContains(routing_helper, "pub fn summarizeOnlineCpuRouting(");
+    try expectContains(
+        routing_helper,
+        "test \\\"summarizeOnlineCpuRouting reports the first routed online CPU whose fd slot is empty\\\" {",
+    );
+}
+
 test "phase 8 file-path handle bridge helper keeps proc fdinfo path formatting explicit" {
     var buffer: [64]u8 = undefined;
 
