@@ -268,6 +268,19 @@ test "phase12 virtio scsi survey note stays aligned with the bounded queue-and-r
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "second-cycle rollback readiness") != null);
 }
 
+test "phase12 virtio scsi fallback catalog keeps commit-pinned raw replay distinct from current-master survey companions" {
+    const fallback_catalog = try readFileAlloc("Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md", 32 * 1024);
+    defer std.testing.allocator.free(fallback_catalog);
+
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "commit-pin role: this is the last raw-read replay point explicitly rechecked through this catalog") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "this catalog remains pinned to `ee64eec272a352da1d967999c99bb3c3560c9b97` for direct raw replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "shared-tree current-master survey companions") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "older pinned raw replay already exposes every one of those later functions") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "historical fallback snapshot for the pinned raw-read packet") != null);
+}
+
 test "phase12 virtio scsi survey gate keeps present lane files explicit" {
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_manifest.json"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_survey.zig"));
