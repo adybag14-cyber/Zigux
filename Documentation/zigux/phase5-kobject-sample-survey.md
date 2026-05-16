@@ -71,7 +71,7 @@ The current manifest-backed exact checks for the kobject packet remain the bound
 - `foo-roundtrip`: storing `42` into `foo` renders back as the string `42` followed by a newline`
 - `shared-b-dispatch`: `runInputValidationReplay()` keeps `baz` and `bar` on the same `show` and `store` path while rendering `9` and `10` through their own attribute names after the replay stores those exact values`
 - `parse-failure`: `runInputValidationReplay()` keeps invalid-integer writes returning `InvalidInteger` and unknown attribute names as explicit errors while the sample remains in the registered stage`
-- `exit-boundary`: `runTeardownReplay()` reports `tore_down_registered_attributes`, clears the tracked values, removes the active attribute count, and keeps reinit, reregister, post-exit `show`, post-exit `store`, second-`exit`, and anchor-replay rejection explicit`
+- `exit-boundary`: `runTeardownReplay()` reports `tore_down_registered_attributes`, clears the tracked values, removes the active attribute count, and keeps reinit, reregister, post-exit `show`, post-exit `store`, second-exit, and anchor-replay rejection explicit`
 
 ## Contributor Checklist
 
@@ -98,8 +98,7 @@ This note still does not claim:
 
 Leave this lane parked unless a fresh kobject reread changes one bounded fact inside the same packet:
 
-- authenticated contents readback starts returning `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` too, so the note can drop the connector-flakiness warning and treat the broader packet as both public-tree-backed and connector-readable
-- `scripts/zigux/README.md` still understates the kobject packet and needs one more lane-local truthfulness repair
-- another shared reminder surface still undercounts the dedicated kobject survey replay or shared Phase 5 build route and needs one more lane-local truthfulness repair
+- `scripts/zigux/README.md` still compresses the live kobject packet to a narrower note-plus-sample-plus-tests shape, so the next same-packet follow-through is one scripts-root wording repair that keeps `zigux/tests/phase5_kobject_example_manifest.json` explicit beside the survey note, sample, focused test, public-tree-backed survey replay, and public-tree-backed `zigux/tests/phase5_build.zig` route
+- authenticated contents readback starts returning `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` too, so this note can drop the connector-flakiness warning and treat the broader packet as both public-tree-backed and connector-readable
 
 Do not widen that follow-up into sample behavior unless the sample-root file, focused test, manifest-backed contract, dedicated survey replay, or shared build route actually changes.
