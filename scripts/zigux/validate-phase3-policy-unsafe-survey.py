@@ -40,6 +40,7 @@ PATH_MARKERS = {
 
 REQUIRED_MARKER_PREFIXES = (
     "PHASE3_SURVEY_PROVENANCE=",
+    "PHASE3_VALIDATE_GATE=",
 )
 
 STATIC_MARKERS = (
@@ -47,7 +48,7 @@ STATIC_MARKERS = (
     "PHASE3_PANIC_POLICY=explicit-modes-only",
     "PHASE3_ALLOCATOR_POLICY=explicit-modes-plus-init-flow",
     "PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge",
-    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
+    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
     "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
     "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig",
