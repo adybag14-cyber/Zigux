@@ -540,6 +540,12 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_cmdline.zig: phase 7 memparse keeps saturated prefixes aligned when size suffixes still apply",
             ),
             (
+                "survey_lane_key_marker",
+                "zigux/tests/phase7_cmdline_survey.zig",
+                "P7-L05",
+                "zigux/tests/phase7_cmdline_survey.zig: P7-L05",
+            ),
+            (
                 "survey_checker_marker",
                 "zigux/tests/phase7_cmdline_survey.zig",
                 "scripts/zigux/check-phase7-cmdline-packet.py",
@@ -550,6 +556,12 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_cmdline_survey.zig",
                 "zigux/tests/phase7_cmdline_manifest.json",
                 "zigux/tests/phase7_cmdline_survey.zig: zigux/tests/phase7_cmdline_manifest.json",
+            ),
+            (
+                "survey_fixture_path_marker",
+                "zigux/tests/phase7_cmdline_survey.zig",
+                "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+                "zigux/tests/phase7_cmdline_survey.zig: zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
             ),
             (
                 "survey_shared_route_marker",
