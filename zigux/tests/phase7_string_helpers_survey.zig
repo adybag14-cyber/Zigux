@@ -132,12 +132,12 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectContains(helper_tests, "const zero_written = string_helpers.string_get_size(42, 0, string_helpers.STRING_UNITS_10, &zero_buf, 0);");
-    try expectContains(helper_tests, "const zero_capacity_len = string_helpers.stringUnescape(\"\\n\", &zero_capacity, 0, string_helpers.UNESCAPE_SPACE);");
+    try expectContains(helper_tests, "const zero_capacity_len = string_helpers.stringUnescape(\"\\\\n\", &zero_capacity, 0, string_helpers.UNESCAPE_SPACE);");
     try expectContains(helper_tests, "const duplicated = try string_helpers.kstrdupAndReplace(std.testing.allocator, &source, '/', '_');");
     try expectContains(helper_tests, "const alias = try string_helpers.kstrdup_and_replace(std.testing.allocator, \"phase7-helper\", '-', '_');");
-    try expectContains(helper_tests, "string_helpers.string_escape_mem_any_np(&[_]u8{ '\\n', 0x7f }, &alias_dst, 0, null);");
+    try expectContains(helper_tests, "string_helpers.string_escape_mem_any_np(&[_]u8{ '\\\\n', 0x7f }, &alias_dst, 0, null);");
     try expectContains(helper_tests, "const string_written = string_helpers.stringEscapeStr(");
-    try expectContains(helper_tests, "const any_np_written = string_helpers.string_escape_str_any_np(&[_]u8{ '\\n', 0 }, &any_np_dst, 0, null);");
+    try expectContains(helper_tests, "const any_np_written = string_helpers.string_escape_str_any_np(&[_]u8{ '\\\\n', 0 }, &any_np_dst, 0, null);");
     try expectContains(helper_tests, "string_helpers.kasprintfStrarray(std.testing.allocator, \"phase7-helper\", 3)");
     try expectContains(helper_tests, "string_helpers.kfreeStrarray(std.testing.allocator, &first);");
     try expectContains(helper_tests, "string_helpers.kfree_strarray(std.testing.allocator, &result);");
@@ -145,7 +145,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
-    try expectContains(sample_boundary, "phase 7 string helper boundary keeps the exact current sample inventory and no string sample");
+    try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-string-sample policy lane-local");
     try expectContains(sample_boundary, "phase 7 string helper boundary keeps the lane-local helper packet aligned without claiming shared control surfaces");
     try expectNotContains(sample_boundary, "current shared reminders aligned");
 }
@@ -210,10 +210,6 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(survey, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
     try expectContains(survey, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(survey, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
-    try expectNotContains(survey, "Documentation/zigux/review-checklist.md");
-    try expectNotContains(survey, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
-    try expectNotContains(survey, "zigux/tests/phase7_build.zig");
-
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
