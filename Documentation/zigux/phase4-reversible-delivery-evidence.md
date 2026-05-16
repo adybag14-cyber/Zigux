@@ -8,26 +8,28 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
   * `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_DATE=2026-05-16`
   * `PHASE4_REVERSIBLE_DELIVERY_MODE=github_connector_readback`
   * `PHASE4_REVERSIBLE_DELIVERY_EXACT_READBACK_REF=master`
-  * `PHASE4_REVERSIBLE_DELIVERY_GATE_EVIDENCE_BLOB_SHA=0299aa4931145ade8ff83ae05ad640f357c8deda`
-  * `PHASE4_REVERSIBLE_DELIVERY_MATRIX_BLOB_SHA=cb8ffe99a6f26f7665eaaf2cbf1d36ecd4de1568`
-  * `PHASE4_REVERSIBLE_DELIVERY_REMAINING_GAP_CHECKER_BLOB_SHA=2e7b03fa41b7fe705ce73158b55249c729caa2fd`
-  * `PHASE4_REVERSIBLE_DELIVERY_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=57ecc3199ca4608828771456f8b6c417c4ab9f1c`
-  * `PHASE4_REVERSIBLE_DELIVERY_VALIDATOR_BLOB_SHA=694ad85743612aa0a595cd1752dd03c1013603ab`
-  * `PHASE4_REVERSIBLE_DELIVERY_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
-  * `PHASE4_REVERSIBLE_DELIVERY_MAKEFILE_BLOB_SHA=e6501c3281cc7adaab44e10c600dd52865f024c7`
-  * `PHASE4_REVERSIBLE_DELIVERY_WORKFLOW_BLOB_SHA=20327887d490ac94feda047293e0ba320aabe3a5`
-  * `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_CHECKER_BLOB_SHA=c48712a6f5a662e8d45baddcce09ea6f65328224`
-  * `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_MANIFEST_BLOB_SHA=c9fa8b2021a66cd244d1e47feeb9871d9bc327a8`
-  * `PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA=98010ca557a586fe12cd770458e27c94b5ef0813`
-  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=2bc2bf27d83f562a6af611c4a6fcf7579dd626d4`
-  * `PHASE4_REVERSIBLE_DELIVERY_SEQUENCING_NOTE_BLOB_SHA=a73dc68c02aadcb272bfec8067fbf0120675108c`
+  * `PHASE4_REVERSIBLE_DELIVERY_NOTE_BLOB_SHA=04dbaf57a26a81ab984a4a4d02e9bd73d8f484b1`
+  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=7cd3ed11a58ae9af8afbab7e594bcb1c3448892c`
+  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=fd448033e1a7ae17b457bd96ad8f9281d1e9bbc5`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=0299aa4931145ade8ff83ae05ad640f357c8deda`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MATRIX_BLOB_SHA=cb8ffe99a6f26f7665eaaf2cbf1d36ecd4de1568`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=2e7b03fa41b7fe705ce73158b55249c729caa2fd`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=57ecc3199ca4608828771456f8b6c417c4ab9f1c`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_VALIDATOR_BLOB_SHA=694ad85743612aa0a595cd1752dd03c1013603ab`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MAKEFILE_BLOB_SHA=e6501c3281cc7adaab44e10c600dd52865f024c7`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=20327887d490ac94feda047293e0ba320aabe3a5`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_CHECKER_BLOB_SHA=c48712a6f5a662e8d45baddcce09ea6f65328224`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_MANIFEST_BLOB_SHA=c9fa8b2021a66cd244d1e47feeb9871d9bc327a8`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=98010ca557a586fe12cd770458e27c94b5ef0813`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=a73dc68c02aadcb272bfec8067fbf0120675108c`
   * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=false`
   * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=0`
 ## Current Packet
 
 Treat this note as the current shared handoff for the Phase 4 rollback-readiness packet, not as proof that every older companion path listed below is still directly readable on current `master`.
 
-Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md`. This run narrows the tests-root guide to mirror current repo reality. Several older companion paths named by earlier Phase 4 packet history currently returned missing contents reads on `master`, including `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`. Keep those paths as last-known packet members that require a fresh reread or re-materialization before they are treated as shipped evidence again.
+Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md`. This run narrows the tests-root guide to mirror current repo reality. Several older companion paths named by earlier Phase 4 packet history currently returned missing contents reads on `master`, including `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`. Keep those paths as last-known packet members that require a fresh reread or re-materialization before they are treated as shipped evidence again, and treat the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` pins above as historical provenance rather than current-head readback.
 
 The tests-root guide should mirror this same current-head posture. If `zigux/tests/README.md` is updated alongside the Phase 4 packet, keep it limited to the current direct-readback surfaces plus the repo-reality warning above until the missing validator, lab-matrix, and local-only perf companions are directly readable again.
 
@@ -70,7 +72,7 @@ Keep the parked starter-gap packets for `samples/zigux/kprobe_example.zig` and `
 
 When Phase 4 follow-through reopens, repair the smallest packet that drifted first.
   * If the rollback-owner map, the host-side artifact-diff wording, exact-readback wording, lab-matrix wording, tests-root route inventory, remaining-gap checker wording, or validator-first route inventory drifts, repair the directly readable packet member first and then refresh this note.
-  * If this handoff note records a stale directly readable companion, refresh the exact pin after re-reading the current `master` copy. The current run refreshed `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA` to the live `Documentation/zigux/review-checklist.md` blob and marked the dedicated reversible-delivery pin checker absent because `scripts/zigux/check-phase4-reversible-delivery-pins.py` is not directly readable on current `master`.
+  * If this handoff note records a stale directly readable companion, refresh the exact pin after re-reading the current `master` copy. The current run refreshed `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA` and `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA` to the live directly readable blobs, recorded the note blob itself explicitly, marked the dedicated reversible-delivery pin checker absent because `scripts/zigux/check-phase4-reversible-delivery-pins.py` is not directly readable on current `master`, and kept the missing broader companions under `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance pins.
   * If the local benchmark commands, acceptable limits, or shared-CI-pending posture drifts, repair the dedicated local-only perf packet first and then return here only after those packet members are directly readable again.
   * If a later lane needs both, land the packet-local repair first, then refresh this note only after the packet-local state is directly readable on current `master`.
   * Do not treat the dedicated local-only perf packet as shared CI perf approval until a later bounded Phase 4 lane intentionally widens that policy and names the decision directly.
