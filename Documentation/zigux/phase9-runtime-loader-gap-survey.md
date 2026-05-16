@@ -50,19 +50,22 @@ or `phase9-validate` route on current `master`.
 ## Boundaries
 
 The shared loader packet is still a review-only handoff surface, not a shipped
-publication surface.
+publication or registration-control surface.
 
+- metadata-only `registrationSnapshot`, `tracepoint_probe_register`, and
+  `tracepoint_probe_unregister` cues are review evidence, not shared runtime
+  registration APIs
 - `.modinfo`
 - `MODULE_ALIAS()`
 - `modules.alias`
 - `modules.order`
 - `modules.builtin`
+- `Module.symvers`
 - module install-root state
-- `depmod` script or manifest state
-- depmod alias publication state
+- `depmod` script, manifest, or alias publication state
 
-Those publication surfaces remain blocked boundaries rather than landed Phase 9
-runtime-module delivery evidence.
+Those publication and registration-summary surfaces remain blocked boundaries
+rather than landed Phase 9 runtime-module delivery evidence.
 
 Keep the older Phase 8 command and environment cue owners out of this packet:
 
@@ -79,6 +82,13 @@ packet too:
 
 Those surfaces remain Phase 2 config-surface bridge references and Phase 3
 symbol-export boundary references rather than Phase 9 runtime evidence.
+
+Fresh repo-first inspection now also shows `zigux/kernel/runtime_loader_contract.zig`
+keeps `register_api`, `unregister_api`, `summary`, `registration_snapshot`,
+`module_symvers_path`, and `depmod_aliases` outside the shared `LoadPlan`, so
+this note should treat that blocked registration-summary and publication
+boundary as already-landed review-only contract evidence instead of as future
+runtime command or environment follow-through.
 
 ## Current Shared Reminder State
 
