@@ -36,7 +36,7 @@ The active shared Phase 11 packet is currently reviewable through these shared r
 * `zigux/tests/README.md`
 
 These shared surfaces keep the Phase 11 packet reviewable as a reminder-and-checker contract while the bounded build-backed replay files stay directly materialized on current `master`, and keep the broader contributor-facing packet aligned beside that checker-backed core instead of leaving those shared review surfaces implicit.
-Keep the scripts-root reminder honest too: broader contributor-facing summaries should keep `scripts/zigux/check-phase11-build-inventory.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `make -C zigux phase11-contract` explicit together instead of collapsing the inventory-backed shared packet back to helper-name-only wording.
+Keep the scripts-root reminder honest too: broader contributor-facing summaries should keep `scripts/zigux/check-phase11-build-inventory.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, the exact shared `zig build test --build-file zigux/tests/phase11_build.zig --summary all` replay, and `make -C zigux phase11-contract` explicit together instead of collapsing the inventory-backed shared packet back to helper-name-only wording.
 
 ## Current Repo Reality
 
