@@ -33,7 +33,11 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "map_flags");
     try expectContains(note, "no direct procfs reads");
     try expectContains(note, "no `bpf_obj_get()` reopen flow");
-    try expectContains(note, "map-reuse-compatibility remains queued");
+    try expectContains(note, "helper-only `mapReuseObservationFromFdinfo()` handoff");
+    try expectContains(note, "planning-only `resolveReusePinnedMapAttempt()` gating");
+    try expectContains(note, "planning-only `planTokenPreparation()` gating");
+    try expectContains(note, "no live bpffs opens");
+    try expectContains(note, "no descriptor replacement, transfer, or close ownership semantics");
 }
 
 test "phase 8 file-path handle bridge helper stays wired into its focused Phase 8 build shard" {
