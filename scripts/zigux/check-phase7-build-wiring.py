@@ -45,6 +45,7 @@ REQUIRED_MARKERS = {
     ],
     "scripts/zigux/README.md": [
         "scripts/zigux/check-phase7-build-wiring.py",
+        "scripts/zigux/check-phase7-cmdline-packet.py",
         "zigux/tests/phase7_build.zig",
         "make -C zigux phase7-string-helpers-survey",
         "make -C zigux phase7-string-helpers-sample-boundary",
@@ -248,6 +249,12 @@ def run_self_test() -> None:
             "Documentation/zigux/README.md",
             "zigux/tests/phase7_build.zig",
             "Documentation/zigux/README.md: zigux/tests/phase7_build.zig",
+        ),
+        (
+            "missing_scripts_cmdline_checker_marker",
+            "scripts/zigux/README.md",
+            "scripts/zigux/check-phase7-cmdline-packet.py",
+            "scripts/zigux/README.md: scripts/zigux/check-phase7-cmdline-packet.py",
         ),
         (
             "missing_scripts_route",
