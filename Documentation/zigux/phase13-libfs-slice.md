@@ -7,7 +7,7 @@ This document tracks the bounded Phase 13 shared-filesystem-helper slice for Zig
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=libfs-helper-filesystem-boundary-packet`
 - roadmap posture: keep the Phase 13 shared-helper foothold reviewable without overstating live VFS mutation
-- scope: positive-entry classification, simple-directory emptiness planning, negative-dentry lookup shaping, transaction acquire, publish, and release planning, addressability planning, offset seek, offset readdir, offset add and remove, offset rename and rename-exchange planning, cursor-open and cursor-precondition planning, and direct replay plus manifest review only
+- scope: positive-entry classification, simple-directory emptiness planning, negative-dentry lookup shaping, transaction acquire, publish, and release planning, addressability planning, offset seek, offset readdir, offset add and remove, offset rename and rename-exchange planning, cursor-open and cursor-precondition planning, packet-local cursor-reposition boundary tracing, and direct replay plus manifest review only
 
 ## Product Boundary
 
@@ -41,10 +41,33 @@ The current packet covers:
 
 The current packet does not cover:
 
-- the next helper-local cursor-reposition bookkeeping step around `hlist_del_init()` plus `hlist_add_before()` and `hlist_add_behind()`
+- the still-unlanded cursor-reposition planner documented below
 - the older shared `zigux/tests/phase13_build.zig` route
 - the still-missing focused `zigux/tests/phase13_libfs_addressability.zig` companion
 - live dcache entry insertion, inode lifetime management, page-cache-backed filesystem state, or broader filesystem registration
+
+## Parked Cursor-Reposition Step
+
+When this lane reopens for code, the next helper-local step should be grounded in the exact post-scan cursor bookkeeping paths already visible in Linux `fs/libfs.c`:
+
+- `dcache_dir_lseek()` removes the private cursor from its current sibling slot with `hlist_del_init()` and, when a positive target dentry was found, reattaches it with `hlist_add_behind()` before dropping the temporary target reference
+- `dcache_readdir()` removes the private cursor from its current sibling slot with `hlist_del_init()` and, when a next positive dentry remains after the emit loop, reattaches it with `hlist_add_before()` before dropping the temporary dentry reference
+- both paths leave the cursor unhashed when no positive target survives the scan, so the honest helper-only contract is detach-or-reinsert bookkeeping rather than a claim of live sibling-list mutation
+
+A future Zigux helper can therefore claim only these bounded reviewable facts:
+
+- the cursor is explicitly detached before any reinsert decision
+- seek-style resume parks the cursor behind the found positive dentry
+- readdir-style resume parks the cursor before the next positive dentry
+- end-of-directory and missing-target cases leave the cursor detached
+- any temporary positive dentry reference is dropped after the bookkeeping step
+
+That future helper must still not claim:
+
+- live sibling-list ownership or mutation semantics beyond the detach-or-reinsert plan
+- cursor dentry lifetime ownership
+- lock-order guarantees beyond the already-noted parent dentry lock requirement
+- inode lifetime, page-cache-backed filesystem state, or broader directory runtime behavior
 
 ## Gates
 
