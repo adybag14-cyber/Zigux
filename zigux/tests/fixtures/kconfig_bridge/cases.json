@@ -194,6 +194,11 @@
       "expected": "empty_config_symbol_names_expected.json"
     },
     {
+      "name": "malformed_unset_comment_tokens",
+      "input": "malformed_unset_comment_tokens.config",
+      "expected": "malformed_unset_comment_tokens_expected.json"
+    },
+    {
       "name": "last_state_transitions",
       "input": "last_state_transitions.config",
       "expected": "last_state_transitions_expected.json"
