@@ -11,6 +11,8 @@
   - `Documentation/zigux/artifact-diff.md`
   - `Documentation/zigux/phase4-artifact-diff-tooling-survey.md`
   - `Documentation/zigux/phase4-validation-matrix.md`
+  - `Documentation/zigux/README.md`
+  - `scripts/zigux/README.md`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
 
