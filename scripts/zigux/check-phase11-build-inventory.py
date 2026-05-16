@@ -325,7 +325,7 @@ def run_check(root: Path) -> None:
 
     if expect_unique_strings("shared_split_replays", inventory.get("shared_split_replays")):
         raise CheckError("expected shared_split_replays to stay empty")
-    if expect_uniqueStrings("shared_adjunct_replays", inventory.get("shared_adjunct_replays")):
+    if expect_unique_strings("shared_adjunct_replays", inventory.get("shared_adjunct_replays")):
         raise CheckError("expected shared_adjunct_replays to stay empty")
 
     replay_pairs = {
@@ -349,14 +349,65 @@ def build_inventory_fixture() -> dict[str, object]:
     return {
         "build_test_names": REQUIRED_BUILD_TEST_NAMES,
         "shared_test_depend_steps": REQUIRED_SHARED_DEPEND_STEPS,
-        "module_root_source_files": [{"module": "abi_bindings_module", "path": "../bindings/abi.zig"}, {"module": "layout_assert_module", "path": "../helpers/layout_assert.zig"}, {"module": "gpio_wdt_module", "path": "../../drivers/watchdog/gpio_wdt.zig"}, {"module": "phase11_gpio_wdt_module", "path": "phase11_gpio_wdt.zig"}, {"module": "phase11_gpio_wdt_survey_module", "path": "phase11_gpio_wdt_survey.zig"}, {"module": "bcm2835_wdt_module", "path": "../../drivers/watchdog/bcm2835_wdt.zig"}, {"module": "bcm2835_wdt_verify_module", "path": "../../drivers/watchdog/bcm2835_wdt_verify.zig"}, {"module": "phase11_bcm2835_wdt_module", "path": "phase11_bcm2835_wdt.zig"}, {"module": "phase11_bcm2835_wdt_survey_module", "path": "phase11_bcm2835_wdt_survey.zig"}, {"module": "dw_wdt_module", "path": "../../drivers/watchdog/dw_wdt.zig"}, {"module": "dw_wdt_verify_module", "path": "../../drivers/watchdog/dw_wdt_verify.zig"}, {"module": "phase11_dw_wdt_module", "path": "phase11_dw_wdt.zig"}, {"module": "phase11_dw_wdt_registration_scaffold_module", "path": "phase11_dw_wdt_registration_scaffold.zig"}, {"module": "phase11_dw_wdt_survey_module", "path": "phase11_dw_wdt_survey.zig"}, {"module": "hvc_console_module", "path": "../../drivers/tty/hvc/hvc_console.zig"}, {"module": "hvc_console_verify_module", "path": "../../drivers/tty/hvc/hvc_console_verify.zig"}, {"module": "phase11_hvc_console_module", "path": "phase11_hvc_console.zig"}, {"module": "phase11_hvc_cleanup_module", "path": "phase11_hvc_cleanup.zig"}, {"module": "phase11_hvc_console_survey_module", "path": "phase11_hvc_console_survey.zig"}, {"module": "phase11_uapi_header_parity_survey_module", "path": "phase11_uapi_header_parity_survey.zig"}],
-        "module_imports": [{"module": "layout_assert_module", "import_name": "abi_bindings", "imported_module": "abi_bindings_module"}, {"module": "phase11_gpio_wdt_module", "import_name": "gpio_wdt", "imported_module": "gpio_wdt_module"}, {"module": "phase11_bcm2835_wdt_module", "import_name": "bcm2835_wdt", "imported_module": "bcm2835_wdt_module"}, {"module": "phase11_dw_wdt_module", "import_name": "dw_wdt", "imported_module": "dw_wdt_module"}, {"module": "phase11_dw_wdt_registration_scaffold_module", "import_name": "dw_wdt", "imported_module": "dw_wdt_module"}, {"module": "phase11_hvc_console_module", "import_name": "hvc_console", "imported_module": "hvc_console_module"}, {"module": "phase11_hvc_cleanup_module", "import_name": "hvc_console", "imported_module": "hvc_console_module"}, {"module": "phase11_hvc_console_survey_module", "import_name": "layout_assert", "imported_module": "layout_assert_module"}, {"module": "phase11_uapi_header_parity_survey_module", "import_name": "layout_assert", "imported_module": "layout_assert_module"}],
-        "test_root_modules": [{"test": "phase11-gpio-wdt-tests", "root_module": "phase11_gpio_wdt_module"}, {"test": "phase11-gpio-wdt-survey-tests", "root_module": "phase11_gpio_wdt_survey_module"}, {"test": "phase11-bcm2835-wdt-tests", "root_module": "phase11_bcm2835_wdt_module"}, {"test": "phase11-bcm2835-wdt-verify-tests", "root_module": "bcm2835_wdt_verify_module"}, {"test": "phase11-bcm2835-wdt-survey-tests", "root_module": "phase11_bcm2835_wdt_survey_module"}, {"test": "phase11-dw-wdt-tests", "root_module": "phase11_dw_wdt_module"}, {"test": "phase11-dw-wdt-registration-scaffold-tests", "root_module": "phase11_dw_wdt_registration_scaffold_module"}, {"test": "phase11-dw-wdt-verify-tests", "root_module": "dw_wdt_verify_module"}, {"test": "phase11-dw-wdt-survey-tests", "root_module": "phase11_dw_wdt_survey_module"}, {"test": "phase11-hvc-console-tests", "root_module": "phase11_hvc_console_module"}, {"test": "phase11-hvc-console-verify-tests", "root_module": "hvc_console_verify_module"}, {"test": "phase11-hvc-cleanup-tests", "root_module": "phase11_hvc_cleanup_module"}, {"test": "phase11-hvc-console-survey-tests", "root_module": "phase11_hvc_console_survey_module"}, {"test": "phase11-uapi-header-parity-survey-tests", "root_module": "phase11_uapi_header_parity_survey_module"}],
+        "module_root_source_files": [
+            {"module": "abi_bindings_module", "path": "../bindings/abi.zig"},
+            {"module": "layout_assert_module", "path": "../helpers/layout_assert.zig"},
+            {"module": "gpio_wdt_module", "path": "../../drivers/watchdog/gpio_wdt.zig"},
+            {"module": "phase11_gpio_wdt_module", "path": "phase11_gpio_wdt.zig"},
+            {"module": "phase11_gpio_wdt_survey_module", "path": "phase11_gpio_wdt_survey.zig"},
+            {"module": "bcm2835_wdt_module", "path": "../../drivers/watchdog/bcm2835_wdt.zig"},
+            {"module": "bcm2835_wdt_verify_module", "path": "../../drivers/watchdog/bcm2835_wdt_verify.zig"},
+            {"module": "phase11_bcm2835_wdt_module", "path": "phase11_bcm2835_wdt.zig"},
+            {"module": "phase11_bcm2835_wdt_survey_module", "path": "phase11_bcm2835_wdt_survey.zig"},
+            {"module": "dw_wdt_module", "path": "../../drivers/watchdog/dw_wdt.zig"},
+            {"module": "dw_wdt_verify_module", "path": "../../drivers/watchdog/dw_wdt_verify.zig"},
+            {"module": "phase11_dw_wdt_module", "path": "phase11_dw_wdt.zig"},
+            {"module": "phase11_dw_wdt_registration_scaffold_module", "path": "phase11_dw_wdt_registration_scaffold.zig"},
+            {"module": "phase11_dw_wdt_survey_module", "path": "phase11_dw_wdt_survey.zig"},
+            {"module": "hvc_console_module", "path": "../../drivers/tty/hvc/hvc_console.zig"},
+            {"module": "hvc_console_verify_module", "path": "../../drivers/tty/hvc/hvc_console_verify.zig"},
+            {"module": "phase11_hvc_console_module", "path": "phase11_hvc_console.zig"},
+            {"module": "phase11_hvc_cleanup_module", "path": "phase11_hvc_cleanup.zig"},
+            {"module": "phase11_hvc_console_survey_module", "path": "phase11_hvc_console_survey.zig"},
+            {"module": "phase11_uapi_header_parity_survey_module", "path": "phase11_uapi_header_parity_survey.zig"},
+        ],
+        "module_imports": [
+            {"module": "layout_assert_module", "import_name": "abi_bindings", "imported_module": "abi_bindings_module"},
+            {"module": "phase11_gpio_wdt_module", "import_name": "gpio_wdt", "imported_module": "gpio_wdt_module"},
+            {"module": "phase11_bcm2835_wdt_module", "import_name": "bcm2835_wdt", "imported_module": "bcm2835_wdt_module"},
+            {"module": "phase11_dw_wdt_module", "import_name": "dw_wdt", "imported_module": "dw_wdt_module"},
+            {"module": "phase11_dw_wdt_registration_scaffold_module", "import_name": "dw_wdt", "imported_module": "dw_wdt_module"},
+            {"module": "phase11_hvc_console_module", "import_name": "hvc_console", "imported_module": "hvc_console_module"},
+            {"module": "phase11_hvc_cleanup_module", "import_name": "hvc_console", "imported_module": "hvc_console_module"},
+            {"module": "phase11_hvc_console_survey_module", "import_name": "layout_assert", "imported_module": "layout_assert_module"},
+            {"module": "phase11_uapi_header_parity_survey_module", "import_name": "layout_assert", "imported_module": "layout_assert_module"},
+        ],
+        "test_root_modules": [
+            {"test": "phase11-gpio-wdt-tests", "root_module": "phase11_gpio_wdt_module"},
+            {"test": "phase11-gpio-wdt-survey-tests", "root_module": "phase11_gpio_wdt_survey_module"},
+            {"test": "phase11-bcm2835-wdt-tests", "root_module": "phase11_bcm2835_wdt_module"},
+            {"test": "phase11-bcm2835-wdt-verify-tests", "root_module": "bcm2835_wdt_verify_module"},
+            {"test": "phase11-bcm2835-wdt-survey-tests", "root_module": "phase11_bcm2835_wdt_survey_module"},
+            {"test": "phase11-dw-wdt-tests", "root_module": "phase11_dw_wdt_module"},
+            {"test": "phase11-dw-wdt-registration-scaffold-tests", "root_module": "phase11_dw_wdt_registration_scaffold_module"},
+            {"test": "phase11-dw-wdt-verify-tests", "root_module": "dw_wdt_verify_module"},
+            {"test": "phase11-dw-wdt-survey-tests", "root_module": "phase11_dw_wdt_survey_module"},
+            {"test": "phase11-hvc-console-tests", "root_module": "phase11_hvc_console_module"},
+            {"test": "phase11-hvc-console-verify-tests", "root_module": "hvc_console_verify_module"},
+            {"test": "phase11-hvc-cleanup-tests", "root_module": "phase11_hvc_cleanup_module"},
+            {"test": "phase11-hvc-console-survey-tests", "root_module": "phase11_hvc_console_survey_module"},
+            {"test": "phase11-uapi-header-parity-survey-tests", "root_module": "phase11_uapi_header_parity_survey_module"},
+        ],
         "forbidden_markers": [FORBIDDEN_BUILD_FILE_MARKER],
         "dedicated_survey_replays": ["zigux/tests/phase11_hvc_console_survey.zig"],
         "shared_split_replays": [],
         "shared_adjunct_replays": [],
-        "shared_replay_markers": [{"path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig", "marker": " try std.testing.expect(summary.resume_preserves_timeout_programming);"}, {"path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig", "marker": " try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);"}, {"path": "zigux/tests/phase11_hvc_console_modem_control_split.zig", "marker": " try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);"}, {"path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig", "marker": " try std.testing.expect(dispatch.invokes_sysrq_handler);"}],
+        "shared_replay_markers": [
+            {"path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig", "marker": " try std.testing.expect(summary.resume_preserves_timeout_programming);"},
+            {"path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig", "marker": " try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);"},
+            {"path": "zigux/tests/phase11_hvc_console_modem_control_split.zig", "marker": " try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);"},
+            {"path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig", "marker": " try std.testing.expect(dispatch.invokes_sysrq_handler);"},
+        ],
     }
 
 
@@ -396,10 +447,126 @@ def run_self_test() -> None:
             root = tmpdir / case
             shutil.copytree(fixture, root, dirs_exist_ok=True)
             relative_path = FILES[label]
-            write(root / relative_path, read_text(root, relative_path).replace(marker, "", 1))
+            write(
+                root / relative_path,
+                read_text(root, relative_path).replace(marker, "", 1),
+            )
             return root
 
-        base_json_cases = [("missing_build_name", lambda data: data["build_test_names"].remove("phase11-hvc-cleanup-tests"), "phase11-hvc-cleanup-tests"), ("wrong_module_path", lambda data: next(entry.update({"path": "drivers/tty/hvc/hvc_console_verify.zig"}) for entry in data["module_root_source_files"] if entry["module"] == "hvc_console_verify_module"), "module_root_source_files mismatch for hvc_console_verify_module"), ("wrong_gpio_survey_path", lambda data: next(entry.update({"path": "phase11_gpio_wdt.zig"}) for entry in data["module_root_source_files"] if entry["module"] == "phase11_gpio_wdt_survey_module"), "module_root_source_files mismatch for phase11_gpio_wdt_survey_module"), ("wrong_dw_wdt_survey_path", lambda data: next(entry.update({"path": "phase11_dw_wdt_registration_scaffold.zig"}) for entry in data["module_root_source_files"] if entry["module"] == "phase11_dw_wdt_survey_module"), "module_root_source_files mismatch for phase11_dw_wdt_survey_module"), ("missing_abi_bindings_import", lambda data: data["module_imports"].remove({"module": "layout_assert_module", "import_name": "abi_bindings", "imported_module": "abi_bindings_module"}), "('layout_assert_module', 'abi_bindings', 'abi_bindings_module')"), ("wrong_hvc_console_root_module", lambda data: next(entry.update({"root_module": "phase11_hvc_cleanup_module"}) for entry in data["test_root_modules"] if entry["test"] == "phase11-hvc-console-tests"), "test_root_modules mismatch for phase11-hvc-console-tests"), ("missing_hvc_verify_depend_step", lambda data: data["shared_test_depend_steps"].remove("run_hvc_console_verify_tests"), "run_hvc_console_verify_tests"), ("wrong_hvc_verify_module_path", lambda data: next(entry.update({"path": "../../drivers/tty/hvc/hvc_console.zig"}) for entry in data["module_root_source_files"] if entry["module"] == "hvc_console_verify_module"), "module_root_source_files mismatch for hvc_console_verify_module"), ("wrong_hvc_verify_root_module", lambda data: next(entry.update({"root_module": "phase11_hvc_console_module"}) for entry in data["test_root_modules"] if entry["test"] == "phase11-hvc-console-verify-tests"), "test_root_modules mismatch for phase11-hvc-console-verify-tests"), ("wrong_dw_wdt_survey_root_module", lambda data: next(entry.update({"root_module": "phase11_dw_wdt_registration_scaffold_module"}) for entry in data["test_root_modules"] if entry["test"] == "phase11-dw-wdt-survey-tests"), "test_root_modules mismatch for phase11-dw-wdt-survey-tests"), ("forbidden_shared_step", lambda data: data["shared_test_depend_steps"].append(FORBIDDEN_SHARED_DEPEND_STEP), FORBIDDEN_SHARED_DEPEND_STEP), ("duplicate_build_name", lambda data: data["build_test_names"].append("phase11-hvc-cleanup-tests"), "duplicate entry in build_test_names"), ("missing_forbidden_marker", lambda data: data["forbidden_markers"].clear(), FORBIDDEN_BUILD_FILE_MARKER), ("missing_dedicated_survey_replay", lambda data: data["dedicated_survey_replays"].clear(), "zigux/tests/phase11_hvc_console_survey.zig"), ("shared_split_replays_not_empty", lambda data: data["shared_split_replays"].append("zigux/tests/phase11_hvc_console_poll_retry_split.zig"), "expected shared_split_replays to stay empty"), ("shared_adjunct_replays_not_empty", lambda data: data["shared_adjunct_replays"].append("zigux/tests/phase11_hvc_console_modem_control_split.zig"), "expected shared_adjunct_replays to stay empty")]
+        base_json_cases = [
+            (
+                "missing_build_name",
+                lambda data: data["build_test_names"].remove("phase11-hvc-cleanup-tests"),
+                "phase11-hvc-cleanup-tests",
+            ),
+            (
+                "wrong_module_path",
+                lambda data: next(
+                    entry.update({"path": "drivers/tty/hvc/hvc_console_verify.zig"})
+                    for entry in data["module_root_source_files"]
+                    if entry["module"] == "hvc_console_verify_module"
+                ),
+                "module_root_source_files mismatch for hvc_console_verify_module",
+            ),
+            (
+                "wrong_gpio_survey_path",
+                lambda data: next(
+                    entry.update({"path": "phase11_gpio_wdt.zig"})
+                    for entry in data["module_root_source_files"]
+                    if entry["module"] == "phase11_gpio_wdt_survey_module"
+                ),
+                "module_root_source_files mismatch for phase11_gpio_wdt_survey_module",
+            ),
+            (
+                "wrong_dw_wdt_survey_path",
+                lambda data: next(
+                    entry.update({"path": "phase11_dw_wdt_registration_scaffold.zig"})
+                    for entry in data["module_root_source_files"]
+                    if entry["module"] == "phase11_dw_wdt_survey_module"
+                ),
+                "module_root_source_files mismatch for phase11_dw_wdt_survey_module",
+            ),
+            (
+                "missing_abi_bindings_import",
+                lambda data: data["module_imports"].remove({
+                    "module": "layout_assert_module",
+                    "import_name": "abi_bindings",
+                    "imported_module": "abi_bindings_module",
+                }),
+                "('layout_assert_module', 'abi_bindings', 'abi_bindings_module')",
+            ),
+            (
+                "wrong_hvc_console_root_module",
+                lambda data: next(
+                    entry.update({"root_module": "phase11_hvc_cleanup_module"})
+                    for entry in data["test_root_modules"]
+                    if entry["test"] == "phase11-hvc-console-tests"
+                ),
+                "test_root_modules mismatch for phase11-hvc-console-tests",
+            ),
+            (
+                "missing_hvc_verify_depend_step",
+                lambda data: data["shared_test_depend_steps"].remove("run_hvc_console_verify_tests"),
+                "run_hvc_console_verify_tests",
+            ),
+            (
+                "wrong_hvc_verify_module_path",
+                lambda data: next(
+                    entry.update({"path": "../../drivers/tty/hvc/hvc_console.zig"})
+                    for entry in data["module_root_source_files"]
+                    if entry["module"] == "hvc_console_verify_module"
+                ),
+                "module_root_source_files mismatch for hvc_console_verify_module",
+            ),
+            (
+                "wrong_hvc_verify_root_module",
+                lambda data: next(
+                    entry.update({"root_module": "phase11_hvc_console_module"})
+                    for entry in data["test_root_modules"]
+                    if entry["test"] == "phase11-hvc-console-verify-tests"
+                ),
+                "test_root_modules mismatch for phase11-hvc-console-verify-tests",
+            ),
+            (
+                "wrong_dw_wdt_survey_root_module",
+                lambda data: next(
+                    entry.update({"root_module": "phase11_dw_wdt_registration_scaffold_module"})
+                    for entry in data["test_root_modules"]
+                    if entry["test"] == "phase11-dw-wdt-survey-tests"
+                ),
+                "test_root_modules mismatch for phase11-dw-wdt-survey-tests",
+            ),
+            (
+                "forbidden_shared_step",
+                lambda data: data["shared_test_depend_steps"].append(FORBIDDEN_SHARED_DEPEND_STEP),
+                FORBIDDEN_SHARED_DEPEND_STEP,
+            ),
+            (
+                "duplicate_build_name",
+                lambda data: data["build_test_names"].append("phase11-hvc-cleanup-tests"),
+                "duplicate entry in build_test_names",
+            ),
+            (
+                "missing_forbidden_marker",
+                lambda data: data["forbidden_markers"].clear(),
+                FORBIDDEN_BUILD_FILE_MARKER,
+            ),
+            (
+                "missing_dedicated_survey_replay",
+                lambda data: data["dedicated_survey_replays"].clear(),
+                "zigux/tests/phase11_hvc_console_survey.zig",
+            ),
+            (
+                "shared_split_replays_not_empty",
+                lambda data: data["shared_split_replays"].append("zigux/tests/phase11_hvc_console_poll_retry_split.zig"),
+                "expected shared_split_replays to stay empty",
+            ),
+            (
+                "shared_adjunct_replays_not_empty",
+                lambda data: data["shared_adjunct_replays"].append("zigux/tests/phase11_hvc_console_modem_control_split.zig"),
+                "expected shared_adjunct_replays to stay empty",
+            ),
+        ]
         for case_name, mutate, fragment in base_json_cases:
             expect_failure(rewrite_json(case_name, mutate), fragment)
 
@@ -407,26 +574,51 @@ def run_self_test() -> None:
         for idx, pair in enumerate(replay_pair_cases, start=1):
 
             def drop_pair(data, pair=pair):
-                data["shared_replay_markers"] = [entry for entry in data["shared_replay_markers"] if (entry.get("path"), entry.get("marker")) != pair]
+                data["shared_replay_markers"] = [
+                    entry
+                    for entry in data["shared_replay_markers"]
+                    if (entry.get("path"), entry.get("marker")) != pair
+                ]
 
-            expect_failure(rewrite_json(f"missing_replay_pair_{idx}", drop_pair), f"missing shared replay marker pair: {pair!r}")
+            expect_failure(
+                rewrite_json(f"missing_replay_pair_{idx}", drop_pair),
+                f"missing shared replay marker pair: {pair!r}",
+            )
 
-        text_marker_cases = [(label, marker) for label, markers in TEXT_MARKERS.items() for marker in markers]
+        text_marker_cases = [
+            (label, marker)
+            for label, markers in TEXT_MARKERS.items()
+            for marker in markers
+        ]
         for idx, (label, marker) in enumerate(text_marker_cases, start=1):
-            expect_failure(rewrite_text_case(f"missing_text_marker_{idx}", label, marker), marker)
+            expect_failure(
+                rewrite_text_case(f"missing_text_marker_{idx}", label, marker),
+                marker,
+            )
 
-        build_marker_cases = [("\"phase11-dw-wdt-survey-tests\"", "\"phase11-dw-wdt-survey-tests\""), ("const run_phase11_dw_wdt_registration_scaffold_tests = b.addRunArtifact(", "run_phase11_dw_wdt_registration_scaffold_tests"), ("\"../../drivers/watchdog/dw_wdt_verify.zig\"", "../../drivers/watchdog/dw_wdt_verify.zig"), (".root_module = phase11_dw_wdt_survey_module", "phase11_dw_wdt_survey_module")]
+        build_marker_cases = [
+            ('"phase11-dw-wdt-survey-tests"', '"phase11-dw-wdt-survey-tests"'),
+            ("const run_phase11_dw_wdt_registration_scaffold_tests = b.addRunArtifact(", "run_phase11_dw_wdt_registration_scaffold_tests"),
+            ('"../../drivers/watchdog/dw_wdt_verify.zig"', "../../drivers/watchdog/dw_wdt_verify.zig"),
+            (".root_module = phase11_dw_wdt_survey_module", "phase11_dw_wdt_survey_module"),
+        ]
         for idx, (marker, fragment) in enumerate(build_marker_cases, start=1):
             case_root = tmpdir / f"missing_build_marker_{idx}"
             shutil.copytree(fixture, case_root, dirs_exist_ok=True)
             build_path = case_root / FILES["build_file"]
-            write(build_path, build_path.read_text(encoding="utf-8").replace(marker, "", 1))
+            write(
+                build_path,
+                build_path.read_text(encoding="utf-8").replace(marker, "", 1),
+            )
             expect_failure(case_root, fragment)
 
         forbidden_build_marker_case = tmpdir / "forbidden_build_marker_present"
         shutil.copytree(fixture, forbidden_build_marker_case, dirs_exist_ok=True)
         build_path = forbidden_build_marker_case / FILES["build_file"]
-        write(build_path, build_path.read_text(encoding="utf-8") + FORBIDDEN_BUILD_FILE_MARKER + "\n")
+        write(
+            build_path,
+            build_path.read_text(encoding="utf-8") + FORBIDDEN_BUILD_FILE_MARKER + "\n",
+        )
         expect_failure(forbidden_build_marker_case, FORBIDDEN_BUILD_FILE_MARKER)
 
         missing_build_case = tmpdir / "missing_build_file"
@@ -434,7 +626,13 @@ def run_self_test() -> None:
         (missing_build_case / FILES["build_file"]).unlink()
         expect_failure(missing_build_case, FILES["build_file"])
 
-        case_count = len(base_json_cases) + len(replay_pair_cases) + len(text_marker_cases) + len(build_marker_cases) + 2
+        case_count = (
+            len(base_json_cases)
+            + len(replay_pair_cases)
+            + len(text_marker_cases)
+            + len(build_marker_cases)
+            + 2
+        )
         print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
         print(f"PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT={case_count}")
     finally:
