@@ -15,6 +15,7 @@ class ValidationError(RuntimeError):
 
 
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
+DOCUMENTATION_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
@@ -79,12 +80,14 @@ EXPECTED_SHARED_ROUTE_NOTE = (
 )
 
 REQUIRED_SHARED_GATES = {
+    DOCUMENTATION_README_PATH.as_posix(),
     SCRIPTS_README_PATH.as_posix(),
     CATALOG_PATH.as_posix(),
     CHECKSUM_SLICE_PATH.as_posix(),
     PERF_SURVEY_PATH.as_posix(),
     SHARED_CHECKER_PATH.as_posix(),
     PRESENT_ENTRYPOINTS_CHECKER_PATH.as_posix(),
+    TESTS_README_PATH.as_posix(),
     PHASE6_BUILD_PATH.as_posix(),
     MAKEFILE_PATH.as_posix(),
     WORKFLOW_PATH.as_posix(),
@@ -239,7 +242,7 @@ REQUIRED_PRESENT_ENTRYPOINTS_SNIPPETS = [
     'EXPECTED_HEXDUMP_PERF_REFRESH = HEXDUMP_PERF_REFRESH_PATH.as_posix()',
 ]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 14
 
 
 def read_text(path: Path) -> str:
@@ -336,6 +339,7 @@ def validate_manifest(repo_root: Path) -> None:
 
 def validate_paths(repo_root: Path) -> None:
     required_paths = {
+        DOCUMENTATION_README_PATH,
         SCRIPTS_README_PATH,
         CATALOG_PATH,
         PERF_SURVEY_PATH,
@@ -440,6 +444,7 @@ def scaffold_repo(root: Path) -> None:
     for path in placeholder_files:
         write(root / path, "placeholder\n")
 
+    write(root / DOCUMENTATION_README_PATH, "# Zigux Documentation\n")
     write(root / HEXDUMP_PERF_REFRESH_PATH, "# Phase 6 Hexdump Perf Refresh\n")
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n")
     write(root / CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
@@ -515,6 +520,8 @@ def run_self_test() -> None:
         assert_failure(tmpdir, MANIFEST_PATH, '"shared_route_truthfulness_note"', '"shared_route_truthfulness_note_missing"')
         assert_failure(tmpdir, MANIFEST_PATH, '"partially_blocked"', '"blocked"')
         assert_failure(tmpdir, MANIFEST_PATH, '"make -C zigux phase6-base64-perf"', '"make -C zigux phase6-base64-perf-missing"')
+        assert_failure(tmpdir, MANIFEST_PATH, '"Documentation/zigux/README.md"', '"Documentation/zigux/README-missing.md"')
+        assert_failure(tmpdir, MANIFEST_PATH, '"zigux/tests/README.md"', '"zigux/tests/README-missing.md"')
         assert_failure(tmpdir, CATALOG_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
         assert_failure(tmpdir, BASE64_SLICE_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
         assert_failure(tmpdir, PERF_SURVEY_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
