@@ -209,7 +209,7 @@ test "phase 8 libbpf survey keeps routing helper and perf-buffer boundary explic
     try expectContains(routing_helper, "pub fn summarizeOnlineCpuRouting(");
     try expectContains(
         routing_helper,
-        "test \\\"summarizeOnlineCpuRouting reports the first routed online CPU whose fd slot is empty\\\" {",
+        "test \"summarizeOnlineCpuRouting reports the first routed online CPU whose fd slot is empty\" {",
     );
 
     const boundary_note = try readFileAlloc(
@@ -241,4 +241,15 @@ test "phase 8 libbpf survey keeps routing helper and perf-buffer boundary explic
         poll_note,
         "If it reopens, keep follow-up smaller than full routing, epoll, timer, clockevent, object-model, or ring-lifecycle work.",
     );
+
+    const phase8_note = try readFileAlloc(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(phase8_note);
+    try expectContains(phase8_note, "`Documentation/zigux/phase8-perf-buffer-poll-slice.md`");
+    try expectContains(phase8_note, "standalone timer or clockevent helper behavior");
+    try expectContains(phase8_note, "broader timeout-sensitive routing behavior");
 }
