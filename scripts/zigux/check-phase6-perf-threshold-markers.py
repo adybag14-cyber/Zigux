@@ -113,10 +113,10 @@ HEXDUMP_CASES = [
 
 REQUIRED_SNIPPETS = {
     SURVEY_PATH.as_posix(): [
-        "* base64 shared posture: `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_base64_perf.zig` are directly readable on current `master`, current `zigux/tests/phase6_build.zig` defines the dedicated `phase6-base64-perf` build step again, and `zigux/Makefile` now exposes a committed `phase6-base64-perf` target body; that slowdown gate is directly reviewable from the committed tree even though `.github/workflows/zigux-bootstrap.yml` still exposes Phase 6 perf coverage only through the shared checker bundle plus the hexdump perf replay",
-        "* base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps that same six-case helper-owned replay aligned with the committed fixture packet today",
-        "* checksum shared posture: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` are directly readable on current `master`, and current `zigux/tests/phase6_build.zig` defines the dedicated `phase6-checksum-perf` build step again; that slowdown gate is directly reviewable from the committed tree, `zigux/Makefile` now exposes a committed `phase6-checksum-perf` target body, and only the broader bootstrap workflow plus aggregate wrapper summaries still lag the checksum packet",
-        "* checksum exact thresholds: `zigux/tests/phase6_checksum_perf.zig` now keeps two helper-local slowdown cases, `64` at `reps = 20_000` and `1501` at `reps = 4_000`, each capped at `max_slowdown_pct = 150`, so the checksum perf packet is reviewable from committed evidence today even while the Linux-style wrapper inventory still lags that direct build route",
+        "* base64 shared posture: `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_base64_perf.zig` are directly readable on current `master`, current `zigux/tests/phase6_build.zig` defines the dedicated `phase6-base64-perf` build step again, and `zigux/Makefile` now exposes a committed `phase6-base64-perf` target body; that slowdown gate is directly reviewable from the committed tree even though `.github/workflows/zigux-bootstrap.yml` still exposes Phase 6 perf coverage only through the shared checker bundle plus the hexdump perf replay`",
+        "* base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps that same six-case helper-owned replay aligned with the committed fixture packet today`",
+        "* checksum shared posture: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` are directly readable on current `master`, and current `zigux/tests/phase6_build.zig` defines the dedicated `phase6-checksum-perf` build step again; that slowdown gate is directly reviewable from the committed tree, `zigux/Makefile` now exposes a committed `phase6-checksum-perf` target body, and only the broader bootstrap workflow plus aggregate wrapper summaries still lag the checksum packet`",
+        "* checksum exact thresholds: `zigux/tests/phase6_checksum_perf.zig` now keeps two helper-local slowdown cases, `64` at `reps = 20_000` and `1501` at `reps = 4_000`, each capped at `max_slowdown_pct = 150`, so the checksum perf packet is reviewable from committed evidence today even while the Linux-style wrapper inventory still lags that direct build route`",
         "* hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
     ],
     CATALOG_PATH.as_posix(): [
@@ -162,6 +162,8 @@ REQUIRED_SNIPPETS = {
         '.{ .label = "IMAP_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "imap", .reference_kind = "imap_no_pad", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
     ],
     BASE64_PERF_PATH.as_posix(): [
+        'try std.testing.expectEqual(@as(usize, 6), fixtures.perf_cases.len);',
+        'for (fixtures.perf_cases) |case| try expectPerfCaseReferenceParity(case);',
         '.{ .label = "IMAP_PAD", .variant_name = "imap", .reference_kind = "imap_padded", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
         '.{ .label = "IMAP_NO_PAD", .variant_name = "imap", .reference_kind = "imap_no_pad", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
     ],
@@ -434,6 +436,12 @@ def run_self_test() -> None:
             SURVEY_PATH,
             "`IMAP_PAD`, and `IMAP_NO_PAD`",
             "`IMAP_PAD`",
+        )
+        assert_failure(
+            root,
+            BASE64_PERF_PATH,
+            "for (fixtures.perf_cases) |case| try expectPerfCaseReferenceParity(case);",
+            "try expectPerfCaseReferenceParity(fixtures.perf_cases[0]);",
         )
         assert_failure(
             root,
