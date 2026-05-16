@@ -58,6 +58,8 @@ REQUIRED_MARKERS = {
         "make -C zigux phase7-validate",
         "Run Phase 7 runtime helper tests",
         "make -C zigux phase7-test",
+        "Run Phase 7 string-helpers sample-boundary adapter",
+        "make -C zigux phase7-string-helpers-sample-boundary",
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "PHASE7_STATUS=starter_landed",
@@ -121,6 +123,7 @@ REQUIRED_MARKERS = {
         "append-limited escape accounting stays inside caller storage",
         "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
         "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
+        "`.github/workflows/zigux-bootstrap.yml` now also replays `make -C zigux phase7-string-helpers-sample-boundary` as a focused shared-control adapter route.",
     ],
     "Documentation/zigux/README.md": [
         "Documentation/zigux/phase7-string-helpers-slice.md",
@@ -207,18 +210,18 @@ REQUIRED_MARKERS = {
         "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
     ],
     "zigux/tests/phase7_build.zig": [
-        "\"phase7_string_helpers.zig\"",
-        "\"phase7-string-helpers-tests\"",
-        "\"phase7_string_helpers_survey.zig\"",
-        "\"phase7-string-helpers-survey-tests\"",
-        "\"phase7_string_helpers_sample_boundary.zig\"",
-        "\"phase7-string-helpers-sample-boundary-tests\"",
-        "\"phase7_cmdline.zig\"",
-        "\"phase7-cmdline-survey-tests\"",
-        "\"phase7_argv_split.zig\"",
-        "\"phase7-argv-split-survey-tests\"",
-        "\"phase7_rbtree.zig\"",
-        "\"phase7-rbtree-survey-tests\"",
+        '"phase7_string_helpers.zig"',
+        '"phase7-string-helpers-tests"',
+        '"phase7_string_helpers_survey.zig"',
+        '"phase7-string-helpers-survey-tests"',
+        '"phase7_string_helpers_sample_boundary.zig"',
+        '"phase7-string-helpers-sample-boundary-tests"',
+        '"phase7_cmdline.zig"',
+        '"phase7-cmdline-survey-tests"',
+        '"phase7_argv_split.zig"',
+        '"phase7-argv-split-survey-tests"',
+        '"phase7_rbtree.zig"',
+        '"phase7-rbtree-survey-tests"',
     ],
     "zigux/Makefile": [
         "phase7-validate:",
@@ -241,18 +244,18 @@ REQUIRED_MARKERS = {
         "phase7: phase7-validate phase7-test",
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
-        "\"current_master_state\": \"expanded_starter_packet\"",
-        "\"stringEscapeMem\"",
-        "\"string_escape_str_any_np\"",
-        "\"memcpyAndPad\"",
-        "\"strreplace\"",
-        "\"shared no-sample boundary and validator-backed reviewability\"",
-        "\"ownership_focus\": [",
+        '"current_master_state": "expanded_starter_packet"',
+        '"stringEscapeMem"',
+        '"string_escape_str_any_np"',
+        '"memcpyAndPad"',
+        '"strreplace"',
+        '"shared no-sample boundary and validator-backed reviewability"',
+        '"ownership_focus": [',
         "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
         "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
     ],
     "zigux/tests/phase7_rbtree_manifest.json": [
-        "\"ownership_focus\": [",
+        '"ownership_focus": [',
         "duplicate-key range helpers keep ordered match ownership explicit through findFirst() and nextMatch() instead of hidden cursors",
     ],
     "zigux/tests/phase7_string_helpers_survey.zig": [
@@ -323,6 +326,7 @@ EXACT_COUNT_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": {
         "make -C zigux phase7-validate": 1,
         "make -C zigux phase7-test": 1,
+        "make -C zigux phase7-string-helpers-sample-boundary": 1,
     },
     "scripts/zigux/README.md": {
         "- `check-phase7-argv-split-packet.py`": 1,
@@ -420,184 +424,16 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase7-string-helpers-slice.md: The next bounded follow-through should keep the expanded starter packet truthful",
             ),
             (
-                "phase7-string-helpers-slice ownership heading marker",
-                "Documentation/zigux/phase7-string-helpers-slice.md",
-                "The current starter replay also keeps these ownership-focused boundaries explicit:",
-                "Documentation/zigux/phase7-string-helpers-slice.md: The current starter replay also keeps these ownership-focused boundaries explicit:",
-            ),
-            (
-                "phase7-string-helpers-slice strarray ownership marker",
-                "Documentation/zigux/phase7-string-helpers-slice.md",
-                "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
-                "Documentation/zigux/phase7-string-helpers-slice.md: `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
-            ),
-            (
-                "phase7-string-helpers-slice bounded-write marker",
-                "Documentation/zigux/phase7-string-helpers-slice.md",
-                "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
-                "Documentation/zigux/phase7-string-helpers-slice.md: `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
-            ),
-            (
-                "phase7-string-helpers-slice whitespace coverage marker",
-                "Documentation/zigux/phase7-string-helpers-slice.md",
-                "leading whitespace skipping that stops at the first NUL",
-                "Documentation/zigux/phase7-string-helpers-slice.md: leading whitespace skipping that stops at the first NUL",
-            ),
-            (
-                "phase7-string-helpers-slice bounded-size coverage marker",
-                "Documentation/zigux/phase7-string-helpers-slice.md",
-                "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting",
-                "Documentation/zigux/phase7-string-helpers-slice.md: bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting",
-            ),
-            (
-                "phase7 shared-note ownership heading marker",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-                "For `string_helpers`, those shared no-sample reminders should also keep the ownership-focus packet explicit:",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: For `string_helpers`, those shared no-sample reminders should also keep the ownership-focus packet explicit:",
-            ),
-            (
-                "phase7 shared-note first-nul boundary marker",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-                "first-NUL trimming and prefix skipping stop at the exported C-string boundary",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: first-NUL trimming and prefix skipping stop at the exported C-string boundary",
-            ),
-            (
-                "phase7 shared-note terminator-only marker",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-                "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
-            ),
-            (
-                "phase7 shared-note escape-accounting marker",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-                "append-limited escape accounting stays inside caller storage",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: append-limited escape accounting stays inside caller storage",
-            ),
-            (
-                "phase7 shared-note strarray ownership marker",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-                "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
-            ),
-            (
-                "phase7 shared-note bounded-write marker",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-                "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
-            ),
-            (
-                "phase7 docs-root strarray ownership marker",
-                "Documentation/zigux/README.md",
-                "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
-                "Documentation/zigux/README.md: `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
-            ),
-            (
-                "phase7 review-checklist ownership heading marker",
-                "Documentation/zigux/review-checklist.md",
-                "explicit ownership-focus packet visible",
-                "Documentation/zigux/review-checklist.md: explicit ownership-focus packet visible",
-            ),
-            (
-                "phase7 review-checklist first-nul boundary marker",
-                "Documentation/zigux/review-checklist.md",
-                "first-NUL trimming and prefix skipping stop at the exported C-string boundary",
-                "Documentation/zigux/review-checklist.md: first-NUL trimming and prefix skipping stop at the exported C-string boundary",
-            ),
-            (
-                "phase7 review-checklist terminator-only marker",
-                "Documentation/zigux/review-checklist.md",
-                "exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
-                "Documentation/zigux/review-checklist.md: exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned",
-            ),
-            (
-                "phase7 review-checklist escape-accounting marker",
-                "Documentation/zigux/review-checklist.md",
-                "append-limited escape accounting stays inside caller storage",
-                "Documentation/zigux/review-checklist.md: append-limited escape accounting stays inside caller storage",
-            ),
-            (
-                "phase7 review-checklist strarray ownership marker",
-                "Documentation/zigux/review-checklist.md",
-                "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
-                "Documentation/zigux/review-checklist.md: `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
-            ),
-            (
-                "phase7 review-checklist bounded-write marker",
-                "Documentation/zigux/review-checklist.md",
-                "`memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
-                "Documentation/zigux/review-checklist.md: `memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations",
-            ),
-            (
-                "phase7 cmdline slice parked status marker",
-                "Documentation/zigux/phase7-cmdline-slice.md",
-                "PHASE7_STATUS=parked",
-                "Documentation/zigux/phase7-cmdline-slice.md: PHASE7_STATUS=parked",
-            ),
-            (
-                "phase7 cmdline slice lane key marker",
-                "Documentation/zigux/phase7-cmdline-slice.md",
-                "PHASE7_LANE_KEY=P7-L05",
-                "Documentation/zigux/phase7-cmdline-slice.md: PHASE7_LANE_KEY=P7-L05",
-            ),
-            (
-                "phase7 cmdline slice survey make route",
-                "Documentation/zigux/phase7-cmdline-slice.md",
-                "make -C zigux phase7-cmdline-survey",
-                "Documentation/zigux/phase7-cmdline-slice.md: make -C zigux phase7-cmdline-survey",
-            ),
-            (
-                "phase7 cmdline slice shared route posture",
-                "Documentation/zigux/phase7-cmdline-slice.md",
-                "keep that shared route framed as a cross-packet review surface rather than a fresh cmdline-local green claim unless the full shared replay is rerun",
-                "Documentation/zigux/phase7-cmdline-slice.md: keep that shared route framed as a cross-packet review surface rather than a fresh cmdline-local green claim unless the full shared replay is rerun",
-            ),
-            (
                 "phase7 make-wrapper note live validator route",
                 "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
                 "`python3 scripts/zigux/validate-phase7.py`",
                 "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `python3 scripts/zigux/validate-phase7.py`",
             ),
             (
-                "phase7 make-wrapper note live make-wrapper route",
+                "phase7 make-wrapper note workflow adapter marker",
                 "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-                "`python3 scripts/zigux/check-phase7-make-wrapper.py`",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `python3 scripts/zigux/check-phase7-make-wrapper.py`",
-            ),
-            (
-                "phase7 make-wrapper note live selftest-alignment route",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-                "`python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
-            ),
-            (
-                "phase7 make-wrapper note cmdline self-test route",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-                "python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test",
-            ),
-            (
-                "phase7 make-wrapper note live cmdline route",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-                "`python3 scripts/zigux/check-phase7-cmdline-packet.py`",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `python3 scripts/zigux/check-phase7-cmdline-packet.py`",
-            ),
-            (
-                "phase7 make-wrapper note live build-wiring route",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-                "`python3 scripts/zigux/check-phase7-build-wiring.py`",
-                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `python3 scripts/zigux/check-phase7-build-wiring.py`",
-            ),
-            (
-                "helper-lane sequencing cmdline owner marker",
-                "Documentation/zigux/phase7-helper-lane-sequencing.md",
-                "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, checker, or same-slice reminder drift;",
-                "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, checker, or same-slice reminder drift;",
-            ),
-            (
-                "helper-lane sequencing argv lane marker",
-                "Documentation/zigux/phase7-helper-lane-sequencing.md",
-                "PHASE7_ARGV_SPLIT_LANE=P7-L09",
-                "Documentation/zigux/phase7-helper-lane-sequencing.md: PHASE7_ARGV_SPLIT_LANE=P7-L09",
+                "`.github/workflows/zigux-bootstrap.yml` now also replays `make -C zigux phase7-string-helpers-sample-boundary` as a focused shared-control adapter route.",
+                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `.github/workflows/zigux-bootstrap.yml` now also replays `make -C zigux phase7-string-helpers-sample-boundary` as a focused shared-control adapter route.",
             ),
             (
                 "workflow phase7 validate route",
@@ -606,10 +442,16 @@ def run_self_test() -> None:
                 ".github/workflows/zigux-bootstrap.yml: make -C zigux phase7-validate",
             ),
             (
+                "workflow phase7 sample-boundary adapter route",
+                ".github/workflows/zigux-bootstrap.yml",
+                "make -C zigux phase7-string-helpers-sample-boundary",
+                ".github/workflows/zigux-bootstrap.yml: make -C zigux phase7-string-helpers-sample-boundary",
+            ),
+            (
                 "build string helpers direct test entry",
                 "zigux/tests/phase7_build.zig",
-                "\"phase7-string-helpers-tests\"",
-                "zigux/tests/phase7_build.zig: \"phase7-string-helpers-tests\"",
+                '"phase7-string-helpers-tests"',
+                'zigux/tests/phase7_build.zig: "phase7-string-helpers-tests"',
             ),
             (
                 "makefile phase7 test route",
@@ -624,18 +466,6 @@ def run_self_test() -> None:
                 "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
             ),
             (
-                "makefile cmdline checker self-test route",
-                "zigux/Makefile",
-                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py --self-test",
-                "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py --self-test",
-            ),
-            (
-                "makefile cmdline checker live route",
-                "zigux/Makefile",
-                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py\n",
-                "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py",
-            ),
-            (
                 "scripts readme cmdline checker marker",
                 "scripts/zigux/README.md",
                 "scripts/zigux/check-phase7-cmdline-packet.py",
@@ -646,162 +476,6 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_string_helpers_sample_boundary.zig",
                 "expanded helper packet",
                 "zigux/tests/phase7_string_helpers_sample_boundary.zig: expanded helper packet",
-            ),
-            (
-                "string helper sample boundary make-wrapper marker",
-                "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-                "scripts/zigux/check-phase7-make-wrapper.py",
-                "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-make-wrapper.py",
-            ),
-            (
-                "string helper sample boundary selftest-alignment marker",
-                "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-                "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-                "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-            ),
-            (
-                "string helper sample boundary build-wiring marker",
-                "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-                "scripts/zigux/check-phase7-build-wiring.py",
-                "zigux/tests/phase7_string_helpers_sample_boundary.zig: scripts/zigux/check-phase7-build-wiring.py",
-            ),
-            (
-                "string helper survey escape marker",
-                "zigux/tests/phase7_string_helpers_survey.zig",
-                "stringEscapeMem()",
-                "zigux/tests/phase7_string_helpers_survey.zig: stringEscapeMem()",
-            ),
-            (
-                "string helper survey whitespace coverage marker",
-                "zigux/tests/phase7_string_helpers_survey.zig",
-                "phase 7 string helpers starter covers whitespace trimming and prefix skipping",
-                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter covers whitespace trimming and prefix skipping",
-            ),
-            (
-                "string helper survey bounded-size coverage marker",
-                "zigux/tests/phase7_string_helpers_survey.zig",
-                "phase 7 string helpers starter formats bounded sizes with three significant figures",
-                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter formats bounded sizes with three significant figures",
-            ),
-            (
-                "string helper survey string-array coverage marker",
-                "zigux/tests/phase7_string_helpers_survey.zig",
-                "phase 7 string helpers starter builds sequential string arrays and sentinel views",
-                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter builds sequential string arrays and sentinel views",
-            ),
-            (
-                "string helper survey zero-count sentinel marker",
-                "zigux/tests/phase7_string_helpers_survey.zig",
-                "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes",
-                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes",
-            ),
-            (
-                "string helper survey sibling-ownership marker",
-                "zigux/tests/phase7_string_helpers_survey.zig",
-                "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result",
-                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result",
-            ),
-            (
-                "string helper survey allocator-failure marker",
-                "zigux/tests/phase7_string_helpers_survey.zig",
-                "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup",
-                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup",
-            ),
-            (
-                "string helper survey overflow marker",
-                "zigux/tests/phase7_string_helpers_survey.zig",
-                "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view",
-                "zigux/tests/phase7_string_helpers_survey.zig: phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view",
-            ),
-            (
-                "string helper manifest expanded state marker",
-                "zigux/tests/phase7_string_helpers_manifest.json",
-                "\"current_master_state\": \"expanded_starter_packet\"",
-                "zigux/tests/phase7_string_helpers_manifest.json: \"current_master_state\": \"expanded_starter_packet\"",
-            ),
-            (
-                "string helper manifest ownership block marker",
-                "zigux/tests/phase7_string_helpers_manifest.json",
-                "\"ownership_focus\": [",
-                "zigux/tests/phase7_string_helpers_manifest.json: \"ownership_focus\": [",
-            ),
-            (
-                "string helper manifest strarray ownership marker",
-                "zigux/tests/phase7_string_helpers_manifest.json",
-                "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
-                "zigux/tests/phase7_string_helpers_manifest.json: kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
-            ),
-            (
-                "string helper manifest bounded-write marker",
-                "zigux/tests/phase7_string_helpers_manifest.json",
-                "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
-                "zigux/tests/phase7_string_helpers_manifest.json: memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
-            ),
-            (
-                "rbtree manifest ownership block marker",
-                "zigux/tests/phase7_rbtree_manifest.json",
-                "\"ownership_focus\": [",
-                "zigux/tests/phase7_rbtree_manifest.json: \"ownership_focus\": [",
-            ),
-            (
-                "rbtree manifest duplicate-range ownership marker",
-                "zigux/tests/phase7_rbtree_manifest.json",
-                "duplicate-key range helpers keep ordered match ownership explicit through findFirst() and nextMatch() instead of hidden cursors",
-                "zigux/tests/phase7_rbtree_manifest.json: duplicate-key range helpers keep ordered match ownership explicit through findFirst() and nextMatch() instead of hidden cursors",
-            ),
-            (
-                "lib string helpers escape function",
-                "lib/string_helpers.zig",
-                "pub fn stringEscapeMem",
-                "lib/string_helpers.zig: pub fn stringEscapeMem",
-            ),
-            (
-                "string helper test escape coverage",
-                "zigux/tests/phase7_string_helpers.zig",
-                "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
-                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes",
-            ),
-            (
-                "string helper test string-array coverage",
-                "zigux/tests/phase7_string_helpers.zig",
-                "phase 7 string helpers starter builds sequential string arrays and sentinel views",
-                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter builds sequential string arrays and sentinel views",
-            ),
-            (
-                "string helper test zero-count sentinel marker",
-                "zigux/tests/phase7_string_helpers.zig",
-                "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes",
-                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes",
-            ),
-            (
-                "string helper test sibling-ownership marker",
-                "zigux/tests/phase7_string_helpers.zig",
-                "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result",
-                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result",
-            ),
-            (
-                "string helper test allocator-failure marker",
-                "zigux/tests/phase7_string_helpers.zig",
-                "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup",
-                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup",
-            ),
-            (
-                "string helper test overflow marker",
-                "zigux/tests/phase7_string_helpers.zig",
-                "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view",
-                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view",
-            ),
-            (
-                "string helper test kfree teardown coverage",
-                "zigux/tests/phase7_string_helpers.zig",
-                "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent",
-                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent",
-            ),
-            (
-                "string helper test duplicate-and-replace coverage",
-                "zigux/tests/phase7_string_helpers.zig",
-                "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix",
-                "zigux/tests/phase7_string_helpers.zig: phase 7 string helpers starter duplicates and replaces only the exported c-string prefix",
             ),
         ]
 
@@ -821,27 +495,14 @@ def run_self_test() -> None:
         )
         write_fixture_tree(tmp_root)
 
-        docs_root_path = tmp_root / "Documentation/zigux/README.md"
-        docs_root_path.write_text(
-            docs_root_path.read_text(encoding="utf-8")
-            + "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`\n",
+        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8") + "make -C zigux phase7-string-helpers-sample-boundary\n",
             encoding="utf-8",
         )
         expect_missing_marker(
             tmp_root,
-            "Documentation/zigux/README.md: expected 1 occurrence(s) of '`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`', found 2",
-        )
-        write_fixture_tree(tmp_root)
-
-        docs_root_path = tmp_root / "Documentation/zigux/README.md"
-        docs_root_path.write_text(
-            docs_root_path.read_text(encoding="utf-8")
-            + "`python3 scripts/zigux/check-phase7-argv-split-packet.py`\n",
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/README.md: expected 1 occurrence(s) of '`python3 scripts/zigux/check-phase7-argv-split-packet.py`', found 2",
+            ".github/workflows/zigux-bootstrap.yml: expected 1 occurrence(s) of 'make -C zigux phase7-string-helpers-sample-boundary', found 2",
         )
         write_fixture_tree(tmp_root)
 
@@ -853,17 +514,6 @@ def run_self_test() -> None:
         expect_missing_marker(
             tmp_root,
             ".github/workflows/zigux-bootstrap.yml: expected 1 occurrence(s) of 'make -C zigux phase7-validate', found 2",
-        )
-        write_fixture_tree(tmp_root)
-
-        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
-        workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8") + "make -C zigux phase7-test\n",
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            tmp_root,
-            ".github/workflows/zigux-bootstrap.yml: expected 1 occurrence(s) of 'make -C zigux phase7-test', found 2",
         )
         write_fixture_tree(tmp_root)
 
@@ -882,35 +532,9 @@ def run_self_test() -> None:
             "'`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer "
             "view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results', found 2",
         )
-        write_fixture_tree(tmp_root)
-
-        shared_note_path = tmp_root / "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"
-        shared_note_path.write_text(
-            shared_note_path.read_text(encoding="utf-8") + docs_root_marker + "\n",
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: expected 1 occurrence(s) of "
-            "'`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer "
-            "view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results', found 2",
-        )
-        write_fixture_tree(tmp_root)
-
-        review_checklist_path = tmp_root / "Documentation/zigux/review-checklist.md"
-        review_checklist_path.write_text(
-            review_checklist_path.read_text(encoding="utf-8") + docs_root_marker + "\n",
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            tmp_root,
-            "Documentation/zigux/review-checklist.md: expected 1 occurrence(s) of "
-            "'`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer "
-            "view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results', found 2",
-        )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={6 + len(cases)}")
+    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={5 + len(cases)}")
 
 
 def main() -> int:
