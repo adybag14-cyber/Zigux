@@ -8,12 +8,13 @@ import tempfile
 from pathlib import Path
 
 SCRIPT_PATH = "scripts/zigux/check-phase8-help-kallsyms-packet.py"
-MAKEFILE_PATH = "zigux/Makefile"
 DOCS_ROOT_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 SEQUENCING_PATH = "Documentation/zigux/phase8-tooling-lane-sequencing.md"
+MAKEFILE_PATH = "zigux/Makefile"
+VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
 HELP_SLICE_PATH = "Documentation/zigux/phase8-help-slice.md"
 KALLSYMS_SLICE_PATH = "Documentation/zigux/phase8-kallsyms-slice.md"
 HELP_HELPER_PATH = "tools/lib/subcmd/help.zig"
@@ -26,12 +27,13 @@ KALLSYMS_BUILD_PATH = "zigux/tests/phase8_kallsyms_only_build.zig"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
-    MAKEFILE_PATH,
     DOCS_ROOT_PATH,
     REVIEW_CHECKLIST_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     SEQUENCING_PATH,
+    MAKEFILE_PATH,
+    VALIDATOR_PATH,
     HELP_SLICE_PATH,
     KALLSYMS_SLICE_PATH,
     HELP_HELPER_PATH,
@@ -44,13 +46,6 @@ REQUIRED_FILES = (
 )
 
 REQUIRED_MARKERS = {
-    MAKEFILE_PATH: (
-        "phase8-validate:",
-        "check-phase8-help-kallsyms-packet.py --self-test",
-        "check-phase8-help-kallsyms-packet.py",
-        "phase8-help-kallsyms-test:",
-        "zigux/tests/phase8_help_kallsyms_only_build.zig",
-    ),
     DOCS_ROOT_PATH: (
         "`Documentation/zigux/phase8-help-slice.md`",
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
@@ -101,6 +96,16 @@ REQUIRED_MARKERS = {
         "the current Phase 8 test packet includes `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`",
         "shared Phase 8 reminder surfaces still group the symbol shard with the same parked build-and-validator packet",
         "Keep shared wording out of this lane unless a concrete symbol-lane packet drift appears on current `master`.",
+    ),
+    MAKEFILE_PATH: (
+        "phase8-help-kallsyms-test:",
+        "zigux/tests/phase8_help_kallsyms_only_build.zig",
+        "phase8: phase8-validate phase8-test phase8-cpu-mask-test phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test",
+    ),
+    VALIDATOR_PATH: (
+        'HELP_KALLSYMS_PACKET_CHECKER_PATH = "scripts/zigux/check-phase8-help-kallsyms-packet.py"',
+        '"`make -C zigux phase8-help-kallsyms-test`"',
+        '"phase8-help-kallsyms-test"',
     ),
     HELP_SLICE_PATH: (
         "`tools/lib/subcmd/help.zig`",
@@ -236,14 +241,6 @@ def run_self_test() -> int:
 
         mutations = (
             (
-                MAKEFILE_PATH,
-                "phase8-help-kallsyms-test:",
-            ),
-            (
-                MAKEFILE_PATH,
-                "zigux/tests/phase8_help_kallsyms_only_build.zig",
-            ),
-            (
                 DOCS_ROOT_PATH,
                 "`Documentation/zigux/phase8-kallsyms-slice.md`",
             ),
@@ -274,6 +271,18 @@ def run_self_test() -> int:
             (
                 SEQUENCING_PATH,
                 "the current Phase 8 test packet includes `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`",
+            ),
+            (
+                MAKEFILE_PATH,
+                "phase8-help-kallsyms-test:",
+            ),
+            (
+                MAKEFILE_PATH,
+                "zigux/tests/phase8_help_kallsyms_only_build.zig",
+            ),
+            (
+                VALIDATOR_PATH,
+                '"phase8-help-kallsyms-test"',
             ),
             (
                 HELP_SLICE_PATH,
@@ -336,6 +345,7 @@ def run_self_test() -> int:
 
         missing_file_cases = (
             MAKEFILE_PATH,
+            VALIDATOR_PATH,
             HELP_SLICE_PATH,
             KALLSYMS_SLICE_PATH,
             HELP_HELPER_PATH,
