@@ -193,6 +193,13 @@ test "phase 5 trace-events survey note stays aligned with the focused direct rep
     );
     defer std.testing.allocator.free(review_checklist);
 
+    const approved_idiom_gap = try readFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase5-trace-events-approved-idiom-gap.md",
+        review_doc_read_limit,
+    );
+    defer std.testing.allocator.free(approved_idiom_gap);
+
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L16") != null);
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
@@ -217,6 +224,12 @@ test "phase 5 trace-events survey note stays aligned with the focused direct rep
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`OutstandingRegistration`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tests-root shared reminder is only inventory-aligned in this run") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "packet-inventory support material on current `master`") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, approved_idiom_gap, "trace-events-approved-idiom-gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, approved_idiom_gap, "runStringFormattingCycleReplay()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, approved_idiom_gap, "selected-string plus `iter=%d` cue remains the approved bounded formatting reminder") != null);
+    try std.testing.expect(std.mem.indexOf(u8, approved_idiom_gap, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample") != null);
+    try std.testing.expect(std.mem.indexOf(u8, approved_idiom_gap, "phase5_build.zig") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "phase5-trace-events-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "samples/zigux/trace_events_sample.zig") != null);
@@ -245,4 +258,5 @@ test "phase 5 trace-events survey note stays aligned with the focused direct rep
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "trace-events") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "`checked_focus` order") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "selected-string plus `iter=%d` reminder") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase5-trace-events-approved-idiom-gap.md") != null);
 }
