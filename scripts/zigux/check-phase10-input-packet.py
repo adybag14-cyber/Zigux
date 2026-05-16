@@ -262,6 +262,32 @@ EXPECTED_GAP_KINDS = {
     "phase10-virtio-input-registration-lifecycle": "validation",
 }
 
+EXPECTED_GAP_WHY_NOW = {
+    "phase10-build-gate": "The shared Phase 10 build gate is already landed for the lab packet even though the adjacent compile-path follow-through for the probe-preflight, registration-preflight, and teardown-observation entries stays parked in P10-L15.",
+    "phase10-virtio-core-lab-starter": "The direct virtio core starter still carries the status and queue bookkeeping that the input packet depends on without widening this lane into transport closure.",
+    "phase10-virtio-ring-lab-helper": "The direct ring helper still provides the queue shape and notification bookkeeping that the input packet reuses below risky transport.",
+    "phase10-virtio-input-lab-helper": "The direct input helper keeps identity snapshots, config bitmaps, ABS metadata, and timestamp suppression reviewable inside the current lab-only packet.",
+    "phase10-virtio-input-lab-gate": "The direct lab gate keeps the already-landed helper packet replayable without widening into input registration lifecycle claims.",
+    "phase10-virtio-input-verify-replay": "The wrapper-facing verifier replay stays landed beside the probe-preflight summary and the status-drain replay so wrapper ordering remains reviewable below risky transport.",
+    "phase10-virtio-input-probe-preflight-replay": "The probe-preflight replay keeps identity, queue-plan, and registration-handoff blocker ordering explicit before real input registration or transport-backed callback execution.",
+    "phase10-virtio-input-queue-callback-preflight-replay": "The queue-callback-preflight replay keeps blocker ordering explicit and stays paired with the status-drain replay below real callback execution.",
+    "phase10-virtio-input-registration-preflight-replay": "The registration-preflight replay keeps bounded registration handoff blockers explicit without claiming full input registration lifecycle parity.",
+    "phase10-virtio-input-teardown-observation-replay": "The teardown-observation replay keeps reset-local cleanup cues explicit without widening into remove, freeze, or restore closure.",
+    "phase10-virtio-input-slice-note": "The direct input slice note now records the remaining roadmap gap while keeping the landed verify, queue-callback, and status-drain packet explicit.",
+    "phase10-virtio-input-module-note": "The module-facing slice note keeps the landed verify, queue-callback, registration-preflight, teardown-observation, and status-drain packet explicit as current master evidence instead of leaving that companion implicit in the broader survey summary.",
+    "phase10-virtio-input-survey-gate": "The dedicated survey gate now keeps the current manifest, survey note, and slice-companion packet fail-closed on the live input lane.",
+    "phase10-virtio-input-survey-note": "The directly coupled survey note keeps the current lab-only driver validation evidence explicit beside the landed helper, replay, note, and survey-gate surfaces.",
+    "phase10-virtio-input-capability-setup-helper": "The helper keeps virtinput_cfg_bits(), virtinput_cfg_abs(), and input_set_capability() visible inside the bounded input packet.",
+    "phase10-virtio-input-multitouch-slot-helper": "The direct helper still keeps ABS_MT_SLOT handling and the slot-planning helper reviewable below risky transport.",
+    "phase10-virtio-input-probe-preflight-helper": "The probe-preflight summary keeps identity staging, queue-fill readiness, and bounded work below input_register_device() reviewable in the helper-local packet.",
+    "phase10-virtio-input-registration-preflight-helper": "The registration-preflight summary keeps capability-setup, multitouch-slot blockers, and bounded work below input_register_device() reviewable without widening into lifecycle parity.",
+    "phase10-virtio-input-queue-callback-preflight-helper": "The queue-callback preflight summary keeps event and status queue configuration, event-buffer fill state, and transport-backed callback handoff explicit below real callback execution.",
+    "phase10-virtio-input-status-drain-helper": "The bounded helper around virtinput_recv_status() and completed status sends stays reviewable even though transport-backed callbacks remain blocked.",
+    "phase10-virtio-input-teardown-observation-helper": "The teardown-observation helper keeps identity preservation and capability-state cleanup explicit without claiming remove, freeze, or restore closure.",
+    "phase10-virtio-input-wrapper-ownership-note": "The note keeps virtio core, the virtqueue wrapper, and the MMIO wrapper explicit as shared owner surfaces that stay outside virtio_input-local work.",
+    "phase10-virtio-input-registration-lifecycle": "Real work below input_register_device(), freeze or restore parity, and transport-backed lifecycle closure remain blocked even though probe-preflight summaries and status-drain helpers landed in the current packet.",
+}
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -335,6 +361,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 missing.append(f"manifest:gap_kind:{gap_id}={gap.get('kind')!r}")
             if gap.get("zigux_destination") != destination:
                 missing.append(f"manifest:gap_destination:{gap_id}={gap.get('zigux_destination')!r}")
+            expected_why_now = EXPECTED_GAP_WHY_NOW[gap_id]
+            if gap.get("why_now") != expected_why_now:
+                missing.append(f"manifest:gap_why_now:{gap_id}={gap.get('why_now')!r}")
 
     return [], missing
 
@@ -370,6 +399,7 @@ def write_fixture(root: Path) -> None:
                         "status": status,
                         "kind": EXPECTED_GAP_KINDS[gap_id],
                         "zigux_destination": destination,
+                        "why_now": EXPECTED_GAP_WHY_NOW[gap_id],
                     }
                     for gap_id, (status, destination) in REQUIRED_GAPS.items()
                 ],
@@ -557,6 +587,34 @@ def run_self_test() -> int:
             root,
             "manifest:gap_kind:phase10-virtio-input-wrapper-ownership-note='validation'",
             "phase10-input-self-test:manifest_gap_kind",
+        )
+        write_fixture(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for gap in manifest["gaps"]:
+            if gap["id"] == "phase10-virtio-input-queue-callback-preflight-helper":
+                gap["why_now"] = "The queue callback helper is no longer part of the packet."
+                break
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            "manifest:gap_why_now:phase10-virtio-input-queue-callback-preflight-helper='The queue callback helper is no longer part of the packet.'",
+            "phase10-input-self-test:manifest_gap_why_now_helper",
+        )
+        write_fixture(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for gap in manifest["gaps"]:
+            if gap["id"] == "phase10-virtio-input-registration-lifecycle":
+                gap["why_now"] = "Registration lifecycle is already closed."
+                break
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            "manifest:gap_why_now:phase10-virtio-input-registration-lifecycle='Registration lifecycle is already closed.'",
+            "phase10-input-self-test:manifest_gap_why_now_blocked",
         )
         write_fixture(root)
         case_count += 1
