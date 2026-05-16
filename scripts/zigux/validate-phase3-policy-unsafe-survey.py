@@ -53,8 +53,8 @@ STATIC_MARKERS = (
     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
     "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig",
     "PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py",
-    "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
-    "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-shared-abi-manifest-or-shared-abi-slice-drifts-again",
+    "PHASE3_BOUNDARY_GAP=dedicated-focused-policy-unsafe-replay-pair-ships-while-the-shared-abi-packet-still-owns-the-broader-policy-and-unsafe-review-surface",
+    "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-shared-abi-manifest-the-shared-abi-slice-or-the-dedicated-phase3_policy_unsafe-replay-pair-drifts-again",
 )
 
 BLOB_MARKERS = {
@@ -112,7 +112,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/unsafe/narrow.zig` also mirrors the panic and allocator helper style with typed `InteropPolicy` entry points through `scopeFromInteropPolicy`, `recognizesInteropPolicy`, `permitsNoUnsafeInteropPolicy`, `permitsVolatileMmioInteropPolicy`, and `permitsRawPointerBridgeInteropPolicy`, while keeping the direct raw-pointer bridge relays narrowed to the `sliceAt*`, `constSliceAt*`, `constPointerAt*`, `pointerAt*`, and `writeValueAt*` helper family instead of widening into a broader unsafe facade.",
     "`zigux/helpers/mmio.zig` consumes that same narrow layer for direct `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, `write32()`, `read64()`, and `write64()` access while also routing policy-aware MMIO through `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*` relays so volatile-MMIO callers stay inside the bounded unsafe contract.",
     "`scripts/zigux/check-phase3-policy-byte-guards.py` gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, the paired `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` packet checks, and the explicit shared dump gate, so the existing `phase3-validate` path can fail closed on policy-byte drift instead of leaving that contract implicit.",
-    "The current tree still does not ship a dedicated `phase3_policy_unsafe` replay pair",
+    "The current tree now ships a dedicated `phase3_policy_unsafe` replay pair through `zigux/tests/phase3_policy_unsafe.zig` and `zigux/tests/phase3_policy_unsafe_build.zig`, but the live validator packet still keeps the broader policy-and-unsafe boundary inside the shared `abi` slice rather than turning that focused replay pair into a new standalone tranche.",
 )
 
 REQUIRED_LAYOUT_ASSERT_SNIPPETS = (
@@ -483,14 +483,14 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         missing_next_step = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-shared-abi-manifest-or-shared-abi-slice-drifts-again`\n",
+            "- `PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-shared-abi-manifest-the-shared-abi-slice-or-the-dedicated-phase3_policy_unsafe-replay-pair-drifts-again`\n",
             "",
             1,
         )
         write_file(root / SURVEY_REL, missing_next_step)
         issues = validate(root)
         assert (
-            "missing_marker:PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-shared-abi-manifest-or-shared-abi-slice-drifts-again"
+            "missing_marker:PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-shared-abi-manifest-the-shared-abi-slice-or-the-dedicated-phase3_policy_unsafe-replay-pair-drifts-again"
             in issues
         )
 
