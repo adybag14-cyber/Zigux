@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -31,6 +32,25 @@ MAKEFILE_ROUTE_MARKERS = {
     "live_route": "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py",
 }
 
+LIST_FIELDS = (
+    "memparse_review_anchors",
+    "strscpy_review_anchors",
+    "prefix_suffix_review_anchors",
+    "sysfs_review_anchors",
+    "lookup_review_anchors",
+    "counted_search_review_anchors",
+    "parity_fixture_keys",
+)
+
+SCALAR_FIELDS = (
+    "basename_review_anchor",
+    "trim_nul_review_anchor",
+    "memchr_moving_dirty_anchor",
+    "phase1_helper_replay_anchor",
+)
+
+EXPECTED_SELF_TEST_CASE_COUNT = 52
+
 
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
@@ -56,6 +76,15 @@ def require_markers(text: str, label: str, markers: list[str]) -> list[str]:
     missing: list[str] = []
     for marker in markers:
         if marker not in text:
+            missing.append(f"{label}:{marker}")
+    return missing
+
+
+def require_symbol_markers(text: str, label: str, markers: list[str]) -> list[str]:
+    missing: list[str] = []
+    for marker in markers:
+        pattern = re.compile(rf"(?<![A-Za-z0-9_]){re.escape(marker)}(?![A-Za-z0-9_])")
+        if not pattern.search(text):
             missing.append(f"{label}:{marker}")
     return missing
 
@@ -113,28 +142,16 @@ def collect_string_review_packet_failures(root: Path) -> list[str]:
     for label, marker in MAKEFILE_ROUTE_MARKERS.items():
         missing.extend(require_exact_line(makefile_text, f"makefile:{label}", marker))
 
-    list_fields = (
-        "memparse_review_anchors",
-        "strscpy_review_anchors",
-        "prefix_suffix_review_anchors",
-        "sysfs_review_anchors",
-        "lookup_review_anchors",
-        "counted_search_review_anchors",
-        "parity_fixture_keys",
-    )
-    for field in list_fields:
+    for field in LIST_FIELDS:
         markers, field_missing = require_manifest_string_list(string_anchors.get(field), field)
         missing.extend(field_missing)
         if not field_missing:
-            missing.extend(require_markers(closure_text, f"phase1_closure:{field}", markers))
+            if field == "parity_fixture_keys":
+                missing.extend(require_symbol_markers(closure_text, f"phase1_closure:{field}", markers))
+            else:
+                missing.extend(require_markers(closure_text, f"phase1_closure:{field}", markers))
 
-    scalar_fields = (
-        "basename_review_anchor",
-        "trim_nul_review_anchor",
-        "memchr_moving_dirty_anchor",
-        "phase1_helper_replay_anchor",
-    )
-    for field in scalar_fields:
+    for field in SCALAR_FIELDS:
         marker, field_missing = require_manifest_string(string_anchors.get(field), field)
         missing.extend(field_missing)
         if not field_missing and marker not in closure_text:
@@ -163,79 +180,117 @@ def write_file(root: Path, relative_path: Path, text: str) -> None:
     destination.write_text(text, encoding="utf-8")
 
 
+def sample_string_anchors() -> dict[str, Any]:
+    return {
+        "memparse_review_anchors": [
+            'test "memparse handles decimal hexadecimal octal and suffixes"',
+            'test "memparse keeps original rest when sign is not followed by digits"',
+            'test "memparse saturates signed overflow instead of trapping"',
+            'test "memparse clamps explicit positive signed overflow"',
+            'test "memparse keeps signed values and their trailing rest aligned"',
+            'test "memparse consumes suffix after saturation"',
+            'test "memparse applies suffixes before signed clamping"',
+        ],
+        "strscpy_review_anchors": [
+            'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
+            'test "strscpyPad zero-pads the tail after a short source"',
+            'test "strscpyPad stops at embedded NUL and pads the remaining tail"',
+            'test "strscpyPad preserves strscpy truncation semantics"',
+            'test "strscpy_pad mirrors strscpyPad padding semantics"',
+        ],
+        "prefix_suffix_review_anchors": [
+            'test "strHasPrefix returns the matched prefix length with C-string semantics"',
+            'test "strstarts mirrors the header-level prefix helper"',
+            'test "strEndsWith honors C-string boundaries"',
+        ],
+        "sysfs_review_anchors": [
+            'test "sysfsStreq treats trailing newline and NUL as equivalent"',
+            'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
+            'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+            'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
+        ],
+        "lookup_review_anchors": [
+            'test "matchString finds C-string matches and preserves first-match order"',
+            'test "match_string mirrors matchString for empty and matched lists"',
+        ],
+        "counted_search_review_anchors": [
+            'test "strnchr honors count and C-string boundaries"',
+            'test "strnchrNul returns the first match, NUL, or count boundary"',
+        ],
+        "parity_fixture_keys": [
+            "strtobool_y",
+            "strtobool_on",
+            "strtobool_zero",
+            "strtobool_off",
+            "strtobool_invalid",
+            "strlcpy_len",
+            "strlcpy_buffer",
+            "skip_spaces",
+            "trim_spaces",
+            "remove_spaces",
+            "replace_char",
+            "replace_char_end",
+            "replace_char_cstr_end",
+            "replace_char_cstr_bytes",
+            "memchr_inv_index",
+            "memchr_inv_none",
+        ],
+        "basename_review_anchor": 'test "kbasename returns the final path component with C-string semantics"',
+        "trim_nul_review_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
+        "memchr_moving_dirty_anchor": 'test "memchrInv follows the earliest dirty byte as long buffers change"',
+        "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
+        "next_safe_step_note": "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the string review packet and closure note unless current master later adds dedicated shared sysfs fixture keys; until then, newline-aware equality and lookup order remain owned by the direct string tests.",
+    }
+
+
 def sample_manifest() -> dict[str, Any]:
     return {
         "review_anchors": {
-            "tools/lib/string.zig": {
-                "memparse_review_anchors": [
-                    'test "memparse handles decimal hexadecimal octal and suffixes"',
-                    'test "memparse keeps original rest when sign is not followed by digits"',
-                ],
-                "strscpy_review_anchors": [
-                    'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
-                    'test "strscpyPad zero-pads the tail after a short source"',
-                ],
-                "prefix_suffix_review_anchors": [
-                    'test "strHasPrefix returns the matched prefix length with C-string semantics"',
-                    'test "strstarts mirrors the header-level prefix helper"',
-                    'test "strEndsWith honors C-string boundaries"',
-                ],
-                "sysfs_review_anchors": [
-                    'test "sysfsStreq treats trailing newline and NUL as equivalent"',
-                    'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
-                ],
-                "lookup_review_anchors": [
-                    'test "matchString finds C-string matches and preserves first-match order"',
-                    'test "match_string mirrors matchString for empty and matched lists"',
-                ],
-                "counted_search_review_anchors": [
-                    'test "strnchr honors count and C-string boundaries"',
-                    'test "strnchrNul returns the first match, NUL, or count boundary"',
-                ],
-                "parity_fixture_keys": [
-                    "strtobool_y",
-                    "replace_char_cstr_bytes",
-                    "memchr_inv_none",
-                ],
-                "basename_review_anchor": 'test "kbasename returns the final path component with C-string semantics"',
-                "trim_nul_review_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
-                "memchr_moving_dirty_anchor": 'test "memchrInv follows the earliest dirty byte as long buffers change"',
-                "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
-                "next_safe_step_note": "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the string review packet and closure note unless current master later adds dedicated shared sysfs fixture keys; until then, newline-aware equality and lookup order remain owned by the direct string tests.",
-            }
+            "tools/lib/string.zig": sample_string_anchors(),
         }
     }
 
 
 def sample_closure_text() -> str:
-    return """# Phase 1 Closure
+    anchors = sample_string_anchors()
+    lines = [
+        "# Phase 1 Closure",
+        "",
+        "## Shared Review Packet",
+        *[f"- {marker}" for marker in CLOSURE_ROUTE_MARKERS],
+        "",
+        "## String Review Rule",
+    ]
 
-## Shared Review Packet
-- `scripts/zigux/check-phase1-string-review-packet.py`
-- `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`
-- `python3 scripts/zigux/check-phase1-string-review-packet.py`
+    for field in LIST_FIELDS:
+        lines.append("")
+        lines.append(f"### {field}")
+        lines.extend(f"- {marker}" for marker in anchors[field])
 
-## String Review Rule
-That means `test \"memparse handles decimal hexadecimal octal and suffixes\"`, `test \"memparse keeps original rest when sign is not followed by digits\"`, `test \"strscpy keeps NUL termination and reports truncation with -E2BIG\"`, `test \"strscpyPad zero-pads the tail after a short source\"`, `test \"strHasPrefix returns the matched prefix length with C-string semantics\"`, `test \"strstarts mirrors the header-level prefix helper\"`, `test \"strEndsWith honors C-string boundaries\"`, `test \"sysfsStreq treats trailing newline and NUL as equivalent\"`, `test \"sysfsMatchString finds newline-aware matches and preserves first-match order\"`, `test \"matchString finds C-string matches and preserves first-match order\"`, `test \"match_string mirrors matchString for empty and matched lists\"`, `test \"strnchr honors count and C-string boundaries\"`, `test \"strnchrNul returns the first match, NUL, or count boundary\"`, `test \"kbasename returns the final path component with C-string semantics\"`, and `test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"` stay present and review-visible whenever the helper changes.
-The shared replay must also keep `test \"phase 1 string replaceChar stops at embedded NUL\"` plus the `strtobool_y`, `replace_char_cstr_bytes`, and `memchr_inv_none` fixture fields explicit, while `test \"memchrInv follows the earliest dirty byte as long buffers change\"` remains a helper-local review anchor.
-"""
+    lines.append("")
+    lines.append("### scalar_anchors")
+    lines.extend(f"- {anchors[field]}" for field in SCALAR_FIELDS)
+    return "\n".join(lines) + "\n"
 
 
 def sample_lane_note_text() -> str:
-    next_safe_step_note = sample_manifest()["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"]
-    return f"""# Phase 1 Host-Helper Lane Sequencing
-
-The still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/validate-phase1-closure.py`.
-
-PHASE1_STRING_NEXT_SAFE_STEP={next_safe_step_note}
-"""
+    next_safe_step_note = sample_string_anchors()["next_safe_step_note"]
+    return (
+        "# Phase 1 Host-Helper Lane Sequencing\n\n"
+        "The still-open string sysfs follow-through, if it reopens, should stay on one string-only "
+        "shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, "
+        "`Documentation/zigux/phase1-closure.md`, `scripts/zigux/check-phase1-string-review-packet.py`, "
+        "and `scripts/zigux/validate-phase1-closure.py`.\n\n"
+        f"- {next_safe_step_note}\n"
+    )
 
 
 def sample_makefile_text() -> str:
-    return """phase1-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py
-"""
+    return (
+        "phase1-validate:\n"
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py --self-test\n"
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py\n"
+    )
 
 
 def build_sample_repo(root: Path) -> None:
@@ -245,119 +300,41 @@ def build_sample_repo(root: Path) -> None:
     write_file(root, MANIFEST_REL, json.dumps(sample_manifest(), indent=2) + "\n")
 
 
+def build_self_test_cases() -> list[tuple[str, str | None, str | None, str]]:
+    anchors = sample_string_anchors()
+    cases: list[tuple[str, str | None, str | None, str]] = [("success", None, None, "none")]
+
+    for index, marker in enumerate(CLOSURE_ROUTE_MARKERS, start=1):
+        cases.append((f"missing_closure_route_{index}", CLOSURE_REL.as_posix(), f"- {marker}\n", "remove"))
+
+    for label, marker in MAKEFILE_ROUTE_MARKERS.items():
+        cases.append((f"missing_makefile_{label}", MAKEFILE_REL.as_posix(), marker + "\n", "remove"))
+
+    for index, marker in enumerate(LANE_NOTE_MARKERS, start=1):
+        cases.append((f"missing_lane_note_marker_{index}", LANE_NOTE_REL.as_posix(), marker, "remove"))
+
+    for field in LIST_FIELDS:
+        for index, marker in enumerate(anchors[field], start=1):
+            cases.append((f"missing_{field}_{index}", CLOSURE_REL.as_posix(), f"- {marker}\n", "remove"))
+
+    for field in SCALAR_FIELDS:
+        cases.append((f"missing_{field}", CLOSURE_REL.as_posix(), f"- {anchors[field]}\n", "remove"))
+
+    next_safe_step_note = anchors["next_safe_step_note"]
+    cases.append(("missing_next_safe_step_note", LANE_NOTE_REL.as_posix(), next_safe_step_note, "remove"))
+    cases.append(("duplicate_next_safe_step_note", LANE_NOTE_REL.as_posix(), next_safe_step_note, "duplicate"))
+
+    return cases
+
+
 def run_self_test() -> int:
-    next_safe_step_note = sample_manifest()["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"]
-    cases: list[tuple[str, str | None, str | None, str]] = [
-        ("success", None, None, "none"),
-        (
-            "missing_closure_route",
-            CLOSURE_REL.as_posix(),
-            "`python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`\n",
-            "remove",
-        ),
-        (
-            "missing_closure_live_route",
-            CLOSURE_REL.as_posix(),
-            "`python3 scripts/zigux/check-phase1-string-review-packet.py`\n",
-            "remove",
-        ),
-        (
-            "missing_makefile_route",
-            MAKEFILE_REL.as_posix(),
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py --self-test\n",
-            "remove",
-        ),
-        (
-            "missing_makefile_live_route",
-            MAKEFILE_REL.as_posix(),
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py\n",
-            "remove",
-        ),
-        (
-            "missing_memparse_anchor",
-            CLOSURE_REL.as_posix(),
-            'test "memparse keeps original rest when sign is not followed by digits"',
-            "remove",
-        ),
-        (
-            "missing_strscpy_anchor",
-            CLOSURE_REL.as_posix(),
-            'test "strscpyPad zero-pads the tail after a short source"',
-            "remove",
-        ),
-        (
-            "missing_prefix_suffix_anchor",
-            CLOSURE_REL.as_posix(),
-            'test "strEndsWith honors C-string boundaries"',
-            "remove",
-        ),
-        (
-            "missing_sysfs_anchor",
-            CLOSURE_REL.as_posix(),
-            'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
-            "remove",
-        ),
-        (
-            "missing_lookup_anchor",
-            CLOSURE_REL.as_posix(),
-            'test "match_string mirrors matchString for empty and matched lists"',
-            "remove",
-        ),
-        (
-            "missing_counted_search_anchor",
-            CLOSURE_REL.as_posix(),
-            'test "strnchrNul returns the first match, NUL, or count boundary"',
-            "remove",
-        ),
-        (
-            "missing_parity_fixture_key",
-            CLOSURE_REL.as_posix(),
-            "replace_char_cstr_bytes",
-            "remove",
-        ),
-        (
-            "missing_basename_anchor",
-            CLOSURE_REL.as_posix(),
-            'test "kbasename returns the final path component with C-string semantics"',
-            "remove",
-        ),
-        (
-            "missing_trim_nul_anchor",
-            CLOSURE_REL.as_posix(),
-            'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
-            "remove",
-        ),
-        (
-            "missing_memchr_anchor",
-            CLOSURE_REL.as_posix(),
-            'test "memchrInv follows the earliest dirty byte as long buffers change"',
-            "remove",
-        ),
-        (
-            "missing_helper_replay_anchor",
-            CLOSURE_REL.as_posix(),
-            'test "phase 1 string replaceChar stops at embedded NUL"',
-            "remove",
-        ),
-        (
-            "missing_lane_note_marker",
-            LANE_NOTE_REL.as_posix(),
-            "`scripts/zigux/check-phase1-string-review-packet.py`",
-            "remove",
-        ),
-        (
-            "missing_next_safe_step_note",
-            LANE_NOTE_REL.as_posix(),
-            next_safe_step_note,
-            "remove",
-        ),
-        (
-            "duplicate_next_safe_step_note",
-            LANE_NOTE_REL.as_posix(),
-            next_safe_step_note,
-            "duplicate",
-        ),
-    ]
+    cases = build_self_test_cases()
+    if len(cases) != EXPECTED_SELF_TEST_CASE_COUNT:
+        print(
+            "self-test:case-count-mismatch:"
+            f"expected={EXPECTED_SELF_TEST_CASE_COUNT}:actual={len(cases)}"
+        )
+        return 1
 
     for name, relative_path, needle, operation in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-string-review-{name}-") as tmpdir:
