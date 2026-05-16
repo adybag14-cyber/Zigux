@@ -77,14 +77,16 @@ and the already-landed bounded perf-buffer poll helper reviewable through:
 - `python3 scripts/zigux/validate-phase8.py --self-test`
 - `python3 scripts/zigux/validate-phase8.py`
 
-Current 2026-05-16 authenticated contents readback from this environment keeps
-that broader bridge-plus-build packet mixed rather than uniformly stable:
+Current 2026-05-16 authenticated contents readback from this environment still
+keeps that broader bridge-plus-build packet mixed rather than uniformly stable:
 `zigux/tests/phase8_file_path_handle_bridge.zig` and
 `zigux/tests/phase8_libbpf_segments_only_build.zig` now read cleanly, while
 `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`,
 `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, and
 `zigux/tests/phase8_build.zig` still return `404` through the same contents
-route.
+route. The documented public default-branch blob and raw fallback nevertheless
+keeps those three paths reviewable on current `master`, so the packet is now
+mixed-source rather than absent.
 
 Current 2026-05-16 authenticated contents readback also keeps the smaller
 interrupt-routing-adjacent helper packet directly readable:
@@ -166,12 +168,16 @@ terminal-probing, token handoff, and reopened-handle closure behavior.
 This note should therefore remain the truthful bridge between the roadmap target
 and the bounded current-tree evidence: the direct exec-cmd shard now reads
 cleanly through authenticated contents readback on current `master`, while the
-broader shared Phase 8 build and neighboring file-path bridge packet still
-depend on mixed-source review evidence from this environment. The same survey
-must also keep the directly readable helper-local `online_cpu_routing.zig`
-cursor and routing-summary packet explicit while leaving `/sys` reads,
-`perf_event_open()` setup, `mmap()`-backed ring ownership, epoll registration,
-and poll waits inside the deferred setup-side interrupt-routing boundary.
+broader shared Phase 8 build and neighboring file-path bridge packet still need
+mixed-source review evidence from this environment because authenticated
+contents reads for the helper, focused bridge build shard, and shared Phase 8
+build replay still return `404`, even though the documented public default-
+branch blob and raw fallback keeps those exact paths reviewable on current
+`master`. The same survey must also keep the directly readable helper-local
+`online_cpu_routing.zig` cursor and routing-summary packet explicit while
+leaving `/sys` reads, `perf_event_open()` setup, `mmap()`-backed ring ownership,
+epoll registration, and poll waits inside the deferred setup-side
+interrupt-routing boundary.
 
 ## Next Bounded Step
 
@@ -191,8 +197,10 @@ reads cleanly through authenticated contents readback, while
 `zigux/tests/phase8_build.zig`,
 `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and
 `zigux/tests/phase8_file_path_handle_bridge_only_build.zig` still keep the
-broader bridge-plus-build packet on mixed-source evidence from this
-environment. `zigux/tests/phase8_file_path_handle_bridge.zig` and
+broader bridge-plus-build packet on mixed-source evidence from this environment
+because authenticated contents readback still returns `404` for those exact
+paths even while the documented public default-branch blob and raw fallback
+keeps them reviewable on current `master`. `zigux/tests/phase8_file_path_handle_bridge.zig` and
 `zigux/tests/phase8_libbpf_segments_only_build.zig` now read cleanly again, and
 `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` also reads cleanly as the
 smaller helper-local routing packet, so follow-up should keep that bounded
