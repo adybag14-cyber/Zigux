@@ -317,6 +317,29 @@ COMPACT_LATER_REQUIRED_WORKFLOW_MARKERS = [
     'Run Phase 15 governance tests',
 ]
 
+COMPACT_LATER_REQUIRED_WORKFLOW_MARKER_ALIASES = [
+    (
+        'Validate Phase 7 helper routes',
+        'Validate Phase 7 runtime helper gates',
+    ),
+    (
+        'Run Phase 7 helper tests',
+        'Run Phase 7 runtime helper tests',
+    ),
+    (
+        'Validate Phase 12 complex-driver routes',
+        'Validate Phase 12 degraded-workflow bundle',
+    ),
+    (
+        'Run Phase 12 smoke routes',
+        'Run focused Phase 12 smoke shard',
+    ),
+    (
+        'Run Phase 12 shared tests',
+        'Run Phase 12 complex driver tests',
+    ),
+]
+
 LEGACY_REQUIRED_WORKFLOW_MARKER_ALIASES = [
     (
         'Run Phase 12 complex driver tests',
@@ -327,6 +350,11 @@ LEGACY_REQUIRED_WORKFLOW_MARKER_ALIASES = [
         'zig build test --build-file zigux/tests/phase7_build.zig --summary all',
     ),
 ]
+
+EXACT_WORKFLOW_RUN_STEP_FALLBACKS = {
+    'python3 scripts/zigux/validate-phase1-closure.py': 'Validate Phase 1 closure',
+    'make -C zigux phase13-test': 'Run Phase 13 release tests',
+}
 
 
 def count_step_command_matches(workflow_text: str, step_name: str, command: str) -> int:
@@ -380,8 +408,9 @@ def validate_exact_workflow_runs(text: str, expected_runs: dict[str, int]) -> li
     for command, expected_count in expected_runs.items():
         expected_line = f'run: {command}'
         count = sum(1 for line in lines if line == expected_line)
-        if count == 0 and command == 'python3 scripts/zigux/validate-phase1-closure.py':
-            count = count_step_command_matches(text, 'Validate Phase 1 closure', command)
+        fallback_step_name = EXACT_WORKFLOW_RUN_STEP_FALLBACKS.get(command)
+        if count == 0 and fallback_step_name:
+            count = count_step_command_matches(text, fallback_step_name, command)
         if count != expected_count:
             issues.append(
                 f'workflow_exact_run:{command}:count={count}:expected={expected_count}'
@@ -427,6 +456,7 @@ required_workflow_marker_aliases = []
 if compact_workflow:
     expected_runs.update(COMPACT_LATER_WORKFLOW_EXACT_RUN_COUNTS)
     required_workflow_markers.extend(COMPACT_LATER_REQUIRED_WORKFLOW_MARKERS)
+    required_workflow_marker_aliases.extend(COMPACT_LATER_REQUIRED_WORKFLOW_MARKER_ALIASES)
     if workflow_uses_direct_phase6_routes(workflow):
         expected_runs.update(PHASE6_DIRECT_WORKFLOW_EXACT_RUN_COUNTS)
         required_workflow_markers.extend(PHASE6_DIRECT_REQUIRED_WORKFLOW_MARKERS)
