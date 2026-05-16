@@ -194,6 +194,24 @@ EXPECTED_GAPS = {
     "phase10-virtio-ring-slice-note": "starter_landed",
     "phase10-ring-lab-driver-bridge": "blocked_on_risky_transport",
 }
+EXPECTED_GAP_KINDS = {
+    "phase10-build-gate": "validation",
+    "phase10-virtio-core-lab-starter": "lab_driver_starter",
+    "phase10-virtio-ring-survey-gate": "validation",
+    "phase10-virtio-ring-survey-note": "documentation",
+    "phase10-virtqueue-shape-helper": "queue_wrapper",
+    "phase10-used-buffer-polling-helper": "queue_wrapper",
+    "phase10-callback-enable-helper": "queue_wrapper",
+    "phase10-callback-delay-helper": "queue_wrapper",
+    "phase10-notify-prepare-helper": "queue_wrapper",
+    "phase10-notification-data-summary-helper": "queue_wrapper",
+    "phase10-broken-queue-poll-guard": "queue_wrapper",
+    "phase10-queue-reset-helper": "queue_wrapper",
+    "phase10-queue-reset-readiness-helper": "queue_wrapper",
+    "phase10-ring-verify-replay": "validation",
+    "phase10-virtio-ring-slice-note": "documentation",
+    "phase10-ring-lab-driver-bridge": "roadmap_gap",
+}
 EXPECTED_GAP_DESTINATIONS = {
     "phase10-build-gate": "zigux/tests/phase10_build.zig",
     "phase10-virtio-core-lab-starter": "drivers/virtio/virtio.zig",
@@ -259,6 +277,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             continue
         if gap.get("status") != status:
             missing_markers.append(f"manifest:gap_status:{gap_id}={gap.get('status')!r}")
+        expected_kind = EXPECTED_GAP_KINDS[gap_id]
+        if gap.get("kind") != expected_kind:
+            missing_markers.append(f"manifest:gap_kind:{gap_id}={gap.get('kind')!r}")
         expected_destination = EXPECTED_GAP_DESTINATIONS[gap_id]
         if gap.get("zigux_destination") != expected_destination:
             missing_markers.append(
@@ -303,6 +324,7 @@ def build_fixture() -> dict[str, str]:
                 {
                     "id": gap_id,
                     "status": status,
+                    "kind": EXPECTED_GAP_KINDS[gap_id],
                     "zigux_destination": EXPECTED_GAP_DESTINATIONS[gap_id],
                 }
                 for gap_id, status in EXPECTED_GAPS.items()
@@ -442,6 +464,19 @@ def run_self_test() -> int:
                 {
                     "id": "phase10-virtqueue-shape-helper",
                     "status": "contents_bridge_gap",
+                    "kind": "validation",
+                    "zigux_destination": "drivers/virtio/virtio_ring.zig",
+                },
+            ),
+            "manifest:gap_kind:phase10-virtqueue-shape-helper='validation'",
+        )
+        run_manifest_case(
+            lambda manifest: manifest["gaps"].__setitem__(
+                4,
+                {
+                    "id": "phase10-virtqueue-shape-helper",
+                    "status": "contents_bridge_gap",
+                    "kind": "queue_wrapper",
                     "zigux_destination": "drivers/virtio/virtio_ring_drift.zig",
                 },
             ),
@@ -453,6 +488,19 @@ def run_self_test() -> int:
                 {
                     "id": "phase10-ring-lab-driver-bridge",
                     "status": "blocked_on_risky_transport",
+                    "kind": "validation",
+                    "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+                },
+            ),
+            "manifest:gap_kind:phase10-ring-lab-driver-bridge='validation'",
+        )
+        run_manifest_case(
+            lambda manifest: manifest["gaps"].__setitem__(
+                15,
+                {
+                    "id": "phase10-ring-lab-driver-bridge",
+                    "status": "blocked_on_risky_transport",
+                    "kind": "roadmap_gap",
                     "zigux_destination": "drivers/virtio/virtio_probe_bridge.zig",
                 },
             ),
