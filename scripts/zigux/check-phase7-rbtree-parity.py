@@ -661,6 +661,20 @@ def run_self_test() -> None:
             "lib/rbtree.zig: pub const NodeLinked",
         ),
         (
+            "helper_impl_root_linked_type_marker",
+            "lib/rbtree.zig",
+            "pub const RootLinked",
+            "",
+            "lib/rbtree.zig: pub const RootLinked",
+        ),
+        (
+            "helper_impl_add_cached_marker",
+            "lib/rbtree.zig",
+            "pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node",
+            "",
+            "lib/rbtree.zig: pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node",
+        ),
+        (
             "helper_impl_clear_linked_node_marker",
             "lib/rbtree.zig",
             "pub fn clearLinkedNode",
@@ -673,6 +687,13 @@ def run_self_test() -> None:
             "pub fn addLinked",
             "",
             "lib/rbtree.zig: pub fn addLinked",
+        ),
+        (
+            "helper_impl_erase_cached_marker",
+            "lib/rbtree.zig",
+            "pub fn eraseCached(node: *Node, root: *RootCached) ?*Node",
+            "",
+            "lib/rbtree.zig: pub fn eraseCached(node: *Node, root: *RootCached) ?*Node",
         ),
         (
             "helper_impl_erase_linked_marker",
@@ -708,6 +729,13 @@ def run_self_test() -> None:
             "rb_erase_init(&replacement.node, &replace_root);",
             "",
             "lib/rbtree.zig: rb_erase_init(&replacement.node, &replace_root);",
+        ),
+        (
+            "helper_impl_replace_cached_decl_marker",
+            "lib/rbtree.zig",
+            "pub fn replaceNodeCached",
+            "",
+            "lib/rbtree.zig: pub fn replaceNodeCached",
         ),
         (
             "helper_impl_replace_cached_singleton_test_marker",
