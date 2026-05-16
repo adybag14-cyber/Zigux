@@ -236,6 +236,32 @@ REQUIRED_GAPS = {
     "phase10-virtio-input-registration-lifecycle": ("blocked_on_risky_transport", "zigux/tests/phase10_virtio_input.zig"),
 }
 
+EXPECTED_GAP_KINDS = {
+    "phase10-build-gate": "validation",
+    "phase10-virtio-core-lab-starter": "reviewability",
+    "phase10-virtio-ring-lab-helper": "reviewability",
+    "phase10-virtio-input-lab-helper": "reviewability",
+    "phase10-virtio-input-lab-gate": "validation",
+    "phase10-virtio-input-verify-replay": "validation",
+    "phase10-virtio-input-probe-preflight-replay": "validation",
+    "phase10-virtio-input-queue-callback-preflight-replay": "validation",
+    "phase10-virtio-input-registration-preflight-replay": "validation",
+    "phase10-virtio-input-teardown-observation-replay": "validation",
+    "phase10-virtio-input-slice-note": "documentation",
+    "phase10-virtio-input-module-note": "documentation",
+    "phase10-virtio-input-survey-gate": "validation",
+    "phase10-virtio-input-survey-note": "documentation",
+    "phase10-virtio-input-capability-setup-helper": "reviewability",
+    "phase10-virtio-input-multitouch-slot-helper": "reviewability",
+    "phase10-virtio-input-probe-preflight-helper": "reviewability",
+    "phase10-virtio-input-registration-preflight-helper": "reviewability",
+    "phase10-virtio-input-queue-callback-preflight-helper": "reviewability",
+    "phase10-virtio-input-status-drain-helper": "reviewability",
+    "phase10-virtio-input-teardown-observation-helper": "reviewability",
+    "phase10-virtio-input-wrapper-ownership-note": "documentation",
+    "phase10-virtio-input-registration-lifecycle": "validation",
+}
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -304,6 +330,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 continue
             if gap.get("status") != status:
                 missing.append(f"manifest:gap_status:{gap_id}={gap.get('status')!r}")
+            expected_kind = EXPECTED_GAP_KINDS[gap_id]
+            if gap.get("kind") != expected_kind:
+                missing.append(f"manifest:gap_kind:{gap_id}={gap.get('kind')!r}")
             if gap.get("zigux_destination") != destination:
                 missing.append(f"manifest:gap_destination:{gap_id}={gap.get('zigux_destination')!r}")
 
@@ -339,6 +368,7 @@ def write_fixture(root: Path) -> None:
                     {
                         "id": gap_id,
                         "status": status,
+                        "kind": EXPECTED_GAP_KINDS[gap_id],
                         "zigux_destination": destination,
                     }
                     for gap_id, (status, destination) in REQUIRED_GAPS.items()
@@ -513,6 +543,20 @@ def run_self_test() -> int:
             root,
             "manifest:gap_status:phase10-virtio-input-registration-lifecycle='starter_landed'",
             "phase10-input-self-test:manifest_gap_status",
+        )
+        write_fixture(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for gap in manifest["gaps"]:
+            if gap["id"] == "phase10-virtio-input-wrapper-ownership-note":
+                gap["kind"] = "validation"
+                break
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            root,
+            "manifest:gap_kind:phase10-virtio-input-wrapper-ownership-note='validation'",
+            "phase10-input-self-test:manifest_gap_kind",
         )
         write_fixture(root)
         case_count += 1
