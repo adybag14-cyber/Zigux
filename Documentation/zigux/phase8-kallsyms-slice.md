@@ -40,6 +40,7 @@ Current public default-branch helper readback also keeps the dedicated helper su
 - bounded chunk buffering for oversized input lines before callback delivery
 - reader, path, and callback wrappers that preserve raw carriage returns before newline
 - `make -C zigux phase8-help-kallsyms-test`
+- `make -C zigux phase8-kallsyms-test`
 
 The dedicated slice review route also stays explicit through `zigux/tests/phase8_kallsyms.zig`, which currently rechecks the same parked helper-first and output-stability packet.
 
