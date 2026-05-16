@@ -81,6 +81,7 @@ pub const Request = struct {
     config: []const u8,
     arch: []const u8,
     silent: bool = false,
+    overwriteconfig: bool = false,
     mode_arg: ?[]const u8 = null,
     allconfig: ?[]const u8 = null,
     seed: ?u32 = null,
@@ -90,6 +91,7 @@ pub const Request = struct {
 
 const BridgeOptions = struct {
     silent: bool = false,
+    overwriteconfig: bool = false,
     allconfig: ?[]const u8 = null,
     seed: ?u32 = null,
     probability: ?[]const u8 = null,
@@ -98,6 +100,7 @@ const BridgeOptions = struct {
 
 const ParseBridgeOptionsError = error{
     DuplicateSilent,
+    DuplicateOverwriteConfig,
     DuplicateAllConfig,
     DuplicateSeed,
     DuplicateProbability,
@@ -151,7 +154,7 @@ const bridge_option_prefixes = [_][]const u8{
 };
 
 fn looksLikeBridgeOption(text: []const u8) bool {
-    if (std.mem.eql(u8, text, "silent")) {
+    if (std.mem.eql(u8, text, "silent") or std.mem.eql(u8, text, "overwriteconfig")) {
         return true;
     }
     for (bridge_option_prefixes) |prefix| {
@@ -238,6 +241,7 @@ fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
 fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsError!BridgeOptions {
     var options = BridgeOptions{};
     var saw_silent = false;
+    var saw_overwriteconfig = false;
     var saw_allconfig = false;
     var saw_seed = false;
     var saw_probability = false;
@@ -248,6 +252,12 @@ fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsEr
             if (saw_silent) return error.DuplicateSilent;
             saw_silent = true;
             options.silent = true;
+            continue;
+        }
+        if (std.mem.eql(u8, arg, "overwriteconfig")) {
+            if (saw_overwriteconfig) return error.DuplicateOverwriteConfig;
+            saw_overwriteconfig = true;
+            options.overwriteconfig = true;
             continue;
         }
         if (std.mem.startsWith(u8, arg, "allconfig=")) {
@@ -309,6 +319,9 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("\",\"KCONFIG_CONFIG\":\"");
     try writeJsonEscaped(writer, request.config);
     try writer.writeAll("\"");
+    if (request.overwriteconfig) {
+        try writer.writeAll(",\"KCONFIG_OVERWRITECONFIG\":\"1\"");
+    }
     if (request.allconfig) |allconfig| {
         try writer.writeAll(",\"KCONFIG_ALLCONFIG\":\"");
         try writeJsonEscaped(writer, allconfig);
@@ -344,7 +357,7 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
 }
 
 fn parseRequest(args: []const []const u8) ParseRequestError!Request {
-    if (args.len < 5 or args.len > 9) {
+    if (args.len < 5 or args.len > 10) {
         return error.InvalidUsage;
     }
 
@@ -366,6 +379,7 @@ fn parseRequest(args: []const []const u8) ParseRequestError!Request {
         .config = args[3],
         .arch = args[4],
         .silent = options.silent,
+        .overwriteconfig = options.overwriteconfig,
         .mode_arg = mode_arg,
         .allconfig = options.allconfig,
         .seed = options.seed,
@@ -381,17 +395,18 @@ pub fn main(init: std.process.Init) !void {
 
     const request = parseRequest(args) catch |err| {
         const message = switch (err) {
-            error.InvalidUsage => "Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg] [silent] [allconfig=<value>] [seed=<value>] [probability=<value>] [nosilentupdate=<value>]\n",
+            error.InvalidUsage => "Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg] [silent] [overwriteconfig] [allconfig=<value>] [seed=<value>] [probability=<value>] [nosilentupdate=<value>]\n",
             error.UnsupportedMode => "Error: unsupported kconfig mode\n",
             error.MissingArgument => missingModeArgumentMessage(Mode.parse(args[1]) orelse .defconfig),
             error.DuplicateSilent => "Error: duplicate silent option\n",
+            error.DuplicateOverwriteConfig => "Error: duplicate overwriteconfig option\n",
             error.DuplicateAllConfig => "Error: duplicate allconfig override option\n",
             error.DuplicateSeed => "Error: duplicate randconfig seed option\n",
             error.DuplicateProbability => "Error: duplicate randconfig probability option\n",
             error.DuplicateNoSilentUpdate => "Error: duplicate syncconfig nosilentupdate option\n",
             error.UnexpectedArgument => "Error: unexpected bridge option for mode\n",
         };
-        var stderr_buffer: [220]u8 = undefined;
+        var stderr_buffer: [240]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
         try stderr_writer.interface.writeAll(message);
         try stderr_writer.interface.flush();
@@ -538,11 +553,13 @@ test "request parser keeps mode argument ahead of trailing options" {
         "arm64",
         "arch/arm64/configs/defconfig",
         "silent",
+        "overwriteconfig",
     });
 
     try std.testing.expectEqual(Mode.defconfig, request.mode);
     try std.testing.expectEqualStrings("arch/arm64/configs/defconfig", request.mode_arg.?);
     try std.testing.expect(request.silent);
+    try std.testing.expect(request.overwriteconfig);
 }
 
 test "conf bridge emits olddefconfig argv and env" {
@@ -620,6 +637,22 @@ test "conf bridge emits silent flag before mode flag" {
     });
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--listnewconfig\",\"Kconfig\"]") != null);
+}
+
+test "conf bridge emits overwriteconfig env when requested" {
+    var capture = try TestCapture.init(std.testing.allocator, 224);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .oldconfig,
+        .kconfig = "Kconfig",
+        .config = "symlink/.config",
+        .arch = "x86_64",
+        .overwriteconfig = true,
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_OVERWRITECONFIG\":\"1\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"symlink/.config\"") != null);
 }
 
 test "conf bridge emits helpnewconfig silent packet from live fixture shape" {
@@ -881,6 +914,7 @@ test "conf bridge escapes low control bytes in JSON strings" {
 
 test "mode argument validation rejects bridge option shaped defconfig payload" {
     try std.testing.expectError(error.MissingArgument, validateModeArgument(.defconfig, "allconfig=mini.config"));
+    try std.testing.expectError(error.MissingArgument, validateModeArgument(.defconfig, "overwriteconfig"));
     try std.testing.expectError(error.MissingArgument, validateModeArgument(.savedefconfig, "nosilentupdate=1"));
 }
 
@@ -893,9 +927,15 @@ test "mode argument validation accepts path text that only starts with silent" {
     try std.testing.expectEqualStrings("silent.save", try validateModeArgument(.savedefconfig, "silent.save"));
 }
 
+test "mode argument validation accepts path text that only starts with overwriteconfig" {
+    try std.testing.expectEqualStrings("overwriteconfig.save", try validateModeArgument(.savedefconfig, "overwriteconfig.save"));
+    try std.testing.expectEqualStrings("arch/x86/configs/overwriteconfig_debug_defconfig", try validateModeArgument(.defconfig, "arch/x86/configs/overwriteconfig_debug_defconfig"));
+}
+
 test "bridge options parser accepts explicit allconfig override for allmodconfig" {
     const options = try parseBridgeOptions(.allmodconfig, &.{"allconfig="});
     try std.testing.expect(options.silent == false);
+    try std.testing.expect(options.overwriteconfig == false);
     try std.testing.expect(options.allconfig != null);
     try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
     try std.testing.expect(options.seed == null);
@@ -906,6 +946,7 @@ test "bridge options parser accepts explicit allconfig override for allmodconfig
 test "bridge options parser accepts syncconfig nosilentupdate" {
     const options = try parseBridgeOptions(.syncconfig, &.{"nosilentupdate=1"});
     try std.testing.expect(options.silent == false);
+    try std.testing.expect(options.overwriteconfig == false);
     try std.testing.expect(options.nosilentupdate != null);
     try std.testing.expectEqualStrings("1", options.nosilentupdate.?);
 }
@@ -913,7 +954,15 @@ test "bridge options parser accepts syncconfig nosilentupdate" {
 test "bridge options parser keeps empty syncconfig nosilentupdate unset" {
     const options = try parseBridgeOptions(.syncconfig, &.{"nosilentupdate="});
     try std.testing.expect(options.silent == false);
+    try std.testing.expect(options.overwriteconfig == false);
     try std.testing.expect(options.nosilentupdate == null);
+}
+
+test "bridge options parser accepts overwriteconfig flag" {
+    const options = try parseBridgeOptions(.oldconfig, &.{"overwriteconfig"});
+    try std.testing.expect(options.silent == false);
+    try std.testing.expect(options.overwriteconfig);
+    try std.testing.expect(options.allconfig == null);
 }
 
 test "bridge options parser canonicalizes randconfig seed with base-0 parsing" {
@@ -930,17 +979,20 @@ test "bridge options parser drops invalid randconfig seed for conf.c fallback" {
 test "bridge options parser accepts generic silent flag" {
     const options = try parseBridgeOptions(.helpnewconfig, &.{"silent"});
     try std.testing.expect(options.silent);
+    try std.testing.expect(options.overwriteconfig == false);
     try std.testing.expect(options.allconfig == null);
 }
 
 test "bridge options parser accepts silent alongside randconfig options" {
     const options = try parseBridgeOptions(.randconfig, &.{
         "silent",
+        "overwriteconfig",
         "allconfig=allrandom.config",
         "seed=0xC0FFEE",
         "probability=10:20",
     });
     try std.testing.expect(options.silent);
+    try std.testing.expect(options.overwriteconfig);
     try std.testing.expectEqualStrings("allrandom.config", options.allconfig.?);
     try std.testing.expectEqual(@as(u32, 0xC0FFEE), options.seed.?);
     try std.testing.expectEqualStrings("10:20", options.probability.?);
@@ -950,6 +1002,13 @@ test "bridge options parser rejects duplicate silent flag" {
     try std.testing.expectError(error.DuplicateSilent, parseBridgeOptions(.oldconfig, &.{
         "silent",
         "silent",
+    }));
+}
+
+test "bridge options parser rejects duplicate overwriteconfig flag" {
+    try std.testing.expectError(error.DuplicateOverwriteConfig, parseBridgeOptions(.oldconfig, &.{
+        "overwriteconfig",
+        "overwriteconfig",
     }));
 }
 
