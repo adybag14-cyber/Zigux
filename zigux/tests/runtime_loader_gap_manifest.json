@@ -11,6 +11,8 @@
     "shared_lifecycle_boundary_guard_present": true,
     "dedicated_validate_phase9_present": false,
     "review_checklist_cross_phase_non_owner_boundary_present": true,
+    "scripts_phase9_flow_present": false,
+    "scripts_phase9_review_checklist_checker_present": false,
     "current_honest_gate": "make -C zigux phase9-runtime-loader-shared-tests"
   },
   "lifecycle_boundary_summary": {
@@ -54,7 +56,7 @@
     {
       "surface": "zigux/tests/runtime_loader_gap_manifest.json",
       "kind": "packet_truth_manifest",
-      "why_now": "Pins the current shared loader route, its still-blocked publication boundary, the cleared trace-events parity evidence, the focused lifecycle-boundary guard, and the landed review-checklist non-owner boundary reminder."
+      "why_now": "Pins the current shared loader route, its still-blocked publication boundary, the cleared trace-events parity evidence, the focused lifecycle-boundary guard, the landed review-checklist non-owner boundary reminder, and the remaining scripts-root reminder drift."
     },
     {
       "surface": "zigux/tests/runtime_loader_gap_survey.zig",
@@ -170,6 +172,13 @@
       "kind": "shared_lifecycle_boundary_validation",
       "zigux_destination": "zigux/tests/runtime_loader_lifecycle_boundary_guard.zig",
       "why_now": "The manifest's shared-request states, boundary guard, review-only loader-plan surfaces, and metadata-only registration surfaces now fail closed through a focused shared-loader guard."
+    },
+    {
+      "id": "runtime-loader-scripts-readme-review-checker-surface",
+      "status": "review_packet_drift",
+      "kind": "shared_reminder_surface",
+      "zigux_destination": "scripts/zigux/README.md",
+      "why_now": "The scripts-root summary still has no dedicated Phase 9 flow and does not yet name scripts/zigux/check-phase9-review-checklist-phase-boundaries.py beside the shared loader-gap packet."
     },
     {
       "id": "runtime-loader-live-runtime-binding",
