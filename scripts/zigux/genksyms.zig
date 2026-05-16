@@ -248,9 +248,6 @@ fn takeLongOptionValue(
     option: LongOptionSpec,
 ) LongOptionValue {
     if (inline_value) |value| {
-        if (value.len == 0) {
-            return .{ .failure = .{ .missing_option_argument = option.failure_name } };
-        }
         return .{ .value = value };
     }
 
@@ -856,27 +853,42 @@ test "genksyms bridge canonicalizes unexpected long option argument failures" {
     }
 }
 
-test "genksyms bridge rejects empty inline long reference argument" {
+test "genksyms bridge accepts empty inline long reference argument" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
     const args = [_][]const u8{"--reference="};
-    const outcome = try parseArgs(testing.allocator, &args);
+    const outcome = try parseArgs(arena_state.allocator(), &args);
     switch (outcome) {
-        .failure => |failure| switch (failure.reason) {
-            .missing_option_argument => |option| try testing.expectEqualStrings("--reference", option),
-            else => return error.UnexpectedParseFailure,
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try testing.expectEqualStrings("", request.reference_files[0]);
+                try testing.expect(request.dump_types_file == null);
+                try testing.expectEqualSlices([]const u8, &args, request.rendered_args);
+            },
+            else => return error.ExpectedRequestCommand,
         },
-        else => return error.TestExpectedFailure,
+        else => return error.ExpectedRequestCommand,
     }
 }
 
-test "genksyms bridge canonicalizes abbreviated dump-types empty inline argument" {
+test "genksyms bridge accepts empty inline long dump-types argument" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
     const args = [_][]const u8{"--dump-t="};
-    const outcome = try parseArgs(testing.allocator, &args);
+    const outcome = try parseArgs(arena_state.allocator(), &args);
     switch (outcome) {
-        .failure => |failure| switch (failure.reason) {
-            .missing_option_argument => |option| try testing.expectEqualStrings("--dump-types", option),
-            else => return error.UnexpectedParseFailure,
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqualStrings("", request.dump_types_file.?);
+                try testing.expectEqual(@as(usize, 0), request.reference_files.len);
+                try testing.expectEqualSlices([]const u8, &args, request.rendered_args);
+            },
+            else => return error.ExpectedRequestCommand,
         },
-        else => return error.TestExpectedFailure,
+        else => return error.ExpectedRequestCommand,
     }
 }
 
