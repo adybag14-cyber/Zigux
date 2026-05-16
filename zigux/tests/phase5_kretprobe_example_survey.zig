@@ -92,9 +92,11 @@ test "phase5 kretprobe survey note and manifest stay aligned with the restored p
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kretprobe_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kretprobe_example_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kretprobe_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_kretprobe_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "public-tree reread") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current public-tree-backed companion evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused validation route") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runRetargetReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runLifecycleGuardReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runOwnershipReplay") != null);
