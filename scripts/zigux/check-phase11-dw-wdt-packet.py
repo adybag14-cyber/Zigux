@@ -13,6 +13,7 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-dw-wdt-packet.py"
 FILES = {
     "plan_note": "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
     "tests_companion": "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "build_inventory": "zigux/tests/fixtures/phase11_build_inventory.json",
     "driver_file": "drivers/watchdog/dw_wdt.zig",
     "verify_file": "drivers/watchdog/dw_wdt_verify.zig",
     "registration_scaffold": "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
@@ -45,6 +46,21 @@ MARKERS = {
         "- `drivers/watchdog/dw_wdt.zig`",
         "- `drivers/watchdog/dw_wdt_verify.zig`",
         "surviving DesignWare platform-registration continuity packet through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+    ],
+    "build_inventory": [
+        '"phase11-dw-wdt-tests"',
+        '"phase11-dw-wdt-registration-scaffold-tests"',
+        '"phase11-dw-wdt-verify-tests"',
+        '"phase11-dw-wdt-survey-tests"',
+        '"../../drivers/watchdog/dw_wdt.zig"',
+        '"../../drivers/watchdog/dw_wdt_verify.zig"',
+        '"phase11_dw_wdt.zig"',
+        '"phase11_dw_wdt_registration_scaffold.zig"',
+        '"phase11_dw_wdt_survey.zig"',
+        '"zigux/tests/phase11_dw_wdt_suspend_resume.zig"',
+        '" try std.testing.expect(summary.resume_preserves_timeout_programming);"',
+        '"zigux/tests/phase11_dw_wdt_remove_idle_split.zig"',
+        '" try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);"',
     ],
     "driver_file": [
         "pub const RegistrationScaffoldState",
@@ -245,7 +261,12 @@ def run_self_test() -> None:
         (missing_companion_root / FILES["tests_companion"]).unlink()
         expect_failure(missing_companion_root, FILES["tests_companion"])
 
-        self_test_case_count = len(cases) + sum(len(markers) for markers in FORBIDDEN_MARKERS.values()) + 5
+        missing_build_inventory_root = tmpdir / "missing_build_inventory"
+        shutil.copytree(fixture_root, missing_build_inventory_root, dirs_exist_ok=True)
+        (missing_build_inventory_root / FILES["build_inventory"]).unlink()
+        expect_failure(missing_build_inventory_root, FILES["build_inventory"])
+
+        self_test_case_count = len(cases) + sum(len(markers) for markers in FORBIDDEN_MARKERS.values()) + 6
         print("PHASE11_DW_WDT_PACKET_SELF_TEST=pass")
         print(f"PHASE11_DW_WDT_PACKET_SELF_TEST_CASE_COUNT={self_test_case_count}")
     finally:
