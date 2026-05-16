@@ -131,7 +131,7 @@ REQUIRED_REPLAY_CONSTANT_KEYS = (
     "unsafe_scope_raw_pointer_bridge",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied",
-    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped",
     "notifier_done",
     "notifier_ok",
@@ -199,7 +199,7 @@ REQUIRED_REPLAY_STRUCT_MARKERS = (
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_view",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_summary",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view",
-    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary",
+    "chrdev_notify_ack_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_SUMMARY",
     "notifier_block",
 )
 
@@ -478,7 +478,7 @@ def validate_repo(repo_root: Path) -> list[str]:
     issues.extend(_validate_replay_notifier_chain_keys(repo_root / DUMP_PATH, "dump"))
     issues.extend(_validate_replay_struct_markers(repo_root / HARNESS_PATH, "harness"))
     issues.extend(_validate_replay_constant_markers(repo_root / HARNESS_PATH, "harness"))
-    issues.extend(_validate_replay_top_level_keys(repo_root / HARNESS_PATH, "harness"))
+    issues.extend(_validate_replay_top_LEVEL_KEYS(repo_root / HARNESS_PATH, "harness"))
     issues.extend(_validate_replay_dev_t_keys(repo_root / HARNESS_PATH, "harness"))
     issues.extend(_validate_replay_notifier_chain_keys(repo_root / HARNESS_PATH, "harness"))
     issues.extend(_validate_expected_fixture(repo_root / EXPECTED_PATH))
