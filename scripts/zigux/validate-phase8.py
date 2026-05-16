@@ -246,7 +246,7 @@ REQUIRED_MARKERS = {
         '"zigux/tests/phase8_file_path_handle_bridge_only_build.zig"',
         '"zigux/tests/phase8_build.zig"',
         '"phase8-file-path-handle-bridge-tests"',
-        '"make -C zigux phase8-test"',
+        '"phase8-test:"',
     ),
     BRIDGE_BUILD_PATH: (
         '"../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"',
