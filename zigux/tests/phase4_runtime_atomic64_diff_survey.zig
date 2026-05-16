@@ -43,14 +43,14 @@ const phase4_gate_evidence_self_test_cases_line =
     "phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift," ++
     "doc_readme_blob_pin_drift,script_readme_blob_pin_drift,tests_readme_blob_pin_drift," ++
     "gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift," ++
-    "shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift," ++
-    "shared_validator_expected_self_test_case_count_drift,runtime_atomic64_survey_packet_presence_drift," ++
-    "bitmap_diff_survey_replay_marker_drift,kprobe_gap_packet_presence_drift,kprobe_owner_drift," ++
-    "kprobe_validation_entrypoint_drift,kprobe_next_step_drift,perf_baseline_packet_presence_drift," ++
-    "perf_baseline_note_split_marker_drift,perf_baseline_owner_drift," ++
-    "perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift," ++
-    "test_fsmount_threshold_posture_drift,test_fsmount_owner_drift,test_fsmount_validation_entrypoint_drift," ++
-    "test_fsmount_linux_style_wrapper_drift,test_fsmount_next_step_drift,missing_note_file";
+    "shared_validator_reruns_gate_evidence_check_drift,shared_validator_reruns_gate_evidence_self_test_drift," ++
+    "shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift," ++
+    "runtime_atomic64_survey_packet_presence_drift,bitmap_diff_survey_replay_marker_drift," ++
+    "kprobe_gap_packet_presence_drift,kprobe_owner_drift,kprobe_validation_entrypoint_drift," ++
+    "kprobe_next_step_drift,perf_baseline_packet_presence_drift,perf_baseline_note_split_marker_drift," ++
+    "perf_baseline_owner_drift,perf_baseline_shared_promotion_status_drift," ++
+    "test_fsmount_gap_packet_presence_drift,test_fsmount_threshold_posture_drift,test_fsmount_owner_drift," ++
+    "test_fsmount_validation_entrypoint_drift,test_fsmount_linux_style_wrapper_drift,test_fsmount_next_step_drift,missing_note_file";
 
 fn readRepoFile(allocator: std.mem.Allocator, repo_root_relative_path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(
@@ -178,7 +178,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try expectBlobShaMatchesSource(manifest.phase4_validator_blob_sha, validate_phase4_source);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.phase4_gate_evidence_path);
     try std.testing.expect(manifest.phase9_build_present);
-    try std.testing.expectEqualStrings("30b899eeb47355ddc4a638b7597a61e234414759", manifest.phase9_build_blob_sha);
+    try std.testing.expectEqualStrings("a48acc20afa0b3e5580cfa2a7792da50501f9d2f", manifest.phase9_build_blob_sha);
     try expectBlobShaMatchesSource(manifest.phase9_build_blob_sha, phase9_build_source);
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
@@ -337,8 +337,8 @@ test "phase 4 atomic64 survey keeps the gate-evidence wrapper blob pin aligned w
     try expectMarker(gate_evidence_source, atomic64_diff_blob_marker);
 
     try expectMarker(gate_evidence_source, phase4_gate_evidence_self_test_cases_line);
-    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33");
-    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33");
+    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true");
