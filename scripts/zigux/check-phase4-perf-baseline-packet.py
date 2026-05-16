@@ -198,6 +198,7 @@ SELF_TEST_CASES = [
     "manifest_limit_drift",
     "manifest_decision_owner_drift",
     "manifest_coordination_owners_drift",
+    "manifest_shared_ci_perf_promotion_status_drift",
     "manifest_promotion_decision_status_drift",
     "manifest_promotion_decision_owner_drift",
     "manifest_promotion_decision_coordination_owners_drift",
@@ -546,14 +547,15 @@ def run_self_test() -> int:
         case_count += 1
         build_fixture_tree(root)
 
-        write_text(
-            root / MANIFEST_REL,
-            replace_once(
-                read_text(root / MANIFEST_REL),
+        manifest = json.loads(read_text(root / MANIFEST_REL))
+        reversible_delivery_evidence = manifest.get("reversible_delivery_evidence")
+        if isinstance(reversible_delivery_evidence, str):
+            manifest["reversible_delivery_evidence"] = replace_once(
+                reversible_delivery_evidence,
                 "scripts/zigux/check-phase4-perf-baseline-packet.py",
                 "scripts/zigux/check-phase4-perf-baseline-note.py",
-            ),
-        )
+            )
+        write_manifest(root, manifest)
         if not expect_failure(root, "manifest_field:reversible_delivery_evidence:scripts/zigux/check-phase4-perf-baseline-packet.py"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("manifest checker reference drift case did not fail closed")
@@ -678,6 +680,16 @@ def run_self_test() -> int:
         if not expect_failure(root, "manifest_field:coordination_owners"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("manifest coordination-owner drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        manifest = json.loads(read_text(root / MANIFEST_REL))
+        manifest["shared_ci_perf_promotion_status"] = "approved"
+        write_manifest(root, manifest)
+        if not expect_failure(root, "manifest_field:shared_ci_perf_promotion_status"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest shared-CI perf promotion status drift case did not fail closed")
             return 1
         case_count += 1
         build_fixture_tree(root)
