@@ -202,6 +202,30 @@ Phase 8 review packet
   * `make -C zigux phase8`
   * keep the shared Phase 8 tooling packet explicit here too: the focused exec-cmd, help, symbol, cpu-mask, file-path bridge, segmented libbpf, and perf-buffer poll replay surfaces stay reviewable from the tests root without widening into deferred process-launch, handle-ownership, or online-CPU routing work
 
+Phase 12 review packet
+  * `scripts/zigux/check-build-only-phase12-surface.py`
+  * `Documentation/zigux/phase12-release-sequencing.md`
+  * `Documentation/zigux/phase12-release-closure-checklist.md`
+  * `Documentation/zigux/phase12-release-readiness-survey.md`
+  * `Documentation/zigux/phase12-release-coordination-matrix.md`
+  * `make -C zigux phase12-validate`
+  * `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
+  * `Documentation/zigux/phase12-raw-github-coverage-survey.md`
+  * `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
+  * `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
+  * `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
+  * `Documentation/zigux/phase12-virtio-net-survey.md`
+  * `Documentation/zigux/phase12-libbpf-segment-survey.md`
+  * `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
+  * `scripts/zigux/check-phase12-release-readiness-packet.py`
+  * while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`
+  * `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`
+  * `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json`
+  * `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+  * `make -C zigux phase12-smoke`
+  * `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+  * `make -C zigux phase12`
+
 Phase 13 review packet
   * `Documentation/zigux/phase13-contributor-workflow-guide.md`
   * `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
