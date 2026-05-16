@@ -155,10 +155,25 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
     "probe_remove_lifecycle",
 ]
 
-EXPECTED_GAP_STATUSES = {
-    "phase10-mmio-config-write-disposition-helper": "starter_landed",
-    "phase10-mmio-selected-queue-readiness-helper": "starter_landed",
-    "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
+EXPECTED_GAP_DETAILS = {
+    "phase10-mmio-config-write-disposition-helper": {
+        "status": "starter_landed",
+        "kind": "queue_wrapper",
+        "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+        "why_now": "The config-write-disposition helper keeps generation-scoped review of planned config writes explicit inside the current lab-only packet.",
+    },
+    "phase10-mmio-selected-queue-readiness-helper": {
+        "status": "starter_landed",
+        "kind": "queue_wrapper",
+        "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+        "why_now": "The selected-queue readiness helper keeps the chosen queue's handoff posture explicit before transport-backed queue setup or reset execution.",
+    },
+    "phase10-mmio-lifecycle-and-irq-paths": {
+        "status": "blocked_on_risky_transport",
+        "kind": "roadmap_gap",
+        "zigux_destination": "zigux/tests/phase10_virtio_mmio.zig",
+        "why_now": "Fresh build-backed MMIO replay plus risky transport follow-through for queue lifecycle and IRQ parity remain blocked even though the helper ladder and focused verifier are landed.",
+    },
 }
 
 
@@ -203,16 +218,27 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         )
 
     gaps = {
-        gap.get("id"): gap.get("status")
+        gap.get("id"): gap
         for gap in manifest.get("gaps", [])
         if isinstance(gap, dict)
     }
-    for gap_id, expected_status in EXPECTED_GAP_STATUSES.items():
-        actual_status = gaps.get(gap_id)
-        if actual_status != expected_status:
-            missing_markers.append(f"mmio_manifest:gap_status:{gap_id}={actual_status!r}")
+    for gap_id, expected in EXPECTED_GAP_DETAILS.items():
+        gap = gaps.get(gap_id)
+        if gap is None:
+            missing_markers.append(f"mmio_manifest:missing_gap:{gap_id}")
+            continue
+        if gap.get("status") != expected["status"]:
+            missing_markers.append(f"mmio_manifest:gap_status:{gap_id}={gap.get('status')!r}")
+        if gap.get("kind") != expected["kind"]:
+            missing_markers.append(f"mmio_manifest:gap_kind:{gap_id}={gap.get('kind')!r}")
+        if gap.get("zigux_destination") != expected["zigux_destination"]:
+            missing_markers.append(
+                f"mmio_manifest:gap_destination:{gap_id}={gap.get('zigux_destination')!r}"
+            )
+        if gap.get("why_now") != expected["why_now"]:
+            missing_markers.append(f"mmio_manifest:gap_why_now:{gap_id}={gap.get('why_now')!r}")
 
-    return [], missing_markers
+    return missing_files, missing_markers
 
 
 def build_fixture() -> dict[str, str]:
@@ -230,8 +256,8 @@ def build_fixture() -> dict[str, str]:
                 "preexisting_virtio_mmio_verify_present": True,
             },
             "gaps": [
-                {"id": gap_id, "status": status}
-                for gap_id, status in EXPECTED_GAP_STATUSES.items()
+                {"id": gap_id, **details}
+                for gap_id, details in EXPECTED_GAP_DETAILS.items()
             ],
         },
         indent=2,
@@ -358,6 +384,24 @@ def run_self_test() -> int:
                 "PHASE10_LEDGER_EXACT_CHECK_8=python3 scripts/zigux/check-phase10-mmio-freeze-boundary-missing.py",
                 "PHASE10_CLOSURE_LEDGER.md:PHASE10_LEDGER_EXACT_CHECK_8=python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py",
             ),
+            (
+                "zigux/tests/phase10_virtio_mmio_manifest.json",
+                "drivers/virtio/virtio_mmio.zig",
+                "drivers/virtio/virtio_mmio_verify.zig",
+                "mmio_manifest:gap_destination:phase10-mmio-config-write-disposition-helper='drivers/virtio/virtio_mmio_verify.zig'",
+            ),
+            (
+                "zigux/tests/phase10_virtio_mmio_manifest.json",
+                "The selected-queue readiness helper keeps the chosen queue's handoff posture explicit before transport-backed queue setup or reset execution.",
+                "The selected queue note drifted away from the blocked transport posture.",
+                "mmio_manifest:gap_why_now:phase10-mmio-selected-queue-readiness-helper='The selected queue note drifted away from the blocked transport posture.'",
+            ),
+            (
+                "zigux/tests/phase10_virtio_mmio_manifest.json",
+                '"kind": "roadmap_gap"',
+                '"kind": "validation"',
+                "mmio_manifest:gap_kind:phase10-mmio-lifecycle-and-irq-paths='validation'",
+            ),
         ]
 
         for rel_path, old, new, expected in cases:
@@ -366,7 +410,7 @@ def run_self_test() -> int:
         run_manifest_case(root)
 
     print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
@@ -393,5 +437,5 @@ print("PHASE10_MMIO_FREEZE_BOUNDARY=pass")
 print(f"PHASE10_MMIO_FREEZE_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_MMIO_FREEZE_REQUIRED_MARKER_COUNT="
-    f"{sum(len(markers) for markers in TEXT_MARKERS.values()) + len(MMIO_MANIFEST_SCALARS) + len(EXPECTED_ROADMAP_DESTINATIONS) + len(EXPECTED_ALLOWED_EVIDENCE_KINDS) + len(EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS) + len(EXPECTED_GAP_STATUSES) + 2}"
+    f"{sum(len(markers) for markers in TEXT_MARKERS.values()) + len(MMIO_MANIFEST_SCALARS) + len(EXPECTED_ROADMAP_DESTINATIONS) + len(EXPECTED_ALLOWED_EVIDENCE_KINDS) + len(EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS) + (len(EXPECTED_GAP_DETAILS) * 4) + 2}"
 )
