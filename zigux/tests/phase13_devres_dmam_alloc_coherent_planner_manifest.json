@@ -1,0 +1,36 @@
+{
+  "lane_key": "P13-L08",
+  "phase": "Phase 13",
+  "surveyed_commit": "master-readback-2026-05-16",
+  "anchor": "lib/devres.c",
+  "packet": "phase13-devres-dmam-alloc-coherent-planner",
+  "status": "planning_only",
+  "adjacent_evidence": [
+    "Documentation/zigux/phase13-devres-survey.md",
+    "Documentation/zigux/phase13-devres-slice.md",
+    "zigux/tests/phase13_devres_dma_coherent.zig"
+  ],
+  "required_markers": [
+    "pure `dmam_alloc_coherent()` planning surface",
+    "detach-time cleanup intent",
+    "avoid retaining detach-time cleanup ownership",
+    "dma_map_*",
+    "dma_unmap_*",
+    "dma_sync_*",
+    "dma_mmap_*",
+    "dma_map_sgtable()",
+    "struct scatterlist",
+    "sg_table",
+    "sg_*"
+  ],
+  "blocked_boundaries": [
+    {
+      "id": "phase13-devres-live-dmam-alloc-side-effects",
+      "status": "blocked_on_dma_state"
+    },
+    {
+      "id": "phase13-devres-live-scatterlist-ownership",
+      "status": "blocked_on_scatterlist_state"
+    }
+  ]
+}
