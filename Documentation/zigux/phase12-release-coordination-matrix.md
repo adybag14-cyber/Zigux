@@ -19,7 +19,7 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - freeze-map boundary companion: `Documentation/zigux/freeze-map.md`
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`
-- validator-first support bundle: `scripts/zigux/check-phase12-cross.py --self-test`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`
+- validator-first support bundle: `scripts/zigux/check-build-only-phase12-surface.py --self-test`, `scripts/zigux/check-phase12-cross.py --self-test`, `scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`
 - shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`
 
 ## Owner Split
