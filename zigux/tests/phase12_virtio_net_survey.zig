@@ -261,12 +261,18 @@ test "phase12 virtio net syntax lab keeps payload-shaping and recovery markers e
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "recovery_generation") != null);
 }
 
-test "phase12 virtio net survey gate keeps queue resume replay wired into shared smoke route" {
+test "phase12 virtio net survey gate keeps queue resume and transmit recycle replays wired into the shared phase12 routes" {
     const build_file = try readFileAlloc("zigux/tests/phase12_build.zig", 24 * 1024);
     defer std.testing.allocator.free(build_file);
 
     const queue_resume = try readFileAlloc("zigux/tests/phase12_virtio_net_queue_resume.zig", 16 * 1024);
     defer std.testing.allocator.free(queue_resume);
+
+    const transmit_recycle = try readFileAlloc("zigux/tests/phase12_virtio_net_transmit_recycle.zig", 16 * 1024);
+    defer std.testing.allocator.free(transmit_recycle);
+
+    const makefile = try readFileAlloc("zigux/Makefile", 64 * 1024);
+    defer std.testing.allocator.free(makefile);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_queue_resume.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "virtio_net_queue_resume_root_module") != null);
@@ -275,8 +281,28 @@ test "phase12 virtio net survey gate keeps queue resume replay wired into shared
     try std.testing.expect(std.mem.indexOf(u8, build_file, "smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "test_step.dependOn(&run_virtio_net_queue_resume_tests.step);") != null);
 
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_transmit_recycle.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "virtio_net_transmit_recycle_root_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12-virtio-net-transmit-recycle-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "run_virtio_net_transmit_recycle_tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);") != null);
+
     try std.testing.expect(std.mem.indexOf(u8, queue_resume, "phase12 virtio net queue resume keeps mergeable replay and throughput guard explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, queue_resume, "phase12 virtio net queue resume keeps control replay markers explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, queue_resume, "throughput_guard_active") != null);
     try std.testing.expect(std.mem.indexOf(u8, queue_resume, "after_control_queue_restore") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, transmit_recycle, "phase12 virtio net transmit recycle keeps a stopped queue parked while a bounded poll leaves completion backlog") != null);
+    try std.testing.expect(std.mem.indexOf(u8, transmit_recycle, "phase12 virtio net transmit recycle does not wake a stopped queue without reclaimed descriptors") != null);
+    try std.testing.expect(std.mem.indexOf(u8, transmit_recycle, "requires_followup_recycle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, transmit_recycle, "wakes_transmit_queue") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "PHONY += phase12-validate phase12-smoke") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "PHONY += phase12-test phase12") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-smoke:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-validate phase12-smoke phase12-test") != null);
 }
