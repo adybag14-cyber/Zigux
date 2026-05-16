@@ -100,7 +100,7 @@ PHASE2_BOOTSTRAP_NOTES_MARKERS = (
     "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 63
+EXPECTED_SELF_TEST_CASE_COUNT = 66
 
 
 def read_text(path: Path) -> str:
@@ -319,22 +319,19 @@ def run_self_test() -> int:
         ) in issues
         checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, PHASE2_VALIDATOR)
-        path.write_text(
-            replace_once(
-                path.read_text(encoding="utf-8"),
-                VALIDATOR_MARKERS[5],
-                VALIDATOR_MARKERS[5] + "\n" + VALIDATOR_MARKERS[5],
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (
-            "DUPLICATE_VALIDATOR_MARKERS",
-            f'{VALIDATOR_MARKERS[5]}:count=2:expected=1',
-        ) in issues
-        checks_run += 1
+        for marker, expected_count in VALIDATOR_EXACT_COUNTS.items():
+            build_self_test_root(root)
+            path = resolve_path(root, PHASE2_VALIDATOR)
+            path.write_text(
+                path.read_text(encoding="utf-8") + marker + "\n",
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert (
+                "DUPLICATE_VALIDATOR_MARKERS",
+                f"{marker}:count={expected_count + 1}:expected={expected_count}",
+            ) in issues
+            checks_run += 1
 
         for marker in CLOSURE_VALIDATOR_MARKERS:
             build_self_test_root(root)
