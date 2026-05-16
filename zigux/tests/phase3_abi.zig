@@ -78,6 +78,66 @@ test "phase3 abi keeps exported constants and family markers present" {
     layout_assert.assertNotifierResultValues();
 }
 
+test "phase3 abi keeps chrdev helper decoding explicit in the shared replay" {
+    const delivery_view = abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView{
+        .ack_window = 4,
+        .delivery_window = 8,
+        .status = abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED,
+    };
+    const budget_view = abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView{
+        .budget = 16,
+        .window = 2,
+        .flags = abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED |
+            abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
+    };
+
+    try std.testing.expectEqual(
+        @as(u32, 0),
+        @intFromEnum(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowStatus.delivered),
+    );
+    try std.testing.expectEqual(
+        @as(u32, abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED),
+        @intFromEnum(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowStatus.skipped),
+    );
+    try std.testing.expectEqual(
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowStatus.delivered,
+        abi.deliveryWindowStatus(0).?,
+    );
+    try std.testing.expectEqual(
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowStatus.skipped,
+        abi.deliveryWindowStatus(delivery_view.status).?,
+    );
+    try std.testing.expect(abi.deliveryWindowStatus(2) == null);
+
+    try std.testing.expectEqual(
+        @as(u32, 0),
+        @intFromEnum(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowStatus.delivered),
+    );
+    try std.testing.expectEqual(
+        @as(
+            u32,
+            abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
+        ),
+        @intFromEnum(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowStatus.skipped),
+    );
+    try std.testing.expectEqual(
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowStatus.delivered,
+        abi.budgetWindowStatus(0).?,
+    );
+    try std.testing.expectEqual(
+        abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowStatus.skipped,
+        abi.budgetWindowStatus(
+            abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
+        ).?,
+    );
+    try std.testing.expect(abi.budgetWindowStatus(2) == null);
+
+    try std.testing.expect(!abi.budgetWasApplied(0));
+    try std.testing.expect(abi.budgetWasApplied(budget_view.flags));
+    try std.testing.expect(!abi.budgetWindowWasApplied(0));
+    try std.testing.expect(abi.budgetWindowWasApplied(budget_view.flags));
+}
+
 test "phase3 abi keeps the notifier chain helper lifted into the shared abi binding" {
     const single = abi.NotifierBlock{
         .notifier_call = 0,
