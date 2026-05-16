@@ -150,6 +150,78 @@ test "phase 8 exec-cmd focused replay keeps logical PWD deferred planning explic
     try std.testing.expectEqual(@as(?[]const u8, null), deferred_execl.call.argv[4]);
 }
 
+test "phase 8 exec-cmd focused replay keeps mismatched logical PWD planning on the real cwd" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+    const cwd_identity = exec_cmd.FileIdentity{ .device = 3, .inode = 44 };
+    const different_identity = exec_cmd.FileIdentity{ .device = 7, .inode = 55 };
+
+    var env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = exec_cmd.ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin");
+
+    var deferred_execv = try exec_cmd.planDeferredExecvCallWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "/logical/repo",
+        cwd_identity,
+        different_identity,
+        &[_][]const u8{ "record", "-a" },
+    );
+    defer deferred_execv.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        deferred_execv.path,
+    );
+    try std.testing.expectEqualStrings(deferred_execv.path, env.get("PATH").?);
+    try std.testing.expectEqualStrings("perf", deferred_execv.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred_execv.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred_execv.call.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred_execv.call.argv[3]);
+
+    try env.set("PATH", "/usr/bin");
+
+    var deferred_execl = try exec_cmd.planDeferredExeclCallWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "/logical/repo",
+        cwd_identity,
+        different_identity,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null },
+    );
+    defer deferred_execl.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        deferred_execl.path,
+    );
+    try std.testing.expectEqualStrings(deferred_execl.path, env.get("PATH").?);
+    try std.testing.expectEqualStrings("perf", deferred_execl.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred_execl.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred_execl.call.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", deferred_execl.call.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred_execl.call.argv[4]);
+}
+
 test "phase 8 exec-cmd focused replay accepts the last deferred execl handoff before overflow" {
     var argv_tail: [30]?[]const u8 = undefined;
     for (argv_tail[0..29]) |*slot| {
