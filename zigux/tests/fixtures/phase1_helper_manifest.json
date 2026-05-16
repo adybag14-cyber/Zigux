@@ -195,7 +195,10 @@
         "match_iterator_serials",
         "next_match_terminal_null"
       ],
-      "shared_replay_summary": "shared traversal, detached-node, duplicate-search, and iterator replay stay explicit through the Phase 1 fixture and replay, with `match_iterator_serials` now part of the committed shared duplicate-search packet",
+      "cached_leftmost_fixture_keys": [
+        "cached_leftmost_return_serials"
+      ],
+      "shared_replay_summary": "shared traversal, detached-node, duplicate-search, and iterator replay stay explicit through the Phase 1 fixture and replay, while current master also carries the parked `cached_leftmost_return_serials` parity-only witness in the committed shared fixture beside the direct cached-root packet",
       "traversal_replay_keys": [
         "empty_root",
         "insert_order",
@@ -214,7 +217,7 @@
         "match_iterator_serials",
         "next_match_terminal_null"
       ],
-      "cached_root_direct_review_summary": "cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships a dedicated cached-root leftmost-return fixture key",
+      "cached_root_direct_review_summary": "cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors even though current master already ships the parked `cached_leftmost_return_serials` parity fixture key; the shared Zig replay has not promoted that witness into `zigux/tests/phase1_helpers.zig` yet",
       "ordered_alias_anchor": "test \"rbtree ordered Linux-style aliases mirror traversal and replacement helpers\"",
       "low_level_alias_anchor": "test \"rbtree low-level Linux-style aliases mirror node-state helpers\"",
       "duplicate_search_anchors": [
@@ -233,8 +236,8 @@
         "test \"rbtree eraseInitCached clears singleton cached roots before reseed\""
       ],
       "cached_root_alias_anchor": "test \"rbtree cached-root Linux-style aliases mirror the primary helpers\"",
-      "review_packet_summary": "shared find, first-match, next-match, and match-iterator duplicate-search parity stays explicit through the Phase 1 fixture and replay, while cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships a dedicated cached-root leftmost-return fixture key",
-      "next_safe_step_note": "If this helper lane reopens, the smallest shared-replay expansion is now the dedicated cached-root leftmost-return fixture key; until then, cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors."
+      "review_packet_summary": "shared find, first-match, next-match, and match-iterator duplicate-search parity stays explicit through the Phase 1 fixture and replay, and current master already carries the parked `cached_leftmost_return_serials` fixture key for cached-root leftmost-return evidence, while cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until the shared replay consumes that committed key",
+      "next_safe_step_note": "If this helper lane reopens, the smallest shared-replay promotion is now wiring the already-shipped `cached_leftmost_return_serials` fixture key into the shared replay; until then, cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors."
     },
     "tools/lib/string.zig": {
       "helper_test_anchors": [
