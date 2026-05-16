@@ -159,7 +159,9 @@ CLOSURE_EVIDENCE_MARKERS = [
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`zigux/tests/phase10_closure_manifest.json`",
+    "`Documentation/zigux/phase10-virtio-core-slice.md`",
     "`Documentation/zigux/phase10-virtio-ring-slice.md`",
+    "`Documentation/zigux/phase10-virtio-input-slice.md`",
     "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
     "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
     "`make -C zigux phase10-validate`",
@@ -665,6 +667,36 @@ def run_self_test() -> int:
 
         closure_evidence_path.write_text(
             original_closure_evidence.replace(
+                "`Documentation/zigux/phase10-virtio-core-slice.md`",
+                "`Documentation/zigux/phase10-virtio-core-slice-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_evidence_core_slice",
+            root,
+            "closure_evidence:`Documentation/zigux/phase10-virtio-core-slice.md`",
+        )
+        closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
+
+        closure_evidence_path.write_text(
+            original_closure_evidence.replace(
+                "`Documentation/zigux/phase10-virtio-input-slice.md`",
+                "`Documentation/zigux/phase10-virtio-input-slice-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_evidence_input_slice",
+            root,
+            "closure_evidence:`Documentation/zigux/phase10-virtio-input-slice.md`",
+        )
+        closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
+
+        closure_evidence_path.write_text(
+            original_closure_evidence.replace(
                 "`Documentation/zigux/phase10-virtio-ring-slice.md`",
                 "`Documentation/zigux/phase10-virtio-ring-slice-missing.md`",
                 1,
@@ -895,7 +927,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=42")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=44")
     return 0
 
 
