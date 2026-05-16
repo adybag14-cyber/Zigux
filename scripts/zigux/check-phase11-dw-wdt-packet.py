@@ -36,6 +36,7 @@ MARKERS = {
         "- keep proof bounded to the checker self-test plus the narrowest truthful Zig-side review available for the next scaffold change",
         "- keep `drivers/watchdog/dw_wdt_verify.zig` compile-local and host-free so teardown ownership and remove failure-mode parity stay explicit while platform-backed acquisition remains the next bounded follow-through",
         "- refresh the shared tests-root companion or the shared lane-sequencing note only when a future DesignWare owner-packet change materially changes the shared owner map, not just because the live driver, verify, and scaffold packet is still being restated",
+        "- Phase 11 shared build replay only as a truthfulness check, not as a claim that hardware-backed behavior is complete",
         "Keep the live driver, verify, and scaffold packet explicit while the next implementation step stays inside `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` and `drivers/watchdog/dw_wdt.zig`.",
     ],
     "tests_companion": [
