@@ -50,11 +50,13 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 
 If `zig` is unavailable on `PATH`, keep the shipped degraded-workflow bundle plus that same smoke-first order explicit through the Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped PMO surface.
 
+Before that attached override is needed, `zigux/Makefile` still first tries the repo-local `.zig-toolchain` fallback through `ZIG_PINNED_TOOLCHAIN`, `ZIG_LOCAL_TOOLCHAIN`, and `ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)`, so this matrix should keep the attached-toolchain wording framed as a last-resort rerun of the shipped Make routes rather than as a second replay surface.
+
 Keep the degraded-workflow checker trio explicit beside that same order too:
 - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
 - `python3 scripts/zigux/check-phase12-cross.py --self-test`
 - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
-- Current `master` keeps the starter-present `virtio_net` smoke shard explicit through `zigux/tests/phase12_build.zig`: the shipped `smoke` step runs `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig`, before the `test` step layers in the direct `zigux/tests/phase12_virtio_net.zig` and `zigux/tests/phase12_virtio_scsi.zig` replays on top of that same smoke shard.
+- Current `master` keeps the starter-present `virtio_net` smoke shard explicit through `zigux/tests/phase12_build.zig`: the shipped `smoke` step runs `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, and `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, before the `test` step layers in the direct `zigux/tests/phase12_virtio_net.zig` and `zigux/tests/phase12_virtio_scsi.zig` replays on top of that same smoke shard.
 - That same smoke shard keeps `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig` explicit as the shipped rollback-lab drill inside `zigux/tests/phase12_build.zig` rather than leaving that gate implied by the broader `virtio_scsi` packet wording.
 
 ## Boundaries
