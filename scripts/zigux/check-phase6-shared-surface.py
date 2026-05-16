@@ -273,7 +273,7 @@ REQUIRED_PRESENT_ENTRYPOINTS_SNIPPETS = [
     'EXPECTED_HEXDUMP_PERF_REFRESH = HEXDUMP_PERF_REFRESH_PATH.as_posix()',
 ]
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 19
 
 
 def read_text(path: Path) -> str:
@@ -372,6 +372,7 @@ def validate_manifest(repo_root: Path) -> None:
 
 def validate_paths(repo_root: Path) -> None:
     required_paths = {
+        MANIFEST_PATH,
         DOCUMENTATION_README_PATH,
         SCRIPTS_README_PATH,
         CATALOG_PATH,
@@ -486,7 +487,10 @@ def scaffold_repo(root: Path) -> None:
     write(root / HEXDUMP_PERF_REFRESH_PATH, "# Phase 6 Hexdump Perf Refresh\n")
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n")
     write(root / CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
-    write(root / HELPER_EVIDENCE_CATALOG_PATH, "\n".join(REQUIRED_HELPER_EVIDENCE_SNIPPETS + REQUIRED_HELPER_EVIDENCE_REMINDER_SNIPPETS) + "\n")
+    write(
+        root / HELPER_EVIDENCE_CATALOG_PATH,
+        "\n".join(REQUIRED_HELPER_EVIDENCE_SNIPPETS + REQUIRED_HELPER_EVIDENCE_REMINDER_SNIPPETS) + "\n",
+    )
     write(root / BASE64_SLICE_PATH, "\n".join(REQUIRED_BASE64_SLICE_SNIPPETS) + "\n")
     write(root / BSEARCH_SLICE_PATH, "\n".join(REQUIRED_BSEARCH_SLICE_SNIPPETS) + "\n")
     write(root / CHECKSUM_SLICE_PATH, "\n".join(REQUIRED_CHECKSUM_SLICE_SNIPPETS) + "\n")
@@ -568,7 +572,19 @@ def run_self_test() -> None:
         assert_failure(tmpdir, HELPER_EVIDENCE_CATALOG_PATH, "make -C zigux phase6-checksum-perf", "make -C zigux phase6-checksum-perf-missing")
         assert_failure(tmpdir, BASE64_SLICE_PATH, "phase6_base64_c_casegen.zig", "phase6_base64_c_casegen_missing.zig")
         assert_failure(tmpdir, PERF_SURVEY_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
+        assert_failure(
+            tmpdir,
+            PHASE6_BUILD_PATH,
+            "base64_perf_step.dependOn(&run_base64_perf.step);",
+            "base64_perf_step.dependOn(&run_base64_perf_missing.step);",
+        )
         assert_failure(tmpdir, CHECKSUM_SLICE_PATH, "phase6-checksum-perf", "phase6-checksum-perf-missing")
+        assert_failure(
+            tmpdir,
+            PHASE6_BUILD_PATH,
+            "checksum_perf_step.dependOn(&run_checksum_perf.step);",
+            "checksum_perf_step.dependOn(&run_checksum_perf_missing.step);",
+        )
         assert_failure(tmpdir, MAKEFILE_PATH, "phase6-base64-perf:", "phase6-base64-perf-missing:")
         assert_failure(tmpdir, WORKFLOW_PATH, "Check Phase 6 checksum C parity packet", "Check Phase 6 checksum parity packet")
         assert_failure(tmpdir, SCRIPTS_README_PATH, "phase6-validate", "phase6-validate-missing")
