@@ -39,7 +39,11 @@ The parked starter keeps these bounded summaries explicit:
 * cleanup-time tty-port ownership
 * tiny notifier-add open handoff summary
 * khvcd polling-contract summary
+* khvcd worker-entry summary
+* khvcd sleep-and-reschedule handoff summary
+* `__hvc_poll` drain-order summary
 * `hvc_hangup()` disconnect summary
+* `hvc_remove()` handoff summary
 * `hvc_kick()` wakeup cue
 * notifier-IRQ helper surface
 * targetless notifier no-unregister edge through `summarizeTargetlessNotifierEdge()` and the direct verify companion
