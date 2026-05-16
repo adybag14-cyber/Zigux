@@ -1,34 +1,14 @@
 const std = @import("std");
+const abi = @import("abi_bindings");
 
-pub const NOTIFIER_DONE: u32 = 0;
-pub const NOTIFIER_OK: u32 = 1;
-pub const NOTIFIER_STOP: u32 = 2;
+pub const NOTIFIER_DONE: u32 = abi.NOTIFIER_DONE;
+pub const NOTIFIER_OK: u32 = abi.NOTIFIER_OK;
+pub const NOTIFIER_STOP: u32 = abi.NOTIFIER_STOP;
 
-pub const NotifierResult = enum(u32) {
-    done = NOTIFIER_DONE,
-    ok = NOTIFIER_OK,
-    stop = NOTIFIER_STOP,
-};
-
-pub const NotifierBlock = extern struct {
-    notifier_call: usize,
-    next: usize,
-    priority: i32,
-};
-
-pub const PriorityIncrease = struct {
-    previous_index: usize,
-    current_index: usize,
-    previous_priority: i32,
-    current_priority: i32,
-};
-
-pub const ChainPriorityIncrease = struct {
-    previous_index: usize,
-    current_index: usize,
-    previous_priority: i32,
-    current_priority: i32,
-};
+pub const NotifierResult = abi.NotifierResult;
+pub const NotifierBlock = abi.NotifierBlock;
+pub const PriorityIncrease = abi.ChainPriorityIncrease;
+pub const ChainPriorityIncrease = abi.ChainPriorityIncrease;
 
 pub fn prioritiesNonincreasing(blocks: []const NotifierBlock) bool {
     return firstPriorityIncrease(blocks) == null;
@@ -54,31 +34,22 @@ pub fn firstPriorityIncrease(blocks: []const NotifierBlock) ?PriorityIncrease {
 }
 
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
-    return firstChainPriorityIncrease(head) == null;
+    return abi.chainHasNonincreasingPriority(head);
 }
 
 pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {
-    var current = head orelse return null;
-    var previous_index: usize = 0;
-    var previous_priority = current.priority;
+    return abi.firstChainPriorityIncrease(head);
+}
 
-    while (current.next != 0) {
-        const next: *const NotifierBlock = @ptrFromInt(current.next);
-        const current_index = previous_index + 1;
-        if (next.priority > previous_priority) {
-            return .{
-                .previous_index = previous_index,
-                .current_index = current_index,
-                .previous_priority = previous_priority,
-                .current_priority = next.priority,
-            };
-        }
-        previous_index = current_index;
-        previous_priority = next.priority;
-        current = next;
-    }
-
-    return null;
+test "notifier abi aliases stay aligned with the shared abi surface" {
+    try std.testing.expectEqual(@as(u32, abi.NOTIFIER_DONE), NOTIFIER_DONE);
+    try std.testing.expectEqual(@as(u32, abi.NOTIFIER_OK), NOTIFIER_OK);
+    try std.testing.expectEqual(@as(u32, abi.NOTIFIER_STOP), NOTIFIER_STOP);
+    try std.testing.expectEqual(@as(usize, @sizeOf(abi.NotifierBlock)), @sizeOf(NotifierBlock));
+    try std.testing.expectEqual(
+        @as(usize, @sizeOf(abi.ChainPriorityIncrease)),
+        @sizeOf(ChainPriorityIncrease),
+    );
 }
 
 test "notifier priority helper accepts empty chain" {
@@ -141,10 +112,15 @@ test "notifier priority helper reports the first chain priority increase" {
     };
 
     const increase = firstChainPriorityIncrease(&first).?;
+    const shared_increase = abi.firstChainPriorityIncrease(&first).?;
     try std.testing.expectEqual(@as(usize, 1), increase.previous_index);
     try std.testing.expectEqual(@as(usize, 2), increase.current_index);
     try std.testing.expectEqual(@as(i32, 2), increase.previous_priority);
     try std.testing.expectEqual(@as(i32, 6), increase.current_priority);
+    try std.testing.expectEqual(shared_increase.previous_index, increase.previous_index);
+    try std.testing.expectEqual(shared_increase.current_index, increase.current_index);
+    try std.testing.expectEqual(shared_increase.previous_priority, increase.previous_priority);
+    try std.testing.expectEqual(shared_increase.current_priority, increase.current_priority);
     try std.testing.expect(!chainHasNonincreasingPriority(&first));
 }
 
