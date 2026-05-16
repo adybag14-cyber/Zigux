@@ -515,7 +515,7 @@ pub const NvmePciQueueLab = struct {
     }
 
     fn checkedSqEntryBytes(sq_entry_bytes: u16) !u16 {
-        if (sq_entry_bytes < min_sq_entry_bytes or sq_entry_bytes > max_sqEntry_bytes) {
+        if (sq_entry_bytes < min_sq_entry_bytes or sq_entry_bytes > max_sq_entry_bytes) {
             return error.InvalidSqEntryBytes;
         }
         if (!std.math.isPowerOfTwo(sq_entry_bytes)) {
