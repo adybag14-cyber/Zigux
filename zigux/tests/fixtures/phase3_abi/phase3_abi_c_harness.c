@@ -91,7 +91,7 @@ int main(void)
         "\"unsafe_scope_volatile_mmio\":%u,"
         "\"unsafe_scope_raw_pointer_bridge\":%u,"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped\":%u,"
-        "\"chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_flag_budget_applied\":%u,"
+        "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied\":%u,"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied\":%u,"
         "\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped\":%u,"
         "\"notifier_done\":%u,"
@@ -312,7 +312,7 @@ int main(void)
         sizeof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary),
         _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, applied),
-        offsetof(struct zigux_chrdev_notify_ack_WINDOW_policy_budget_window_delivery_window_summary, skipped),
+        offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, skipped),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary, delivered),
         sizeof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view),
         _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view),
