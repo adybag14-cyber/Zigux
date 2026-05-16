@@ -332,6 +332,8 @@ Phase 13 review packet
   * `Documentation/zigux/phase13-release-coordination-matrix.md`
   * `Documentation/zigux/phase13-release-notes-survey.md`
   * `Documentation/zigux/phase13-roadmap-traceability.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
   * `Documentation/zigux/phase13-libfs-survey.md`
   * `fs/libfs.zig`
   * `zigux/tests/phase13_libfs.zig`
