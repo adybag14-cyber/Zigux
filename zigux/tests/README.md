@@ -117,6 +117,58 @@ Phase 2 review packet
   * the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset
   * keep the shipped genksyms bridge direct replay visible in the tests root through the committed fixture packet instead of reviving a direct tests-root replay command
 
+Phase 3 review packet
+  * `Documentation/zigux/phase3-abi-slice.md`
+  * `Documentation/zigux/phase3-abi-bindings-survey.md`
+  * `Documentation/zigux/phase3-bindings-governance.md`
+  * `Documentation/zigux/phase3-boundary-lane-sequencing.md`
+  * `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
+  * `Documentation/zigux/phase3-kernel-export-shim-governance.md`
+  * `Documentation/zigux/phase3-linux-zigux-header-governance.md`
+  * `Documentation/zigux/phase3-abi-header-family-survey.md`
+  * `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
+  * `Documentation/zigux/phase3-validator-support-surface.md`
+  * `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`
+  * `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
+  * `include/zigux/abi.h`
+  * `include/zigux/dev_t.h`
+  * `include/linux/zigux.h`
+  * `zigux/bindings/abi.zig`
+  * `zigux/bindings/dev_t.zig`
+  * `zigux/bindings/notifier_abi.zig`
+  * `zigux/helpers/layout_assert.zig`
+  * `zigux/kernel/export_shim.zig`
+  * `zigux/uapi/version.zig`
+  * `zigux/uapi/dev_t.zig`
+  * `zigux/tests/phase3_abi.zig`
+  * `zigux/tests/phase3_abi_dump.zig`
+  * `zigux/tests/phase3_export_uapi_layout.zig`
+  * `zigux/tests/phase3_export_uapi_layout_build.zig`
+  * `zigux/tests/phase3_low_level_wrappers.zig`
+  * `zigux/tests/phase3_low_level_wrappers_build.zig`
+  * `zigux/tests/fixtures/phase3_abi_manifest.json`
+  * `scripts/zigux/validate-phase3.py`
+  * `scripts/zigux/validate_phase3_selftest.py`
+  * `scripts/zigux/check-phase3-selftest-surface.py`
+  * `scripts/zigux/check-phase3-readme-tooling-inventory.py`
+  * `scripts/zigux/check-phase3-abi-dump-gate.py`
+  * `scripts/zigux/check-phase3-catalog-selftest.py`
+  * `scripts/zigux/validate-phase3-export-uapi-survey.py`
+  * `scripts/zigux/validate-phase3-abi-header-family-survey.py`
+  * `scripts/zigux/validate-phase3-validator-support-surface.py`
+  * `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
+  * `scripts/zigux/survey-phase3-abi-constant-parity.py`
+  * `python3 scripts/zigux/validate-phase3.py`
+  * `python3 scripts/zigux/validate-phase3.py --slug abi`
+  * `python3 scripts/zigux/run-phase3-checks.py --slug abi`
+  * `zig build phase3-test --build-file zigux/tests/build.zig`
+  * `zig build phase3-dump --build-file zigux/tests/build.zig`
+  * `make -C zigux phase3-validate`
+  * `make -C zigux phase3-selftest`
+  * `make -C zigux phase3`
+  * the shared ABI substrate now stays explicit in this tests-root guide through the dedicated ABI-and-bindings survey, the dedicated bindings-governance note, the broader ABI slice note, the adjacent export/UAPI and Linux-facing header-governance notes, the validator-support packet, and the direct `phase3_abi` plus `phase3_abi_dump` replay routes instead of forcing reviewers to reconstruct that packet from the docs root and scripts root alone
+  * `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` stay explicit as the current starter header-family companion packet rather than implying a broader shipped UAPI family
+
 Phase 11 review packet
   * `Documentation/zigux/phase11-shared-replay-contract.md`
   * `Documentation/zigux/phase11-closure-note.md`
