@@ -113,7 +113,7 @@ HEXDUMP_CASES = [
 
 REQUIRED_SNIPPETS = {
     SURVEY_PATH.as_posix(): [
-        "* base64 shared posture: `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_base64_perf.zig` are directly readable on current `master`, and current `zigux/tests/phase6_build.zig` defines the dedicated `phase6-base64-perf` build step again; that slowdown gate is directly reviewable from the committed tree even though the broader `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` readbacks still expose the wrapper name only through shared route inventory surfaces",
+        "* base64 shared posture: `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_base64_perf.zig` are directly readable on current `master`, current `zigux/tests/phase6_build.zig` defines the dedicated `phase6-base64-perf` build step again, and `zigux/Makefile` now exposes a committed `phase6-base64-perf` target body; that slowdown gate is directly reviewable from the committed tree even though `.github/workflows/zigux-bootstrap.yml` still exposes Phase 6 perf coverage only through the shared checker bundle plus the hexdump perf replay",
         "* base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps that same six-case helper-owned replay aligned with the committed fixture packet today",
         "* checksum shared posture: `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/fixtures/phase6_checksum_vectors.zig` are directly readable on current `master`, and current `zigux/tests/phase6_build.zig` defines the dedicated `phase6-checksum-perf` build step again; that slowdown gate is directly reviewable from the committed tree, `zigux/Makefile` now exposes a committed `phase6-checksum-perf` target body, and only the broader bootstrap workflow plus aggregate wrapper summaries still lag the checksum packet",
         "* checksum exact thresholds: `zigux/tests/phase6_checksum_perf.zig` now keeps two helper-local slowdown cases, `64` at `reps = 20_000` and `1501` at `reps = 4_000`, each capped at `max_slowdown_pct = 150`, so the checksum perf packet is reviewable from committed evidence today even while the Linux-style wrapper inventory still lags that direct build route",
@@ -145,6 +145,8 @@ REQUIRED_SNIPPETS = {
     ],
     MAKEFILE_PATH.as_posix(): [
         "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
+        "phase6-base64-perf:",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
         "phase6-checksum-perf:",
         "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     ],
@@ -193,7 +195,10 @@ ABSENT_WORKFLOW_SNIPPETS = [
 EXPECTED_EXACT_CHECKS = {
     "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
     "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
+    "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-base64-perf",
+    "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-hexdump-perf",
 }
 
@@ -402,8 +407,20 @@ def run_self_test() -> None:
         assert_failure(
             root,
             MANIFEST_PATH,
+            '"make -C zigux phase6-base64-perf"',
+            '"make -C zigux phase6-base64-perf-missing"',
+        )
+        assert_failure(
+            root,
+            MANIFEST_PATH,
             '"reps": 4000',
             '"reps": 8000',
+        )
+        assert_failure(
+            root,
+            SURVEY_PATH,
+            "committed `phase6-base64-perf` target body",
+            "inventory-only wrapper name",
         )
         assert_failure(
             root,
@@ -428,6 +445,12 @@ def run_self_test() -> None:
             PHASE6_BUILD_PATH,
             'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
             'const checksum_perf_step = b.step("phase6-checksum-perf-missing", "Run Phase 6 checksum perf gate");',
+        )
+        assert_failure(
+            root,
+            MAKEFILE_PATH,
+            "phase6-base64-perf:",
+            "phase6-base64-perf-missing:",
         )
         assert_failure(
             root,
