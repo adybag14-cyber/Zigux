@@ -386,6 +386,27 @@ EXPECTED_GAP_DESTINATIONS = {
     "phase10-mmio-selected-queue-readiness-helper": "drivers/virtio/virtio_mmio.zig",
     "phase10-mmio-lifecycle-and-irq-paths": "zigux/tests/phase10_virtio_mmio.zig",
 }
+EXPECTED_GAP_WHY_NOW = {
+    "phase10-build-gate": "The shared Phase 10 build gate remains the narrowest honest replay surface for the MMIO packet while risky transport stays blocked.",
+    "phase10-virtio-core-lab-starter": "The existing virtio core starter still carries the status and queue bookkeeping that the MMIO packet reuses below risky transport.",
+    "phase10-virtio-ring-survey-gate": "The adjacent ring survey gate remains part of the broader lab-validation packet that the MMIO reminder keeps explicit beside the shared closure evidence.",
+    "phase10-virtio-ring-lab-helper": "The direct ring helper still provides the queue-shape and notification bookkeeping that the MMIO packet names beside the focused MMIO verify replay.",
+    "phase10-virtio-ring-slice-note": "The ring slice note remains part of the shared queue-handling packet that the MMIO survey keeps visible instead of collapsing MMIO work into a driver-only story.",
+    "phase10-virtio-mmio-survey-gate": "The dedicated survey gate keeps this MMIO manifest and the coupled survey note fail-closed on the current lane packet.",
+    "phase10-virtio-mmio-survey-note": "The directly coupled survey note keeps the current MMIO helper ladder, focused verify replay, and blocked transport follow-through explicit beside the shared closure packet.",
+    "phase10-mmio-register-window-helper": "The direct MMIO helper keeps bounded register-window bookkeeping reviewable without widening into transport execution.",
+    "phase10-mmio-queue-size-helper": "The queue-size helper keeps queue-local sizing evidence explicit before lifecycle, IRQ, or DMA work.",
+    "phase10-virtio-mmio-slice-note": "The MMIO slice note keeps the current helper ladder, focused verifier, and blocked transport boundary explicit as packet-local evidence.",
+    "phase10-mmio-feature-word-selector-helper": "The feature-word selector helper keeps bounded feature-window selection reviewable below risky transport.",
+    "phase10-mmio-feature-negotiation-summary-helper": "The feature-negotiation summary keeps selector, device-feature word, and driver-feature posture reviewable before queue lifecycle, IRQ, or DMA work.",
+    "phase10-mmio-config-window-helper": "The config-window helper keeps generation-scoped config review explicit without mutating live transport state.",
+    "phase10-mmio-config-write-plan-helper": "The config-write-plan helper keeps bounded MMIO write intent visible before any lifecycle or IRQ follow-through.",
+    "phase10-mmio-transport-identity-helper": "The transport-identity helper keeps vendor, device, and version posture explicit for the focused probe-preflight packet.",
+    "phase10-mmio-probe-preflight-helper": "The probe-preflight helper keeps bounded queue-register and interrupt-ack readiness visible below real probe lifecycle closure.",
+    "phase10-mmio-config-write-disposition-helper": "The config-write-disposition helper keeps generation-scoped review of planned config writes explicit inside the current lab-only packet.",
+    "phase10-mmio-selected-queue-readiness-helper": "The selected-queue readiness helper keeps the chosen queue's handoff posture explicit before transport-backed queue setup or reset execution.",
+    "phase10-mmio-lifecycle-and-irq-paths": "Fresh build-backed MMIO replay plus risky transport follow-through for queue lifecycle and IRQ parity remain blocked even though the helper ladder and focused verifier are landed.",
+}
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -438,6 +459,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         expected_destination = EXPECTED_GAP_DESTINATIONS[gap_id]
         if gap.get("zigux_destination") != expected_destination:
             missing_markers.append(f"manifest:gap_destination:{gap_id}={gap.get('zigux_destination')!r}")
+        expected_why_now = EXPECTED_GAP_WHY_NOW[gap_id]
+        if gap.get("why_now") != expected_why_now:
+            missing_markers.append(f"manifest:gap_why_now:{gap_id}={gap.get('why_now')!r}")
 
     return missing_files, missing_markers
 
@@ -494,6 +518,7 @@ def build_fixture() -> dict[str, str]:
                     "status": status,
                     "kind": EXPECTED_GAP_KINDS[gap_id],
                     "zigux_destination": EXPECTED_GAP_DESTINATIONS[gap_id],
+                    "why_now": EXPECTED_GAP_WHY_NOW[gap_id],
                 }
                 for gap_id, status in EXPECTED_GAPS.items()
             ],
@@ -587,6 +612,20 @@ def run_self_test() -> int:
                 raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
             case_count += 1
 
+        def run_gap_why_now_manifest_case(gap_id: str, replacement: str) -> None:
+            nonlocal case_count
+            manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            for gap in manifest["gaps"]:
+                if gap["id"] == gap_id:
+                    gap["why_now"] = replacement
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            _, markers = validate(root)
+            expected = f"manifest:gap_why_now:{gap_id}={replacement!r}"
+            if expected not in markers:
+                raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
+            case_count += 1
+
         def run_summary_field_case(field: str, replacement: object) -> None:
             nonlocal case_count
             manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
@@ -669,6 +708,14 @@ def run_self_test() -> int:
         run_feature_negotiation_manifest_case()
         run_selected_queue_kind_manifest_case()
         run_blocked_transport_destination_manifest_case()
+        run_gap_why_now_manifest_case(
+            "phase10-mmio-selected-queue-readiness-helper",
+            "The selected queue is ready for transport execution now.",
+        )
+        run_gap_why_now_manifest_case(
+            "phase10-mmio-lifecycle-and-irq-paths",
+            "Queue lifecycle and IRQ parity already landed with the helper packet.",
+        )
         run_summary_field_case("preexisting_phase10_build_present", False)
         run_summary_field_case("preexisting_virtio_ring_zig_present", False)
         run_summary_field_case("preexisting_virtio_input_status_drain_present", False)
