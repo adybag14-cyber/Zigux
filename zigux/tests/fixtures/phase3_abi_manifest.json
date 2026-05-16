@@ -1,7 +1,7 @@
 {
   "phase": "Phase 3",
   "status": "active",
-  "slice": "abi-substrate-skeleton",
+  "slice": "abi-and-bindings-boundary-packet",
   "file_count": 66,
   "files": [
     "include/zigux/abi.h",
