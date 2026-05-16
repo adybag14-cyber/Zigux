@@ -122,7 +122,7 @@ EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 26
 EXPECTED_CONF_CASE_COUNT = 16
 EXPECTED_CONFDATA_CASE_COUNT = 13
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 22
 
 
 def under_root(root: Path, path: Path) -> Path:
@@ -363,6 +363,15 @@ def replace_once(text: str, old: str, new: str) -> str:
     return text.replace(old, new, 1)
 
 
+def remove_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            del lines[index]
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"exact line not found: {marker}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="phase2_kconfig_alignment_") as tmp_dir:
@@ -390,7 +399,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(under_root(root, WORKFLOW), replace_once(read_text(under_root(root, WORKFLOW)), WORKFLOW_LINES[6], ""))
+        write_text(under_root(root, WORKFLOW), remove_exact_line(read_text(under_root(root, WORKFLOW)), WORKFLOW_LINES[6]))
         assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[6]) in collect_issues(root)
         checks_run += 1
 
@@ -400,7 +409,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(under_root(root, WORKFLOW), replace_once(read_text(under_root(root, WORKFLOW)), WORKFLOW_LINES[10], ""))
+        write_text(under_root(root, WORKFLOW), remove_exact_line(read_text(under_root(root, WORKFLOW)), WORKFLOW_LINES[10]))
         assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[10]) in collect_issues(root)
         checks_run += 1
 
@@ -415,12 +424,12 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(under_root(root, MAKEFILE), replace_once(read_text(under_root(root, MAKEFILE)), MAKEFILE_LINES[9], ""))
+        write_text(under_root(root, MAKEFILE), remove_exact_line(read_text(under_root(root, MAKEFILE)), MAKEFILE_LINES[9]))
         assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[9]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(under_root(root, MAKEFILE), replace_once(read_text(under_root(root, MAKEFILE)), MAKEFILE_LINES[10], ""))
+        write_text(under_root(root, MAKEFILE), remove_exact_line(read_text(under_root(root, MAKEFILE)), MAKEFILE_LINES[10]))
         assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[10]) in collect_issues(root)
         checks_run += 1
 
@@ -477,6 +486,15 @@ def run_self_test() -> int:
                 replace_once(read_text(under_root(root, PHASE2_CLOSURE_DOC)), marker, ""),
             )
             assert ("MISSING_CLOSURE_DOC_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in PHASE2_BOOTSTRAP_NOTES_MARKERS:
+            build_self_test_root(root)
+            write_text(
+                under_root(root, PHASE2_BOOTSTRAP_NOTES),
+                replace_once(read_text(under_root(root, PHASE2_BOOTSTRAP_NOTES)), marker, ""),
+            )
+            assert ("MISSING_BOOTSTRAP_NOTES_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
