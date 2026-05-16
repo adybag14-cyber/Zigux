@@ -15,6 +15,11 @@ const PerfResult = struct {
     decoded_len: usize,
 };
 
+const VariantCoverage = struct {
+    padded: bool = false,
+    unpadded: bool = false,
+};
+
 pub fn main() !void {
     for (fixtures.perf_cases) |case| {
         const result = try runPerfCase(case);
@@ -270,8 +275,61 @@ fn runPerfCase(case: PerfCase) !PerfResult {
     return .{ .helper_encode_ns_per_op = nsPerOp(best_helper_encode, case.iterations), .helper_decode_ns_per_op = nsPerOp(best_helper_decode, case.iterations), .reference_encode_ns_per_op = nsPerOp(best_reference_encode, case.iterations), .reference_decode_ns_per_op = nsPerOp(best_reference_decode, case.iterations), .encode_slowdown_pct = encode_slowdown_pct, .decode_slowdown_pct = decode_slowdown_pct, .encoded_len = helper_encoded_len, .decoded_len = helper_decoded_len };
 }
 
-test "phase 6 base64 perf matrix keeps the shipped slowdown gates aligned" {
+test "phase 6 base64 perf matrix keeps variant coverage reviewable" {
     try std.testing.expectEqual(@as(usize, 6), fixtures.perf_cases.len);
+
+    var std_coverage = VariantCoverage{};
+    var urlsafe_coverage = VariantCoverage{};
+    var imap_coverage = VariantCoverage{};
+
+    for (fixtures.perf_cases) |case| {
+        try std.testing.expectEqualStrings(fixtures.perf_payload, case.payload);
+
+        if (std.mem.eql(u8, case.variant_name, "std")) {
+            try std.testing.expectEqualStrings(if (case.padding) "std_padded" else "std_no_pad", case.reference_kind);
+            if (case.padding) {
+                try std.testing.expect(!std_coverage.padded);
+                std_coverage.padded = true;
+            } else {
+                try std.testing.expect(!std_coverage.unpadded);
+                std_coverage.unpadded = true;
+            }
+            continue;
+        }
+
+        if (std.mem.eql(u8, case.variant_name, "urlsafe")) {
+            try std.testing.expectEqualStrings(if (case.padding) "urlsafe_padded" else "urlsafe_no_pad", case.reference_kind);
+            if (case.padding) {
+                try std.testing.expect(!urlsafe_coverage.padded);
+                urlsafe_coverage.padded = true;
+            } else {
+                try std.testing.expect(!urlsafe_coverage.unpadded);
+                urlsafe_coverage.unpadded = true;
+            }
+            continue;
+        }
+
+        if (std.mem.eql(u8, case.variant_name, "imap")) {
+            try std.testing.expectEqualStrings(if (case.padding) "imap_padded" else "imap_no_pad", case.reference_kind);
+            if (case.padding) {
+                try std.testing.expect(!imap_coverage.padded);
+                imap_coverage.padded = true;
+            } else {
+                try std.testing.expect(!imap_coverage.unpadded);
+                imap_coverage.unpadded = true;
+            }
+            continue;
+        }
+
+        return error.UnexpectedVariant;
+    }
+
+    try std.testing.expect(std_coverage.padded);
+    try std.testing.expect(std_coverage.unpadded);
+    try std.testing.expect(urlsafe_coverage.padded);
+    try std.testing.expect(urlsafe_coverage.unpadded);
+    try std.testing.expect(imap_coverage.padded);
+    try std.testing.expect(imap_coverage.unpadded);
 }
 
 test "phase 6 base64 perf cases keep helper and reference codecs aligned before timing" {
