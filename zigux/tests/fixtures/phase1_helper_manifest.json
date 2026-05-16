@@ -248,6 +248,7 @@
         "test \"memchrInv keeps the earliest dirty byte for long non-zero scans across alignments\"",
         "test \"memchrInv keeps the earliest dirty byte for long zero-value scans across alignments\"",
         "test \"memchrInv short zero-value scans stay byte-accurate\"",
+        "test \"memchrInv keeps the earliest dirty byte across the fast-path cutoff\"",
         "test \"memparse handles decimal hexadecimal octal and suffixes\"",
         "test \"memparse keeps original rest when sign is not followed by digits\"",
         "test \"memparse saturates signed overflow instead of trapping\"",
