@@ -1,4 +1,5 @@
 const std = @import("std");
+const runtime_loader_contract = @import("../kernel/runtime_loader_contract.zig");
 
 const Gap = struct {
     id: []const u8,
@@ -215,6 +216,16 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
         "unregister_kretprobe",
         manifest.lifecycle_boundary_summary.metadata_only_registration_labels[1],
     );
+    try std.testing.expect(runtime_loader_contract.keepsRegistrationSummaryBoundaryExplicit());
+    try std.testing.expect(runtime_loader_contract.keepsReviewOnlyControlBoundaryExplicit());
+    try std.testing.expect(!@hasField(runtime_loader_contract.LoadPlan, "register_api"));
+    try std.testing.expect(!@hasField(runtime_loader_contract.LoadPlan, "unregister_api"));
+    try std.testing.expect(!@hasField(runtime_loader_contract.LoadPlan, "summary"));
+    try std.testing.expect(!@hasField(runtime_loader_contract.LoadPlan, "registration_snapshot"));
+    try std.testing.expect(!@hasField(runtime_loader_contract.PreparedRequest, "register_api"));
+    try std.testing.expect(!@hasField(runtime_loader_contract.PreparedRequest, "unregister_api"));
+    try std.testing.expect(!@hasField(runtime_loader_contract.PreparedRequest, "summary"));
+    try std.testing.expect(!@hasField(runtime_loader_contract.PreparedRequest, "registration_snapshot"));
 
     try std.testing.expectEqualStrings(
         "samples/zigux/runtime_kretprobe_loader.zig",
@@ -267,6 +278,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try expectContains(survey_note, "`PHASE9_LANE_KEY=P9-L13`");
     try expectContains(
         survey_note,
+        "shared request surface only keeps `zigux_runtime_kretprobe_init`, `zigux_runtime_kretprobe_exit`, `register_kretprobe`, and `unregister_kretprobe` readable as review-only lifecycle metadata",
+    );
+    try expectContains(
+        survey_note,
         "initialized-stage and selftest-complete shared-request handoff snapshots explicit",
     );
     try expectContains(
@@ -311,6 +326,10 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try expectContains(
         module_slice_note,
         "release ownership on the prepared loader/request pair",
+    );
+    try expectContains(
+        module_slice_note,
+        "keep `zigux_runtime_kretprobe_init`, `zigux_runtime_kretprobe_exit`, `register_kretprobe`, and `unregister_kretprobe` readable as review-only lifecycle metadata",
     );
     try expectContains(
         module_slice_note,
