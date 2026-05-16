@@ -128,8 +128,8 @@ Keep these current packet markers visible while `zigux/tests/phase5_bytestream_f
 - `PHASE5_STATUS=verified-split-readback-packet`
 - `PHASE5_SLICE=kfifo-reference-sample-readback`
 - `PHASE5_LANE_KEY=P5-L01`
-- `PHASE5_SURVEYED_COMMIT=9a307725bf8b343e8c0a4b12acdf8e9773afc343`
-- `samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=9a307725bf8b343e8c0a4b12acdf8e9773afc343|Phase 5`
+- `PHASE5_SURVEYED_COMMIT=19bd16896ad716b8411be2c25342ae52104b5c86`
+- `samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=19bd16896ad716b8411be2c25342ae52104b5c86|Phase 5`
 - `runtime_atomic64.zig`
 - `runtime_atomic64_loader.zig`
 - `runtime_bitmap.zig`
