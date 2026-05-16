@@ -12,8 +12,10 @@ ABI_SLICE_REL = Path("Documentation/zigux/phase3-abi-slice.md")
 ABI_MANIFEST_REL = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 LOW_LEVEL_TEST_REL = Path("zigux/tests/phase3_low_level_wrappers.zig")
 LOW_LEVEL_BUILD_REL = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
+LAYOUT_ASSERT_REL = Path("zigux/helpers/layout_assert.zig")
 
 SURVEY_REQUIRED = (
+    "PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig",
     "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
     "PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py",
     "The current tree still does not ship a dedicated `phase3_policy_unsafe` replay pair",
@@ -28,6 +30,7 @@ ABI_SLICE_REQUIRED = (
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
+    "zigux/helpers/layout_assert.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/mmio.zig",
@@ -49,6 +52,7 @@ ABI_SLICE_FORBIDDEN = (
 )
 
 MANIFEST_REQUIRED = (
+    "zigux/helpers/layout_assert.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/mmio.zig",
@@ -148,7 +152,21 @@ def run_self_test() -> None:
         check_repo_root(tmpdir)
 
         survey_path = tmpdir / SURVEY_REL
-        survey_path.write_text(survey_path.read_text(encoding="utf-8").replace(SURVEY_REQUIRED[1], ""), encoding="utf-8")
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(SURVEY_REQUIRED[0] + "\n", ""),
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert SURVEY_REL.as_posix() in str(exc)
+            assert SURVEY_REQUIRED[0] in str(exc)
+        else:
+            raise AssertionError("expected missing survey layout_assert marker failure")
+
+        write_fixture(tmpdir)
+        survey_path = tmpdir / SURVEY_REL
+        survey_path.write_text(survey_path.read_text(encoding="utf-8").replace(SURVEY_REQUIRED[2], ""), encoding="utf-8")
         try:
             check_repo_root(tmpdir)
         except CheckFailure as exc:
@@ -200,6 +218,20 @@ def run_self_test() -> None:
 
         write_fixture(tmpdir)
         abi_slice_path = tmpdir / ABI_SLICE_REL
+        abi_slice_path.write_text(
+            abi_slice_path.read_text(encoding="utf-8").replace(ABI_SLICE_REQUIRED[3] + "\n", ""),
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert ABI_SLICE_REL.as_posix() in str(exc)
+            assert ABI_SLICE_REQUIRED[3] in str(exc)
+        else:
+            raise AssertionError("expected missing abi-slice layout_assert marker failure")
+
+        write_fixture(tmpdir)
+        abi_slice_path = tmpdir / ABI_SLICE_REL
         abi_slice_path.write_text(abi_slice_path.read_text(encoding="utf-8") + ABI_SLICE_FORBIDDEN[0] + "\n", encoding="utf-8")
         try:
             check_repo_root(tmpdir)
@@ -210,12 +242,26 @@ def run_self_test() -> None:
 
         write_fixture(tmpdir)
         manifest_path = tmpdir / ABI_MANIFEST_REL
-        manifest_path.write_text(manifest_path.read_text(encoding="utf-8").replace(MANIFEST_REQUIRED[5] + "\n", ""), encoding="utf-8")
+        manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8").replace(MANIFEST_REQUIRED[0] + "\n", ""),
+            encoding="utf-8",
+        )
         try:
             check_repo_root(tmpdir)
         except CheckFailure as exc:
             assert ABI_MANIFEST_REL.as_posix() in str(exc)
-            assert MANIFEST_REQUIRED[5] in str(exc)
+            assert MANIFEST_REQUIRED[0] in str(exc)
+        else:
+            raise AssertionError("expected missing manifest layout_assert marker failure")
+
+        write_fixture(tmpdir)
+        manifest_path = tmpdir / ABI_MANIFEST_REL
+        manifest_path.write_text(manifest_path.read_text(encoding="utf-8").replace(MANIFEST_REQUIRED[6] + "\n", ""), encoding="utf-8")
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert ABI_MANIFEST_REL.as_posix() in str(exc)
+            assert MANIFEST_REQUIRED[6] in str(exc)
         else:
             raise AssertionError("expected missing manifest marker failure")
 
@@ -304,7 +350,7 @@ def run_self_test() -> None:
             raise AssertionError("expected missing low-level build anchor failure")
 
         print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST=pass")
-        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=13")
+        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=16")
     finally:
         shutil.rmtree(tmpdir)
 
