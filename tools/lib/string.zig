@@ -1,5 +1,5 @@
 const std = @import("std");
-const cmdline = @import("cmdline.zig");
+const cmdline = @import("cmdline");
 
 pub const ParseBoolError = error{Invalid};
 
