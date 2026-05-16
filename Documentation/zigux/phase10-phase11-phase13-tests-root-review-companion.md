@@ -158,6 +158,7 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
