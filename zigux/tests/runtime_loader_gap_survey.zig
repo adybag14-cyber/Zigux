@@ -188,6 +188,14 @@ test "phase 9 runtime loader gap survey keeps the shared replay routes and no-de
     try expectContains(lane_sequencing, "`zigux/kernel/runtime_loader_contract.zig`");
     try expectContains(lane_sequencing, "`make -C zigux phase9-runtime-loader-shared-tests` remains the focused shared-loader replay");
     try expectContains(lane_sequencing, "blocked module-metadata and depmod-publication boundary");
+    try expectContains(
+        lane_sequencing,
+        "`scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references",
+    );
+    try expectContains(
+        lane_sequencing,
+        "`rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references",
+    );
 
     try expectContains(scripts_readme, "Phase 9 flow");
     try expectContains(scripts_readme, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map");
