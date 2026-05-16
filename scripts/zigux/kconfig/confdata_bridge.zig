@@ -567,6 +567,50 @@ test "confdata bridge ignores malformed unset comments with extra tokens" {
     try std.testing.expectEqualStrings("y", summary.entries[0].value);
 }
 
+test "confdata bridge emits no entries for malformed unset comments with extra tokens" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 160), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(std.testing.allocator,
+        \\CONFIG_ALPHA=y
+        \\# CONFIG_ALPHA extra is not set
+        \\# CONFIG_DEBUG is not set trailing
+        \\
+    , &capture);
+
+    try std.testing.expectEqualStrings(
+        "{\"counts\":{\"set\":1,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_ALPHA\",\"kind\":\"tristate\",\"value\":\"y\"}]}\n",
+        capture.list.items,
+    );
+}
+
 test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
