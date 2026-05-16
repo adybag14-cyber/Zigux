@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 SCRIPT_PATH = Path(__file__).resolve()
-ROOT = SCRIPT_PATH.parent
+ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 NOTE_REL = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 
 TARGETS = [
