@@ -54,16 +54,32 @@ pub fn hexAscHi(byte: u8) u8 {
     return hex_digits[byte >> 4];
 }
 
+pub fn hex_asc_hi(byte: u8) u8 {
+    return hexAscHi(byte);
+}
+
 pub fn hexAscLo(byte: u8) u8 {
     return hex_digits[byte & 0x0f];
+}
+
+pub fn hex_asc_lo(byte: u8) u8 {
+    return hexAscLo(byte);
 }
 
 pub fn hexAscUpperHi(byte: u8) u8 {
     return hex_asc_upper[byte >> 4];
 }
 
+pub fn hex_asc_upper_hi(byte: u8) u8 {
+    return hexAscUpperHi(byte);
+}
+
 pub fn hexAscUpperLo(byte: u8) u8 {
     return hex_asc_upper[byte & 0x0f];
+}
+
+pub fn hex_asc_upper_lo(byte: u8) u8 {
+    return hexAscUpperLo(byte);
 }
 
 pub fn hexBytePack(dst: []u8, byte: u8) HexError![]u8 {
@@ -75,6 +91,10 @@ pub fn hexBytePack(dst: []u8, byte: u8) HexError![]u8 {
     return dst[2..];
 }
 
+pub fn hex_byte_pack(dst: []u8, byte: u8) HexError![]u8 {
+    return hexBytePack(dst, byte);
+}
+
 pub fn hexBytePackUpper(dst: []u8, byte: u8) HexError![]u8 {
     if (dst.len < 2) {
         return error.DestinationTooSmall;
@@ -82,6 +102,10 @@ pub fn hexBytePackUpper(dst: []u8, byte: u8) HexError![]u8 {
     dst[0] = hexAscUpperHi(byte);
     dst[1] = hexAscUpperLo(byte);
     return dst[2..];
+}
+
+pub fn hex_byte_pack_upper(dst: []u8, byte: u8) HexError![]u8 {
+    return hexBytePackUpper(dst, byte);
 }
 
 fn appendHexByte(writer: *LineWriter, byte: u8) void {
@@ -384,6 +408,28 @@ test "hex byte helpers and packers stay aligned" {
 
     try std.testing.expectError(error.DestinationTooSmall, hexBytePack(tiny[0..], byte));
     try std.testing.expectError(error.DestinationTooSmall, hexBytePackUpper(tiny[0..], byte));
+}
+
+test "snake-case hex header aliases stay aligned with the Zig helpers" {
+    const byte: u8 = 0xbe;
+    var lower: [2]u8 = undefined;
+    var upper: [2]u8 = undefined;
+    var tiny: [1]u8 = undefined;
+
+    try std.testing.expectEqual(hexAscHi(byte), hex_asc_hi(byte));
+    try std.testing.expectEqual(hexAscLo(byte), hex_asc_lo(byte));
+    try std.testing.expectEqual(hexAscUpperHi(byte), hex_asc_upper_hi(byte));
+    try std.testing.expectEqual(hexAscUpperLo(byte), hex_asc_upper_lo(byte));
+
+    const lower_rest = try hex_byte_pack(lower[0..], byte);
+    const upper_rest = try hex_byte_pack_upper(upper[0..], byte);
+    try std.testing.expectEqual(@as(usize, 0), lower_rest.len);
+    try std.testing.expectEqual(@as(usize, 0), upper_rest.len);
+    try std.testing.expectEqualStrings("be", lower[0..]);
+    try std.testing.expectEqualStrings("BE", upper[0..]);
+
+    try std.testing.expectError(error.DestinationTooSmall, hex_byte_pack(tiny[0..], byte));
+    try std.testing.expectError(error.DestinationTooSmall, hex_byte_pack_upper(tiny[0..], byte));
 }
 
 test "hex dump line length aliases the required length helper" {
