@@ -113,6 +113,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-release-coordination-matrix.md`",
         "`Documentation/zigux/phase13-release-notes-survey.md`",
         "`Documentation/zigux/phase13-roadmap-traceability.md`",
+        "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
         "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
