@@ -19,6 +19,8 @@ def infer_repo_root() -> Path:
 
 ROOT = infer_repo_root()
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+PHASE9_GAP_SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
+LOADER_GAP_MANIFEST_PATH = "zigux/tests/runtime_loader_gap_manifest.json"
 
 PHASE9_SHARED_PACKET_MARKER = "if the change touches the shared Phase 9 runtime-loader packet"
 PHASE8_EXEC_CMD_MARKER = "`tools/lib/subcmd/exec-cmd.zig`"
@@ -31,19 +33,60 @@ PHASE3_EXPORTS_MARKER = "`rust/exports.c`"
 PHASE3_EXPORT_SHIM_MARKER = "`zigux/kernel/export_shim.zig`"
 PHASE2_BOUNDARY_MARKER = "remain Phase 2 config-surface bridge references"
 PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than runtime-pilot evidence"
+PHASE9_GAP_SURVEY_CHECKER_MARKER = "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` checker now"
+PHASE9_GAP_SURVEY_MANIFEST_MARKER = "`review_checklist_cross_phase_non_owner_boundary_present: true` instead"
+LOADER_GAP_MANIFEST_FLAG_MARKER = '"review_checklist_cross_phase_non_owner_boundary_present": true'
+LOADER_GAP_MANIFEST_CHECKER_SURFACE_MARKER = '"surface": "scripts/zigux/check-phase9-review-checklist-phase-boundaries.py"'
+LOADER_GAP_MANIFEST_CHECKER_KIND_MARKER = '"kind": "shared_review_checklist_checker"'
 
-REQUIRED_MARKERS = [
-    PHASE9_SHARED_PACKET_MARKER,
-    PHASE8_EXEC_CMD_MARKER,
-    PHASE8_HELP_MARKER,
-    PHASE8_BOUNDARY_MARKER,
-    DEPMOD_BOUNDARY_MARKER,
-    PHASE2_CONF_BRIDGE_MARKER,
-    PHASE2_CONFDATA_BRIDGE_MARKER,
-    PHASE3_EXPORTS_MARKER,
-    PHASE3_EXPORT_SHIM_MARKER,
-    PHASE2_BOUNDARY_MARKER,
-    PHASE3_BOUNDARY_MARKER,
+REQUIRED_FILES = [
+    REVIEW_CHECKLIST_PATH,
+    PHASE9_GAP_SURVEY_PATH,
+    LOADER_GAP_MANIFEST_PATH,
+]
+
+REQUIRED_MARKERS = {
+    REVIEW_CHECKLIST_PATH: [
+        PHASE9_SHARED_PACKET_MARKER,
+        PHASE8_EXEC_CMD_MARKER,
+        PHASE8_HELP_MARKER,
+        PHASE8_BOUNDARY_MARKER,
+        DEPMOD_BOUNDARY_MARKER,
+        PHASE2_CONF_BRIDGE_MARKER,
+        PHASE2_CONFDATA_BRIDGE_MARKER,
+        PHASE3_EXPORTS_MARKER,
+        PHASE3_EXPORT_SHIM_MARKER,
+        PHASE2_BOUNDARY_MARKER,
+        PHASE3_BOUNDARY_MARKER,
+    ],
+    PHASE9_GAP_SURVEY_PATH: [
+        PHASE9_GAP_SURVEY_CHECKER_MARKER,
+        PHASE9_GAP_SURVEY_MANIFEST_MARKER,
+    ],
+    LOADER_GAP_MANIFEST_PATH: [
+        LOADER_GAP_MANIFEST_FLAG_MARKER,
+        LOADER_GAP_MANIFEST_CHECKER_SURFACE_MARKER,
+        LOADER_GAP_MANIFEST_CHECKER_KIND_MARKER,
+    ],
+}
+
+SELF_TEST_REMOVALS = [
+    (REVIEW_CHECKLIST_PATH, PHASE9_SHARED_PACKET_MARKER),
+    (REVIEW_CHECKLIST_PATH, PHASE8_EXEC_CMD_MARKER),
+    (REVIEW_CHECKLIST_PATH, PHASE8_HELP_MARKER),
+    (REVIEW_CHECKLIST_PATH, PHASE8_BOUNDARY_MARKER),
+    (REVIEW_CHECKLIST_PATH, DEPMOD_BOUNDARY_MARKER),
+    (REVIEW_CHECKLIST_PATH, PHASE2_CONF_BRIDGE_MARKER),
+    (REVIEW_CHECKLIST_PATH, PHASE2_CONFDATA_BRIDGE_MARKER),
+    (REVIEW_CHECKLIST_PATH, PHASE3_EXPORTS_MARKER),
+    (REVIEW_CHECKLIST_PATH, PHASE3_EXPORT_SHIM_MARKER),
+    (REVIEW_CHECKLIST_PATH, PHASE2_BOUNDARY_MARKER),
+    (REVIEW_CHECKLIST_PATH, PHASE3_BOUNDARY_MARKER),
+    (PHASE9_GAP_SURVEY_PATH, PHASE9_GAP_SURVEY_CHECKER_MARKER),
+    (PHASE9_GAP_SURVEY_PATH, PHASE9_GAP_SURVEY_MANIFEST_MARKER),
+    (LOADER_GAP_MANIFEST_PATH, LOADER_GAP_MANIFEST_FLAG_MARKER),
+    (LOADER_GAP_MANIFEST_PATH, LOADER_GAP_MANIFEST_CHECKER_SURFACE_MARKER),
+    (LOADER_GAP_MANIFEST_PATH, LOADER_GAP_MANIFEST_CHECKER_KIND_MARKER),
 ]
 
 
@@ -58,19 +101,22 @@ def write_text(path: Path, content: str) -> None:
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
-    checklist_path = root / REVIEW_CHECKLIST_PATH
-    if not checklist_path.exists():
-        return [f"missing_file:{REVIEW_CHECKLIST_PATH}"]
+    for rel_path in REQUIRED_FILES:
+        if not (root / rel_path).exists():
+            failures.append(f"missing_file:{rel_path}")
+    if failures:
+        return failures
 
-    checklist = read_text(root, REVIEW_CHECKLIST_PATH)
-    for marker in REQUIRED_MARKERS:
-        if marker not in checklist:
-            failures.append(f"missing_marker:{REVIEW_CHECKLIST_PATH}:{marker}")
+    for rel_path, markers in REQUIRED_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker in markers:
+            if marker not in text:
+                failures.append(f"missing_marker:{rel_path}:{marker}")
 
     return failures
 
 
-def build_fixture_text() -> str:
+def build_review_checklist_text() -> str:
     return (
         "# Zigux Review Checklist\n\n"
         f"- {PHASE9_SHARED_PACKET_MARKER}\n"
@@ -82,6 +128,43 @@ def build_fixture_text() -> str:
     )
 
 
+def build_gap_survey_text() -> str:
+    return (
+        "# Phase 9 Runtime Loader Gap Survey\n\n"
+        f"- The dedicated {PHASE9_GAP_SURVEY_CHECKER_MARKER} fail-closes that cross-phase non-owner reminder directly.\n"
+        "- `zigux/tests/runtime_loader_gap_manifest.json` now records\n"
+        f"  {PHASE9_GAP_SURVEY_MANIFEST_MARKER} of leaving that reviewer-facing follow-through open.\n"
+    )
+
+
+def build_manifest_text() -> str:
+    return (
+        "{\n"
+        "  \"current_repo_reality\": {\n"
+        f"    {LOADER_GAP_MANIFEST_FLAG_MARKER}\n"
+        "  },\n"
+        "  \"delivery_evidence_catalog\": [\n"
+        "    {\n"
+        f"      {LOADER_GAP_MANIFEST_CHECKER_SURFACE_MARKER},\n"
+        f"      {LOADER_GAP_MANIFEST_CHECKER_KIND_MARKER}\n"
+        "    }\n"
+        "  ]\n"
+        "}\n"
+    )
+
+
+def build_fixture_tree(root: Path) -> None:
+    write_text(root / REVIEW_CHECKLIST_PATH, build_review_checklist_text())
+    write_text(root / PHASE9_GAP_SURVEY_PATH, build_gap_survey_text())
+    write_text(root / LOADER_GAP_MANIFEST_PATH, build_manifest_text())
+
+
+def remove_once(root: Path, rel_path: str, marker: str) -> None:
+    path = root / rel_path
+    text = path.read_text(encoding="utf-8")
+    path.write_text(text.replace(marker, "", 1), encoding="utf-8")
+
+
 def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
     if expected not in failures:
@@ -91,19 +174,20 @@ def expect_failure(root: Path, expected: str) -> None:
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase9-review-checklist-boundaries-"))
     try:
-        fixture_path = base / REVIEW_CHECKLIST_PATH
-        write_text(fixture_path, build_fixture_text())
+        build_fixture_tree(base)
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
-        for marker in REQUIRED_MARKERS:
-            write_text(fixture_path, build_fixture_text().replace(marker, "", 1))
-            expect_failure(base, f"missing_marker:{REVIEW_CHECKLIST_PATH}:{marker}")
-            write_text(fixture_path, build_fixture_text())
+        for rel_path, marker in SELF_TEST_REMOVALS:
+            build_fixture_tree(base)
+            remove_once(base, rel_path, marker)
+            expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
-        shutil.rmtree(base / "Documentation", ignore_errors=True)
-        expect_failure(base, f"missing_file:{REVIEW_CHECKLIST_PATH}")
+        for rel_path in REQUIRED_FILES:
+            build_fixture_tree(base)
+            (base / rel_path).unlink()
+            expect_failure(base, f"missing_file:{rel_path}")
     finally:
         shutil.rmtree(base, ignore_errors=True)
 
@@ -113,7 +197,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist keeps the blocked publication boundary plus the older Phase 8, Phase 2, and Phase 3 non-owner boundaries explicit."
+        description="Check that the Phase 9 review checklist, gap-survey note, and packet manifest keep the blocked publication boundary plus the older Phase 8, Phase 2, and Phase 3 non-owner boundaries explicit."
     )
     parser.add_argument(
         "--repo-root",
@@ -137,7 +221,8 @@ def main() -> int:
             print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_ERROR={failure}")
         return 1
 
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_REQUIRED_MARKER_COUNT={len(REQUIRED_MARKERS)}")
+    required_marker_count = sum(len(markers) for markers in REQUIRED_MARKERS.values())
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_REQUIRED_MARKER_COUNT={required_marker_count}")
     print("PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES=pass")
     return 0
 
