@@ -173,6 +173,12 @@ test "notifier abi accepts empty and singleton priority samples" {
 }
 
 test "notifier abi keeps result codes and block layout explicit" {
+    const expected_block_alignment = @alignOf(usize);
+    const expected_block_size = std.mem.alignForward(
+        usize,
+        (@sizeOf(usize) * 2) + @sizeOf(i32),
+        expected_block_alignment,
+    );
     const expected_chain_alignment = @alignOf(usize);
     const expected_chain_size = std.mem.alignForward(
         usize,
@@ -187,11 +193,11 @@ test "notifier abi keeps result codes and block layout explicit" {
     try std.testing.expectEqual(@as(u32, NOTIFIER_OK), @intFromEnum(NotifierResult.ok));
     try std.testing.expectEqual(@as(u32, NOTIFIER_STOP), @intFromEnum(NotifierResult.stop));
 
-    try std.testing.expectEqual(@as(usize, 24), @sizeOf(NotifierBlock));
-    try std.testing.expectEqual(@as(usize, 8), @alignOf(NotifierBlock));
+    try std.testing.expectEqual(expected_block_size, @sizeOf(NotifierBlock));
+    try std.testing.expectEqual(expected_block_alignment, @alignOf(NotifierBlock));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
-    try std.testing.expectEqual(@as(usize, 8), @offsetOf(NotifierBlock, "next"));
-    try std.testing.expectEqual(@as(usize, 16), @offsetOf(NotifierBlock, "priority"));
+    try std.testing.expectEqual(@sizeOf(usize), @offsetOf(NotifierBlock, "next"));
+    try std.testing.expectEqual(@sizeOf(usize) * 2, @offsetOf(NotifierBlock, "priority"));
 
     try std.testing.expectEqual(expected_chain_size, @sizeOf(ChainPriorityIncrease));
     try std.testing.expectEqual(expected_chain_alignment, @alignOf(ChainPriorityIncrease));
