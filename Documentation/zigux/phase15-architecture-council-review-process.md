@@ -1,0 +1,115 @@
+# Phase 15 Architecture Council Review Process
+
+This note records the bounded Phase 15 review-policy packet for freeze-map anchors that remain in C indefinitely.
+
+## Status
+
+- `PHASE15_STATUS=architecture_council_review_process_landed`
+- `PHASE15_LANE_KEY=P15-L08`
+- `PHASE15_SLICE=stay-in-c-review-field-inventory`
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-16`
+- no Architecture Council approval is currently recorded for a freeze-map status change
+- this note restores the roadmap-required Architecture Council review-process surface on current `master` without claiming that the broader Phase 15 checker, manifest, or dedicated Zig replay packet has landed yet
+
+## Purpose
+
+The Phase 15 roadmap keeps deep-core status changes under human governance, not implementation momentum.
+
+That means any request to move a freeze-in-C anchor out of its current blocked posture must arrive as an explicit Architecture Council review packet with named owners, named evidence, and an honest stay-in-C fallback when the evidence is incomplete.
+
+This note exists to keep that review-policy surface explicit beside `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/review-checklist.md`, and the still-missing baseline `Documentation/zigux/phase15-indefinite-c-policy.md` companion that future lanes may restore separately.
+
+## Required review packet
+
+Any freeze-map anchor entering Architecture Council status review must keep all of the following explicit:
+
+- decision record ID
+- lane owner
+- current status bucket and requested decision bucket
+- required approver set
+- rollback owner
+- validation gate summary
+- evidence archive path
+- latest blocker disposition
+- benchmark notes
+- replay command
+- rollback threshold
+- parity scorecard link or blocker record
+- indefinite-C policy link or explicit non-applicability note
+- explicit non-goals
+- written rationale
+
+If one of those fields cannot be stated honestly, the request stays blocked and the C implementation remains the product source of truth.
+
+## Review outcomes
+
+The Architecture Council may close a request only in one of these bounded ways:
+
+- keep the anchor in `freeze_in_c`
+- reopen review later with narrower evidence
+- approve a status-bucket change in a separately linked decision record
+
+This note does not define an exception path outside those reviewable outcomes.
+
+## Stay-in-C closeout rule
+
+If a freeze-in-C review closes without a status change, the closeout record must keep all of the following explicit:
+
+- the retained `freeze_in_c` decision
+- the current blocker
+- the required approver set
+- `retired_from_active_discussion` state
+- the reopen triggers
+- the evidence archive path that will be refreshed before any later reopen request
+
+A closed stay-in-C record is not approval debt. It is an explicit decision to keep the anchor in C until narrower evidence exists.
+
+## Reopen evidence rule
+
+A later reopen request must not rely on generic intent alone. It must cite:
+
+- the exact reopen trigger being exercised
+- refreshed evidence by path
+- the blocker disposition being challenged
+- the narrower seam or policy change that makes the new review safe to consider
+
+If the refreshed evidence is missing, contradictory, or broader than the allowed seam, the request returns to blocked review posture immediately.
+
+## Current Phase 15 posture
+
+On current `master`, no freeze-map anchor has an Architecture Council approval for a status change.
+
+The current honest packet is therefore maintenance-only:
+
+- `Documentation/zigux/phase15-freeze-map-governance.md` keeps the freeze anchor inventory, blocker posture, required approver sets, rollback owners, and evidence-archive paths explicit
+- `Documentation/zigux/phase15-parity-scorecard.md` keeps the blocked-posture accounting explicit
+- `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit
+- this note keeps the Architecture Council request fields, stay-in-C closeout rule, and reopen-evidence rule explicit
+
+Together, those surfaces define the review policy without claiming that any deep-core anchor is ready to leave C.
+
+## Maintenance-mode handoff
+
+This packet should stay narrow.
+
+If a future lane reopens it, prefer one of these equally bounded follow-ups:
+
+- align one missing review field between this note and `Documentation/zigux/review-checklist.md`
+- restore the missing dedicated indefinite-C policy companion without widening into unrelated Phase 15 prose
+- add a focused checker or manifest only after the repo carries the exact paired Phase 15 scripts or tests surface needed to validate it honestly
+
+Until then, treat this note as the Architecture Council source of truth for review-packet shape and stay-in-C closeout behavior.
+
+## Non-goals
+
+This note does not claim:
+
+- an Architecture Council approval for any freeze-map status change
+- a landed dedicated Phase 15 review-process manifest, checker, or Zig replay packet
+- a complete Phase 15 validator-first route
+- a deep-core Zig bridge, wrapper, or status change
+
+## Next bounded step
+
+Keep this lane parked unless fresh repo inspection shows a new same-packet field drift in the Architecture Council request inventory, the stay-in-C closeout rule, or the reopen-evidence rule.
