@@ -15,7 +15,7 @@ LOW_LEVEL_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
     "PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py",
-    "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
+    "PHASE3_BOUNDARY_GAP=dedicated-focused-policy-unsafe-replay-pair-ships-while-the-shared-abi-packet-still-owns-the-broader-policy-and-unsafe-review-surface",
 )
 
 REQUIRED_LOW_LEVEL_SURVEY_MARKERS = (
