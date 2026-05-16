@@ -1,5 +1,17 @@
 const std = @import("std");
 
+const LifecycleBoundarySummary = struct {
+    shared_request_states: []const []const u8,
+    shared_request_boundary_surface: []const u8,
+    shared_request_boundary_guard: []const u8,
+    review_only_loader_plan_surfaces: []const []const u8,
+    metadata_only_registration_surfaces: []const []const u8,
+};
+
+const Manifest = struct {
+    lifecycle_boundary_summary: LifecycleBoundarySummary,
+};
+
 fn readRepoFileAlloc(allocator: std.mem.Allocator, path: []const u8, max_bytes: usize) ![]u8 {
     var io_instance: std.Io.Threaded = .init(allocator, .{});
     defer io_instance.deinit();
@@ -8,6 +20,13 @@ fn readRepoFileAlloc(allocator: std.mem.Allocator, path: []const u8, max_bytes: 
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn expectOrderedStrings(actual: []const []const u8, expected: []const []const u8) !void {
+    try std.testing.expectEqual(expected.len, actual.len);
+    for (expected, actual) |expected_value, actual_value| {
+        try std.testing.expectEqualStrings(expected_value, actual_value);
+    }
 }
 
 test "phase 9 runtime loader lifecycle boundary guard keeps manifest lifecycle summary aligned with the shared registration boundary" {
@@ -20,6 +39,10 @@ test "phase 9 runtime loader lifecycle boundary guard keeps manifest lifecycle s
     );
     defer allocator.free(manifest);
 
+    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest, .{});
+    defer parsed.deinit();
+    const lifecycle = parsed.value.lifecycle_boundary_summary;
+
     const trace_loader = try readRepoFileAlloc(
         allocator,
         "samples/zigux/runtime_trace_events_loader.zig",
@@ -31,14 +54,39 @@ test "phase 9 runtime loader lifecycle boundary guard keeps manifest lifecycle s
     try expectContains(manifest, "\"prepared\"");
     try expectContains(manifest, "\"waiting_on_runtime_substrate\"");
     try expectContains(manifest, "\"released_without_substrate\"");
-    try expectContains(
-        manifest,
-        "\"shared_request_boundary_surface\": \"samples/zigux/runtime_trace_events_loader.zig\"",
+    try std.testing.expectEqualStrings(
+        "samples/zigux/runtime_trace_events_loader.zig",
+        lifecycle.shared_request_boundary_surface,
     );
-    try expectContains(
-        manifest,
-        "\"shared_request_boundary_guard\": \"error.OutstandingRegistrationForLoader\"",
+    try std.testing.expectEqualStrings(
+        "error.OutstandingRegistrationForLoader",
+        lifecycle.shared_request_boundary_guard,
     );
+    try expectOrderedStrings(
+        lifecycle.shared_request_states,
+        &.{
+            "prepared",
+            "waiting_on_runtime_substrate",
+            "released_without_substrate",
+        },
+    );
+    try expectOrderedStrings(
+        lifecycle.review_only_loader_plan_surfaces,
+        &.{
+            "prepareSharedRequest",
+            "requestSharedRuntimeLoad",
+            "releaseSharedWithoutSubstrate",
+        },
+    );
+    try expectOrderedStrings(
+        lifecycle.metadata_only_registration_surfaces,
+        &.{
+            "registrationSnapshot",
+            "tracepoint_probe_register",
+            "tracepoint_probe_unregister",
+        },
+    );
+
     try expectContains(manifest, "\"review_only_loader_plan_surfaces\": [");
     try expectContains(manifest, "\"prepareSharedRequest\"");
     try expectContains(manifest, "\"requestSharedRuntimeLoad\"");
