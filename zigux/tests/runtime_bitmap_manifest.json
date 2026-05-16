@@ -85,7 +85,7 @@
       "id": "runtime-bitmap-shared-build-boundary",
       "kind": "validation",
       "path": "zigux/tests/phase9_build.zig",
-      "why_now": "The shared Phase 9 build bundle enumerates the bitmap-local sample, module, diff, loader, top-bit, survey, and shared loader replay surfaces that this manifest now catalogs explicitly."
+      "why_now": "The shared Phase 9 build bundle enumerates the bitmap-local sample, module, diff, loader, top-bit, survey, and shared loader replay surfaces that this manifest catalogs explicitly, while the adjacent `zigux/Makefile` wrapper keeps the replay route visible without changing lane ownership."
     },
     {
       "id": "runtime-bitmap-survey-note",
@@ -129,7 +129,7 @@
       "surface": "zigux/tests/phase9_build.zig",
       "role": "shared_build_bundle",
       "owner": "P9-L11",
-      "boundary": "Remains the shared Phase 9 build boundary while directly enumerating only the bitmap-local `phase9-runtime-bitmap-tests`, `phase9-runtime-bitmap-top-bit-tests`, and `phase9-runtime-loader-shared-tests` routes that this manifest catalogs; the broader loader packet stays outside this family-local ownership surface."
+      "boundary": "Remains the shared Phase 9 build boundary while directly enumerating only the bitmap-local `phase9-runtime-bitmap-tests`, `phase9-runtime-bitmap-top-bit-tests`, and `phase9-runtime-loader-shared-tests` routes that this manifest catalogs; the adjacent `zigux/Makefile` replay wrapper stays a shared reminder surface rather than a lane-local ownership claim, and the broader loader packet stays outside this family-local ownership surface."
     }
   ],
   "gaps": [
