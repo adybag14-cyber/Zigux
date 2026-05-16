@@ -107,6 +107,8 @@ MARKERS = {
         "remove_summary.reset_assert_requested",
         "try testing.expectEqual(dw_wdt.TeardownOutcome.idle_noop, stop_summary.outcome);",
         "try testing.expectEqual(dw_wdt.TeardownOutcome.idle_noop, teardown_summary.outcome);",
+        "var idle_stop_without_reset = try dw_wdt.DwWdtLab.initFixedTops(9, false);",
+        "try testing.expect(!idle_stop_without_reset_summary.reset_control_available);",
         "var idle_remove_without_reset = try dw_wdt.DwWdtLab.initFixedTops(9, false);",
         "try testing.expect(!idle_remove_without_reset_summary.reset_control_available);",
         "try testing.expect(!idle_remove_without_reset_summary.reset_assert_requested);",
