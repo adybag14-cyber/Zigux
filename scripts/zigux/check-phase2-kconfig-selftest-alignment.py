@@ -29,20 +29,20 @@ VALIDATOR_MARKERS = (
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"',
     '"zigux/tests/fixtures/kconfig_bridge/conf_manifest.json"',
     '"zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"',
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21",
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 29",
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28",
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37",
 )
 VALIDATOR_EXACT_COUNTS = {
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"': 1,
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 2,
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21": 1,
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 29": 1,
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28": 1,
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37": 1,
 }
 
 CLOSURE_VALIDATOR_MARKERS = (
     "shared kconfig selftest-alignment self-test",
     'KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"',
-    "16-case` conf bridge plus `12-case` confdata fixture replay",
+    "16-case` conf bridge plus `13-case` confdata fixture replay",
 )
 
 WORKFLOW_LINES = (
@@ -271,7 +271,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "MISSING_VALIDATOR_MARKERS",
-            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 21",
+            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28",
         ) in issues
         checks_run += 1
 
@@ -288,7 +288,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "MISSING_VALIDATOR_MARKERS",
-            "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 29",
+            "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37",
         ) in issues
         checks_run += 1
 
