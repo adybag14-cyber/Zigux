@@ -35,6 +35,13 @@ pub const standard_cases = [_]EncodeCase{
     .{ .input = "f", .expected = "Zg==", .padding = true },
     .{ .input = "fo", .expected = "Zm8=", .padding = true },
     .{ .input = "foo", .expected = "Zm9v", .padding = true },
+    .{ .input = empty[0..], .expected = "", .padding = false },
+    .{ .input = "f", .expected = "Zg", .padding = false },
+    .{ .input = "fo", .expected = "Zm8", .padding = false },
+    .{ .input = "foo", .expected = "Zm9v", .padding = false },
+    .{ .input = "foob", .expected = "Zm9vYg", .padding = false },
+    .{ .input = "fooba", .expected = "Zm9vYmE", .padding = false },
+    .{ .input = "Hello, world!", .expected = "SGVsbG8sIHdvcmxkIQ", .padding = false },
 };
 
 pub const variant_cases = [_]VariantCase{
@@ -49,6 +56,13 @@ pub const standard_decode_cases = [_]DecodeCase{
     .{ .input = "Zg==", .expected = "f", .padding = true, .variant_name = "std" },
     .{ .input = "Zm8=", .expected = "fo", .padding = true, .variant_name = "std" },
     .{ .input = "Zm9v", .expected = "foo", .padding = true, .variant_name = "std" },
+    .{ .input = "", .expected = empty[0..], .padding = false, .variant_name = "std" },
+    .{ .input = "Zg", .expected = "f", .padding = false, .variant_name = "std" },
+    .{ .input = "Zm8", .expected = "fo", .padding = false, .variant_name = "std" },
+    .{ .input = "Zm9v", .expected = "foo", .padding = false, .variant_name = "std" },
+    .{ .input = "Zm9vYg", .expected = "foob", .padding = false, .variant_name = "std" },
+    .{ .input = "Zm9vYmE", .expected = "fooba", .padding = false, .variant_name = "std" },
+    .{ .input = "SGVsbG8sIHdvcmxkIQ", .expected = "Hello, world!", .padding = false, .variant_name = "std" },
 };
 
 pub const variant_decode_cases = [_]DecodeCase{
@@ -61,8 +75,12 @@ pub const variant_decode_cases = [_]DecodeCase{
 pub const invalid_decode_cases = [_]InvalidDecodeCase{
     .{ .input = "AR==", .padding = true, .variant_name = "std" },
     .{ .input = "aGl=", .padding = true, .variant_name = "std" },
+    .{ .input = "Zg=!", .padding = true, .variant_name = "std" },
+    .{ .input = "Zg", .padding = true, .variant_name = "std" },
     .{ .input = "-x", .padding = false, .variant_name = "urlsafe" },
     .{ .input = "+x", .padding = false, .variant_name = "imap" },
+    .{ .input = "Zm9=", .padding = false, .variant_name = "std" },
+    .{ .input = "Zh", .padding = false, .variant_name = "std" },
     .{ .input = "-___", .padding = false, .variant_name = "std" },
     .{ .input = "+///", .padding = false, .variant_name = "urlsafe" },
     .{ .input = "+///", .padding = false, .variant_name = "imap" },
@@ -70,9 +88,9 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
 };
 
 test "phase6 base64 direct parity corpus stays compact and portable" {
-    try std.testing.expectEqual(@as(usize, 4), standard_cases.len);
+    try std.testing.expectEqual(@as(usize, 11), standard_cases.len);
     try std.testing.expectEqual(@as(usize, 4), variant_cases.len);
-    try std.testing.expectEqual(@as(usize, 4), standard_decode_cases.len);
+    try std.testing.expectEqual(@as(usize, 11), standard_decode_cases.len);
     try std.testing.expectEqual(@as(usize, 4), variant_decode_cases.len);
-    try std.testing.expectEqual(@as(usize, 8), invalid_decode_cases.len);
+    try std.testing.expectEqual(@as(usize, 12), invalid_decode_cases.len);
 }
