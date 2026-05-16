@@ -117,6 +117,12 @@ LEGACY_PACKET_REQUIRED_MARKERS = {
         "zigux/tests/phase8_libbpf_segments_only_build.zig",
         "make -C zigux phase8-libbpf-segments-test",
     ],
+    "zigux/tests/phase8_build.zig": [
+        '"../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"',
+        '"phase8_perf_buffer_poll.zig"',
+        '"phase8-perf-buffer-poll-tests"',
+        "test_step.dependOn(&run_perf_buffer_poll_tests.step);",
+    ],
     "zigux/tests/phase8_libbpf_segments_only_build.zig": [
         "phase8_libbpf_segments.zig",
     ],
@@ -301,6 +307,20 @@ phase8-libbpf-segments-test:
 - zigux/tests/phase8_libbpf_segments.zig
 - zigux/tests/phase8_libbpf_segments_only_build.zig
 - make -C zigux phase8-libbpf-segments-test
+""",
+    "zigux/tests/phase8_build.zig": """const perf_buffer_poll_module = b.createModule(.{
+    .root_source_file = b.path(\"../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig\"),
+});
+const perf_buffer_poll_root_module = b.createModule(.{
+    .root_source_file = b.path(\"phase8_perf_buffer_poll.zig\"),
+});
+const perf_buffer_poll_tests = b.addTest(.{
+    .name = \"phase8-perf-buffer-poll-tests\",
+    .root_module = perf_buffer_poll_root_module,
+});
+const run_perf_buffer_poll_tests = b.addRunArtifact(perf_buffer_poll_tests);
+const test_step = b.step(\"test\", \"Run Phase 8 tooling expansion tests\");
+test_step.dependOn(&run_perf_buffer_poll_tests.step);
 """,
     "zigux/tests/phase8_libbpf_segments.zig": """const expected_surveyed_commit = \"0123456789abcdef0123456789abcdef01234567\";
 """,
