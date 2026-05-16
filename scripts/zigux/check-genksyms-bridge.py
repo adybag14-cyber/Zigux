@@ -787,7 +787,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         workflow_path = root / WORKFLOW_REL
-        workflow_path.writeText(
+        workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8") + EXPECTED_WORKFLOW_LINES[1] + "\n",
             encoding="utf-8",
         )
@@ -905,7 +905,7 @@ def run_self_test() -> int:
         )
         case_count += 1
 
-        build_self_TEST_root(root)
+        build_self_test_root(root)
         phase2_tool_manifest = json.loads((root / PHASE2_TOOL_MANIFEST_REL).read_text(encoding="utf-8"))
         phase2_tool_manifest["shared_routes"] = [
             route
