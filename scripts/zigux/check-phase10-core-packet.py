@@ -62,6 +62,7 @@ EXPECTED_MAKEFILE_MARKERS = [
 
 EXPECTED_TESTS_README_MARKERS = [
     "phase10_virtio_core.zig",
+    "phase10_virtio_core_interrupt_compound_ack.zig",
     "phase10_virtio_core_reset_queue.zig",
     "phase10_virtio_core_survey.zig",
     "phase10_virtio_driver_id.zig",
