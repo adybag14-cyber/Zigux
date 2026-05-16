@@ -207,6 +207,56 @@ test "cursor open and cursor precondition planning stay helper-only and explicit
     try std.testing.expectEqual(@as(?libfs.CursorResumeMode, null), invalid.mode);
 }
 
+test "cursor reposition planning keeps the shared del-init plus add-before and add-behind bookkeeping explicit" {
+    const unhashed = libfs.LibfsHelperLab.planDcacheCursorReposition(false, .none);
+    try std.testing.expectEqualStrings("fs/libfs.c", unhashed.anchor);
+    try std.testing.expectEqual(libfs.CursorRepositionStatus.ok, unhashed.status);
+    try std.testing.expect(unhashed.uses_hlist_del_init);
+    try std.testing.expect(!unhashed.uses_hlist_add_before);
+    try std.testing.expect(!unhashed.uses_hlist_add_behind);
+    try std.testing.expect(!unhashed.reinserts_cursor);
+    try std.testing.expect(unhashed.keeps_private_cursor);
+    try std.testing.expect(!unhashed.releases_scan_reference);
+
+    const before = libfs.LibfsHelperLab.planDcacheCursorReposition(true, .before_scan_result);
+    try std.testing.expectEqual(libfs.CursorRepositionStatus.ok, before.status);
+    try std.testing.expect(before.uses_hlist_del_init);
+    try std.testing.expect(before.uses_hlist_add_before);
+    try std.testing.expect(!before.uses_hlist_add_behind);
+    try std.testing.expect(before.reinserts_cursor);
+    try std.testing.expect(before.keeps_private_cursor);
+    try std.testing.expect(before.releases_scan_reference);
+
+    const behind = libfs.LibfsHelperLab.planDcacheCursorReposition(true, .behind_scan_result);
+    try std.testing.expectEqual(libfs.CursorRepositionStatus.ok, behind.status);
+    try std.testing.expect(behind.uses_hlist_del_init);
+    try std.testing.expect(!behind.uses_hlist_add_before);
+    try std.testing.expect(behind.uses_hlist_add_behind);
+    try std.testing.expect(behind.reinserts_cursor);
+    try std.testing.expect(behind.keeps_private_cursor);
+    try std.testing.expect(behind.releases_scan_reference);
+}
+
+test "cursor reposition planning flags placement drift while keeping the helper boundary explicit" {
+    const missing_placement = libfs.LibfsHelperLab.planDcacheCursorReposition(true, .none);
+    try std.testing.expectEqual(libfs.CursorRepositionStatus.missing_reposition_placement, missing_placement.status);
+    try std.testing.expect(missing_placement.uses_hlist_del_init);
+    try std.testing.expect(!missing_placement.uses_hlist_add_before);
+    try std.testing.expect(!missing_placement.uses_hlist_add_behind);
+    try std.testing.expect(!missing_placement.reinserts_cursor);
+    try std.testing.expect(missing_placement.keeps_private_cursor);
+    try std.testing.expect(!missing_placement.releases_scan_reference);
+
+    const missing_target = libfs.LibfsHelperLab.planDcacheCursorReposition(false, .behind_scan_result);
+    try std.testing.expectEqual(libfs.CursorRepositionStatus.missing_reposition_target, missing_target.status);
+    try std.testing.expect(missing_target.uses_hlist_del_init);
+    try std.testing.expect(!missing_target.uses_hlist_add_before);
+    try std.testing.expect(!missing_target.uses_hlist_add_behind);
+    try std.testing.expect(!missing_target.reinserts_cursor);
+    try std.testing.expect(missing_target.keeps_private_cursor);
+    try std.testing.expect(!missing_target.releases_scan_reference);
+}
+
 test "offset add planning keeps busy-remap and managed-offset boundaries explicit" {
     const ok_plan = libfs.LibfsHelperLab.planSimpleOffsetAdd(0, .{ .allocated = libfs.dir_offset_min + 3 });
     const busy_plan = libfs.LibfsHelperLab.planSimpleOffsetAdd(0, .busy);
@@ -353,7 +403,6 @@ test "phase13 libfs manifest records the current helper-first filesystem packet"
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-live-dcache-mutation\"");
     try expectContains(manifest_text, "\"id\": \"phase13-libfs-live-inode-state\"");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
-    try expectContains(manifest_text, "\"status\": \"ready_next\"");
     try expectContains(manifest_text, "\"status\": \"blocked_on_shared_build_surface\"");
     try expectContains(manifest_text, "simple directory emptiness");
     try expectContains(manifest_text, "transaction acquire planning");
@@ -369,5 +418,7 @@ test "phase13 libfs manifest records the current helper-first filesystem packet"
     try expectContains(manifest_text, "dcache_dir_open()");
     try expectContains(manifest_text, "dcache_readdir()");
     try expectContains(manifest_text, "hlist_del_init()");
+    try expectContains(manifest_text, "hlist_add_before()");
+    try expectContains(manifest_text, "hlist_add_behind()");
     try expectContains(manifest_text, "live dcache entry insertion");
 }
