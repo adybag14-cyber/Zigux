@@ -89,6 +89,7 @@ REQUIRED_MARKERS = {
         'try std.testing.expect(!cmdline.parseOptionStr("", ""));',
         "phase 7 nextArg matches serialized edge fixtures",
         "phase 7 nextArg keeps empty-input and leading-whitespace ownership explicit",
+        "phase 7 nextArg keeps leading quoted param, value, and rest borrowed from the caller buffer",
         "phase 7 memparse saturates oversized unsigned prefixes before applying suffix handling",
         "phase 7 memparse keeps saturated prefixes aligned when size suffixes still apply",
     ],
@@ -370,6 +371,12 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_cmdline.zig",
                 "phase 7 nextArg keeps empty-input and leading-whitespace ownership explicit",
                 "zigux/tests/phase7_cmdline.zig: phase 7 nextArg keeps empty-input and leading-whitespace ownership explicit",
+            ),
+            (
+                "tests_leading_quoted_owner_marker",
+                "zigux/tests/phase7_cmdline.zig",
+                "phase 7 nextArg keeps leading quoted param, value, and rest borrowed from the caller buffer",
+                "zigux/tests/phase7_cmdline.zig: phase 7 nextArg keeps leading quoted param, value, and rest borrowed from the caller buffer",
             ),
             (
                 "tests_wrap_marker",
