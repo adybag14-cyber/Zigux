@@ -399,7 +399,7 @@ test "bitmap range helpers preserve edges across whole-word spans" {
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0, 0, 0, 0 }, &map);
 }
 
-test "bitmap copy preserves source words and clears copied tail through source state" {
+test "bitmap copy alias preserves raw source words without tail clearing" {
     var src = [_]Word{ 0, 0, 0 };
     var dst = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
 
@@ -414,33 +414,34 @@ test "bitmap copy preserves source words and clears copied tail through source s
     try std.testing.expectEqual(~@as(Word, 0), dst[2]);
 }
 
-test "bitmap copyClearTail clears out-of-range bits in the last copied word" {
-    const nbits = bits_per_long + 5;
+test "bitmap copy aliases preserve tail clearing and extension semantics" {
+    const count = bits_per_long + 5;
+    const size = bits_per_long * 3;
     const src = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), 0 };
     var dst = [_]Word{ 0, 0, 0 };
 
-    copy(&dst, &src, nbits);
+    copy(&dst, src[0..2], count);
     try std.testing.expectEqual(~@as(Word, 0), dst[1]);
 
-    copyClearTail(&dst, &src, nbits);
-    try std.testing.expectEqual(~@as(Word, 0), dst[0]);
-    try std.testing.expectEqual(lastWordMask(nbits), dst[1]);
-    try std.testing.expectEqual(@as(Word, 0), dst[2]);
-}
-
-test "bitmap copyAndExtend masks a partial tail and zeroes the extended words" {
-    const count = bits_per_long + 5;
-    const size = bits_per_long * 3;
-    const src = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
-    var dst = [_]Word{ 0xaa55, 0xaa55, 0xaa55 };
-
-    copyAndExtend(&dst, &src, count, size);
+    copyClearTail(&dst, src[0..2], count);
     try std.testing.expectEqual(~@as(Word, 0), dst[0]);
     try std.testing.expectEqual(lastWordMask(count), dst[1]);
     try std.testing.expectEqual(@as(Word, 0), dst[2]);
+
+    var extended = [_]Word{ 0xaa55, 0xaa55, 0xaa55 };
+    copyAndExtend(&extended, src[0..2], count, size);
+    try std.testing.expectEqual(~@as(Word, 0), extended[0]);
+    try std.testing.expectEqual(lastWordMask(count), extended[1]);
+    try std.testing.expectEqual(@as(Word, 0), extended[2]);
 }
 
-test "bitmap copyAndExtend keeps whole copied words and clears the rest" {
+test "bitmap copy and extend handles zero and aligned counts" {
+    var zero_src = [_]Word{0x1234};
+    var zero_dst = [_]Word{0xbeef};
+
+    copyAndExtend(zero_dst[0..0], zero_src[0..0], 0, 0);
+    try std.testing.expectEqual(@as(Word, 0xbeef), zero_dst[0]);
+
     const count = bits_per_long * 2;
     const size = bits_per_long * 3;
     const src = [_]Word{ 0x55aa, 0xaa55, ~@as(Word, 0) };
@@ -450,6 +451,22 @@ test "bitmap copyAndExtend keeps whole copied words and clears the rest" {
     try std.testing.expectEqual(src[0], dst[0]);
     try std.testing.expectEqual(src[1], dst[1]);
     try std.testing.expectEqual(@as(Word, 0), dst[2]);
+}
+
+test "bitmap copy helpers keep zero-sized destination views untouched" {
+    var src = [_]Word{~@as(Word, 0)};
+    var copy_dst = [_]Word{0x55aa};
+    var clear_dst = [_]Word{0xaa55};
+    var extend_dst = [_]Word{0xf0f0};
+
+    copy(copy_dst[0..0], src[0..0], 0);
+    try std.testing.expectEqual(@as(Word, 0x55aa), copy_dst[0]);
+
+    copyClearTail(clear_dst[0..0], src[0..0], 0);
+    try std.testing.expectEqual(@as(Word, 0xaa55), clear_dst[0]);
+
+    copyAndExtend(extend_dst[0..0], src[0..0], 0, 0);
+    try std.testing.expectEqual(@as(Word, 0xf0f0), extend_dst[0]);
 }
 
 test "bitmap and andnot equal intersects subset" {
