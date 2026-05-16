@@ -50,7 +50,7 @@ LOW_LEVEL_WRAPPERS_GATE = (
     "zigux/tests/phase3_low_level_wrappers_build.zig"
 )
 PHASE3_AGGREGATE_ROUTE = (
-    "phase3: phase3-validate phase3-abi phase3-low-level-wrappers-test phase3-interop"
+    "phase3: phase3-validate phase3-abi phase3-low-level-wrappers-test phase3-export-uapi-layout-test phase3-interop"
 )
 
 REQUIRED_FILES = (
