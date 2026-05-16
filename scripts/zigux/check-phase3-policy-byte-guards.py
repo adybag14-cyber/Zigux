@@ -15,7 +15,7 @@ FOCUSED_REPLAY_REL = "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py
 MMIO_CONSUMER_REL = "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"
 
 REQUIRED_SURVEY_MARKERS = (
-    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
+    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
     "PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py",
     "dedicated reserved-byte and typed-wrapper guard",
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
