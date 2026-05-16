@@ -289,6 +289,14 @@ def run_self_test() -> int:
                 "`make -C zigux phase8-help-test`",
             ),
             (
+                HELP_SLICE_PATH,
+                "`load_command_list()`",
+            ),
+            (
+                HELP_SLICE_PATH,
+                "`pretty_print_string_list()`",
+            ),
+            (
                 KALLSYMS_SLICE_PATH,
                 "helper-first parser-and-wrapper packet",
             ),
