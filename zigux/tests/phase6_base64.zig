@@ -155,6 +155,62 @@ fn expectConvenienceWrapperRoundTrip(input: []const u8, expected: []const u8, pa
     try std.testing.expectEqualSlices(u8, input, alloc_decoded);
 }
 
+fn expectConvenienceWrapperAliasParity(input: []const u8, padding: bool, variant: base64.Variant) !void {
+    var generic_direct_encoded_buf = [_]u8{0x91} ** 128;
+    var pinned_direct_encoded_buf = [_]u8{0xa2} ** 128;
+    var generic_slice_encoded_buf = [_]u8{0xb3} ** 128;
+    var pinned_slice_encoded_buf = [_]u8{0xc4} ** 128;
+    var generic_direct_decoded_buf = [_]u8{0xd5} ** 128;
+    var pinned_direct_decoded_buf = [_]u8{0xe6} ** 128;
+    var generic_slice_decoded_buf = [_]u8{0xf7} ** 128;
+    var pinned_slice_decoded_buf = [_]u8{0x18} ** 128;
+
+    const generic_direct_encoded_len = try base64.encode(generic_direct_encoded_buf[0..], input, padding, variant);
+    const pinned_direct_encoded_len = try encodeVariantPinned(pinned_direct_encoded_buf[0..], input, padding, variant);
+    try std.testing.expectEqual(generic_direct_encoded_len, pinned_direct_encoded_len);
+    try std.testing.expectEqualSlices(u8, generic_direct_encoded_buf[0..generic_direct_encoded_len], pinned_direct_encoded_buf[0..pinned_direct_encoded_len]);
+    try std.testing.expectEqual(@as(u8, 0x91), generic_direct_encoded_buf[generic_direct_encoded_len]);
+    try std.testing.expectEqual(@as(u8, 0xa2), pinned_direct_encoded_buf[pinned_direct_encoded_len]);
+
+    const generic_slice_encoded = try base64.encodeSlice(generic_slice_encoded_buf[0..], input, padding, variant);
+    const pinned_slice_encoded = try encodeVariantPinnedSlice(pinned_slice_encoded_buf[0..], input, padding, variant);
+    try std.testing.expectEqualSlices(u8, generic_direct_encoded_buf[0..generic_direct_encoded_len], generic_slice_encoded);
+    try std.testing.expectEqualSlices(u8, generic_direct_encoded_buf[0..generic_direct_encoded_len], pinned_slice_encoded);
+    try std.testing.expectEqual(@as(u8, 0xb3), generic_slice_encoded_buf[generic_slice_encoded.len]);
+    try std.testing.expectEqual(@as(u8, 0xc4), pinned_slice_encoded_buf[pinned_slice_encoded.len]);
+
+    const generic_alloc_encoded = try base64.encodeAlloc(std.testing.allocator, input, padding, variant);
+    defer std.testing.allocator.free(generic_alloc_encoded);
+    const pinned_alloc_encoded = try encodeVariantPinnedAlloc(std.testing.allocator, input, padding, variant);
+    defer std.testing.allocator.free(pinned_alloc_encoded);
+    try std.testing.expectEqualSlices(u8, generic_direct_encoded_buf[0..generic_direct_encoded_len], generic_alloc_encoded);
+    try std.testing.expectEqualSlices(u8, generic_direct_encoded_buf[0..generic_direct_encoded_len], pinned_alloc_encoded);
+
+    const encoded = generic_direct_encoded_buf[0..generic_direct_encoded_len];
+    try std.testing.expectEqual(try base64.bytes(encoded, padding, variant), try bytesVariantPinned(encoded, padding, variant));
+
+    const generic_direct_decoded_len = try base64.decode(generic_direct_decoded_buf[0..], encoded, padding, variant);
+    const pinned_direct_decoded_len = try decodeVariantPinned(pinned_direct_decoded_buf[0..], encoded, padding, variant);
+    try std.testing.expectEqual(generic_direct_decoded_len, pinned_direct_decoded_len);
+    try std.testing.expectEqualSlices(u8, generic_direct_decoded_buf[0..generic_direct_decoded_len], pinned_direct_decoded_buf[0..pinned_direct_decoded_len]);
+    try std.testing.expectEqual(@as(u8, 0xd5), generic_direct_decoded_buf[generic_direct_decoded_len]);
+    try std.testing.expectEqual(@as(u8, 0xe6), pinned_direct_decoded_buf[pinned_direct_decoded_len]);
+
+    const generic_slice_decoded = try base64.decodeSlice(generic_slice_decoded_buf[0..], encoded, padding, variant);
+    const pinned_slice_decoded = try decodeVariantPinnedSlice(pinned_slice_decoded_buf[0..], encoded, padding, variant);
+    try std.testing.expectEqualSlices(u8, generic_direct_decoded_buf[0..generic_direct_decoded_len], generic_slice_decoded);
+    try std.testing.expectEqualSlices(u8, generic_direct_decoded_buf[0..generic_direct_decoded_len], pinned_slice_decoded);
+    try std.testing.expectEqual(@as(u8, 0xf7), generic_slice_decoded_buf[generic_slice_decoded.len]);
+    try std.testing.expectEqual(@as(u8, 0x18), pinned_slice_decoded_buf[pinned_slice_decoded.len]);
+
+    const generic_alloc_decoded = try base64.decodeAlloc(std.testing.allocator, encoded, padding, variant);
+    defer std.testing.allocator.free(generic_alloc_decoded);
+    const pinned_alloc_decoded = try decodeVariantPinnedAlloc(std.testing.allocator, encoded, padding, variant);
+    defer std.testing.allocator.free(pinned_alloc_decoded);
+    try std.testing.expectEqualSlices(u8, generic_direct_decoded_buf[0..generic_direct_decoded_len], generic_alloc_decoded);
+    try std.testing.expectEqualSlices(u8, generic_direct_decoded_buf[0..generic_direct_decoded_len], pinned_alloc_decoded);
+}
+
 fn fixtureVariant(name: []const u8) base64.Variant {
     if (std.mem.eql(u8, name, "std")) {
         return .std;
@@ -291,6 +347,22 @@ test "phase 6 base64 convenience wrappers round-trip exact std urlsafe and imap 
     try expectConvenienceWrapperRoundTrip(&fixtures.variant_sample, "APv_f4A", false, .urlsafe);
     try expectConvenienceWrapperRoundTrip(&fixtures.variant_sample, "APv,f4A=", true, .imap);
     try expectConvenienceWrapperRoundTrip(&fixtures.variant_sample, "APv,f4A", false, .imap);
+}
+
+test "phase 6 base64 convenience wrappers stay exact aliases of the generic variant paths" {
+    const inputs = [_][]const u8{
+        "",
+        "hi",
+        &fixtures.variant_sample,
+    };
+
+    inline for ([_]base64.Variant{ .std, .urlsafe, .imap }) |variant| {
+        inline for ([_]bool{ true, false }) |padding| {
+            for (inputs) |input| {
+                try expectConvenienceWrapperAliasParity(input, padding, variant);
+            }
+        }
+    }
 }
 
 test "phase 6 base64 convenience wrappers reject foreign alphabet tails in padded and unpadded modes" {
