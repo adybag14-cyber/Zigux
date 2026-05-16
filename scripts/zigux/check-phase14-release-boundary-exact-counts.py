@@ -134,10 +134,15 @@ RELEASE_BOUNDARY_MARKERS = [
 ]
 SURVEY_EXACT_COUNT_MARKERS = [
     "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
+    "PHASE14_SMOKE_ENTRYPOINT=make -C zigux phase14-smoke",
+    "PHASE14_SMOKE_BUILD_ENTRYPOINT=zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all",
     "PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test",
     "PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14",
     "PHASE14_ANCHOR_PACKET_COUNT=4",
+    "PHASE14_COMPILE_SHARD_TOTAL=6",
+    "PHASE14_COMPILE_SHARD_FOCUSED_COUNT=1",
+    "PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5",
 ]
 MANIFEST_REQUIRED_SURFACES = [
     DOCS_ROOT_CHECKER_PATH,
@@ -705,12 +710,76 @@ def run_self_test() -> int:
         write(
             root,
             "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+            good_survey_text().replace("- `PHASE14_SMOKE_ENTRYPOINT=make -C zigux phase14-smoke`\n", "", 1),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_SMOKE_ENTRYPOINT=make -C zigux phase14-smoke",
+            "self-test expected missing survey smoke-entrypoint failure",
+        )
+        write(root, "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+            good_survey_text().replace(
+                "- `PHASE14_SMOKE_BUILD_ENTRYPOINT=zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_SMOKE_BUILD_ENTRYPOINT=zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+            "self-test expected missing survey smoke-build-entrypoint failure",
+        )
+        write(root, "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
             good_survey_text().replace("- `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`\n", "", 1),
         )
         expect_contains(
             check(root, source_text=MARKER),
             "PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test",
             "self-test expected missing survey test-entrypoint failure",
+        )
+        write(root, "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+            good_survey_text().replace("- `PHASE14_COMPILE_SHARD_TOTAL=6`\n", "", 1),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_COMPILE_SHARD_TOTAL=6",
+            "self-test expected missing survey compile-shard-total failure",
+        )
+        write(root, "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+            good_survey_text().replace("- `PHASE14_COMPILE_SHARD_FOCUSED_COUNT=1`\n", "", 1),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_COMPILE_SHARD_FOCUSED_COUNT=1",
+            "self-test expected missing survey compile-shard-focused-count failure",
+        )
+        write(root, "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+            good_survey_text().replace("- `PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5`\n", "", 1),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5",
+            "self-test expected missing survey compile-shard-full-bundle-only-count failure",
         )
         write(root, "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
 
@@ -1022,7 +1091,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=35")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=40")
     return 0
 
 
