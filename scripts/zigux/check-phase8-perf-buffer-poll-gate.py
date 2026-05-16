@@ -92,6 +92,7 @@ REQUIRED_MARKERS = {
         'test "summarizePollFromWaitResult keeps raw wait-result normalization coupled to the bounded buffer summary" {',
         'test "summarizePollExecutionFromWaitResult keeps raw wait-result normalization coupled to execution bookkeeping" {',
         'test "summarizePollExecutionResultFromWaitResult keeps timeout interrupt and wait failure returns aligned" {',
+        'test "resolvePollExecutionResultFromWaitResult clamps oversized successful processed-record returns to INT_MAX" {',
         'test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing-failure bookkeeping" {',
         'test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {',
         'test "summarizePollExecution rejects processing more ready buffers than the helper counted as ready" {',
@@ -213,10 +214,10 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{details}")
 
         mutations = (
-            (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
-            (TESTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
+            (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
+            (TESTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
             (TESTS_README_PATH, "`make -C zigux phase8-perf-buffer-poll-test`"),
-            (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
+            (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
             (REVIEW_CHECKLIST_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
             (SEQUENCING_PATH, "make -C zigux phase8-perf-buffer-poll-test"),
             (SLICE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
@@ -251,6 +252,10 @@ def run_self_test() -> int:
             (
                 PACKET_HELPER_PATH,
                 'test "summarizePollExecutionResultFromWaitResult keeps timeout interrupt and wait failure returns aligned" {',
+            ),
+            (
+                PACKET_HELPER_PATH,
+                'test "resolvePollExecutionResultFromWaitResult clamps oversized successful processed-record returns to INT_MAX" {',
             ),
             (
                 PACKET_HELPER_PATH,
