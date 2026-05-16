@@ -120,6 +120,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter matches tables through the first null entry");
     try expectContains(helper_tests, "phase 7 string helpers starter keeps exact-fit, terminator-only, and zero-capacity unescape destinations reviewable");
     try expectContains(helper_tests, "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes");
+    try expectContains(helper_tests, "phase 7 string helpers starter keeps append-limited octal dictionary escapes reviewable");
     try expectContains(helper_tests, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
     try expectContains(helper_tests, "phase 7 string helpers starter reuses the blank string-array sentinel when no names are requested");
     try expectContains(helper_tests, "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes");
@@ -198,6 +199,7 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(survey, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(survey, "leading whitespace skipping that stops at the first NUL");
     try expectContains(survey, "phase 7 string helpers starter formats bounded sizes with three significant figures");
+    try expectContains(survey, "phase 7 string helpers starter keeps append-limited octal dictionary escapes reviewable");
     try expectContains(survey, "phase 7 string helpers starter builds sequential string arrays and sentinel views");
     try expectContains(survey, "phase 7 string helpers starter reuses the blank string-array sentinel when no names are requested");
     try expectContains(survey, "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes");
