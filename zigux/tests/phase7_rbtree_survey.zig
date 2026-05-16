@@ -407,7 +407,7 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     try expectContains(build_file, "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));");
     try expectContains(workflow, "Validate Phase 7 runtime helper gates");
     try expectContains(workflow, "make -C zigux phase7-validate");
-    try expectContains(workflow, "Run Phase 7 helper tests");
+    try expectContains(workflow, "Run Phase 7 runtime helper tests");
     try expectContains(workflow, "make -C zigux phase7-test");
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-rbtree-parity.py\",");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree.zig\",");
@@ -470,7 +470,7 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     try expectContains(zigux_makefile, "phase7-test:");
     try expectContains(zigux_makefile, "phase7: phase7-validate phase7-test");
     try expectContains(parity_checker, "PHASE7_RBTREE_PARITY_SELF_TEST=pass");
-    try expectContains(parity_checker, "SOURCE = ROOT / \"lib\" / \"rbtree.c\"");
+    try expectContains(parity_checker, "zigux/tests/phase7_rbtree_manifest.json");
     try expectContains(parity_checker, "zigux/tests/fixtures/phase7_rbtree.json");
     try expectContains(parity_checker, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectContains(parity_checker, "lib/rbtree.zig");
