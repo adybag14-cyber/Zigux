@@ -1,6 +1,6 @@
 # Phase 2 fixdep next step note
 
-Lane: `P2-Y02`
+Lane: `P2-L06`
 
 Current `master` still carries a coherent fixdep-local dual-implementation packet, and the broader workflow-backed fixdep coverage is aligned again.
 
