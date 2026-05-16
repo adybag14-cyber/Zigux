@@ -67,6 +67,9 @@ DEP_MOD_BOUNDARY_MARKER = (
 DOCS_ROOT_DEPMOD_BOUNDARY_MARKER = (
     "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state stay blocked review-only boundaries"
 )
+DOCS_ROOT_SELFTEST_COMPLETE_EXIT_PARITY_MARKER = "`zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`"
+DOCS_ROOT_LIFECYCLE_BOUNDARY_GUARD_MARKER = "`zigux/tests/runtime_loader_lifecycle_boundary_guard.zig`"
+DOCS_ROOT_TRACE_EVENTS_SUBSTRATE_DRIFT_MARKER = "`zigux/tests/runtime_trace_events_loader_substrate_drift.zig`"
 REVIEW_CHECKLIST_TRACE_EVENTS_LOADER_MARKER = (
     "with `samples/zigux/runtime_trace_events_loader.zig` kept explicit as a shipped shared-loader scaffold while `samples/zigux/runtime_trace_events.zig` plus `zigux/tests/runtime_trace_events_manifest.json` remain the sample-only blocked pilot boundary for live runtime substrate and tracepoint-registration execution"
 )
@@ -211,6 +214,9 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase9_build.zig`",
         "`zigux/kernel/runtime_loader.zig`",
         "`zigux/kernel/runtime_loader_contract.zig`",
+        DOCS_ROOT_SELFTEST_COMPLETE_EXIT_PARITY_MARKER,
+        DOCS_ROOT_LIFECYCLE_BOUNDARY_GUARD_MARKER,
+        DOCS_ROOT_TRACE_EVENTS_SUBSTRATE_DRIFT_MARKER,
         "the shared Phase 9 packet is still review-first rather than loadable-runtime-complete",
         DOCS_ROOT_DEPMOD_BOUNDARY_MARKER,
     ],
@@ -367,6 +373,9 @@ SELF_TEST_REMOVALS = [
     (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_DEPMOD_BOUNDARY_MARKER, 1),
     (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_PHASE8_BOUNDARY_MARKER, 1),
     (README_PATH, DOCS_ROOT_DEPMOD_BOUNDARY_MARKER, 1),
+    (README_PATH, DOCS_ROOT_SELFTEST_COMPLETE_EXIT_PARITY_MARKER, 1),
+    (README_PATH, DOCS_ROOT_LIFECYCLE_BOUNDARY_GUARD_MARKER, 1),
+    (README_PATH, DOCS_ROOT_TRACE_EVENTS_SUBSTRATE_DRIFT_MARKER, 1),
     (SCRIPTS_README_PATH, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map", 1),
     (TESTS_README_PATH, "`zigux/tests/runtime_loader_gap_survey.zig`", 1),
     (RUNTIME_LOADER_CONTRACT_PATH, RUNTIME_LOADER_CONTRACT_TEST_MARKER, 1),
