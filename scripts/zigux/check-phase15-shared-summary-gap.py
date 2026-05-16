@@ -87,6 +87,7 @@ FILE_MARKERS = {
         "shared Phase 15 governance packet",
         FREEZE_MAP_REL,
         FREEZE_MAP_GOVERNANCE_REL,
+        REVIEW_PROCESS_MARKER,
         SURVEY_MARKER,
         PARITY_SCORECARD_MARKER,
         INDEFINITE_C_POLICY_MARKER,
@@ -205,6 +206,7 @@ def _seed(root: Path) -> None:
                 "shared Phase 15 governance packet",
                 FREEZE_MAP_REL,
                 FREEZE_MAP_GOVERNANCE_REL,
+                REVIEW_PROCESS_MARKER,
                 SURVEY_MARKER,
                 PARITY_SCORECARD_MARKER,
                 INDEFINITE_C_POLICY_MARKER,
@@ -390,6 +392,16 @@ def run_self_test() -> int:
             validate(root),
             [f"{REVIEW_CHECKLIST_REL}:missing:{FREEZE_MAP_GOVERNANCE_REL}"],
             "review_checklist_missing_freeze_map_governance",
+        )
+        _seed(root)
+        case_count += 1
+
+        path = root / REVIEW_CHECKLIST_REL
+        _write(path, _read(path).replace(REVIEW_PROCESS_MARKER + "\n", "", 1))
+        _assert_only(
+            validate(root),
+            [f"{REVIEW_CHECKLIST_REL}:missing:{REVIEW_PROCESS_MARKER}"],
+            "review_checklist_missing_review_process",
         )
         _seed(root)
         case_count += 1
