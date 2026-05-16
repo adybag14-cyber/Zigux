@@ -172,6 +172,13 @@ test "phase 5 trace-events survey note stays aligned with the focused direct rep
     );
     defer std.testing.allocator.free(samples_readme);
 
+    const scripts_readme = try readFile(
+        std.testing.allocator,
+        "scripts/zigux/README.md",
+        review_doc_read_limit,
+    );
+    defer std.testing.allocator.free(scripts_readme);
+
     const tests_readme = try readFile(
         std.testing.allocator,
         "zigux/tests/README.md",
@@ -219,6 +226,14 @@ test "phase 5 trace-events survey note stays aligned with the focused direct rep
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_trace_events_sample_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_build.zig") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "Documentation/zigux/phase5-trace-events-sample-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "samples/zigux/trace_events_sample.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "zigux/tests/phase5_trace_events_sample.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "zigux/tests/phase5_trace_events_sample_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "zigux/tests/phase5_trace_events_sample_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "selected-string plus `iter=%d` replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "phase5_build.zig") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, tests_readme, "Documentation/zigux/phase5-trace-events-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_readme, "samples/zigux/trace_events_sample.zig") != null);
