@@ -110,6 +110,45 @@ test "phase3 barrier wrappers keep barrier handoff reviewable" {
     try std.testing.expectEqual(@as(u32, 73), packet.value);
 }
 
+test "phase3 barrier wrappers keep full-fence publish and reset reviewable" {
+    const Packet = struct {
+        published: u32,
+        consumed: u32,
+        generation: u8,
+        ready: bool,
+    };
+
+    var packet = Packet{
+        .published = 0,
+        .consumed = 0,
+        .generation = 3,
+        .ready = false,
+    };
+
+    packet.published = 55;
+    fullFence();
+    packet.consumed = packet.published;
+    packet.ready = true;
+    fullFence();
+
+    try std.testing.expect(packet.ready);
+    try std.testing.expectEqual(@as(u32, 55), packet.published);
+    try std.testing.expectEqual(packet.published, packet.consumed);
+    try std.testing.expectEqual(@as(u8, 3), packet.generation);
+
+    packet.generation +%= 1;
+    fullFence();
+    packet.ready = false;
+    packet.published = 0;
+    packet.consumed = packet.published;
+    fullFence();
+
+    try std.testing.expect(!packet.ready);
+    try std.testing.expectEqual(@as(u32, 0), packet.published);
+    try std.testing.expectEqual(packet.published, packet.consumed);
+    try std.testing.expectEqual(@as(u8, 4), packet.generation);
+}
+
 test "phase3 barrier wrappers keep non-mutating full fences reviewable" {
     const Packet = struct {
         published: u32,
