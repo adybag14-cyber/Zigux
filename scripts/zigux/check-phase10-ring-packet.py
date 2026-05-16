@@ -67,6 +67,7 @@ MARKERS = {
         "drivers/virtio/virtio_ring.zig",
         "drivers/virtio/virtio_ring_verify.zig",
         "zigux/tests/phase10_virtio_ring.zig",
+        "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
         "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
         "zigux/tests/phase10_virtio_ring_survey.zig",
         "public raw reread path",
@@ -166,7 +167,6 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
     "queue_setup_reset_paths",
     "irq_parity",
     "dma_paths",
-    "input_registration_lifecycle",
     "probe_remove_lifecycle",
 ]
 EXPECTED_STUDY_ONLY_ANCHORS = [
@@ -506,6 +506,12 @@ def run_self_test() -> int:
             "public raw reread path",
             "stale fallback path",
             "phase10-virtio-ring-survey.md:public raw reread path",
+        )
+        replace_once(
+            "Documentation/zigux/phase10-virtio-ring-survey.md",
+            "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
+            "zigux/tests/phase10_virtio_ring_prepare_kick_missing.zig",
+            "phase10-virtio-ring-survey.md:zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
         )
         replace_once(
             "Documentation/zigux/phase10-virtio-ring-survey.md",
