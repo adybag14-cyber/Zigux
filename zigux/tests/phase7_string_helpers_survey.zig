@@ -41,7 +41,9 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "`stringEscapeMem()` keeps append-limited and dictionary-mode output accounting inside caller-owned storage");
     try expectContains(slice_note, "`stringEscapeMemAnyNp()`, `stringEscapeStr()`, and `stringEscapeStrAnyNp()` keep any-NP and first-NUL-bounded string-wrapper escaping inside caller-owned storage");
     try expectContains(slice_note, "`kstrdupAndReplace()` returns caller-owned duplicated storage, applies replacements only inside the duplicated exported prefix, and leaves the source slice unchanged");
-    try expectContains(slice_note, "The next bounded follow-through should keep the expanded starter packet truthful across the survey, manifest, boundary replay, and slice note.");
+    try expectContains(slice_note, "`kstrdupQuotable()` returns caller-owned duplicated storage, hex-escapes special logging hazards, and still stops at the exported C-string prefix");
+    try expectContains(slice_note, "The next bounded follow-through should keep the quotable helper packet truthful across the survey, manifest, boundary replay, and slice note.");
+    try expectContains(slice_note, "`kstrdup_quotable_cmdline()` can join the same helper-local packet");
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
@@ -67,6 +69,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "\"kfreeStrarray\"");
     try expectContains(manifest, "\"kstrdupAndReplace\"");
     try expectContains(manifest, "\"kstrdup_and_replace\"");
+    try expectContains(manifest, "\"kstrdupQuotable\"");
+    try expectContains(manifest, "\"kstrdup_quotable\"");
     try expectContains(manifest, "\"memcpyAndPad\"");
     try expectContains(manifest, "\"memcpy_and_pad\"");
     try expectContains(manifest, "\"strreplace\"");
@@ -79,8 +83,9 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "stringEscapeMemAnyNp(), stringEscapeStr(), and stringEscapeStrAnyNp() keep any-NP and first-NUL-bounded string-wrapper escaping explicit without widening beyond caller-owned storage");
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
+    try expectContains(manifest, "kstrdupQuotable() keeps returned storage caller-owned, hex-escapes special logging hazards and double quotes, and still stops at the duplicated exported prefix");
     try expectContains(manifest, "in-place replacement inside the exported C-string prefix");
-    try expectContains(manifest, "\"next_bounded_step\": \"Keep the expanded starter packet truthful across the slice note, helper-local manifest, dedicated survey, and dedicated no-string-sample boundary replay, then take the next helper-local string_helpers expansion only if the remaining non-goals still read the same way everywhere.\"");
+    try expectContains(manifest, "\"next_bounded_step\": \"Keep the quotable helper packet truthful across the slice note, helper-local manifest, dedicated survey, and dedicated no-string-sample boundary replay, then decide whether `kstrdup_quotable_cmdline()` can join the same helper-local packet without widening into shared-control or file-path semantics.\"");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 
@@ -100,6 +105,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper, "fn allocKasprintfStrarrayNullTerminated");
     try expectContains(helper, "pub fn kstrdupAndReplace");
     try expectContains(helper, "pub fn kstrdup_and_replace");
+    try expectContains(helper, "pub fn kstrdupQuotable");
+    try expectContains(helper, "pub fn kstrdup_quotable");
     try expectContains(helper, "pub fn stringGetSize");
     try expectContains(helper, "pub fn string_get_size");
     try expectContains(helper, "pub fn stringEscapeMem");
@@ -129,6 +136,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
     try expectContains(helper_tests, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(helper_tests, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
+    try expectContains(helper_tests, "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectContains(helper_tests, "const zero_written = string_helpers.string_get_size(42, 0, string_helpers.STRING_UNITS_10, &zero_buf, 0);");
@@ -161,6 +170,7 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(slice_note, "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting");
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown");
     try expectContains(slice_note, "allocator-backed duplicate-and-replace behavior that rewrites only the exported C-string prefix and leaves the source buffer untouched");
+    try expectContains(slice_note, "quoted-log-safe duplication that hex-escapes special logging hazards and double quotes while still stopping at the exported C-string prefix");
     try expectNotContains(slice_note, "restored starter packet");
     try expectNotContains(slice_note, "missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
 
@@ -170,6 +180,8 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(helper, "pub fn kasprintfStrarray");
     try expectContains(helper, "pub fn kfreeStrarray");
     try expectContains(helper, "pub fn kstrdupAndReplace");
+    try expectContains(helper, "pub fn kstrdupQuotable");
+    try expectContains(helper, "pub fn kstrdup_quotable");
     try expectContains(helper, "pub fn stringEscapeMem");
     try expectContains(helper, "pub fn stringEscapeStrAnyNp");
     try expectContains(helper, "pub fn memcpyAndPad");
@@ -190,6 +202,8 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(helper_tests, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(helper_tests, "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent");
     try expectContains(helper_tests, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
+    try expectContains(helper_tests, "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
 
@@ -208,6 +222,8 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(survey, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
     try expectContains(survey, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(survey, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
+    try expectContains(survey, "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix");
+    try expectContains(survey, "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly");
     try expectContains(survey, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(survey, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectNotContains(survey, "Documentation/zigux/review-checklist.md");
@@ -222,6 +238,7 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(manifest, "\"bounded sequential string-array allocation with NULL-terminated pointer views\"");
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
+    try expectContains(manifest, "kstrdupQuotable() keeps returned storage caller-owned, hex-escapes special logging hazards and double quotes, and still stops at the duplicated exported prefix");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 }
