@@ -430,6 +430,18 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     try expectContains(module_slice_note, "Do not invent `validate-phase9.py`, a trace-events-only validator, or a cleared runtime-substrate handoff.");
     try expectContains(
+        module_slice_note,
+        "the shared Phase 9 loader-facing packet is also shipped and reviewable",
+    );
+    try expectContains(
+        module_slice_note,
+        "the remaining same-lane work should keep the packet-local notes and manifest aligned with the shipped family-local trace-events proof instead of drifting back to missing-file reminder wording",
+    );
+    try expectContains(
+        module_slice_note,
+        "The next honest follow-through in the same `runtime-pilot` lane is to keep the packet-local survey note, module-slice note, and manifest aligned with the visible family-local trace-events packet, keep the bounded pilot-module contract explicit, and then leave broader follow-up to the separate shared runtime-substrate lanes until a real substrate step lands.",
+    );
+    try expectContains(
         runtime_trace_events_module,
         "test \"runtime trace-events sample advertises the bounded pilot-module contract\" {",
     );
