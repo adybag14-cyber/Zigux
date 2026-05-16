@@ -187,3 +187,44 @@ test "ipv6 pseudo header accumulation matches the fixture-backed unfolded checks
         try std.testing.expectEqual(referenceFoldedChecksum(pseudo_and_payload[0..combined_len], 0), checksum.fold(helper_partial));
     }
 }
+
+test "aligned ipv4 fast path stays matched to compute and reference folding" {
+    const HeaderCase = struct {
+        name: []const u8,
+        header: []const u8,
+    };
+
+    const minimal_ipv4 = [_]u8{
+        0x45, 0x00, 0x00, 0x3c,
+        0x1c, 0x46, 0x40, 0x00,
+        0x40, 0x06, 0x00, 0x00,
+        0xc0, 0xa8, 0x00, 0x01,
+        0xc0, 0xa8, 0x00, 0xc7,
+    };
+    const ttl_and_length_update = [_]u8{
+        0x45, 0x00, 0x00, 0x40,
+        0x1c, 0x46, 0x40, 0x00,
+        0x3f, 0x11, 0x00, 0x00,
+        0xc0, 0xa8, 0x00, 0x02,
+        0xc0, 0xa8, 0x00, 0xc7,
+    };
+    const ipv4_with_options = [_]u8{
+        0x46, 0x00, 0x00, 0x30,
+        0x12, 0x34, 0x20, 0x00,
+        0x40, 0x11, 0x00, 0x00,
+        0xc0, 0xa8, 0x01, 0x01,
+        0xc0, 0xa8, 0x01, 0x02,
+        0x01, 0x01, 0x00, 0x00,
+    };
+    const headers = [_]HeaderCase{
+        .{ .name = "minimal ipv4 header", .header = &minimal_ipv4 },
+        .{ .name = "ttl and length update keeps the fast path aligned", .header = &ttl_and_length_update },
+        .{ .name = "ipv4 options keep the fast path on 32-bit boundaries", .header = &ipv4_with_options },
+    };
+
+    for (headers) |case| {
+        const expected = referenceInternetChecksum(case.header);
+        try std.testing.expectEqual(expected, checksum.compute(case.header));
+        try std.testing.expectEqual(expected, checksum.ipFastCsum(case.header));
+    }
+}
