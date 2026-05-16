@@ -45,7 +45,7 @@ The coupled current-`master` packet now keeps these release surfaces explicit ra
 - stable `make -C zigux phase13-validate`
 - blocked convenience route `make -C zigux phase13`
 
-Shared release wording should stay anchored to that validator-first handle while `make -C zigux phase13` remains blocked convenience wiring and `zigux/tests/phase13_build.zig` remains absent.
+Shared release wording should stay anchored to that validator-first handle while `make -C zigux phase13` remains blocked convenience wiring and `zigux/tests/phase13_build.zig` stays a current shared companion surface rather than the stable release handle.
 
 ## Repo-Reality Gaps
 
@@ -56,7 +56,6 @@ Keep the remaining shared-summary gap explicit:
 Keep older or still-missing direct companions explicit too instead of promoting them into shipped current-`master` evidence:
 
 - `Documentation/zigux/phase13-libfs-slice.md`
-- `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_libfs_addressability.zig`
 - `scripts/zigux/check-phase13-devres-packet.py`
 - `zigux/tests/phase13_notifier_list_manifest.json`
@@ -73,7 +72,7 @@ Keep Phase 13 release wording inside these boundaries:
 - the Phase 13 packet is active and roadmap-backed, not closed
 - the shared packet is helper-local, validator-first, and reminder-surface backed rather than documentation-only
 - the stable release handle is `validate-phase13-release.py` plus stable `make -C zigux phase13-validate`
-- the broader `make -C zigux phase13` route stays blocked convenience wiring while `zigux/tests/phase13_build.zig` is absent
+- the broader `make -C zigux phase13` route stays blocked convenience wiring while `zigux/tests/phase13_build.zig` stays a current shared companion surface rather than the stable release handle
 - only `scripts/zigux/check-phase13-shared-summary-surfaces.py` stays framed as the remaining shared-summary repo-reality gap
 - older helper-local or notifier companions that current `master` still does not materialize stay recorded as repo-reality gaps
 - adjacent notifier evidence may still matter for release truthfulness, but it does not become a fifth roadmap anchor
