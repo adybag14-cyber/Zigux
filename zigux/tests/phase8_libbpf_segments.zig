@@ -222,6 +222,10 @@ test "phase 8 libbpf survey keeps routing helper and perf-buffer boundary explic
     try expectContains(boundary_note, "`make -C zigux phase8-perf-buffer-poll-test`");
     try expectContains(boundary_note, "standalone timer helper behavior");
     try expectContains(boundary_note, "clockevent helper behavior");
+    try expectContains(
+        boundary_note,
+        "It likewise does not claim standalone timer helper behavior or standalone\nclockevent helper behavior.",
+    );
 
     const poll_note = try readFileAlloc(
         io_instance.io(),
@@ -233,4 +237,8 @@ test "phase 8 libbpf survey keeps routing helper and perf-buffer boundary explic
     try expectContains(poll_note, "- no standalone timer helper behavior");
     try expectContains(poll_note, "- no standalone clockevent helper behavior");
     try expectContains(poll_note, "`make -C zigux phase8-perf-buffer-poll-test`");
+    try expectContains(
+        poll_note,
+        "If it reopens, keep follow-up smaller than full routing, epoll, timer, clockevent, object-model, or ring-lifecycle work.",
+    );
 }
