@@ -291,6 +291,58 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        text = (tmp_root / VERIFY_PATH).read_text(encoding="utf-8").replace(
+            "`surveyed_commit`",
+            "`surveyed_commit_missing`",
+            1,
+        )
+        (tmp_root / VERIFY_PATH).write_text(text, encoding="utf-8")
+        expect_marker_error(
+            "missing_verify_surveyed_commit_marker",
+            tmp_root,
+            f"{VERIFY_PATH}: `surveyed_commit`",
+        )
+        write_fixture_root(tmp_root)
+
+        text = (tmp_root / VERIFY_PATH).read_text(encoding="utf-8").replace(
+            "historical reproducibility evidence",
+            "historical evidence",
+            1,
+        )
+        (tmp_root / VERIFY_PATH).write_text(text, encoding="utf-8")
+        expect_marker_error(
+            "missing_verify_history_marker",
+            tmp_root,
+            f"{VERIFY_PATH}: historical reproducibility evidence",
+        )
+        write_fixture_root(tmp_root)
+
+        text = (tmp_root / SEQUENCING_PATH).read_text(encoding="utf-8").replace(
+            "parked note-owned boundaries",
+            "note-owned boundaries",
+            1,
+        )
+        (tmp_root / SEQUENCING_PATH).write_text(text, encoding="utf-8")
+        expect_marker_error(
+            "missing_sequencing_parked_boundary_marker",
+            tmp_root,
+            f"{SEQUENCING_PATH}: parked note-owned boundaries",
+        )
+        write_fixture_root(tmp_root)
+
+        text = (tmp_root / COORDINATION_PATH).read_text(encoding="utf-8").replace(
+            "parked reviewability packet visible",
+            "reviewability packet visible",
+            1,
+        )
+        (tmp_root / COORDINATION_PATH).write_text(text, encoding="utf-8")
+        expect_marker_error(
+            "missing_coordination_snapshot_marker",
+            tmp_root,
+            f"{COORDINATION_PATH}: parked reviewability packet visible",
+        )
+        write_fixture_root(tmp_root)
+
         text = (tmp_root / COORDINATION_PATH).read_text(encoding="utf-8").replace(
             "tools/lib/bpf/zigux_segments/manifest.json",
             "tools/lib/bpf/zigux_segments/manifest_missing.json",
@@ -332,7 +384,7 @@ def run_self_test() -> None:
         assert unexpected_files == []
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=10")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=14")
 
 
 def main() -> int:
