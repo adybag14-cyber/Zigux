@@ -107,6 +107,12 @@ REQUIRED_REPLAY_NOTIFIER_CHAIN_KEYS = (
     "single_ok",
     "descending_ok",
     "rising_ok",
+    "rising_first_increase",
+    "found",
+    "previous_index",
+    "current_index",
+    "previous_priority",
+    "current_priority",
 )
 
 REQUIRED_REPLAY_CONSTANT_KEYS = (
@@ -125,7 +131,7 @@ REQUIRED_REPLAY_CONSTANT_KEYS = (
     "unsafe_scope_raw_pointer_bridge",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied",
-    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_flag_window_applied",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_status_skipped",
     "notifier_done",
     "notifier_ok",
@@ -177,10 +183,19 @@ REQUIRED_EXPECTED_NOTIFIER_CHAIN_VALUES = {
     "rising_ok": 0,
 }
 
+REQUIRED_EXPECTED_NOTIFIER_CHAIN_INCREASE_VALUES = {
+    "found": 1,
+    "previous_index": 0,
+    "current_index": 1,
+    "previous_priority": 3,
+    "current_priority": 5,
+}
+
 REQUIRED_REPLAY_STRUCT_MARKERS = (
     "boundary_header",
     "export_status",
     "interop_policy",
+    "notifier_chain_priority_increase",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_view",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_summary",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view",
@@ -215,6 +230,16 @@ REQUIRED_EXPECTED_STRUCT_LAYOUTS = {
             "allocator_mode": 1,
             "unsafe_scope": 2,
             "reserved": 3,
+        },
+    },
+    "notifier_chain_priority_increase": {
+        "size": 24,
+        "align": 8,
+        "offsets": {
+            "previous_index": 0,
+            "current_index": 8,
+            "previous_priority": 16,
+            "current_priority": 20,
         },
     },
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_view": {
@@ -362,6 +387,21 @@ def _validate_expected_fixture(path: Path) -> list[str]:
                     f"{path}:wrong_expected_notifier_chain_field:{field_name}:{actual_value}"
                 )
 
+        rising_first_increase = notifier_chain.get("rising_first_increase")
+        if not isinstance(rising_first_increase, dict):
+            issues.append(f"{path}:missing_notifier_chain_increase_object")
+        else:
+            for field_name, expected_value in REQUIRED_EXPECTED_NOTIFIER_CHAIN_INCREASE_VALUES.items():
+                actual_value = rising_first_increase.get(field_name)
+                if actual_value is None:
+                    issues.append(
+                        f"{path}:missing_expected_notifier_chain_increase_field:{field_name}"
+                    )
+                elif actual_value != expected_value:
+                    issues.append(
+                        f"{path}:wrong_expected_notifier_chain_increase_field:{field_name}:{actual_value}"
+                    )
+
     structs = payload.get("structs")
     if not isinstance(structs, dict):
         issues.append(f"{path}:missing_structs_object")
@@ -456,7 +496,10 @@ def _expected_fixture_stub() -> str:
             "abi_version": REQUIRED_EXPECTED_ABI_VERSION,
             "constants": REQUIRED_EXPECTED_CONSTANT_VALUES,
             "dev_t": REQUIRED_EXPECTED_DEV_T_VALUES,
-            "notifier_chain": REQUIRED_EXPECTED_NOTIFIER_CHAIN_VALUES,
+            "notifier_chain": {
+                **REQUIRED_EXPECTED_NOTIFIER_CHAIN_VALUES,
+                "rising_first_increase": REQUIRED_EXPECTED_NOTIFIER_CHAIN_INCREASE_VALUES,
+            },
             "structs": REQUIRED_EXPECTED_STRUCT_LAYOUTS,
         },
         indent=2,
@@ -653,6 +696,21 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         broken = root / DUMP_PATH
+        broken.write_text(
+            _read(broken).replace("notifier_chain_priority_increase\n", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            "missing dump struct marker: notifier_chain_priority_increase",
+            "expected missing notifier increase struct marker was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / DUMP_PATH
         broken.write_text(_read(broken).replace("allocator_arena\n", "", 1), encoding="utf-8")
         issues = validate_repo(root)
         if _expect_issue(
@@ -712,6 +770,30 @@ def run_self_test() -> int:
         case_count += 1
 
         _populate_repo(root)
+        broken = root / DUMP_PATH
+        broken.write_text(_read(broken).replace("rising_first_increase\n", "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            "missing dump notifier_chain key marker: rising_first_increase",
+            "expected missing dump notifier-chain increase object marker was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / DUMP_PATH
+        broken.write_text(_read(broken).replace("current_priority\n", "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            "missing dump notifier_chain key marker: current_priority",
+            "expected missing dump notifier-chain increase field was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
         broken = root / HARNESS_PATH
         broken.write_text(
             _read(broken).replace(
@@ -762,6 +844,18 @@ def run_self_test() -> int:
             issues,
             "missing harness notifier_chain key marker: rising_ok",
             "expected missing harness notifier-chain field was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / HARNESS_PATH
+        broken.write_text(_read(broken).replace("previous_priority\n", "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            "missing harness notifier_chain key marker: previous_priority",
+            "expected missing harness notifier-chain increase field was not reported",
         ):
             return 1
         case_count += 1
@@ -895,6 +989,48 @@ def run_self_test() -> int:
         _populate_repo(root)
         broken = root / EXPECTED_PATH
         payload = json.loads(_read(broken))
+        payload["notifier_chain"].pop("rising_first_increase", None)
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:missing_notifier_chain_increase_object",
+            "expected missing expected-fixture notifier-chain increase object was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
+        payload["notifier_chain"]["rising_first_increase"].pop("current_priority", None)
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:missing_expected_notifier_chain_increase_field:current_priority",
+            "expected missing expected-fixture notifier-chain increase field was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
+        payload["notifier_chain"]["rising_first_increase"]["previous_index"] = 9
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:wrong_expected_notifier_chain_increase_field:previous_index:9",
+            "expected wrong expected-fixture notifier-chain increase field was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
         payload["structs"].pop("boundary_header", None)
         broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = validate_repo(root)
@@ -909,6 +1045,20 @@ def run_self_test() -> int:
         _populate_repo(root)
         broken = root / EXPECTED_PATH
         payload = json.loads(_read(broken))
+        payload["structs"].pop("notifier_chain_priority_increase", None)
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:missing_expected_struct:notifier_chain_priority_increase",
+            "expected missing expected-fixture notifier increase struct was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
         payload["structs"]["interop_policy"]["offsets"]["reserved"] = 5
         broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = validate_repo(root)
@@ -916,6 +1066,20 @@ def run_self_test() -> int:
             issues,
             f"{root / EXPECTED_PATH}:wrong_expected_struct_offset:interop_policy:reserved:5",
             "expected wrong core expected-fixture struct offset was not reported",
+        ):
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        broken = root / EXPECTED_PATH
+        payload = json.loads(_read(broken))
+        payload["structs"]["notifier_chain_priority_increase"]["offsets"]["current_priority"] = 21
+        broken.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        if _expect_issue(
+            issues,
+            f"{root / EXPECTED_PATH}:wrong_expected_struct_offset:notifier_chain_priority_increase:current_priority:21",
+            "expected wrong notifier increase struct offset was not reported",
         ):
             return 1
         case_count += 1
