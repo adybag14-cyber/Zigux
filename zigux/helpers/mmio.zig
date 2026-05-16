@@ -67,12 +67,18 @@ pub fn containsAccess(desc: Range, offset: usize, width: usize) bool {
     return end <= @as(usize, desc.length);
 }
 
+fn rejectAmbiguousZeroStride(desc: Range, index: usize) bool {
+    return desc.stride == 0 and index != 0;
+}
+
 pub fn offsetForIndex(desc: Range, index: usize) ?usize {
+    if (rejectAmbiguousZeroStride(desc, index)) return null;
     const offset = std.math.mul(usize, index, @as(usize, desc.stride)) catch return null;
     return if (containsOffset(desc, offset)) offset else null;
 }
 
 pub fn typedOffsetForIndex(desc: Range, comptime T: type, index: usize) ?usize {
+    if (rejectAmbiguousZeroStride(desc, index)) return null;
     const offset = std.math.mul(usize, index, @as(usize, desc.stride)) catch return null;
     return if (containsAccess(desc, offset, @sizeOf(T))) offset else null;
 }
@@ -389,6 +395,7 @@ test "phase3 mmio wrappers keep direct reads and writes reviewable" {
 test "phase3 mmio ranges keep byte and stride boundaries explicit" {
     const desc = range(0x1000, 32, 8);
     const empty = range(0x2000, 0, 4);
+    const zero_stride = range(0x3000, 8, 0);
 
     try std.testing.expect(containsOffset(desc, 0));
     try std.testing.expect(containsOffset(desc, 31));
@@ -406,6 +413,8 @@ test "phase3 mmio ranges keep byte and stride boundaries explicit" {
     try std.testing.expectEqual(@as(?usize, 24), offsetForIndex(desc, 3));
     try std.testing.expectEqual(@as(?usize, null), offsetForIndex(desc, 4));
     try std.testing.expectEqual(@as(?usize, null), offsetForIndex(empty, 0));
+    try std.testing.expectEqual(@as(?usize, 0), offsetForIndex(zero_stride, 0));
+    try std.testing.expectEqual(@as(?usize, null), offsetForIndex(zero_stride, 1));
 
     try std.testing.expectEqual(@as(?usize, 0), typedOffsetForIndex(desc, u32, 0));
     try std.testing.expectEqual(@as(?usize, 8), typedOffsetForIndex(desc, u32, 1));
@@ -413,6 +422,10 @@ test "phase3 mmio ranges keep byte and stride boundaries explicit" {
     try std.testing.expectEqual(@as(?usize, null), typedOffsetForIndex(desc, u16, 4));
     try std.testing.expectEqual(@as(?usize, null), typedOffsetForIndex(desc, u64, std.math.maxInt(usize)));
     try std.testing.expectEqual(@as(?usize, null), typedOffsetForIndex(empty, u8, 0));
+    try std.testing.expectEqual(@as(?usize, 0), typedOffsetForIndex(zero_stride, u8, 0));
+    try std.testing.expectEqual(@as(?usize, 0), typedOffsetForIndex(zero_stride, u64, 0));
+    try std.testing.expectEqual(@as(?usize, null), typedOffsetForIndex(zero_stride, u8, 1));
+    try std.testing.expectEqual(@as(?usize, null), typedOffsetForIndex(zero_stride, u64, 1));
 }
 
 test "phase3 mmio wrappers keep stride-indexed accesses reviewable" {
@@ -423,6 +436,7 @@ test "phase3 mmio wrappers keep stride-indexed accesses reviewable" {
     const halfword_desc = range(base, 24, 2);
     const word_desc = range(base, 24, 4);
     const dword_desc = range(base, 24, 8);
+    const zero_stride_desc = range(base, 24, 0);
     const first_word: *align(1) const u32 = @ptrCast(&bytes[0]);
     const third_word: *align(1) const u32 = @ptrCast(&bytes[8]);
     const last_doubleword: *align(1) const u64 = @ptrCast(&bytes[16]);
@@ -470,6 +484,12 @@ test "phase3 mmio wrappers keep stride-indexed accesses reviewable" {
     try std.testing.expectEqual(@as(?u64, 0x0246_8ace_1357_9bdf), read64Index(dword_desc, 2));
     try std.testing.expect(!write64Index(dword_desc, 3, 0xfedc_ba98_7654_3210));
     try std.testing.expectEqual(@as(?u64, null), read64Index(dword_desc, 3));
+
+    try std.testing.expect(write32Index(zero_stride_desc, 0, 0x1357_9bdf));
+    try std.testing.expectEqual(@as(u32, 0x1357_9bdf), first_word.*);
+    try std.testing.expectEqual(@as(?u32, 0x1357_9bdf), read32Index(zero_stride_desc, 0));
+    try std.testing.expect(!write32Index(zero_stride_desc, 1, 0xfeed_beef));
+    try std.testing.expectEqual(@as(?u32, null), read32Index(zero_stride_desc, 1));
 }
 
 test "phase3 mmio wrappers keep odd-offset volatile accesses reviewable" {
