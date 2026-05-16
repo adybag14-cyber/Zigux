@@ -48,6 +48,7 @@ SAMPLE_REJECTED_SELFTEST_TEST_MARKER = (
     'test "trace-events sample keeps rejected re-selftest rollback explicit" {'
 )
 SAMPLE_INVALID_TRANSITION_MARKER = "error.InvalidLifecycleTransition"
+SAMPLE_OUTSTANDING_REGISTRATION_MARKER = "error.OutstandingRegistration"
 
 SEQUENCING_REQUIRED_MARKERS = [
     TRACE_EVENTS_SAMPLE_MARKER,
@@ -74,6 +75,7 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_FAILED_EXIT_TEST_MARKER,
     SAMPLE_REJECTED_SELFTEST_TEST_MARKER,
     SAMPLE_INVALID_TRANSITION_MARKER,
+    SAMPLE_OUTSTANDING_REGISTRATION_MARKER,
 ]
 
 
@@ -166,7 +168,7 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
 }}
 
 test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {{
-    try std.testing.expect(true);
+    try std.testing.expectError(error.OutstandingRegistration, module.exit());
 }}
 
 test "trace-events sample keeps rejected re-selftest rollback explicit" {{
