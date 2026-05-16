@@ -663,6 +663,15 @@ pub fn strreplace(buf: []u8, old: u8, new: u8) usize {
     return buf.len;
 }
 
+fn runKasprintfStrarrayWithFailingAllocator(
+    allocator: std.mem.Allocator,
+    prefix: []const u8,
+    n: usize,
+) !void {
+    var result = try kasprintfStrarray(allocator, prefix, n);
+    defer result.deinit(allocator);
+}
+
 fn runKstrdupAndReplaceWithFailingAllocator(
     allocator: std.mem.Allocator,
     src: []const u8,
@@ -702,6 +711,14 @@ test "kasprintfStrarray keeps sentinel ownership stable for empty and populated 
     kfreeStrarray(std.testing.allocator, &result);
     try std.testing.expectEqual(@as(usize, 0), result.names.len);
     try std.testing.expectEqual(empty_kasprintf_strarray_null_terminated.ptr, result.names_null_terminated.ptr);
+}
+
+test "kasprintfStrarray frees partially built arrays when allocator failure interrupts setup" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKasprintfStrarrayWithFailingAllocator,
+        .{ "phase7-helper", 4 },
+    );
 }
 
 test "stringGetSize reports rounded units and truncates destination buffers safely" {
