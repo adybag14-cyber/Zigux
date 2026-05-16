@@ -518,6 +518,17 @@ def run_self_test() -> int:
             remove_once(base, rel_path, marker, count)
             expect_failure(base, f"missing_marker:{rel_path}:{marker}")
         write_fixture_tree(base)
+        contract_path = base / RUNTIME_LOADER_CONTRACT_PATH
+        contract = contract_path.read_text(encoding="utf-8")
+        contract_path.write_text(
+            contract.replace(RUNTIME_LOADER_CONTRACT_DEPMOD_ALIASES_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"missing_marker:{RUNTIME_LOADER_CONTRACT_PATH}:{RUNTIME_LOADER_CONTRACT_DEPMOD_ALIASES_MARKER}",
+        )
+        write_fixture_tree(base)
         write_text(base / "scripts/zigux/check-phase9-loader-substrate-plan.py", "# forbidden\n")
         expect_failure(base, "unexpected_file:scripts/zigux/check-phase9-loader-substrate-plan.py")
     finally:
