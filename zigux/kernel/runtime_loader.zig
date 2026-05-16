@@ -537,6 +537,26 @@ test "PreparedRequest.releaseWithoutSubstrate preserves the pending snapshot on 
     try std.testing.expect(!keepsInitFlowExplicit(request.plan.init_flow, stable.init_flow));
 
     request.plan = stable;
+    request.plan.requires_runtime_substrate = false;
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+    try std.testing.expect(request.prepared_plan.requires_runtime_substrate);
+    try std.testing.expect(!request.plan.requires_runtime_substrate);
+
+    request.plan = stable;
+    request.plan.provides_selftest_hook = false;
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+    try std.testing.expect(request.prepared_plan.provides_selftest_hook);
+    try std.testing.expect(!request.plan.provides_selftest_hook);
+
+    request.plan = stable;
     request.prepared_plan = stable;
     request.plan.module_name = "runtime_bitmap_drift";
     request.prepared_plan.module_name = "runtime_bitmap_drift";
