@@ -13,13 +13,13 @@ This note records the current bounded Phase 15 shared-summary drift between the 
 
 ## Why this note exists
 
-Phase 15 is supposed to govern the mixed-language steady state honestly. Current `master` already carries real governance surfaces through `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, and `Documentation/zigux/phase15-study-only-anchor-accounting.md`.
+Phase 15 is supposed to govern the mixed-language steady state honestly. Current `master` now carries real governance surfaces through `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, and `Documentation/zigux/phase15-handoff-next-steps-survey.md`.
 
-The shared summary surfaces are not aligned with that smaller live packet yet:
+The shared summary surfaces are still not aligned with that smaller live packet yet:
 
 - `Documentation/zigux/README.md` still presents a broader Phase 15 packet that names docs, scripts, manifests, and test routes not materialized on current `master`
 - `zigux/tests/README.md` still has no `Phase 15 review packet` section at all
-- the `scripts/zigux` tree still carries no Phase 15 validator or checker family, so the docs-root summary currently overstates shipped replay evidence
+- the `scripts/zigux` tree still lacks the broader Phase 15 validator and checker family that the docs-root summary names, with only `scripts/zigux/check-phase15-shared-summary-gap.py` materialized on current `master`
 
 That makes the honest smallest next step recovery-oriented truthfulness, not wider Phase 15 expansion.
 
@@ -31,7 +31,6 @@ The current shared-summary drift is anchored to these still-missing paths:
 - `Documentation/zigux/phase15-parity-scorecard-survey.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
-- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `scripts/zigux/check-phase15-docs-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
@@ -53,8 +52,10 @@ The current shared-summary drift is anchored to these still-missing paths:
 - `Documentation/zigux/phase15-freeze-map-governance.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - the overclaiming `Documentation/zigux/README.md` Phase 15 summary that should be treated as a gap source rather than shipped proof
 - the still-Phase13-only `zigux/tests/README.md` summary that leaves the Phase 15 tests-root packet absent
+- `scripts/zigux/check-phase15-shared-summary-gap.py` as the current fail-closed reminder for this gap
 
 ## Recovery rule
 
