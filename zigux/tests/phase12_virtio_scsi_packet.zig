@@ -11,7 +11,7 @@ test "phase12 virtio scsi manifest records the bounded support packet" {
     try expectContains(manifest_text, "\"lane_key\": \"P12-L12\"");
     try expectContains(manifest_text, "\"phase\": \"Phase 12\"");
     try expectContains(manifest_text, "\"surveyed_commit\": \"unresolved_on_master\"");
-    try expectContains(manifest_text, "\"verified_on\": \"2026-05-14\"");
+    try expectContains(manifest_text, "\"verified_on\": \"2026-05-16\"");
     try expectContains(manifest_text, "\"anchor\": \"drivers/scsi/virtio_scsi.c\"");
     try expectContains(manifest_text, "\"drivers/scsi/virtio_scsi.zig\"");
     try expectContains(manifest_text, "\"zigux/tests/phase12_virtio_scsi.zig\"");
@@ -22,8 +22,8 @@ test "phase12 virtio scsi manifest records the bounded support packet" {
     try expectContains(manifest_text, "\"Documentation/zigux/phase12-virtio-scsi-slice.md\"");
 }
 
-test "phase12 virtio scsi manifest keeps remaining complex-driver gaps explicit" {
-    try expectContains(manifest_text, "\"drivers/nvme/host/pci.zig\"");
+test "phase12 virtio scsi manifest keeps only still-real shared closure gaps explicit" {
+    try std.testing.expect(std.mem.indexOf(u8, manifest_text, "\"drivers/nvme/host/pci.zig\"") == null);
     try expectContains(manifest_text, "\"Documentation/zigux/phase12-closure.md\"");
     try expectContains(manifest_text, "\"status\": \"bounded infra prep metadata cleanup\"");
 }
@@ -31,7 +31,8 @@ test "phase12 virtio scsi manifest keeps remaining complex-driver gaps explicit"
 test "phase12 build wires the support packet into smoke and test routes" {
     try expectContains(build_text, "phase12_virtio_scsi_packet.zig");
     try expectContains(build_text, "phase12-virtio-scsi-packet-tests");
-    try expectContains(build_text, "Run Phase 12 virtio-scsi packet tests");
+    try expectContains(build_text, "Run Phase 12 virtio syntax smoke");
+    try expectContains(build_text, "Run Phase 12 virtio packet tests");
     try expectContains(build_text, "smoke_step.dependOn(&run_packet_tests.step);");
     try expectContains(build_text, "test_step.dependOn(&run_packet_tests.step);");
 }
