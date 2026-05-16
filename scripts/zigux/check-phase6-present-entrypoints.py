@@ -57,7 +57,7 @@ REQUIRED_SHARED_SURFACE_SNIPPETS = [
     "require_snippets(repo_root / PRESENT_ENTRYPOINTS_CHECKER_PATH, REQUIRED_PRESENT_ENTRYPOINTS_SNIPPETS)",
 ]
 
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 10
 
 
 class ValidationError(RuntimeError):
@@ -125,6 +125,7 @@ def validate(repo_root: Path) -> None:
     )
 
 
+
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
@@ -176,6 +177,29 @@ def run_self_test() -> None:
         scaffold_repo(root)
 
         manifest_obj = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest_obj["shared_gates"].remove(
+            "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig"
+        )
+        write(manifest_path, json.dumps(manifest_obj, indent=2) + "\n")
+        expect_failure(
+            root, "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig"
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest_obj = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest_obj["shared_gates"].remove(
+            "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig"
+        )
+        write(manifest_path, json.dumps(manifest_obj, indent=2) + "\n")
+        expect_failure(
+            root,
+            "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest_obj = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest_obj["inventory_only_blocked_routes"].remove("make -C zigux phase6-perf")
         write(manifest_path, json.dumps(manifest_obj, indent=2) + "\n")
         expect_failure(root, "make -C zigux phase6-perf")
@@ -189,6 +213,35 @@ def run_self_test() -> None:
             ),
         )
         expect_failure(root, "make -C zigux phase6-bsearch-test")
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(
+            catalog_path,
+            read_text(catalog_path).replace(
+                "* `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            root, "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig"
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(
+            catalog_path,
+            read_text(catalog_path).replace(
+                "* `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            root,
+            "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
+        )
         cases_run += 1
         scaffold_repo(root)
 
