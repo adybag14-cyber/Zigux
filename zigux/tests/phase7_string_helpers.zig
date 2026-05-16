@@ -6,6 +6,16 @@ fn runKasprintfStrarrayWithFailingAllocator(allocator: std.mem.Allocator, prefix
     defer result.deinit(allocator);
 }
 
+fn runKstrdupAndReplaceWithFailingAllocator(
+    allocator: std.mem.Allocator,
+    src: []const u8,
+    old: u8,
+    new: u8,
+) !void {
+    const duplicated = try string_helpers.kstrdupAndReplace(allocator, src, old, new);
+    allocator.free(duplicated);
+}
+
 test "phase 7 string helpers starter covers whitespace trimming and prefix skipping" {
     try std.testing.expectEqualStrings("hello", string_helpers.skipSpaces("   hello"));
     try std.testing.expectEqualStrings("world", string_helpers.skip_spaces("\t\nworld"));
@@ -347,6 +357,14 @@ test "phase 7 string helpers starter duplicates and replaces only the exported c
     const alias = try string_helpers.kstrdup_and_replace(std.testing.allocator, "phase7-helper", '-', '_');
     defer std.testing.allocator.free(alias);
     try std.testing.expectEqualStrings("phase7_helper", alias);
+}
+
+test "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKstrdupAndReplaceWithFailingAllocator,
+        .{ "phase7/helper", '/', '_' },
+    );
 }
 
 test "phase 7 string helpers starter pads bounded copies without reading past the provided source slice" {
