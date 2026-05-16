@@ -291,6 +291,32 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        text = (tmp_root / COORDINATION_PATH).read_text(encoding="utf-8").replace(
+            "tools/lib/bpf/zigux_segments/manifest.json",
+            "tools/lib/bpf/zigux_segments/manifest_missing.json",
+            1,
+        )
+        (tmp_root / COORDINATION_PATH).write_text(text, encoding="utf-8")
+        expect_marker_error(
+            "missing_coordination_manifest_marker",
+            tmp_root,
+            f"{COORDINATION_PATH}: tools/lib/bpf/zigux_segments/manifest.json",
+        )
+        write_fixture_root(tmp_root)
+
+        text = (tmp_root / MANIFEST_PATH).read_text(encoding="utf-8").replace(
+            "\"zigux_destination\": \"tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig\"",
+            "\"zigux_destination\": \"tools/lib/bpf/zigux_segments/file_path_handle_bridge_missing.zig\"",
+            1,
+        )
+        (tmp_root / MANIFEST_PATH).write_text(text, encoding="utf-8")
+        expect_marker_error(
+            "missing_manifest_file_path_handle_bridge_marker",
+            tmp_root,
+            f"{MANIFEST_PATH}: \"zigux_destination\": \"tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig\"",
+        )
+        write_fixture_root(tmp_root)
+
         (tmp_root / "tools/lib/bpf/zigux_segments/verify.zig").parent.mkdir(parents=True, exist_ok=True)
         (tmp_root / "tools/lib/bpf/zigux_segments/verify.zig").write_text("// unexpected\n", encoding="utf-8")
         missing_files, marker_errors, unexpected_files = validate(tmp_root)
@@ -306,7 +332,7 @@ def run_self_test() -> None:
         assert unexpected_files == []
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=8")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=10")
 
 
 def main() -> int:
