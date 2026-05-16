@@ -163,7 +163,7 @@ PHASE2_VALIDATION_EXPECTED_REQUIRED_TAILS = frozenset(PHASE2_REQUIRED_RELATIVE_P
 PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37
 ARTIFACT_DIFF_EXPECTED_REQUIRED_TAILS = frozenset(ARTIFACT_DIFF_REQUIRED_RELATIVE_PATHS)
 ARTIFACT_DIFF_EXPECTED_REQUIRED_FILE_COUNT = 2
-PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 41
+PHASE2_VALIDATION_SELF_TEST_CASE_COUNT = 54
 
 
 def load_pinned_channel(policy_path: Path = TOOLCHAIN_POLICY) -> str | None:
@@ -496,6 +496,20 @@ def run_self_test() -> list[str]:
             ],
         ),
         (
+            "command_inventory_missing_tests_self_test",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (TESTS_README_ALIGNMENT_CHECKER, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+            ],
+        ),
+        (
             "command_inventory_missing_tests_gate",
             collect_command_inventory_issues(
                 tuple(spec for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS if spec != (TESTS_README_ALIGNMENT_CHECKER,))
@@ -503,6 +517,62 @@ def run_self_test() -> list[str]:
             [
                 "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tests-readme-alignment.py",
+            ],
+        ),
+        (
+            "command_inventory_missing_fixdep_gate_self_test",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (FIXDEP_GATE_CHECKER, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+            ],
+        ),
+        (
+            "command_inventory_missing_fixdep_gate",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (FIXDEP_GATE_CHECKER,)
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-fixdep-gate.py",
+            ],
+        ),
+        (
+            "command_inventory_missing_fixdep_diff_self_test",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (FIXDEP_DIFF_CHECKER, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-fixdep-diff.py --self-test",
+            ],
+        ),
+        (
+            "command_inventory_missing_fixdep_diff_gate",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (FIXDEP_DIFF_CHECKER,)
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-fixdep-diff.py",
             ],
         ),
         (
@@ -559,6 +629,62 @@ def run_self_test() -> list[str]:
             [
                 "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+            ],
+        ),
+        (
+            "command_inventory_missing_phase2_cross_self_test",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (PHASE2_CROSS_CHECKER, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-cross.py --self-test",
+            ],
+        ),
+        (
+            "command_inventory_missing_phase2_cross_gate",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (PHASE2_CROSS_CHECKER,)
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-cross.py",
+            ],
+        ),
+        (
+            "command_inventory_missing_phase2_cross_selftest_alignment_self_test",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+            ],
+        ),
+        (
+            "command_inventory_missing_phase2_cross_selftest_alignment_gate",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (PHASE2_CROSS_SELFTEST_ALIGNMENT_CHECKER,)
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-cross-selftest-alignment.py",
             ],
         ),
         (
@@ -628,6 +754,20 @@ def run_self_test() -> list[str]:
             ],
         ),
         (
+            "command_inventory_missing_tool_manifest_self_test",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (PHASE2_TOOL_MANIFEST_PACKET_CHECKER, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+            ],
+        ),
+        (
             "command_inventory_missing_tool_manifest_gate",
             collect_command_inventory_issues(
                 tuple(
@@ -639,6 +779,34 @@ def run_self_test() -> list[str]:
             [
                 "phase2_validation_commands:count=27:expected=28",
                 "phase2_validation_commands:missing:scripts/zigux/check-phase2-tool-manifest-packets.py",
+            ],
+        ),
+        (
+            "command_inventory_missing_toolchain_pin_scope_self_test",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (TOOLCHAIN_PIN_SCOPE_CHECKER, "--self-test")
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+            ],
+        ),
+        (
+            "command_inventory_missing_toolchain_pin_scope_gate",
+            collect_command_inventory_issues(
+                tuple(
+                    spec
+                    for spec in PHASE2_VALIDATION_PY_COMMAND_SPECS
+                    if spec != (TOOLCHAIN_PIN_SCOPE_CHECKER,)
+                )
+            ),
+            [
+                "phase2_validation_commands:count=27:expected=28",
+                "phase2_validation_commands:missing:scripts/zigux/check-phase2-toolchain-pin-scope.py",
             ],
         ),
         (
