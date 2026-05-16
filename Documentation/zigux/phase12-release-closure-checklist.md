@@ -25,7 +25,7 @@ It is not a closure claim, and it is not itself a shipped replay surface.
   3. `make -C zigux phase12-smoke`
   4. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
   5. `make -C zigux phase12`
-  6. If the local runtime does not provide `zig` on `PATH`, keep the same validator-first then smoke-first order and rerun only the shipped Make routes with an attached toolchain override instead of inventing a new Phase 12 entrypoint.
+  6. If the local runtime does not provide `zig` on `PATH`, keep the same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback already exposed by `zigux/Makefile` through `ZIG_PINNED_TOOLCHAIN`, `ZIG_LOCAL_TOOLCHAIN`, and `ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)`; if that local fallback is also absent, rerun only the shipped Make routes with an attached toolchain override instead of inventing a new Phase 12 entrypoint.
      * `make -C zigux phase12-validate`
      * `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
      * `make -C zigux phase12 ZIG=<attached-zig-path>`
