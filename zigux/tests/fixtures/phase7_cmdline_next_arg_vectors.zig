@@ -85,6 +85,13 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_rest = "",
     },
     .{
+        .name = "quoted value with trailing whitespace keeps empty rest",
+        .input = "mode=\"fast boot\" \t\n",
+        .expected_param = "mode",
+        .expected_value = "fast boot",
+        .expected_rest = "",
+    },
+    .{
         .name = "unterminated quoted value consumes the token tail",
         .input = "key=\"alpha beta",
         .expected_param = "key",
