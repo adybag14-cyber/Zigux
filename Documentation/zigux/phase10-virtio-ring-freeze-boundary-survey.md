@@ -18,10 +18,13 @@ Current `master` still carries the direct ring packet through `Documentation/zig
 
 The same current repo state also keeps the risky-transport freeze-boundary logic adjacent to the MMIO packet instead of the queue-local ring packet. `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md` keeps the blocked `phase10-ring-lab-driver-bridge` parked with the MMIO lane, while `Documentation/zigux/freeze-map.md` keeps the shared Phase 10 virtio packet review-first and explicitly blocks risky transport, queue setup or reset parity, IRQ parity, DMA paths, and lifecycle closure from being treated as delivered Phase 10 product work.
 
+Current `master` still leaves this current-head freeze-boundary companion outside the dedicated `scripts/zigux/check-phase10-ring-packet.py` guard, so drift in the current packet lane, the adjacent MMIO owner lane, or the blocked `phase10-ring-lab-driver-bridge` wording can still slip past the machine-checkable ring packet today unless a reviewer rereads this note directly.
+
 ## Gap Crosswalk
 - The ring packet is directly readable and remains a real queue-local wrapper packet on current `master`.
 - The freeze-boundary posture is still blocked on risky transport and still belongs to the adjacent MMIO-owned packet rather than the ring packet itself.
 - The older ring survey note is still pinned to surveyed commit `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`, so this companion exists to capture a current-head readback at `0aa2db32bcb1c7065850ee3f66ec119b071fbf5c` without pretending the boundary has moved.
+- The smallest same-lane follow-through is now checker-local: extend `scripts/zigux/check-phase10-ring-packet.py` so it exact-checks this note's `current packet lane on master`, `adjacent freeze-boundary owner`, and blocked `phase10-ring-lab-driver-bridge` posture instead of leaving those owner markers review-only.
 - This survey therefore closes only a truthfulness gap in current-head freeze-boundary reporting. It does not claim a status change, a reopened Architecture Council path, or a new transport-backed capability.
 
 ## Non-Goals
@@ -31,4 +34,4 @@ The same current repo state also keeps the risky-transport freeze-boundary logic
 - no shared closure-packet rewrite outside this lane-local survey companion
 
 ## Next Bounded Step
-If a later same-family follow-through is needed, refresh the existing ring survey packet or add a machine-checkable guard that pins the current-head freeze-boundary wording to the blocked `phase10-ring-lab-driver-bridge` posture while still leaving MMIO-owned risky transport work parked in its adjacent lane.
+If a later same-family follow-through is needed, extend `scripts/zigux/check-phase10-ring-packet.py` so the existing ring packet guard exact-checks this note's `current packet lane on master`, `adjacent freeze-boundary owner`, and blocked `phase10-ring-lab-driver-bridge` wording while still leaving MMIO-owned risky transport work parked in its adjacent lane.
