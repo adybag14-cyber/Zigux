@@ -14,6 +14,8 @@ Current `master` keeps that smaller DesignWare packet explicit through the live 
 
 That means the honest next step is to keep the DesignWare owner packet aligned with the already-landed driver, verify, direct replay, registration scaffold, and owner-lane continuity surfaces current `master` actually materializes while still parking the next implementation step on platform-backed registration scaffolding instead of widening into live platform behavior.
 
+The compile-local verify helper already keeps inactive-versus-unregistered teardown hooks, ready-versus-restart-priority restart state, and the remove-teardown heartbeat-versus-reset-versus-idle split explicit, so future owner-packet wording should preserve those host-free failure-mode anchors while platform acquisition remains the only next implementation step.
+
 The next bounded follow-up is still to attach the existing registration-facing handoff to one acquisition-facing platform-registration scaffold without widening into live clock, reset, IRQ, or MMIO behavior.
 
 ## Scope for the first platform-backed step
