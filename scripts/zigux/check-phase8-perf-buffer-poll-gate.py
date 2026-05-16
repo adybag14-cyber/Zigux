@@ -112,7 +112,9 @@ REQUIRED_MARKERS = {
         'test "phase 8 perf-buffer poll helper rejects inconsistent processing-failure bookkeeping before return shaping" {',
         'test "phase 8 perf-buffer poll helper keeps ready-buffer processing budget failures explicit" {',
         'test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {',
+        'test "phase 8 perf-buffer poll helper keeps empty buffer-fd tables invalid and errno-shaped" {',
         'test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {',
+        'test "phase 8 perf-buffer poll helper keeps empty buffer-window tables invalid and errno-shaped" {',
         'test "phase 8 perf-buffer poll helper keeps impossible post-wait buffer states rejected" {',
         'test "phase 8 perf-buffer poll helper rejects inconsistent processing accounting summaries before return shaping" {',
         'test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {',
@@ -332,7 +334,15 @@ def run_self_test() -> int:
             ),
             (
                 PACKET_TEST_PATH,
+                'test "phase 8 perf-buffer poll helper keeps empty buffer-fd tables invalid and errno-shaped" {',
+            ),
+            (
+                PACKET_TEST_PATH,
                 'test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {',
+            ),
+            (
+                PACKET_TEST_PATH,
+                'test "phase 8 perf-buffer poll helper keeps empty buffer-window tables invalid and errno-shaped" {',
             ),
             (
                 PACKET_TEST_PATH,
