@@ -140,7 +140,7 @@ EXPECTED_HEXDUMP_FIXTURES = {
 EXPECTED_HEXDUMP_PACKET_CHECKER = HEXDUMP_CHECKER_PATH.as_posix()
 EXPECTED_HEXDUMP_PERF_REFRESH = HEXDUMP_PERF_REFRESH_PATH.as_posix()
 
-SELF_TEST_CASE_COUNT = 31
+SELF_TEST_CASE_COUNT = 33
 
 
 def read_json(path: Path) -> object:
@@ -348,33 +348,33 @@ def scaffold_repo(root: Path) -> None:
     write(root / CHECKER_PATH, "#!/usr/bin/env python3\n")
     write(root / CATALOG_PATH, "# Phase 6 Helper Parity Catalog\n")
     write(root / PERF_SURVEY_PATH, "# Phase 6 Perf Gate Survey\n")
-    write(root / PHASE6_BUILD_PATH, "const std = @import(\"std\");\n")
+    write(root / PHASE6_BUILD_PATH, 'const std = @import("std");\n')
     write(root / BASE64_HELPER_PATH, "pub fn base64Stub() void {}\n")
-    write(root / BASE64_REPLAY_PATH, "test \"base64\" {}\n")
-    write(root / BASE64_PERF_PATH, "test \"base64 perf\" {}\n")
+    write(root / BASE64_REPLAY_PATH, 'test "base64" {}\n')
+    write(root / BASE64_PERF_PATH, 'test "base64 perf" {}\n')
     write(root / BASE64_VECTORS_PATH, "pub const perf_cases = .{};\n")
-    write(root / BASE64_C_PARITY_PATH, "test \"base64 c parity\" {}\n")
+    write(root / BASE64_C_PARITY_PATH, 'test "base64 c parity" {}\n')
     write(root / BASE64_C_CASEGEN_PATH, "pub fn main() void {}\n")
     write(root / BASE64_C_PARITY_VECTORS_PATH, "pub const c_parity_cases = .{};\n")
     write(root / BASE64_C_HARNESS_PATH, "/* base64 harness */\n")
     write(root / BASE64_C_PARITY_CHECKER_PATH, "#!/usr/bin/env python3\n")
     write(root / BSEARCH_HELPER_PATH, "pub fn bsearchStub() void {}\n")
-    write(root / BSEARCH_REPLAY_PATH, "test \"bsearch\" {}\n")
-    write(root / BSEARCH_LOWER_UPPER_PATH, "test \"bsearch lower upper\" {}\n")
-    write(root / BSEARCH_EQUALITY_PATH, "test \"bsearch equality\" {}\n")
+    write(root / BSEARCH_REPLAY_PATH, 'test "bsearch" {}\n')
+    write(root / BSEARCH_LOWER_UPPER_PATH, 'test "bsearch lower upper" {}\n')
+    write(root / BSEARCH_EQUALITY_PATH, 'test "bsearch equality" {}\n')
     write(root / BSEARCH_VECTORS_PATH, "pub const representative_cases = .{};\n")
     write(root / BSEARCH_CHECKER_PATH, "#!/usr/bin/env python3\n")
     write(root / CHECKSUM_HELPER_PATH, "pub fn checksumStub() void {}\n")
-    write(root / CHECKSUM_REPLAY_PATH, "test \"checksum\" {}\n")
-    write(root / CHECKSUM_PERF_PATH, "test \"checksum perf\" {}\n")
+    write(root / CHECKSUM_REPLAY_PATH, 'test "checksum" {}\n')
+    write(root / CHECKSUM_PERF_PATH, 'test "checksum perf" {}\n')
     write(root / CHECKSUM_VECTORS_PATH, "pub const perf_cases = .{};\n")
-    write(root / CHECKSUM_C_PARITY_PATH, "test \"checksum c parity\" {}\n")
+    write(root / CHECKSUM_C_PARITY_PATH, 'test "checksum c parity" {}\n')
     write(root / CHECKSUM_C_HARNESS_PATH, "/* checksum harness */\n")
     write(root / CHECKSUM_C_PARITY_CHECKER_PATH, "#!/usr/bin/env python3\n")
     write(root / HEXDUMP_HELPER_PATH, "pub fn hexdumpStub() void {}\n")
-    write(root / HEXDUMP_REPLAY_PATH, "test \"hexdump\" {}\n")
-    write(root / HEXDUMP_PERF_PATH, "test \"hexdump perf\" {}\n")
-    write(root / HEXDUMP_PERF_MATRIX_PATH, "test \"hexdump perf matrix\" {}\n")
+    write(root / HEXDUMP_REPLAY_PATH, 'test "hexdump" {}\n')
+    write(root / HEXDUMP_PERF_PATH, 'test "hexdump perf" {}\n')
+    write(root / HEXDUMP_PERF_MATRIX_PATH, 'test "hexdump perf matrix" {}\n')
     write(root / HEXDUMP_VECTORS_PATH, "pub const grouped_cases = .{};\n")
     write(root / HEXDUMP_CHECKER_PATH, "#!/usr/bin/env python3\n")
     write(root / HEXDUMP_PERF_REFRESH_PATH, "# Phase 6 Hexdump Perf Refresh Evidence\n")
@@ -421,6 +421,13 @@ def run_self_test() -> None:
         manifest["helpers"][0]["helper"] = "lib/base64_missing.zig"
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(tmpdir, "unexpected base64 helper path")
+
+        manifest = build_manifest()
+        manifest["helpers"][0]["tests"] = sorted(
+            EXPECTED_BASE64_TESTS - {BASE64_PERF_PATH.as_posix()}
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(tmpdir, "unexpected base64 tests list")
 
         manifest = build_manifest()
         manifest["helpers"][0]["fixtures"] = sorted(
@@ -477,6 +484,13 @@ def run_self_test() -> None:
         )
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(tmpdir, "unexpected checksum tests list")
+
+        manifest = build_manifest()
+        manifest["helpers"][2]["fixtures"] = sorted(
+            EXPECTED_CHECKSUM_FIXTURES - {CHECKSUM_VECTORS_PATH.as_posix()}
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(tmpdir, "unexpected checksum fixtures list")
 
         manifest = build_manifest()
         manifest["helpers"][2]["external_parity"] = "scripts/zigux/check-phase6-checksum-proof.py"
