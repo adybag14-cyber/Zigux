@@ -22,6 +22,7 @@ The live DesignWare packet now has stronger failure-mode evidence than the share
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` still describes the active continuity as `P11-L05`
 - `zigux/tests/phase11_dw_wdt_manifest.json` still describes the active packet as lane `P11-L10`
 - the active packet should not widen into bcm2835 archival work, platform registration execution, PM, IRQ ownership, clock or reset acquisition, or live MMIO validation during this follow-up
+- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` now keeps the documented matrix-versus-manifest mismatch fail-closed until the shared DesignWare packet is refreshed together
 
 ## Next Bounded Same-Lane Step
 
@@ -31,6 +32,7 @@ Refresh the coupled DesignWare review packet together so it records one truthful
 - `Documentation/zigux/phase11-dw-wdt-survey.md`
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt_survey.zig`
-- `scripts/zigux/check-phase11-dw-wdt-packet.py` if the checker still hard-codes the older lane or head markers
+- `scripts/zigux/check-phase11-dw-wdt-packet.py`
+- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
 
 That follow-up should stay doc-and-checker-local unless a focused replay path for the survey packet is available on the resulting head. The next substantive non-doc move after this truthfulness refresh should remain one platform-backed acquisition scaffold only.
