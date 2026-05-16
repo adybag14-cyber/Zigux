@@ -13,7 +13,7 @@ This note records the current bounded Phase 15 shared-summary drift between the 
 
 ## Why this note exists
 
-Phase 15 is supposed to govern the mixed-language steady state honestly. Current `master` now carries real governance surfaces through `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, and `Documentation/zigux/phase15-handoff-next-steps-survey.md`.
+Phase 15 is supposed to govern the mixed-language steady state honestly. Current `master` now carries real governance surfaces through `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, and `Documentation/zigux/phase15-handoff-next-steps-survey.md`.
 
 The shared summary surfaces are still not aligned with that smaller live packet yet:
 
@@ -27,9 +27,7 @@ That makes the honest smallest next step recovery-oriented truthfulness, not wid
 
 The current shared-summary drift is anchored to these still-missing paths:
 
-- `Documentation/zigux/phase15-architecture-council-review-process.md`
 - `Documentation/zigux/phase15-parity-scorecard-survey.md`
-- `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `scripts/zigux/check-phase15-docs-readme-alignment.py`
@@ -50,6 +48,8 @@ The current shared-summary drift is anchored to these still-missing paths:
 ## What current master does carry
 
 - `Documentation/zigux/phase15-freeze-map-governance.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
@@ -78,4 +78,4 @@ This note does not claim:
 
 ## Next bounded step
 
-If a future lane lands one of the missing Phase 15 docs, scripts, manifests, or tests-root packet surfaces above, tighten this note immediately so it records only the remaining gap instead of preserving stale missing-path claims.
+If a future lane lands one of the still-missing Phase 15 docs, scripts, manifests, or tests-root packet surfaces above, tighten this note immediately so it records only the remaining gap instead of preserving stale missing-path claims.
