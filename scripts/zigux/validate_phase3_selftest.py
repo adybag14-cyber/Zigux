@@ -76,7 +76,7 @@ SELFTEST_OUTPUT_MARKERS = {
     ),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"): (
         "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass",
-        "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=15",
+        "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=38",
     ),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"): (
         "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
