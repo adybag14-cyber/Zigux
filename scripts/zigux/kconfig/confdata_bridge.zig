@@ -576,9 +576,7 @@ test "confdata bridge ignores malformed unset comments with extra tokens" {
     try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
     try std.testing.expectEqualStrings("y", summary.entries[0].value);
-}
 
-test "confdata bridge emits no entries for malformed unset comments with extra tokens" {
     const Capture = struct {
         list: std.ArrayList(u8),
         allocator: std.mem.Allocator,
@@ -606,10 +604,10 @@ test "confdata bridge emits no entries for malformed unset comments with extra t
         }
     };
 
-    var capture = try Capture.init(std.testing.allocator);
+    var capture = try Capture.init(allocator);
     defer capture.deinit();
 
-    try runConfdataBridge(std.testing.allocator,
+    try runConfdataBridge(allocator,
         \\CONFIG_ALPHA=y
         \\# CONFIG_ALPHA extra is not set
         \\# CONFIG_DEBUG is not set trailing
