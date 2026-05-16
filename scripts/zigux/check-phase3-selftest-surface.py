@@ -23,6 +23,8 @@ README_PHASE3_PREFIX = "Phase 3 notes - "
 README_PHASE3_NEXT_PREFIX = "Phase 5 notes - "
 README_PHASE3_MARKER_COUNTS = {
     "Documentation/zigux/phase3-abi-slice.md": 1,
+    "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
+    "Documentation/zigux/phase3-bindings-governance.md": 1,
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md": 1,
@@ -95,6 +97,8 @@ VALIDATOR_SUPPORT_CURRENT_PACKET_PREFIX = "## Current packet"
 VALIDATOR_SUPPORT_CURRENT_PACKET_NEXT_PREFIX = "## Review boundary"
 VALIDATOR_SUPPORT_CURRENT_PACKET_MARKER_COUNTS = {
     "Documentation/zigux/phase3-kernel-export-shim-governance.md": 1,
+    "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
+    "Documentation/zigux/phase3-bindings-governance.md": 1,
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "scripts/zigux/check-phase3-abi.py": 1,
@@ -117,6 +121,8 @@ VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS = {
     "scripts/zigux/README.md": 2,
     "zigux/tests/README.md": 2,
     "scripts/zigux/check-phase3-abi.py": 2,
+    "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
+    "Documentation/zigux/phase3-bindings-governance.md": 1,
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "Documentation/zigux/review-checklist.md": 1,
@@ -469,6 +475,8 @@ def _populate_repo(root: Path) -> None:
                 VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
                 "scripts/zigux/README.md",
                 "zigux/tests/README.md",
+                "Documentation/zigux/phase3-abi-bindings-survey.md",
+                "Documentation/zigux/phase3-bindings-governance.md",
                 "Documentation/zigux/phase3-abi-header-family-survey.md",
                 "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
                 "Documentation/zigux/review-checklist.md",
@@ -581,6 +589,44 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected docs README section-scoped validator drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        docs_path.write_text(
+            _read(docs_path).replace(
+                "Documentation/zigux/phase3-abi-bindings-survey.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "docs README Phase 3 notes marker count drift: "
+            "Documentation/zigux/phase3-abi-bindings-survey.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected docs README bindings survey drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        docs_path.write_text(
+            _read(docs_path).replace(
+                "Documentation/zigux/phase3-bindings-governance.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "docs README Phase 3 notes marker count drift: "
+            "Documentation/zigux/phase3-bindings-governance.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected docs README bindings governance drift was not reported")
             return 1
 
         _populate_repo(root)
@@ -748,6 +794,44 @@ def run_self_test() -> int:
         _populate_repo(root)
         validator_support_path.write_text(
             _read(validator_support_path).replace(
+                "Documentation/zigux/phase3-abi-bindings-survey.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support current packet marker count drift: "
+            "Documentation/zigux/phase3-abi-bindings-survey.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support current-packet bindings survey drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace(
+                "Documentation/zigux/phase3-bindings-governance.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support current packet marker count drift: "
+            "Documentation/zigux/phase3-bindings-governance.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support current-packet bindings governance drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _read(validator_support_path).replace(
                 "scripts/zigux/check-phase3-abi.py",
                 "",
                 1,
@@ -841,6 +925,46 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected validator-support current-packet low-level-wrapper build drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
+                "Documentation/zigux/phase3-abi-bindings-survey.md",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "Documentation/zigux/phase3-abi-bindings-survey.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support shared-reminder bindings survey drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
+                "Documentation/zigux/phase3-bindings-governance.md",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "Documentation/zigux/phase3-bindings-governance.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support shared-reminder bindings governance drift was not reported")
             return 1
 
         _populate_repo(root)
