@@ -57,11 +57,26 @@ LEGACY_WORKFLOW_EXACT_RUN_COUNTS = {
     'make -C zigux phase15-test': 1,
 }
 
-COMPACT_WORKFLOW_EXACT_RUN_COUNTS = {
-    'make -C zigux phase4-validate': 1,
-    'make -C zigux phase4-test': 1,
+PHASE6_COMPACT_WORKFLOW_EXACT_RUN_COUNTS = {
     'make -C zigux phase6-validate': 1,
     'make -C zigux phase6-test': 1,
+}
+
+PHASE6_DIRECT_WORKFLOW_EXACT_RUN_COUNTS = {
+    'python3 scripts/zigux/check-phase6-shared-surface.py --self-test': 1,
+    'python3 scripts/zigux/check-phase6-shared-surface.py': 1,
+    'python3 scripts/zigux/check-phase6-base64-c-parity.py': 1,
+    'python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test': 1,
+    'python3 scripts/zigux/check-phase6-checksum-c-parity.py': 1,
+    'python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test': 1,
+    'python3 scripts/zigux/check-phase6-perf-threshold-markers.py': 1,
+    'make -C zigux phase6-bsearch-test': 1,
+    'make -C zigux phase6-hexdump-perf': 1,
+}
+
+COMPACT_LATER_WORKFLOW_EXACT_RUN_COUNTS = {
+    'make -C zigux phase4-validate': 1,
+    'make -C zigux phase4-test': 1,
     'make -C zigux phase7-validate': 1,
     'make -C zigux phase7-test': 1,
     'make -C zigux phase8-validate': 1,
@@ -245,11 +260,35 @@ LEGACY_REQUIRED_WORKFLOW_MARKERS = [
     'Run Phase 15 governance tests',
 ]
 
-COMPACT_REQUIRED_WORKFLOW_MARKERS = [
-    'Validate Phase 4 rollback routes',
-    'Run Phase 4 rollback tests',
+PHASE6_COMPACT_REQUIRED_WORKFLOW_MARKERS = [
     'Validate Phase 6 helper routes',
     'Run Phase 6 helper tests',
+]
+
+PHASE6_DIRECT_REQUIRED_WORKFLOW_MARKERS = [
+    'Self-test Phase 6 shared-surface checker',
+    'python3 scripts/zigux/check-phase6-shared-surface.py --self-test',
+    'Check Phase 6 shared helper surface',
+    'python3 scripts/zigux/check-phase6-shared-surface.py',
+    'Run Phase 6 base64 C parity packet',
+    'python3 scripts/zigux/check-phase6-base64-c-parity.py',
+    'Self-test Phase 6 checksum C parity checker',
+    'python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test',
+    'Check Phase 6 checksum C parity packet',
+    'python3 scripts/zigux/check-phase6-checksum-c-parity.py',
+    'Self-test Phase 6 perf-threshold checker',
+    'python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test',
+    'Check Phase 6 perf threshold markers',
+    'python3 scripts/zigux/check-phase6-perf-threshold-markers.py',
+    'Run Phase 6 bsearch focused packet',
+    'make -C zigux phase6-bsearch-test',
+    'Run Phase 6 hexdump perf gate',
+    'make -C zigux phase6-hexdump-perf',
+]
+
+COMPACT_LATER_REQUIRED_WORKFLOW_MARKERS = [
+    'Validate Phase 4 rollback routes',
+    'Run Phase 4 rollback tests',
     'Validate Phase 7 helper routes',
     'Run Phase 7 helper tests',
     'Validate Phase 8 tooling routes',
@@ -307,16 +346,25 @@ def count_step_command_matches(workflow_text: str, step_name: str, command: str)
     return matches
 
 
-
 def workflow_uses_compact_routes(workflow_text: str) -> bool:
     compact_markers = [
-        'Validate Phase 6 helper routes',
+        'Validate Phase 4 rollback routes',
         'Run Phase 9 runtime shared tests',
         'Validate Phase 15 governance routes',
         'run: make -C zigux phase15-test',
     ]
     return all(marker in workflow_text for marker in compact_markers)
 
+
+def workflow_uses_direct_phase6_routes(workflow_text: str) -> bool:
+    direct_phase6_markers = [
+        'Self-test Phase 6 shared-surface checker',
+        'Check Phase 6 shared helper surface',
+        'Run Phase 6 base64 C parity packet',
+        'Run Phase 6 bsearch focused packet',
+        'Run Phase 6 hexdump perf gate',
+    ]
+    return all(marker in workflow_text for marker in direct_phase6_markers)
 
 
 def validate_exact_workflow_runs(text: str, expected_runs: dict[str, int]) -> list[str]:
@@ -370,8 +418,14 @@ required_workflow_markers = list(BASE_REQUIRED_WORKFLOW_MARKERS)
 required_workflow_marker_aliases = []
 
 if compact_workflow:
-    expected_runs.update(COMPACT_WORKFLOW_EXACT_RUN_COUNTS)
-    required_workflow_markers.extend(COMPACT_REQUIRED_WORKFLOW_MARKERS)
+    expected_runs.update(COMPACT_LATER_WORKFLOW_EXACT_RUN_COUNTS)
+    required_workflow_markers.extend(COMPACT_LATER_REQUIRED_WORKFLOW_MARKERS)
+    if workflow_uses_direct_phase6_routes(workflow):
+        expected_runs.update(PHASE6_DIRECT_WORKFLOW_EXACT_RUN_COUNTS)
+        required_workflow_markers.extend(PHASE6_DIRECT_REQUIRED_WORKFLOW_MARKERS)
+    else:
+        expected_runs.update(PHASE6_COMPACT_WORKFLOW_EXACT_RUN_COUNTS)
+        required_workflow_markers.extend(PHASE6_COMPACT_REQUIRED_WORKFLOW_MARKERS)
 else:
     expected_runs.update(LEGACY_WORKFLOW_EXACT_RUN_COUNTS)
     required_workflow_markers.extend(LEGACY_REQUIRED_WORKFLOW_MARKERS)
