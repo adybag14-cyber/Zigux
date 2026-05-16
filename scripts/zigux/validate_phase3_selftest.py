@@ -18,6 +18,8 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/check-phase3-catalog-selftest.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-policy-byte-guards.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-export-uapi-survey.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"), ("--self-test",)),
