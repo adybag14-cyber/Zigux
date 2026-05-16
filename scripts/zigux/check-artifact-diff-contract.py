@@ -695,7 +695,7 @@ def main() -> int:
         covered_cases.append("text_pass")
         covered_cases.append("text_pass_repeat")
 
-        actual.write_text("alpha\nBETA\n", encoding="utf-8", newline="\n")
+        actual.write_text("alpha\r\nbeta\r\n", encoding="utf-8", newline="")
         run_contract_case(
             ["--mode", "text", str(expected), str(actual)],
             1,
