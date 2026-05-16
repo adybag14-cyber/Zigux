@@ -122,7 +122,7 @@ EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 26
 EXPECTED_CONF_CASE_COUNT = 16
 EXPECTED_CONFDATA_CASE_COUNT = 13
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def under_root(root: Path, path: Path) -> Path:
@@ -412,6 +412,16 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(under_root(root, MAKEFILE), read_text(under_root(root, MAKEFILE)) + MAKEFILE_LINES[3] + "\n")
         assert ("DUPLICATE_MAKEFILE_HOOKS", f"{MAKEFILE_LINES[3]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(under_root(root, MAKEFILE), replace_once(read_text(under_root(root, MAKEFILE)), MAKEFILE_LINES[9], ""))
+        assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[9]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(under_root(root, MAKEFILE), replace_once(read_text(under_root(root, MAKEFILE)), MAKEFILE_LINES[10], ""))
+        assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[10]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
