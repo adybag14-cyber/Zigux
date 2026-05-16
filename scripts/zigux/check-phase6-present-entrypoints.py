@@ -24,6 +24,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
     "- `scripts/zigux/check-phase6-checksum-c-parity.py`",
+    "- `scripts/zigux/check-phase6-hexdump-packet.py`",
     "Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again.",
     "### base64",
     "### bsearch",
@@ -48,7 +49,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 9
 
 
 class ValidationError(RuntimeError):
@@ -113,6 +114,7 @@ def run_self_test() -> None:
             "## Current direct-readback warning",
             "- `zigux/tests/phase6_helper_parity_manifest.json`",
             "- `scripts/zigux/check-phase6-base64-c-parity.py`",
+            "- `scripts/zigux/check-phase6-hexdump-packet.py`",
             "### hexdump",
             "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog and adjacent reminder surfaces until fresh direct reads confirm the helper-local replay and parity members again",
             "## Last-known shared replay inventory",
