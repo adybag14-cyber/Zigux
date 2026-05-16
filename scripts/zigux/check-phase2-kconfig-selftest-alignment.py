@@ -98,7 +98,7 @@ PHASE2_BOOTSTRAP_NOTES_MARKERS = (
     "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 41
+EXPECTED_SELF_TEST_CASE_COUNT = 63
 
 
 def read_text(path: Path) -> str:
@@ -242,6 +242,29 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def replace_exact_line(text: str, marker: str, replacement: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines[index] = replacement
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
+def workflow_missing_replacement(marker: str) -> str:
+    if marker.endswith("--self-test"):
+        return "run: python3 other.py --self-test"
+    return "run: python3 other.py"
+
+
+def makefile_missing_replacement(marker: str) -> str:
+    if marker.startswith("phase2-kconfig:"):
+        return "phase2-kconfig: phase2-other"
+    if marker.endswith("--self-test"):
+        return "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/other.py --self-test"
+    return "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/other.py"
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_p2_kconfig_alignment_") as tmp_dir:
@@ -320,43 +343,57 @@ def run_self_test() -> int:
             assert ("MISSING_CLOSURE_VALIDATOR_MARKERS", marker) in issues
             checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, WORKFLOW)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), WORKFLOW_LINES[2], "run: python3 other.py --self-test"),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[2]) in issues
-        checks_run += 1
+        for marker in WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, WORKFLOW)
+            path.write_text(
+                replace_exact_line(
+                    path.read_text(encoding="utf-8"),
+                    marker,
+                    workflow_missing_replacement(marker),
+                ),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("MISSING_WORKFLOW_HOOKS", marker) in issues
+            checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, WORKFLOW)
-        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_LINES[3]), encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{WORKFLOW_LINES[3]}:count=2") in issues
-        checks_run += 1
+        for marker in WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, WORKFLOW)
+            path.write_text(
+                duplicate_exact_line(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
+            checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, MAKEFILE)
-        path.write_text(
-            replace_once(
-                path.read_text(encoding="utf-8"),
-                MAKEFILE_LINES[3],
-                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/other.py --self-test",
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[3]) in issues
-        checks_run += 1
+        for marker in MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(
+                replace_exact_line(
+                    path.read_text(encoding="utf-8"),
+                    marker,
+                    makefile_missing_replacement(marker),
+                ),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("MISSING_MAKEFILE_HOOKS", marker) in issues
+            checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, MAKEFILE)
-        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), MAKEFILE_LINES[4]), encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{MAKEFILE_LINES[4]}:count=2") in issues
-        checks_run += 1
+        for marker in MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(
+                duplicate_exact_line(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count=2") in issues
+            checks_run += 1
 
         for marker in SCRIPTS_README_MARKERS:
             build_self_test_root(root)
