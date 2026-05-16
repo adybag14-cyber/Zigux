@@ -77,8 +77,8 @@ EXPECTED_SHARED_ROUTE_NOTE = (
     "`phase6-base64-perf` and `phase6-checksum-perf` Linux-style target bodies, the "
     "aggregate `phase6-validate`, `phase6-perf`, and `phase6` wrappers still remain "
     "inventory-only route names without committed target bodies, and the bootstrap "
-    "workflow still reruns only the shared surface checkers, the base64 C parity packet, "
-    "the bsearch packet, and the hexdump perf gate."
+    "workflow still reruns the shared surface checkers, the base64 C parity packet, "
+    "the bsearch packet, the checksum C parity packet, and the hexdump perf gate."
 )
 
 REQUIRED_SHARED_GATES = {
@@ -242,6 +242,7 @@ REQUIRED_WORKFLOW_SNIPPETS = [
     "- name: Self-test Phase 6 shared-surface checker",
     "- name: Run Phase 6 base64 C parity packet",
     "- name: Self-test Phase 6 checksum C parity checker",
+    "- name: Check Phase 6 checksum C parity packet",
     "- name: Run Phase 6 bsearch focused packet",
     "- name: Run Phase 6 hexdump perf gate",
 ]
@@ -551,7 +552,7 @@ def run_self_test() -> None:
         assert_failure(tmpdir, PERF_SURVEY_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
         assert_failure(tmpdir, CHECKSUM_SLICE_PATH, "phase6-checksum-perf", "phase6-checksum-perf-missing")
         assert_failure(tmpdir, MAKEFILE_PATH, "phase6-base64-perf:", "phase6-base64-perf-missing:")
-        assert_failure(tmpdir, WORKFLOW_PATH, "Run Phase 6 hexdump perf gate", "Run Phase 6 checksum perf gate")
+        assert_failure(tmpdir, WORKFLOW_PATH, "Check Phase 6 checksum C parity packet", "Check Phase 6 checksum parity packet")
         assert_failure(tmpdir, SCRIPTS_README_PATH, "phase6-validate", "phase6-validate-missing")
         assert_failure(tmpdir, TESTS_README_PATH, "phase6_checksum_perf.zig", "phase6_checksum_perf_missing.zig")
         assert_failure(tmpdir, PRESENT_ENTRYPOINTS_CHECKER_PATH, "EXPECTED_HEXDUMP_PACKET_CHECKER", "EXPECTED_HEXDUMP_PACKET_CHECKER_MISSING")
