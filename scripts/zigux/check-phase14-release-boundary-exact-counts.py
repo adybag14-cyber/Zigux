@@ -21,6 +21,12 @@ PHASE14_SECTION_HEADING = "## Phase 14: Core-Adjacent Bounded Internals"
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
 TESTS_README_PACKET_ANCHOR = "  * `zigux/tests/phase14_build.zig`"
+RELEASE_COORDINATION_COMPANION_MARKER = (
+    "coordination companion: `Documentation/zigux/phase14-release-coordination-matrix.md`"
+)
+FUTURE_GOVERNANCE_HANDOFF_COMPANION_MARKER = (
+    "future-governance handoff companion: `Documentation/zigux/phase15-handoff-next-steps-survey.md`"
+)
 
 ROADMAP_ANCHORS = [
     "kernel/workqueue.c",
@@ -125,6 +131,8 @@ RELEASE_BOUNDARY_MARKERS = [
     "PHASE14_COMPILE_SHARD_TOTAL=6",
     "PHASE14_COMPILE_SHARD_FOCUSED_COUNT=1",
     "PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5",
+    RELEASE_COORDINATION_COMPANION_MARKER,
+    FUTURE_GOVERNANCE_HANDOFF_COMPANION_MARKER,
     "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture",
     "release-facing inventory follow-through: `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase14_workqueue_reviewability.zig`, `make -C zigux phase14-test`, and `make -C zigux phase14` remain explicit alongside that shared smoke packet so release-facing review keeps the scripts-root and tests-root inventory plus the wrapper-backed full-bundle and combined replay routes visible without widening beyond the current study-only boundary packet",
     "compile-shard matrix: the shared packet now records exact coverage counts of `6` total shards, `1` focused `phase14-smoke` shard that covers only `phase14-end-to-end-smoke-tests`, and `5` `full_bundle_only` shards covering `phase14-workqueue-bridge-tests`, `phase14-workqueue-reviewability-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
@@ -564,27 +572,99 @@ def run_self_test() -> int:
             root,
             SCRIPTS_README_PATH,
             good_scripts_readme_text().replace(
+                "- `zigux/tests/phase14_workqueue_reviewability.zig`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "zigux/tests/phase14_workqueue_reviewability.zig",
+            "self-test expected missing scripts-readme workqueue-reviewability marker failure",
+        )
+        write(root, SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write(
+            root,
+            SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
                 "- `make -C zigux phase14-test`\n",
-                "- `make -C zigux phase14-test`\n- `make -C zigux phase14-test`\n",
+                "",
                 1,
             ),
         )
         expect_contains(
             check(root, source_text=MARKER),
             "make -C zigux phase14-test",
-            "self-test expected duplicate scripts-readme test-route marker failure",
+            "self-test expected missing scripts-readme phase14-test route failure",
+        )
+        write(root, SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write(
+            root,
+            SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                "- `make -C zigux phase14`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "make -C zigux phase14",
+            "self-test expected missing scripts-readme combined route failure",
         )
         write(root, SCRIPTS_README_PATH, good_scripts_readme_text())
 
         write(
             root,
             "Documentation/zigux/phase14-release-boundary-survey.md",
-            good_release_boundary_text().replace("- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`\n", "", 1),
+            good_release_boundary_text().replace("- `PHASE14_RELEASE_BOUNDARY=present`\n", "", 1),
         )
         expect_contains(
             check(root, source_text=MARKER),
-            "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0",
-            "self-test expected missing active-delivery marker failure",
+            "PHASE14_RELEASE_BOUNDARY=present",
+            "self-test expected missing release-boundary marker failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace(
+                "- `PHASE14_RELEASE_BOUNDARY=present`\n",
+                "- `PHASE14_RELEASE_BOUNDARY=present`\n- `PHASE14_RELEASE_BOUNDARY=present`\n",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_RELEASE_BOUNDARY=present",
+            "self-test expected duplicate release-boundary marker failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace("- `PHASE14_SHARED_REPLAY_PRESENT=yes`\n", "", 1),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_SHARED_REPLAY_PRESENT=yes",
+            "self-test expected missing shared-replay marker failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace("- `PHASE14_RELEASE_CLOSED=no`\n", "", 1),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            "PHASE14_RELEASE_CLOSED=no",
+            "self-test expected missing release-closed marker failure",
         )
         write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
 
@@ -621,6 +701,38 @@ def run_self_test() -> int:
             check(root, source_text=MARKER),
             "PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5",
             "self-test expected missing compile-shard-full-bundle-only-count marker failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace(
+                f"- {RELEASE_COORDINATION_COMPANION_MARKER}\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            RELEASE_COORDINATION_COMPANION_MARKER,
+            "self-test expected missing release-coordination companion marker failure",
+        )
+        write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
+
+        write(
+            root,
+            "Documentation/zigux/phase14-release-boundary-survey.md",
+            good_release_boundary_text().replace(
+                f"- {FUTURE_GOVERNANCE_HANDOFF_COMPANION_MARKER}\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            FUTURE_GOVERNANCE_HANDOFF_COMPANION_MARKER,
+            "self-test expected missing future-governance handoff companion marker failure",
         )
         write(root, "Documentation/zigux/phase14-release-boundary-survey.md", good_release_boundary_text())
 
@@ -1121,7 +1233,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=41")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=43")
     return 0
 
 
