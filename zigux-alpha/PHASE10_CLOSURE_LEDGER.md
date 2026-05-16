@@ -33,7 +33,7 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_INPUT_REGISTRATION_PREFLIGHT_REPLAY=zigux/tests/phase10_virtio_input_registration_preflight.zig`
 - `PHASE10_LEDGER_INPUT_TEARDOWN_OBSERVATION_REPLAY=zigux/tests/phase10_virtio_input_teardown_observation.zig`
 - `PHASE10_LEDGER_INPUT_SURVEY_GATE=zigux/tests/phase10_virtio_input_survey.zig`
-- `PHASE10_LEDGER_MMIO_SURVEY_GATE=contents_bridge_gap:zigux/tests/phase10_virtio_mmio_survey.zig`
+- `PHASE10_LEDGER_MMIO_SURVEY_GATE=zigux/tests/phase10_virtio_mmio_survey.zig`
 - `PHASE10_LEDGER_CORE_MANIFEST=zigux/tests/phase10_virtio_core_manifest.json`
 - `PHASE10_LEDGER_RING_MANIFEST=zigux/tests/phase10_virtio_ring_manifest.json`
 - `PHASE10_LEDGER_INPUT_MANIFEST=zigux/tests/phase10_virtio_input_manifest.json`
