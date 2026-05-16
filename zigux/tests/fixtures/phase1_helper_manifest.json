@@ -240,8 +240,8 @@
         "test \"rbtree eraseInitCached clears singleton cached roots before reseed\""
       ],
       "cached_root_alias_anchor": "test \"rbtree cached-root Linux-style aliases mirror the primary helpers\"",
-      "review_packet_summary": "shared find, first-match, next-match, and match-iterator duplicate-search parity stays explicit through the Phase 1 fixture and replay, and current master already carries the parked `cached_leftmost_return_serials` fixture key for cached-root leftmost-return evidence, while cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until the shared replay consumes that committed key",
-      "next_safe_step_note": "If this helper lane reopens, the smallest shared-replay promotion is now wiring the already-shipped `cached_leftmost_return_serials` fixture key into the shared replay; until then, cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors."
+      "review_packet_summary": "shared find, first-match, next-match, and match-iterator duplicate-search parity stays explicit through the Phase 1 fixture and replay, and current master already consumes `cached_leftmost_return_serials` as shared cached-root leftmost-return evidence, while the remaining cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed review anchors stay explicit at the helper surface for any paths the shared replay still does not cover",
+      "next_safe_step_note": "If this helper lane reopens, keep the already-landed shared-replay promotion for `cached_leftmost_return_serials` aligned across the committed fixture, shared replay, and direct cached-root anchors; until another committed cached-root field lands, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior stay owned by direct helper-local anchors."
     },
     "tools/lib/string.zig": {
       "helper_test_anchors": [
@@ -305,7 +305,7 @@
         "test \"matchString finds C-string matches and preserves first-match order\"",
         "test \"match_string mirrors matchString for empty and matched lists\""
       ],
-      "lookup_review_summary": "helper-local string lookup anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string fixture keys, so C-string list lookup order and the Linux-style alias remain review-visible at the helper surface",
+      "lookup_review_summary": "helper-local string lookup anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString() or match_string() fixture keys, so C-string list lookup order and the Linux-style alias remain review-visible at the helper surface",
       "sysfs_review_anchors": [
         "test \"sysfsStreq treats trailing newline and NUL as equivalent\"",
         "test \"sysfs_streq mirrors sysfsStreq newline and NUL equivalence\"",
@@ -320,7 +320,7 @@
         "test \"strscpyPad preserves strscpy truncation semantics\"",
         "test \"strscpy_pad mirrors strscpyPad padding semantics\""
       ],
-      "strscpy_review_summary": "helper-local string copy-and-pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strscpy or strscpyPad fixture keys",
+      "strscpy_review_summary": "helper-local string copy-and-pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strscpy() or strscpyPad() fixture keys",
       "strnchr_review_anchor": "test \"strnchr honors count and C-string boundaries\"",
       "counted_search_review_anchors": [
         "test \"strnchr honors count and C-string boundaries\"",
