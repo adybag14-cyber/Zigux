@@ -159,6 +159,45 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
             "\"rollback_owner\": \"Validation and Perf Team\"",
         },
     );
+    try expectOrderedMarkersInSection(
+        perf_baseline_manifest_source,
+        "\"decision_owner\": \"Validation and Perf Team\"",
+        "\"local_only_posture_note\": \"",
+        &.{
+            "\"coordination_owners\": [",
+            "\"ABI and Runtime Team\"",
+            "\"Shared Subsystems Pod\"",
+            "\"shared_ci_perf_promotion_status\": \"pending\"",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        perf_baseline_manifest_source,
+        "\"atomic\": {",
+        "\"bitmap\": {",
+        &.{
+            "\"benchmark_command\": \"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\"",
+            "\"acceptable_limit_status\": \"approved_local_only\"",
+            "\"acceptable_limit_metric\": \"median_elapsed_ns\"",
+            "\"acceptable_limit_sample_count\": 7",
+            "\"acceptable_limit_max_elapsed_ns\": 8192",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        perf_baseline_manifest_source,
+        "\"bitmap\": {",
+        "\"promotion_decision\": {",
+        &.{
+            "\"benchmark_command\": \"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\"",
+            "\"acceptable_limit_status\": \"approved_local_only\"",
+            "\"acceptable_limit_metric\": \"median_elapsed_ns\"",
+            "\"acceptable_limit_sample_count\": 7",
+            "\"acceptable_limit_max_elapsed_ns\": 12288",
+        },
+    );
+    try expectMarker(
+        perf_baseline_manifest_source,
+        "\"status\": \"shared CI perf promotion pending\"",
+    );
     try expectBlobShaMatchesSource(manifest.live_gate_blob_sha, runtime_atomic64_diff_source);
     try std.testing.expectEqual(sourceLineCount(runtime_atomic64_diff_source), manifest.live_gate_line_count);
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.runtime_replay_path);
