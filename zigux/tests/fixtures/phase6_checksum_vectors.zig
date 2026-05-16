@@ -63,12 +63,34 @@ pub const PerfCase = struct {
     max_slowdown_pct: u16,
 };
 
+pub const IpFastCsumCase = struct {
+    name: []const u8,
+    header: []const u8,
+    reps: usize,
+    max_compute_slowdown_pct: u16,
+};
+
 const ipv4_header = [_]u8{
     0x45, 0x00, 0x00, 0x3c,
     0x1c, 0x46, 0x40, 0x00,
     0x40, 0x06, 0x00, 0x00,
     0xc0, 0xa8, 0x00, 0x01,
     0xc0, 0xa8, 0x00, 0xc7,
+};
+const ip_fast_ttl_and_length_update = [_]u8{
+    0x45, 0x00, 0x00, 0x40,
+    0x1c, 0x46, 0x40, 0x00,
+    0x3f, 0x11, 0x00, 0x00,
+    0xc0, 0xa8, 0x00, 0x02,
+    0xc0, 0xa8, 0x00, 0xc7,
+};
+const ip_fast_ipv4_with_options = [_]u8{
+    0x46, 0x00, 0x00, 0x30,
+    0x12, 0x34, 0x20, 0x00,
+    0x40, 0x11, 0x00, 0x00,
+    0xc0, 0xa8, 0x01, 0x01,
+    0xc0, 0xa8, 0x01, 0x02,
+    0x01, 0x01, 0x00, 0x00,
 };
 
 const carry_payload = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x7f };
@@ -145,6 +167,12 @@ pub const kunit_random_prefix_cases = [_]KunitRandomPrefixCase{
 pub const perf_cases = [_]PerfCase{
     .{ .label = "64", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },
     .{ .label = "1501", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },
+};
+
+pub const ip_fast_csum_cases = [_]IpFastCsumCase{
+    .{ .name = "minimal ipv4 header", .header = &ipv4_header, .reps = 200_000, .max_compute_slowdown_pct = 120 },
+    .{ .name = "ttl and length update keeps the fast path aligned", .header = &ip_fast_ttl_and_length_update, .reps = 200_000, .max_compute_slowdown_pct = 120 },
+    .{ .name = "ipv4 options keep the fast path on 32-bit boundaries", .header = &ip_fast_ipv4_with_options, .reps = 200_000, .max_compute_slowdown_pct = 120 },
 };
 
 pub fn fillPerfPayload(buffer: []u8) void {
