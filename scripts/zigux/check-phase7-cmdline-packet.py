@@ -266,6 +266,12 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase7-cmdline-slice.md: exact bare-option matching for comma-delimited flags stays reviewable through `parseOptionStr()`",
             ),
             (
+                "slice_whitespace_sentinel_marker",
+                "Documentation/zigux/phase7-cmdline-slice.md",
+                "leading-whitespace handling keeps the Linux-style empty sentinel token",
+                "Documentation/zigux/phase7-cmdline-slice.md: leading-whitespace handling keeps the Linux-style empty sentinel token",
+            ),
+            (
                 "slice_quoted_equals_marker",
                 "Documentation/zigux/phase7-cmdline-slice.md",
                 "leading quoted tokens that contain `=` and still split at the first equals",
@@ -300,6 +306,12 @@ def run_self_test() -> None:
                 "lib/cmdline.zig",
                 "pub fn nextArg",
                 "lib/cmdline.zig: pub fn nextArg",
+            ),
+            (
+                "helper_whitespace_sentinel_marker",
+                "lib/cmdline.zig",
+                'test "nextArg returns an empty sentinel token before leading whitespace and trims the following rest"',
+                'lib/cmdline.zig: test "nextArg returns an empty sentinel token before leading whitespace and trims the following rest"',
             ),
             (
                 "helper_negative_range_marker",
