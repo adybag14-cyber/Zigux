@@ -19,6 +19,7 @@ The current shared closure packet keeps this Phase 10 bundle explicit:
 - drivers: `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and `drivers/virtio/virtio_mmio.zig`
 - tests: `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `zigux/tests/phase10_virtio_input_survey.zig`
 The shared reminder surfaces around this packet stay reviewable through `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md`.
+The shared freeze-boundary guard now stays explicit through `scripts/zigux/check-phase10-shared-freeze-boundary.py` so the closure packet fails closed if the Phase 14 study-only anchors drift into Phase 10 closure claims.
 
 ## Roadmap Scoreboard
 Current `master` keeps the roadmap-backed Phase 10 scoreboard explicit through the shared closure packet:
@@ -46,9 +47,10 @@ The exact replay packet recorded by the current shared closure packet is:
 3. `python3 scripts/zigux/check-phase10-input-packet.py`
 4. `python3 scripts/zigux/check-phase10-mmio-packet.py`
 5. `python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py`
-6. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
-7. `make -C zigux phase10-test`
-8. `make -C zigux phase10`
+6. `python3 scripts/zigux/check-phase10-shared-freeze-boundary.py`
+7. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+8. `make -C zigux phase10-test`
+9. `make -C zigux phase10`
 
 ## Cross-Phase Scoreboard Boundary
 The shared Phase 10 closure packet still keeps two adjacent parity-scoreboard buckets explicit so reviewers do not overcount non-Phase-10 evidence as virtio closure progress.
