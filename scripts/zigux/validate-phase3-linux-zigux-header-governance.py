@@ -29,7 +29,7 @@ REQUIRED_PACKET_MARKERS = {
     "zigux/bindings/abi.zig": 2,
     "zigux/bindings/dev_t.zig": 2,
     "zigux/bindings/notifier_abi.zig": 2,
-    "zigux/uapi/version.zig": 1,
+    "zigux/uapi/version.zig": 2,
 }
 REQUIRED_STARTER_PACKET_MARKERS = {
     "live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`": 1,
@@ -172,6 +172,7 @@ zigux/bindings/abi.zig
 zigux/bindings/dev_t.zig
 zigux/bindings/notifier_abi.zig
 zigux/uapi/version.zig
+zigux/uapi/version.zig
 zigux/bindings/abi.zig
 zigux/bindings/dev_t.zig
 zigux/bindings/notifier_abi.zig
@@ -234,7 +235,7 @@ aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` o
         return 1
 
     broken = validate_text(sample_note.replace("zigux/uapi/version.zig\n", "", 1), sample_header)
-    expected = "packet marker count drift: zigux/uapi/version.zig (expected 1, found 0)"
+    expected = "packet marker count drift: zigux/uapi/version.zig (expected 2, found 1)"
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected starter-uapi marker drift was not reported")
