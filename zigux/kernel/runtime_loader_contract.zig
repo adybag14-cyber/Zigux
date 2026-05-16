@@ -45,6 +45,12 @@ pub const RequestState = enum(u8) {
     released_without_substrate,
 };
 
+pub const PreparedRequest = struct {
+    plan: LoadPlan,
+    prepared_plan: LoadPlan,
+    state: RequestState,
+};
+
 pub const blocked_command_fields = [_][]const u8{
     "command",
     "command_name",
@@ -99,31 +105,36 @@ pub fn keepsLoadPlanExplicit(actual: LoadPlan, expected: LoadPlan) bool {
         actual.init_flow.exit_runs == expected.init_flow.exit_runs;
 }
 
-fn loadPlanDeclaresAnyField(comptime field_names: []const []const u8) bool {
+fn typeDeclaresAnyField(comptime T: type, comptime field_names: []const []const u8) bool {
     inline for (field_names) |field_name| {
-        if (@hasField(LoadPlan, field_name)) return true;
+        if (@hasField(T, field_name)) return true;
     }
     return false;
 }
 
+fn requestBoundaryDeclaresAnyField(comptime field_names: []const []const u8) bool {
+    return typeDeclaresAnyField(LoadPlan, field_names) or
+        typeDeclaresAnyField(PreparedRequest, field_names);
+}
+
 pub fn keepsCommandBoundaryExplicit() bool {
-    return !loadPlanDeclaresAnyField(&blocked_command_fields);
+    return !requestBoundaryDeclaresAnyField(&blocked_command_fields);
 }
 
 pub fn keepsEnvironmentBoundaryExplicit() bool {
-    return !loadPlanDeclaresAnyField(&blocked_environment_fields);
+    return !requestBoundaryDeclaresAnyField(&blocked_environment_fields);
 }
 
 pub fn keepsRegistrationSummaryBoundaryExplicit() bool {
-    return !loadPlanDeclaresAnyField(&blocked_registration_summary_fields);
+    return !requestBoundaryDeclaresAnyField(&blocked_registration_summary_fields);
 }
 
 pub fn keepsPublicationBoundaryExplicit() bool {
-    return !loadPlanDeclaresAnyField(&blocked_publication_fields);
+    return !requestBoundaryDeclaresAnyField(&blocked_publication_fields);
 }
 
 pub fn keepsDepmodBoundaryExplicit() bool {
-    return !loadPlanDeclaresAnyField(&blocked_depmod_fields);
+    return !requestBoundaryDeclaresAnyField(&blocked_depmod_fields);
 }
 
 pub fn keepsReviewOnlyControlBoundaryExplicit() bool {
@@ -243,6 +254,10 @@ test "keepsLoadPlanExplicit compares every shared handoff field" {
 test "shared runtime loader contract keeps command and environment surfaces outside the request contract" {
     try std.testing.expect(keepsCommandBoundaryExplicit());
     try std.testing.expect(keepsEnvironmentBoundaryExplicit());
+    try std.testing.expect(!typeDeclaresAnyField(LoadPlan, &blocked_command_fields));
+    try std.testing.expect(!typeDeclaresAnyField(PreparedRequest, &blocked_command_fields));
+    try std.testing.expect(!typeDeclaresAnyField(LoadPlan, &blocked_environment_fields));
+    try std.testing.expect(!typeDeclaresAnyField(PreparedRequest, &blocked_environment_fields));
 
     try std.testing.expectEqual(@as(usize, 4), blocked_command_fields.len);
     try std.testing.expect(std.mem.eql(u8, blocked_command_fields[0], "command"));
@@ -264,6 +279,12 @@ test "shared runtime loader contract keeps registration-summary, publication, an
     try std.testing.expect(keepsPublicationBoundaryExplicit());
     try std.testing.expect(keepsDepmodBoundaryExplicit());
     try std.testing.expect(keepsReviewOnlyControlBoundaryExplicit());
+    try std.testing.expect(!typeDeclaresAnyField(LoadPlan, &blocked_registration_summary_fields));
+    try std.testing.expect(!typeDeclaresAnyField(PreparedRequest, &blocked_registration_summary_fields));
+    try std.testing.expect(!typeDeclaresAnyField(LoadPlan, &blocked_publication_fields));
+    try std.testing.expect(!typeDeclaresAnyField(PreparedRequest, &blocked_publication_fields));
+    try std.testing.expect(!typeDeclaresAnyField(LoadPlan, &blocked_depmod_fields));
+    try std.testing.expect(!typeDeclaresAnyField(PreparedRequest, &blocked_depmod_fields));
 
     try std.testing.expectEqual(@as(usize, 4), blocked_registration_summary_fields.len);
     try std.testing.expect(std.mem.eql(u8, blocked_registration_summary_fields[0], "register_api"));
