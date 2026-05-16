@@ -191,6 +191,19 @@ test "atomic64 diff wrapper records the current bounded runtime checks" {
     try expectMarker(runtime_atomic64_diff_source, "runtime atomic64 diff gate keeps selftest family coverage explicit");
 }
 
+test "atomic64 diff wrapper keeps the bounded guard-path case cardinality explicit" {
+    try expectRuntimeCaseGroupCardinality(
+        "    const inc_not_zero_cases = [_]IncNotZeroCase{",
+        "    const dec_if_positive_cases = [_]DecIfPositiveCase{",
+        2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "    const dec_if_positive_cases = [_]DecIfPositiveCase{",
+        "test \"runtime atomic64 diff gate keeps selftest family coverage explicit\" {",
+        3,
+    );
+}
+
 test "atomic64 diff wrapper keeps the runtime handoff blob pins exact" {
     try expectManifestContainsGitBlobSha(
         phase4_runtime_atomic64_manifest_source,
