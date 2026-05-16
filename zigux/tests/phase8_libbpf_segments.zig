@@ -256,10 +256,12 @@ test "phase 8 libbpf manifest keeps the current helper-first segment catalog ali
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
         bridge_note.destination,
     );
-    try std.testing.expectEqual(@as(usize, 11), bridge_note.landed_scope.len);
+    try std.testing.expectEqual(@as(usize, 12), bridge_note.landed_scope.len);
     try std.testing.expectEqual(@as(usize, 2), bridge_note.queued_scope.len);
     try expectContains(bridge_note.why_now, "reviewable landed helper slice");
-    try expectContains(bridge_note.why_now, "live descriptor or reopen side effects");
+    try expectContains(bridge_note.why_now, "token-readiness gating");
+    try expectContains(bridge_note.why_now, "token materialization");
+    try expectContains(manifest_json, "planTokenPreparation() helper-only token readiness planning from a prepared reuse plan without token materialization");
 }
 
 test "phase 8 libbpf survey note stays grounded in the current helper-plus-build packet" {
@@ -288,11 +290,15 @@ test "phase 8 libbpf survey note stays grounded in the current helper-plus-build
     );
     try expectContains(
         phase8_note,
-        "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, and `tools/lib/bpf/zigux_segments/type_names.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`",
+        "targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`; the same current readback also keeps `tools/lib/bpf/zigux_segments/type_names.zig` directly readable.",
     );
     try expectContains(
         phase8_note,
-        "current shared reminder surfaces already keep the landed bridge-plus-build packet explicit through `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, `zigux/tests/phase8_build.zig`, `zigux/Makefile`, and `scripts/zigux/validate-phase8.py`.",
+        "current shared reminder surfaces already keep the landed bridge-plus-build packet explicit through `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, `zigux/tests/phase8_build.zig`, `zigux/Makefile`, and `scripts/zigux/validate-phase8.py`, while the dedicated bridge slice keeps planning-only `planTokenPreparation()` gating explicit without claiming token materialization or capability handoff.",
+    );
+    try expectContains(
+        phase8_note,
+        "the manifest still keeps `fdinfo-map-info-helpers`, `map-reuse-compatibility`, `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, and `perf-buffer-poll-bookkeeping` explicit in the broader segmented catalog, and its landed bridge note now keeps planning-only token-preparation gating inside the helper packet even while the dedicated survey stays aligned with the landed helper-plus-build packet.",
     );
     try expectContains(
         phase8_note,
@@ -319,11 +325,15 @@ test "phase 8 libbpf survey note stays grounded in the current helper-plus-build
     );
     try expectContains(
         phase8_note,
-        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
+        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`; the dedicated bridge slice also keeps planning-only `planTokenPreparation()` gating explicit without claiming token materialization or capability handoff, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
     );
     try expectContains(
         phase8_note,
         "Keep the libbpf survey packet parked after this survey-and-route sync unless a fresh shared reminder-surface drift reappears against the current helper-plus-build evidence.",
+    );
+    try expectContains(
+        phase8_note,
+        "keep the manifest-backed `fdinfo-map-info-helpers`, `map-reuse-compatibility`, planning-only `planTokenPreparation()` gate, and deferred `file-path-and-handle-bridge` segmentation explicit without widening into procfs reads, token materialization, bpffs reopen flow, or fd ownership claims",
     );
 
     try expectNotContains(
