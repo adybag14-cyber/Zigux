@@ -26,7 +26,7 @@
     },
     {
       "id": "freeze-map-lane-ownership",
-      "summary": "Every freeze-map lane must record owner, phase, status bucket, validation gate, and rollback owner.",
+      "summary": "Every freeze-map lane must record owner, phase, status bucket, validation gate summary, and rollback owner.",
       "required_terms": [
         "owner, phase, status bucket, validation gate summary, and rollback owner"
       ]
