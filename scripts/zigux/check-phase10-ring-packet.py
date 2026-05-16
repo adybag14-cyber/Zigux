@@ -267,6 +267,24 @@ EXPECTED_GAPS = {
         "zigux_destination": "drivers/virtio/virtio_mmio.zig",
     },
 }
+EXPECTED_GAP_WHY_NOW = {
+    "phase10-build-gate": "The shared Phase 10 build gate remains landed as part of the broader validation packet beside the directly readable ring helper and replay files.",
+    "phase10-virtio-core-lab-starter": "The adjacent core starter file is now directly readable on current master, so the ring lane no longer needs to frame core footing as a repo-reality gap.",
+    "phase10-virtio-ring-survey-gate": "Current public raw rereads now surface the dedicated ring survey gate on master, so this lane can treat the survey gate as landed direct packet evidence.",
+    "phase10-virtio-ring-survey-note": "The survey note itself remains the directly readable lane surface that keeps the direct ring packet and blocked transport boundary explicit.",
+    "phase10-virtqueue-shape-helper": "Current public raw rereads now surface the direct ring helper file on master, so the queue-shape helper stands as landed queue-local wrapper evidence.",
+    "phase10-used-buffer-polling-helper": "The used-buffer polling helper now lives inside a directly readable ring helper packet on current master.",
+    "phase10-callback-enable-helper": "The callback re-enable helper now lives inside the directly readable ring helper packet on current master.",
+    "phase10-callback-delay-helper": "The delayed-callback helper now lives inside the directly readable ring helper packet on current master.",
+    "phase10-notify-prepare-helper": "The notify-prepare helper now lives inside the directly readable ring helper packet on current master.",
+    "phase10-notification-data-summary-helper": "The notification-data summary helper now lives inside the directly readable ring helper packet on current master.",
+    "phase10-broken-queue-poll-guard": "The broken-queue poll guard now lives inside the directly readable ring helper packet on current master.",
+    "phase10-queue-reset-helper": "The queue-reset helper now lives inside the directly readable ring helper packet on current master.",
+    "phase10-queue-reset-readiness-helper": "The queue-reset-readiness helper now lives inside the directly readable ring helper packet on current master.",
+    "phase10-ring-verify-replay": "Current public raw rereads now surface the focused ring verify replay on master.",
+    "phase10-virtio-ring-slice-note": "The directly readable slice note keeps the landed ring helper, replay, checker, and blocked transport boundary aligned without overstating queue-local wrapper progress.",
+    "phase10-ring-lab-driver-bridge": "Transport-backed queue discovery, IRQ acknowledgement, queue reset execution, and probe or remove lifecycle behavior are still required before this lane can claim a true lab driver.",
+}
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -324,6 +342,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(
                 f"manifest:gap_destination:{gap_id}={gap.get('zigux_destination')!r}"
             )
+        if gap.get("why_now") != EXPECTED_GAP_WHY_NOW[gap_id]:
+            missing_markers.append(
+                f"manifest:gap_why_now:{gap_id}={gap.get('why_now')!r}"
+            )
 
     return [], missing_markers
 
@@ -367,6 +389,7 @@ def write_fixture(root: Path) -> None:
                     "status": expected["status"],
                     "kind": expected["kind"],
                     "zigux_destination": expected["zigux_destination"],
+                    "why_now": EXPECTED_GAP_WHY_NOW[gap_id],
                 }
                 for gap_id, expected in EXPECTED_GAPS.items()
             ],
@@ -479,6 +502,18 @@ def run_self_test() -> int:
                 gap for gap in manifest["gaps"] if gap["id"] == "phase10-ring-lab-driver-bridge"
             ).__setitem__("status", "starter_landed"),
             "manifest:gap_status:phase10-ring-lab-driver-bridge='starter_landed'",
+        )
+        mutate_manifest(
+            lambda manifest: next(
+                gap for gap in manifest["gaps"] if gap["id"] == "phase10-virtqueue-shape-helper"
+            ).__setitem__("why_now", "stale queue helper note"),
+            "manifest:gap_why_now:phase10-virtqueue-shape-helper='stale queue helper note'",
+        )
+        mutate_manifest(
+            lambda manifest: next(
+                gap for gap in manifest["gaps"] if gap["id"] == "phase10-ring-lab-driver-bridge"
+            ).__setitem__("why_now", "transport backlog cleared"),
+            "manifest:gap_why_now:phase10-ring-lab-driver-bridge='transport backlog cleared'",
         )
 
         for rel_path in (
