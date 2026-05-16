@@ -480,6 +480,22 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     try expectContains(
         runtime_trace_events_loader,
+        "test \"runtime trace-events loader keeps selftest-complete shared-request snapshots stable across later exit activity\" {",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "try module.exit();",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeTraceEventsLoader.planFor(&module));",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
         "test \"runtime trace-events loader rejects registration snapshot drift\" {",
     );
     try expectContains(
