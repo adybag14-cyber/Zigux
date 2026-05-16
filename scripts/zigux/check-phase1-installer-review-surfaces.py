@@ -31,7 +31,7 @@ DOCS_ROOT_MARKERS = [
     ),
     (
         "docs_root_phase1_installer_packet",
-        "- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
+        "- Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `scripts/zigux/check-phase1-installer-review-surfaces.py` - `Documentation/zigux/phase1-host-helper-lane-sequencing.md` - `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `python3 scripts/zigux/install-zig.py --self-test`, and `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
         1,
     ),
 ]
@@ -190,7 +190,7 @@ def validate_root(root: Path) -> list[str]:
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
 
     issues: list[str] = []
-    issues.extend(collect_exact_count_markers(docs_root, DOCS_ROOT_MARKERS))
+    issues.extend(collect_exact_line_count_markers(docs_root, DOCS_ROOT_MARKERS))
     issues.extend(collect_exact_count_markers(scripts_readme, SCRIPTS_README_MARKERS))
     issues.extend(collect_exact_count_markers(tests_readme, TESTS_README_MARKERS))
     issues.extend(collect_exact_line_count_markers(workflow, WORKFLOW_MARKERS))
