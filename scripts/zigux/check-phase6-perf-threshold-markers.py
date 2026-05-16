@@ -164,16 +164,18 @@ REQUIRED_SNIPPETS = {
     BASE64_PERF_PATH.as_posix(): [
         'try std.testing.expectEqual(@as(usize, 6), fixtures.perf_cases.len);',
         'for (fixtures.perf_cases) |case| try expectPerfCaseReferenceParity(case);',
-        '.{ .label = "IMAP_PAD", .variant_name = "imap", .reference_kind = "imap_padded", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
-        '.{ .label = "IMAP_NO_PAD", .variant_name = "imap", .reference_kind = "imap_no_pad", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
+        '        if (std.mem.eql(u8, case.variant_name, "imap")) {',
+        '    try std.testing.expect(imap_coverage.unpadded);',
     ],
     CHECKSUM_VECTORS_PATH.as_posix(): [
         '.{ .label = "64", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },',
         '.{ .label = "1501", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },',
     ],
     CHECKSUM_PERF_PATH.as_posix(): [
-        '.{ .label = "64", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },',
-        '.{ .label = "1501", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },',
+        'try std.testing.expectEqual(@as(usize, 2), fixtures.perf_cases.len);',
+        'for (fixtures.perf_cases) |case| {',
+        '        const result = try runPerfCase(case);',
+        '        try std.testing.expect(result.compute_sum != 0);',
     ],
     HEXDUMP_VECTORS_PATH.as_posix(): [
         '.{ .label = "16B-plain-g1", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },',
@@ -446,8 +448,8 @@ def run_self_test() -> None:
         assert_failure(
             root,
             CHECKSUM_PERF_PATH,
-            '.{ .label = "1501", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },',
-            '.{ .label = "1501", .len = 1501, .reps = 8_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },',
+            'try std.testing.expectEqual(@as(usize, 2), fixtures.perf_cases.len);',
+            'try std.testing.expectEqual(@as(usize, 1), fixtures.perf_cases.len);',
         )
         assert_failure(
             root,
