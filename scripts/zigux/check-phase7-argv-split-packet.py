@@ -82,7 +82,6 @@ REQUIRED_MARKERS = {
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep that boundary under `Documentation/zigux/phase7-argv-split-slice.md`",
         "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-        "Documentation/zigux/review-checklist.md",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-build-wiring.py",
         "zigux/tests/phase7_build.zig",
@@ -235,11 +234,35 @@ MISSING_MARKER_CASES = [
     ),
     (
         "Documentation/zigux/phase7-argv-split-slice.md",
+        "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`, including shared empty-sentinel teardown beside another blank caller",
+    ),
+    (
+        "Documentation/zigux/phase7-argv-split-slice.md",
         "exported storage and argv views resetting back to the canonical empty sentinels after teardown",
     ),
     (
         "Documentation/zigux/phase7-argv-split-slice.md",
         "allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns",
+    ),
+    (
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "zigux/tests/phase7_argv_split_survey.zig",
+    ),
+    (
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "zigux/tests/phase7_argv_split_manifest.json",
+    ),
+    (
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+    ),
+    (
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py",
+    ),
+    (
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "Keep this slice parked unless fresh repo inspection finds one concrete `argv_split` parity, survey, manifest, fixture, or shared reminder drift inside the current helper packet.",
     ),
     (
         "Documentation/zigux/phase7-helper-lane-sequencing.md",
@@ -343,10 +366,6 @@ MISSING_MARKER_CASES = [
     (
         "Documentation/zigux/phase7-helper-lane-sequencing.md",
         "`P7-L09` owns only argv-split helper-local parity, fixture, survey, manifest, checker, or reminder drift.",
-    ),
-    (
-        "Documentation/zigux/phase7-argv-split-slice.md",
-        "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`, including shared empty-sentinel teardown beside another blank caller",
     ),
 ]
 
