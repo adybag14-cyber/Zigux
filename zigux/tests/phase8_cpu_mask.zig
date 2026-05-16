@@ -85,6 +85,16 @@ test "phase 8 cpu mask starter slice accepts carriage return as sscanf whitespac
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "0\r2"));
 }
 
+test "phase 8 cpu mask starter slice keeps duplicate and overlapping ranges idempotent for follow-on perf-buffer sizing" {
+    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "0-2,1,+2-+4,4\n");
+    defer parsed.deinit(std.testing.allocator);
+
+    const summary = cpu_mask.summarizePossibleCpus(parsed.values);
+    try std.testing.expectEqual(@as(usize, 5), summary.possible_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 4), summary.highest_cpu_index);
+    try std.testing.expectEqual(@as(usize, 5), cpu_mask.countPossibleCpus(parsed.values));
+}
+
 test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     const ReaderState = struct {
         chunks: []const []const u8,
