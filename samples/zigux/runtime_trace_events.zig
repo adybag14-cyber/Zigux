@@ -396,10 +396,49 @@ test "trace-events sample rejects duplicate function-thread registration" {
     try module.init();
 
     try module.registerFunctionThread();
-    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
+
+    const before_duplicate = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), before_duplicate.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), before_duplicate.main_iterations);
+    try std.testing.expectEqual(@as(usize, 0), before_duplicate.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 0), before_duplicate.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), before_duplicate.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), before_duplicate.total_events);
+    try std.testing.expectEqual(@as(?usize, null), before_duplicate.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), before_duplicate.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), before_duplicate.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 1), before_duplicate.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_duplicate.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_duplicate.exit_runs);
+    try std.testing.expectEqual(@as(i32, -1), before_duplicate.last_main_count);
+    try std.testing.expectEqual(@as(i32, -1), before_duplicate.last_fn_count);
+    try std.testing.expectEqual(@as(?[]const u8, null), before_duplicate.last_unregister_label);
+    try std.testing.expectEqualStrings("event-sample", before_duplicate.main_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", before_duplicate.function_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_reg", before_duplicate.last_register_label orelse return error.ExpectedFunctionPayload);
+
     try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
-    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
-    try std.testing.expectEqualStrings("foo_bar_reg", module.summary().last_register_label orelse return error.ExpectedFunctionPayload);
+
+    const after_duplicate = module.summary();
+    try std.testing.expectEqual(before_duplicate.stage, after_duplicate.stage);
+    try std.testing.expectEqual(before_duplicate.registration_depth, after_duplicate.registration_depth);
+    try std.testing.expectEqual(before_duplicate.main_iterations, after_duplicate.main_iterations);
+    try std.testing.expectEqual(before_duplicate.fn_iterations, after_duplicate.fn_iterations);
+    try std.testing.expectEqual(before_duplicate.main_thread_events, after_duplicate.main_thread_events);
+    try std.testing.expectEqual(before_duplicate.fn_thread_events, after_duplicate.fn_thread_events);
+    try std.testing.expectEqual(before_duplicate.total_events, after_duplicate.total_events);
+    try std.testing.expectEqual(before_duplicate.last_main_emitted_events, after_duplicate.last_main_emitted_events);
+    try std.testing.expectEqual(before_duplicate.last_fn_emitted_events, after_duplicate.last_fn_emitted_events);
+    try std.testing.expectEqual(before_duplicate.last_main_conditional_event_count, after_duplicate.last_main_conditional_event_count);
+    try std.testing.expectEqual(before_duplicate.init_runs, after_duplicate.init_runs);
+    try std.testing.expectEqual(before_duplicate.selftest_runs, after_duplicate.selftest_runs);
+    try std.testing.expectEqual(before_duplicate.exit_runs, after_duplicate.exit_runs);
+    try std.testing.expectEqual(before_duplicate.last_main_count, after_duplicate.last_main_count);
+    try std.testing.expectEqual(before_duplicate.last_fn_count, after_duplicate.last_fn_count);
+    try std.testing.expectEqual(before_duplicate.last_unregister_label, after_duplicate.last_unregister_label);
+    try std.testing.expectEqualStrings(before_duplicate.main_thread_label orelse return error.ExpectedFunctionPayload, after_duplicate.main_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_duplicate.function_thread_label orelse return error.ExpectedFunctionPayload, after_duplicate.function_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_duplicate.last_register_label orelse return error.ExpectedFunctionPayload, after_duplicate.last_register_label orelse return error.ExpectedFunctionPayload);
 }
 
 test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {
