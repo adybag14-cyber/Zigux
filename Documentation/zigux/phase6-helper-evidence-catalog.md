@@ -16,6 +16,24 @@ This note records the current helper-evidence survey for the bounded Phase 6 lea
 
 The four Phase 6 slice notes keep the helper-local detail, but they do not keep one small shared table of the roadmap anchor, the landed Zig helper, and the current reviewable evidence row. This catalog closes that narrower review gap without widening the Phase 6 packet into new perf policy, validator, or helper-semantic work.
 
+## Current direct-readback warning
+
+Fresh direct GitHub contents reads on current `master` now return missing for several helper-local packet members that older Phase 6 reminder surfaces still name as shipped evidence, including:
+
+- `zigux/tests/phase6_build.zig`
+- `zigux/tests/phase6_helper_parity_manifest.json`
+- `zigux/tests/phase6_base64.zig`
+- `zigux/tests/phase6_bsearch.zig`
+- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
+- `zigux/tests/phase6_bsearch_c_abi_budget.zig`
+- `zigux/tests/phase6_checksum.zig`
+- `zigux/tests/phase6_hexdump.zig`
+- `scripts/zigux/check-phase6-base64-c-parity.py`
+- `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
+- `scripts/zigux/check-phase6-checksum-c-parity.py`
+
+Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. Keep this catalog aligned with that direct-readback limit instead of overstating helper-local reviewability from older route names alone.
+
 ## Current helper-evidence rows
 
 ### base64
@@ -27,7 +45,7 @@ The four Phase 6 slice notes keep the helper-local detail, but they do not keep 
 - committed fixture surfaces: `zigux/tests/fixtures/phase6_base64_vectors.zig` and `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`
 - direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
-- current review posture: reviewable; current `master` keeps the helper, focused replay, dedicated slowdown gate, and direct C parity packet under one bounded helper-owned surface
+- current review posture: the roadmap-backed base64 packet remains the intended bounded helper surface, but current direct evidence is limited to this shared catalog and adjacent reminder surfaces until fresh direct reads confirm the helper-local replay and parity members again
 
 ### bsearch
 
@@ -39,7 +57,7 @@ The four Phase 6 slice notes keep the helper-local detail, but they do not keep 
 - compact shared seed fixture companion: `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
 - direct corpus evidence checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
-- current review posture: reviewable; current `master` keeps functional parity plus bounded comparison-budget evidence, but there is still no separate timing-style dedicated perf target in the shipped bsearch packet
+- current review posture: the roadmap-backed bsearch packet still names the right parity and comparison-budget surfaces, but current direct evidence is limited to this shared catalog until fresh direct reads confirm the helper-local replays and corpus checker again
 
 ### checksum
 
@@ -50,7 +68,7 @@ The four Phase 6 slice notes keep the helper-local detail, but they do not keep 
 - committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
-- current review posture: reviewable; current `master` now keeps the helper, focused replay, dedicated slowdown gate, committed vectors, and direct C parity packet under one bounded helper-owned surface, while the remaining shared Phase 6 follow-up is route-inventory truthfulness rather than missing checksum-owned evidence
+- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog and adjacent reminder surfaces until fresh direct reads confirm the helper-local replay and parity members again
 
 ### hexdump
 
@@ -63,9 +81,9 @@ The four Phase 6 slice notes keep the helper-local detail, but they do not keep 
 - helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`
 - perf refresh note: `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
-- current review posture: reviewable; current `master` keeps focused helper formatting parity plus the dedicated grouped-output slowdown gate under one helper-owned packet
+- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog until fresh direct reads confirm the helper-local replay, checker, and perf companions again
 
-## Shared replay reminders
+## Last-known shared replay inventory
 
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py`
 - `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`
