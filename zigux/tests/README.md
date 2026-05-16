@@ -72,7 +72,7 @@ Key entrypoints
   * `zigux/tests/phase1_bench.zig`
   * `zigux/tests/fixtures/phase1_helper_manifest.json`
   * `zigux/tests/fixtures/phase1_bench_expectations.json`
-  * current Phase 1 review-and-replay stack: `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, and `make -C zigux phase1-bench`, and `make -C zigux phase1`
+  * current Phase 1 review-and-replay stack: `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`
   * current public-tree-backed Phase 1 parity packet: `zigux/tests/fixtures/phase1_helpers.json` and `zigux/tests/fixtures/phase1_helpers_c_harness.c`
   * `zigux/tests/phase6_build.zig`
   * `zigux/tests/phase6_helper_parity_manifest.json`
