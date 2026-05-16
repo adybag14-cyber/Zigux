@@ -118,10 +118,11 @@ EXPECTED_GENKSYMS_CASES = [
         "expected": "help_expected.json",
     },
     {
-        "name": "version_then_short_help",
-        "argv": ["-Vh"],
+        "name": "version_then_unexpected_help_argument",
+        "argv": ["--version", "--help=extra"],
         "mode": "process_json",
-        "expected": "version_then_help_expected.json",
+        "expected": "version_then_unexpected_help_argument_expected.json",
+        "normalize_stderr": True,
     },
     {
         "name": "version_then_long_help",
@@ -281,6 +282,7 @@ EXPECTED_GENKSYMS_MANIFEST = {
         "genksyms bridge keeps version as a side effect while parsing later options",
         "genksyms bridge preserves version side effects before later parse failures",
         "genksyms bridge accepts unambiguous abbreviated long options",
+        "genksyms bridge keeps version side effect before unexpected long option argument",
         "genksyms bridge canonicalizes unexpected long option argument failures",
         "genksyms bridge treats lone dash as positional passthrough",
         "genksyms bridge accepts explicit option terminator",
