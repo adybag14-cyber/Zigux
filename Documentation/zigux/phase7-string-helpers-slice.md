@@ -67,6 +67,7 @@ The expanded starter packet on current `master` covers:
 - `kasprintfStrarray()` and `kasprintf_strarray()`
 - `kfreeStrarray()` and `kfree_strarray()`
 - `kstrdupAndReplace()` and `kstrdup_and_replace()`
+- `kstrdupQuotable()` and `kstrdup_quotable()`
 - `memcpyAndPad()` and `memcpy_and_pad()`
 - `strreplace()`
 
@@ -81,6 +82,7 @@ The current starter replay keeps these proofs explicit:
 - bounded string escaping across space, special, null, octal, hex, append-limited dictionary mode, and string-wrapper mode, including truncation-safe output accounting
 - bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown
 - allocator-backed duplicate-and-replace behavior that rewrites only the exported C-string prefix and leaves the source buffer untouched
+- quoted-log-safe duplication that hex-escapes special logging hazards and double quotes while still stopping at the exported C-string prefix
 - bounded memcpy-and-pad behavior that truncates long copies, pads short ones, and stays inside the provided source slice
 - in-place replacement behavior that stops at the first NUL
 - the dedicated survey gate, manifest packet, no-sample boundary replay, shared validator route, shared build route, and Linux-style `make -C zigux phase7` replay
@@ -93,6 +95,7 @@ The current starter replay also keeps these ownership-focused boundaries explici
 - `stringEscapeMemAnyNp()`, `stringEscapeStr()`, and `stringEscapeStrAnyNp()` keep any-NP and first-NUL-bounded string-wrapper escaping inside caller-owned storage
 - `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results
 - `kstrdupAndReplace()` returns caller-owned duplicated storage, applies replacements only inside the duplicated exported prefix, and leaves the source slice unchanged
+- `kstrdupQuotable()` returns caller-owned duplicated storage, hex-escapes special logging hazards, and still stops at the exported C-string prefix
 - `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries
 
 ## Non-goals
@@ -100,10 +103,10 @@ The current starter replay also keeps these ownership-focused boundaries explici
 This expanded starter slice does not yet claim:
 
 - the older parked missing-helper gap
-- the broader full-family packet that still leaves `parse_int_array()`, `kstrdup_quotable()`, `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()` outside the current `master` helper packet
+- the broader full-family packet that still leaves `parse_int_array()`, `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()` outside the current `master` helper packet
 - a new `samples/zigux/` string-helper reference sample
 
 ## Next Bounded Step
 
-The next bounded follow-through should keep the expanded starter packet truthful across the survey, manifest, boundary replay, and slice note.
-Route any shared validator, Makefile, workflow, tests-root, or docs-root drift to the separate Phase 7 shared-control lanes before taking one deeper helper-local expansion step.
+The next bounded follow-through should keep the quotable helper packet truthful across the survey, manifest, boundary replay, and slice note.
+Route any shared validator, Makefile, workflow, tests-root, or docs-root drift to the separate Phase 7 shared-control lanes before deciding whether `kstrdup_quotable_cmdline()` can join the same helper-local packet.
