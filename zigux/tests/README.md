@@ -80,6 +80,43 @@ Key entrypoints
   * `Documentation/zigux/phase6-perf-gate-survey.md`
   * `Documentation/zigux/README.md`
 
+Phase 2 review packet
+  * `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
+  * `Documentation/zigux/phase2-closure.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `scripts/zigux/README.md`
+  * `scripts/zigux/validate-phase2.py`
+  * `scripts/zigux/validate-phase2-closure.py`
+  * `scripts/zigux/check-phase2-tests-readme-alignment.py`
+  * `scripts/zigux/check-phase2-kconfig-readme-alignment.py`
+  * `scripts/zigux/check-phase2-tool-manifest-packets.py`
+  * `scripts/zigux/check-phase2-toolchain-pin-scope.py`
+  * `scripts/zigux/check-genksyms-bridge.py`
+  * `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
+  * `scripts/zigux/check-phase2-fixdep-gate.py`
+  * `scripts/zigux/check-kconfig-bridge.py`
+  * `scripts/zigux/check-phase2-cross.py`
+  * `scripts/zigux/check-phase2-cross-selftest-alignment.py`
+  * `zigux/tests/fixtures/phase2_cross_targets.json`
+  * `zigux/tests/fixtures/phase2_tool_manifest.json`
+  * `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
+  * `zigux/tests/fixtures/genksyms_bridge/manifest.json`
+  * `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
+  * `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
+  * `scripts/zigux/kconfig/conf_bridge.zig`
+  * `scripts/zigux/kconfig/confdata_bridge.zig`
+  * `python3 scripts/zigux/install-zig.py --self-test`
+  * `python3 scripts/zigux/check-zig-toolchain.py --self-test`
+  * `zig test scripts/zigux/fixdep.zig`
+  * `make -C zigux phase2-toolchain`
+  * `make -C zigux phase2-validate`
+  * `make -C zigux phase2-tools`
+  * `make -C zigux phase2-kconfig`
+  * `make -C zigux phase2-cross`
+  * `make -C zigux phase2`
+  * the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset
+  * keep the shipped genksyms bridge direct replay visible in the tests root through the committed fixture packet instead of reviving a direct tests-root replay command
+
 Phase 11 review packet
   * `Documentation/zigux/phase11-shared-replay-contract.md`
   * `Documentation/zigux/phase11-closure-note.md`
