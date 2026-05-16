@@ -84,10 +84,10 @@
       "status": "starter_landed",
       "kind": "helper_first",
       "anchor_ranges": [
-        "tools/lib/bpf/libbpf.c: exported attach, link, map, and program type string tables"
+        "tools/lib/bpf/libbpf.c: exported attach and map type string tables"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/type_names.zig",
-      "why_now": "The exported enum-to-name tables are dense lookups with stable output behavior, so they extend the helper-first libbpf foothold without widening into object loading, verifier work, or syscall-backed state."
+      "why_now": "The shipped attach-type and map-type enum-to-name tables are dense lookups with stable output behavior, so they extend the helper-first libbpf foothold without widening into object loading, verifier work, or syscall-backed state."
     },
     {
       "id": "P8-L15-S05",
