@@ -43,8 +43,8 @@ VALIDATOR_MARKERS = (
 
 CLOSURE_VALIDATOR_MARKERS = (
     "shared kconfig selftest-alignment self-test",
-    'KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"',
-    "16-case` conf bridge plus `13-case` confdata fixture replay",
+    'KCONFIG_BRIDGE_CASES = ROOT / "scripts" / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"',
+    "16-case` conf bridge plus `14-case` confdata fixture replay",
 )
 
 WORKFLOW_LINES = (
@@ -79,7 +79,7 @@ MAKEFILE_LINES = (
 SCRIPTS_README_MARKERS = (
     "check-phase2-kconfig-readme-alignment.py --self-test",
     "dedicated kconfig bridge checker packet documented through the shared Phase 2 reminder surface",
-    "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, `validate-phase2-closure.py`, `check-phase2-toolchain-pin-scope.py`, `check-phase2-tests-readme-alignment.py`, `check-phase2-kconfig-readme-alignment.py`, `check-phase2-tool-manifest-packets.py`, `check-phase2-fixdep-gate.py`, `check-fixdep-diff.py`, `check-genksyms-bridge.py`, `check-phase2-cross.py`, `check-phase2-cross-selftest-alignment.py`, `check-phase2-kconfig-selftest-alignment.py`, `check-phase2-confdata-helper-anchor-alignment.py`, and `check-kconfig-bridge.py` are the live shared scripts-root Phase 2 helpers on current `master`",
+    "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, `validate-phase2-closure.py`, `check-phase2-toolchain-pin-scope.py`, `check-phase2-tests-readme-alignment.py`, `check-phase2-kconfig-readme-alignment.py`, `check-phase2-tool-manifest-packets.py`, `check-phase2-fixdep-gate.py`, `check-fixdep-diff.py`, `check-genksyms-bridge.py`, `check-phase2-cross.py`, `check-phase2-cross-selftest-alignment.py`, `check-phase2-kconfig-selftest-alignment.py`, `check-phase2-confdata-helper-anchor-alignment.py`, and `check-kconfig-bridge.py` are the live shared scripts-root Phase 2 helpers on current `master`\",",
 )
 
 TESTS_README_MARKERS = (
@@ -103,13 +103,13 @@ PHASE2_CLOSURE_DOC_MARKERS = (
 )
 
 PHASE2_BOOTSTRAP_NOTES_MARKERS = (
-    "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded direct `zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, `zig test scripts/zigux/kconfig/conf_bridge.zig`, and `zig test scripts/zigux/kconfig/confdata_bridge.zig` replays, and the committed genksyms bridge fixture plus kconfig manifest packet reviewable without reopening the dedicated genksyms or kconfig lanes from this bootstrap note",
+    "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded direct `zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, `zig test scripts/zigux/kconfig/conf_bridge.zig`, and `zig test scripts/zigux/kconfig/confdata_bridge.zig` replays, and the committed genksyms bridge fixture plus kconfig manifest packet reviewable without reopening the dedicated genksyms or kconfig lanes from this bootstrap note\",",
     "the active Phase 2 closure note and Makefile keep the validator-routed direct `zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, `zig test scripts/zigux/kconfig/conf_bridge.zig`, and `zig test scripts/zigux/kconfig/confdata_bridge.zig` replays explicit beside the same bounded Phase 2 tools and kconfig routes",
 )
 
 PHASE2_CONFDATA_SURVEY_MARKERS = (
-    "`zigux/tests/fixtures/kconfig_bridge/cases.json` currently carries a `confdata_cases` packet with 13 fixture cases",
-    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.",
+    "`zigux/tests/fixtures/kconfig_bridge/cases.json` currently carries a `confdata_cases` packet with 14 fixture cases",
+    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 14-case packet, and names the current helper-local anchor list for the bridge tests.",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-kconfig-readme-alignment.py`, `scripts/zigux/validate-phase2.py`, and `scripts/zigux/validate-phase2-closure.py` now keep the already-landed confdata bridge packet reviewable through the shared Phase 2 reminder surface",
 )
 
@@ -118,9 +118,9 @@ PHASE2_CONFDATA_SURVEY_FORBIDDEN_MARKERS = (
     "same 11-case packet",
 )
 
-EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 26
+EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 27
 EXPECTED_CONF_CASE_COUNT = 16
-EXPECTED_CONFDATA_CASE_COUNT = 13
+EXPECTED_CONFDATA_CASE_COUNT = 14
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
 EXPECTED_SELF_TEST_CASE_COUNT = 45
 
@@ -321,13 +321,14 @@ def build_self_test_root(root: Path) -> None:
     checker_source = "\n".join(
         [
             "REQUIRED_CONF_CASE_MODES = [",
-            *[f'    "{name}",' for name in ("oldaskconfig", "syncconfig", "oldconfig", "allnoconfig", "allyesconfig", "allmodconfig", "alldefconfig", "randconfig", "defconfig", "savedefconfig", "listnewconfig", "helpnewconfig", "olddefconfig", "yes2modconfig", "mod2yesconfig", "mod2noconfig")],
+            *[f'    \"{name}\",' for name in (\"oldaskconfig\", \"syncconfig\", \"oldconfig\", \"allnoconfig\", \"allyesconfig\", \"allmodconfig\", \"alldefconfig\", \"randconfig\", \"defconfig\", \"savedefconfig\", \"listnewconfig\", \"helpnewconfig\", \"olddefconfig\", \"yes2modconfig\", \"mod2yesconfig\", \"mod2noconfig\")],
             "]",
+            "",
             "REQUIRED_CONFDATA_CASES = [",
-            *[f'    "{name}",' for name in ("sample", "escaped_strings", "escaped_control_sequences", "trailing_escaped_backslash", "sample_crlf", "explicit_n_tristate", "final_trailing_carriage_return", "final_unterminated_unset_comment", "uppercase_tristate", "non_config_lines", "empty_config_symbol_names", "last_state_transitions", "duplicate_malformed_quoted_assignment")],
+            *[f'    \"{name}\",' for name in (\"sample\", \"escaped_strings\", \"escaped_control_sequences\", \"trailing_escaped_backslash\", \"sample_crlf\", \"explicit_n_tristate\", \"final_trailing_carriage_return\", \"final_unterminated_unset_comment\", \"uppercase_tristate\", \"non_config_lines\", \"empty_config_symbol_names\", \"malformed_unset_comment_tokens\", \"last_state_transitions\", \"duplicate_malformed_quoted_assignment\")],
             "]",
             "REQUIRED_CONFDATA_HELPER_ANCHORS = [",
-            *[f'    "anchor_{index}",' for index in range(EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT)],
+            *[f'    \"anchor_{index}\",' for index in range(EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT)],
             "]",
             f"EXPECTED_SELF_TEST_CASE_COUNT = {EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT}",
             "",
@@ -337,7 +338,7 @@ def build_self_test_root(root: Path) -> None:
 
     cases_payload = {
         "conf_cases": [{"name": name} for name in ("oldaskconfig", "syncconfig", "oldconfig", "allnoconfig", "allyesconfig", "allmodconfig", "alldefconfig", "randconfig", "defconfig", "savedefconfig", "listnewconfig", "helpnewconfig", "olddefconfig", "yes2modconfig", "mod2yesconfig", "mod2noconfig")],
-        "confdata_cases": [{"name": name} for name in ("sample", "escaped_strings", "escaped_control_sequences", "trailing_escaped_backslash", "sample_crlf", "explicit_n_tristate", "final_trailing_carriage_return", "final_unterminated_unset_comment", "uppercase_tristate", "non_config_lines", "empty_config_symbol_names", "last_state_transitions", "duplicate_malformed_quoted_assignment")],
+        "confdata_cases": [{"name": name} for name in ("sample", "escaped_strings", "escaped_control_sequences", "trailing_escaped_backslash", "sample_crlf", "explicit_n_tristate", "final_trailing_carriage_return", "final_unterminated_unset_comment", "uppercase_tristate", "non_config_lines", "empty_config_symbol_names", "malformed_unset_comment_tokens", "last_state_transitions", "duplicate_malformed_quoted_assignment")],
     }
     write_text(under_root(root, KCONFIG_BRIDGE_CASES), json.dumps(cases_payload, indent=2) + "\n")
     write_text(
