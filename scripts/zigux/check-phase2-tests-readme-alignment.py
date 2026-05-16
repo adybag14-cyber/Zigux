@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 from __future__ import annotations
 
 import argparse
@@ -25,8 +24,8 @@ DOCS_ROOT_PHASE2_BOUNDARY_SENTENCE = (
     "the pinned installer path but stops at installer-side archive verification plus "
     "`python3 scripts/zigux/check-phase2-cross.py --target <matrix-zig-target>`, while "
     "the Linux-style `make -C zigux phase2-cross` route still picks up `phase2-toolchain` "
-    'and its `python3 scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"` replay through '
-    "`zigux/Makefile`."
+    "and its `python3 scripts/zigux/check-zig-toolchain.py --zig \"$(ZIG)\"` replay "
+    "through `zigux/Makefile`."
 )
 SCRIPTS_PHASE2_LIVE_SENTENCE = (
     "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, "
@@ -332,14 +331,24 @@ LINE_EXACT_COUNT_CHECKS = {
         "run: python3 scripts/zigux/check-genksyms-bridge.py": 1,
     },
     "zigux/Makefile": {
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py --self-test": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py": 1,
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig": 1,
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig": 1,
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py": 1,
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test": 1,
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py": 1,
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test": 1,
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py": 1,
     },
