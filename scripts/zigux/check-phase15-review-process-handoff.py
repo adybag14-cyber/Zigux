@@ -24,6 +24,7 @@ PARITY_SCORECARD_NOTE_PATH = "Documentation/zigux/phase15-parity-scorecard.md"
 READINESS_MANIFEST_PATH = "zigux/tests/phase15_readiness_gate_manifest.json"
 PARITY_SCORECARD_SURVEY_PATH = "Documentation/zigux/phase15-parity-scorecard-survey.md"
 DECISION_TEMPLATE_PATH = "Documentation/zigux/phase15-architecture-council-decision-record-template.md"
+CHECKER_PATH = "scripts/zigux/check-phase15-review-process-handoff.py"
 
 EXPECTED_MANIFEST_LANE_KEY = "P15-L08"
 EXPECTED_MANIFEST_PHASE = "Phase 15"
@@ -43,6 +44,7 @@ NOTE_MARKERS = (
     SCORECARD_NO_APPROVAL_MARKER,
     "Keep the Phase 15 governance lane in maintenance mode.",
     DECISION_TEMPLATE_PATH,
+    CHECKER_PATH,
     PARITY_SCORECARD_SURVEY_PATH,
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
@@ -77,7 +79,7 @@ LANE_NOTE_MARKERS = (
     "zigux/tests/README.md",
 )
 
-VALIDATOR_MARKERS = ("scripts/zigux/check-phase15-review-process-handoff.py",)
+VALIDATOR_MARKERS = (CHECKER_PATH,)
 
 DOCS_README_MARKERS = (
     NOTE_PATH,
@@ -103,13 +105,13 @@ REVIEW_CHECKLIST_MARKERS = (
     "retained discussion state, the current blocker, and reopen triggers explicit",
 )
 
-SCRIPTS_README_MARKERS = ("check-phase15-review-process-handoff.py",)
+SCRIPTS_README_MARKERS = (CHECKER_PATH,)
 
 TESTS_README_PACKET_MARKERS = (
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
+    CHECKER_PATH,
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
@@ -165,6 +167,17 @@ OWNERSHIP_EVIDENCE_FIELDS = (
     "indefinite-C policy link or non-applicability note",
 )
 
+DIRECTLY_COUPLED_EVIDENCE_SURFACES = (
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/review-checklist.md",
+    CHECKER_PATH,
+    "zigux/tests/phase15_build.zig",
+)
+
 TRIGGER_CONDITIONS = (
     "freeze-map list change",
     "freeze-map status-bucket change",
@@ -201,6 +214,7 @@ HANDOFF_NEXT_STEP_MARKERS = (
     POLICY_PATH,
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     LANE_NOTE_PATH,
+    CHECKER_PATH,
     MANIFEST_PATH,
     "zigux/tests/phase15_build.zig",
     "keep any repair scoped to the review-process packet instead of reopening shared-summary, parity-scorecard, or readiness packets",
@@ -408,6 +422,12 @@ def validate(root: Path) -> list[str]:
     scorecard_note_text = _read(root / PARITY_SCORECARD_NOTE_PATH)
 
     _require_items(
+        review_manifest.get("directly_coupled_evidence_surfaces", []),
+        DIRECTLY_COUPLED_EVIDENCE_SURFACES,
+        "manifest_directly_coupled_evidence_surfaces",
+        issues,
+    )
+    _require_items(
         review_manifest.get("ownership_evidence_fields", []),
         OWNERSHIP_EVIDENCE_FIELDS,
         "manifest_ownership_evidence_fields",
@@ -496,6 +516,7 @@ def _seed_fixture_tree(root: Path) -> None:
             SCORECARD_NO_APPROVAL_MARKER,
             "Keep the Phase 15 governance lane in maintenance mode.",
             DECISION_TEMPLATE_PATH,
+            CHECKER_PATH,
             PARITY_SCORECARD_SURVEY_PATH,
             "Documentation/zigux/phase15-readiness-gate-survey.md",
             "Documentation/zigux/phase15-governance-lane-sequencing.md",
@@ -525,6 +546,7 @@ def _seed_fixture_tree(root: Path) -> None:
         "anchor": EXPECTED_MANIFEST_ANCHOR,
         "review_packet_template": DECISION_TEMPLATE_PATH,
         "current_approval_state": "no_freeze_map_status_change_approved",
+        "directly_coupled_evidence_surfaces": list(DIRECTLY_COUPLED_EVIDENCE_SURFACES),
         "ownership_evidence_fields": list(OWNERSHIP_EVIDENCE_FIELDS),
         "trigger_conditions": list(TRIGGER_CONDITIONS),
         "required_review_packet_fields": list(REQUIRED_REVIEW_PACKET_FIELDS),
@@ -660,6 +682,12 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
+        note_path = root / NOTE_PATH
+        _write(note_path, _read(note_path).replace(CHECKER_PATH + "\n", "", 1))
+        _assert_only(validate(root), [f"note:missing:{CHECKER_PATH}"], "missing_note_checker_path")
+        _seed_fixture_tree(root)
+        case_count += 1
+
         manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace(
             "keep any repair scoped to the review-process packet instead of reopening shared-summary, parity-scorecard, or readiness packets",
@@ -679,15 +707,28 @@ def run_self_test() -> int:
 
         manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace(
-            "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+            CHECKER_PATH,
             "",
             1,
         )
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         _assert_only(
             validate(root),
-            ["manifest_handoff_next_step:missing:Documentation/zigux/phase15-architecture-council-decision-record-template.md"],
-            "missing_manifest_template_marker",
+            [f"manifest_handoff_next_step:missing:{CHECKER_PATH}"],
+            "missing_manifest_checker_marker",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["directly_coupled_evidence_surfaces"] = [
+            value for value in manifest["directly_coupled_evidence_surfaces"] if value != CHECKER_PATH
+        ]
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            [f"manifest_directly_coupled_evidence_surfaces:missing:{CHECKER_PATH}"],
+            "missing_manifest_direct_surface_checker",
         )
         _seed_fixture_tree(root)
         case_count += 1
@@ -769,6 +810,7 @@ def main() -> int:
         + len(REVIEW_CHECKLIST_MARKERS)
         + len(SCRIPTS_README_MARKERS)
         + len(TESTS_README_PACKET_MARKERS)
+        + len(DIRECTLY_COUPLED_EVIDENCE_SURFACES)
         + len(OWNERSHIP_EVIDENCE_FIELDS)
         + len(REQUIRED_REVIEW_PACKET_FIELDS)
         + len(TRIGGER_CONDITIONS)
