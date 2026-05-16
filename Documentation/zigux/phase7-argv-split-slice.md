@@ -7,6 +7,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 * `PHASE7_STATUS=parked`
 * `PHASE7_SLICE=argv-split-runtime-leaf`
 * `PHASE7_LANE_KEY=P7-L09`
+* legacy recurring alias: scheduled lane `P7-L02` is an older schedule label for this same parked helper packet; treat it as alias memory for `P7-L09`, not as a second active Phase 7 owner
 * scheduled alias: recurring scheduled lane `P7-Y07` is the older schedule label for this same parked helper packet; treat it as alias memory for `P7-L09`, not as a second active Phase 7 owner
 * scope: first low-risk argument-vector parsing and teardown helpers only
 * lane state: helper, dedicated survey, committed manifest packet, dedicated packet checker, shared validator, shared build-wiring checker, shared helper-lane sequencing note, and parked make-wrapper alignment note landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, survey, manifest, checker, shared validator, or build-wiring packet
@@ -109,6 +110,7 @@ Current `master` also directly exposes the shared Phase 7 build route as a cross
 
 That means the dedicated argv_split helper replay and dedicated argv_split survey remain reviewable inside this slice, while the broader shared `phase7_build.zig` route is again present on `master` as a shared bundle reminder rather than a missing-sibling blocker.
 Shared helper-lane ownership now lives in `Documentation/zigux/phase7-helper-lane-sequencing.md`; keep argv_split-local follow-through under `P7-L09` instead of reusing the shared sequencing lane.
+Legacy scheduled runs that still arrive as `P7-L02` should also be treated as this same parked helper packet so recurring bootstrap work does not fork the argv_split slice under a second lane key.
 
 ## Current parity surface
 
@@ -151,7 +153,7 @@ This slice still does not yet claim:
 ## Next bounded step
 
 Keep this slice parked unless fresh repo inspection finds one concrete `argv_split` parity, survey, manifest, fixture, or shared reminder drift inside the current helper packet.
-If a scheduled run still arrives as `P7-Y07`, treat it as this same parked packet and keep any follow-through under `P7-L09` instead of opening a second helper lane.
+If a scheduled run still arrives as `P7-L02` or `P7-Y07`, treat it as this same parked packet and keep any follow-through under `P7-L09` instead of opening a second helper lane.
 If the family reopens, prefer one tiny same-packet follow-through around the already-landed `cArgv()`, exported-view clearing, canonical blank-sentinel reset, or teardown-safety packet before widening into broader parsing policy or sample-boundary work.
 
 ## Footer
