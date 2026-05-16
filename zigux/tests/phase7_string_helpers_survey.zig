@@ -41,7 +41,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "`stringEscapeMem()` keeps append-limited and dictionary-mode output accounting inside caller-owned storage");
     try expectContains(slice_note, "`stringEscapeMemAnyNp()`, `stringEscapeStr()`, and `stringEscapeStrAnyNp()` keep any-NP and first-NUL-bounded string-wrapper escaping inside caller-owned storage");
     try expectContains(slice_note, "`kstrdupAndReplace()` returns caller-owned duplicated storage, applies replacements only inside the duplicated exported prefix, and leaves the source slice unchanged");
-    try expectContains(slice_note, "The next bounded follow-through should stay inside the helper-local packet");
+    try expectContains(slice_note, "The next bounded follow-through should keep the expanded starter packet truthful across the survey, manifest, boundary replay, and slice note.");
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
