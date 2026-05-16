@@ -79,6 +79,13 @@ pub fn keepsApprovedPilotFamilyContract(plan: LoadPlan) bool {
     return false;
 }
 
+pub fn keepsInitFlowExplicit(actual: InitFlow, expected: InitFlow) bool {
+    return actual.handoff_stage == expected.handoff_stage and
+        actual.init_runs == expected.init_runs and
+        actual.selftest_runs == expected.selftest_runs and
+        actual.exit_runs == expected.exit_runs;
+}
+
 pub fn keepsSelftestHookEvidenceConsistent(plan: LoadPlan) bool {
     if (!plan.provides_selftest_hook) return false;
     return switch (plan.init_flow.handoff_stage) {
@@ -101,10 +108,7 @@ pub fn keepsAllocatorInitFlowConsistent(
     init_flow: InitFlow,
 ) bool {
     return plan.allocator_handoff == allocator_handoff and
-        plan.init_flow.handoff_stage == init_flow.handoff_stage and
-        plan.init_flow.init_runs == init_flow.init_runs and
-        plan.init_flow.selftest_runs == init_flow.selftest_runs and
-        plan.init_flow.exit_runs == init_flow.exit_runs;
+        keepsInitFlowExplicit(plan.init_flow, init_flow);
 }
 
 pub fn keepsRequestStateAndPlanExplicit(
@@ -174,6 +178,40 @@ test "ensurePreparedRequestReady keeps the prepared snapshot explicit and revali
     invalid_contract.plan.module_name = "runtime_trace_events_drift";
     invalid_contract.prepared_plan.module_name = "runtime_trace_events_drift";
     try std.testing.expectError(error.InvalidPilotFamilyContract, ensurePreparedRequestReady(invalid_contract));
+}
+
+test "keepsInitFlowExplicit compares every staged runtime-init count" {
+    const initialized = InitFlow{
+        .handoff_stage = .initialized,
+        .init_runs = 1,
+        .selftest_runs = 0,
+        .exit_runs = 0,
+    };
+    try std.testing.expect(keepsInitFlowExplicit(initialized, initialized));
+
+    const selftest_complete = InitFlow{
+        .handoff_stage = .selftest_complete,
+        .init_runs = 1,
+        .selftest_runs = 1,
+        .exit_runs = 0,
+    };
+    try std.testing.expect(keepsInitFlowExplicit(selftest_complete, selftest_complete));
+
+    var drifted = initialized;
+    drifted.handoff_stage = .selftest_complete;
+    try std.testing.expect(!keepsInitFlowExplicit(drifted, initialized));
+
+    drifted = initialized;
+    drifted.init_runs = 2;
+    try std.testing.expect(!keepsInitFlowExplicit(drifted, initialized));
+
+    drifted = initialized;
+    drifted.selftest_runs = 1;
+    try std.testing.expect(!keepsInitFlowExplicit(drifted, initialized));
+
+    drifted = initialized;
+    drifted.exit_runs = 1;
+    try std.testing.expect(!keepsInitFlowExplicit(drifted, initialized));
 }
 
 test "prepareRequest enforces the bounded runtime loader contract" {
@@ -304,6 +342,42 @@ test "PreparedRequest.requestRuntimeLoad preserves the prepared snapshot on self
     try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
 }
 
+test "PreparedRequest.requestRuntimeLoad preserves the prepared snapshot on staged init-flow count drift" {
+    const stable = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+
+    var request = try prepareRequest(stable);
+    request.plan.init_flow.init_runs = 2;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+    try std.testing.expect(keepsInitFlowExplicit(request.prepared_plan.init_flow, stable.init_flow));
+    try std.testing.expect(!keepsInitFlowExplicit(request.plan.init_flow, stable.init_flow));
+
+    request.plan = stable;
+    request.plan.init_flow.exit_runs = 1;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+    try std.testing.expect(keepsInitFlowExplicit(request.prepared_plan.init_flow, stable.init_flow));
+    try std.testing.expect(!keepsInitFlowExplicit(request.plan.init_flow, stable.init_flow));
+}
+
 test "PreparedRequest.releaseWithoutSubstrate preserves the pending snapshot on drift" {
     const stable = LoadPlan{
         .module_name = "runtime_bitmap",
@@ -340,6 +414,26 @@ test "PreparedRequest.releaseWithoutSubstrate preserves the pending snapshot on 
     try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
     try std.testing.expectEqual(AllocatorHandoff.arena, request.prepared_plan.allocator_handoff);
     try std.testing.expectEqual(AllocatorHandoff.caller_provided, request.plan.allocator_handoff);
+
+    request.plan = stable;
+    request.plan.init_flow.init_runs = 2;
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+    try std.testing.expect(keepsInitFlowExplicit(request.prepared_plan.init_flow, stable.init_flow));
+    try std.testing.expect(!keepsInitFlowExplicit(request.plan.init_flow, stable.init_flow));
+
+    request.plan = stable;
+    request.plan.init_flow.exit_runs = 1;
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+    try std.testing.expect(keepsInitFlowExplicit(request.prepared_plan.init_flow, stable.init_flow));
+    try std.testing.expect(!keepsInitFlowExplicit(request.plan.init_flow, stable.init_flow));
 
     request.plan = stable;
     request.prepared_plan = stable;
