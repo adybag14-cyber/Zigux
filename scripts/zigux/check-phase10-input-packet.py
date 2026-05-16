@@ -11,7 +11,9 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 FILES = [
     "Documentation/zigux/phase10-virtio-input-module-slice.md",
     "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_probe_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
+    "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
@@ -24,7 +26,9 @@ FILES = [
 MODULE_MARKERS = [
     "# Phase 10 Virtio Input Module Slice",
     "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_probe_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
+    "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
@@ -32,6 +36,7 @@ MODULE_MARKERS = [
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "queued status completions are still reclaimed in memory",
+    "wrapper-facing verify coverage still proves queue-callback ordering and registration prerequisites without widening into transport-backed queue execution",
     "registration lifecycle closure, freeze, restore, remove, and broader transport-backed lifecycle work remain outside this module slice",
 ]
 
@@ -50,6 +55,13 @@ INPUT_HELPER_MARKERS = [
     "pub fn drainStatusQueue(self: *Self, completed_count: usize) !StatusDrainSummary {",
 ]
 
+PROBE_HELPER_MARKERS = [
+    "pub const ProbePreflightSummary = virtio_input.ProbePreflightSummary;",
+    "pub const ProbePreflightBlocker = virtio_input.ProbePreflightBlocker;",
+    "pub fn summarize(device: *const virtio_input.VirtioInputLab) ProbePreflightSummary {",
+    "pub fn blockerTag(blocker: ProbePreflightBlocker) []const u8 {",
+]
+
 REGISTRATION_HELPER_MARKERS = [
     "pub const RegistrationPreflightSummary = virtio_input.RegistrationPreflightSummary;",
     "pub const RegistrationBlocker = virtio_input.RegistrationBlocker;",
@@ -57,7 +69,13 @@ REGISTRATION_HELPER_MARKERS = [
     "pub fn blockerTag(blocker: RegistrationBlocker) []const u8 {",
 ]
 
+VERIFY_HELPER_MARKERS = [
+    'test "phase10 virtio input verify keeps wrapper-facing queue preflight ordering explicit" {',
+    'test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
+]
+
 BUILD_MARKERS = [
+    "virtio_input_verify_module",
     "phase10_virtio_input_module",
     "phase10_virtio_input_probe_preflight_module",
     "phase10_virtio_input_queue_callback_preflight_module",
@@ -70,6 +88,7 @@ BUILD_MARKERS = [
     '"phase10-virtio-input-registration-preflight-tests"',
     '"phase10-virtio-input-status-drain-tests"',
     '"phase10-virtio-input-teardown-observation-tests"',
+    '"phase10-virtio-input-verify-tests"',
 ]
 
 TEST_MARKERS = {
@@ -125,9 +144,21 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     )
     check_markers(
         missing_markers,
+        "probe_helper",
+        read_text(root, "drivers/virtio/virtio_input_probe_preflight.zig"),
+        PROBE_HELPER_MARKERS,
+    )
+    check_markers(
+        missing_markers,
         "registration_helper",
         read_text(root, "drivers/virtio/virtio_input_registration_preflight.zig"),
         REGISTRATION_HELPER_MARKERS,
+    )
+    check_markers(
+        missing_markers,
+        "verify_helper",
+        read_text(root, "drivers/virtio/virtio_input_verify.zig"),
+        VERIFY_HELPER_MARKERS,
     )
     check_markers(
         missing_markers,
@@ -145,7 +176,9 @@ def write_fixture(root: Path) -> None:
     fixture_contents = {
         "Documentation/zigux/phase10-virtio-input-module-slice.md": "\n".join(MODULE_MARKERS) + "\n",
         "drivers/virtio/virtio_input.zig": "\n".join(INPUT_HELPER_MARKERS) + "\n",
+        "drivers/virtio/virtio_input_probe_preflight.zig": "\n".join(PROBE_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_registration_preflight.zig": "\n".join(REGISTRATION_HELPER_MARKERS) + "\n",
+        "drivers/virtio/virtio_input_verify.zig": "\n".join(VERIFY_HELPER_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
     }
     for rel_path, markers in TEST_MARKERS.items():
@@ -194,16 +227,16 @@ def run_self_test() -> int:
         original_module_note = module_note_path.read_text(encoding="utf-8")
         module_note_path.write_text(
             original_module_note.replace(
-                "zigux/tests/phase10_virtio_input_status_drain.zig",
-                "zigux/tests/phase10_virtio_input_status_drain_missing.zig",
+                "drivers/virtio/virtio_input_verify.zig",
+                "drivers/virtio/virtio_input_verify_missing.zig",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            "module_note:zigux/tests/phase10_virtio_input_status_drain.zig",
-            "phase10-input-live-packet-self-test:module_note_status_path",
+            "module_note:drivers/virtio/virtio_input_verify.zig",
+            "phase10-input-live-packet-self-test:module_note_verify_path",
         )
         module_note_path.write_text(original_module_note, encoding="utf-8")
         case_count += 1
@@ -226,6 +259,24 @@ def run_self_test() -> int:
         input_helper_path.write_text(original_input_helper, encoding="utf-8")
         case_count += 1
 
+        probe_helper_path = root / "drivers/virtio/virtio_input_probe_preflight.zig"
+        original_probe_helper = probe_helper_path.read_text(encoding="utf-8")
+        probe_helper_path.write_text(
+            original_probe_helper.replace(
+                "pub fn blockerTag(blocker: ProbePreflightBlocker) []const u8 {",
+                "pub fn blockerName(blocker: ProbePreflightBlocker) []const u8 {",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "probe_helper:pub fn blockerTag(blocker: ProbePreflightBlocker) []const u8 {",
+            "phase10-input-live-packet-self-test:probe_helper_blocker_tag",
+        )
+        probe_helper_path.write_text(original_probe_helper, encoding="utf-8")
+        case_count += 1
+
         registration_helper_path = root / "drivers/virtio/virtio_input_registration_preflight.zig"
         original_registration_helper = registration_helper_path.read_text(encoding="utf-8")
         registration_helper_path.write_text(
@@ -244,20 +295,38 @@ def run_self_test() -> int:
         registration_helper_path.write_text(original_registration_helper, encoding="utf-8")
         case_count += 1
 
-        build_path = root / "zigux/tests/phase10_build.zig"
-        original_build = build_path.read_text(encoding="utf-8")
-        build_path.write_text(
-            original_build.replace(
-                '"phase10-virtio-input-teardown-observation-tests"',
-                '"phase10-virtio-input-teardown-observation-drift"',
+        verify_helper_path = root / "drivers/virtio/virtio_input_verify.zig"
+        original_verify_helper = verify_helper_path.read_text(encoding="utf-8")
+        verify_helper_path.write_text(
+            original_verify_helper.replace(
+                'test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
+                'test "phase10 virtio input verify drift" {',
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            'phase10_build:"phase10-virtio-input-teardown-observation-tests"',
-            "phase10-input-live-packet-self-test:build_teardown_test",
+            'verify_helper:test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
+            "phase10-input-live-packet-self-test:verify_helper_registration_test",
+        )
+        verify_helper_path.write_text(original_verify_helper, encoding="utf-8")
+        case_count += 1
+
+        build_path = root / "zigux/tests/phase10_build.zig"
+        original_build = build_path.read_text(encoding="utf-8")
+        build_path.write_text(
+            original_build.replace(
+                '"phase10-virtio-input-verify-tests"',
+                '"phase10-virtio-input-verify-drift"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            'phase10_build:"phase10-virtio-input-verify-tests"',
+            "phase10-input-live-packet-self-test:build_verify_test",
         )
         build_path.write_text(original_build, encoding="utf-8")
         case_count += 1
@@ -280,11 +349,11 @@ def run_self_test() -> int:
         direct_test_path.write_text(original_direct_test, encoding="utf-8")
         case_count += 1
 
-        (root / "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig").unlink()
+        (root / "drivers/virtio/virtio_input_verify.zig").unlink()
         expect_missing_file(
             root,
-            "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
-            "phase10-input-live-packet-self-test:missing_queue_callback_test",
+            "drivers/virtio/virtio_input_verify.zig",
+            "phase10-input-live-packet-self-test:missing_verify_helper",
         )
         write_fixture(root)
         case_count += 1
@@ -329,7 +398,7 @@ def main() -> int:
     print(f"PHASE10_INPUT_LIVE_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE10_INPUT_LIVE_REQUIRED_MARKER_COUNT="
-        f"{len(MODULE_MARKERS) + len(INPUT_HELPER_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(BUILD_MARKERS) + sum(len(markers) for markers in TEST_MARKERS.values())}"
+        f"{len(MODULE_MARKERS) + len(INPUT_HELPER_MARKERS) + len(PROBE_HELPER_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_HELPER_MARKERS) + len(BUILD_MARKERS) + sum(len(markers) for markers in TEST_MARKERS.values())}"
     )
     return 0
 
