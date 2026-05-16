@@ -57,6 +57,8 @@ zigux/tests/phase7_build.zig --summary all` routes as route-present focused
 helper-local adapters exposed by the shared build graph rather than as a claim
 that the parked shared bundle is newly all-green.
 
+`.github/workflows/zigux-bootstrap.yml` now also replays `make -C zigux phase7-string-helpers-sample-boundary` as a focused shared-control adapter route. That keeps one bounded direct replay visible in CI beside the broader `make -C zigux phase7-test` bundle without claiming that the entire parked helper packet is freshly all-green.
+
 The older string-helpers missing-pair reminder and the older missing-rbtree
 replay reminder are no longer the live blocker for this shared note. Keep
 helper-local owner routing under `Documentation/zigux/phase7-helper-lane-sequencing.md`;
@@ -121,7 +123,7 @@ the landed route-present readback, and the shared no-sample packet so the
 parked `string_helpers`, `cmdline`, `argv_split`, and `rbtree` bundle does not
 drift back toward per-slice ad hoc checks or a false all-green shared status.
 
-`make -C zigux phase7-validate`, the dedicated survey and sample-boundary
+`make -C zigux phase7-validate`, the bootstrap workflow's direct `make -C zigux phase7-string-helpers-sample-boundary` adapter, the dedicated survey and sample-boundary
 replays, the direct `zig build phase7-*-test --build-file
 zigux/tests/phase7_build.zig --summary all` adapters, `make -C zigux phase7-test`,
 and `make -C zigux phase7` remain the Linux-style review routes for this shared
