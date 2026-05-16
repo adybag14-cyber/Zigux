@@ -161,7 +161,7 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
         "keep the direct atomic64 starter packet explicit, treat the visible shared loader-facing reminder packet as review-only evidence, and leave the broader runtime-substrate blocker explicit",
         manifest.roadmap_gap_summary.next_gate,
     );
-    try std.testing.expectEqual(@as(usize, 12), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);
 
     const sample_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-atomic64-sample") orelse return error.MissingSampleEntry;
