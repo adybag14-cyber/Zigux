@@ -213,7 +213,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 53
+EXPECTED_SELF_TEST_CASE_COUNT = 79
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
@@ -755,18 +755,19 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:bootstrap_marker_presence")
     checks_run += 1
 
-    bootstrap_missing = validate_required_markers(
-        "\n".join(BOOTSTRAP_NOTES_MARKERS[1:]),
-        label="phase2_bootstrap_notes",
-        markers=BOOTSTRAP_NOTES_MARKERS,
-    )
-    expected_bootstrap_issue = (
-        "phase2_bootstrap_notes:missing_marker:"
-        "shared cross selftest-alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`"
-    )
-    if bootstrap_missing != [expected_bootstrap_issue]:
-        raise SystemExit("phase2-cross-alignment:self-test:bootstrap_marker_failure")
-    checks_run += 1
+    for marker in BOOTSTRAP_NOTES_MARKERS:
+        bootstrap_missing = validate_required_markers(
+            "\n".join(item for item in BOOTSTRAP_NOTES_MARKERS if item != marker),
+            label="phase2_bootstrap_notes",
+            markers=BOOTSTRAP_NOTES_MARKERS,
+        )
+        expected_bootstrap_issue = (
+            "phase2_bootstrap_notes:missing_marker:"
+            f"{marker}"
+        )
+        if bootstrap_missing != [expected_bootstrap_issue]:
+            raise SystemExit("phase2-cross-alignment:self-test:bootstrap_marker_failure")
+        checks_run += 1
 
     bootstrap_forbidden_issues = validate_forbidden_markers(
         "\n".join(BOOTSTRAP_NOTES_MARKERS),
@@ -799,18 +800,19 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:docs_root_readme_marker_presence")
     checks_run += 1
 
-    docs_root_readme_missing = validate_required_markers(
-        "\n".join(DOCS_ROOT_README_MARKERS[:-1]),
-        label="phase2_docs_root_readme",
-        markers=DOCS_ROOT_README_MARKERS,
-    )
-    expected_docs_root_issue = (
-        "phase2_docs_root_readme:missing_marker:"
-        + DOCS_ROOT_README_BOUNDARY_SENTENCE
-    )
-    if docs_root_readme_missing != [expected_docs_root_issue]:
-        raise SystemExit("phase2-cross-alignment:self-test:docs_root_readme_marker_failure")
-    checks_run += 1
+    for marker in DOCS_ROOT_README_MARKERS:
+        docs_root_readme_missing = validate_required_markers(
+            "\n".join(item for item in DOCS_ROOT_README_MARKERS if item != marker),
+            label="phase2_docs_root_readme",
+            markers=DOCS_ROOT_README_MARKERS,
+        )
+        expected_docs_root_issue = (
+            "phase2_docs_root_readme:missing_marker:"
+            f"{marker}"
+        )
+        if docs_root_readme_missing != [expected_docs_root_issue]:
+            raise SystemExit("phase2-cross-alignment:self-test:docs_root_readme_marker_failure")
+        checks_run += 1
 
     scripts_readme_issues = validate_required_markers(
         "\n".join(SCRIPTS_README_MARKERS),
@@ -821,18 +823,19 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:scripts_readme_marker_presence")
     checks_run += 1
 
-    scripts_readme_missing = validate_required_markers(
-        "\n".join(SCRIPTS_README_MARKERS[1:]),
-        label="phase2_scripts_readme",
-        markers=SCRIPTS_README_MARKERS,
-    )
-    expected_scripts_readme_issue = (
-        "phase2_scripts_readme:missing_marker:"
-        "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`"
-    )
-    if scripts_readme_missing != [expected_scripts_readme_issue]:
-        raise SystemExit("phase2-cross-alignment:self-test:scripts_readme_marker_failure")
-    checks_run += 1
+    for marker in SCRIPTS_README_MARKERS:
+        scripts_readme_missing = validate_required_markers(
+            "\n".join(item for item in SCRIPTS_README_MARKERS if item != marker),
+            label="phase2_scripts_readme",
+            markers=SCRIPTS_README_MARKERS,
+        )
+        expected_scripts_readme_issue = (
+            "phase2_scripts_readme:missing_marker:"
+            f"{marker}"
+        )
+        if scripts_readme_missing != [expected_scripts_readme_issue]:
+            raise SystemExit("phase2-cross-alignment:self-test:scripts_readme_marker_failure")
+        checks_run += 1
 
     tests_readme_issues = validate_required_markers(
         "\n".join(TESTS_README_MARKERS),
@@ -843,15 +846,16 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:tests_readme_marker_presence")
     checks_run += 1
 
-    tests_readme_missing = validate_required_markers(
-        "\n".join(TESTS_README_MARKERS[:-1]),
-        label="phase2_tests_readme",
-        markers=TESTS_README_MARKERS,
-    )
-    expected_tests_issue = "phase2_tests_readme:missing_marker:make -C zigux phase2-cross"
-    if tests_readme_missing != [expected_tests_issue]:
-        raise SystemExit("phase2-cross-alignment:self-test:tests_readme_marker_failure")
-    checks_run += 1
+    for marker in TESTS_README_MARKERS:
+        tests_readme_missing = validate_required_markers(
+            "\n".join(item for item in TESTS_README_MARKERS if item != marker),
+            label="phase2_tests_readme",
+            markers=TESTS_README_MARKERS,
+        )
+        expected_tests_issue = f"phase2_tests_readme:missing_marker:{marker}"
+        if tests_readme_missing != [expected_tests_issue]:
+            raise SystemExit("phase2-cross-alignment:self-test:tests_readme_marker_failure")
+        checks_run += 1
 
     review_checklist_issues = validate_required_markers(
         "\n".join(REVIEW_CHECKLIST_MARKERS),
@@ -862,30 +866,33 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:review_checklist_marker_presence")
     checks_run += 1
 
-    review_checklist_missing = validate_required_markers(
-        "\n".join(REVIEW_CHECKLIST_MARKERS[:-1]),
-        label="phase2_review_checklist",
-        markers=REVIEW_CHECKLIST_MARKERS,
-    )
-    expected_review_checklist_issue = (
-        "phase2_review_checklist:missing_marker:scripts/zigux/kconfig/confdata_bridge.zig"
-    )
-    if review_checklist_missing != [expected_review_checklist_issue]:
-        raise SystemExit("phase2-cross-alignment:self-test:review_checklist_marker_failure")
-    checks_run += 1
+    for marker in REVIEW_CHECKLIST_MARKERS:
+        review_checklist_missing = validate_required_markers(
+            "\n".join(item for item in REVIEW_CHECKLIST_MARKERS if item != marker),
+            label="phase2_review_checklist",
+            markers=REVIEW_CHECKLIST_MARKERS,
+        )
+        expected_review_checklist_issue = (
+            "phase2_review_checklist:missing_marker:"
+            f"{marker}"
+        )
+        if review_checklist_missing != [expected_review_checklist_issue]:
+            raise SystemExit("phase2-cross-alignment:self-test:review_checklist_marker_failure")
+        checks_run += 1
 
-    closure_missing = validate_required_markers(
-        "\n".join(CLOSURE_MARKERS[:2] + CLOSURE_MARKERS[3:]),
-        label="phase2_closure_doc",
-        markers=CLOSURE_MARKERS,
-    )
-    expected_closure_issue = (
-        "phase2_closure_doc:missing_marker:"
-        "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`"
-    )
-    if closure_missing != [expected_closure_issue]:
-        raise SystemExit("phase2-cross-alignment:self-test:closure_marker_failure")
-    checks_run += 1
+    for marker in CLOSURE_MARKERS:
+        closure_missing = validate_required_markers(
+            "\n".join(item for item in CLOSURE_MARKERS if item != marker),
+            label="phase2_closure_doc",
+            markers=CLOSURE_MARKERS,
+        )
+        expected_closure_issue = (
+            "phase2_closure_doc:missing_marker:"
+            f"{marker}"
+        )
+        if closure_missing != [expected_closure_issue]:
+            raise SystemExit("phase2-cross-alignment:self-test:closure_marker_failure")
+        checks_run += 1
 
     with tempfile.TemporaryDirectory(prefix="phase2_cross_alignment_selftest_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
