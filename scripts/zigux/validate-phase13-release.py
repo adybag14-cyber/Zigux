@@ -124,7 +124,7 @@ REQUIRED_MARKERS = {
         "workflow companion: `Documentation/zigux/phase13-contributor-workflow-guide.md`",
         "tests-root companion: `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
         "release validator: `scripts/zigux/validate-phase13-release.py`",
-        "shared replay handle: `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`",
+        "stable shared replay handle: `zigux/Makefile` and `make -C zigux phase13-validate`",
         "shared-summary reread target: `scripts/zigux/README.md`, `zigux/tests/README.md`, this matrix, the docs-root Phase 13 companions, and the tests-root companion note are the shared surfaces to reread together;",
         "Keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands, and treat the broader `phase13` route as blocked convenience wiring rather than direct shipped current-`master` evidence.",
     ],
@@ -311,9 +311,9 @@ REQUIRED_MARKERS = {
         "phase13: phase13-validate phase13-test",
     ],
     ".github/workflows/zigux-bootstrap.yml": [
-        "Validate Phase 13 release-discipline packet",
+        "Validate Phase 13 release routes",
         "make -C zigux phase13-validate",
-        "Run Phase 13 shared helper tests",
+        "Run Phase 13 release tests",
         "make -C zigux phase13-test",
     ],
 }
@@ -1164,13 +1164,13 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"]
-                if marker != "Run Phase 13 shared helper tests"
+                if marker != "Run Phase 13 release tests"
             )
             + "\n",
         )
         assert_only(
             validate(root),
-            ["missing_marker:.github/workflows/zigux-bootstrap.yml:Run Phase 13 shared helper tests"],
+            ["missing_marker:.github/workflows/zigux-bootstrap.yml:Run Phase 13 release tests"],
             "missing_phase13_workflow_step_failed",
         )
         case_count += 1
