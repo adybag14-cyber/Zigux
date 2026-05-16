@@ -1,5 +1,5 @@
 {
-  "lane_key": "P5-L18",
+  "lane_key": "P5-L13",
   "phase": "Phase 5",
   "surveyed_commit": "fcf670977ef02f9fa7e5d1950d67ba0589baa230",
   "anchor": "samples/kprobes/kretprobe_example.c",
