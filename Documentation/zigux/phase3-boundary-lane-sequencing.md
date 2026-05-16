@@ -8,7 +8,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 
 ## Current lane map
 
-- shared ABI and bindings packet, lane baseline `P3-X08`, current shared replay maintenance `P3-L10`:
+- shared ABI and bindings packet, lane baseline `P3-X08`:
   - `Documentation/zigux/phase3-abi-slice.md`
   - `Documentation/zigux/phase3-abi-bindings-survey.md`
   - `zigux/tests/fixtures/phase3_abi_manifest.json`
@@ -26,7 +26,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
 - kernel-facing relay packet, lane baseline `P3-Y07`, current governance maintenance `P3-X07`:
   - `Documentation/zigux/phase3-kernel-export-shim-governance.md`
   - `zigux/kernel/export_shim.zig`
-- starter UAPI packet, lane baseline `P3-Y02`, current validator maintenance `P3-X02`, current export-governance maintenance `P3-Y08`:
+- starter UAPI packet, lane baseline `P3-Y02`, current validator maintenance `P3-X02`, current export-governance maintenance `P3-Y08`, current shared replay maintenance `P3-L10`:
   - `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
   - `zigux/uapi/version.zig`
   - `zigux/uapi/dev_t.zig`
