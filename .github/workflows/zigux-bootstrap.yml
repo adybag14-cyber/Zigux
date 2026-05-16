@@ -317,6 +317,11 @@ jobs:
       - name: Validate Phase 8 tooling routes
         run: make -C zigux phase8-validate
 
+      - name: Run focused Phase 8 exec-cmd tests
+        run: |
+          zig test tools/lib/subcmd/exec-cmd.zig
+          make -C zigux phase8-exec-cmd-test
+
       - name: Run Phase 8 tooling tests
         run: make -C zigux phase8-test
 
