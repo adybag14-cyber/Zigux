@@ -44,6 +44,7 @@ The current shared governance packet already includes the documented exception p
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
+- `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_build.zig`
 - `make -C zigux phase15-validate`
 - `make -C zigux phase15-test`
@@ -77,7 +78,7 @@ Because the dedicated parity roadmap-gap survey, the dedicated parity scorecard,
 The next honest Architecture Council follow-up is maintenance only:
 
 - if review-process drift appears first, reread `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_architecture_council_review_process.zig` together, then keep any repair scoped to that review-process packet and its direct guard
-- if sequencing-note drift appears first, reread `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-parity-scorecard.md`, and `Documentation/zigux/phase15-indefinite-c-policy.md` together, then keep any repair scoped to this sequencing note plus its direct guard
+- if sequencing-note drift appears first, reread `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and `zigux/tests/phase15_governance_lane_sequencing.zig` together, then keep any repair scoped to this sequencing note plus `zigux/tests/phase15_governance_lane_sequencing.zig`
 - otherwise wait for a named reopen trigger or a real deep-core blocker-posture change
 
 Until one of those happens, keep the current governance packet parked and keep every freeze-map anchor in its existing blocked posture.
