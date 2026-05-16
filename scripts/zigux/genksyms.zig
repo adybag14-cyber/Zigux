@@ -373,7 +373,7 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
     var references = std.ArrayList([]const u8).empty;
     var rendered_args = std.ArrayList([]const u8).empty;
     var positional_args = std.ArrayList([]const u8).empty;
-    var saw_non_version_request_input = false;
+    var saw_non_version_option_input = false;
     defer references.deinit(allocator);
     defer rendered_args.deinit(allocator);
     defer positional_args.deinit(allocator);
@@ -382,7 +382,6 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
     while (index < args.len) : (index += 1) {
         const arg = args[index];
         if (std.mem.eql(u8, arg, "--")) {
-            saw_non_version_request_input = true;
             try rendered_args.append(allocator, arg);
             try rendered_args.appendSlice(allocator, positional_args.items);
             if (index + 1 < args.len) {
@@ -391,7 +390,6 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
             break;
         }
         if (arg.len == 0 or arg[0] != '-' or std.mem.eql(u8, arg, "-")) {
-            saw_non_version_request_input = true;
             try positional_args.append(allocator, arg);
             continue;
         }
@@ -400,7 +398,7 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
             const pure_version = isPureVersionLongOption(arg);
             switch (try parseLongOption(allocator, args, &index, &request, &references)) {
                 .none => {
-                    if (!pure_version) saw_non_version_request_input = true;
+                    if (!pure_version) saw_non_version_option_input = true;
                     try rendered_args.append(allocator, arg);
                     if (index != long_option_index and index < args.len) {
                         try rendered_args.append(allocator, args[index]);
@@ -417,7 +415,7 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
             const pure_version = isPureVersionShortCluster(arg);
             switch (try parseShortOptions(allocator, args, &index, &request, &references)) {
                 .none => {
-                    if (!pure_version) saw_non_version_request_input = true;
+                    if (!pure_version) saw_non_version_option_input = true;
                     try rendered_args.append(allocator, arg);
                     if (index != short_option_index and index < args.len) {
                         try rendered_args.append(allocator, args[index]);
@@ -435,7 +433,7 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
     if (index >= args.len) {
         try rendered_args.appendSlice(allocator, positional_args.items);
     }
-    if (!saw_non_version_request_input and request.version_count != 0) {
+    if (!saw_non_version_option_input and request.version_count != 0) {
         return .{ .command = .{ .version = request.version_count } };
     }
 
@@ -647,6 +645,64 @@ test "genksyms bridge preserves repeated pure version invocations" {
     switch (long_outcome) {
         .command => |command| switch (command) {
             .version => |count| try testing.expectEqual(@as(usize, 2), count),
+            else => return error.ExpectedVersionCommand,
+        },
+        else => return error.ExpectedVersionCommand,
+    }
+}
+
+test "genksyms bridge treats pure version requests with positional args as version command" {
+    const short_args = [_][]const u8{
+        "leftover.c",
+        "-V",
+    };
+    const short_outcome = try parseArgs(testing.allocator, &short_args);
+    switch (short_outcome) {
+        .command => |command| switch (command) {
+            .version => |count| try testing.expectEqual(@as(usize, 1), count),
+            else => return error.ExpectedVersionCommand,
+        },
+        else => return error.ExpectedVersionCommand,
+    }
+
+    const long_args = [_][]const u8{
+        "leftover.c",
+        "--version",
+    };
+    const long_outcome = try parseArgs(testing.allocator, &long_args);
+    switch (long_outcome) {
+        .command => |command| switch (command) {
+            .version => |count| try testing.expectEqual(@as(usize, 1), count),
+            else => return error.ExpectedVersionCommand,
+        },
+        else => return error.ExpectedVersionCommand,
+    }
+}
+
+test "genksyms bridge keeps pure version command before explicit terminator" {
+    const short_args = [_][]const u8{
+        "-V",
+        "--",
+        "leftover.c",
+    };
+    const short_outcome = try parseArgs(testing.allocator, &short_args);
+    switch (short_outcome) {
+        .command => |command| switch (command) {
+            .version => |count| try testing.expectEqual(@as(usize, 1), count),
+            else => return error.ExpectedVersionCommand,
+        },
+        else => return error.ExpectedVersionCommand,
+    }
+
+    const long_args = [_][]const u8{
+        "--version",
+        "--",
+        "leftover.c",
+    };
+    const long_outcome = try parseArgs(testing.allocator, &long_args);
+    switch (long_outcome) {
+        .command => |command| switch (command) {
+            .version => |count| try testing.expectEqual(@as(usize, 1), count),
             else => return error.ExpectedVersionCommand,
         },
         else => return error.ExpectedVersionCommand,
