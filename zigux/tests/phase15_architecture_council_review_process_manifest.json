@@ -1,15 +1,17 @@
 {
   "lane_key": "P15-L08",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-14",
+  "surveyed_commit": "current-master-readback-2026-05-16",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
+  "review_packet_template": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
   "directly_coupled_evidence_surfaces": [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/phase15_build.zig"
   ],
@@ -42,6 +44,7 @@
     "current status bucket",
     "requested decision bucket",
     "decision record ID",
+    "completed decision-record template or exact equivalent artifact",
     "owner",
     "required approver set",
     "rollback owner",
@@ -80,7 +83,7 @@
       "make -C zigux phase15"
     ],
     "blocker_posture_requirement": "deep_core_blocker_posture_change",
-    "next_step": "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if a new same-lane shared-summary truthfulness drift appears first, reread Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, scripts/zigux/README.md, and zigux/tests/README.md against Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard-survey.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-readiness-gate-survey.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, Documentation/zigux/phase15-governance-lane-sequencing.md, scripts/zigux/check-phase15-shared-summary-gap.py, scripts/zigux/validate-phase15.py, zigux/tests/phase15_handoff_next_steps_manifest.json, and zigux/tests/phase15_readiness_gate_manifest.json, then run python3 scripts/zigux/check-phase15-shared-summary-gap.py first and keep any repair scoped to shared-summaries plus its direct validator surface; the older handoff direction about starting with scripts/zigux/README.md as the smallest remaining parity-scorecard-survey reminder before widening into zigux/tests/README.md is now historical context only because scripts/zigux/README.md already names that survey and zigux/tests/README.md stays scoped to the sequencing-marker plus replay-route packet. Current master also no longer shows the smaller readiness-manifest exactness drift previously noted here, because zigux/tests/phase15_readiness_gate_manifest.json and scripts/zigux/validate-phase15.py both keep scripts/zigux/check-phase15-docs-readme-alignment.py explicit inside the shipped phase15-validate route, so future same-family follow-through should stay on whichever docs-root or scripts-root reminder actually drifts before widening into any readiness-manifest rewrite instead of reopening packet-local backlog unless broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane changes the truthfulness of the required review fields, decision buckets, reopen-trigger catalog, or no-approval posture recorded here"
+    "next_step": "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first; if a new same-lane review-process drift appears first, reread Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-architecture-council-decision-record-template.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-readiness-gate-survey.md, Documentation/zigux/phase15-governance-lane-sequencing.md, zigux/tests/phase15_architecture_council_review_process_manifest.json, and zigux/tests/phase15_build.zig together, then keep any repair scoped to the review-process packet instead of reopening shared-summary, parity-scorecard, or readiness packets"
   },
   "gaps": [
     {
@@ -88,14 +91,14 @@
       "status": "landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The roadmap names an Architecture Council review process, but the live repo lacked a reviewable process note that says when council review is required and what packet it must carry."
+      "why_now": "The roadmap names an Architecture Council review process, but the live repo needed a reviewable process note that says when council review is required and what packet it must carry."
     },
     {
       "id": "phase15-architecture-council-review-process-manifest",
       "status": "landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-      "why_now": "A dedicated manifest keeps the new governance slice explicit and machine-checkable instead of burying the scope inside prose."
+      "why_now": "A dedicated manifest keeps the governance slice explicit and machine-checkable instead of burying the scope inside prose."
     },
     {
       "id": "phase15-architecture-council-review-process-test",
@@ -105,46 +108,53 @@
       "why_now": "The Phase 15 review-process note should stay runnable so future edits do not quietly drop required trigger, packet, or decision-bucket language."
     },
     {
+      "id": "phase15-decision-record-template",
+      "status": "landed",
+      "kind": "governance",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+      "why_now": "The review-process packet now needs one reusable fill-in artifact so freeze-map status reviews stop inventing ad hoc field order and reviewer-facing evidence layout."
+    },
+    {
       "id": "phase15-review-checklist-hook",
       "status": "landed",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/review-checklist.md",
-      "why_now": "The live review checklist needed one explicit prompt that links freeze-map status-change requests back to the Architecture Council review record and decision bucket."
+      "why_now": "The live review checklist still needs one explicit prompt that links freeze-map status-change requests back to the Architecture Council review record and decision bucket."
     },
     {
       "id": "phase15-build-gate-review-process",
       "status": "landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase15_build.zig",
-      "why_now": "The shared Phase 15 build gate should run the review-process test alongside the existing freeze-map governance test so the governance lane stays coherent."
+      "why_now": "The shared Phase 15 build gate should keep the review-process test aligned with the freeze-map governance test so the governance lane stays coherent."
     },
     {
       "id": "phase15-parity-scorecard-baseline",
       "status": "landed",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
-      "why_now": "The landed Phase 15 parity scorecard is now the live evidence attachment point for Architecture Council requests instead of a planned follow-up."
+      "why_now": "The landed Phase 15 parity scorecard is the live evidence attachment point for Architecture Council requests instead of a planned follow-up."
     },
     {
       "id": "phase15-evidence-archive-followup",
       "status": "landed",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The review-process packet now standardizes where each frozen anchor stores Council decision records, blocker dispositions, benchmark notes, and replay commands."
+      "why_now": "The review-process packet standardizes where each frozen anchor stores Council decision records, blocker dispositions, benchmark notes, and replay commands."
     },
     {
       "id": "phase15-stay-in-c-retirement-rule",
       "status": "landed",
       "kind": "policy",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The review-process note now records the retained `retired_from_active_discussion` closeout state and the reopen triggers that keep a stay-in-C outcome reviewable without implying approval."
+      "why_now": "The review-process note records the retained `retired_from_active_discussion` closeout state and the reopen triggers that keep a stay-in-C outcome reviewable without implying approval."
     },
     {
       "id": "phase15-reopen-trigger-catalog-followup",
       "status": "landed",
       "kind": "policy",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The review-process note now names the bounded reopen-trigger catalog so later exception records and scorecard updates reuse the same stay-in-C reopen vocabulary."
+      "why_now": "The review-process note names the bounded reopen-trigger catalog so later exception records and scorecard updates reuse the same stay-in-C reopen vocabulary."
     },
     {
       "id": "phase15-review-packet-field-sync",
@@ -152,27 +162,6 @@
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "The shared checklist and freeze map already required the approver-set, rollback-threshold, and indefinite-C-policy fields, so the review-process note and its manifest needed a bounded sync to keep the Architecture Council packet truthful."
-    },
-    {
-      "id": "phase15-tests-readme-validator-route-sync",
-      "status": "landed",
-      "kind": "governance",
-      "zigux_destination": "zigux/tests/README.md",
-      "why_now": "The broader Phase 15 tests-root reminder now keeps `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` equally explicit beside the landed checker routes on current master, so this follow-through is closed unless repo reality drifts again."
-    },
-    {
-      "id": "phase15-docs-readme-maintenance-note-undercount",
-      "status": "landed",
-      "kind": "governance",
-      "zigux_destination": "Documentation/zigux/README.md",
-      "why_now": "The compact Phase 15 docs-root reminder now keeps `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and `Documentation/zigux/phase15-governance-lane-sequencing.md` explicit on current master, so this narrower docs-root maintenance follow-through is closed unless a new shared-summary drift appears."
-    },
-    {
-      "id": "phase15-shared-summary-parity-scorecard-survey-undercount",
-      "status": "landed",
-      "kind": "governance",
-      "zigux_destination": "Documentation/zigux/README.md; scripts/zigux/README.md; scripts/zigux/check-phase15-shared-summary-gap.py",
-      "why_now": "The earlier shared-summary parity-scorecard-survey undercount is now closed on current master: the docs-root and scripts-root reminders both keep `Documentation/zigux/phase15-parity-scorecard-survey.md` explicit, while `zigux/tests/README.md` intentionally stays governed by the sequencing-marker plus replay-route packet instead of a duplicate survey reminder. Future shared-summary follow-through should rerun `python3 scripts/zigux/check-phase15-shared-summary-gap.py` first and narrow only to whichever docs-root or scripts-root reminder drifts next."
     }
   ]
 }
