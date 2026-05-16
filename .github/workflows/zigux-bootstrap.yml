@@ -194,6 +194,9 @@ jobs:
       - name: Check Phase 2 genksyms bridge packet
         run: python3 scripts/zigux/check-genksyms-bridge.py
 
+      - name: Run Phase 2 genksyms unit tests
+        run: zig test scripts/zigux/genksyms.zig
+
       - name: Validate Phase 3 slices
         run: python3 scripts/zigux/validate-phase3.py
 
