@@ -15,7 +15,7 @@ This document records the bounded shared closure packet for the active Phase 10 
 ## Shared Packet Inventory
 The current shared closure packet keeps this Phase 10 bundle explicit:
 - docs: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
-- manifests: `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`
+- manifests: `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_virtio_input_manifest.json`
 - drivers: `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and `drivers/virtio/virtio_mmio.zig`
 - tests: `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `zigux/tests/phase10_virtio_input_survey.zig`
 The shared reminder surfaces around this packet stay reviewable through `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md`.
@@ -36,9 +36,9 @@ The current closure packet also keeps the landed helper ladders explicit for the
 ## Survey Provenance
 The manifest-derived survey provenance for the current closure bundle is:
 - core: lane `P10-L01`, surveyed commit `31e9763eea7964dad7085d1a24bc098b4af49789`
-- ring: lane `P10-L10`, surveyed commit `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
+- ring: lane `P10-L07`, surveyed commit `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
 - input: lane `P10-L13`, surveyed commit `7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
-- mmio: lane `P10-L11`, surveyed commit `84f90e23ad1c28ae345905d5293a8c5395f37d43`
+- mmio: lane `P10-L10`, surveyed commit `84f90e23ad1c28ae345905d5293a8c5395f37d43`
 
 ## Closure Gates
 The exact replay packet recorded by the current shared closure packet is:
