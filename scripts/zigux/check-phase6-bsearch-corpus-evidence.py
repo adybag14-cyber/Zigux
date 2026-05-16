@@ -25,7 +25,7 @@ SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 
 
-FIXTURE_BASELINE = """const std = @import(\"std\");
+FIXTURE_BASELINE = """const std = @import("std");
 
 pub const representative_ascending_values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
 pub const representative_descending_values = [_]u32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
@@ -35,10 +35,10 @@ pub const representative_hit_queries = [_]u32{ 3, 21, 24, 39, 45 };
 pub const representative_miss_queries = [_]u32{ 1, 10, 26, 44, 50 };
 
 pub const sorted_symbols = [_][]const u8{
-    \"do_exit\",
-    \"kfree\",
-    \"kmalloc\",
-    \"schedule\",
+    "do_exit",
+    "kfree",
+    "kmalloc",
+    "schedule",
 };
 
 pub const RawRecord = extern struct {
@@ -71,7 +71,7 @@ pub fn rawQuerySeed(index: usize) u32 {
     return representative_miss_queries[index % representative_miss_queries.len];
 }
 
-test \"phase 6 bsearch vectors stay deterministic, sorted, and duplicate-aware\" {
+test "phase 6 bsearch vectors stay deterministic, sorted, and duplicate-aware" {
     try std.testing.expectEqual(@as(usize, 15), representative_ascending_values.len);
     try std.testing.expectEqual(@as(usize, 15), representative_descending_values.len);
     try std.testing.expectEqual(@as(usize, 15), representative_duplicate_values.len);
