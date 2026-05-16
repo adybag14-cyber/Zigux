@@ -41,7 +41,7 @@ CLOSURE_MARKERS = [
 
 PHASE2_FIXDEP_NEXT_STEP_MARKERS = [
     "`scripts/zigux/check-phase2-fixdep-gate.py` validates the live twelve-case packet, including `sample_dependency_continuation`, `sample_comment_continuation`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full`.",
-    "`zigux/tests/fixtures/fixdep/cases.json` names that same twelve-case packet and uses `stdout_mode: \"dev_full\"` on the three bounded `/dev/full` write-failure replays.",
+    "`zigux/tests/fixtures/fixdep/cases.json` names that same twelve-case packet and uses `stdout_mode: \\\"dev_full\\\"` on the three bounded `/dev/full` write-failure replays.",
     "The direct fixdep artifact packet now carries the additional plain escaped-newline dependency continuation case through `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `zigux/tests/fixtures/fixdep/cases.json`, while the broader shared reminder surfaces can be retold separately if they need to mention the new case count.",
     "When a writable checkout with Zig is available, re-run `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`, `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py --self-test`, `python3 scripts/zigux/check-fixdep-diff.py`, and `zig test scripts/zigux/fixdep.zig` so the dedicated gate and the direct replay stay aligned as one packet.",
 ]
@@ -49,7 +49,7 @@ PHASE2_FIXDEP_NEXT_STEP_MARKERS = [
 ARTIFACT_DIFF_MARKERS = [
     "`zigux/tests/fixtures/fixdep/sample_expected.txt` is generated from the current in-tree C `scripts/basic/fixdep.c` behavior on a bounded committed sample.",
     "`zigux/tests/fixtures/fixdep/sample_escaped_space_expected.txt` anchors the escaped-whitespace dependency-token path so `fixdep.zig` must preserve escaped separators the same way as the C tool.",
-    "`zigux/tests/fixtures/fixdep/sample_escaped_colon_expected.txt` anchors the escaped-colon dependency-token path so `fixdep.zig` must unescape `\\:` to the same on-disk dependency name that the C tool reads and emits.",
+    "`zigux/tests/fixtures/fixdep/sample_escaped_colon_expected.txt` anchors the escaped-colon dependency-token path so `fixdep.zig` must unescape `\\\\:` to the same on-disk dependency name that the C tool reads and emits.",
     "`zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt` widens that claim with a second committed depfile covering multi-target parsing, comments, duplicate deps, no-parse files, and escaped `#`.",
     "`zigux/tests/fixtures/fixdep/sample_concatenated_expected.txt` anchors the concatenated-target packet so `fixdep.zig` keeps the first source while still collecting later dependency tokens across the continued target entries.",
     "`zigux/tests/fixtures/fixdep/sample_dependency_continuation_expected.txt` anchors plain escaped-newline dependency continuation within one target so `fixdep.zig` keeps collecting later dependency tokens across physical lines without inventing a new source entry.",
@@ -208,8 +208,6 @@ EXPECTED_CASES = {
     },
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
-
 FILE_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": WORKFLOW_MARKERS,
     "Documentation/zigux/artifact-diff.md": ARTIFACT_DIFF_MARKERS,
@@ -257,7 +255,7 @@ def validate_cases(root: Path) -> list[str]:
     seen: list[str] = []
     fixture_root = root / "zigux/tests/fixtures/fixdep"
     for index, case in enumerate(cases):
-        label = f"zigux/tests/fixtures/fixdep/cases.json:cases[{index}]"
+        label = f"zigux/tests/fixtures/fixdep/cases[{index}]"
         if not isinstance(case, dict):
             issues.append(f"{label}:type")
             continue
@@ -375,6 +373,17 @@ def build_self_test_root(root: Path) -> None:
     write_text(fixture_root / "cases.json", json.dumps(cases))
 
 
+def remove_marker_once(text: str, marker: str) -> str:
+    needle = marker + "\n"
+    if needle in text:
+        return text.replace(needle, "", 1)
+    return text.replace(marker, "", 1)
+
+
+def duplicate_marker(text: str, marker: str) -> str:
+    return text + marker + "\n"
+
+
 def run_self_test() -> int:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase2_fixdep_gate_") as tmp_dir:
@@ -383,164 +392,48 @@ def run_self_test() -> int:
         assert validate_root(root) == []
         case_count += 1
 
-        build_self_test_root(root)
-        path = root / "Documentation/zigux/artifact-diff.md"
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(ARTIFACT_DIFF_MARKERS[8], "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_root(root)
-        assert f"Documentation/zigux/artifact-diff.md:{ARTIFACT_DIFF_MARKERS[8]}" in issues
-        case_count += 1
+        for rel_path, markers in FILE_MARKERS.items():
+            for marker in markers:
+                build_self_test_root(root)
+                path = root / rel_path
+                original = path.read_text(encoding="utf-8")
+                path.write_text(remove_marker_once(original, marker), encoding="utf-8")
+                issues = validate_root(root)
+                expected_missing_issue = f"{rel_path}:{marker}"
+                expected_count_issue = f"{rel_path}:count:{marker}:expected=1:got=0"
+                assert expected_missing_issue in issues or expected_count_issue in issues
+                case_count += 1
 
-        build_self_test_root(root)
-        path = root / "Documentation/zigux/phase2-closure.md"
-        path.write_text(path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[0], "", 1), encoding="utf-8")
-        issues = validate_root(root)
-        assert f"Documentation/zigux/phase2-closure.md:{CLOSURE_MARKERS[0]}" in issues
-        case_count += 1
+        for rel_path, markers in EXACT_PACKET_MARKERS.items():
+            for marker in markers:
+                build_self_test_root(root)
+                path = root / rel_path
+                original = path.read_text(encoding="utf-8")
+                path.write_text(duplicate_marker(original, marker), encoding="utf-8")
+                issues = validate_root(root)
+                assert f"{rel_path}:count:{marker}:expected=1:got=2" in issues
+                case_count += 1
 
-        build_self_test_root(root)
-        path = root / "scripts/zigux/validate-phase2.py"
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(VALIDATE_PHASE2_MARKERS[1], "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_root(root)
-        assert f"scripts/zigux/validate-phase2.py:{VALIDATE_PHASE2_MARKERS[1]}" in issues
-        case_count += 1
+            for index in range(1, len(markers)):
+                build_self_test_root(root)
+                path = root / rel_path
+                original = path.read_text(encoding="utf-8")
+                reordered = original.replace(
+                    "\n".join(markers),
+                    "\n".join(markers[: index - 1] + [markers[index], markers[index - 1]] + markers[index + 1 :]),
+                    1,
+                )
+                path.write_text(reordered, encoding="utf-8")
+                issues = validate_root(root)
+                assert f"{rel_path}:order:{markers[index - 1]}" in issues or f"{rel_path}:order:{markers[index]}" in issues
+                case_count += 1
 
-        build_self_test_root(root)
-        path = root / "scripts/zigux/validate-phase2.py"
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(VALIDATE_PHASE2_MARKERS[5], "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_root(root)
-        assert f"scripts/zigux/validate-phase2.py:{VALIDATE_PHASE2_MARKERS[5]}" in issues
-        case_count += 1
-
-        build_self_test_root(root)
-        path = root / "scripts/zigux/validate-phase2.py"
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(VALIDATE_PHASE2_MARKERS[6], "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_root(root)
-        assert f"scripts/zigux/validate-phase2.py:{VALIDATE_PHASE2_MARKERS[6]}" in issues
-        case_count += 1
-
-        build_self_test_root(root)
-        path = root / "Documentation/zigux/phase2-fixdep-next-step-note.md"
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(PHASE2_FIXDEP_NEXT_STEP_MARKERS[2], "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_root(root)
-        assert (
-            f"Documentation/zigux/phase2-fixdep-next-step-note.md:{PHASE2_FIXDEP_NEXT_STEP_MARKERS[2]}"
-            in issues
-        )
-        case_count += 1
-
-        build_self_test_root(root)
-        path = root / "zigux/Makefile"
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[2], "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_root(root)
-        assert f"zigux/Makefile:{MAKEFILE_MARKERS[2]}" in issues
-        case_count += 1
-
-        build_self_test_root(root)
-        path = root / ".github/workflows/zigux-bootstrap.yml"
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[0], "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_root(root)
-        assert f".github/workflows/zigux-bootstrap.yml:{WORKFLOW_MARKERS[0]}" in issues
-        case_count += 1
-
-        build_self_test_root(root)
-        path = root / ".github/workflows/zigux-bootstrap.yml"
-        path.write_text(
-            path.read_text(encoding="utf-8") + WORKFLOW_MARKERS[0] + "\n",
-            encoding="utf-8",
-        )
-        issues = validate_root(root)
-        assert (
-            ".github/workflows/zigux-bootstrap.yml:count:"
-            f"{WORKFLOW_MARKERS[0]}:expected=1:got=2"
-        ) in issues
-        case_count += 1
-
-        build_self_test_root(root)
-        path = root / ".github/workflows/zigux-bootstrap.yml"
-        workflow_lines = path.read_text(encoding="utf-8").splitlines()
-        workflow_lines.remove(WORKFLOW_MARKERS[4])
-        path.write_text("\n".join(workflow_lines) + "\n", encoding="utf-8")
-        issues = validate_root(root)
-        assert (
-            ".github/workflows/zigux-bootstrap.yml:count:"
-            f"{WORKFLOW_MARKERS[4]}:expected=1:got=0"
-        ) in issues
-        case_count += 1
-
-        build_self_test_root(root)
-        path = root / ".github/workflows/zigux-bootstrap.yml"
-        original = path.read_text(encoding="utf-8")
-        reordered = original.replace(
-            "\n".join(WORKFLOW_MARKERS),
-            "\n".join(
-                [
-                    WORKFLOW_MARKERS[0],
-                    WORKFLOW_MARKERS[1],
-                    WORKFLOW_MARKERS[3],
-                    WORKFLOW_MARKERS[2],
-                    WORKFLOW_MARKERS[4],
-                    WORKFLOW_MARKERS[5],
-                ]
-            ),
-            1,
-        )
-        path.write_text(reordered, encoding="utf-8")
-        issues = validate_root(root)
-        assert f".github/workflows/zigux-bootstrap.yml:order:{WORKFLOW_MARKERS[3]}" in issues
-        case_count += 1
-
-        build_self_test_root(root)
-        path = root / "zigux/Makefile"
-        original = path.read_text(encoding="utf-8")
-        reordered = original.replace(
-            "\n".join(MAKEFILE_MARKERS),
-            "\n".join(
-                [
-                    MAKEFILE_MARKERS[0],
-                    MAKEFILE_MARKERS[2],
-                    MAKEFILE_MARKERS[1],
-                    MAKEFILE_MARKERS[3],
-                ]
-            ),
-            1,
-        )
-        path.write_text(reordered, encoding="utf-8")
-        issues = validate_root(root)
-        assert f"zigux/Makefile:order:{MAKEFILE_MARKERS[2]}" in issues
-        case_count += 1
-
-        build_self_test_root(root)
-        (root / "scripts/zigux/check-fixdep-diff.py").unlink()
-        issues = validate_root(root)
-        assert "missing_file:scripts/zigux/check-fixdep-diff.py" in issues
-        case_count += 1
-
-        build_self_test_root(root)
-        (root / "Documentation/zigux/phase2-fixdep-next-step-note.md").unlink()
-        issues = validate_root(root)
-        assert "missing_file:Documentation/zigux/phase2-fixdep-next-step-note.md" in issues
-        case_count += 1
+        for rel_path in REQUIRED_FILES:
+            build_self_test_root(root)
+            (root / rel_path).unlink()
+            issues = validate_root(root)
+            assert f"missing_file:{rel_path}" in issues
+            case_count += 1
 
         build_self_test_root(root)
         write_text(root / "zigux/tests/fixtures/fixdep/cases.json", "[]")
@@ -553,7 +446,7 @@ def run_self_test() -> int:
         del cases[0]["expected"]
         write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
         issues = validate_root(root)
-        assert "zigux/tests/fixtures/fixdep/cases.json:cases[0]:expected" in issues
+        assert "zigux/tests/fixtures/fixdep/cases[0]:expected" in issues
         case_count += 1
 
         build_self_test_root(root)
@@ -561,7 +454,7 @@ def run_self_test() -> int:
         cases[0]["expected_stdout"] = "sample_expected.txt"
         write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
         issues = validate_root(root)
-        assert "zigux/tests/fixtures/fixdep/cases.json:cases[0]:unexpected_fields:expected_stdout" in issues
+        assert "zigux/tests/fixtures/fixdep/cases[0]:unexpected_fields:expected_stdout" in issues
         case_count += 1
 
         build_self_test_root(root)
@@ -570,7 +463,7 @@ def run_self_test() -> int:
         write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
         issues = validate_root(root)
         assert (
-            "zigux/tests/fixtures/fixdep/cases.json:cases[8]:stdout_mode:expected='dev_full':got='pipe_full'"
+            "zigux/tests/fixtures/fixdep/cases[8]:stdout_mode:expected='dev_full':got='pipe_full'"
             in issues
         )
         case_count += 1
@@ -581,15 +474,24 @@ def run_self_test() -> int:
         write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
         issues = validate_root(root)
         assert (
-            "zigux/tests/fixtures/fixdep/cases.json:cases[9]:expected_stderr:missing_fixture:missing_expected.stderr.txt"
+            "zigux/tests/fixtures/fixdep/cases[9]:expected_stderr:missing_fixture:missing_expected.stderr.txt"
             in issues
         )
         case_count += 1
 
-    if case_count != EXPECTED_SELF_TEST_CASE_COUNT:
+    expected_case_count = (
+        1
+        + sum(len(markers) for markers in FILE_MARKERS.values())
+        + sum(len(markers) for markers in EXACT_PACKET_MARKERS.values())
+        + sum(max(len(markers) - 1, 0) for markers in EXACT_PACKET_MARKERS.values())
+        + len(REQUIRED_FILES)
+        + 5
+    )
+
+    if case_count != expected_case_count:
         print("PHASE2_FIXDEP_GATE_SELF_TEST=fail")
         print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT_ACTUAL={case_count}")
-        print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT_EXPECTED={EXPECTED_SELF_TEST_CASE_COUNT}")
+        print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT_EXPECTED={expected_case_count}")
         return 1
 
     print("PHASE2_FIXDEP_GATE_SELF_TEST=pass")
