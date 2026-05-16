@@ -206,6 +206,14 @@ pub const BytestreamFifoSample = struct {
         return capacity - self.len;
     }
 
+    pub fn isEmpty(self: *const Self) bool {
+        return self.count() == 0;
+    }
+
+    pub fn isFull(self: *const Self) bool {
+        return self.available() == 0;
+    }
+
     pub fn stage(self: *const Self) SampleStage {
         return self.stage_state;
     }
@@ -226,8 +234,8 @@ pub const BytestreamFifoSample = struct {
         return .{
             .used = used,
             .available = free,
-            .empty = used == 0,
-            .full = free == 0,
+            .empty = self.isEmpty(),
+            .full = self.isFull(),
             .wrapped_window = self.usesWrappedStorageWindow(),
         };
     }
@@ -260,7 +268,7 @@ pub const BytestreamFifoSample = struct {
     }
 
     pub fn usesWrappedStorageWindow(self: *const Self) bool {
-        if (self.len == 0) return false;
+        if (self.isEmpty()) return false;
         return self.head + self.len > capacity;
     }
 
@@ -573,6 +581,8 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
 
     var sample = BytestreamFifoSample{};
     try sample.init();
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectEqual(@as(usize, 0), sample.visibleSpanSummary().first_window_len);
     try std.testing.expectEqual(@as(usize, 0), sample.visibleSpanSummary().second_window_len);
@@ -622,6 +632,8 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, replay.storage_backing);
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
     try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectEqual(@as(usize, 0), sample.visibleSpanSummary().first_window_len);
@@ -636,6 +648,8 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
 
     try sample.exit();
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
@@ -751,6 +765,46 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+}
+
+test "bytestream fifo sample keeps empty-full helper boundaries explicit" {
+    var sample = BytestreamFifoSample{};
+
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+
+    try sample.init();
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+
+    try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
+    try std.testing.expect(!sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+
+    var fill_value: u8 = 0;
+    while (sample.pushByte(fill_value)) : (fill_value +%= 1) {}
+    try std.testing.expect(!sample.isEmpty());
+    try std.testing.expect(sample.isFull());
+
+    try std.testing.expectEqual(@as(?u8, 'h'), sample.skipByte());
+    try std.testing.expect(!sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+
+    try std.testing.expect(sample.pushByte(200));
+    try std.testing.expect(!sample.isEmpty());
+    try std.testing.expect(sample.isFull());
+
+    sample.reset();
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+
+    _ = try sample.runAnchorReplay();
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+
+    try sample.exit();
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
 }
 
 test "bytestream fifo sample keeps occupancy review helper explicit" {
