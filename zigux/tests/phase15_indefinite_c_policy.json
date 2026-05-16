@@ -1,0 +1,131 @@
+{
+  "lane_key": "P15-L13",
+  "phase": "Phase 15",
+  "surveyed_commit": "current-master-readback-2026-05-16",
+  "surveyed_commit_mode": "dated_master_readback",
+  "roadmap_requirement": "policy for code that remains in C indefinitely",
+  "anchors": [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c"
+  ],
+  "supporting_artifacts": [
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/README.md"
+  ],
+  "indefinite_c_requirements": [
+    {
+      "id": "indefinite-c-source-of-truth",
+      "summary": "The existing C implementation remains the product source of truth for the current plan horizon.",
+      "required_terms": [
+        "product source of truth",
+        "remains in C indefinitely"
+      ]
+    },
+    {
+      "id": "indefinite-c-recordkeeping",
+      "summary": "The stay-in-C record must preserve the roadmap phase, owner fields, blocker evidence, return-to-blocked trigger, and reopen vocabulary.",
+      "required_terms": [
+        "Linux anchor path",
+        "current roadmap phase",
+        "current status bucket",
+        "requested decision bucket",
+        "decision record ID",
+        "lane owner",
+        "required approver set",
+        "rollback owner",
+        "validation gate summary",
+        "benchmark-notes status",
+        "replay command",
+        "latest blocker disposition",
+        "linked evidence path",
+        "automatic return-to-blocked trigger",
+        "retained discussion state",
+        "reopen triggers",
+        "trigger-specific evidence refresh",
+        "parity scorecard link or blocker record",
+        "explicit non-goals",
+        "written rationale"
+      ]
+    },
+    {
+      "id": "indefinite-c-exception-path",
+      "summary": "There is no silent exception path; only a documented Architecture Council reopen request can revisit the retained stay-in-C outcome.",
+      "required_terms": [
+        "no silent exception path",
+        "Architecture Council reopen request",
+        "trigger-specific evidence refresh"
+      ]
+    },
+    {
+      "id": "indefinite-c-reopen-trigger-catalog",
+      "summary": "Later reviews must reuse the bounded reopen-trigger catalog instead of inventing new vocabulary ad hoc.",
+      "required_terms": [
+        "narrower_followup_answers_blocker",
+        "evidence_packet_stale_or_contradictory",
+        "ownership_or_validation_changed"
+      ]
+    }
+  ],
+  "maintenance_handoff": {
+    "current_lane_posture": "maintenance_mode",
+    "replay_before_trusting": [
+      "zig test zigux/tests/phase15_indefinite_c_policy.zig"
+    ],
+    "reopen_conditions": [
+      "the freeze-in-C blocker posture changes",
+      "the review-process packet changes its required field inventory for a stay-in-C closeout",
+      "the parity scorecard changes the blocked-posture accounting that this policy references"
+    ],
+    "next_future_target": "Keep this lane parked unless one of those packet-local conditions fires; if it does, reread the policy note, manifest, direct Zig guard, review-process note, parity scorecard, freeze-map governance note, and review checklist together, then keep the repair inside the policy packet and its direct companions only."
+  },
+  "gaps": [
+    {
+      "id": "phase15-indefinite-c-policy-note",
+      "status": "landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
+      "why_now": "Current master had lost the roadmap-required stay-in-C policy surface even though adjacent Phase 15 notes already depended on it."
+    },
+    {
+      "id": "phase15-indefinite-c-policy-manifest",
+      "status": "landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_indefinite_c_policy.json",
+      "why_now": "The restored policy needs a machine-readable packet so the stay-in-C field inventory does not collapse back into prose only."
+    },
+    {
+      "id": "phase15-indefinite-c-policy-test",
+      "status": "landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_indefinite_c_policy.zig",
+      "why_now": "The dedicated Zig guard is the smallest honest replay that fail-closes on the restored policy note and its current Phase 15 companion vocabulary."
+    },
+    {
+      "id": "phase15-indefinite-c-roadmap-gap-restoration",
+      "status": "landed",
+      "kind": "roadmap_alignment",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
+      "why_now": "The Phase 15 roadmap still requires a policy for code that remains in C indefinitely, and current master had no live packet carrying that requirement directly."
+    },
+    {
+      "id": "phase15-indefinite-c-review-process-companion-sync",
+      "status": "landed",
+      "kind": "companion_sync",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "The review-process note explicitly called the indefinite-C policy companion missing, so restoring the policy packet required one direct companion wording repair."
+    },
+    {
+      "id": "phase15-deep-core-status-change-blocker",
+      "status": "blocked_on_stay_in_c_evidence",
+      "kind": "freeze_map",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The live repo still lacks evidence strong enough to move any freeze-in-C anchor out of the current stay-in-C posture."
+    }
+  ]
+}
