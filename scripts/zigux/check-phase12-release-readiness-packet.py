@@ -265,6 +265,42 @@ def run_self_test() -> int:
         case_count += 1
         write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
 
+        write_text(
+            tmp_root / RELEASE_COORDINATION_MATRIX_PATH,
+            good_release_coordination_matrix_text().replace(RELEASE_COORDINATION_MATRIX_MARKERS[0], "", 1),
+        )
+        if not any(RELEASE_COORDINATION_MATRIX_MARKERS[0] in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing coordination matrix attached-toolchain marker was not detected")
+        case_count += 1
+        write_text(tmp_root / RELEASE_COORDINATION_MATRIX_PATH, good_release_coordination_matrix_text())
+
+        write_text(
+            tmp_root / FREEZE_MAP_PATH,
+            good_freeze_map_text().replace(FREEZE_MAP_MARKERS[1], "", 1),
+        )
+        if not any(FREEZE_MAP_MARKERS[1] in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing freeze-map validator bundle marker was not detected")
+        case_count += 1
+        write_text(tmp_root / FREEZE_MAP_PATH, good_freeze_map_text())
+
+        write_text(
+            tmp_root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(SCRIPTS_README_MARKERS[1], "", 1),
+        )
+        if not any(SCRIPTS_README_MARKERS[1] in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing scripts-readme degraded-workflow marker was not detected")
+        case_count += 1
+        write_text(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write_text(
+            tmp_root / WORKFLOW_PATH,
+            good_workflow_text().replace("run: make -C zigux phase12-validate", "", 1),
+        )
+        if not any("run: make -C zigux phase12-validate" in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing workflow phase12-validate step was not detected")
+        case_count += 1
+        write_text(tmp_root / WORKFLOW_PATH, good_workflow_text())
+
         write_text(tmp_root / ROADMAP_PATH, good_roadmap_text().replace("- `drivers/scsi/virtio_scsi.c`\n", "", 1))
         if not any("roadmap Phase 12 anchor list drifted" in error for error in check(tmp_root, source_text=MARKER)):
             raise SystemExit("roadmap anchor drift was not detected")
