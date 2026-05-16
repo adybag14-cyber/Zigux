@@ -2,7 +2,7 @@
 
 This note keeps an owner-facing review surface for the Phase 9 runtime trace-events packet aligned with live `master`.
 
-PHASE9_SURVEYED_COMMIT=7fe0dafde3775e20069e672504a1c7192ed22c23
+PHASE9_SURVEYED_COMMIT=3c6c7d3fc8e721e8c50e84b512876cee6ad4e015
 
 This note keeps the manifest-backed inspected commit explicit so the trace-events review packet stays pinned to `zigux/tests/runtime_trace_events_manifest.json` while the shared runtime substrate remains blocked.
 
