@@ -287,37 +287,6 @@ fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsEr
     return options;
 }
 
-fn parseRequest(args: []const []const u8) ParseRequestError!Request {
-    if (args.len < 5 or args.len > 9) {
-        return error.InvalidUsage;
-    }
-
-    const mode = Mode.parse(args[1]) orelse return error.UnsupportedMode;
-
-    var next_index: usize = 5;
-    const mode_arg = blk: {
-        if (!modeRequiresArgument(mode)) break :blk null;
-        if (args.len == next_index) return error.MissingArgument;
-        const value = try validateModeArgument(mode, args[next_index]);
-        next_index += 1;
-        break :blk value;
-    };
-
-    const options = try parseBridgeOptions(mode, args[next_index..]);
-    return .{
-        .mode = mode,
-        .kconfig = args[2],
-        .config = args[3],
-        .arch = args[4],
-        .silent = options.silent,
-        .mode_arg = mode_arg,
-        .allconfig = options.allconfig,
-        .seed = options.seed,
-        .probability = options.probability,
-        .nosilentupdate = options.nosilentupdate,
-    };
-}
-
 pub fn runConfBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"");
     try writer.writeAll(request.mode.text());
@@ -372,6 +341,37 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
         }
     }
     try writer.writeAll("}}\n");
+}
+
+fn parseRequest(args: []const []const u8) ParseRequestError!Request {
+    if (args.len < 5 or args.len > 9) {
+        return error.InvalidUsage;
+    }
+
+    const mode = Mode.parse(args[1]) orelse return error.UnsupportedMode;
+
+    var next_index: usize = 5;
+    const mode_arg = blk: {
+        if (!modeRequiresArgument(mode)) break :blk null;
+        if (args.len == next_index) return error.MissingArgument;
+        const value = try validateModeArgument(mode, args[next_index]);
+        next_index += 1;
+        break :blk value;
+    };
+
+    const options = try parseBridgeOptions(mode, args[next_index..]);
+    return .{
+        .mode = mode,
+        .kconfig = args[2],
+        .config = args[3],
+        .arch = args[4],
+        .silent = options.silent,
+        .mode_arg = mode_arg,
+        .allconfig = options.allconfig,
+        .seed = options.seed,
+        .probability = options.probability,
+        .nosilentupdate = options.nosilentupdate,
+    };
 }
 
 pub fn main(init: std.process.Init) !void {
@@ -672,6 +672,23 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allmodconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
+}
+
+test "conf bridge emits allmodconfig sentinel env without explicit override" {
+    var capture = try TestCapture.init(std.testing.allocator, 176);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .allmodconfig,
+        .kconfig = "Kconfig",
+        .config = "mod/.config",
+        .arch = "arm",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allmodconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--allmodconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"mod/.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
 }
 
 test "conf bridge emits allnoconfig sentinel env" {
