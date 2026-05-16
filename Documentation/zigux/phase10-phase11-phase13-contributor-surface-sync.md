@@ -25,6 +25,7 @@ Shared surfaces to keep aligned:
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
@@ -139,6 +140,7 @@ Keep the shared-helper packet explicit through the verified docs-root, validator
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `scripts/zigux/validate-phase13-release.py`
@@ -153,7 +155,7 @@ Keep the shared-helper packet explicit through the verified docs-root, validator
 - `make -C zigux phase13-validate`
 
 Contributor reminder:
-- keep the validator-first Phase 13 release handle explicit through `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/validate-phase13-release.py`, and `make -C zigux phase13-validate`, while treating `make -C zigux phase13` as blocked convenience wiring until current `master` materializes `zigux/tests/phase13_build.zig`, and while treating missing direct helper-local tests-root and notifier companions as repo-reality gaps until current-`master` readback proves them
+- keep the validator-first Phase 13 release handle explicit through `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/validate-phase13-release.py`, and `make -C zigux phase13-validate`, while keeping blocked convenience route `make -C zigux phase13` explicit until current `master` materializes `zigux/tests/phase13_build.zig`, and while treating missing direct helper-local tests-root and notifier companions as repo-reality gaps until current-`master` readback proves them
 - if a broad docs-root or cross-phase shared summary names `make -C zigux phase13`, restate in that same reminder that it is blocked convenience wiring while `zigux/tests/phase13_build.zig` remains absent, instead of presenting it as independently shipped current-`master` evidence
 - keep the shipped broader shared-surface reminders in `scripts/zigux/README.md` and `zigux/tests/README.md` explicit as shared packet evidence and keep them aligned with the contributor workflow guide, shared-helper sequencing note, release-coordination matrix, release-notes survey, and roadmap-traceability note
 - keep `libfs`, `devres` helper parity, `devres` packet truthfulness, `landlock`, and adjacent notifier evidence as separate owners
