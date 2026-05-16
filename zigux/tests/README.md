@@ -51,6 +51,8 @@ Key entrypoints
   * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
   * `scripts/zigux/check-phase4-perf-baseline-packet.py`
   * `zigux/tests/phase4_build.zig`
+  * `zig build test --build-file zigux/tests/phase4_build.zig --summary all`
+  * `make -C zigux phase4-test`
   * keep the shared Phase 4 validator-first packet explicit here too: `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `scripts/zigux/validate-phase4.py`, and `make -C zigux phase4-validate` keep the exact gate-evidence inventory, the remaining-gap owner map, and the stable validator-first replay handle visible here instead of forcing reviewers to reconstruct that bounded Phase 4 packet from the docs root alone
   * `Documentation/zigux/phase5-kfifo-sample-survey.md`
   * `samples/zigux/bytestream_fifo.zig`
