@@ -47,6 +47,7 @@ MARKERS = {
         "* direct GitHub contents reads now materialize `zigux/tests/phase11_build.zig`",
         "* direct GitHub contents reads now materialize `zigux/tests/fixtures/phase11_build_inventory.json`",
         "* the shared `zigux/tests/fixtures/phase11_build_inventory.json` records the shared test inventory, the dedicated HVC replay split, and the explicit shared replay markers beside `zigux/tests/phase11_build.zig`",
+        "* the exact shared build replay remains `zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
         "* there is no shared `make -C zigux phase11-validate` target on `master`",
         "* no landed shared `validate-phase11.py`",
         "* DesignWare continuity on current `master` stays bounded to `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; keep that smaller current-master packet explicit beside the shared closure surface while platform-registration scaffolding remains the next same-lane follow-through instead of reintroducing removed survey-era surfaces or collapsing the lane back to scaffold-only continuity",
@@ -57,6 +58,7 @@ MARKERS = {
         "`scripts/zigux/check-phase11-build-inventory.py`",
         "`zigux/tests/fixtures/phase11_build_inventory.json` anchor",
         "Current `master` now directly materializes `zigux/tests/phase11_build.zig` and `zigux/tests/fixtures/phase11_build_inventory.json`, so the shared sequencing lane should keep those anchors explicit as landed bounded replay evidence together with the shipped `make -C zigux phase11-contract` route instead of preserving older fallback-only wording.",
+        "the exact shared `zig build test --build-file zigux/tests/phase11_build.zig --summary all` replay",
         "there is no shared `validate-phase11.py`, the shared `zigux/tests/fixtures/phase11_build_inventory.json` is materialized and should stay explicit beside `zigux/tests/phase11_build.zig`",
         "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
         "do not reintroduce the older DesignWare survey, slice, teardown, validation-matrix, manifest, survey-gate, or direct replay files as landed packet evidence until current direct reads materialize them again",
@@ -172,6 +174,7 @@ def run_self_test() -> None:
             (FILES["closure_note"], MARKERS["closure_note"][7]),
             (FILES["closure_note"], MARKERS["closure_note"][8]),
             (FILES["closure_note"], MARKERS["closure_note"][9]),
+            (FILES["closure_note"], MARKERS["closure_note"][10]),
             (FILES["lane_note"], MARKERS["lane_note"][0]),
             (FILES["lane_note"], MARKERS["lane_note"][1]),
             (FILES["lane_note"], MARKERS["lane_note"][2]),
@@ -180,6 +183,7 @@ def run_self_test() -> None:
             (FILES["lane_note"], MARKERS["lane_note"][5]),
             (FILES["lane_note"], MARKERS["lane_note"][6]),
             (FILES["lane_note"], MARKERS["lane_note"][7]),
+            (FILES["lane_note"], MARKERS["lane_note"][8]),
         ]
 
         for idx, (relative_path, marker) in enumerate(required_cases, start=1):
