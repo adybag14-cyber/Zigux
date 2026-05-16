@@ -139,6 +139,13 @@ test "phase3 abi keeps chrdev helper decoding explicit in the shared replay" {
 }
 
 test "phase3 abi keeps the notifier chain helper lifted into the shared abi binding" {
+    const expected_notifier_block_alignment = @alignOf(usize);
+    const expected_notifier_block_size = std.mem.alignForward(
+        usize,
+        (@sizeOf(usize) * 2) + @sizeOf(i32),
+        expected_notifier_block_alignment,
+    );
+
     const single = abi.NotifierBlock{
         .notifier_call = 0,
         .next = 0,
@@ -170,11 +177,11 @@ test "phase3 abi keeps the notifier chain helper lifted into the shared abi bind
         .priority = 3,
     };
 
-    try std.testing.expectEqual(@as(usize, 24), @sizeOf(abi.NotifierBlock));
-    try std.testing.expectEqual(@as(usize, 8), @alignOf(abi.NotifierBlock));
+    try std.testing.expectEqual(expected_notifier_block_size, @sizeOf(abi.NotifierBlock));
+    try std.testing.expectEqual(expected_notifier_block_alignment, @alignOf(abi.NotifierBlock));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(abi.NotifierBlock, "notifier_call"));
-    try std.testing.expectEqual(@as(usize, 8), @offsetOf(abi.NotifierBlock, "next"));
-    try std.testing.expectEqual(@as(usize, 16), @offsetOf(abi.NotifierBlock, "priority"));
+    try std.testing.expectEqual(@sizeOf(usize), @offsetOf(abi.NotifierBlock, "next"));
+    try std.testing.expectEqual(@sizeOf(usize) * 2, @offsetOf(abi.NotifierBlock, "priority"));
 
     try std.testing.expect(abi.chainHasNonincreasingPriority(null));
     try std.testing.expect(abi.firstChainPriorityIncrease(null) == null);
