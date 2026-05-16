@@ -43,6 +43,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    review_surfaces: []const []const u8,
     ownership_focus: []const []const u8,
     current_verification: CurrentVerification,
     survey_summary: SurveySummary,
@@ -118,6 +119,14 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     );
     defer std.testing.allocator.free(docs_root);
 
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
     const scripts_root = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "scripts/zigux/README.md",
@@ -141,6 +150,14 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(build_file);
+
+    const workflow = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        ".github/workflows/zigux-bootstrap.yml",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(workflow);
 
     const validate_phase7 = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -198,6 +215,14 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     );
     defer std.testing.allocator.free(parity_fixture);
 
+    const parity_c_harness = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
+        std.testing.allocator,
+        .limited(8 * 1024),
+    );
+    defer std.testing.allocator.free(parity_c_harness);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -208,6 +233,29 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     try std.testing.expectEqualStrings("lib/rbtree.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/rbtree.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqual(@as(usize, 22), manifest.review_surfaces.len);
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/README.md");
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/review-checklist.md");
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-rbtree-slice.md");
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md");
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
+    try expectStringSliceContains(manifest.review_surfaces, "samples/zigux/README.md");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/README.md");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/validate-phase7.py");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/README.md");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_build.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_rbtree.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_rbtree_survey.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_rbtree_manifest.json");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/fixtures/phase7_rbtree.json");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
+    try expectStringSliceContains(manifest.review_surfaces, "lib/rbtree.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/Makefile");
+    try expectStringSliceContains(manifest.review_surfaces, ".github/workflows/zigux-bootstrap.yml");
     try std.testing.expectEqual(@as(usize, 5), manifest.ownership_focus.len);
     try expectStringSliceContains(
         manifest.ownership_focus,
@@ -323,6 +371,20 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     try expectContains(docs_root, "lib/rbtree.zig");
     try expectContains(docs_root, "scripts/zigux/check-phase7-rbtree-parity.py");
     try expectContains(docs_root, "zigux/tests/phase7_build.zig");
+    try expectContains(review_checklist, "there is no standalone `samples/zigux/*rbtree*` reference sample");
+    try expectContains(review_checklist, "Documentation/zigux/phase7-rbtree-slice.md");
+    try expectContains(review_checklist, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
+    try expectContains(review_checklist, "lib/rbtree.zig");
+    try expectContains(review_checklist, "zigux/tests/phase7_rbtree.zig");
+    try expectContains(review_checklist, "zigux/tests/phase7_rbtree_survey.zig");
+    try expectContains(review_checklist, "zigux/tests/phase7_rbtree_manifest.json");
+    try expectContains(review_checklist, "zigux/tests/fixtures/phase7_rbtree.json");
+    try expectContains(review_checklist, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
+    try expectContains(review_checklist, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(review_checklist, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
+    try expectContains(review_checklist, "scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectContains(review_checklist, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectContains(review_checklist, "zigux/tests/phase7_build.zig");
     try expectContains(scripts_root, "scripts/zigux/check-phase7-rbtree-parity.py");
     try expectContains(scripts_root, "zigux/tests/phase7_rbtree.zig");
     try expectContains(scripts_root, "zigux/tests/phase7_rbtree_survey.zig");
@@ -333,6 +395,9 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     try expectContains(scripts_root, "make -C zigux phase7");
     try expectContains(tests_root, "`scripts/zigux/check-phase7-rbtree-parity.py`");
     try expectContains(tests_root, "the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate");
+    try expectContains(tests_root, "`zigux/tests/phase7_rbtree_manifest.json`");
+    try expectContains(tests_root, "`zigux/tests/fixtures/phase7_rbtree.json`");
+    try expectContains(tests_root, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
     try expectContains(tests_root, "`make -C zigux phase7-validate`");
     try expectContains(tests_root, "`make -C zigux phase7`");
     try expectContains(build_file, "\"phase7_rbtree.zig\"");
@@ -340,6 +405,10 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     try expectContains(build_file, "\"phase7-rbtree-tests\"");
     try expectContains(build_file, "\"phase7-rbtree-survey-tests\"");
     try expectContains(build_file, "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));");
+    try expectContains(workflow, "Validate Phase 7 runtime helper gates");
+    try expectContains(workflow, "make -C zigux phase7-validate");
+    try expectContains(workflow, "Run Phase 7 helper tests");
+    try expectContains(workflow, "make -C zigux phase7-test");
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-rbtree-parity.py\",");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree.zig\",");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree_survey.zig\",");
@@ -411,6 +480,12 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     try expectContains(parity_fixture, "\"duplicates\"");
     try expectContains(parity_fixture, "\"erase_init\"");
     try expectContains(parity_fixture, "\"postorder\"");
+    try expectContains(parity_c_harness, "struct rb_duplicate_entry");
+    try expectContains(parity_c_harness, "rb_find_first(&key, &root, rb_duplicate_cmp)");
+    try expectContains(parity_c_harness, "rb_next_match(&key, node, rb_duplicate_cmp)");
+    try expectContains(parity_c_harness, "rb_erase_init(&entries[0].node, &root);");
+    try expectContains(parity_c_harness, "rb_first_postorder(&root)");
+    try expectContains(parity_c_harness, "rb_next_postorder(node)");
 
     try std.testing.expectEqual(manifest.gaps.len, parked_count);
     try std.testing.expect(saw_build_gate);
