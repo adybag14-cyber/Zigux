@@ -41,7 +41,7 @@ test "phase 15 readiness manifest preserves the parked validator-first route" {
     const manifest = parsed.value;
 
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-15", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-16", manifest.surveyed_commit);
     try std.testing.expectEqualStrings(
         "docs(zigux): add documentation root, review checklist, and freeze map",
         manifest.bootstrap_ledger_anchor,
@@ -106,7 +106,9 @@ test "phase 15 readiness note and replay routes stay aligned" {
 
     try expectContains(readiness_note, "PHASE15_LANE_KEY=P15-L01");
     try expectContains(readiness_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(readiness_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-15");
+    try expectContains(readiness_note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-16");
+    try expectContains(readiness_note, "the current readiness packet remains a maintenance-mode governance surface only");
+    try expectContains(readiness_note, "later repo movement still requires a fresh bounded provenance refresh before this note should claim a newer reviewed head than `current-master-readback-2026-05-16`");
     try expectContains(readiness_note, "The packet remains parked.");
     try expectContains(readiness_note, "no Architecture Council approval is currently recorded");
     try expectContains(readiness_note, "The roadmap requires the freeze map, Architecture Council review process, parity scorecard, and policy for code that remains in C indefinitely.");
@@ -114,27 +116,20 @@ test "phase 15 readiness note and replay routes stay aligned" {
     try expectContains(readiness_note, "Current `master` already exceeds that ledger foothold.");
     try expectContains(readiness_note, "python3 scripts/zigux/validate-phase15.py");
     try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-docs-readme-alignment.py");
+    try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-scripts-readme-alignment.py");
+    try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-review-process-handoff.py");
     try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
     try expectContains(readiness_note, "phase15-docs-root-summary-alignment");
-    try expectContains(readiness_note, "shared-summary lane `P15-Y07`");
     try expectContains(readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig");
     try expectContains(readiness_note, "make -C zigux phase15-validate");
     try expectContains(readiness_note, "make -C zigux phase15-test");
+    try expectContains(readiness_note, "make -C zigux phase15");
     try expectContains(readiness_note, "the remaining blocker is still `phase15-deep-core-status-change-blocker`");
-    try expectContains(readiness_note, "scripts/zigux/check-phase15-review-process-handoff.py");
     try expectContains(readiness_note, "zigux/tests/phase15_readiness_gate_manifest.json");
     try expectContains(readiness_note, "zigux/tests/phase15_readiness_gate.zig");
     try expectContains(
         readiness_note,
         "whether the dedicated readiness packet still keeps the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes aligned",
-    );
-    try expectContains(
-        readiness_note,
-        "A fresh same-lane reread on 2026-05-16 also showed the older shared-summary scripts-root validator-route drift is already closed on current `master`:",
-    );
-    try expectContains(
-        readiness_note,
-        "the older scripts-root `phase15-validate` route mismatch is already closed on current `master`",
     );
 
     try expectContains(scripts_readme, "validate-phase15.py");
