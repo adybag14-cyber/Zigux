@@ -131,7 +131,7 @@ pub fn summarizeNextOnlineCpuRoute(
 ) OnlineCpuRouteAttemptSummary {
     const cursor = advanceOnlineCpuCursor(online_cpu_mask, start_index);
     const cpu_index = cursor.cpu_index orelse return .{
-        .start_index = start_index,
+        .start_index = cursor.start_index,
         .next_scan_index = cursor.next_scan_index,
         .cpu_index = null,
         .buffer_index = routed_cpu_count,
@@ -143,7 +143,7 @@ pub fn summarizeNextOnlineCpuRoute(
     const lookup = perf_buffer_poll.summarizeBufferFdLookup(buffer_fds, routed_cpu_count);
     return switch (lookup.disposition) {
         .found_fd => .{
-            .start_index = start_index,
+            .start_index = cursor.start_index,
             .next_scan_index = cursor.next_scan_index,
             .cpu_index = cpu_index,
             .buffer_index = lookup.requested_index,
@@ -152,7 +152,7 @@ pub fn summarizeNextOnlineCpuRoute(
             .disposition = .routed_cpu,
         },
         .invalid_index => .{
-            .start_index = start_index,
+            .start_index = cursor.start_index,
             .next_scan_index = cursor.next_scan_index,
             .cpu_index = cpu_index,
             .buffer_index = lookup.requested_index,
@@ -161,7 +161,7 @@ pub fn summarizeNextOnlineCpuRoute(
             .disposition = .missing_buffer_slot,
         },
         .missing_fd => .{
-            .start_index = start_index,
+            .start_index = cursor.start_index,
             .next_scan_index = cursor.next_scan_index,
             .cpu_index = cpu_index,
             .buffer_index = lookup.requested_index,
