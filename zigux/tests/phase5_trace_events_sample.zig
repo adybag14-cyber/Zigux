@@ -102,13 +102,7 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
 
 test "phase 5 trace-events sample keeps the full string and formatting cycle explicit" {
     var module = sample.TraceEventsReferenceSample{};
-    const expected_strings = [_][]const u8{
-        "Mother Goose",
-        "Snoopy",
-        "Gandalf",
-        "Frodo",
-        "One ring to rule them all",
-    };
+    const review_contract = sample.TraceEventsReferenceSample.reviewContract();
     const expected_prefix_lens = [_]usize{ 0, 1, 2, 3, 4 };
     const expected_prefixes = [_][4]i32{
         .{ 0, 0, 0, 0 },
@@ -127,9 +121,13 @@ test "phase 5 trace-events sample keeps the full string and formatting cycle exp
     try std.testing.expect(cycle.conditional_paths_checked);
     try std.testing.expect(cycle.vararg_payload_path_checked);
     try std.testing.expect(cycle.relative_location_path_checked);
-    try std.testing.expectEqual(@as(usize, expected_strings.len * sample.TraceEventsReferenceSample.event_family_count), cycle.total_event_calls_after_cycle);
+    try std.testing.expectEqual(review_contract.modulo_selected_strings.len, cycle.cases.len);
+    try std.testing.expectEqual(
+        @as(usize, review_contract.modulo_selected_strings.len * sample.TraceEventsReferenceSample.event_family_count),
+        cycle.total_event_calls_after_cycle,
+    );
 
-    for (expected_strings, 0..) |expected_string, count| {
+    for (review_contract.modulo_selected_strings, 0..) |expected_string, count| {
         const case = cycle.cases[count];
         try std.testing.expectEqual(@as(i32, @intCast(count)), case.iteration_count);
         try std.testing.expectEqualStrings(expected_string, case.selected_string);
@@ -150,7 +148,10 @@ test "phase 5 trace-events sample keeps the full string and formatting cycle exp
     try std.testing.expectEqual(@as(usize, 0), lifecycle.replay_run_count);
     try std.testing.expectEqual(@as(usize, 0), lifecycle.exit_run_count);
     try std.testing.expectEqual(@as(usize, 0), lifecycle.registration_depth);
-    try std.testing.expectEqual(@as(usize, expected_strings.len * sample.TraceEventsReferenceSample.event_family_count), lifecycle.total_event_calls);
+    try std.testing.expectEqual(
+        @as(usize, review_contract.modulo_selected_strings.len * sample.TraceEventsReferenceSample.event_family_count),
+        lifecycle.total_event_calls,
+    );
 }
 
 test "phase 5 trace-events sample makes ownership and teardown boundaries explicit" {
