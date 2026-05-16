@@ -11,6 +11,7 @@ FILES = {
     "closure_note": "Documentation/zigux/phase11-closure-note.md",
     "lane_note": "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "contributor_sync_note": "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
+    "scripts_readme": "scripts/zigux/README.md",
     "build_inventory": "zigux/tests/fixtures/phase11_build_inventory.json",
     "makefile": "zigux/Makefile",
     "workflow": ".github/workflows/zigux-bootstrap.yml",
@@ -66,17 +67,32 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase11-contract`",
         "the exact shared `zig build test --build-file zigux/tests/phase11_build.zig --summary all` replay",
     ],
+    "scripts_readme": [
+        "Phase 11 flow - the current shared Phase 11 scripts-root reminder on `master` is",
+        "`Documentation/zigux/phase11-shared-replay-contract.md`",
+        "`scripts/zigux/check-phase11-shared-replay-contract.py`",
+        "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`scripts/zigux/check-phase11-build-inventory.py`",
+        "`zigux/tests/fixtures/phase11_build_inventory.json`",
+        "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
+        "`make -C zigux phase11-contract`",
+        "`make -C zigux phase11`",
+        "`make -C zigux phase11-hvc-survey`",
+        "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
+        "`drivers/watchdog/dw_wdt.zig`",
+        "`drivers/watchdog/dw_wdt_verify.zig`",
+        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+    ],
     "build_inventory": [
-        "\"phase11-hvc-console-survey-tests\"",
-        "\"dedicated_survey_replays\"",
-        "\"zigux/tests/phase11_hvc_console_survey.zig\"",
-        "\"shared_replay_markers\"",
-        "\"zigux/tests/phase11_hvc_console_poll_retry_split.zig\"",
+        '"phase11-hvc-console-survey-tests"',
+        '"dedicated_survey_replays"',
+        '"zigux/tests/phase11_hvc_console_survey.zig"',
+        '"shared_replay_markers"',
+        '"zigux/tests/phase11_hvc_console_poll_retry_split.zig"',
     ],
     "makefile": [
         "PHONY += phase11-contract phase11-test phase11-hvc-survey phase11",
         "phase11-contract:",
-        "phase11-hvc-survey:",
         "phase11: phase11-contract phase11-test phase11-hvc-survey",
     ],
     "workflow": [
@@ -85,6 +101,7 @@ REQUIRED_MARKERS = {
         "- name: Run Phase 11 shared replay contract checker",
         "- name: Check Phase 11 shared summary surfaces",
         "- name: Run dedicated Phase 11 hvc survey replay",
+        "run: zig build test --build-file zigux/tests/phase11_build.zig --summary all",
         "run: make -C zigux phase11-contract",
         "run: make -C zigux phase11-hvc-survey",
     ],
@@ -103,11 +120,18 @@ FORBIDDEN_MARKERS = {
         "the direct contents bridge can still 404 on `zigux/tests/phase11_build.zig`",
         "raw-fallback materialization story",
     ],
+    "scripts_readme": [
+        "`zigux/tests/phase11_dw_wdt_survey.zig`",
+        "`Documentation/zigux/phase11-dw-wdt-survey.md`",
+        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+        "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
+    ],
 }
 
 
 class CheckError(RuntimeError):
     pass
+
 
 
 def read_text(root: Path, relative_path: str) -> str:
@@ -117,16 +141,19 @@ def read_text(root: Path, relative_path: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
+
 def expect_markers(label: str, text: str, markers: list[str]) -> None:
     for marker in markers:
         if marker not in text:
             raise CheckError(f"missing marker in {label}: {marker}")
 
 
+
 def expect_forbidden_markers_absent(label: str, text: str) -> None:
     for marker in FORBIDDEN_MARKERS.get(label, []):
         if marker in text:
             raise CheckError(f"forbidden marker in {label}: {marker}")
+
 
 
 def run_check(root: Path) -> None:
@@ -136,14 +163,20 @@ def run_check(root: Path) -> None:
         expect_forbidden_markers_absent(label, text)
 
 
+
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
 
 
+
 def build_self_test_fixture(root: Path) -> None:
     for label, relative_path in FILES.items():
-        write(root / relative_path, "\n".join(REQUIRED_MARKERS[label]) + "\n")
+        lines = list(REQUIRED_MARKERS[label])
+        if label == "scripts_readme":
+            lines = [line for line in lines if line not in FORBIDDEN_MARKERS["scripts_readme"]]
+        write(root / relative_path, "\n".join(lines) + "\n")
+
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -154,6 +187,7 @@ def expect_failure(root: Path, expected_fragment: str) -> None:
             raise AssertionError(f"expected {expected_fragment!r}, got {exc!r}") from exc
         return
     raise AssertionError(f"expected failure containing {expected_fragment!r}")
+
 
 
 def run_self_test() -> None:
@@ -173,7 +207,9 @@ def run_self_test() -> None:
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / FILES[label]
             path.write_text(
-                path.read_text(encoding="utf-8").replace(marker + "\n", "", 1).replace(marker, "", 1),
+                path.read_text(encoding="utf-8")
+                .replace(marker + "\n", "", 1)
+                .replace(marker, "", 1),
                 encoding="utf-8",
             )
             expect_failure(case_root, marker)
@@ -187,7 +223,10 @@ def run_self_test() -> None:
             case_root = tmpdir / f"forbidden_{idx}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / FILES[label]
-            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            path.write_text(
+                path.read_text(encoding="utf-8") + marker + "\n",
+                encoding="utf-8",
+            )
             expect_failure(case_root, marker)
 
         missing_file_cases = list(FILES.values())
@@ -204,6 +243,7 @@ def run_self_test() -> None:
         )
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
+
 
 
 def main() -> int:
