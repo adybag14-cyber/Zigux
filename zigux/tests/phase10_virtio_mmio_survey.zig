@@ -22,6 +22,16 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectGapStatus(gaps: []const Gap, gap_id: []const u8, expected_status: []const u8) !void {
+    for (gaps) |gap| {
+        if (std.mem.eql(u8, gap.id, gap_id)) {
+            try std.testing.expectEqualStrings(expected_status, gap.status);
+            return;
+        }
+    }
+    return error.GapNotFound;
+}
+
 fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]u8 {
     const io = std.testing.io;
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
@@ -47,6 +57,9 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);
     try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);
     try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
+    try expectGapStatus(manifest.gaps, "phase10-mmio-config-write-disposition-helper", "starter_landed");
+    try expectGapStatus(manifest.gaps, "phase10-mmio-selected-queue-readiness-helper", "starter_landed");
+    try expectGapStatus(manifest.gaps, "phase10-mmio-lifecycle-and-irq-paths", "blocked_on_risky_transport");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_probe_preflight.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig");
@@ -55,6 +68,9 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try expectContains(survey_note, "drivers/virtio/virtio_ring_verify.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_input_verify.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_mmio_verify.zig");
+    try expectContains(survey_note, "phase10-mmio-config-write-disposition-helper");
+    try expectContains(survey_note, "phase10-mmio-selected-queue-readiness-helper");
+    try expectContains(survey_note, "phase10-mmio-lifecycle-and-irq-paths");
     try expectContains(survey_note, "transport-identity summary");
     try expectContains(survey_note, "consumes that identity snapshot");
     try expectContains(survey_note, "selected-queue readiness summary");
