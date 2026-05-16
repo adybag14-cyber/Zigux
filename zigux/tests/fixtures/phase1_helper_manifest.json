@@ -109,8 +109,8 @@
       "helper_test_anchors": [
         "test \"find first and next set bits across words\"",
         "test \"find zero bits respects the declared bit count\"",
-        "test \"find or bit returns the next set bit from either bitmap\"",
         "test \"find and bit returns the first shared set bit\"",
+        "test \"find or bit returns the next set bit from either bitmap\"",
         "test \"underscore entry points reuse the public helper behavior\"",
         "test \"single-word next scans honor start masks\"",
         "test \"single-word first scans clamp to the declared bit window\"",
