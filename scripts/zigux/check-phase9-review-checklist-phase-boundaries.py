@@ -21,6 +21,10 @@ ROOT = infer_repo_root()
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 
 PHASE9_SHARED_PACKET_MARKER = "if the change touches the shared Phase 9 runtime-loader packet"
+PHASE8_EXEC_CMD_MARKER = "`tools/lib/subcmd/exec-cmd.zig`"
+PHASE8_HELP_MARKER = "`tools/lib/subcmd/help.zig`"
+PHASE8_BOUNDARY_MARKER = "stay explicit as Phase 8 tooling boundaries"
+DEPMOD_BOUNDARY_MARKER = "the shared module-metadata and depmod-publication boundary still stays blocked"
 PHASE2_CONF_BRIDGE_MARKER = "`scripts/zigux/kconfig/conf_bridge.zig`"
 PHASE2_CONFDATA_BRIDGE_MARKER = "`scripts/zigux/kconfig/confdata_bridge.zig`"
 PHASE3_EXPORTS_MARKER = "`rust/exports.c`"
@@ -30,6 +34,10 @@ PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than 
 
 REQUIRED_MARKERS = [
     PHASE9_SHARED_PACKET_MARKER,
+    PHASE8_EXEC_CMD_MARKER,
+    PHASE8_HELP_MARKER,
+    PHASE8_BOUNDARY_MARKER,
+    DEPMOD_BOUNDARY_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
     PHASE3_EXPORTS_MARKER,
@@ -63,13 +71,15 @@ def validate(root: Path) -> list[str]:
 
 
 def build_fixture_text() -> str:
-    return f"""# Zigux Review Checklist
-
-- {PHASE9_SHARED_PACKET_MARKER}
-- the shared Phase 9 reminder should also keep the older cross-phase non-owner boundaries explicit:
-  {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while
-  {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {PHASE3_BOUNDARY_MARKER}.
-"""
+    return (
+        "# Zigux Review Checklist\n\n"
+        f"- {PHASE9_SHARED_PACKET_MARKER}\n"
+        "- the shared module-metadata and depmod-publication boundary still stays blocked so `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces.\n"
+        f"- keep the older Phase 8 command and environment cue owners out of the packet so {PHASE8_EXEC_CMD_MARKER} and {PHASE8_HELP_MARKER} {PHASE8_BOUNDARY_MARKER}.\n"
+        "- the shared Phase 9 reminder should also keep the older cross-phase non-owner boundaries explicit:\n"
+        f"  {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while\n"
+        f"  {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {PHASE3_BOUNDARY_MARKER}.\n"
+    )
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -103,7 +113,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist keeps the older Phase 2 and Phase 3 non-owner boundaries explicit."
+        description="Check that the Phase 9 review checklist keeps the blocked publication boundary plus the older Phase 8, Phase 2, and Phase 3 non-owner boundaries explicit."
     )
     parser.add_argument(
         "--repo-root",
