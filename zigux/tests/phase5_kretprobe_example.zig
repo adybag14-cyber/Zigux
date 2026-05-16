@@ -20,13 +20,11 @@ test "phase5 kretprobe focused test keeps the review contract and helper surface
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "pub const SampleFocus = enum") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "pub const sample_review_focus = [_]SampleFocus{") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "pub const ReviewContract = struct") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, "pub const MaxactivePressureReplaySummary = struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "pub fn reviewContract() ReviewContract {") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".focus = &sample_review_focus,") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".default_symbol_name = default_symbol_name,") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".maxactive_budget = maxactive_budget,") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "requires_runtime_substrate = false") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, "runMaxactivePressureReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "runLifecycleGuardReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "runOwnershipReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "runRecoveryReplay") != null);
@@ -45,7 +43,7 @@ test "phase5 kretprobe focused test keeps the review contract and helper surface
     try std.testing.expect(ownership_lifetime_idx < recovery_exit_idx);
 }
 
-test "phase5 kretprobe focused test keeps the exact anchor, maxactive pressure, retarget, and recovery cues explicit" {
+test "phase5 kretprobe focused test keeps the exact anchor, retarget, and recovery cues explicit" {
     const sample_source = try readFile(std.testing.allocator, "samples/zigux/kretprobe_example.zig");
     defer std.testing.allocator.free(sample_source);
 
@@ -53,9 +51,6 @@ test "phase5 kretprobe focused test keeps the exact anchor, maxactive pressure, 
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "default_symbol_name = \"kernel_clone\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "maxactive_budget: usize = 20") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "runRetargetReplay(\"do_sys_openat2\")") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, "const overflow_entered = try self.entryHandler(false, 200)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, "const inner_return_duration_ns = try self.retHandler(7, 149)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, "const outer_return_duration_ns = try self.retHandler(7, 240)") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "error.InvalidSymbolName => rejected_empty_symbol = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "error.InvalidLifecycleTransition => rejected_post_init_retarget = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try self.retHandler(42, 175)") != null);
@@ -74,10 +69,10 @@ test "phase5 kretprobe focused test keeps manifest and survey note aligned with 
     try std.testing.expect(std.mem.indexOf(u8, manifest, "reviewContract()") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest, "default symbol kernel_clone") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest, "maxactive budget 20") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest, "runMaxactivePressureReplay()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest, "nmissed_after_overflow = 1") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest, "inner return duration 30") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest, "outer return duration 140") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest, "runMaxactivePressureReplay()") == null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest, "nmissed_after_overflow = 1") == null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest, "inner return duration 30") == null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest, "outer return duration 140") == null);
     try std.testing.expect(std.mem.indexOf(u8, manifest, "do_sys_openat2") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest, "runRetargetReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest, "runRecoveryReplay") != null);
@@ -87,10 +82,10 @@ test "phase5 kretprobe focused test keeps manifest and survey note aligned with 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kretprobe_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel_clone`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "runMaxactivePressureReplay()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`nmissed_after_overflow = 1`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "inner return duration `30`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "outer return duration `140`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "runMaxactivePressureReplay()") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`nmissed_after_overflow = 1`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "inner return duration `30`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "outer return duration `140`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runRetargetReplay(\"do_sys_openat2\")") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`maxactive = 20`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runRetargetReplay") != null);
