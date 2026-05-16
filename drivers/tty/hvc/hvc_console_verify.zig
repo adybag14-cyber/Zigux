@@ -251,6 +251,23 @@ test "hvc_console verify keeps hangup-only cleanup prerequisites explicit" {
     try std.testing.expectEqual(CleanupTrigger.hangup_only, summary.trigger);
 }
 
+test "hvc_console verify keeps missing tty-port release from claiming cleanup ownership" {
+    const summary = try summarizeCleanupPrerequisites(.{
+        .final_close_seen = false,
+        .hangup_seen = true,
+        .tty_port_release_handoff = false,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expect(!summary.cleanup.tty_port_release_handoff);
+    try std.testing.expect(!summary.cleanup.cleanup_time_tty_port_ownership);
+    try std.testing.expect(!summary.cleanup.port_reference_drop_timing);
+    try std.testing.expect(!summary.drops_tty_port_reference);
+    try std.testing.expect(summary.hangup_or_final_close_seen);
+    try std.testing.expectEqual(CleanupTrigger.hangup_only, summary.trigger);
+}
+
 test "hvc_console verify keeps combined cleanup trigger explicit" {
     const summary = try summarizeCleanupPrerequisites(.{
         .final_close_seen = true,
