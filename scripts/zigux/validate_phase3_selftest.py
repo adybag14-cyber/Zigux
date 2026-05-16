@@ -75,7 +75,7 @@ def run_self_test() -> int:
             path = root / rel_path
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(
-                "#!/usr/bin/env python3\n" "raise SystemExit(0)\n",
+                "#!/usr/bin/env python3\n" 'raise SystemExit(0)\n',
                 encoding="utf-8",
             )
         if validate_script_list(root):
@@ -92,7 +92,47 @@ def run_self_test() -> int:
             print("expected missing script was not reported")
             return 1
 
+        for rel_path, _args in SELFTEST_COMMANDS:
+            path = root / rel_path
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                "#!/usr/bin/env python3\n" 'raise SystemExit(0)\n',
+                encoding="utf-8",
+            )
+
+        last_path = SELFTEST_COMMANDS[-1][0]
+        (root / last_path).unlink()
+        missing = validate_script_list(root)
+        expected = f"missing selftest script: {last_path.as_posix()}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing trailing script was not reported")
+            return 1
+
+        path = root / last_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            "#!/usr/bin/env python3\n" 'raise SystemExit(0)\n',
+            encoding="utf-8",
+        )
+
+        failing_path = SELFTEST_COMMANDS[-2][0]
+        (root / failing_path).write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "print('synthetic validator failure')\n"
+            "print('synthetic stderr detail', file=sys.stderr)\n"
+            "raise SystemExit(7)\n",
+            encoding="utf-8",
+        )
+        result = run_packet(root)
+        if result != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected failing child self-test to fail the packet")
+            return 1
+
         print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
+        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=4")
         return 0
 
 
