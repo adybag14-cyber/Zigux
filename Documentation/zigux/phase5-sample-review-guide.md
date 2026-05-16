@@ -147,6 +147,8 @@ Keep `StorageBacking.embedded_fixed_buffer`, `previewInto()`, `snapshotInto()`, 
 
 Keep the survey note truthful about direct readback: if the bytestream-focused tests-root replay, survey replay, or shared `phase5_build.zig` route are mentioned again here, re-verify those exact remaining paths first instead of borrowing older restored-path wording.
 
+If shared guidance leans on `zigux/tests/phase5_bytestream_fifo.zig`, keep that focused replay framed as public-tree-backed compatibility evidence until it stops naming the older `runHelperBoundaryReplay()`, `runShortDrainReplay()`, `runQueueShapeReplay()`, and `snapshot_sequence` markers instead of the current sample-local `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `runRemainingCapacityReplay()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and `snapshot_before_final_drain` packet.
+
 ### `kobject_example`
 
 Review the currently readable kobject packet through `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`, while keeping the current public-tree-backed companion packet `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` explicit when shared reminder work needs the broader packet.
