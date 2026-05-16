@@ -146,6 +146,10 @@ test "phase 9 runtime loader lifecycle boundary guard keeps shared review-checkl
     try expectContains(manifest, "\"id\": \"runtime-loader-lifecycle-boundary-summary-guard\"");
     try expectContains(manifest, "\"status\": \"starter_landed\"");
     try expectContains(review_checklist, "`scripts/zigux/check-phase9-build-only-surface.py`");
+    try expectContains(review_checklist, "`make -C zigux phase9-runtime-loader-shared-tests`");
+    try expectContains(review_checklist, "`make -C zigux phase9-test`");
+    try expectContains(review_checklist, "`make -C zigux phase9`");
+    try expectContains(review_checklist, "workflow-backed `make -C zigux phase9` route");
     try expectContains(review_checklist, "no-dedicated-`validate-phase9.py` posture");
     try expectContains(review_checklist, "the shared module-metadata and depmod-publication boundary still stays blocked");
     try expectContains(
