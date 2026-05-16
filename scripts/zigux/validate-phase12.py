@@ -11,7 +11,13 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
-VIRTIO_SCSI_FALLBACK_PATH = "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
+VIRTIO_SCSI_FALLBACK_PATH = (
+    "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
+)
+RELEASE_SEQUENCING_PATH = "Documentation/zigux/phase12-release-sequencing.md"
+RELEASE_COORDINATION_MATRIX_PATH = (
+    "Documentation/zigux/phase12-release-coordination-matrix.md"
+)
 RUNTIME_EVIDENCE_PATHS = [
     "scripts/zigux/check-phase12-release-readiness-packet.py",
     "zigux/Makefile",
@@ -40,6 +46,8 @@ REQUIRED_FILES = [
     "drivers/nvme/host/pci_verify.zig",
     "Documentation/zigux/phase12-release-closure-checklist.md",
     "Documentation/zigux/phase12-release-readiness-survey.md",
+    RELEASE_SEQUENCING_PATH,
+    RELEASE_COORDINATION_MATRIX_PATH,
     RAW_GITHUB_COVERAGE_PATH,
     VIRTIO_SCSI_FALLBACK_PATH,
     "Documentation/zigux/phase12-virtio-net-survey.md",
@@ -85,6 +93,18 @@ REQUIRED_MARKERS = {
         "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "make -C zigux phase12-validate",
+    ],
+    RELEASE_SEQUENCING_PATH: [
+        "`PHASE12_STATUS=active`",
+        "`python3 scripts/zigux/check-phase12-cross.py --self-test`",
+        "`make -C zigux phase12-validate`",
+        "starter-present `virtio_net` packet plus the shipped `virtio_scsi` build-only packet",
+    ],
+    RELEASE_COORDINATION_MATRIX_PATH: [
+        "`PHASE12_STATUS=active`",
+        "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
+        "verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+        "Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`",
     ],
     RAW_GITHUB_COVERAGE_PATH: [
         "- `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
@@ -151,18 +171,18 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase12_build.zig": [
         "../../drivers/net/virtio_net.zig",
-        '"phase12_virtio_net.zig"',
-        '"phase12_virtio_net_syntax_lab.zig"',
+        "\"phase12_virtio_net.zig\"",
+        "\"phase12_virtio_net_syntax_lab.zig\"",
         "phase12-virtio-net-tests",
         "phase12-virtio-net-syntax-lab-tests",
         "run_virtio_net_contract_tests.setCwd(b.path(\"../..\"));",
         "run_virtio_net_syntax_tests.setCwd(b.path(\"../..\"));",
         "../../drivers/net/virtio_net_transmit_recycle.zig",
-        '"phase12_virtio_net_transmit_recycle.zig"',
+        "\"phase12_virtio_net_transmit_recycle.zig\"",
         "phase12-virtio-net-transmit-recycle-tests",
         "run_virtio_net_transmit_recycle_tests.setCwd(b.path(\"../..\"));",
         "../../drivers/net/virtio_net_queue_resume.zig",
-        '"phase12_virtio_net_queue_resume.zig"',
+        "\"phase12_virtio_net_queue_resume.zig\"",
         "phase12-virtio-net-queue-resume-tests",
         "run_virtio_net_queue_resume_tests.setCwd(b.path(\"../..\"));",
         "smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
@@ -172,11 +192,11 @@ REQUIRED_MARKERS = {
         "smoke_step.dependOn(&run_virtio_net_syntax_tests.step);",
         "test_step.dependOn(&run_virtio_net_contract_tests.step);",
         "../../drivers/scsi/virtio_scsi.zig",
-        '"phase12_virtio_scsi.zig"',
-        '"phase12_virtio_scsi_syntax_lab.zig"',
-        '"phase12_virtio_scsi_repeated_replan_gate.zig"',
-        '"phase12_virtio_scsi_repeated_rollback_gate.zig"',
-        '"phase12_virtio_scsi_packet.zig"',
+        "\"phase12_virtio_scsi.zig\"",
+        "\"phase12_virtio_scsi_syntax_lab.zig\"",
+        "\"phase12_virtio_scsi_repeated_replan_gate.zig\"",
+        "\"phase12_virtio_scsi_repeated_rollback_gate.zig\"",
+        "\"phase12_virtio_scsi_packet.zig\"",
         "phase12-virtio-scsi-tests",
         "phase12-virtio-scsi-syntax-lab-tests",
         "phase12-virtio-scsi-repeated-replan-gate-tests",
@@ -259,6 +279,8 @@ REQUIRED_MARKERS = {
         "PHASE12_VALIDATOR_SELF_TEST=pass",
         RAW_GITHUB_COVERAGE_PATH,
         VIRTIO_SCSI_FALLBACK_PATH,
+        RELEASE_SEQUENCING_PATH,
+        RELEASE_COORDINATION_MATRIX_PATH,
         "Documentation/zigux/phase12-virtio-net-survey.md",
         "drivers/net/virtio_net_queue_resume.zig",
         "zigux/tests/phase12_virtio_net_queue_resume.zig",
@@ -300,7 +322,8 @@ FIXTURE_OVERRIDES = {
         REQUIRED_MARKERS["Documentation/zigux/phase12-virtio-scsi-survey.md"]
     )
     + "\n",
-    VIRTIO_SCSI_FALLBACK_PATH: "\n".join(REQUIRED_MARKERS[VIRTIO_SCSI_FALLBACK_PATH]) + "\n",
+    VIRTIO_SCSI_FALLBACK_PATH: "\n".join(REQUIRED_MARKERS[VIRTIO_SCSI_FALLBACK_PATH])
+    + "\n",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md": "\n".join(
         REQUIRED_MARKERS["Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"]
     )
@@ -340,6 +363,7 @@ FIXTURE_OVERRIDES = {
     "zigux/Makefile": "phase12-validate:\n\t@true\n",
     ".github/workflows/zigux-bootstrap.yml": "name: zigux-bootstrap\n",
 }
+
 
 def git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
@@ -485,61 +509,27 @@ def run_self_test() -> None:
         ("missing_phase12_virtio_net_transmit_recycle_test", "zigux/tests/phase12_virtio_net_transmit_recycle.zig"),
         ("missing_phase12_nvme_driver", "drivers/nvme/host/pci.zig"),
         ("missing_phase12_nvme_verify_shard", "drivers/nvme/host/pci_verify.zig"),
-        (
-            "missing_phase12_release_closure_checklist",
-            "Documentation/zigux/phase12-release-closure-checklist.md",
-        ),
+        ("missing_phase12_release_closure_checklist", "Documentation/zigux/phase12-release-closure-checklist.md"),
+        ("missing_phase12_release_sequencing", RELEASE_SEQUENCING_PATH),
+        ("missing_phase12_release_coordination_matrix", RELEASE_COORDINATION_MATRIX_PATH),
         ("missing_phase12_raw_github_coverage_survey", RAW_GITHUB_COVERAGE_PATH),
         ("missing_phase12_virtio_scsi_fallback_catalog", VIRTIO_SCSI_FALLBACK_PATH),
-        (
-            "missing_phase12_virtio_scsi_slice_note",
-            "Documentation/zigux/phase12-virtio-scsi-slice.md",
-        ),
-        (
-            "missing_phase12_virtio_scsi_survey_note",
-            "Documentation/zigux/phase12-virtio-scsi-survey.md",
-        ),
+        ("missing_phase12_virtio_scsi_slice_note", "Documentation/zigux/phase12-virtio-scsi-slice.md"),
+        ("missing_phase12_virtio_scsi_survey_note", "Documentation/zigux/phase12-virtio-scsi-survey.md"),
         ("missing_phase12_nvme_survey_note", "Documentation/zigux/phase12-nvme-pci-survey.md"),
-        (
-            "missing_phase12_nvme_fallback_note",
-            "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
-        ),
-        (
-            "missing_phase12_nvme_reopen_governance",
-            "Documentation/zigux/phase12-nvme-pci-reopen-governance.md",
-        ),
+        ("missing_phase12_nvme_fallback_note", "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"),
+        ("missing_phase12_nvme_reopen_governance", "Documentation/zigux/phase12-nvme-pci-reopen-governance.md"),
         ("missing_phase12_nvme_slice_note", "Documentation/zigux/phase12-nvme-pci-slice.md"),
-        (
-            "missing_phase12_direct_repeated_rollback_gate",
-            "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig",
-        ),
-        (
-            "missing_phase12_virtio_scsi_survey_manifest",
-            "zigux/tests/phase12_virtio_scsi_manifest.json",
-        ),
-        (
-            "missing_phase12_virtio_scsi_survey_gate",
-            "zigux/tests/phase12_virtio_scsi_survey.zig",
-        ),
-        (
-            "missing_phase12_virtio_scsi_support_manifest",
-            "zigux/tests/fixtures/phase12_virtio_scsi_manifest.json",
-        ),
+        ("missing_phase12_direct_repeated_rollback_gate", "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig"),
+        ("missing_phase12_virtio_scsi_survey_manifest", "zigux/tests/phase12_virtio_scsi_manifest.json"),
+        ("missing_phase12_virtio_scsi_survey_gate", "zigux/tests/phase12_virtio_scsi_survey.zig"),
+        ("missing_phase12_virtio_scsi_support_manifest", "zigux/tests/fixtures/phase12_virtio_scsi_manifest.json"),
         ("missing_phase12_nvme_direct_test", "zigux/tests/phase12_nvme_pci.zig"),
         ("missing_phase12_nvme_manifest", "zigux/tests/phase12_nvme_pci_manifest.json"),
         ("missing_phase12_nvme_survey_gate", "zigux/tests/phase12_nvme_pci_survey.zig"),
-        (
-            "missing_phase12_build_only_surface_checker",
-            "scripts/zigux/check-build-only-phase12-surface.py",
-        ),
-        (
-            "missing_phase12_release_readiness_checker",
-            "scripts/zigux/check-phase12-release-readiness-packet.py",
-        ),
-        (
-            "missing_phase12_virtio_scsi_packet_checker",
-            "scripts/zigux/check-phase12-virtio-scsi-packet.py",
-        ),
+        ("missing_phase12_build_only_surface_checker", "scripts/zigux/check-build-only-phase12-surface.py"),
+        ("missing_phase12_release_readiness_checker", "scripts/zigux/check-phase12-release-readiness-packet.py"),
+        ("missing_phase12_virtio_scsi_packet_checker", "scripts/zigux/check-phase12-virtio-scsi-packet.py"),
     ]
 
     marker_cases = [
@@ -556,6 +546,20 @@ def run_self_test() -> None:
             "`Documentation/zigux/phase12-release-closure-checklist.md`",
             "`Documentation/zigux/phase12-release-closure-checklist-missing.md`",
             "Documentation/zigux/phase12-release-readiness-survey.md: `Documentation/zigux/phase12-release-closure-checklist.md`",
+        ),
+        (
+            "missing_release_sequencing_cross_selftest_marker",
+            RELEASE_SEQUENCING_PATH,
+            "`python3 scripts/zigux/check-phase12-cross.py --self-test`",
+            "`python3 scripts/zigux/check-phase12-cross.py --self-test-missing`",
+            f"{RELEASE_SEQUENCING_PATH}: `python3 scripts/zigux/check-phase12-cross.py --self-test`",
+        ),
+        (
+            "missing_release_coordination_matrix_support_bundle_marker",
+            RELEASE_COORDINATION_MATRIX_PATH,
+            "Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`",
+            "Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-phase12-release-readiness-packet.py` only",
+            f"{RELEASE_COORDINATION_MATRIX_PATH}: Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`",
         ),
         (
             "missing_raw_github_makefile_marker",
@@ -623,9 +627,9 @@ def run_self_test() -> None:
         (
             "missing_phase12_build_transmit_recycle_root_marker",
             "zigux/tests/phase12_build.zig",
-            '"phase12_virtio_net_transmit_recycle.zig"',
-            '"phase12_virtio_net_transmit_recycle_missing.zig"',
-            'zigux/tests/phase12_build.zig: "phase12_virtio_net_transmit_recycle.zig"',
+            "\"phase12_virtio_net_transmit_recycle.zig\"",
+            "\"phase12_virtio_net_transmit_recycle_missing.zig\"",
+            "zigux/tests/phase12_build.zig: \"phase12_virtio_net_transmit_recycle.zig\"",
         ),
         (
             "missing_phase12_build_transmit_recycle_smoke_step_marker",
@@ -665,9 +669,9 @@ def run_self_test() -> None:
         (
             "missing_phase12_build_repeated_rollback_source_marker",
             "zigux/tests/phase12_build.zig",
-            '"phase12_virtio_scsi_repeated_rollback_gate.zig"',
-            '"phase12_virtio_scsi_repeated_rollback_gate_missing.zig"',
-            'zigux/tests/phase12_build.zig: "phase12_virtio_scsi_repeated_rollback_gate.zig"',
+            "\"phase12_virtio_scsi_repeated_rollback_gate.zig\"",
+            "\"phase12_virtio_scsi_repeated_rollback_gate_missing.zig\"",
+            "zigux/tests/phase12_build.zig: \"phase12_virtio_scsi_repeated_rollback_gate.zig\"",
         ),
         (
             "missing_phase12_build_repeated_rollback_step_marker",
@@ -789,6 +793,20 @@ def run_self_test() -> None:
             f"scripts/zigux/validate-phase12.py: {VIRTIO_SCSI_FALLBACK_PATH}",
         ),
         (
+            "missing_validator_release_sequencing_marker",
+            "scripts/zigux/validate-phase12.py",
+            RELEASE_SEQUENCING_PATH,
+            "Documentation/zigux/phase12-release-sequencing-missing.md",
+            f"scripts/zigux/validate-phase12.py: {RELEASE_SEQUENCING_PATH}",
+        ),
+        (
+            "missing_validator_release_coordination_matrix_marker",
+            "scripts/zigux/validate-phase12.py",
+            RELEASE_COORDINATION_MATRIX_PATH,
+            "Documentation/zigux/phase12-release-coordination-matrix-missing.md",
+            f"scripts/zigux/validate-phase12.py: {RELEASE_COORDINATION_MATRIX_PATH}",
+        ),
+        (
             "missing_validator_virtio_scsi_survey_note_marker",
             "scripts/zigux/validate-phase12.py",
             "Documentation/zigux/phase12-virtio-scsi-survey.md",
@@ -871,7 +889,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 shipped packet, the shared release-readiness "
-            "fallback note, the bounded virtio_net starter-plus-queue-resume-and-transmit-recycle survey "
+            "fallback note, the shared release sequencing and release coordination matrix, "
+            "the bounded virtio_net starter-plus-queue-resume-and-transmit-recycle survey "
             "packet, the virtio_scsi survey packet, the raw-coverage companion, the "
             "release-closure companion, the dedicated support checkers, and the bounded "
             "NVMe starter, verifier shard, direct replay, survey packet, and manifest surfaces."
