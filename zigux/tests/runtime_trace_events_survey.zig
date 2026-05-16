@@ -213,7 +213,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         manifest.roadmap_gap_summary.missing_capability,
     );
     try std.testing.expectEqualStrings(
-        "completed live Phase 9 runtime tracepoint-registration lifecycle parity beyond the current review packet",
+        "completed live Phase 9 runtime tracepoint registration lifecycle parity beyond the current review packet",
         manifest.roadmap_gap_summary.blocked_deliverable,
     );
     try std.testing.expectEqualStrings(
@@ -505,6 +505,14 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(
         runtime_trace_events_module,
         "test \"runtime trace-events module gate keeps rejected re-selftest rollback explicit\" {",
+    );
+    try expectContains(
+        runtime_trace_events_module,
+        "test \"runtime trace-events module gate keeps initialized-stage clean exit explicit without selftest replay\" {",
+    );
+    try expectContains(
+        runtime_trace_events_module,
+        "try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);",
     );
     try expectContains(
         runtime_trace_events_module,
