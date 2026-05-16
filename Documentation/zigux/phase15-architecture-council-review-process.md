@@ -18,7 +18,7 @@ The Phase 15 roadmap keeps deep-core status changes under human governance, not 
 
 That means any request to move a freeze-in-C anchor out of its current blocked posture must arrive as an explicit Architecture Council review packet with named owners, named evidence, and an honest stay-in-C fallback when the evidence is incomplete.
 
-This note exists to keep that review-policy surface explicit beside `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/review-checklist.md`, and the still-missing baseline `Documentation/zigux/phase15-indefinite-c-policy.md` companion that future lanes may restore separately.
+This note exists to keep that review-policy surface explicit beside `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/review-checklist.md`, and the restored `Documentation/zigux/phase15-indefinite-c-policy.md` companion.
 
 ## Required review packet
 
