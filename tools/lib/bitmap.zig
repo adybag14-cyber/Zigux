@@ -551,6 +551,21 @@ test "bitmap scnprintf truncates and keeps a terminator slot" {
     try std.testing.expectEqual(@as(u8, 0), buffer[len]);
 }
 
+test "bitmap scnprintf handles terminator-only and zero-length caller views" {
+    var map = [_]Word{0};
+    setRange(&map, 1, 3);
+
+    var terminator_only = [_]u8{0xaa};
+    const terminator_only_len = scnprintf(&map, 8, terminator_only[0..1]);
+    try std.testing.expectEqual(@as(usize, 0), terminator_only_len);
+    try std.testing.expectEqual(@as(u8, 0), terminator_only[0]);
+
+    var zero_length_backing = [_]u8{0xbb};
+    const zero_length_len = scnprintf(&map, 8, zero_length_backing[0..0]);
+    try std.testing.expectEqual(@as(usize, 0), zero_length_len);
+    try std.testing.expectEqual(@as(u8, 0xbb), zero_length_backing[0]);
+}
+
 test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap" {
     const map = [_]Word{0};
     var buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
