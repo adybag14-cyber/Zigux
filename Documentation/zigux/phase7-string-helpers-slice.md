@@ -105,5 +105,5 @@ This expanded starter slice does not yet claim:
 
 ## Next Bounded Step
 
-The next bounded follow-through should stay inside the helper-local packet.
-Keep the expanded starter packet truthful across the survey, manifest, boundary replay, and slice note, and route any shared validator, Makefile, workflow, tests-root, or docs-root drift to the separate Phase 7 shared-control lanes before taking one deeper helper-local expansion step.
+The next bounded follow-through should keep the expanded starter packet truthful across the survey, manifest, boundary replay, and slice note.
+Route any shared validator, Makefile, workflow, tests-root, or docs-root drift to the separate Phase 7 shared-control lanes before taking one deeper helper-local expansion step.
