@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
 
 FILES = {
+    "docs_root_readme": "Documentation/zigux/README.md",
     "workflow_guide": "Documentation/zigux/phase13-contributor-workflow-guide.md",
     "review_checklist": "Documentation/zigux/review-checklist.md",
     "contributor_surface_sync": "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
@@ -31,6 +32,20 @@ DEVRES_BOUNDARY = "`zigux/tests/phase13_devres_boundary_evidence.zig`"
 LANDLOCK_SYSCALLS_REVIEWABILITY = "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`"
 
 REQUIRED_MARKERS = {
+    "docs_root_readme": [
+        "Phase 13 notes - `Documentation/zigux/phase13-contributor-workflow-guide.md`",
+        "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        NOTIFIER_CHAIN_VIEW,
+        HVC_HEADER,
+        "stable `make -C zigux phase13-validate`",
+        BLOCKED_ROUTE,
+        "`Documentation/zigux/phase13-libfs-slice.md`",
+        PHASE13_BUILD_GAP,
+    ],
     "workflow_guide": [
         "Use this guide when a change touches the active Phase 13 shared-helper packet",
         "Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle.",
