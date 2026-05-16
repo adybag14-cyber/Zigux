@@ -24,6 +24,7 @@ FILES = [
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_closure_manifest.json",
     "Documentation/zigux/phase10-closure-evidence.md",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "Documentation/zigux/review-checklist.md",
@@ -145,6 +146,7 @@ SCRIPTS_README_MARKERS = [
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/freeze-map.md`",
     "`Documentation/zigux/phase10-closure-evidence.md`",
+    "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`zigux/tests/phase10_closure_manifest.json`",
@@ -159,6 +161,7 @@ CLOSURE_EVIDENCE_MARKERS = [
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
     "`Documentation/zigux/freeze-map.md`",
+    "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`zigux/tests/phase10_closure_manifest.json`",
@@ -173,6 +176,7 @@ CLOSURE_EVIDENCE_MARKERS = [
 TESTS_ROOT_COMPANION_MARKERS = [
     "`Documentation/zigux/phase10-closure-evidence.md`",
     "`Documentation/zigux/freeze-map.md`",
+    "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`Documentation/zigux/phase10-virtio-core-slice.md`",
@@ -335,6 +339,7 @@ def write_fixture(root: Path) -> None:
     text_files = {
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_EVIDENCE_MARKERS) + "\n",
         "Documentation/zigux/freeze-map.md": "fixture\n",
+        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "fixture\n",
         "Documentation/zigux/phase10-virtio-mmio-slice.md": "fixture\n",
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "fixture\n",
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(
@@ -492,6 +497,15 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        lane_sequencing_path = root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
+        lane_sequencing_path.unlink()
+        expect_missing_file(
+            "lane_sequencing_surface",
+            root,
+            "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+        )
+        write_fixture(root)
+
         build_path = root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
@@ -566,6 +580,21 @@ def run_self_test() -> int:
             "scripts_readme_closure_evidence",
             root,
             "scripts_readme:`Documentation/zigux/phase10-closure-evidence.md`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+                "`Documentation/zigux/phase10-virtio-driver-lane-sequencing-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_lane_sequencing",
+            root,
+            "scripts_readme:`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
@@ -650,6 +679,21 @@ def run_self_test() -> int:
 
         tests_root_companion_path.write_text(
             original_tests_root_companion.replace(
+                "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+                "`Documentation/zigux/phase10-virtio-driver-lane-sequencing-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_root_companion_lane_sequencing",
+            root,
+            "tests_root_companion:`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+        )
+        tests_root_companion_path.write_text(original_tests_root_companion, encoding="utf-8")
+
+        tests_root_companion_path.write_text(
+            original_tests_root_companion.replace(
                 "`Documentation/zigux/freeze-map.md`",
                 "`Documentation/zigux/freeze-map-missing.md`",
                 1,
@@ -706,6 +750,21 @@ def run_self_test() -> int:
             "closure_evidence_tests_root_companion",
             root,
             "closure_evidence:`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+        )
+        closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
+
+        closure_evidence_path.write_text(
+            original_closure_evidence.replace(
+                "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+                "`Documentation/zigux/phase10-virtio-driver-lane-sequencing-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_evidence_lane_sequencing",
+            root,
+            "closure_evidence:`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
         )
         closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
 
@@ -986,7 +1045,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=48")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=52")
     return 0
 
 
