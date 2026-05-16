@@ -54,6 +54,11 @@
       "why_now": "Fail-closes the older Phase 2 and Phase 3 non-owner reminder beside the blocked module-metadata and depmod-publication boundary."
     },
     {
+      "surface": "scripts/zigux/README.md",
+      "kind": "shared_scripts_reminder",
+      "why_now": "Tracks the remaining scripts-root undercount until the dedicated Phase 9 flow and review-checklist boundary checker are named beside the shared loader-gap packet."
+    },
+    {
       "surface": "zigux/tests/runtime_loader_gap_manifest.json",
       "kind": "packet_truth_manifest",
       "why_now": "Pins the current shared loader route, its still-blocked publication boundary, the cleared trace-events parity evidence, the focused lifecycle-boundary guard, the landed review-checklist non-owner boundary reminder, and the remaining scripts-root reminder drift."
@@ -144,6 +149,12 @@
       "role": "loader_drift_replay",
       "owner": "P9-L18",
       "boundary": "Closes the trace-events prepared shared runtime-substrate drift gap inside the shared loader-gap packet."
+    },
+    {
+      "surface": "scripts/zigux/README.md",
+      "role": "shared_scripts_reminder",
+      "owner": "P9-L11",
+      "boundary": "Owns the shared scripts-root Phase 9 reminder follow-through when the dedicated Phase 9 flow and review-checklist boundary checker need to stay explicit without widening into pilot-family-local packets."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
