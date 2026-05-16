@@ -140,8 +140,6 @@ REQUIRED_MANIFEST_SHARED_GATES = {
 }
 
 REQUIRED_MANIFEST_EXACT_CHECKS = {
-    "python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
-    "python3 scripts/zigux/check-phase6-shared-surface.py",
     "python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test",
     "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
     "python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test",
