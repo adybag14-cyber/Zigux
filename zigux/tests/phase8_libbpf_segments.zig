@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const surveyed_commit = "089188c96b86c0da16088e916094a7c977d0cfc6";
+
 const Segment = struct {
     slug: []const u8,
     status: []const u8,
@@ -71,10 +73,7 @@ test "phase 8 libbpf manifest keeps the current helper-first segment catalog ali
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
-    try std.testing.expectEqualStrings(
-        "089188c96b86c0da16088e916094a7c977d0cfc6",
-        manifest.surveyed_commit,
-    );
+    try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 12), manifest.segments.len);
     try std.testing.expectEqual(@as(usize, 1), manifest.segmentation_notes.len);
@@ -132,7 +131,7 @@ test "phase 8 libbpf survey note stays grounded in the current helper-plus-build
 
     try expectContains(
         phase8_note,
-        "survey checkpoint: refreshed against inspected `master` head `089188c96b86c0da16088e916094a7c977d0cfc6`",
+        "survey checkpoint: refreshed against inspected `master` head `" ++ surveyed_commit ++ "`",
     );
     try expectContains(
         phase8_note,
