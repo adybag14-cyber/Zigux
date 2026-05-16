@@ -121,6 +121,12 @@ BUILD_FILE_MARKERS = [
 
 MAKEFILE_MARKERS = [
     "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
+    "phase6-hexdump-test:",
+    "	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
+    "phase6-hexdump-perf:",
+    "	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+    "phase6-hexdump-review:",
+    "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-hexdump-packet.py",
 ]
 
 FOCUSED_TEST_MARKERS = [
@@ -163,7 +169,7 @@ FIXTURE_MARKERS = [
     '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
 ]
 
-SELF_TEST_CASE_COUNT = 27
+SELF_TEST_CASE_COUNT = 30
 
 
 class CheckError(RuntimeError):
@@ -515,6 +521,42 @@ def run_self_test() -> None:
         build_self_test_fixture(tmpdir)
         shutil.rmtree(tmpdir / "Documentation")
         expect_failure(tmpdir, REQUIRED_FILES["slice_note"])
+
+        build_self_test_fixture(tmpdir)
+        makefile = tmpdir / REQUIRED_FILES["makefile"]
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "phase6-hexdump-test:",
+                "phase6-hexdump-test-missing:",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "phase6-hexdump-test:")
+
+        build_self_test_fixture(tmpdir)
+        makefile = tmpdir / REQUIRED_FILES["makefile"]
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+                "	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf-missing --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe")
+
+        build_self_test_fixture(tmpdir)
+        makefile = tmpdir / REQUIRED_FILES["makefile"]
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "phase6-hexdump-review:",
+                "phase6-hexdump-review-missing:",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "phase6-hexdump-review:")
 
         build_self_test_fixture(tmpdir)
         makefile = tmpdir / REQUIRED_FILES["makefile"]
