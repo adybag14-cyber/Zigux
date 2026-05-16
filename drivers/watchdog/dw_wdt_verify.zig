@@ -235,6 +235,20 @@ test "phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit"
     try testing.expect(!stop_summary.hardware_running_after_stop);
     try testing.expect(!stop_summary.keeps_heartbeat_running);
 
+    var idle_stop_without_reset = try dw_wdt.DwWdtLab.initFixedTops(9, false);
+    try idle_stop_without_reset.setInterruptPending(true);
+    const idle_stop_without_reset_summary = idle_stop_without_reset.stopSummary();
+    try testing.expectEqualStrings(dw_wdt.anchor_path, idle_stop_without_reset_summary.anchor);
+    try testing.expectEqual(dw_wdt.TeardownOutcome.idle_noop, idle_stop_without_reset_summary.outcome);
+    try testing.expect(!idle_stop_without_reset_summary.reset_control_available);
+    try testing.expect(!idle_stop_without_reset_summary.stop_requested);
+    try testing.expect(!idle_stop_without_reset_summary.enable_bit_cleared);
+    try testing.expect(idle_stop_without_reset_summary.interrupt_cleared);
+    try testing.expect(!idle_stop_without_reset_summary.running_before_stop);
+    try testing.expect(!idle_stop_without_reset_summary.running_after_stop);
+    try testing.expect(!idle_stop_without_reset_summary.hardware_running_after_stop);
+    try testing.expect(!idle_stop_without_reset_summary.keeps_heartbeat_running);
+
     var idle_teardown = try dw_wdt.DwWdtLab.initFixedTops(9, true);
     try idle_teardown.setInterruptPending(true);
     const teardown_summary = try idle_teardown.teardownSummary();
@@ -246,6 +260,18 @@ test "phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit"
     try testing.expect(teardown_summary.interrupt_cleared);
     try testing.expect(!teardown_summary.running_after_teardown);
     try testing.expect(!teardown_summary.hardware_running_after_teardown);
+
+    var idle_teardown_without_reset = try dw_wdt.DwWdtLab.initFixedTops(9, false);
+    try idle_teardown_without_reset.setInterruptPending(true);
+    const idle_teardown_without_reset_summary = try idle_teardown_without_reset.teardownSummary();
+    try testing.expectEqual(dw_wdt.TeardownOutcome.idle_noop, idle_teardown_without_reset_summary.outcome);
+    try testing.expect(!idle_teardown_without_reset_summary.can_stop);
+    try testing.expect(!idle_teardown_without_reset_summary.running_before_teardown);
+    try testing.expect(!idle_teardown_without_reset_summary.stop_invoked);
+    try testing.expect(!idle_teardown_without_reset_summary.enable_bit_cleared);
+    try testing.expect(idle_teardown_without_reset_summary.interrupt_cleared);
+    try testing.expect(!idle_teardown_without_reset_summary.running_after_teardown);
+    try testing.expect(!idle_teardown_without_reset_summary.hardware_running_after_teardown);
 
     var idle_remove = try dw_wdt.DwWdtLab.initFixedTops(9, true);
     try idle_remove.setInterruptPending(true);
