@@ -334,6 +334,48 @@ EXPECTED_GAPS = {
     "phase10-mmio-selected-queue-readiness-helper": "starter_landed",
     "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
 }
+EXPECTED_GAP_KINDS = {
+    "phase10-build-gate": "validation",
+    "phase10-virtio-core-lab-starter": "reviewability",
+    "phase10-virtio-ring-survey-gate": "validation",
+    "phase10-virtio-ring-lab-helper": "reviewability",
+    "phase10-virtio-ring-slice-note": "documentation",
+    "phase10-virtio-mmio-survey-gate": "validation",
+    "phase10-virtio-mmio-survey-note": "documentation",
+    "phase10-mmio-register-window-helper": "queue_wrapper",
+    "phase10-mmio-queue-size-helper": "queue_wrapper",
+    "phase10-virtio-mmio-slice-note": "documentation",
+    "phase10-mmio-feature-word-selector-helper": "queue_wrapper",
+    "phase10-mmio-feature-negotiation-summary-helper": "queue_wrapper",
+    "phase10-mmio-config-window-helper": "queue_wrapper",
+    "phase10-mmio-config-write-plan-helper": "queue_wrapper",
+    "phase10-mmio-transport-identity-helper": "queue_wrapper",
+    "phase10-mmio-probe-preflight-helper": "queue_wrapper",
+    "phase10-mmio-config-write-disposition-helper": "queue_wrapper",
+    "phase10-mmio-selected-queue-readiness-helper": "queue_wrapper",
+    "phase10-mmio-lifecycle-and-irq-paths": "roadmap_gap",
+}
+EXPECTED_GAP_DESTINATIONS = {
+    "phase10-build-gate": "zigux/tests/phase10_build.zig",
+    "phase10-virtio-core-lab-starter": "drivers/virtio/virtio.zig",
+    "phase10-virtio-ring-survey-gate": "zigux/tests/phase10_virtio_ring_survey.zig",
+    "phase10-virtio-ring-lab-helper": "drivers/virtio/virtio_ring.zig",
+    "phase10-virtio-ring-slice-note": "Documentation/zigux/phase10-virtio-ring-slice.md",
+    "phase10-virtio-mmio-survey-gate": "zigux/tests/phase10_virtio_mmio_survey.zig",
+    "phase10-virtio-mmio-survey-note": "Documentation/zigux/phase10-virtio-mmio-survey.md",
+    "phase10-mmio-register-window-helper": "drivers/virtio/virtio_mmio.zig",
+    "phase10-mmio-queue-size-helper": "drivers/virtio/virtio_mmio.zig",
+    "phase10-virtio-mmio-slice-note": "Documentation/zigux/phase10-virtio-mmio-slice.md",
+    "phase10-mmio-feature-word-selector-helper": "drivers/virtio/virtio_mmio.zig",
+    "phase10-mmio-feature-negotiation-summary-helper": "drivers/virtio/virtio_mmio.zig",
+    "phase10-mmio-config-window-helper": "drivers/virtio/virtio_mmio.zig",
+    "phase10-mmio-config-write-plan-helper": "drivers/virtio/virtio_mmio.zig",
+    "phase10-mmio-transport-identity-helper": "drivers/virtio/virtio_mmio.zig",
+    "phase10-mmio-probe-preflight-helper": "drivers/virtio/virtio_mmio.zig",
+    "phase10-mmio-config-write-disposition-helper": "drivers/virtio/virtio_mmio.zig",
+    "phase10-mmio-selected-queue-readiness-helper": "drivers/virtio/virtio_mmio.zig",
+    "phase10-mmio-lifecycle-and-irq-paths": "zigux/tests/phase10_virtio_mmio.zig",
+}
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -380,6 +422,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             continue
         if gap.get("status") != status:
             missing_markers.append(f"manifest:gap_status:{gap_id}={gap.get('status')!r}")
+        expected_kind = EXPECTED_GAP_KINDS[gap_id]
+        if gap.get("kind") != expected_kind:
+            missing_markers.append(f"manifest:gap_kind:{gap_id}={gap.get('kind')!r}")
+        expected_destination = EXPECTED_GAP_DESTINATIONS[gap_id]
+        if gap.get("zigux_destination") != expected_destination:
+            missing_markers.append(f"manifest:gap_destination:{gap_id}={gap.get('zigux_destination')!r}")
 
     return missing_files, missing_markers
 
@@ -421,7 +469,12 @@ def build_fixture() -> dict[str, str]:
                 "preexisting_virtio_mmio_verify_present": True,
             },
             "gaps": [
-                {"id": gap_id, "status": status}
+                {
+                    "id": gap_id,
+                    "status": status,
+                    "kind": EXPECTED_GAP_KINDS[gap_id],
+                    "zigux_destination": EXPECTED_GAP_DESTINATIONS[gap_id],
+                }
                 for gap_id, status in EXPECTED_GAPS.items()
             ],
         },
@@ -482,6 +535,34 @@ def run_self_test() -> int:
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
             _, markers = validate(root)
             expected = "manifest:gap_status:phase10-mmio-feature-negotiation-summary-helper='repo_reality_gap'"
+            if expected not in markers:
+                raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
+            case_count += 1
+
+        def run_selected_queue_kind_manifest_case() -> None:
+            nonlocal case_count
+            manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            for gap in manifest["gaps"]:
+                if gap["id"] == "phase10-mmio-selected-queue-readiness-helper":
+                    gap["kind"] = "validation"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            _, markers = validate(root)
+            expected = "manifest:gap_kind:phase10-mmio-selected-queue-readiness-helper='validation'"
+            if expected not in markers:
+                raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
+            case_count += 1
+
+        def run_blocked_transport_destination_manifest_case() -> None:
+            nonlocal case_count
+            manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            for gap in manifest["gaps"]:
+                if gap["id"] == "phase10-mmio-lifecycle-and-irq-paths":
+                    gap["zigux_destination"] = "drivers/virtio/virtio_mmio_verify.zig"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            _, markers = validate(root)
+            expected = "manifest:gap_destination:phase10-mmio-lifecycle-and-irq-paths='drivers/virtio/virtio_mmio_verify.zig'"
             if expected not in markers:
                 raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
             case_count += 1
@@ -554,6 +635,8 @@ def run_self_test() -> int:
 
         run_manifest_case()
         run_feature_negotiation_manifest_case()
+        run_selected_queue_kind_manifest_case()
+        run_blocked_transport_destination_manifest_case()
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
     print(f"PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT={case_count}")
