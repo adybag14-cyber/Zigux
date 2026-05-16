@@ -702,6 +702,17 @@ def run_self_test() -> int:
             "missing freeze-map support-bundle boundary marker",
         )
 
+        write_text(
+            tmp_root / FREEZE_MAP_PATH,
+            good_freeze_map_text() + f"- {FREEZE_MAP_MARKERS[1]}\n",
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            f"marker count drift in {FREEZE_MAP_PATH}: {FREEZE_MAP_MARKERS[1]} (expected 1, found 2)",
+            "duplicate freeze-map support-bundle boundary marker not detected",
+        )
+
         write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
         write_text(
             tmp_root / MAKEFILE_PATH,
