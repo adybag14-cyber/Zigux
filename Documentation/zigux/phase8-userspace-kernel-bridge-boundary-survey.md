@@ -68,13 +68,14 @@ and the already-landed bounded perf-buffer poll helper reviewable through:
 - `python3 scripts/zigux/validate-phase8.py --self-test`
 - `python3 scripts/zigux/validate-phase8.py`
 
-Current 2026-05-15 authenticated contents readback from this environment still
-returned `404` for `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`,
-`zigux/tests/phase8_file_path_handle_bridge.zig`,
-`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`,
-`zigux/tests/phase8_libbpf_segments_only_build.zig`, and
-`zigux/tests/phase8_build.zig`, so treat that landed bridge-plus-build packet as
-mixed-source review evidence rather than uniformly stable contents-route proof.
+Current 2026-05-16 authenticated contents readback from this environment keeps
+that broader bridge-plus-build packet mixed rather than uniformly stable:
+`zigux/tests/phase8_file_path_handle_bridge.zig` and
+`zigux/tests/phase8_libbpf_segments_only_build.zig` now read cleanly, while
+`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`,
+`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, and
+`zigux/tests/phase8_build.zig` still return `404` through the same contents
+route.
 
 That same-lane bridge packet now has a landed helper-local core while the
 broader file-path-and-handle resource boundary stays parked: it names
@@ -103,29 +104,21 @@ Authenticated contents reads for some Phase 8 files are inconsistent from this
 environment, so current public default-branch tree evidence and readable blob
 content should win over older absent-file assumptions.
 
-Current mixed 2026-05-14 readback still shows a narrower route split for the
-command packet itself:
-- `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`,
-  `zigux/tests/phase8_help.zig`, and `tools/lib/subcmd/exec-cmd.zig` read cleanly
-  through the authenticated contents route
-- `zigux/tests/phase8_exec_cmd.zig` and `zigux/tests/phase8_exec_cmd_only_build.zig`
-  still intermittently return `404` through that same contents route
-- current public default-branch tree readback and exact public raw readback
-  still carry the direct exec-cmd shard, including `Documentation/zigux/phase8-exec-cmd-slice.md`,
-  `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and
-  `zigux/tests/phase8_exec_cmd_only_build.zig`
+Current 2026-05-16 authenticated readback closes the older focused exec-cmd
+replay split:
+- `Documentation/zigux/phase8-exec-cmd-slice.md`, `tools/lib/subcmd/exec-cmd.zig`,
+  `zigux/tests/phase8_exec_cmd.zig`, and
+  `zigux/tests/phase8_exec_cmd_only_build.zig` now read cleanly through the
+  authenticated contents route
+- the remaining Phase 8 readback instability in this area belongs to the
+  broader shared build and neighboring bridge packet instead: `zigux/tests/phase8_build.zig`
+  and the bridge helper/build shard still do not read uniformly through the same route
 
-Treat that split as route instability rather than as a live repo-reality gap:
-the roadmap-backed command and environment lane still exists, the shared parked
-reminder packet still names it, the direct exec-cmd helper now reads cleanly
-through the authenticated contents route again, the focused exec-cmd replay
-files remain publicly present and raw-readable on current `master`, and only
-those two focused replay files still remain unreliable through the authenticated
-contents route from this environment.
-
-That packet keeps the roadmap-backed command and environment plumbing gap explicit
-without claiming direct `execvp()` parity, direct process-launch ownership, live
-OS environment reads, or direct terminal probing on current `master`.
+Treat that current state as a control-surface truthfulness improvement, not as
+a roadmap closure claim: the direct exec-cmd shard is readable again on current
+`master`, but the packet still only covers the parked command and environment
+planning surface and still does not claim direct `execvp()` parity, direct
+process-launch ownership, live OS environment reads, or direct terminal probing.
 
 ## Roadmap Gap
 
@@ -141,11 +134,10 @@ the same packet still stops short of full process-launch, environment-plumbing,
 terminal-probing, token handoff, and reopened-handle closure behavior.
 
 This note should therefore remain the truthful bridge between the roadmap target
-and the bounded current-tree evidence: the direct exec-cmd shard is still part
-of the live parked Phase 8 packet, while the focused exec-cmd replay shards
-still remain inconsistent enough through the authenticated contents route that
-the survey must call out a narrowed helper-versus-test readback split instead
-of pretending the underlying file family disappeared.
+and the bounded current-tree evidence: the direct exec-cmd shard now reads
+cleanly through authenticated contents readback on current `master`, while the
+broader shared Phase 8 build and neighboring file-path bridge packet still
+depend on mixed-source review evidence from this environment.
 
 ## Next Bounded Step
 
@@ -158,19 +150,17 @@ note together with `Documentation/zigux/phase8-tooling-lane-sequencing.md`,
 `scripts/zigux/README.md`, `zigux/Makefile`, and the current Phase 8 test tree
 before widening broader Phase 8 summaries.
 
-The next honest follow-through inside this packet is the smaller truthfulness
-step of keeping the shared Phase 8 wording aligned with the mixed current
-readback: public tree, public raw, and authenticated helper readback still carry
-the direct exec-cmd shard, while authenticated contents reads for
-`zigux/tests/phase8_exec_cmd.zig` and
-`zigux/tests/phase8_exec_cmd_only_build.zig` remain intermittent from this
-environment, and the landed file-path bridge plus shared-build shard still
-depends on mixed-source review evidence because authenticated contents reads
-also remain unstable for `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`,
-`zigux/tests/phase8_file_path_handle_bridge.zig`,
-`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`,
-`zigux/tests/phase8_libbpf_segments_only_build.zig`, and
-`zigux/tests/phase8_build.zig`.
+The next honest follow-through inside this packet is to keep the shared Phase 8
+wording aligned with that narrower current split: the direct exec-cmd shard now
+reads cleanly through authenticated contents readback, while
+`zigux/tests/phase8_build.zig`,
+`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and
+`zigux/tests/phase8_file_path_handle_bridge_only_build.zig` still keep the
+broader bridge-plus-build packet on mixed-source evidence from this
+environment. `zigux/tests/phase8_file_path_handle_bridge.zig` and
+`zigux/tests/phase8_libbpf_segments_only_build.zig` now read cleanly again, so
+follow-up should not undercount those two landed review surfaces when the shared
+wording lane reopens.
 
 Current `master` also shows that `Documentation/zigux/README.md` and
 `Documentation/zigux/review-checklist.md` already carry the refreshed shared-wording
