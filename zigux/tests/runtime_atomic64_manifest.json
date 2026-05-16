@@ -98,7 +98,7 @@
       "id": "runtime-atomic64-module-slice-note",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
-      "why_now": "The module-slice note keeps the starter, bounded loader scaffold, prepared counter-summary snapshot replay, and shared handoff packet visible for review."
+      "why_now": "The module-slice note keeps the starter, bounded loader scaffold, prepared counter-summary snapshot replay, prepared shared selftest-hook drift rejection, and shared release-state synchronization reviewable beside the shared handoff packet."
     }
   ],
   "ownership_map": [
@@ -118,7 +118,7 @@
       "surface": "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
       "role": "module_slice_note",
       "owner": "P9-L04",
-      "boundary": "Tracks the starter, bounded loader-scaffold, prepared counter-summary snapshot replay, and shared handoff proof without claiming loadable-module parity."
+      "boundary": "Tracks the starter, bounded loader-scaffold, prepared counter-summary snapshot replay, prepared shared selftest-hook drift rejection, and shared release-state synchronization proof without claiming loadable-module parity."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
