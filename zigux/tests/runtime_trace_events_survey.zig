@@ -124,6 +124,14 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     defer std.testing.allocator.free(module_slice_note);
 
+    const runtime_trace_events_sample = try cwd.readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_trace_events.zig",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(runtime_trace_events_sample);
+
     const runtime_trace_events_module = try cwd.readFileAlloc(
         io_instance.io(),
         "zigux/tests/runtime_trace_events_module.zig",
@@ -131,6 +139,14 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(runtime_trace_events_module);
+
+    const runtime_trace_events_diff = try cwd.readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_trace_events_diff.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(runtime_trace_events_diff);
 
     const runtime_trace_events_loader = try cwd.readFileAlloc(
         io_instance.io(),
@@ -197,7 +213,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         manifest.roadmap_gap_summary.missing_capability,
     );
     try std.testing.expectEqualStrings(
-        "completed live Phase 9 runtime tracepoint registration lifecycle parity beyond the current review packet",
+        "completed live Phase 9 runtime tracepoint-registration lifecycle parity beyond the current review packet",
         manifest.roadmap_gap_summary.blocked_deliverable,
     );
     try std.testing.expectEqualStrings(
@@ -359,6 +375,8 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(module_slice_note_why_now, "rejected re-selftest rollback note");
     try expectContains(module_slice_note_why_now, "loader-substrate-drift replay");
 
+    try expectContains(survey_note, "`samples/zigux/runtime_trace_events.zig`");
+    try expectContains(survey_note, "`zigux/tests/runtime_trace_events_diff.zig`");
     try expectContains(survey_note, "reviewable family-local starter plus the adjacent shared loader-facing reminder packet");
     try expectContains(
         survey_note,
@@ -402,6 +420,9 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         "Those alias and depmod surfaces remain review-only metadata boundaries rather than shipped trace-events-family evidence.",
     );
     try expectContains(survey_note, "Do not invent a dedicated `validate-phase9.py` route");
+
+    try expectContains(module_slice_note, "`samples/zigux/runtime_trace_events.zig`");
+    try expectContains(module_slice_note, "`zigux/tests/runtime_trace_events_diff.zig`");
     try expectContains(module_slice_note, "the broader runtime-substrate handoff remains a separate blocked step");
     try expectContains(module_slice_note, "the live runtime substrate is still missing");
     try expectContains(
@@ -441,6 +462,18 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         module_slice_note,
         "The next honest follow-through in the same `runtime-pilot` lane is to keep the packet-local survey note, module-slice note, and manifest aligned with the visible family-local trace-events packet, keep the bounded pilot-module contract explicit, and then leave broader follow-up to the separate shared runtime-substrate lanes until a real substrate step lands.",
     );
+
+    try expectContains(runtime_trace_events_sample, "pub fn descriptor() ModuleDescriptor {");
+    try expectContains(runtime_trace_events_sample, ".name = \"runtime_trace_events\"");
+    try expectContains(runtime_trace_events_sample, ".anchor = \"samples/trace_events/trace-events-sample.c\"");
+    try expectContains(runtime_trace_events_sample, ".requires_runtime_substrate = true");
+    try expectContains(runtime_trace_events_sample, ".provides_selftest_hook = true");
+    try expectContains(runtime_trace_events_sample, "pub fn runSelftest(self: *Self) !EmissionSummary {");
+    try expectContains(runtime_trace_events_sample, ".conditional_paths_checked = self.saw_conditional_path");
+    try expectContains(runtime_trace_events_sample, ".registration_paths_checked = true");
+    try expectContains(runtime_trace_events_sample, "test \"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\" {");
+    try expectContains(runtime_trace_events_sample, "test \"trace-events sample keeps failed-exit rollback explicit after selftest-ready replay\" {");
+
     try expectContains(
         runtime_trace_events_module,
         "test \"runtime trace-events sample advertises the bounded pilot-module contract\" {",
@@ -481,6 +514,28 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
         runtime_trace_events_module,
         "try std.testing.expectEqual(sample.ModuleStage.selftest_complete, after_failed_exit.stage);",
     );
+
+    try expectContains(
+        runtime_trace_events_diff,
+        "test \"runtime trace-events diff gate keeps count-gated main-thread replay explicit through the diagnostics summary\" {",
+    );
+    try expectContains(
+        runtime_trace_events_diff,
+        "test \"runtime trace-events diff gate keeps single-conditional main-thread replay explicit through the diagnostics summary\" {",
+    );
+    try expectContains(
+        runtime_trace_events_diff,
+        "test \"runtime trace-events diff gate keeps the selftest family order and gated replay totals explicit\" {",
+    );
+    try expectContains(
+        runtime_trace_events_diff,
+        "test \"runtime trace-events diff gate keeps selftest-ready failed-exit rollback explicit through the diagnostics summary\" {",
+    );
+    try expectContains(runtime_trace_events_diff, "try std.testing.expectEqual(@as(?usize, 4), replay.last_main_emitted_events);");
+    try expectContains(runtime_trace_events_diff, "try std.testing.expectEqual(@as(?usize, 2), replay.last_fn_emitted_events);");
+    try expectContains(runtime_trace_events_diff, "try std.testing.expectEqual(@as(?usize, 2), replay.last_main_conditional_event_count);");
+    try expectContains(runtime_trace_events_diff, "try std.testing.expectEqualStrings(\"foo_bar_reg\", replay.last_register_label orelse return error.ExpectedFunctionPayload);");
+    try expectContains(runtime_trace_events_diff, "try std.testing.expectError(error.OutstandingRegistration, module.exit());");
 
     try expectContains(
         runtime_trace_events_loader,
@@ -582,6 +637,7 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     try expectContains(phase9_build, "runtime_trace_events_module.zig");
     try expectContains(phase9_build, "phase9-runtime-trace-events-module-tests");
     try expectContains(phase9_build, "runtime_trace_events_diff.zig");
+    try expectContains(phase9_build, "phase9-runtime-trace-events-diff-tests");
     try expectContains(phase9_build, "runtime_trace_events_loader.zig");
     try expectContains(phase9_build, "phase9-runtime-trace-events-loader-tests");
     try expectContains(phase9_build, "runtime_trace_events_loader_substrate_drift.zig");
