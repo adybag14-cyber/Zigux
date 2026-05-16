@@ -141,6 +141,11 @@ TRANSPORT_MANIFEST_MARKERS = [
     '"architecture_council_reopen_attached": false',
 ]
 
+LEDGER_PACKET_MARKERS = [
+    "PHASE10_LEDGER_RING_SURVEY_GATE=contents_bridge_gap:zigux/tests/phase10_virtio_ring_survey.zig",
+    "PHASE10_LEDGER_MMIO_SURVEY_GATE=zigux/tests/phase10_virtio_mmio_survey.zig",
+]
+
 MARKER_SETS = {
     "zigux/Makefile": MAKE_MARKERS,
     "Documentation/zigux/phase10-closure-evidence.md": CLOSURE_DOC_MARKERS,
@@ -152,6 +157,7 @@ MARKER_SETS = {
     "zigux/tests/phase10_virtio_ring_manifest.json": TRANSPORT_MANIFEST_MARKERS,
     "zigux/tests/phase10_virtio_input_manifest.json": TRANSPORT_MANIFEST_MARKERS,
     "zigux/tests/phase10_virtio_mmio_manifest.json": TRANSPORT_MANIFEST_MARKERS,
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": LEDGER_PACKET_MARKERS,
 }
 
 MARKER_LABELS = {
@@ -165,6 +171,7 @@ MARKER_LABELS = {
     "zigux/tests/phase10_virtio_ring_manifest.json": "ring-manifest",
     "zigux/tests/phase10_virtio_input_manifest.json": "input-manifest",
     "zigux/tests/phase10_virtio_mmio_manifest.json": "mmio-manifest",
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "closure-ledger",
 }
 
 LEDGER_EXACT_ONCE_MARKERS = [
@@ -440,7 +447,9 @@ def build_fixture_manifest_text() -> str:
 
 
 def build_fixture_ledger_text(root: Path) -> str:
-    return "\n".join(build_ledger_mirror_markers(root) + LEDGER_EXACT_ONCE_MARKERS) + "\n"
+    return "\n".join(
+        build_ledger_mirror_markers(root) + LEDGER_PACKET_MARKERS + LEDGER_EXACT_ONCE_MARKERS
+    ) + "\n"
 
 
 def write_fixture(root: Path) -> None:
@@ -990,6 +999,36 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        ledger.write_text(
+            ledger.read_text(encoding="utf-8").replace(
+                "PHASE10_LEDGER_RING_SURVEY_GATE=contents_bridge_gap:zigux/tests/phase10_virtio_ring_survey.zig\n",
+                "PHASE10_LEDGER_RING_SURVEY_GATE=zigux/tests/phase10_virtio_ring_survey.zig\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            "closure-ledger:PHASE10_LEDGER_RING_SURVEY_GATE=contents_bridge_gap:zigux/tests/phase10_virtio_ring_survey.zig",
+            "phase10-closure-self-test:ring_survey_gate_label_not_detected",
+        )
+        write_fixture(root)
+
+        ledger.write_text(
+            ledger.read_text(encoding="utf-8").replace(
+                "PHASE10_LEDGER_MMIO_SURVEY_GATE=zigux/tests/phase10_virtio_mmio_survey.zig\n",
+                "PHASE10_LEDGER_MMIO_SURVEY_GATE=contents_bridge_gap:zigux/tests/phase10_virtio_mmio_survey.zig\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker_missing(
+            root,
+            "closure-ledger:PHASE10_LEDGER_MMIO_SURVEY_GATE=zigux/tests/phase10_virtio_mmio_survey.zig",
+            "phase10-closure-self-test:mmio_survey_gate_label_not_detected",
+        )
+        write_fixture(root)
+
         checker = root / "scripts/zigux/check-phase10-harness-coverage.py"
         checker.write_text(
             "#!/usr/bin/env python3\n"
@@ -1079,7 +1118,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=41")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=43")
     return 0
 
 
