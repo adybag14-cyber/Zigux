@@ -69,6 +69,29 @@ pub fn summarizeQueueResume(request: QueueResumeRequest) !QueueResumeSummary {
     if (request.receive_queue_count == 0 and request.transmit_queue_count == 0) {
         return error.InvalidQueueCounts;
     }
+    if (request.receive_queue_count != request.effective_queue_pairs or
+        request.transmit_queue_count != request.effective_queue_pairs)
+    {
+        return error.QueueCountMismatch;
+    }
+
+    const data_queue_count = try checkedAddU16(
+        request.receive_queue_count,
+        request.transmit_queue_count,
+    );
+    const control_queue_count: u16 = if (request.first_control_queue_index == null) 0 else 1;
+    if (request.first_control_queue_index) |control_queue_index| {
+        if (control_queue_index != data_queue_count) {
+            return error.ControlQueueIndexMismatch;
+        }
+    }
+    const expected_total_queue_count = try checkedAddU16(
+        data_queue_count,
+        control_queue_count,
+    );
+    if (request.total_queue_count != expected_total_queue_count) {
+        return error.TotalQueueCountMismatch;
+    }
     if (request.requires_control_queue_restore and request.first_control_queue_index == null) {
         return error.ControlQueueIndexRequired;
     }
@@ -246,6 +269,26 @@ test "summarizeQueueResume keeps control and rss replay visible before resume" {
     try std.testing.expect(summary.throughput_guard_active);
 }
 
+test "summarizeQueueResume rejects queue counts that drift away from the negotiated pairs" {
+    try std.testing.expectError(error.QueueCountMismatch, summarizeQueueResume(.{
+        .effective_queue_pairs = 2,
+        .receive_queue_count = 1,
+        .transmit_queue_count = 2,
+        .total_queue_count = 3,
+    }));
+}
+
+test "summarizeQueueResume rejects control queue placement that does not start after the data queues" {
+    try std.testing.expectError(error.ControlQueueIndexMismatch, summarizeQueueResume(.{
+        .effective_queue_pairs = 2,
+        .receive_queue_count = 2,
+        .transmit_queue_count = 2,
+        .first_control_queue_index = 5,
+        .total_queue_count = 5,
+        .requires_control_queue_restore = true,
+    }));
+}
+
 test "summarizeQueueResume rejects control restore without an index" {
     try std.testing.expectError(error.ControlQueueIndexRequired, summarizeQueueResume(.{
         .effective_queue_pairs = 2,
@@ -276,4 +319,9 @@ test "summarizeQueueResume rejects rss config replay without rss negotiation" {
         .requires_control_queue_restore = true,
         .requires_rss_config_sync = true,
     }));
+}
+
+fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
+    const value = @as(u32, lhs) + rhs;
+    return std.math.cast(u16, value) orelse error.QueueCountOverflow;
 }
