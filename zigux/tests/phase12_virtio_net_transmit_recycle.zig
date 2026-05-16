@@ -14,6 +14,7 @@ test "phase12 virtio net transmit recycle summary stays anchored to virtio_net.c
     try std.testing.expectEqual(@as(u16, 4), summary.in_flight_descriptors);
     try std.testing.expectEqual(@as(u16, 2), summary.completed_descriptors);
     try std.testing.expectEqual(@as(u16, 2), summary.recycled_descriptors);
+    try std.testing.expectEqual(@as(u16, 0), summary.completion_backlog_after);
     try std.testing.expectEqual(@as(u16, 1), summary.free_descriptors_before);
     try std.testing.expectEqual(@as(u16, 3), summary.free_descriptors_after);
     try std.testing.expectEqual(@as(u16, 2), summary.remaining_in_flight_descriptors);
@@ -21,10 +22,36 @@ test "phase12 virtio net transmit recycle summary stays anchored to virtio_net.c
     try std.testing.expect(summary.queue_was_stopped);
     try std.testing.expect(summary.reaches_wake_threshold);
     try std.testing.expect(summary.frees_completed_buffers);
+    try std.testing.expect(!summary.requires_followup_recycle);
     try std.testing.expect(summary.wakes_transmit_queue);
     try std.testing.expect(!summary.keeps_queue_stopped);
     try std.testing.expectEqual(
         virtio_net_transmit_recycle.RecycleDisposition.wake_queue,
+        summary.disposition,
+    );
+}
+
+test "phase12 virtio net transmit recycle keeps a stopped queue parked while a bounded poll leaves completion backlog" {
+    const summary = try virtio_net_transmit_recycle.summarizeTransmitRecycle(.{
+        .in_flight_descriptors = 8,
+        .free_descriptors_before = 1,
+        .completed_descriptors = 4,
+        .recycle_budget = 2,
+        .wake_threshold = 3,
+        .queue_stopped = true,
+    });
+
+    try std.testing.expectEqual(@as(u16, 2), summary.recycled_descriptors);
+    try std.testing.expectEqual(@as(u16, 2), summary.completion_backlog_after);
+    try std.testing.expectEqual(@as(u16, 3), summary.free_descriptors_after);
+    try std.testing.expectEqual(@as(u16, 6), summary.remaining_in_flight_descriptors);
+    try std.testing.expect(summary.reaches_wake_threshold);
+    try std.testing.expect(summary.frees_completed_buffers);
+    try std.testing.expect(summary.requires_followup_recycle);
+    try std.testing.expect(!summary.wakes_transmit_queue);
+    try std.testing.expect(summary.keeps_queue_stopped);
+    try std.testing.expectEqual(
+        virtio_net_transmit_recycle.RecycleDisposition.keep_stopped,
         summary.disposition,
     );
 }
@@ -38,10 +65,13 @@ test "phase12 virtio net transmit recycle keeps a stopped queue parked below the
         .queue_stopped = true,
     });
 
+    try std.testing.expectEqual(@as(u16, 1), summary.recycled_descriptors);
+    try std.testing.expectEqual(@as(u16, 0), summary.completion_backlog_after);
     try std.testing.expectEqual(@as(u16, 1), summary.free_descriptors_after);
     try std.testing.expectEqual(@as(u16, 4), summary.remaining_in_flight_descriptors);
     try std.testing.expect(!summary.reaches_wake_threshold);
     try std.testing.expect(summary.frees_completed_buffers);
+    try std.testing.expect(!summary.requires_followup_recycle);
     try std.testing.expect(!summary.wakes_transmit_queue);
     try std.testing.expect(summary.keeps_queue_stopped);
     try std.testing.expectEqual(
@@ -59,11 +89,14 @@ test "phase12 virtio net transmit recycle does not wake a stopped queue without 
         .queue_stopped = true,
     });
 
+    try std.testing.expectEqual(@as(u16, 0), summary.recycled_descriptors);
+    try std.testing.expectEqual(@as(u16, 0), summary.completion_backlog_after);
     try std.testing.expectEqual(@as(u16, 2), summary.free_descriptors_after);
     try std.testing.expectEqual(@as(u16, 3), summary.remaining_in_flight_descriptors);
     try std.testing.expect(summary.queue_was_stopped);
     try std.testing.expect(summary.reaches_wake_threshold);
     try std.testing.expect(!summary.frees_completed_buffers);
+    try std.testing.expect(!summary.requires_followup_recycle);
     try std.testing.expect(!summary.wakes_transmit_queue);
     try std.testing.expect(summary.keeps_queue_stopped);
     try std.testing.expectEqual(
@@ -81,10 +114,13 @@ test "phase12 virtio net transmit recycle keeps running queues running even when
         .queue_stopped = false,
     });
 
+    try std.testing.expectEqual(@as(u16, 2), summary.recycled_descriptors);
+    try std.testing.expectEqual(@as(u16, 0), summary.completion_backlog_after);
     try std.testing.expectEqual(@as(u16, 3), summary.free_descriptors_after);
     try std.testing.expectEqual(@as(u16, 1), summary.remaining_in_flight_descriptors);
     try std.testing.expect(summary.reaches_wake_threshold);
     try std.testing.expect(summary.frees_completed_buffers);
+    try std.testing.expect(!summary.requires_followup_recycle);
     try std.testing.expect(!summary.wakes_transmit_queue);
     try std.testing.expect(!summary.keeps_queue_stopped);
     try std.testing.expectEqual(
