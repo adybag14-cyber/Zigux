@@ -7,7 +7,7 @@ This note records the current low-level wrapper packet that `master` still route
 - `PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig`
 - `PHASE3_ATOMIC_SCOPE=load-store-exchange-fetchadd-fetchsub-fetchand-fetchor-fetchxor-fetchnand-fetchmin-fetchmax-bittest-bitset-bitreset-bittoggle-compareexchange-compareexchangeweak`
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
-- `PHASE3_BARRIER_SCOPE=compiler-acquire-release-full-acquirerelease`
+- `PHASE3_BARRIER_SCOPE=compiler-acquire-release-full-acquirerelease-fullfence`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_SCOPE=direct-range-indexed-read-write-8-16-32-64-width-alignment-and-odd-offset-replay`
 - `PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig`
@@ -26,9 +26,9 @@ The direct helper files plus the focused replay keep that surface explicit.
 - `zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `bitTest`, `bitSet`, `bitReset`, `bitToggle`, `compareExchange`, and `compareExchangeWeak`, including helper-local non-`seq_cst` ordering, signed min/max, and bit-wrapper replays.
 - the same atomic helper now also makes compare-exchange failure-order rules explicit in helper code instead of leaving them implicit in the Zig builtin, and helper-local replay now covers the valid `.monotonic`, `.acquire`, and `.seq_cst` failure-order combinations that the current contract allows.
 - the same atomic helper also keeps shared-word bit handoff proof helper-local through direct `bitSet`, `bitReset`, and `bitToggle` transitions on a preserved word, so review can see multi-bit handoff behavior without widening the focused replay.
-- `zigux/helpers/barrier.zig` keeps the approved barrier surface explicit through `compiler`, `acquire`, `release`, `full`, and `acquireRelease`, with `compiler()` staying helper-local while current `master` also ships helper-local side-effect-free storage proof plus the barrier-locality and handoff replays in the focused route.
+- `zigux/helpers/barrier.zig` keeps the approved barrier surface explicit through `compiler`, `acquire`, `release`, `full`, `acquireRelease`, and `fullFence`, with `compiler()` plus `fullFence()` publish/reset and non-mutating proof staying helper-local while current `master` also ships helper-local side-effect-free storage proof plus the barrier-locality and handoff replays in the focused route.
 - `zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, indexed reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.
-- `zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, odd-offset, and byte-scoped interop-policy checks plus the non-`seq_cst` atomic, barrier locality or handoff, and shared allocator-or-panic consumer proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` and `compiler()` stays helper-local in `zigux/helpers/barrier.zig` to keep this focused route bounded.
+- `zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, odd-offset, and byte-scoped interop-policy checks plus the non-`seq_cst` atomic, barrier locality or handoff, and shared allocator-or-panic consumer proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` and `compiler()` plus `fullFence()`-specific barrier proof stay helper-local in `zigux/helpers/barrier.zig` to keep this focused route bounded.
 - `zigux/tests/phase3_low_level_wrappers_build.zig` is the focused build route that lets this packet stay reviewable without reopening the broader `zigux/tests/build.zig` lane.
 
 Current `master` no longer treats `zigux/helpers/mmio.zig` as declarations-only support for the focused replay. The helper file itself now ships direct MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate replays, while `zigux/tests/phase3_low_level_wrappers.zig` remains the shared cross-helper route that keeps those already-landed MMIO calls visible beside the atomic, barrier, raw-pointer, allocator, and panic consumers.
@@ -65,7 +65,7 @@ The current helper-and-replay packet shows that the shipped direct wrapper surfa
 - helper-local atomic bit-set, bit-reset, bit-toggle, and bit-test coverage in `zigux/helpers/atomic.zig`
 - helper-local atomic shared-word bit handoff coverage in `zigux/helpers/atomic.zig`, keeping preserved-word handoff transitions explicit without widening the focused replay
 - helper-local compare-exchange failure-order guards plus valid failure-order replay coverage in `zigux/helpers/atomic.zig`
-- helper-local `compiler()` barrier coverage plus side-effect-free storage proof in `zigux/helpers/barrier.zig`
+- helper-local `compiler()` barrier coverage plus side-effect-free storage proof and `fullFence()` publish/reset plus non-mutating full-fence proof in `zigux/helpers/barrier.zig`
 - 64-bit direct MMIO coverage in the focused test route
 - direct MMIO width, alignment, and odd-offset behavior in the focused test route
 - helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage in `zigux/helpers/mmio.zig`
