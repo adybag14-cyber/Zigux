@@ -512,6 +512,14 @@ test "splitPathEntries preserves empty segments" {
     try std.testing.expectEqualStrings("", entries.entries.items[4]);
 }
 
+test "splitPathEntries keeps an empty PATH as one current-directory segment" {
+    var entries = try splitPathEntries(std.testing.allocator, "");
+    defer entries.deinit();
+
+    try std.testing.expectEqual(@as(usize, 1), entries.count());
+    try std.testing.expectEqualStrings("", entries.entries.items[0]);
+}
+
 test "resolveTerminalDimensions requires a full non-zero pair before overriding fallback" {
     try std.testing.expectEqualDeep(
         TerminalDimensions{ .rows = 31, .cols = 37 },
@@ -626,6 +634,67 @@ test "loadCommandListsFromSource keeps exec-path priority and removes duplicates
     try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
     try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+}
+
+test "loadCommandListsFromEnvPath keeps the empty current-directory PATH entry reviewable" {
+    const FixtureDir = struct {
+        path: []const u8,
+        entries: []const DirectoryEntry,
+    };
+
+    const FixtureSource = struct {
+        dirs: []const FixtureDir,
+
+        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
+            for (self.dirs) |dir| {
+                if (std.mem.eql(u8, dir.path, path)) {
+                    try addExecutableEntries(cmds, dir.entries, prefix);
+                    return;
+                }
+            }
+        }
+    };
+
+    const exec_entries = [_]DirectoryEntry{
+        .{ .name = "perf-stat", .is_executable = true },
+    };
+    const cwd_entries = [_]DirectoryEntry{
+        .{ .name = "perf-annotate", .is_executable = true },
+    };
+    const path_entries = [_]DirectoryEntry{
+        .{ .name = "perf-annotate", .is_executable = true },
+        .{ .name = "perf-trace", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "/opt/perf/bin", .entries = &exec_entries },
+            .{ .path = "", .entries = &cwd_entries },
+            .{ .path = "/usr/bin", .entries = &path_entries },
+        },
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        null,
+        "/opt/perf/bin",
+        ":/usr/bin::/usr/bin",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 1), main_cmds.count());
+    try std.testing.expectEqualStrings("stat", main_cmds.names.items[0].name);
+    try std.testing.expectEqual(@as(usize, 2), other_cmds.count());
+    try std.testing.expectEqualStrings("annotate", other_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("trace", other_cmds.names.items[1].name);
 }
 
 test "writeCommandSectionsForTerminal suppresses the exec-path heading when only PATH commands remain" {
