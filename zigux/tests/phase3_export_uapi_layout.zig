@@ -47,3 +47,29 @@ test "phase3 export shim and uapi reject undersized boundary headers symmetrical
     try std.testing.expect(export_shim.requestedExtraBytes(undersized) == null);
     try std.testing.expect(uapi_version.evaluateHeader(undersized).requestedExtraBytes() == null);
 }
+
+test "phase3 export shim and uapi keep future-compatible boundary accounting symmetric" {
+    const canonical = export_shim.boundaryHeader(0x6b);
+    const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 16, 0x6b);
+    const uapi_future = uapi_version.compatibleHeader(uapi_version.header_size + 16, 0x6b);
+    const decision = export_shim.evaluateHeader(future_compatible, -75, .helpers);
+    const uapi_evaluation = uapi_version.evaluateHeader(uapi_future);
+
+    try std.testing.expectEqual(future_compatible, uapi_future);
+    try std.testing.expectEqual(canonical, export_shim.canonicalizeHeader(future_compatible).?);
+    try std.testing.expectEqual(canonical, uapi_version.canonicalizeHeader(uapi_future).?);
+    try std.testing.expect(export_shim.isCompatibleHeader(future_compatible));
+    try std.testing.expect(uapi_version.isCompatible(uapi_future));
+    try std.testing.expect(!export_shim.isCanonicalHeader(future_compatible));
+    try std.testing.expect(!uapi_version.isCanonical(uapi_future));
+    try std.testing.expect(export_shim.extendsBoundary(future_compatible));
+    try std.testing.expect(uapi_evaluation.extendsBoundary());
+    try std.testing.expect(decision.evaluation.isAccepted());
+    try std.testing.expect(decision.evaluation.extendsBoundary());
+    try std.testing.expect(export_shim.isOk(decision.status));
+    try std.testing.expectEqual(@as(u32, 16), export_shim.requestedExtraBytes(future_compatible).?);
+    try std.testing.expectEqual(@as(u32, 16), decision.evaluation.requestedExtraBytes().?);
+    try std.testing.expectEqual(@as(u32, 16), uapi_evaluation.requestedExtraBytes().?);
+    try std.testing.expectEqual(canonical, decision.evaluation.acceptance.?.canonical);
+    try std.testing.expectEqual(canonical, uapi_evaluation.acceptance.?.canonical);
+}
