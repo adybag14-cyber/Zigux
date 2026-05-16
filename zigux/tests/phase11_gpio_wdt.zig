@@ -216,6 +216,33 @@ test "phase11 gpio_wdt timeout-property checkpoint keeps heartbeat parsing order
     try std.testing.expect(level_timeout.blocked_on_platform_registration);
 }
 
+test "phase11 gpio_wdt drvdata ownership checkpoint keeps pre-registration ownership explicit" {
+    var toggle_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
+    const toggle_drvdata = toggle_watchdog.drvdataOwnershipCheckpointSummary();
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, toggle_drvdata.hw_algo);
+    try std.testing.expectEqual(@as(u32, 20), toggle_drvdata.hw_margin_ms);
+    try std.testing.expect(toggle_drvdata.parent_attached);
+    try std.testing.expect(toggle_drvdata.module_owner_attached);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", toggle_drvdata.drvdata_owner_identity);
+    try std.testing.expect(toggle_drvdata.timeout_property_precedes_drvdata_binding);
+    try std.testing.expect(toggle_drvdata.drvdata_binding_precedes_registration_handoff);
+    try std.testing.expect(toggle_drvdata.drvdata_binding_reuses_parent_linkage);
+    try std.testing.expect(toggle_drvdata.blocked_on_live_gpio_lookup);
+    try std.testing.expect(toggle_drvdata.blocked_on_platform_registration);
+
+    var level_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+    const level_drvdata = level_watchdog.drvdataOwnershipCheckpointSummary();
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, level_drvdata.hw_algo);
+    try std.testing.expectEqual(@as(u32, 500), level_drvdata.hw_margin_ms);
+    try std.testing.expect(level_drvdata.parent_attached);
+    try std.testing.expect(level_drvdata.module_owner_attached);
+    try std.testing.expect(level_drvdata.timeout_property_precedes_drvdata_binding);
+    try std.testing.expect(level_drvdata.drvdata_binding_precedes_registration_handoff);
+    try std.testing.expect(level_drvdata.drvdata_binding_reuses_parent_linkage);
+    try std.testing.expect(level_drvdata.blocked_on_live_gpio_lookup);
+    try std.testing.expect(level_drvdata.blocked_on_platform_registration);
+}
+
 test "phase11 gpio_wdt registration handoff summary records startup state, stop policy, and watchdog metadata" {
     var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
     const prestarted_handoff = prestarted_watchdog.registrationHandoffSummary(true);
