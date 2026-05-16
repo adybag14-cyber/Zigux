@@ -618,6 +618,14 @@ def run_self_test() -> None:
         parity_key_output = collect_parity_key_issues(actual)
         assert "missing_parity_key:rbtree.match_iterator_serials" in parity_key_output
 
+        missing_rbtree_cached_leftmost_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
+        del missing_rbtree_cached_leftmost_output["rbtree"]["cached_leftmost_return_serials"]
+        actual.write_text(json.dumps(missing_rbtree_cached_leftmost_output), encoding="utf-8")
+        missing_output = collect_output_issues(actual)
+        assert "missing:rbtree.cached_leftmost_return_serials" in missing_output
+        parity_key_output = collect_parity_key_issues(actual)
+        assert "missing_parity_key:rbtree.cached_leftmost_return_serials" in parity_key_output
+
         unexpected_section_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
         unexpected_section_output["extra_helper"] = {"value": 1}
         actual.write_text(json.dumps(unexpected_section_output), encoding="utf-8")
@@ -642,7 +650,7 @@ def run_self_test() -> None:
         assert decode_issues[0].startswith("json_decode_error:")
 
     print("PHASE1_PARITY_SELF_TEST=pass")
-    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=27")
+    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=28")
 
 
 def main() -> int:
