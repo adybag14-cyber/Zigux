@@ -214,6 +214,7 @@ DRIVER_STARTER_TEST_MARKERS = [
     'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
     'test "phase11 hvc console keeps hvc_kick wakeup cue reviewable" {',
     'test "phase11 hvc console keeps notifier irq helper surface reviewable" {',
+    'test "phase11 hvc console keeps incomplete remove ownership out of handoff summary" {',
 ]
 
 VERIFY_HELPER_MARKERS = [
@@ -518,6 +519,7 @@ def run_self_test() -> None:
             (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[3]),
             (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[6]),
             (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[8]),
+            (REQUIRED_FILES["driver_starter"], DRIVER_STARTER_TEST_MARKERS[9]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[0]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[1]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[2]),
