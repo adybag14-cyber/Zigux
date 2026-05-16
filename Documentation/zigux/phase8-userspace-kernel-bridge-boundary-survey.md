@@ -66,6 +66,7 @@ and the already-landed bounded perf-buffer poll helper reviewable through:
 - `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
 - `make -C zigux phase8-perf-buffer-poll-test`
 - `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+- `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
 - `python3 scripts/zigux/validate-phase8.py --self-test`
 - `python3 scripts/zigux/validate-phase8.py`
 
@@ -93,7 +94,8 @@ plus compatible fdinfo-derived map info and a non-empty token path plus a ready
 reused-map bridge plan.
 
 The same shared note also keeps the already-landed `perf-buffer-poll-bookkeeping`
-packet explicit as a smaller helper-adjacent review surface around observed
+packet explicit through the dedicated `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+review gate and as a smaller helper-adjacent review surface around observed
 wait-result normalization, ready-buffer bookkeeping, bounded buffer-slot lookup,
 and ordered record-processing summaries rather than broader routing or event-loop
 ownership.
@@ -165,6 +167,7 @@ file-path-and-handle bridge, or bounded perf-buffer poll files, re-read this
 note together with `Documentation/zigux/phase8-tooling-lane-sequencing.md`,
 `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`,
 `Documentation/zigux/phase8-perf-buffer-poll-slice.md`,
+`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`,
 `python3 scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`,
 `scripts/zigux/README.md`, `zigux/Makefile`, and the current Phase 8 test tree
 before widening broader Phase 8 summaries.
