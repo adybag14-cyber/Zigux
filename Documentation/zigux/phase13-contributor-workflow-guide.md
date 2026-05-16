@@ -17,7 +17,9 @@ Adjacent notifier evidence matters for release-surface truthfulness, but it is s
 
 ## Stable Shared Handle
 
-Treat the shared contributor-facing release handle as:
+Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle.
+
+Keep the broader contributor-facing release handle aligned through:
 
 1. `python3 scripts/zigux/validate-phase13-release.py`
 2. stable `make -C zigux phase13-validate`
