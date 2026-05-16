@@ -167,10 +167,10 @@ VALIDATION_MATRIX_MARKERS = [
     "`summarizeNotifierAddOutcome()`",
     "`drivers/tty/hvc/hvc_console_sysrq.zig`",
     "host-free khvcd, notifier, remove, or cleanup handoff",
-    "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove-handoff path explicit when the tty is already absent",
-    "cleanup prerequisite failures and the targetless notifier no-unregister edge reviewable",
+    "`drivers/tty/hvc/hvc_console_verify.zig` keeps the attached remove handoff explicit before tty detach and keeps the remove-handoff path explicit when the tty is already absent",
+    "cleanup prerequisite failures, the targetless notifier no-unregister edge, and the attached-versus-absent remove handoff branches reviewable",
     "targetless sysrq dispatch from implying notifier callbacks",
-    "the direct verify helper keeps tty-already-absent remove handoff",
+    "the direct verify helper keeps the attached remove handoff before tty detach and the tty-already-absent remove handoff explicit",
 ]
 
 DRIVER_STARTER_MARKERS = [
@@ -541,7 +541,10 @@ def run_self_test() -> None:
             (REQUIRED_FILES["teardown_note"], "HUPCL-gated modem-line shutdown"),
             (REQUIRED_FILES["teardown_note"], "stale hangup short-circuit behavior"),
             (REQUIRED_FILES["validation_matrix"], PRESENT_DIRECT_COMPANION_MARKER),
-            (REQUIRED_FILES["validation_matrix"], "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove-handoff path explicit when the tty is already absent"),
+            (
+                REQUIRED_FILES["validation_matrix"],
+                "`drivers/tty/hvc/hvc_console_verify.zig` keeps the attached remove handoff explicit before tty detach and keeps the remove-handoff path explicit when the tty is already absent",
+            ),
             (REQUIRED_FILES["survey_gate"], SURVEY_GATE_MARKERS[0]),
             (REQUIRED_FILES["survey_gate"], SURVEY_GATE_MARKERS[1]),
             (REQUIRED_FILES["survey_gate"], SURVEY_GATE_MARKERS[2]),
@@ -609,7 +612,7 @@ def run_self_test() -> None:
         expect_failure(tmpdir, f"missing required file: {REQUIRED_FILES['verify_helper']}")
 
         reset_fixture(tmpdir)
-        (tmpdir / REQUIRED_FILES["manifest"]).write_text(build_manifest_text("z" * 40), encoding="utf-8")
+        (tmpdir / REQUIRED_FILES["manifest"]).writeText(build_manifest_text("z" * 40), encoding="utf-8")
         expect_failure(tmpdir, "invalid surveyed_commit")
 
         reset_fixture(tmpdir)
