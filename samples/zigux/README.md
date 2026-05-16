@@ -111,3 +111,4 @@ When touching Phase 5 contributor guidance:
 * do not treat review notes by themselves as proof of additional current sample files beyond the direct readback recovered in this run
 * keep runtime-facing `runtime_*` work in the separate later runtime lane instead of folding it into Phase 5
 * keep direct `bitmap` helper reviewability in its existing helper or runtime lanes instead of implying an extra Phase 5 sample
+* keep the selected-string plus `iter=%d` trace-events cue scoped to the landed `trace_events_sample` packet, and keep saying clearly that current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample
