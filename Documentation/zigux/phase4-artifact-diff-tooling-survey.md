@@ -49,8 +49,8 @@ The live Phase 4 artifact-diff tooling gap is not a missing deterministic checke
 - keep the follow-through scoped to `scripts/zigux/validate-phase4.py` only; do not widen into helper behavior, bitmap, atomic64, perf-baseline, workflow-route, kprobe, or `test_fsmount` work
 
 ## Owner And Rollback Reminder
-- `Documentation/zigux/artifact-diff.md` remains the dedicated owner and rollback note for the shared host-side helper packet; the broader Phase 4 Zig rollback-gate ownership still stays in `Documentation/zigux/phase4-validation-matrix.md`.
-- if `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, or `scripts/zigux/check-phase4-artifact-diff-determinism.py` changes any published helper, contract, or determinism catalog lines, refresh this survey and `Documentation/zigux/artifact-diff.md` in the same change before treating the tooling slice as closed again.
+- `Documentation/zigux/artifact-diff.md` remains the dedicated owner, review-rule, and rollback note for the shared host-side helper packet; the broader Phase 4 Zig rollback-gate ownership still stays in `Documentation/zigux/phase4-validation-matrix.md`.
+- if `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, or `scripts/zigux/check-phase4-artifact-diff-determinism.py` changes any published `ARTIFACT_DIFF=*`, `MODE=*`, `EXPECTED=*`, `ACTUAL=*`, `SHA256=*`, `EXPECTED_EXISTS=*`, `ACTUAL_EXISTS=*`, `EXPECTED_JSON_ERROR=*`, or `ACTUAL_JSON_ERROR=*` helper result lines, or changes any published helper, contract, or determinism catalog lines, refresh this survey and `Documentation/zigux/artifact-diff.md` in the same change before treating the tooling slice as closed again.
 - until `scripts/zigux/validate-phase4.py` mirrors the published `ARTIFACT_DIFF_RESULT_LINES`, `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID`, and helper, contract, plus determinism catalog markers from `Documentation/zigux/artifact-diff.md`, that validator-only follow-through stays owned by the neighboring Phase 4 validator packet rather than by this reminder lane.
 
 ## Direct Replay Surface
