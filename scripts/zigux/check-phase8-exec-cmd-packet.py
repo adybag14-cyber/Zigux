@@ -74,9 +74,11 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8`",
     ),
     WORKFLOW_PATH: (
-        "Validate Phase 8 tooling packet",
+        "Validate Phase 8 tooling routes",
         "Run focused Phase 8 exec-cmd tests",
+        "zig test tools/lib/subcmd/exec-cmd.zig",
         "make -C zigux phase8-exec-cmd-test",
+        "Run Phase 8 tooling tests",
     ),
     MAKEFILE_PATH: (
         "phase8-validate:",
@@ -94,7 +96,7 @@ REQUIRED_MARKERS = {
     SEQUENCING_PATH: (
         "### 1. Exec-cmd lane",
         "public default-branch tree readback still lists `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig`",
-        "authenticated contents readback for the direct exec-cmd shard remains intermittent from this environment",
+        "authenticated contents readback for the direct exec-cmd shard now reads cleanly across `Documentation/zigux/phase8-exec-cmd-slice.md`, `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig`; keep the remaining mixed-source caution on the broader shared `zigux/tests/phase8_build.zig` route and the neighboring bridge packet instead of treating the focused exec-cmd replay files as missing",
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` remains the dedicated boundary note",
     ),
     EXEC_CMD_SLICE_PATH: (
@@ -122,7 +124,7 @@ REQUIRED_MARKERS = {
         'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {',
         'test "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit" {',
         'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {',
-        'test "phase 8 exec-cmd workflow keeps the focused replay ahead of sibling help shards" {',
+        'test "phase 8 exec-cmd workflow keeps the focused replay ahead of the shared phase 8 bundle" {',
         'test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {',
         'test "phase 8 exec-cmd tests root summary keeps the focused replay route explicit" {',
     ),
@@ -173,11 +175,9 @@ ORDERED_MARKER_SEQUENCES = {
         "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
     ),
     WORKFLOW_PATH: (
-        " - name: Validate Phase 8 tooling packet",
+        " - name: Validate Phase 8 tooling routes",
         " - name: Run focused Phase 8 exec-cmd tests",
-        " - name: Run focused Phase 8 help tests",
-        " - name: Run focused Phase 8 kallsyms tests",
-        " - name: Run focused Phase 8 help and kallsyms tests",
+        " - name: Run Phase 8 tooling tests",
     ),
 }
 
@@ -312,7 +312,7 @@ def run_self_test() -> int:
             (BOUNDARY_SURVEY_PATH, "`Documentation/zigux/phase8-exec-cmd-slice.md`"),
             (SEQUENCING_PATH, "### 1. Exec-cmd lane"),
             (SEQUENCING_PATH, "public default-branch tree readback still lists `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig`"),
-            (SEQUENCING_PATH, "authenticated contents readback for the direct exec-cmd shard remains intermittent from this environment"),
+            (SEQUENCING_PATH, "authenticated contents readback for the direct exec-cmd shard now reads cleanly across `Documentation/zigux/phase8-exec-cmd-slice.md`, `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, and `zigux/tests/phase8_exec_cmd_only_build.zig`; keep the remaining mixed-source caution on the broader shared `zigux/tests/phase8_build.zig` route and the neighboring bridge packet instead of treating the focused exec-cmd replay files as missing"),
             (EXEC_CMD_SLICE_PATH, "PHASE8_SLICE=exec-cmd-deferred-exec-packet"),
             (EXEC_CMD_SLICE_PATH, "injected environment setup"),
             (
@@ -345,7 +345,7 @@ def run_self_test() -> int:
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
-            (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd workflow keeps the focused replay ahead of sibling help shards" {'),
+            (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd workflow keeps the focused replay ahead of the shared phase 8 bundle" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd tests root summary keeps the focused replay route explicit" {'),
             (EXEC_CMD_ONLY_BUILD_PATH, '.root_source_file = b.path("../../tools/lib/subcmd/exec-cmd.zig")'),
@@ -386,7 +386,7 @@ def run_self_test() -> int:
             (
                 WORKFLOW_PATH,
                 " - name: Run focused Phase 8 exec-cmd tests",
-                " - name: Run focused Phase 8 help tests",
+                " - name: Run Phase 8 tooling tests",
             ),
         )
         for rel_path, earlier_marker, later_marker in ordered_cases:
