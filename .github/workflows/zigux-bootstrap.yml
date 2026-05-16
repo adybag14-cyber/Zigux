@@ -73,6 +73,7 @@ jobs:
 
       - name: Self-test Zig installer
         run: python3 scripts/zigux/install-zig.py --self-test
+
       - name: Install Zig
         run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain
 
@@ -217,203 +218,71 @@ jobs:
       - name: Check Phase 3 ABI interop packet
         run: python3 scripts/zigux/check-phase3-abi.py
 
-      - name: Validate Phase 4 diff gates
+      - name: Validate Phase 4 rollback routes
         run: make -C zigux phase4-validate
 
-      - name: Self-test Phase 4 validator directly
-        run: python3 scripts/zigux/validate-phase4.py --self-test
+      - name: Run Phase 4 rollback tests
+        run: make -C zigux phase4-test
 
-      - name: Validate Phase 4 diff packet directly
-        run: python3 scripts/zigux/validate-phase4.py
-
-      - name: Self-test Phase 4 artifact-diff helper directly
-        run: python3 scripts/zigux/artifact_diff.py --self-test
-
-      - name: Self-test Phase 4 artifact-diff contract directly
-        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test
-
-      - name: Check Phase 4 artifact-diff contract directly
-        run: python3 scripts/zigux/check-artifact-diff-contract.py
-
-      - name: Self-test Phase 4 workflow inventory directly
-        run: python3 scripts/zigux/check-phase4-workflow-inventory.py --self-test
-
-      - name: Check Phase 4 workflow inventory directly
-        run: python3 scripts/zigux/check-phase4-workflow-inventory.py
-
-      - name: Self-test Phase 4 perf baseline packet
-        run: python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test
-
-      - name: Check Phase 4 perf baseline packet
-        run: python3 scripts/zigux/check-phase4-perf-baseline-packet.py
-
-      - name: Self-test Phase 4 review packet
-        run: python3 scripts/zigux/check-phase4-review-packet.py --self-test
-
-      - name: Check Phase 4 review packet
-        run: python3 scripts/zigux/check-phase4-review-packet.py
-
-      - name: Self-test Phase 4 reversible delivery pins
-        run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test
-
-      - name: Check Phase 4 reversible delivery pins
-        run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py
-
-      - name: Validate Phase 5 export samples
-        run: make -C zigux phase5-validate
-
-      - name: Self-test Phase 5 release packet
-        run: python3 scripts/zigux/check-phase5-release-packet.py --self-test
-
-      - name: Check Phase 5 release packet
-        run: python3 scripts/zigux/check-phase5-release-packet.py
-
-      - name: Self-test Phase 5 sample inventory
-        run: python3 scripts/zigux/check-phase5-sample-inventory.py --self-test
-
-      - name: Check Phase 5 sample inventory
-        run: python3 scripts/zigux/check-phase5-sample-inventory.py
-
-      - name: Validate Phase 6 release checks
+      - name: Validate Phase 6 helper routes
         run: make -C zigux phase6-validate
 
-      - name: Self-test Phase 6 review packet
-        run: python3 scripts/zigux/check-phase6-review-packet.py --self-test
+      - name: Run Phase 6 helper tests
+        run: make -C zigux phase6-test
 
-      - name: Check Phase 6 review packet
-        run: python3 scripts/zigux/check-phase6-review-packet.py
-
-      - name: Self-test Phase 6 symbol survey
-        run: python3 scripts/zigux/check-phase6-symbol-survey.py --self-test
-
-      - name: Check Phase 6 symbol survey
-        run: python3 scripts/zigux/check-phase6-symbol-survey.py
-
-      - name: Validate Phase 7 cmdline packet
+      - name: Validate Phase 7 helper routes
         run: make -C zigux phase7-validate
 
-      - name: Self-test Phase 7 review packet
-        run: python3 scripts/zigux/check-phase7-review-packet.py --self-test
+      - name: Run Phase 7 helper tests
+        run: make -C zigux phase7-test
 
-      - name: Check Phase 7 review packet
-        run: python3 scripts/zigux/check-phase7-review-packet.py
-
-      - name: Self-test Phase 7 cmdline selftest alignment
-        run: python3 scripts/zigux/check-phase7-cmdline-selftest-alignment.py --self-test
-
-      - name: Check Phase 7 cmdline selftest alignment
-        run: python3 scripts/zigux/check-phase7-cmdline-selftest-alignment.py
-
-      - name: Self-test Phase 7 helper lane sequencing
-        run: python3 scripts/zigux/check-phase7-helper-lane-sequencing.py --self-test
-
-      - name: Check Phase 7 helper lane sequencing
-        run: python3 scripts/zigux/check-phase7-helper-lane-sequencing.py
-
-      - name: Validate Phase 8 clocksource slice
+      - name: Validate Phase 8 tooling routes
         run: make -C zigux phase8-validate
 
-      - name: Self-test Phase 8 review packet
-        run: python3 scripts/zigux/check-phase8-review-packet.py --self-test
+      - name: Run Phase 8 tooling tests
+        run: make -C zigux phase8-test
 
-      - name: Check Phase 8 review packet
-        run: python3 scripts/zigux/check-phase8-review-packet.py
+      - name: Run Phase 9 runtime shared tests
+        run: make -C zigux phase9-test
 
-      - name: Self-test Phase 8 driver inventory
-        run: python3 scripts/zigux/check-phase8-driver-inventory.py --self-test
-
-      - name: Check Phase 8 driver inventory
-        run: python3 scripts/zigux/check-phase8-driver-inventory.py
-
-      - name: Self-test Phase 8 clocksource selftest alignment
-        run: python3 scripts/zigux/check-phase8-clocksource-selftest-alignment.py --self-test
-
-      - name: Check Phase 8 clocksource selftest alignment
-        run: python3 scripts/zigux/check-phase8-clocksource-selftest-alignment.py
-
-      - name: Validate Phase 9 eventfd slice
-        run: make -C zigux phase9-validate
-
-      - name: Self-test Phase 9 review packet
-        run: python3 scripts/zigux/check-phase9-review-packet.py --self-test
-
-      - name: Check Phase 9 review packet
-        run: python3 scripts/zigux/check-phase9-review-packet.py
-
-      - name: Validate Phase 10 ring packet
+      - name: Validate Phase 10 virtio routes
         run: make -C zigux phase10-validate
 
-      - name: Self-test Phase 10 review packet
-        run: python3 scripts/zigux/check-phase10-review-packet.py --self-test
+      - name: Run Phase 10 virtio tests
+        run: make -C zigux phase10-test
 
-      - name: Check Phase 10 review packet
-        run: python3 scripts/zigux/check-phase10-review-packet.py
+      - name: Validate Phase 11 shared routes
+        run: make -C zigux phase11-contract
 
-      - name: Self-test Phase 10 compact tests inventory
-        run: python3 scripts/zigux/check-phase10-compact-tests-inventory.py --self-test
+      - name: Run Phase 11 shared tests
+        run: make -C zigux phase11-test
 
-      - name: Check Phase 10 compact tests inventory
-        run: python3 scripts/zigux/check-phase10-compact-tests-inventory.py
-
-      - name: Self-test Phase 10 ring manifest destination checks
-        run: python3 scripts/zigux/check-phase10-ring-manifest-destination-checks.py --self-test
-
-      - name: Check Phase 10 ring manifest destination checks
-        run: python3 scripts/zigux/check-phase10-ring-manifest-destination-checks.py
-
-      - name: Validate Phase 11 syscall slice
-        run: make -C zigux phase11-validate
-
-      - name: Self-test Phase 11 review packet
-        run: python3 scripts/zigux/check-phase11-review-packet.py --self-test
-
-      - name: Check Phase 11 review packet
-        run: python3 scripts/zigux/check-phase11-review-packet.py
-
-      - name: Self-test Phase 11 syscall bridge inventory
-        run: python3 scripts/zigux/check-phase11-syscall-bridge-inventory.py --self-test
-
-      - name: Check Phase 11 syscall bridge inventory
-        run: python3 scripts/zigux/check-phase11-syscall-bridge-inventory.py
-
-      - name: Validate Phase 12 cross-target slice
+      - name: Validate Phase 12 complex-driver routes
         run: make -C zigux phase12-validate
 
-      - name: Self-test Phase 12 release packet
-        run: python3 scripts/zigux/check-phase12-release-packet.py --self-test
+      - name: Run Phase 12 smoke routes
+        run: make -C zigux phase12-smoke
 
-      - name: Check Phase 12 release packet
-        run: python3 scripts/zigux/check-phase12-release-packet.py
+      - name: Run Phase 12 shared tests
+        run: make -C zigux phase12-test
 
-      - name: Self-test Phase 12 workflow inventory
-        run: python3 scripts/zigux/check-phase12-workflow-inventory.py --self-test
-
-      - name: Check Phase 12 workflow inventory
-        run: python3 scripts/zigux/check-phase12-workflow-inventory.py
-
-      - name: Validate Phase 13 pointer bridge slice
+      - name: Validate Phase 13 release routes
         run: make -C zigux phase13-validate
 
-      - name: Self-test Phase 13 release packet
-        run: python3 scripts/zigux/check-phase13-release-packet.py --self-test
+      - name: Run Phase 13 release tests
+        run: make -C zigux phase13-test
 
-      - name: Check Phase 13 release packet
-        run: python3 scripts/zigux/check-phase13-release-packet.py
-
-      - name: Validate Phase 14 device-model slice
+      - name: Validate Phase 14 smoke routes
         run: make -C zigux phase14-validate
 
-      - name: Self-test Phase 14 review packet
-        run: python3 scripts/zigux/check-phase14-review-packet.py --self-test
+      - name: Run Phase 14 smoke routes
+        run: make -C zigux phase14-smoke
 
-      - name: Check Phase 14 review packet
-        run: python3 scripts/zigux/check-phase14-review-packet.py
+      - name: Run Phase 14 shared tests
+        run: make -C zigux phase14-test
 
-      - name: Validate Phase 15 governance slice
+      - name: Validate Phase 15 governance routes
         run: make -C zigux phase15-validate
 
-      - name: Self-test Phase 15 governance lane sequencing
-        run: python3 scripts/zigux/check-phase15-governance-lane-sequencing.py --self-test
-
-      - name: Check Phase 15 governance lane sequencing
-        run: python3 scripts/zigux/check-phase15-governance-lane-sequencing.py
+      - name: Run Phase 15 governance tests
+        run: make -C zigux phase15-test
