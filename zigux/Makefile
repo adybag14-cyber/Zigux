@@ -387,6 +387,8 @@ phase12: phase12-validate phase12-smoke phase12-test
 
 phase13-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-shared-summary-surfaces.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-shared-summary-surfaces.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet-alignment.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-priority-signal.py
