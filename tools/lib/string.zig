@@ -816,14 +816,28 @@ pub fn strnchrnul(buf: []const u8, count: usize, needle: u8) usize {
     return strnchrNul(buf, count, needle);
 }
 
+pub fn strchrNul(buf: []const u8, needle: u8) usize {
+    return strnchrNul(buf, buf.len, needle);
+}
+
+pub fn strchrnul(buf: []const u8, needle: u8) usize {
+    return strchrNul(buf, needle);
+}
+
 test "strnchrNul returns the first match, NUL, or count boundary" {
     try std.testing.expectEqual(@as(usize, 1), strnchrNul("abcd", 4, 'b'));
     try std.testing.expectEqual(@as(usize, 4), strnchrNul("abcd", 4, 'z'));
     try std.testing.expectEqual(@as(usize, 2), strnchrNul("abcd", 2, 'z'));
+    try std.testing.expectEqual(@as(usize, 1), strchrNul("abcd", 'b'));
+    try std.testing.expectEqual(@as(usize, 4), strchrNul("abcd", 'z'));
+    try std.testing.expectEqual(@as(usize, 4), strchrnul("abcd", 'z'));
 
     const cstr = [_]u8{ 'a', 'b', 0, 'c', 'b' };
     try std.testing.expectEqual(@as(usize, 1), strnchrNul(&cstr, cstr.len, 'b'));
     try std.testing.expectEqual(@as(usize, 2), strnchrNul(&cstr, cstr.len, 'c'));
     try std.testing.expectEqual(@as(usize, 2), strnchrNul(&cstr, cstr.len, 0));
     try std.testing.expectEqual(@as(usize, 2), strnchrnul(&cstr, cstr.len, 'z'));
+    try std.testing.expectEqual(@as(usize, 2), strchrNul(&cstr, 'c'));
+    try std.testing.expectEqual(@as(usize, 2), strchrNul(&cstr, 0));
+    try std.testing.expectEqual(@as(usize, 2), strchrnul(&cstr, 'z'));
 }
