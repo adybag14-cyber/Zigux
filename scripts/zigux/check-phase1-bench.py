@@ -42,6 +42,14 @@ REQUIRED_FIND_BIT_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
     "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
 }
+REQUIRED_RBTREE_COMPONENT_EXACT_CHECKSUMS = [
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
+]
+RBTREE_TOTAL_CHECKSUM = "PHASE1_BENCH_RBTREE_CHECKSUM"
+U64_MASK = (1 << 64) - 1
 
 REQUIRED_BITMAP_SOURCE_MARKERS = [
     'fn bitmapBench() struct { checksum: u64 } {',
@@ -228,6 +236,21 @@ def load_expectations_text(text: str) -> object:
     return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
 
 
+def validate_rbtree_checksum_relation(values: dict[str, int]) -> tuple[str, object]:
+    required_keys = [RBTREE_TOTAL_CHECKSUM, *REQUIRED_RBTREE_COMPONENT_EXACT_CHECKSUMS]
+    missing = [key for key in required_keys if key not in values]
+    if missing:
+        return ("rbtree_checksum_relation_keys_missing", missing)
+
+    component_total = 0
+    for key in REQUIRED_RBTREE_COMPONENT_EXACT_CHECKSUMS:
+        component_total = (component_total + int(values[key])) & U64_MASK
+    total = int(values[RBTREE_TOTAL_CHECKSUM]) & U64_MASK
+    if total != component_total:
+        return ("rbtree_checksum_relation_mismatch", (RBTREE_TOTAL_CHECKSUM, total, component_total))
+    return ("pass", None)
+
+
 def validate_expectations(expectations: object) -> tuple[str, object]:
     if not isinstance(expectations, dict):
         return ("expectations_type", type(expectations).__name__)
@@ -301,6 +324,9 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
     unexpected_exact = sorted(actual_exact_checksum_keys - REQUIRED_EXACT_CHECKSUMS)
     if unexpected_exact:
         return ("expectations_unexpected_exact_checksums", unexpected_exact)
+    kind, payload = validate_rbtree_checksum_relation(exact_checksums)
+    if kind != "pass":
+        return (f"expectations_{kind}", payload)
     return ("pass", expectations)
 
 
@@ -390,6 +416,11 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
         return ("missing_exact_checksums", missing_exact)
     if missing:
         return ("missing", missing)
+
+    rbtree_output_checksums = {key: int(parsed[key]) for key in [RBTREE_TOTAL_CHECKSUM, *REQUIRED_RBTREE_COMPONENT_EXACT_CHECKSUMS]}
+    kind, payload = validate_rbtree_checksum_relation(rbtree_output_checksums)
+    if kind != "pass":
+        return (kind, payload)
     return ("pass", parsed)
 
 
@@ -465,6 +496,24 @@ def run_self_test() -> None:
     )
     assert kind == "missing_string_source_markers"
     assert payload == REQUIRED_STRING_SOURCE_MARKERS
+    cases += 1
+
+    relation_expectations = clone_expectations(full_expectations)
+    relation_expectations["exact_checksums"][RBTREE_TOTAL_CHECKSUM] += 1
+    kind, payload = validate_expectations(relation_expectations)
+    assert kind == "expectations_rbtree_checksum_relation_mismatch"
+    assert payload == (RBTREE_TOTAL_CHECKSUM, exact[RBTREE_TOTAL_CHECKSUM] + 1, exact[RBTREE_TOTAL_CHECKSUM])
+    cases += 1
+
+    relation_output = ok_output.replace(
+        f"PHASE1_BENCH_RBTREE_CHECKSUM={exact[RBTREE_TOTAL_CHECKSUM]}",
+        f"PHASE1_BENCH_RBTREE_CHECKSUM={exact[RBTREE_TOTAL_CHECKSUM] + 1}",
+    )
+    relation_output_expectations = clone_expectations(full_expectations)
+    relation_output_expectations["exact_checksums"][RBTREE_TOTAL_CHECKSUM] += 1
+    kind, payload = validate_output(relation_output_expectations, relation_output)
+    assert kind == "rbtree_checksum_relation_mismatch"
+    assert payload == (RBTREE_TOTAL_CHECKSUM, exact[RBTREE_TOTAL_CHECKSUM] + 1, exact[RBTREE_TOTAL_CHECKSUM])
     cases += 1
 
     mismatch_output = ok_output.replace(
@@ -600,6 +649,11 @@ def main() -> int:
             print(f"{kind.upper()}={key}")
             print(f"EXPECTED={expected}")
             print(f"ACTUAL={actual}")
+        elif kind == "rbtree_checksum_relation_mismatch":
+            total_key, total, component_total = payload
+            print(f"RBTREE_CHECKSUM_RELATION_KEY={total_key}")
+            print(f"RBTREE_CHECKSUM_RELATION_TOTAL={total}")
+            print(f"RBTREE_CHECKSUM_RELATION_COMPONENT_TOTAL={component_total}")
         elif kind in {"iteration_value_type", "checksum_value_type", "nonpositive_checksum"}:
             key, actual = payload
             print(f"{kind.upper()}={key}")
