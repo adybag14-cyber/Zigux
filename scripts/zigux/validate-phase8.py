@@ -122,6 +122,7 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-kallsyms-test",
         "make -C zigux phase8-cpu-mask-test",
         "make -C zigux phase8-file-path-handle-bridge-test",
+        "make -C zigux phase8-libbpf-segments-test",
         "make -C zigux phase8-perf-buffer-poll-test",
         "`make -C zigux phase8-test`",
         "`make -C zigux phase8`",
