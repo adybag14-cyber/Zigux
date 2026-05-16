@@ -18,6 +18,7 @@ MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 DOCUMENTATION_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
+HELPER_EVIDENCE_CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 BASE64_SLICE_PATH = Path("Documentation/zigux/phase6-base64-slice.md")
 BSEARCH_SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
@@ -83,6 +84,7 @@ REQUIRED_SHARED_GATES = {
     DOCUMENTATION_README_PATH.as_posix(),
     SCRIPTS_README_PATH.as_posix(),
     CATALOG_PATH.as_posix(),
+    HELPER_EVIDENCE_CATALOG_PATH.as_posix(),
     CHECKSUM_SLICE_PATH.as_posix(),
     PERF_SURVEY_PATH.as_posix(),
     SHARED_CHECKER_PATH.as_posix(),
@@ -173,6 +175,15 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- current blocked-route posture: the helper-local base64 and checksum slowdown gates are now directly readable through `lib/base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, and `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now exposes committed `phase6-base64-perf` and `phase6-checksum-perf` target bodies, but the bootstrap workflow plus the aggregate `phase6-validate`, `phase6-perf`, and `phase6` route inventory still lag those helper-local wrappers",
 ]
 
+REQUIRED_HELPER_EVIDENCE_SNIPPETS = [
+    "- shared manifest: `zigux/tests/phase6_helper_parity_manifest.json`",
+    "- direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+    "- direct corpus evidence checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
+    "- direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
+    "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`",
+    "Reopen this catalog only when one of the four roadmap anchors gains or loses a truthful helper-evidence row on `master`.",
+]
+
 REQUIRED_BASE64_SLICE_SNIPPETS = [
     "- direct focused perf route: `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
     "- current wrapper nuance: the helper-owned perf gate is directly runnable through `zigux/tests/phase6_build.zig`, and current `zigux/Makefile` now exposes a committed `phase6-base64-perf` target body; the remaining shared-route lag is the broader aggregate wrapper inventory plus the bootstrap workflow, not the helper-local Linux-style wrapper itself",
@@ -219,9 +230,9 @@ REQUIRED_BUILD_SNIPPETS = [
 REQUIRED_MAKEFILE_SNIPPETS = [
     "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
     "phase6-base64-perf:",
-    '\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe',
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "phase6-checksum-perf:",
-    '\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig',
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
 ]
 
 REQUIRED_WORKFLOW_SNIPPETS = [
@@ -242,7 +253,7 @@ REQUIRED_PRESENT_ENTRYPOINTS_SNIPPETS = [
     'EXPECTED_HEXDUMP_PERF_REFRESH = HEXDUMP_PERF_REFRESH_PATH.as_posix()',
 ]
 
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 16
 
 
 def read_text(path: Path) -> str:
@@ -293,6 +304,8 @@ def validate_manifest(repo_root: Path) -> None:
         raise ValidationError(f"unexpected packet_state_summary in {MANIFEST_PATH.as_posix()}")
     if manifest_obj.get("shared_route_truthfulness_note") != EXPECTED_SHARED_ROUTE_NOTE:
         raise ValidationError(f"unexpected shared_route_truthfulness_note in {MANIFEST_PATH.as_posix()}")
+    if manifest_obj.get("helper_evidence_catalog") != HELPER_EVIDENCE_CATALOG_PATH.as_posix():
+        raise ValidationError(f"unexpected helper_evidence_catalog in {MANIFEST_PATH.as_posix()}")
 
     shared_gates = manifest_obj.get("shared_gates")
     if not isinstance(shared_gates, list) or not REQUIRED_SHARED_GATES.issubset(set(shared_gates)):
@@ -342,6 +355,7 @@ def validate_paths(repo_root: Path) -> None:
         DOCUMENTATION_README_PATH,
         SCRIPTS_README_PATH,
         CATALOG_PATH,
+        HELPER_EVIDENCE_CATALOG_PATH,
         PERF_SURVEY_PATH,
         BASE64_SLICE_PATH,
         BSEARCH_SLICE_PATH,
@@ -392,6 +406,7 @@ def run_checks(repo_root: Path) -> None:
     validate_manifest(repo_root)
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
+    require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_HELPER_EVIDENCE_SNIPPETS)
     require_snippets(repo_root / BASE64_SLICE_PATH, REQUIRED_BASE64_SLICE_SNIPPETS)
     require_snippets(repo_root / BSEARCH_SLICE_PATH, REQUIRED_BSEARCH_SLICE_SNIPPETS)
     require_snippets(repo_root / CHECKSUM_SLICE_PATH, REQUIRED_CHECKSUM_SLICE_SNIPPETS)
@@ -448,6 +463,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / HEXDUMP_PERF_REFRESH_PATH, "# Phase 6 Hexdump Perf Refresh\n")
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n")
     write(root / CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
+    write(root / HELPER_EVIDENCE_CATALOG_PATH, "\n".join(REQUIRED_HELPER_EVIDENCE_SNIPPETS) + "\n")
     write(root / BASE64_SLICE_PATH, "\n".join(REQUIRED_BASE64_SLICE_SNIPPETS) + "\n")
     write(root / BSEARCH_SLICE_PATH, "\n".join(REQUIRED_BSEARCH_SLICE_SNIPPETS) + "\n")
     write(root / CHECKSUM_SLICE_PATH, "\n".join(REQUIRED_CHECKSUM_SLICE_SNIPPETS) + "\n")
@@ -464,6 +480,7 @@ def scaffold_repo(root: Path) -> None:
         "packet_state_summary": EXPECTED_PACKET_STATE_SUMMARY,
         "shared_route_truthfulness_note": EXPECTED_SHARED_ROUTE_NOTE,
         "shared_gates": sorted(REQUIRED_SHARED_GATES),
+        "helper_evidence_catalog": HELPER_EVIDENCE_CATALOG_PATH.as_posix(),
         "tests_root_present_entrypoints": sorted(REQUIRED_PRESENT_ENTRYPOINTS),
         "exact_checks": sorted(REQUIRED_EXACT_CHECKS),
         "inventory_only_blocked_routes": sorted(EXPECTED_INVENTORY_ONLY_BLOCKED_ROUTES),
@@ -522,7 +539,9 @@ def run_self_test() -> None:
         assert_failure(tmpdir, MANIFEST_PATH, '"make -C zigux phase6-base64-perf"', '"make -C zigux phase6-base64-perf-missing"')
         assert_failure(tmpdir, MANIFEST_PATH, '"Documentation/zigux/README.md"', '"Documentation/zigux/README-missing.md"')
         assert_failure(tmpdir, MANIFEST_PATH, '"zigux/tests/README.md"', '"zigux/tests/README-missing.md"')
+        assert_failure(tmpdir, MANIFEST_PATH, '"helper_evidence_catalog"', '"helper_evidence_catalog_missing"')
         assert_failure(tmpdir, CATALOG_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
+        assert_failure(tmpdir, HELPER_EVIDENCE_CATALOG_PATH, "check-phase6-bsearch-corpus-evidence.py", "check-phase6-bsearch-evidence.py")
         assert_failure(tmpdir, BASE64_SLICE_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
         assert_failure(tmpdir, PERF_SURVEY_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
         assert_failure(tmpdir, CHECKSUM_SLICE_PATH, "phase6-checksum-perf", "phase6-checksum-perf-missing")
