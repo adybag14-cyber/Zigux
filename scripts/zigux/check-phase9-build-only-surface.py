@@ -120,6 +120,9 @@ RUNTIME_LOADER_CONTRACT_MODULE_SYMVERS_PATH_MARKER = '"module_symvers_path"'
 RUNTIME_LOADER_CONTRACT_DEPMOD_SCRIPT_MARKER = '"depmod_script"'
 RUNTIME_LOADER_CONTRACT_DEPMOD_MANIFEST_MARKER = '"depmod_manifest"'
 RUNTIME_LOADER_CONTRACT_DEPMOD_ALIASES_MARKER = '"depmod_aliases"'
+RUNTIME_LOADER_LIFECYCLE_BOUNDARY_CHECKLIST_TEST_MARKER = (
+    "phase 9 runtime loader lifecycle boundary guard keeps shared review-checklist boundary markers explicit"
+)
 OWNER_MAP_MARKERS = [
     "- `P9-L04`: owns the current runtime atomic64 manifest-backed survey-versus-module-slice packet.",
     "- `P9-L08`: owns the current runtime bitmap manifest, survey note, module-slice note, focused top-bit companion replay, and survey gate packet.",
@@ -313,6 +316,7 @@ REQUIRED_MARKERS = {
     RUNTIME_LOADER_LIFECYCLE_BOUNDARY_GUARD_PATH: [
         "phase 9 runtime loader lifecycle boundary guard keeps manifest lifecycle summary aligned with the shared registration boundary",
         "phase 9 runtime loader lifecycle boundary guard keeps shared request states explicit in the shared facade",
+        RUNTIME_LOADER_LIFECYCLE_BOUNDARY_CHECKLIST_TEST_MARKER,
         "error.OutstandingRegistrationForLoader",
         "releaseSharedWithoutSubstrate",
     ],
@@ -381,6 +385,7 @@ SELF_TEST_REMOVALS = [
     (PHASE9_BUILD_PATH, "test_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);", 1),
     (RUNTIME_LOADER_SELFTEST_COMPLETE_EXIT_PARITY_PATH, "phase 9 runtime loader keeps selftest-complete prepared snapshots stable even if later live state would look exited across all shipped pilot families", 1),
     (RUNTIME_LOADER_LIFECYCLE_BOUNDARY_GUARD_PATH, "phase 9 runtime loader lifecycle boundary guard keeps manifest lifecycle summary aligned with the shared registration boundary", 1),
+    (RUNTIME_LOADER_LIFECYCLE_BOUNDARY_GUARD_PATH, RUNTIME_LOADER_LIFECYCLE_BOUNDARY_CHECKLIST_TEST_MARKER, 1),
     (ALLOCATOR_INIT_FLOW_PATH, "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs", 1),
     (ALLOCATOR_INIT_FLOW_PATH, "request.plan.allocator_handoff = .arena;", 2),
     (ALLOCATOR_INIT_FLOW_PATH, PREPARED_STATE_EXPLICIT_ASSERTION_MARKER, 1),
