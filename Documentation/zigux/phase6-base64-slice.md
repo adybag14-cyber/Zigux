@@ -6,11 +6,11 @@
 - helper anchor: `lib/base64.zig`
 - shared packet note: `Documentation/zigux/phase6-helper-parity-catalog.md`
 - current `master` keeps `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_base64_perf.zig`
-- current `master` still keeps the direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- current `master` still keeps the direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 
 ## Review Surface
 - present focused helper replay, shared vectors, and dedicated slowdown gate: `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `zigux/tests/phase6_base64_perf.zig`
-- present direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- present direct C parity packet helper chain: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 - direct focused helper replay route: `zig build test --build-file zigux/tests/phase6_build.zig`
 - direct focused perf route: `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`
 - current wrapper nuance: the helper-owned perf gate is directly runnable through `zigux/tests/phase6_build.zig`, and current `zigux/Makefile` now exposes a committed `phase6-base64-perf` target body; the remaining shared-route lag is the broader aggregate wrapper inventory plus the bootstrap workflow, not the helper-local Linux-style wrapper itself
