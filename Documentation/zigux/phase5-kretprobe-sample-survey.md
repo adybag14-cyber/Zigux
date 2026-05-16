@@ -31,7 +31,7 @@ Keep that direct survey-gate command explicit as the focused validation route fo
 
 Keep the restored kretprobe packet anchored to the directly readable sample, focused test, manifest, and survey gate above, while treating the returned shared `zigux/tests/phase5_build.zig` route as current public-tree-backed companion evidence rather than direct authenticated-contents proof.
 
-Fresh Phase 5 readback in this run also confirmed that the shared reminder packet is aligned around that restored direct sample packet:
+Fresh Phase 5 readback in this run also confirmed that most of the shared reminder packet is aligned around that restored direct sample packet:
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
@@ -40,7 +40,9 @@ Fresh Phase 5 readback in this run also confirmed that the shared reminder packe
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-Those aligned shared surfaces keep the restored direct packet explicit and keep the returned shared `zigux/tests/phase5_build.zig` route visible as current public-tree-backed companion evidence instead of treating it as direct authenticated proof.
+Those shared surfaces keep the restored direct packet explicit and keep the returned shared `zigux/tests/phase5_build.zig` route visible as current public-tree-backed companion evidence instead of treating it as direct authenticated proof.
+
+One same-lane docs-root drift remains explicit after the fresh reread: `Documentation/zigux/README.md` still names the restored packet but narrows its cue list to `runRetargetReplay()`, `runAnchorReplay()`, `runLifecycleGuardReplay()`, `runOwnershipReplay()`, and `runRecoveryReplay()` without carrying forward `runMaxactivePressureReplay()` and the bounded overflow cues `nmissed_after_overflow = 1`, inner return duration `30`, and outer return duration `140` that the survey, manifest, and shared guide already keep visible. Treat that as a single shared reminder-surface truthfulness repair rather than sample behavior follow-through.
 
 ## Landed sample and exact checks
 
@@ -78,5 +80,5 @@ This note does not claim `register_kretprobe()` parity, `unregister_kretprobe()`
 
 Leave the restored direct kretprobe packet parked unless a future reread finds a new one-file same-lane shared reminder drift:
 
-- if a shared README, guide, or checklist later stops naming the restored direct packet or misstates the returned shared `phase5_build.zig` route as either missing or direct authenticated proof, repair only that one file
+- if `Documentation/zigux/README.md` or another shared README, guide, or checklist later stops naming the restored direct packet, drops the explicit `runMaxactivePressureReplay()` overflow cue, or misstates the returned shared `phase5_build.zig` route as either missing or direct authenticated proof, repair only that one file
 - otherwise leave the restored direct kretprobe packet parked while the shared reminder surfaces stay aligned
