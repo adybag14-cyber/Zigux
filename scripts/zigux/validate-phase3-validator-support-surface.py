@@ -352,19 +352,19 @@ def run_self_test() -> int:
         ("## Current packet", "## Review boundary", "scripts/zigux/check-phase3-abi.py", "expected current-packet focused ABI gate drift was not reported"),
         ("## Current packet", "## Review boundary", "zigux/tests/phase3_low_level_wrappers_build.zig", "expected current-packet low-level-wrapper build drift was not reported"),
         ("## Review boundary", "## Non-goals", "Documentation/zigux/phase3-abi-bindings-survey.md", "expected review-boundary bindings-survey drift was not reported"),
-        ("## Shared reminder", null, "scripts/zigux/validate-phase3-linux-zigux-header-governance.py", "expected shared-reminder governance-validator drift was not reported"),
-        ("## Shared reminder", null, "scripts/zigux/check-phase3-abi.py", "expected shared-reminder focused ABI gate drift was not reported"),
-        ("## Shared reminder", null, "Documentation/zigux/phase3-kernel-export-shim-governance.md", "expected shared-reminder kernel-export governance drift was not reported"),
-        ("## Shared reminder", null, "Documentation/zigux/phase3-bindings-governance.md", "expected shared-reminder bindings governance drift was not reported"),
-        ("## Shared reminder", null, "Documentation/zigux/phase3-export-uapi-boundary-survey.md", "expected shared-reminder export-uapi survey drift was not reported"),
-        ("## Shared reminder", null, "zigux/tests/phase3_export_uapi_layout.zig", "expected shared-reminder export-uapi layout replay drift was not reported"),
-        ("## Shared reminder", null, "zigux/tests/phase3_export_uapi_layout_build.zig", "expected shared-reminder export-uapi build anchor drift was not reported"),
-        ("## Shared reminder", null, "make -C zigux phase3-export-uapi-layout-test", "expected shared-reminder export-uapi make route drift was not reported"),
-        ("## Shared reminder", null, "zigux/bindings/dev_t.zig", "expected shared-reminder dev_t binding drift was not reported"),
-        ("## Shared reminder", null, "zigux/bindings/notifier_abi.zig", "expected shared-reminder notifier binding drift was not reported"),
-        ("## Shared reminder", null, "scripts/zigux/check-phase3-policy-byte-guards.py", "expected shared-reminder policy-byte-guard drift was not reported"),
-        ("## Shared reminder", null, "zigux/tests/phase3_low_level_wrappers.zig", "expected shared-reminder low-level-wrapper replay drift was not reported"),
-        ("## Shared reminder", null, "make -C zigux phase3-low-level-wrappers-test", "expected shared-reminder low-level-wrapper route drift was not reported"),
+        ("## Shared reminder", None, "scripts/zigux/validate-phase3-linux-zigux-header-governance.py", "expected shared-reminder governance-validator drift was not reported"),
+        ("## Shared reminder", None, "scripts/zigux/check-phase3-abi.py", "expected shared-reminder focused ABI gate drift was not reported"),
+        ("## Shared reminder", None, "Documentation/zigux/phase3-kernel-export-shim-governance.md", "expected shared-reminder kernel-export governance drift was not reported"),
+        ("## Shared reminder", None, "Documentation/zigux/phase3-bindings-governance.md", "expected shared-reminder bindings governance drift was not reported"),
+        ("## Shared reminder", None, "Documentation/zigux/phase3-export-uapi-boundary-survey.md", "expected shared-reminder export-uapi survey drift was not reported"),
+        ("## Shared reminder", None, "zigux/tests/phase3_export_uapi_layout.zig", "expected shared-reminder export-uapi layout replay drift was not reported"),
+        ("## Shared reminder", None, "zigux/tests/phase3_export_uapi_layout_build.zig", "expected shared-reminder export-uapi build anchor drift was not reported"),
+        ("## Shared reminder", None, "make -C zigux phase3-export-uapi-layout-test", "expected shared-reminder export-uapi make route drift was not reported"),
+        ("## Shared reminder", None, "zigux/bindings/dev_t.zig", "expected shared-reminder dev_t binding drift was not reported"),
+        ("## Shared reminder", None, "zigux/bindings/notifier_abi.zig", "expected shared-reminder notifier binding drift was not reported"),
+        ("## Shared reminder", None, "scripts/zigux/check-phase3-policy-byte-guards.py", "expected shared-reminder policy-byte-guard drift was not reported"),
+        ("## Shared reminder", None, "zigux/tests/phase3_low_level_wrappers.zig", "expected shared-reminder low-level-wrapper replay drift was not reported"),
+        ("## Shared reminder", None, "make -C zigux phase3-low-level-wrappers-test", "expected shared-reminder low-level-wrapper route drift was not reported"),
     ]
     for heading, next_heading, marker, message in checks:
         issues = validate_text(replace_in_section(note_sample, heading, next_heading, marker))
@@ -378,7 +378,7 @@ def run_self_test() -> int:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected current-packet export-uapi direct build route drift was not reported")
         return 1
-    issues = validate_text(replace_in_section(note_sample, "## Shared reminder", null, target))
+    issues = validate_text(replace_in_section(note_sample, "## Shared reminder", None, target))
     if not any(target in issue for issue in issues):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected shared-reminder export-uapi direct build route drift was not reported")
@@ -389,7 +389,7 @@ def run_self_test() -> int:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected current-packet low-level-wrapper direct build route drift was not reported")
         return 1
-    issues = validate_text(replace_in_section(note_sample, "## Shared reminder", null, target))
+    issues = validate_text(replace_in_section(note_sample, "## Shared reminder", None, target))
     if not any(target in issue for issue in issues):
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected shared-reminder low-level-wrapper direct build route drift was not reported")
