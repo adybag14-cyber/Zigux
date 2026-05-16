@@ -170,7 +170,7 @@ EXPECTED_SUMMARY = {
     "virtio_ring_c_lines": 3940,
     "preexisting_phase10_test_files": 11,
     "preexisting_phase10_build_present": True,
-    "preexisting_virtio_core_doc_present": True,
+    "preexisting_phase10_core_doc_present": True,
     "preexisting_virtio_ring_doc_present": True,
     "preexisting_virtio_core_zig_present": False,
     "preexisting_virtio_ring_zig_present": False,
@@ -445,6 +445,10 @@ def run_self_test() -> int:
         run_manifest_case(
             lambda manifest: manifest["survey_summary"].__setitem__("preexisting_phase10_build_present", False),
             "manifest:survey_summary:preexisting_phase10_build_present=False",
+        )
+        run_manifest_case(
+            lambda manifest: manifest["survey_summary"].__setitem__("preexisting_phase10_core_doc_present", False),
+            "manifest:survey_summary:preexisting_phase10_core_doc_present=False",
         )
         run_manifest_case(
             lambda manifest: manifest["survey_summary"].__setitem__("preexisting_ring_verify_present", True),
