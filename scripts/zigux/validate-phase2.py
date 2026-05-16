@@ -922,6 +922,11 @@ def run_self_test() -> list[str]:
     for name, actual, expected in checks:
         if actual != expected:
             issues.append(f"phase2_validation_self_test:{name}:actual={actual}:expected={expected}")
+    if len(checks) != PHASE2_VALIDATION_SELF_TEST_CASE_COUNT:
+        issues.append(
+            "phase2_validation_self_test:case_count:"
+            f"actual={len(checks)}:expected={PHASE2_VALIDATION_SELF_TEST_CASE_COUNT}"
+        )
     return issues
 
 
