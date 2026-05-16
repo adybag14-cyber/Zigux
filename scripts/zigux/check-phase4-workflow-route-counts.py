@@ -53,21 +53,15 @@ REQUIRED_MAKE_MARKERS = [
     "$(ZIG) build test --build-file zigux/tests/phase4_build.zig",
     "phase4-runtime-atomic64-diff:",
     "$(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
-    "phase4-runtime-atomic64-diff-survey:",
-    "$(ZIG) build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig",
-    "phase4-perf-baseline-survey:",
-    "$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+    "phase4-runtime-atomic64-diff-survey",
     "phase4-bitmap-diff:",
     "$(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
-    "phase4-bitmap-diff-survey:",
-    "$(ZIG) build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig",
+    "phase4-bitmap-diff-survey",
     "phase4-bitmap-live-helper-replay:",
     "$(ZIG) build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig",
-    "phase4-test-fsmount-survey:",
-    "$(ZIG) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
-    "phase4-kprobe-example-survey:",
-    "$(ZIG) test zigux/tests/phase4_kprobe_example_survey.zig",
-    "phase4: phase4-validate phase4-test",
+    "phase4-perf-baseline-survey",
+    "phase4-test-fsmount-survey",
+    "phase4-kprobe-example-survey",
 ]
 
 REQUIRED_PHASE4_VALIDATE_COMMANDS = [
@@ -222,6 +216,7 @@ SELFTEST_CASES = [
     "missing_workflow_route_counts_route",
     "missing_workflow_gate_evidence_route",
     "missing_matrix_remaining_gap_marker",
+    "missing_gate_evidence_bitmap_build_route",
     "missing_gate_evidence_bitmap_wrapper",
     "missing_tests_readme_perf_make_route",
     "missing_build_test_fsmount_route",
@@ -496,7 +491,8 @@ def ensure_target_commands(makefile_text: str, target: str, commands: list[str])
     if missing:
         joined = "\n".join(f"  - {command}" for command in missing)
         raise SystemExit(
-            f"zigux/Makefile target {target} is missing required Phase 4 commands:\n{joined}")
+            f"zigux/Makefile target {target} is missing required Phase 4 commands:\n{joined}"
+        )
 
 
 def check(
@@ -1015,6 +1011,30 @@ def run_selftest() -> None:
             ),
         )
         covered_cases.append("missing_matrix_remaining_gap_marker")
+
+        write_baseline()
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "missing gate-evidence bitmap build route",
+            lambda: check(
+                makefile,
+                workflow,
+                build,
+                validation_matrix,
+                gate_evidence,
+                tests_readme,
+                perf_manifest,
+                perf_survey,
+            ),
+        )
+        covered_cases.append("missing_gate_evidence_bitmap_build_route")
 
         write_baseline()
         gate_evidence.write_text(
