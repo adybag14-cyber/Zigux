@@ -94,6 +94,21 @@ TARGETS = [
         "PHASE4_REVERSIBLE_DELIVERY_KPROBE_GAP_SURVEY_BLOB_SHA",
         Path("zigux/tests/phase4_kprobe_example_survey.zig"),
     ),
+    (
+        "test_fsmount_gap_note",
+        "PHASE4_REVERSIBLE_DELIVERY_TEST_FSMOUNT_GAP_NOTE_BLOB_SHA",
+        Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md"),
+    ),
+    (
+        "test_fsmount_gap_manifest",
+        "PHASE4_REVERSIBLE_DELIVERY_TEST_FSMOUNT_GAP_MANIFEST_BLOB_SHA",
+        Path("zigux/tests/phase4_test_fsmount_manifest.json"),
+    ),
+    (
+        "test_fsmount_gap_survey",
+        "PHASE4_REVERSIBLE_DELIVERY_TEST_FSMOUNT_GAP_SURVEY_BLOB_SHA",
+        Path("zigux/tests/phase4_test_fsmount_survey.zig"),
+    ),
 ]
 
 REQUIRED_STATUS_MARKERS = [
@@ -119,6 +134,9 @@ REQUIRED_STATUS_MARKERS = [
     "PHASE4_REVERSIBLE_DELIVERY_KPROBE_GAP_NOTE_BLOB_SHA=",
     "PHASE4_REVERSIBLE_DELIVERY_KPROBE_GAP_MANIFEST_BLOB_SHA=",
     "PHASE4_REVERSIBLE_DELIVERY_KPROBE_GAP_SURVEY_BLOB_SHA=",
+    "PHASE4_REVERSIBLE_DELIVERY_TEST_FSMOUNT_GAP_NOTE_BLOB_SHA=",
+    "PHASE4_REVERSIBLE_DELIVERY_TEST_FSMOUNT_GAP_MANIFEST_BLOB_SHA=",
+    "PHASE4_REVERSIBLE_DELIVERY_TEST_FSMOUNT_GAP_SURVEY_BLOB_SHA=",
     "PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true",
     "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=",
 ]
@@ -143,9 +161,15 @@ REQUIRED_PROSE_MARKERS = [
     "`zigux/tests/phase4_kprobe_example_survey.zig`",
     "`make -C zigux phase4-kprobe-example-survey`",
     "`zig test zigux/tests/phase4_kprobe_example_survey.zig`",
+    "`Documentation/zigux/phase4-test-fsmount-gap-survey.md`",
+    "`zigux/tests/phase4_test_fsmount_manifest.json`",
+    "`zigux/tests/phase4_test_fsmount_survey.zig`",
+    "`make -C zigux phase4-test-fsmount-survey`",
+    "`zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
     "repair the shared exact-readback packet first.",
     "repair the dedicated local-only perf packet first.",
     "repair the parked kprobe packet first",
+    "repair the parked test_fsmount packet first",
 ]
 
 SELF_TEST_CASES = (
@@ -230,6 +254,9 @@ def build_fixture_tree(root: Path) -> None:
         Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md"): "# kprobe gap\n",
         Path("zigux/tests/phase4_kprobe_example_manifest.json"): '{"lane_key":"P4-L19"}\n',
         Path("zigux/tests/phase4_kprobe_example_survey.zig"): 'test "kprobe" {}\n',
+        Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md"): "# test_fsmount gap\n",
+        Path("zigux/tests/phase4_test_fsmount_manifest.json"): '{"lane_key":"P4-L19"}\n',
+        Path("zigux/tests/phase4_test_fsmount_survey.zig"): 'test "test_fsmount" {}\n',
     }
     for rel_path, content in fixture_contents.items():
         write_text(root / rel_path, content)
@@ -277,15 +304,21 @@ def build_fixture_tree(root: Path) -> None:
         "  - `Documentation/zigux/phase4-kprobe-example-gap-survey.md`",
         "  - `zigux/tests/phase4_kprobe_example_manifest.json`",
         "  - `zigux/tests/phase4_kprobe_example_survey.zig`",
+        "- dedicated parked test_fsmount reversible-delivery packet:",
+        "  - `Documentation/zigux/phase4-test-fsmount-gap-survey.md`",
+        "  - `zigux/tests/phase4_test_fsmount_manifest.json`",
+        "  - `zigux/tests/phase4_test_fsmount_survey.zig`",
         "- anti-overlap boundary:",
         "  - `Documentation/zigux/phase4-validation-lane-sequencing.md`",
         "",
         "The parked kprobe packet stays measurable through `make -C zigux phase4-kprobe-example-survey` and `zig test zigux/tests/phase4_kprobe_example_survey.zig`.",
+        "The parked test_fsmount packet stays measurable through `make -C zigux phase4-test-fsmount-survey` and `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`.",
         "",
         "## Review Rules",
         "- If the rollback-owner map drifts, repair the shared exact-readback packet first.",
         "- If the local benchmark commands drift, repair the dedicated local-only perf packet first.",
         "- If the parked kprobe packet drifts, repair the parked kprobe packet first before refreshing this shared handoff note.",
+        "- If the parked test_fsmount packet drifts, repair the parked test_fsmount packet first before refreshing this shared handoff note.",
         "",
     ]
     write_text(root / NOTE_REL, "\n".join(note_lines))
