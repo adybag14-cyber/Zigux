@@ -31,6 +31,7 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 - `scripts/zigux/check-phase6-base64-c-parity.py`
 - `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
+- `scripts/zigux/check-phase6-hexdump-packet.py`
 
 Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. Keep this catalog aligned with that direct-readback limit instead of overstating helper-local reviewability from older route names alone.
 
