@@ -82,6 +82,7 @@ REQUIRED_MARKERS = {
         "zig build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
         "zig build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
         "zig build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
         "`Documentation/zigux/phase7-helper-lane-sequencing.md`,",
         "`Documentation/zigux/phase7-rbtree-slice.md`, `zigux/tests/README.md`, and",
         "`zigux/tests/phase7_build.zig` now all read back `zigux/tests/phase7_rbtree.zig`",
@@ -383,6 +384,19 @@ def run_self_test() -> None:
         remove_marker(
             tmp_root,
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+            "missing_shared_phase7_bundle_route",
+        )
+        expect_missing_marker(
+            "missing_shared_phase7_bundle_route",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
             "The older string-helpers missing-pair reminder and the older missing-rbtree replay reminder are no longer the live blocker for this shared note",
             "missing_live_blocker_note",
         )
@@ -431,7 +445,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=12")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=13")
 
 
 def main() -> int:
