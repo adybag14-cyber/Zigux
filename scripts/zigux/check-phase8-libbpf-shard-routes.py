@@ -109,7 +109,7 @@ REQUIRED_MARKERS = {
         "The manifest currently records twelve bounded segments: seven landed helper or helper-adjacent slices and five deferred or blocked follow-ons.",
         "The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.",
         "The deferred `perf-buffer-online-cpu-routing` segment also stays explicitly larger than the helper-local `online_cpu_routing.zig` evidence",
-        "The real current gap is now survey truthfulness about the already-landed checker packet, helper-local routing evidence, and the landed bridge-plus-build packet itself, not environment-specific contents-route flakiness or a missing checker rule.",
+        "The real current gap is now survey truthfulness about the already-landed checker packet, helper-local routing evidence, the timing-adjacent poll note, and the landed bridge-plus-build packet itself, not environment-specific contents-route flakiness or a missing checker rule.",
         "The older mixed-source caveat is now too weak for this packet.",
         "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`",
         "That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit",
@@ -175,12 +175,14 @@ REQUIRED_MARKERS = {
         "fn expectHasDecl(comptime Module: type, comptime decl_name: []const u8) !void {",
         'test "helper-first tools/lib/bpf Zigux segments compile together and keep their focused tests live" {',
         'test "helper-first tools/lib/bpf Zigux segments keep the landed bounded entrypoints explicit" {',
-        'try expectHasDecl(logging, "resolveMinPrintLevel");',
+        'try expectHasDecl(logging, "parseLogLevelSetting");',
+        'try expectHasDecl(logging, "formatLibbpfError");',
         'try expectHasDecl(pin_path, "buildValidatedSanitizedMapPinPath");',
         'try expectHasDecl(cpu_mask, "parseCpuMaskString");',
         'try expectHasDecl(type_names, "libbpfBpfMapTypeStr");',
         'try expectHasDecl(file_path_handle_bridge, "planTokenPreparation");',
         'try expectHasDecl(perf_buffer_poll, "summarizePollExecution");',
+        'try expectHasDecl(perf_buffer_poll, "resolvePollExecutionResultFromWaitResult");',
     ],
     ONLINE_CPU_ROUTING_HELPER_PATH: [
         "pub fn advanceOnlineCpuCursor(",
@@ -252,6 +254,7 @@ EXPECTED_BRIDGE_LANDED_SCOPE = [
     "summarizeMapReuseCompatibility() mismatch reporting for helper-only reused-map compatibility checks",
     "isMapReuseCompatible() helper-only reused-map compatibility comparison",
     "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects",
+    "planTokenPreparation() helper-only token readiness planning from a prepared reuse plan without token materialization",
 ]
 EXPECTED_BRIDGE_QUEUED_SCOPE = [
     "direct procfs reads and descriptor ownership flow",
@@ -259,9 +262,10 @@ EXPECTED_BRIDGE_QUEUED_SCOPE = [
 ]
 EXPECTED_BRIDGE_WHY_NOW = (
     "The shared file-path bridge destination now records the fdinfo parsing foundation, "
-    "helper-only observation shaping, reused-map compatibility summaries, and pinned-map reuse "
-    "planning packet as a reviewable landed helper slice, so future surveys can keep promoting "
-    "bounded bridge behavior without crossing into live descriptor or reopen side effects."
+    "helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse "
+    "planning, and planning-only token-readiness gating as a reviewable landed helper slice, so "
+    "future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, "
+    "token materialization, or reopen side effects."
 )
 
 
