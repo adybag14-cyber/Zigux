@@ -31,7 +31,7 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
 ## Landed governance rules
 
 - changes to the freeze or study lists require an explicit Architecture Council decision with written rationale
-- any lane that touches a listed anchor must declare owner, phase, status bucket, validation gate, and rollback owner in a reviewable record
+- any lane that touches a listed anchor must declare owner, phase, status bucket, validation gate summary, and rollback owner in a reviewable record
 - direct Zig bridge or port claims for a freeze-in-C anchor stay blocked until the repo carries a parity scorecard entry and the Architecture Council records why the status can change
 - the stay-in-C policy says the C implementation remains the product source of truth, and ambiguous validation must keep the code in C with an explicit blocker
 - a freeze-in-C review that closes without a status change must retain the blocker, record `retired_from_active_discussion`, and keep the documented reopen triggers attached to the evidence archive
