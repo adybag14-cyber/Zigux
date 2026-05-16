@@ -538,6 +538,41 @@ def run_self_test() -> int:
             ),
             "manifest:allowed_evidence_kinds",
         )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__(
+                "roadmap_destinations",
+                ["drivers/virtio/*.zig", "zigux/kernel/"],
+            ),
+            "manifest:roadmap_destinations",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__(
+                "forbidden_transport_claims",
+                [
+                    "queue_setup_reset_paths",
+                    "irq_parity",
+                    "dma_paths",
+                    "probe_remove_lifecycle",
+                ],
+            ),
+            "manifest:forbidden_transport_claims",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__("architecture_council_reopen_required", False),
+            "manifest:architecture_council_reopen_required=False",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__("architecture_council_reopen_attached", True),
+            "manifest:architecture_council_reopen_attached=True",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__("study_only_anchors", ["kernel/workqueue.c"]),
+            "manifest:study_only_anchors",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__("freeze_in_c_anchors", ["kernel/sched/core.c"]),
+            "manifest:freeze_in_c_anchors",
+        )
 
         for rel_path in (
             "drivers/virtio/virtio_ring.zig",
