@@ -2,7 +2,7 @@
   "lane_key": "P12-L12",
   "phase": "Phase 12",
   "surveyed_commit": "unresolved_on_master",
-  "verified_on": "2026-05-14",
+  "verified_on": "2026-05-16",
   "packet": "phase12-virtio-scsi-support",
   "status": "bounded infra prep metadata cleanup",
   "anchor": "drivers/scsi/virtio_scsi.c",
@@ -18,7 +18,6 @@
     "Documentation/zigux/phase12-virtio-scsi-slice.md"
   ],
   "repo_gaps": [
-    "drivers/nvme/host/pci.zig",
     "Documentation/zigux/phase12-closure.md"
   ],
   "validation": [
