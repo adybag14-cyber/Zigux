@@ -48,6 +48,7 @@ REQUIRED_MARKERS = {
     ],
     "workflow_guide": [
         "Use this guide when a change touches the active Phase 13 shared-helper packet",
+        CHECKER_MARKER,
         "Treat `make -C zigux phase13-validate` as the stable contributor-facing replay handle.",
         "`make -C zigux phase13` still exists in `zigux/Makefile`, but treat it as blocked convenience wiring until `zigux/tests/phase13_build.zig` lands.",
         "Current `master` also materializes the adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/notifier_chain_view.zig` helper, and the Linux-side `drivers/tty/hvc/hvc_console.h` header.",
@@ -62,6 +63,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-roadmap-traceability.md`",
         "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
         "`zigux/tests/README.md`",
+        CHECKER_MARKER,
         "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
@@ -92,6 +94,7 @@ REQUIRED_MARKERS = {
     ],
     "release_matrix": [
         "# Phase 13 Release Coordination Matrix",
+        "- shared-summary checker: `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "stable shared replay handle: `zigux/Makefile` and `make -C zigux phase13-validate`",
         "- blocked convenience route: `make -C zigux phase13`",
         "The older scripts-root Landlock direct-evidence undercount and the later docs-root plus tests-root command-posture drift are no longer present on current `master`: `Documentation/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` already keep `make -C zigux phase13` framed as blocked convenience wiring beside the stable `make -C zigux phase13-validate` handle while `zigux/tests/phase13_build.zig` remains absent.",
@@ -124,6 +127,8 @@ REQUIRED_MARKERS = {
     ],
     "tests_readme": [
         "Phase 13 review packet",
+        CHECKER_MARKER,
+        VALIDATE_ROUTE,
         "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
         "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
         "`Documentation/zigux/phase13-release-coordination-matrix.md`",
