@@ -48,7 +48,7 @@ The current bounded helper covers:
 - ordered `perf_buffer__process_records()` pass summaries
 - cumulative processed-record count across attempted ready buffers
 - first failing ready buffer and its error code
-- final return-path choice between a successful ready count and the first processing failure
+- final return-path choice between cumulative processed-record count and the first processing failure
 - explicit `perf_buffer__buffer_fd(buf_idx)` slot lookup classification
 - return shaping for valid buffer fds, invalid indices, and missing buffer fds
 - explicit `perf_buffer__buffer(buf_idx, &buf, &buf_size)` slot lookup classification
@@ -66,7 +66,7 @@ The current tests check:
 - stable ready-buffer counting with the first error preserved for reviewability
 - fail-fast processing summaries that stop on the first failing ready buffer
 - helper-local execution summaries that keep processed-record totals compact
-- return-path helpers that preserve the successful ready count until the first processing failure wins instead
+- return-path helpers that preserve cumulative processed-record totals until the first processing failure wins instead
 - buffer-fd slot lookups and errno-shaped invalid-index or missing-fd returns
 - buffer-window slot lookups and mapped-size passthrough plus errno-shaped invalid-index or missing-window returns
 - helper-local ready-buffer processing attempts cannot exceed the helper-counted ready buffers
