@@ -162,8 +162,8 @@
       "id": "phase10-virtio-input-registration-preflight-helper",
       "status": "starter_landed",
       "kind": "reviewability",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The registration-preflight summary keeps capability-setup, multitouch-slot blockers, and bounded work below input_register_device() reviewable without widening into lifecycle parity."
+      "zigux_destination": "drivers/virtio/virtio_input_registration_preflight.zig",
+      "why_now": "The dedicated registration-preflight helper keeps event-queue, status-queue, event-buffer, capability-setup, and multitouch-slot blockers explicit below input_register_device() without widening into lifecycle parity."
     },
     {
       "id": "phase10-virtio-input-queue-callback-preflight-helper",
