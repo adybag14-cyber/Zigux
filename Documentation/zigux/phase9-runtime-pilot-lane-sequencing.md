@@ -33,11 +33,11 @@ Current `master` does not currently expose the broader shared runtime-loader pac
 
 ## Current shared-owner drift
 
-The remaining Phase 9 drift is reminder-local wording, not a missing reread of a still-live shared loader packet.
+The remaining Phase 9 drift is docs-root reminder wording, not a missing reread of a still-live shared loader packet.
 
-- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, and `zigux/tests/README.md` now all center the surviving trace-events selftest-hook packet rather than the removed shared runtime-loader family
-- the stale part is this note's own drift wording, which still talks about the sequencing note and checklist as if they overstate the broader shared runtime-loader inventory even though the current reminder surfaces have already narrowed
-- the next honest shared Phase 9 move is to keep those reminder surfaces aligned one surface at a time without inventing broader runtime-loader continuity that the live tree no longer exposes
+- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `zigux/tests/README.md`, and the surviving `samples/zigux/runtime_trace_events.zig` packet already center the narrow trace-events selftest-hook evidence rather than the removed shared runtime-loader family
+- the stale part is `Documentation/zigux/README.md`, which still describes the removed shared runtime-loader inventory, the shared `phase9_build` replay, the shared runtime-loader kernel files, and the older `samples/zigux/runtime_*_loader.zig` scaffolds as if they were shipped current-`master` evidence
+- the next honest shared Phase 9 move is to tighten that docs-root summary so it matches the narrow trace-events packet and keeps the older Phase 2 and Phase 3 non-owner boundaries explicit without inventing broader runtime-loader continuity that the live tree no longer exposes
 
 ## Governance rule for this lane
 
@@ -64,8 +64,8 @@ This lane should not reopen:
 
 ## Recommended next-step order
 
-1. Re-read `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` against `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `zigux/tests/README.md`, and `samples/zigux/runtime_trace_events.zig`, then trim the stale current-shared-owner wording so the note matches the already-narrowed trace-events packet.
-2. After that note is honest, decide whether any other small Phase 9 reminder surface still overclaims removed loader files.
+1. Re-read `Documentation/zigux/README.md` against `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `zigux/tests/README.md`, and `samples/zigux/runtime_trace_events.zig`, then trim the stale docs-root Phase 9 wording so it matches the already-narrowed trace-events packet.
+2. After that docs-root summary is honest, decide whether any other small Phase 9 reminder surface still overclaims removed loader files.
 3. Only after the Phase 9 reminder packet is honest again should future runs decide whether the next bounded step is another reminder repair or a new direct runtime sample/tests slice.
 
 ## Anti-overlap rule
