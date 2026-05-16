@@ -14,6 +14,7 @@ pub const SampleFocus = enum {
     deterministic_escape_subset,
     bounded_destination_discipline,
     bounded_buffer_mutation,
+    case_conversion_preview,
     non_allocating_runtime_safe,
 };
 
@@ -39,6 +40,8 @@ pub const ReplaySummary = struct {
     compact_size_text: RenderedText,
     replaced_text: RenderedText,
     padded_text: RenderedText,
+    upper_text: RenderedText,
+    lower_text: RenderedText,
     unescaped_text: RenderedText,
     exact_unescape_text: RenderedText,
     escaped_text: RenderedText,
@@ -106,6 +109,14 @@ pub const StringHelpersSample = struct {
         string_helpers.memcpyAndPad(padded_text.bytes[0..5], "xy", 2, '.');
         padded_text.len = 5;
 
+        var upper_text = RenderedText{};
+        string_helpers.stringUpper(upper_text.bytes[0..6], "miXeD\x00tail");
+        upper_text.len = 5;
+
+        var lower_text = RenderedText{};
+        string_helpers.stringLower(lower_text.bytes[0..5], "HeLP\x00tail");
+        lower_text.len = 4;
+
         var unescaped_text = RenderedText{};
         unescaped_text.len = string_helpers.stringUnescape(
             "line\\n",
@@ -166,6 +177,8 @@ pub const StringHelpersSample = struct {
             .compact_size_text = compact_size_text,
             .replaced_text = replaced_text,
             .padded_text = padded_text,
+            .upper_text = upper_text,
+            .lower_text = lower_text,
             .unescaped_text = unescaped_text,
             .exact_unescape_text = exact_unescape_text,
             .escaped_text = escaped_text,
@@ -178,6 +191,7 @@ pub const StringHelpersSample = struct {
                 .deterministic_escape_subset,
                 .bounded_destination_discipline,
                 .bounded_buffer_mutation,
+                .case_conversion_preview,
                 .non_allocating_runtime_safe,
             },
         };
@@ -216,6 +230,8 @@ test "string helper sample replay keeps the existing helper surface reviewable" 
     try std.testing.expectEqual(@as(usize, 6), replay.compact_size_text.len);
     try std.testing.expectEqualStrings("mode_ready", cStringPrefix(&replay.replaced_text.bytes));
     try std.testing.expectEqualSlices(u8, "xy...", replay.padded_text.bytes[0..replay.padded_text.len]);
+    try std.testing.expectEqualSlices(u8, "MIXED", replay.upper_text.bytes[0..replay.upper_text.len]);
+    try std.testing.expectEqualSlices(u8, "help", replay.lower_text.bytes[0..replay.lower_text.len]);
     try std.testing.expectEqualSlices(u8, "line\n", replay.unescaped_text.bytes[0..replay.unescaped_text.len]);
     try std.testing.expectEqual(@as(usize, 1), replay.exact_unescape_text.len);
     try std.testing.expectEqualSlices(u8, "\n", replay.exact_unescape_text.bytes[0..replay.exact_unescape_text.len]);
@@ -225,7 +241,7 @@ test "string helper sample replay keeps the existing helper surface reviewable" 
     try std.testing.expectEqualSlices(u8, "\\x0a?", replay.bounded_escape_text.bytes[0..5]);
     try std.testing.expectEqualSlices(u8, "A\\n\tZ", replay.selected_escape_text.bytes[0..replay.selected_escape_text.len]);
     try std.testing.expectEqualSlices(u8, "A\\x0aZ", replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);
-    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);
 }
 
 test "string helper sample enforces simple lifecycle boundaries" {
