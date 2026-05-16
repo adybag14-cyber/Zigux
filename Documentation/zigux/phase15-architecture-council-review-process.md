@@ -96,7 +96,7 @@ This packet should stay narrow.
 If a future lane reopens it, prefer one of these equally bounded follow-ups:
 
 - align one missing review field between this note and `Documentation/zigux/review-checklist.md`
-- restore the missing dedicated indefinite-C policy companion without widening into unrelated Phase 15 prose
+- keep the restored dedicated indefinite-C policy companion aligned without widening into unrelated Phase 15 prose
 - add a focused checker or manifest only after the repo carries the exact paired Phase 15 scripts or tests surface needed to validate it honestly
 
 Until then, treat this note as the Architecture Council source of truth for review-packet shape and stay-in-C closeout behavior.
