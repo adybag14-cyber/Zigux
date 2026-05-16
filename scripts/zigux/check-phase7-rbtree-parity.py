@@ -136,6 +136,7 @@ REQUIRED_MARKERS = {
         "phase 7 rbtree eraseInitCached clears detached cached nodes and keeps cached roots reusable",
         "phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
         "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
+        "phase 7 rbtree clearNode marks detached nodes as empty",
         "phase 7 rbtree detached nodes stay non-empty until callers clear them",
         "phase 7 rbtree replaceNode overwrites stale replacement ownership state before reconnecting",
         "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
@@ -188,6 +189,7 @@ REQUIRED_MARKERS = {
         "pub fn addLinked",
         "pub fn eraseCached(node: *Node, root: *RootCached) ?*Node",
         "pub fn eraseLinked",
+        "pub fn clearNode(node: *Node) void",
         "pub fn clearLinkedNode",
         "pub fn eraseInit",
         "pub fn rb_find(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node",
@@ -451,6 +453,13 @@ def run_self_test() -> None:
             "zigux/tests/phase7_rbtree.zig: phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
         ),
         (
+            "helper_clear_node_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "phase 7 rbtree clearNode marks detached nodes as empty",
+            "",
+            "zigux/tests/phase7_rbtree.zig: phase 7 rbtree clearNode marks detached nodes as empty",
+        ),
+        (
             "helper_replace_node_marker",
             "zigux/tests/phase7_rbtree.zig",
             "phase 7 rbtree replaceNode overwrites stale replacement ownership state before reconnecting",
@@ -603,6 +612,13 @@ def run_self_test() -> None:
             "postorder traversal helpers treat cleared detached nodes as empty so stale parent walks do not leak past the reusable leaf packet",
             "",
             "zigux/tests/phase7_rbtree_manifest.json: postorder traversal helpers treat cleared detached nodes as empty so stale parent walks do not leak past the reusable leaf packet",
+        ),
+        (
+            "helper_impl_clear_node_marker",
+            "lib/rbtree.zig",
+            "pub fn clearNode(node: *Node) void",
+            "",
+            "lib/rbtree.zig: pub fn clearNode(node: *Node) void",
         ),
         (
             "helper_impl_alias_find_first_marker",
