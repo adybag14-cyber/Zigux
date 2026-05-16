@@ -25,6 +25,8 @@ REQUIRED_MARKERS = {
         "make -C zigux phase7-validate",
         "Run Phase 7 runtime helper tests",
         "make -C zigux phase7-test",
+        "Run Phase 7 string-helpers sample-boundary adapter",
+        "make -C zigux phase7-string-helpers-sample-boundary",
     ],
     "Documentation/zigux/README.md": [
         "scripts/zigux/check-phase7-make-wrapper.py",
@@ -44,6 +46,7 @@ REQUIRED_MARKERS = {
         "zig build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
         "zig build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
         "make -C zigux phase7-test",
+        "`.github/workflows/zigux-bootstrap.yml` now also replays `make -C zigux phase7-string-helpers-sample-boundary` as a focused shared-control adapter route.",
     ],
     "samples/zigux/README.md": [
         "scripts/zigux/check-phase7-make-wrapper.py",
@@ -87,6 +90,9 @@ EXACT_COUNT_MARKERS = {
     "scripts/zigux/validate-phase7.py": {
         '"scripts/zigux/check-phase7-make-wrapper.py": [': 1,
         '"PHASE7_MAKE_WRAPPER_SELF_TEST=pass"': 1,
+    },
+    ".github/workflows/zigux-bootstrap.yml": {
+        "make -C zigux phase7-string-helpers-sample-boundary": 1,
     },
 }
 
@@ -196,18 +202,25 @@ def run_self_test() -> None:
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
         ),
         (
-            "alignment_note_string_boundary_route",
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
-            "make -C zigux phase7-string-helpers-sample-boundary",
-            "",
-            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: make -C zigux phase7-string-helpers-sample-boundary",
-        ),
-        (
             "alignment_note_cmdline_direct_test_route",
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
             "zig build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
             "",
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: zig build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+        ),
+        (
+            "alignment_note_workflow_adapter_marker",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "`.github/workflows/zigux-bootstrap.yml` now also replays `make -C zigux phase7-string-helpers-sample-boundary` as a focused shared-control adapter route.",
+            "",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `.github/workflows/zigux-bootstrap.yml` now also replays `make -C zigux phase7-string-helpers-sample-boundary` as a focused shared-control adapter route.",
+        ),
+        (
+            "workflow_adapter_step_marker",
+            ".github/workflows/zigux-bootstrap.yml",
+            "Run Phase 7 string-helpers sample-boundary adapter",
+            "",
+            ".github/workflows/zigux-bootstrap.yml: Run Phase 7 string-helpers sample-boundary adapter",
         ),
         (
             "scripts_readme_checker_marker",
@@ -311,8 +324,20 @@ def run_self_test() -> None:
             tmp_root,
             'scripts/zigux/validate-phase7.py: expected 1 occurrence(s) of \'"PHASE7_MAKE_WRAPPER_SELF_TEST=pass"\', found 2',
         )
+        write_fixture_root(tmp_root)
 
-    case_count = len(missing_file_cases) + len(marker_cases) + 2
+        append_marker(
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml",
+            "make -C zigux phase7-string-helpers-sample-boundary",
+        )
+        expect_count_mismatch(
+            "duplicate_workflow_sample_boundary_route",
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: expected 1 occurrence(s) of 'make -C zigux phase7-string-helpers-sample-boundary', found 2",
+        )
+
+    case_count = len(missing_file_cases) + len(marker_cases) + 3
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
     print(f"PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT={case_count}")
 
