@@ -154,6 +154,7 @@ fn hasConsistentProcessAccounting(summary: PollExecutionSummary) bool {
             if (summary.first_process_error_index) |index| {
                 break :blk summary.first_process_error != null and
                     summary.completed_ready_buffer_count < summary.attempted_ready_buffer_count and
+                    summary.attempted_ready_buffer_count == index + 1 and
                     index == summary.completed_ready_buffer_count;
             }
 
@@ -861,6 +862,26 @@ test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing a
     try std.testing.expectError(
         PollError.InconsistentProcessingAccountingSummary,
         resolvePollExecutionResultFromWaitResult(2, impossible_completion),
+    );
+
+    const impossible_extra_attempts_after_failure = PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 4,
+            .ready_count = 4,
+            .first_ready_index = 0,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 4,
+        .completed_ready_buffer_count = 1,
+        .processed_record_count = 4,
+        .first_process_error_index = 1,
+        .first_process_error = -11,
+    };
+    try std.testing.expectError(
+        PollError.InconsistentProcessingAccountingSummary,
+        resolvePollExecutionResultFromWaitResult(4, impossible_extra_attempts_after_failure),
     );
 
     const failed_with_processing = PollExecutionSummary{
