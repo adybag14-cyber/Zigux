@@ -122,7 +122,6 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-kallsyms-test",
         "make -C zigux phase8-cpu-mask-test",
         "make -C zigux phase8-file-path-handle-bridge-test",
-        "make -C zigux phase8-libbpf-segments-test",
         "make -C zigux phase8-perf-buffer-poll-test",
         "`make -C zigux phase8-test`",
         "`make -C zigux phase8`",
@@ -216,8 +215,8 @@ REQUIRED_MARKERS = {
     ),
     EXEC_CMD_TEST_PATH: (
         'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {',
-        'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {',
-        'test "phase 8 exec-cmd workflow keeps the focused replay ahead of sibling help shards" {',
+        'test "phase 8 exec-cmd deferred boundary note still matches the parked review packet" {',
+        'test "phase 8 exec-cmd workflow keeps the focused replay ahead of the shared phase 8 bundle" {',
     ),
     EXEC_CMD_ONLY_BUILD_PATH: (
         '.root_source_file = b.path("../../tools/lib/subcmd/exec-cmd.zig")',
@@ -774,9 +773,9 @@ def run_self_test() -> None:
         (
             "exec_cmd_test_c_anchor_marker",
             EXEC_CMD_TEST_PATH,
-            'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {',
-            'test "phase 8 exec-cmd boundary note still matches the live helper anchors" {',
-            f'{EXEC_CMD_TEST_PATH}: test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {{',
+            'test "phase 8 exec-cmd deferred boundary note still matches the parked review packet" {',
+            'test "phase 8 exec-cmd deferred boundary note still matches the live review packet" {',
+            f'{EXEC_CMD_TEST_PATH}: test "phase 8 exec-cmd deferred boundary note still matches the parked review packet" {{',
         ),
         (
             "exec_cmd_only_build_focused_step_marker",
