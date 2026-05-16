@@ -23,24 +23,22 @@ test "helper-first tools/lib/bpf Zigux segments compile together and keep their 
 }
 
 test "helper-first tools/lib/bpf Zigux segments keep the landed bounded entrypoints explicit" {
-    try expectHasDecl(logging, "resolveMinPrintLevel");
+    try expectHasDecl(logging, "parseLogLevelSetting");
     try expectHasDecl(logging, "libbpfVersionString");
-    try expectHasDecl(logging, "formatErrorString");
+    try expectHasDecl(logging, "formatLibbpfError");
     try expectHasDecl(pin_path, "buildValidatedSanitizedMapPinPath");
     try expectHasDecl(cpu_mask, "parseCpuMaskString");
     try expectHasDecl(cpu_mask, "parseCpuMaskFromReader");
     try expectHasDecl(cpu_mask, "countPossibleCpus");
     try expectHasDecl(type_names, "libbpfBpfAttachTypeStr");
-    try expectHasDecl(type_names, "libbpfBpfLinkTypeStr");
     try expectHasDecl(type_names, "libbpfBpfMapTypeStr");
-    try expectHasDecl(type_names, "libbpfBpfProgTypeStr");
     try expectHasDecl(file_path_handle_bridge, "buildProcFdinfoPath");
     try expectHasDecl(file_path_handle_bridge, "parseFdinfoMapInfo");
     try expectHasDecl(file_path_handle_bridge, "summarizeMapReuseCompatibility");
     try expectHasDecl(file_path_handle_bridge, "resolveReusePinnedMapAttempt");
     try expectHasDecl(file_path_handle_bridge, "planTokenPreparation");
     try expectHasDecl(perf_buffer_poll, "summarizePollExecution");
-    try expectHasDecl(perf_buffer_poll, "resolvePollExecutionResult");
+    try expectHasDecl(perf_buffer_poll, "resolvePollExecutionResultFromWaitResult");
     try expectHasDecl(perf_buffer_poll, "summarizePollExecutionResultFromWaitResult");
     try expectHasDecl(online_cpu_routing, "advanceOnlineCpuCursor");
     try expectHasDecl(online_cpu_routing, "summarizeNextOnlineCpuRoute");
