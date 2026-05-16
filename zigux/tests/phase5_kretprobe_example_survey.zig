@@ -51,7 +51,7 @@ test "phase5 kretprobe manifest records the restored direct replay packet" {
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P5-L18", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
@@ -87,7 +87,7 @@ test "phase5 kretprobe survey note and manifest stay aligned with the restored p
     const surveyed_commit_line = try std.fmt.allocPrint(std.testing.allocator, "PHASE5_SURVEYED_COMMIT={s}", .{manifest.surveyed_commit});
     defer std.testing.allocator.free(surveyed_commit_line);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_line) != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L18") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L13") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/kretprobe_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kretprobe_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kretprobe_example_manifest.json") != null);
