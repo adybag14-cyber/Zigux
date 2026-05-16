@@ -214,6 +214,39 @@ def run_self_test() -> int:
         ((sys.executable, "scripts/zigux/check-phase3-abi-dump-gate.py"), ROOT, False),
     ]
 
+    observed_calls.clear()
+    export_uapi_layout_command = (
+        "zig",
+        "build",
+        "phase3-export-uapi-layout-test",
+        "--build-file",
+        "zigux/tests/phase3_export_uapi_layout_build.zig",
+    )
+
+    def fake_runner_fail_export_uapi_layout(command, cwd, check):
+        observed_calls.append((tuple(command), cwd, check))
+        returncode = 13 if tuple(command) == export_uapi_layout_command else 0
+        return type("Result", (), {"returncode": returncode})()
+
+    assert run_command_plan(abi_plan, ROOT, runner=fake_runner_fail_export_uapi_layout) == 13
+    assert observed_calls == [
+        ((sys.executable, "scripts/zigux/check-phase3-abi.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/check-phase3-abi-dump-gate.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-policy-unsafe-survey.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-export-uapi-survey.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-validator-support-surface.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-abi-bindings-syntax.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/survey-phase3-abi-constant-parity.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-abi-header-family-survey.py"), ROOT, False),
+        ((sys.executable, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ROOT, False),
+        (("zig", "build", "phase3-test", "--build-file", "zigux/tests/build.zig"), ROOT, False),
+        (export_uapi_layout_command, ROOT, False),
+    ]
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_check_lib_") as tmp_dir_str:
         root = Path(tmp_dir_str)
         for rel in [
