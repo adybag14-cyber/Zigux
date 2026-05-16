@@ -112,6 +112,34 @@ test "phase 8 file-path handle bridge proof keeps helper-local routing evidence 
     );
 }
 
+test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit" {
+    const manifest = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        48 * 1024,
+    );
+    defer std.testing.allocator.free(manifest);
+
+    try expectContains(
+        manifest,
+        "\"slug\": \"fdinfo-map-info-helpers\",\n      \"status\": \"starter_landed\"",
+    );
+    try expectContains(
+        manifest,
+        "\"slug\": \"map-reuse-compatibility\",\n      \"status\": \"starter_landed\"",
+    );
+    try expectContains(
+        manifest,
+        "\"slug\": \"file-path-and-handle-bridge\",\n      \"status\": \"deferred_high_risk\"",
+    );
+    try expectContains(
+        manifest,
+        "This remaining file-path and handle bridge still crosses real procfs reads, bpffs opens, token creation, bpf_obj_get() reopen flow, and fd ownership semantics, so the helper-first packet should keep it deferred.",
+    );
+    try expectContains(manifest, "direct procfs reads and descriptor ownership flow");
+    try expectContains(manifest, "token creation, bpffs reopen flow, and other fd-handle bridge side effects");
+}
+
 test "phase 8 file-path handle bridge helper keeps proc fdinfo path formatting explicit" {
     var buffer: [64]u8 = undefined;
 
