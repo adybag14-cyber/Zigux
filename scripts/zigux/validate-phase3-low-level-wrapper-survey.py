@@ -25,7 +25,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig",
     "PHASE3_ATOMIC_SCOPE=load-store-exchange-fetchadd-fetchsub-fetchand-fetchor-fetchxor-fetchnand-fetchmin-fetchmax-bittest-bitset-bitreset-bittoggle-compareexchange-compareexchangeweak",
     "PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig",
-    "PHASE3_BARRIER_SCOPE=compiler-acquire-release-full-acquirerelease",
+    "PHASE3_BARRIER_SCOPE=compiler-acquire-release-full-acquirerelease-fullfence",
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
     "PHASE3_MMIO_SCOPE=direct-range-indexed-read-write-8-16-32-64-width-alignment-and-odd-offset-replay",
     "PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig",
@@ -38,16 +38,16 @@ REQUIRED_SURVEY_MARKERS = (
 
 REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/atomic.zig` keeps the approved atomic surface explicit through `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `bitTest`, `bitSet`, `bitReset`, `bitToggle`, `compareExchange`, and `compareExchangeWeak`, including helper-local non-`seq_cst` ordering, signed min/max, and bit-wrapper replays.",
-    "`zigux/helpers/barrier.zig` keeps the approved barrier surface explicit through `compiler`, `acquire`, `release`, `full`, and `acquireRelease`, with `compiler()` staying helper-local while current `master` also ships helper-local side-effect-free storage proof plus the barrier-locality and handoff replays in the focused route.",
+    "`zigux/helpers/barrier.zig` keeps the approved barrier surface explicit through `compiler`, `acquire`, `release`, `full`, `acquireRelease`, and `fullFence`, with `compiler()` plus `fullFence()` publish/reset and non-mutating proof staying helper-local while current `master` also ships helper-local side-effect-free storage proof plus the barrier-locality and handoff replays in the focused route.",
     "`zigux/helpers/mmio.zig` keeps the approved direct MMIO packet explicit through `range()`, direct 8-, 16-, 32-, and 64-bit reads and writes, indexed reads and writes, width coverage, alignment handling, and odd-offset replay behavior in the focused test route.",
-    "`zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, odd-offset, and byte-scoped interop-policy checks plus the non-`seq_cst` atomic, barrier locality or handoff, and shared allocator-or-panic consumer proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` and `compiler()` stays helper-local in `zigux/helpers/barrier.zig` to keep this focused route bounded.",
+    "`zigux/tests/phase3_low_level_wrappers.zig` remains the current focused replay for the shared direct wrapper packet, including the direct MMIO width, alignment, odd-offset, and byte-scoped interop-policy checks plus the non-`seq_cst` atomic, barrier locality or handoff, and shared allocator-or-panic consumer proofs, while the atomic bit wrappers stay helper-local in `zigux/helpers/atomic.zig` and `compiler()` plus `fullFence()`-specific barrier proof stay helper-local in `zigux/helpers/barrier.zig` to keep this focused route bounded.",
     "Current `master` no longer treats `zigux/helpers/mmio.zig` as declarations-only support for the focused replay. The helper file itself now ships direct MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate replays, while `zigux/tests/phase3_low_level_wrappers.zig` remains the shared cross-helper route that keeps those already-landed MMIO calls visible beside the atomic, barrier, raw-pointer, allocator, and panic consumers.",
     "`zigux/helpers/allocator_policy.zig`, `zigux/helpers/panic_policy.zig`, and `zigux/unsafe/narrow.zig` stay owned by `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` and its coupled policy validators, even when the current low-level replay still imports them for the shared allocator-and-panic consumer proof.",
     "the policy-aware MMIO relays in `zigux/helpers/mmio.zig`, including `allowsInteropPolicy*`, `requireInteropPolicy*`, `rangeInteropPolicy*`, `read*InteropPolicy*`, and `write*InteropPolicy*`, stay owned by the policy-and-unsafe packet even though the focused low-level replay currently exercises them.",
     "that helper-local MMIO proof surface does not move volatile-MMIO policy relay ownership into this lane; it only means the already-landed policy relays now have both helper-local and focused-route evidence on current `master`.",
     "`zigux/tests/phase3_low_level_wrappers.zig` still exercises byte-scoped MMIO policy relays such as `allowsInteropPolicyByte`, `rangeInteropPolicyByte`, `read8InteropPolicyByte`, `write8InteropPolicyByte`, `read8InteropPolicyBytes`, and `write8InteropPolicyBytes`, but those focused checks continue to serve the adjacent policy-and-unsafe owner packet rather than widening direct MMIO ownership here.",
     "`zigux/tests/phase3_low_level_wrappers.zig` now also replays raw-pointer bridge admission helpers such as `permitsRawPointerBridgeInteropPolicy`, `pointerAtInteropPolicy`, `sliceAtInteropPolicy`, `constSliceAtInteropPolicy`, and `writeValueAtInteropPolicy`, but those focused checks still belong to the adjacent policy-and-unsafe packet instead of widening this lane beyond the direct atomic, barrier, and MMIO wrapper family.",
-    "helper-local `compiler()` barrier coverage plus side-effect-free storage proof in `zigux/helpers/barrier.zig`",
+    "helper-local `compiler()` barrier coverage plus side-effect-free storage proof and `fullFence()` publish/reset plus non-mutating full-fence proof in `zigux/helpers/barrier.zig`",
     "helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage in `zigux/helpers/mmio.zig`",
     "helper-local MMIO stride-boundary and typed-index coverage in `zigux/helpers/mmio.zig` through `containsOffset`, `containsAccess`, `offsetForIndex`, and `typedOffsetForIndex`",
     "The same helper-local MMIO packet now also keeps stride-indexed access replays through `readIndex()` and `writeIndex()` plus width-specific indexed relays through `read8Index()`, `read16Index()`, `read32Index()`, `read64Index()`, `write8Index()`, `write16Index()`, `write32Index()`, and `write64Index()` explicit in `zigux/helpers/mmio.zig` instead of leaving that direct-access slice visible only through the focused route.",
@@ -120,11 +120,14 @@ REQUIRED_ATOMIC_SNIPPETS = (
 REQUIRED_BARRIER_SNIPPETS = (
     'pub fn compiler() void {',
     'pub fn acquireRelease() void {',
+    'pub fn fullFence() void {',
     'test "phase3 barrier wrappers compile"',
     'test "phase3 barrier wrappers keep compiler fences reviewable"',
     'test "phase3 barrier wrappers keep barrier locality reviewable"',
     'test "phase3 barrier wrappers keep barrier handoff reviewable"',
     'test "phase3 barrier wrappers stay side-effect free on unrelated storage"',
+    'test "phase3 barrier wrappers keep full-fence publish and reset reviewable"',
+    'test "phase3 barrier wrappers keep non-mutating full fences reviewable"',
 )
 
 REQUIRED_MMIO_SNIPPETS = (
@@ -276,8 +279,12 @@ def run_self_test() -> int:
 
         bad_cases = [
             (SURVEY_REL, REQUIRED_SURVEY_MARKERS[0], "missing_survey_marker"),
+            (SURVEY_REL, REQUIRED_SURVEY_MARKERS[3], "missing_survey_marker"),
             (SURVEY_REL, REQUIRED_SURVEY_MARKERS[10], "missing_survey_marker"),
             (SURVEY_REL, REQUIRED_SURVEY_SNIPPETS[0], "missing_survey_snippet"),
+            (SURVEY_REL, REQUIRED_SURVEY_SNIPPETS[1], "missing_survey_snippet"),
+            (SURVEY_REL, REQUIRED_SURVEY_SNIPPETS[3], "missing_survey_snippet"),
+            (SURVEY_REL, REQUIRED_SURVEY_SNIPPETS[10], "missing_survey_snippet"),
             (SURVEY_REL, REQUIRED_SURVEY_SNIPPETS[-1], "missing_survey_snippet"),
             (BUILD_REL, REQUIRED_BUILD_SNIPPETS[0], "missing_build_snippet"),
             (TEST_REL, REQUIRED_TEST_SNIPPETS[0], "missing_test_snippet"),
@@ -295,6 +302,9 @@ def run_self_test() -> int:
             (BARRIER_REL, REQUIRED_BARRIER_SNIPPETS[4], "missing_barrier_snippet"),
             (BARRIER_REL, REQUIRED_BARRIER_SNIPPETS[5], "missing_barrier_snippet"),
             (BARRIER_REL, REQUIRED_BARRIER_SNIPPETS[6], "missing_barrier_snippet"),
+            (BARRIER_REL, REQUIRED_BARRIER_SNIPPETS[7], "missing_barrier_snippet"),
+            (BARRIER_REL, REQUIRED_BARRIER_SNIPPETS[8], "missing_barrier_snippet"),
+            (BARRIER_REL, REQUIRED_BARRIER_SNIPPETS[9], "missing_barrier_snippet"),
             (MMIO_REL, REQUIRED_MMIO_SNIPPETS[0], "missing_mmio_snippet"),
             (MMIO_REL, REQUIRED_MMIO_SNIPPETS[6], "missing_mmio_snippet"),
             (MMIO_REL, REQUIRED_MMIO_SNIPPETS[7], "missing_mmio_snippet"),
