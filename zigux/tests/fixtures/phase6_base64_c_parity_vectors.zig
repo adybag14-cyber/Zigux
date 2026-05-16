@@ -27,7 +27,7 @@ pub const InvalidDecodeCase = struct {
 };
 
 const empty = [_]u8{};
-const one_byte_fb = [_]u8{0xfb};
+const two_byte_fbff = [_]u8{ 0xfb, 0xff };
 const invalid_with_nul = [_]u8{ 'Z', 'g', 0, '=' };
 
 pub const standard_cases = [_]EncodeCase{
@@ -45,10 +45,10 @@ pub const standard_cases = [_]EncodeCase{
 };
 
 pub const variant_cases = [_]VariantCase{
-    .{ .input = &one_byte_fb, .expected = "-w", .padding = false, .variant_name = "urlsafe" },
-    .{ .input = &one_byte_fb, .expected = "-w==", .padding = true, .variant_name = "urlsafe" },
-    .{ .input = &one_byte_fb, .expected = "+w", .padding = false, .variant_name = "imap" },
-    .{ .input = &one_byte_fb, .expected = "+w==", .padding = true, .variant_name = "imap" },
+    .{ .input = &two_byte_fbff, .expected = "-_8", .padding = false, .variant_name = "urlsafe" },
+    .{ .input = &two_byte_fbff, .expected = "-_8=", .padding = true, .variant_name = "urlsafe" },
+    .{ .input = &two_byte_fbff, .expected = "+,8", .padding = false, .variant_name = "imap" },
+    .{ .input = &two_byte_fbff, .expected = "+,8=", .padding = true, .variant_name = "imap" },
 };
 
 pub const standard_decode_cases = [_]DecodeCase{
@@ -66,10 +66,10 @@ pub const standard_decode_cases = [_]DecodeCase{
 };
 
 pub const variant_decode_cases = [_]DecodeCase{
-    .{ .input = "-w", .expected = &one_byte_fb, .padding = false, .variant_name = "urlsafe" },
-    .{ .input = "-w==", .expected = &one_byte_fb, .padding = true, .variant_name = "urlsafe" },
-    .{ .input = "+w", .expected = &one_byte_fb, .padding = false, .variant_name = "imap" },
-    .{ .input = "+w==", .expected = &one_byte_fb, .padding = true, .variant_name = "imap" },
+    .{ .input = "-_8", .expected = &two_byte_fbff, .padding = false, .variant_name = "urlsafe" },
+    .{ .input = "-_8=", .expected = &two_byte_fbff, .padding = true, .variant_name = "urlsafe" },
+    .{ .input = "+,8", .expected = &two_byte_fbff, .padding = false, .variant_name = "imap" },
+    .{ .input = "+,8=", .expected = &two_byte_fbff, .padding = true, .variant_name = "imap" },
 };
 
 pub const invalid_decode_cases = [_]InvalidDecodeCase{
