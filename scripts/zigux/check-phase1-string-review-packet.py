@@ -256,9 +256,45 @@ def run_self_test() -> int:
             "remove",
         ),
         (
+            "missing_memparse_anchor",
+            CLOSURE_REL.as_posix(),
+            'test "memparse keeps original rest when sign is not followed by digits"',
+            "remove",
+        ),
+        (
+            "missing_strscpy_anchor",
+            CLOSURE_REL.as_posix(),
+            'test "strscpyPad zero-pads the tail after a short source"',
+            "remove",
+        ),
+        (
             "missing_prefix_suffix_anchor",
             CLOSURE_REL.as_posix(),
             'test "strEndsWith honors C-string boundaries"',
+            "remove",
+        ),
+        (
+            "missing_sysfs_anchor",
+            CLOSURE_REL.as_posix(),
+            'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+            "remove",
+        ),
+        (
+            "missing_lookup_anchor",
+            CLOSURE_REL.as_posix(),
+            'test "match_string mirrors matchString for empty and matched lists"',
+            "remove",
+        ),
+        (
+            "missing_counted_search_anchor",
+            CLOSURE_REL.as_posix(),
+            'test "strnchrNul returns the first match, NUL, or count boundary"',
+            "remove",
+        ),
+        (
+            "missing_parity_fixture_key",
+            CLOSURE_REL.as_posix(),
+            "replace_char_cstr_bytes",
             "remove",
         ),
         (
@@ -268,9 +304,21 @@ def run_self_test() -> int:
             "remove",
         ),
         (
-            "missing_sysfs_anchor",
+            "missing_trim_nul_anchor",
             CLOSURE_REL.as_posix(),
-            'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+            'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
+            "remove",
+        ),
+        (
+            "missing_memchr_anchor",
+            CLOSURE_REL.as_posix(),
+            'test "memchrInv follows the earliest dirty byte as long buffers change"',
+            "remove",
+        ),
+        (
+            "missing_helper_replay_anchor",
+            CLOSURE_REL.as_posix(),
+            'test "phase 1 string replaceChar stops at embedded NUL"',
             "remove",
         ),
         (
