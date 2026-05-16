@@ -21,14 +21,14 @@ truthfulness work without promoting it into a separate shared replay count.
 
 - owner posture: adjacent notifier evidence rather than helper-lane ownership
 - owner-map reminder: `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` keeps adjacent notifier evidence outside the four roadmap-owned helper anchors, so this note stays adjacent release-surface evidence instead of claiming a fifth helper lane
-- surveyed state: `current master` readback refreshed on `2026-05-15`
+- surveyed state: `current master` readback refreshed on `2026-05-16`
 - shared-surface reread: `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` now keep this adjacent notifier packet aligned with the shipped `libfs`, `devres`, and Landlock helper packet on current `master`
 - roadmap-adjacent reviewability evidence only
 - shared Phase 13 packet keeps this notifier evidence outside the validator-first shared-helper release handle as a counted helper path while still keeping it inside the broader release-facing packet as adjacent evidence rather than a fifth helper anchor or an extra shared replay count
 
 ## Current Repo Reality
 
-As of `2026-05-15`, current `master` can still materialize these adjacent
+As of `2026-05-16`, current `master` can still materialize these adjacent
 notifier-facing surfaces:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
@@ -61,10 +61,10 @@ repo-reality gaps instead of independently shipped evidence:
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
 
-Those still-missing direct notifier and list companions remain the nearest
-notifier packet gaps in this adjacent packet, so broad summaries should not
-present bounded `list_head` or `hlist` topology evidence as shipped current-`master`
-proof while those helper views remain absent.
+Those still-missing helper paths are the nearest `list_head` and `hlist` interop
+gaps in this adjacent packet, so broad summaries should not present bounded
+`list_head` or `hlist` topology evidence as shipped current-`master` proof while
+those helper views remain absent.
 
 The direct `zigux/tests/phase13_build.zig` route is also not materialized on current
 `master`, so keep the shipped validator-first handles above explicit instead of
@@ -81,6 +81,7 @@ Keep this packet framed as adjacent Phase 13 evidence:
 - it keeps the shipped `zigux/bindings/notifier_abi.zig` and `include/zigux/abi.h` ABI footholds explicit as adjacent notifier evidence
 - it keeps the Linux-side `drivers/tty/hvc/hvc_console.h` notifier declarations explicit as adjacent evidence without claiming HVC runtime parity
 - it keeps the broader validator-first and Linux-style replay handles explicit
+- it keeps the still-missing `list_head` and `hlist` helper surfaces explicit as repo-reality gaps
 - it treats still-missing direct notifier, list-helper, header, and tests-root companions as repo-reality gaps
 - it does not add extra shared replay steps beyond the current validator-first shared-helper release handle
 - it should not claim broader callback, registration, HVC runtime parity, list topology evidence, or list mutation parity while those direct companions remain absent on current `master`
@@ -103,7 +104,7 @@ When the shared Phase 13 contributor packet changes, re-read these surfaces toge
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-The `2026-05-15` reread also confirms that the review checklist, contributor
+The `2026-05-16` reread also confirms that the review checklist, contributor
 workflow guide, release-coordination matrix, contributor-surface sync note, and
 tests-root companion now keep this adjacent notifier packet aligned with the
 shipped `libfs`, `devres`, and Landlock packet, so the next same-lane follow-through
