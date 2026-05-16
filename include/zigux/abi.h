@@ -72,7 +72,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
     uint32_t flags;
 };
 
-struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_summary {
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary {
     uint32_t attempted;
     uint32_t applied;
     uint32_t skipped;
@@ -132,7 +132,7 @@ ZIGUX_STATIC_ASSERT(_Alignof(struct zigux_chrdev_notify_ack_window_policy_budget
     "zigux chrdev delivery window view alignment must stay canonical");
 ZIGUX_STATIC_ASSERT(offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view, ack_window) == 0U,
     "zigux chrdev delivery window view ack_window offset drifted");
-ZIGUX_STATIC_ASSERT(offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_WINDOW_delivery_window_view, delivery_window) == 4U,
+ZIGUX_STATIC_ASSERT(offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view, delivery_window) == 4U,
     "zigux chrdev delivery window view delivery_window offset drifted");
 ZIGUX_STATIC_ASSERT(offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view, status) == 8U,
     "zigux chrdev delivery window view status offset drifted");
@@ -159,7 +159,7 @@ ZIGUX_STATIC_ASSERT(offsetof(struct zigux_chrdev_notify_ack_window_policy_budget
 ZIGUX_STATIC_ASSERT(offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view, flags) == 8U,
     "zigux chrdev budget view flags offset drifted");
 
-ZIGUX_STATIC_ASSERT(sizeof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_summary) == 12U,
+ZIGUX_STATIC_ASSERT(sizeof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary) == 12U,
     "zigux chrdev budget summary size must stay canonical");
 ZIGUX_STATIC_ASSERT(_Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary) == 4U,
     "zigux chrdev budget summary alignment must stay canonical");
