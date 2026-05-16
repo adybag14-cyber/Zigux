@@ -50,9 +50,11 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     try expectContains(note, "`make -C zigux phase9-test`");
     try expectContains(note, "`make -C zigux phase9`");
     try expectContains(note, "There is no dedicated shared `validate-phase9.py`");
-    try expectContains(note, "Fresh repo-first inspection now shows `Documentation/zigux/README.md` and\n`scripts/zigux/README.md` both keep");
+    try expectContains(note, "Fresh repo-first inspection now shows `Documentation/zigux/README.md` keeps\n`Documentation/zigux/phase9-runtime-loader-gap-survey.md`,");
     try expectContains(note, "Fresh repo-first inspection now also shows `zigux/tests/README.md` keeps that\nsame shared Phase 9 loader-gap packet explicit through a dedicated Phase 9 flow");
-    try expectContains(note, "That means the earlier docs-root undercount, the later tests-root undercount,\nand the checklist-local cross-phase non-owner reminder are all cleared on\ncurrent `master`. The remaining same-lane job is just keeping the shared\nreviewer-facing packet truthful when one of those already-landed reminder or\nboundary surfaces moves again.");
+    try expectContains(note, "Fresh repo-first inspection now also shows `scripts/zigux/README.md` still has\nno dedicated Phase 9 flow and therefore still stops short of naming\n`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` beside the\nshared loader-gap packet");
+    try expectContains(note, "That means the earlier docs-root undercount, the later tests-root undercount,\nand the checklist-local cross-phase non-owner reminder are all cleared on\ncurrent `master`, but the scripts-root shared reminder still undercounts the\nlive Phase 9 packet by omitting the dedicated review-checklist boundary checker.");
+    try expectContains(note, "Refresh `scripts/zigux/README.md` next so the shared scripts-root reminder gains\nits own dedicated Phase 9 flow and names");
     try expectContains(note, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md`");
     try expectContains(note, "`zigux/tests/runtime_loader_gap_manifest.json`");
     try expectContains(note, "`zigux/tests/runtime_loader_gap_survey.zig`");
@@ -77,6 +79,8 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     try expectContains(manifest, "\"shared_lifecycle_boundary_guard_present\": true");
     try expectContains(manifest, "\"dedicated_validate_phase9_present\": false");
     try expectContains(manifest, "\"review_checklist_cross_phase_non_owner_boundary_present\": true");
+    try expectContains(manifest, "\"scripts_phase9_flow_present\": false");
+    try expectContains(manifest, "\"scripts_phase9_review_checklist_checker_present\": false");
     try expectContains(manifest, "\"current_honest_gate\": \"make -C zigux phase9-runtime-loader-shared-tests\"");
     try expectContains(manifest, "\"surface\": \"zigux/tests/runtime_loader_gap_survey.zig\"");
     try expectContains(manifest, "\"surface\": \"zigux/tests/runtime_loader_lifecycle_boundary_guard.zig\"");
@@ -90,13 +94,16 @@ test "phase 9 runtime loader gap survey keeps note and manifest aligned with the
     try expectContains(manifest, "\"owner\": \"P9-L11\"");
     try expectContains(manifest, "\"id\": \"runtime-loader-lifecycle-boundary-summary-guard\"");
     try expectContains(manifest, "\"id\": \"runtime-loader-publication-metadata\"");
+    try expectContains(manifest, "\"id\": \"runtime-loader-scripts-readme-review-checker-surface\"");
     try expectContains(manifest, "\"id\": \"runtime-trace-events-prepared-substrate-drift-proof\"");
     try expectMissing(manifest, "\"id\": \"runtime-loader-checklist-cross-phase-non-owner-reminder\"");
+    try expectContains(manifest, "\"zigux_destination\": \"scripts/zigux/README.md\"");
     try expectContains(manifest, "\"status\": \"blocked_on_runtime_substrate\"");
+    try expectContains(manifest, "\"status\": \"review_packet_drift\"");
     try expectContains(manifest, "\"status\": \"starter_landed\"");
 }
 
-test "phase 9 runtime loader gap survey keeps the shared replay routes and no-dedicated-validator boundary explicit" {
+test "phase 9 runtime loader gap survey keeps the shared replay routes, no-dedicated-validator boundary, and scripts-root reminder gap explicit" {
     const allocator = std.testing.allocator;
 
     const phase9_build = try readRepoFileAlloc(
@@ -197,12 +204,12 @@ test "phase 9 runtime loader gap survey keeps the shared replay routes and no-de
         "`rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references",
     );
 
-    try expectContains(scripts_readme, "Phase 9 flow");
-    try expectContains(scripts_readme, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map");
-    try expectContains(scripts_readme, "there is no dedicated shared `validate-phase9.py`");
-    try expectContains(scripts_readme, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md`");
-    try expectContains(scripts_readme, "`zigux/tests/runtime_loader_gap_manifest.json`");
-    try expectContains(scripts_readme, "`zigux/tests/runtime_loader_gap_survey.zig`");
+    try expectMissing(scripts_readme, "Phase 9 flow");
+    try expectMissing(scripts_readme, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map");
+    try expectMissing(scripts_readme, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md`");
+    try expectMissing(scripts_readme, "`zigux/tests/runtime_loader_gap_manifest.json`");
+    try expectMissing(scripts_readme, "`zigux/tests/runtime_loader_gap_survey.zig`");
+    try expectMissing(scripts_readme, "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`");
 
     try expectContains(tests_readme, "`zigux/tests/runtime_loader_allocator_init_flow.zig`");
     try expectContains(tests_readme, "`zigux/tests/runtime_loader_gap_survey.zig`");
