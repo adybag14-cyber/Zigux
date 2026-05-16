@@ -28,6 +28,57 @@ fn expectDecode(case: DecodeCase) !void {
     try std.testing.expectEqualSlices(u8, case.expected, buf[0..written]);
 }
 
+fn bytesVariantPinned(input: []const u8, padding: bool, variant: base64.Variant) base64.DecodeError!usize {
+    return switch (variant) {
+        .std => base64.bytesStd(input, padding),
+        .urlsafe => base64.bytesUrlsafe(input, padding),
+        .imap => base64.bytesImap(input, padding),
+    };
+}
+
+fn decodeVariantPinned(dst: []u8, input: []const u8, padding: bool, variant: base64.Variant) base64.DecodeError!usize {
+    return switch (variant) {
+        .std => base64.decodeStd(dst, input, padding),
+        .urlsafe => base64.decodeUrlsafe(dst, input, padding),
+        .imap => base64.decodeImap(dst, input, padding),
+    };
+}
+
+fn expectConvenienceVariantForeignAlphabetRejection(padding: bool) !void {
+    const payload = [_]u8{ 0xfb, 0xff };
+    const untouched = [_]u8{0xa5} ** 8;
+    const cases = [_]struct {
+        variant: base64.Variant,
+        encoded: []const u8,
+    }{
+        .{ .variant = .std, .encoded = if (padding) "+/8=" else "+/8" },
+        .{ .variant = .urlsafe, .encoded = if (padding) "-_8=" else "-_8" },
+        .{ .variant = .imap, .encoded = if (padding) "+,8=" else "+,8" },
+    };
+
+    for (cases) |owner| {
+        try std.testing.expectEqual(payload.len, try bytesVariantPinned(owner.encoded, padding, owner.variant));
+
+        var accepted_buf = untouched;
+        const accepted_len = try decodeVariantPinned(accepted_buf[0..], owner.encoded, padding, owner.variant);
+        try std.testing.expectEqual(payload.len, accepted_len);
+        try std.testing.expectEqualSlices(u8, payload[0..], accepted_buf[0..accepted_len]);
+        try std.testing.expectEqual(@as(u8, untouched[payload.len]), accepted_buf[payload.len]);
+
+        for (cases) |foreign| {
+            if (foreign.variant == owner.variant) {
+                continue;
+            }
+
+            try std.testing.expectError(base64.DecodeError.InvalidInput, bytesVariantPinned(foreign.encoded, padding, owner.variant));
+
+            var rejected_buf = untouched;
+            try std.testing.expectError(base64.DecodeError.InvalidInput, decodeVariantPinned(rejected_buf[0..], foreign.encoded, padding, owner.variant));
+            try std.testing.expectEqualSlices(u8, untouched[0..], rejected_buf[0..]);
+        }
+    }
+}
+
 fn fixtureVariant(name: []const u8) base64.Variant {
     if (std.mem.eql(u8, name, "std")) {
         return .std;
@@ -155,6 +206,11 @@ test "phase 6 base64 variant decode parity keeps bytes and decode aligned with k
             .variant = fixtureVariant(case.variant_name),
         });
     }
+}
+
+test "phase 6 base64 convenience wrappers reject foreign alphabet tails in padded and unpadded modes" {
+    try expectConvenienceVariantForeignAlphabetRejection(true);
+    try expectConvenienceVariantForeignAlphabetRejection(false);
 }
 
 test "phase 6 base64 reports destination bounds before encoding" {
