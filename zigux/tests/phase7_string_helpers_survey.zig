@@ -202,6 +202,7 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(survey, "phase 7 string helpers starter reuses the blank string-array sentinel when no names are requested");
     try expectContains(survey, "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes");
     try expectContains(survey, "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result");
+    try expectContains(survey, "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent");
     try expectContains(survey, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
     try expectContains(survey, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(survey, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
