@@ -63,12 +63,12 @@ BUILD_MARKERS = [
 ]
 
 MANIFEST_TEXT_MARKERS = [
-    '"phase": "Phase 10"',
-    '"tranche": "virtio-lab-bundle"',
-    '"test_count":',
-    '"scripts/zigux/check-phase10-harness-coverage.py"',
-    '"scripts/zigux/check-phase10-tests-readme-core-surfaces.py"',
-    '"zigux/tests/phase10_build.zig"',
+    '\"phase\": \"Phase 10\"',
+    '\"tranche\": \"virtio-lab-bundle\"',
+    '\"test_count\":',
+    '\"scripts/zigux/check-phase10-harness-coverage.py\"',
+    '\"scripts/zigux/check-phase10-tests-readme-core-surfaces.py\"',
+    '\"zigux/tests/phase10_build.zig\"',
 ]
 
 EXACT_CHECK_MARKERS = [
@@ -164,6 +164,17 @@ TESTS_ROOT_COMPANION_MARKERS = [
     "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
 ]
 
+REVIEW_CHECKLIST_MARKERS = [
+    "`Documentation/zigux/phase10-closure-evidence.md`",
+    "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+    "`scripts/zigux/check-phase10-harness-coverage.py`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`scripts/zigux/validate-phase10.py`",
+    "`scripts/zigux/validate-phase10-closure.py`",
+    "`zigux/tests/phase10_closure_manifest.json`",
+    "`make -C zigux phase10-validate`",
+]
+
 TESTS_README_MARKERS = [
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
@@ -194,6 +205,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "tests_root_companion",
             "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
             TESTS_ROOT_COMPANION_MARKERS,
+        ),
+        (
+            "review_checklist",
+            "Documentation/zigux/review-checklist.md",
+            REVIEW_CHECKLIST_MARKERS,
         ),
         ("make", "zigux/Makefile", MAKE_MARKERS),
         ("workflow", ".github/workflows/zigux-bootstrap.yml", WORKFLOW_MARKERS),
@@ -301,7 +317,7 @@ def write_fixture(root: Path) -> None:
             TESTS_ROOT_COMPANION_MARKERS
         )
         + "\n",
-        "Documentation/zigux/review-checklist.md": "fixture\n",
+        "Documentation/zigux/review-checklist.md": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
         "scripts/zigux/check-phase10-core-packet.py": "fixture\n",
@@ -614,6 +630,37 @@ def run_self_test() -> int:
         )
         tests_root_companion_path.write_text(original_tests_root_companion, encoding="utf-8")
 
+        original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "`Documentation/zigux/phase10-closure-evidence.md`",
+                "`Documentation/zigux/phase10-closure-evidence-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_closure_evidence",
+            root,
+            "review_checklist:`Documentation/zigux/phase10-closure-evidence.md`",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+                "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_tests_root_companion",
+            root,
+            "review_checklist:`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
         manifest_path = root / "zigux/tests/phase10_closure_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -785,7 +832,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=37")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=39")
     return 0
 
 
@@ -812,5 +859,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(SCRIPTS_README_MARKERS) + len(TESTS_ROOT_COMPANION_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
+    f"{len(SCRIPTS_README_MARKERS) + len(TESTS_ROOT_COMPANION_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
 )
