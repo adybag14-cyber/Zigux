@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 
 SCRIPT_PATH = "scripts/zigux/check-phase8-help-kallsyms-packet.py"
+MAKEFILE_PATH = "zigux/Makefile"
 DOCS_ROOT_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
@@ -25,6 +26,7 @@ KALLSYMS_BUILD_PATH = "zigux/tests/phase8_kallsyms_only_build.zig"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
+    MAKEFILE_PATH,
     DOCS_ROOT_PATH,
     REVIEW_CHECKLIST_PATH,
     SCRIPTS_README_PATH,
@@ -42,6 +44,13 @@ REQUIRED_FILES = (
 )
 
 REQUIRED_MARKERS = {
+    MAKEFILE_PATH: (
+        "phase8-validate:",
+        "check-phase8-help-kallsyms-packet.py --self-test",
+        "check-phase8-help-kallsyms-packet.py",
+        "phase8-help-kallsyms-test:",
+        "zigux/tests/phase8_help_kallsyms_only_build.zig",
+    ),
     DOCS_ROOT_PATH: (
         "`Documentation/zigux/phase8-help-slice.md`",
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
@@ -227,6 +236,14 @@ def run_self_test() -> int:
 
         mutations = (
             (
+                MAKEFILE_PATH,
+                "phase8-help-kallsyms-test:",
+            ),
+            (
+                MAKEFILE_PATH,
+                "zigux/tests/phase8_help_kallsyms_only_build.zig",
+            ),
+            (
                 DOCS_ROOT_PATH,
                 "`Documentation/zigux/phase8-kallsyms-slice.md`",
             ),
@@ -318,6 +335,7 @@ def run_self_test() -> int:
             cases += 1
 
         missing_file_cases = (
+            MAKEFILE_PATH,
             HELP_SLICE_PATH,
             KALLSYMS_SLICE_PATH,
             HELP_HELPER_PATH,
