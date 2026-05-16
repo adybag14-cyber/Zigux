@@ -20,6 +20,21 @@ test "virtio mmio wrapper-facing transport identity keeps legacy page-size postu
     try std.testing.expect(summary.requires_legacy_guest_page_size);
 }
 
+test "virtio mmio wrapper-facing legacy probe preflight requires guest-page-size programming" {
+    var device = try virtio_mmio.VirtioMmioLab.init(72, &[_]u16{ 8, 16 });
+
+    device.version = virtio_mmio.mmio_version_legacy;
+    var summary = device.probePreflightSummary();
+    try std.testing.expect(summary.version_supported);
+    try std.testing.expect(!summary.legacy_guest_page_size_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    _ = try device.writeRegister(.guest_page_size, 4096);
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.legacy_guest_page_size_ready);
+    try std.testing.expect(summary.ready_for_probe_handoff);
+}
+
 test "virtio mmio wrapper-facing probe preflight keeps bounded blockers visible" {
     var device = try virtio_mmio.VirtioMmioLab.init(73, &[_]u16{ 8, 16 });
 
