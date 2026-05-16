@@ -239,6 +239,8 @@ test "phase 5 trace-events survey note stays aligned with the focused direct rep
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_trace_events_sample_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "selected-string plus `iter=%d` trace-events cue scoped to the landed `trace_events_sample` packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "Documentation/zigux/phase5-trace-events-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "samples/zigux/trace_events_sample.zig") != null);
