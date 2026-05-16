@@ -51,7 +51,18 @@ SAMPLE_FAILED_EXIT_TEST_MARKER = (
 SAMPLE_REJECTED_SELFTEST_TEST_MARKER = (
     'test "trace-events sample keeps rejected re-selftest rollback explicit" {'
 )
-SAMPLE_INVALID_TRANSITION_MARKER = "error.InvalidLifecycleTransition"
+SAMPLE_EXITED_MAIN_REPLAY_REJECTION_MARKER = (
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));"
+)
+SAMPLE_EXITED_REGISTRATION_REJECTION_MARKER = (
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());"
+)
+SAMPLE_EXITED_FN_REPLAY_REJECTION_MARKER = (
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));"
+)
+SAMPLE_EXITED_UNREGISTER_REJECTION_MARKER = (
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());"
+)
 SAMPLE_OUTSTANDING_REGISTRATION_MARKER = "error.OutstandingRegistration"
 
 SEQUENCING_REQUIRED_MARKERS = [
@@ -80,7 +91,10 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_CONTINUITY_TEST_MARKER,
     SAMPLE_FAILED_EXIT_TEST_MARKER,
     SAMPLE_REJECTED_SELFTEST_TEST_MARKER,
-    SAMPLE_INVALID_TRANSITION_MARKER,
+    SAMPLE_EXITED_MAIN_REPLAY_REJECTION_MARKER,
+    SAMPLE_EXITED_REGISTRATION_REJECTION_MARKER,
+    SAMPLE_EXITED_FN_REPLAY_REJECTION_MARKER,
+    SAMPLE_EXITED_UNREGISTER_REJECTION_MARKER,
     SAMPLE_OUTSTANDING_REGISTRATION_MARKER,
 ]
 
@@ -175,6 +189,10 @@ test "trace-events sample rejects duplicate function-thread registration" {{
 
 test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {{
     try std.testing.expect(true);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
 }}
 
 test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {{
