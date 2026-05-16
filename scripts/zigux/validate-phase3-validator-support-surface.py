@@ -44,6 +44,22 @@ SELF_TEST_CASES = (
         "scripts/zigux/validate-phase3-validator-support-surface.py",
     ),
     (
+        "scripts/zigux/check-phase3-abi-dump-gate.py",
+        "scripts/zigux/check-phase3-abi-dump-gate.py",
+    ),
+    (
+        "scripts/zigux/validate-phase3-export-uapi-survey.py",
+        "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    ),
+    (
+        "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+        "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    ),
+    (
+        "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+        "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    ),
+    (
         "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
         "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
     ),
@@ -51,7 +67,20 @@ SELF_TEST_CASES = (
         "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
         "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
     ),
+    (
+        "make -C zigux phase3-validate",
+        "make -C zigux phase3-validate",
+    ),
+    (
+        "make -C zigux phase3-selftest",
+        "make -C zigux phase3-selftest",
+    ),
+    (
+        "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
+        "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
+    ),
 )
+EXPECTED_SELF_TEST_CASE_COUNT = len(SELF_TEST_CASES) + 1
 
 
 def load_text(path: Path) -> str:
@@ -80,8 +109,20 @@ def run_self_test() -> int:
             print(f"expected missing marker was not reported: {expected_missing}")
             return 1
 
+    observed_case_count = len(SELF_TEST_CASES) + 1
+    if observed_case_count != EXPECTED_SELF_TEST_CASE_COUNT:
+        print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
+        print(
+            "unexpected self-test case count: "
+            f"{observed_case_count} != {EXPECTED_SELF_TEST_CASE_COUNT}"
+        )
+        return 1
+
     print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass")
-    print(f"PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 1}")
+    print(
+        "PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST_CASE_COUNT="
+        f"{EXPECTED_SELF_TEST_CASE_COUNT}"
+    )
     return 0
 
 
