@@ -44,7 +44,7 @@ REQUIRED_BUILD_MARKERS = [
     "cross_step.dependOn(&phase12_virtio_scsi_repeated_rollback_tests.step);",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 
 def load_fixture(path: Path) -> dict[str, object]:
@@ -246,10 +246,11 @@ def run_self_test() -> int:
         )
         checks_run += 1
 
-        build_self_test_tree(root)
-        (root / REQUIRED_FILES[2]).unlink()
-        assert REQUIRED_FILES[2] in require_files(root)
-        checks_run += 1
+        for rel_path in REQUIRED_FILES:
+            build_self_test_tree(root)
+            (root / rel_path).unlink()
+            assert rel_path in require_files(root)
+            checks_run += 1
 
         build_self_test_tree(root)
         assert resolve_zig("/custom/zig") == "/custom/zig"
@@ -294,6 +295,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_tree(root)
+
         def failing_runner(command, cwd, check=False):
             return subprocess.CompletedProcess(command, 7)
 
