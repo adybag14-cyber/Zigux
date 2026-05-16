@@ -510,6 +510,24 @@ test "bitmap tail-masked helpers ignore out-of-range differences" {
     try std.testing.expect(subset(&outside_only, &[_]Word{ 0, 0 }, nbits));
 }
 
+test "bitmap full empty and weight ignore out-of-range tail bits" {
+    const nbits = bits_per_long + 5;
+    const out_of_range_noise = (@as(Word, 1) << 8) | (@as(Word, 1) << 11);
+    const full_map = [_]Word{ ~@as(Word, 0), lastWordMask(nbits) | out_of_range_noise };
+    const empty_map = [_]Word{ 0, out_of_range_noise };
+    const one_bit_map = [_]Word{ 0, (@as(Word, 1) << 2) | out_of_range_noise };
+
+    try std.testing.expect(full(&full_map, nbits));
+    try std.testing.expectEqual(bits_per_long + 5, weight(&full_map, nbits));
+
+    try std.testing.expect(empty(&empty_map, nbits));
+    try std.testing.expectEqual(@as(usize, 0), weight(&empty_map, nbits));
+
+    try std.testing.expect(!empty(&one_bit_map, nbits));
+    try std.testing.expect(!full(&one_bit_map, nbits));
+    try std.testing.expectEqual(@as(usize, 1), weight(&one_bit_map, nbits));
+}
+
 test "bitmap xor keeps caller-selected bit window" {
     const lhs = [_]Word{0b1_1111};
     const rhs = [_]Word{0b1_0001};
