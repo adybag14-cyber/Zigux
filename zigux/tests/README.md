@@ -265,6 +265,7 @@ Phase 12 review packet
   * `Documentation/zigux/phase12-release-coordination-matrix.md`
   * `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
   * `make -C zigux phase12-validate`
+  * the shipped validator-first support bundle is `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-cross.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`, and it should stay explicit here as support-bundle evidence rather than a second direct replay route
   * `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
   * `Documentation/zigux/phase12-raw-github-coverage-survey.md`
   * `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
@@ -282,6 +283,7 @@ Phase 12 review packet
   * `make -C zigux phase12-smoke`
   * `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
   * `make -C zigux phase12`
+  * if `zig` is unavailable on `PATH`, keep the same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, rerun only the shipped Make routes as `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` rather than inventing another Phase 12 route
 
 Phase 13 review packet
   * `Documentation/zigux/phase13-contributor-workflow-guide.md`
