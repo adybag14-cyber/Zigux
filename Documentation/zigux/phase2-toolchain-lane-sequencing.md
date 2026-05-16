@@ -18,8 +18,8 @@ Keep the current lane split explicit:
 - kconfig bridge behavior lane `P2-X05` owns `scripts/zigux/kconfig/conf_bridge.zig` behavior follow-up together with the committed `zigux/tests/fixtures/kconfig_bridge/cases.json` request packet
 - kconfig bridge checker parity lane `P2-L18` owns the current `conf_bridge` checker-and-manifest helper-anchor parity around `scripts/zigux/check-kconfig-bridge.py` plus `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
 - confdata survey lane `P2-L19` stays parked as the scaffold-closed survey note under `Documentation/zigux/phase2-confdata-bridge-survey.md`
-- confdata checker lane `P2-Y07` owns current checker-underflow repair around `scripts/zigux/check-kconfig-bridge.py` and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
-- confdata bridge truthfulness lane `P2-L24` owns malformed-quote and helper-anchor follow-through inside `scripts/zigux/kconfig/confdata_bridge.zig` plus directly coupled checker or manifest wording when substantive bridge-local changes land
+- confdata checker-parity lane `P2-Y07` owns checker-side and manifest-side helper-anchor truthfulness around `scripts/zigux/check-kconfig-bridge.py` plus `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` once the parked survey is otherwise stable
+- confdata bridge truthfulness lane `P2-L24` owns bridge-local malformed-quote behavior and any directly coupled helper-anchor wording that only becomes honest when substantive `scripts/zigux/kconfig/confdata_bridge.zig` changes land
 
 The roadmap-backed toolchain tranche from the Phase 2 plan and the bootstrap ledger is already represented on current `master` by the shared route inventory, tool-manifest packet, cross-target packet, closure note, bootstrap note, and lane-sequencing note above. Future Phase 2 toolchain work should therefore prefer owner-map and review-surface truthfulness over reopening already-split tool-local replay steps from the wrong lane.
 
@@ -32,7 +32,7 @@ Keep the current owner map explicit:
 - `P2-Y02` owns fixdep-local wording or replay drift only; shared sequencing lanes should not reopen the fixdep gate packet unless a multi-family route surface stops naming it correctly
 - `P2-L07` owns roadmap-survey evidence only, `P2-L12` owns same-family survey-note or closure truthfulness, `P2-L10` owns genksyms fixture or expected-output drift, and `P2-L11` owns workflow-backed replay or validator wiring; shared sequencing lanes should not collapse those four follow-through shapes back into one generic genksyms reopen
 - `P2-X05` owns `conf_bridge` behavior or expected-output drift only, while `P2-L18` owns the current checker-and-manifest parity packet; shared sequencing lanes should not steer nearby runs back toward older broad conf-bridge wording when the live gap is already narrowed to the checker-backed parity lane
-- `P2-L19` stays parked as survey evidence only; `P2-Y07` owns the current confdata checker undercount and `P2-L24` owns bridge-local malformed-quote or helper-anchor truthfulness. Shared sequencing lanes should not treat the parked survey label as the active confdata maintenance lane.
+- `P2-L19` stays parked as survey evidence only; `P2-Y07` owns checker-side or manifest-side confdata helper-anchor truthfulness around `scripts/zigux/check-kconfig-bridge.py` plus `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, while `P2-L24` owns bridge-local malformed-quote behavior and any directly coupled helper-anchor wording that only becomes honest when `scripts/zigux/kconfig/confdata_bridge.zig` itself changes. Shared sequencing lanes should not reopen the already-closed `P2-Y07` undercount story or treat the parked survey label as the active confdata maintenance lane.
 
 ## Current Backlog Evidence
 
@@ -79,7 +79,7 @@ Use this note to keep the bounded work order honest:
 4. Keep `P2-X09` parked unless the repo-local `.zig-toolchain` fallback or the six Linux-style route inventory drifts in `zigux/Makefile` or the shared notes that restate it.
 5. Keep the genksyms split explicit: use `P2-L07` for roadmap-survey evidence, `P2-L12` for same-family survey-note or closure truthfulness, `P2-L10` for fixture or expected-output drift, and `P2-L11` for workflow-backed replay or validator wiring.
 6. Keep `P2-X05` for `conf_bridge` behavior-to-expected-output drift and `P2-L18` for the current checker-and-manifest parity packet; do not reopen the shared lane for older broad conf-bridge wording when current repo evidence already narrowed the gap to one of those tool-local steps.
-7. Keep `P2-L19` parked as survey-only evidence; use `P2-Y07` for confdata checker undercount and `P2-L24` for bridge-local malformed-quote or helper-anchor truthfulness if confdata reopens.
+7. Keep `P2-L19` parked as survey-only evidence; use `P2-Y07` for checker-side or manifest-side confdata helper-anchor truthfulness and `P2-L24` for bridge-local malformed-quote behavior or helper-anchor wording that depends on substantive `confdata_bridge` changes if confdata reopens.
 8. When a writable checkout with Zig is available, run direct tool-local replays inside the dedicated fixdep, genksyms, or kconfig lanes instead of treating that wider validation opportunity as a shared toolchain reopen cue.
 9. If only one tool family drifts on current `master`, stay inside that tool family's lane even when the shared reminder packet also mentions it.
 10. Prefer the smallest same-family reviewability, manifest, checker, or route-truthfulness repair before changing any tool behavior.
