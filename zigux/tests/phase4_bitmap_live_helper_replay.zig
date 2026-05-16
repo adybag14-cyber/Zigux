@@ -95,6 +95,33 @@ test "phase4 bitmap live helper replay keeps fill exact and zero rounded" {
     try std.testing.expect(bitmap.isSet(128));
 }
 
+test "phase4 bitmap live helper replay keeps exact helper bit-walk checkpoints explicit" {
+    var bitmap = LiveBitmapHarness{};
+    const starter_bits = [_]usize{ 10, 20, 30, 40, 50, 60, 80, 123 };
+
+    bitmap.initEmpty();
+    for (starter_bits) |bit| {
+        bitmap.setRange(bit, 1);
+    }
+
+    try std.testing.expectEqual(@as(usize, 10), bitmap.firstSet());
+    try std.testing.expectEqual(@as(usize, 0), bitmap.firstZero());
+    try std.testing.expectEqual(@as(usize, starter_bits.len), bitmap.weight());
+    try std.testing.expectEqual(@as(usize, 123), live_find_bit.findLastBit(bitmap.words[0..], LiveBitmapHarness.bitmap_nbits));
+
+    var next = bitmap.firstSet();
+    for (starter_bits[1..]) |expected| {
+        next = live_find_bit.findNextBit(bitmap.words[0..], LiveBitmapHarness.bitmap_nbits, next + 1);
+        try std.testing.expectEqual(expected, next);
+    }
+    try std.testing.expectEqual(
+        @as(usize, LiveBitmapHarness.bitmap_nbits),
+        live_find_bit.findNextBit(bitmap.words[0..], LiveBitmapHarness.bitmap_nbits, starter_bits[starter_bits.len - 1] + 1),
+    );
+    try std.testing.expectEqual(@as(usize, 0), live_find_bit.findFirstBit(bitmap.words[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), live_find_bit.findNextBit(bitmap.words[0..0], 0, 0));
+}
+
 test "phase4 bitmap live helper replay keeps zero-length and full-extent prefix edits explicit" {
     var bitmap = LiveBitmapHarness{};
 
