@@ -173,6 +173,14 @@ REQUIRED_SNIPPETS = {
         '.{ .label = "64", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },',
         '.{ .label = "1501", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },',
     ],
+    HEXDUMP_VECTORS_PATH.as_posix(): [
+        '.{ .label = "16B-plain-g1", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },',
+        '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550 },',
+        '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },',
+        '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
+        'try std.testing.expectEqual(@as(usize, 4), perf_cases.len);',
+        'try std.testing.expectEqual(@as(u64, 600), perf_cases[3].max_slowdown_pct);',
+    ],
     HEXDUMP_PERF_PATH.as_posix(): [
         'const fixtures = @import("phase6_hexdump_vectors");',
         "for (fixtures.perf_cases) |case| {",
@@ -336,7 +344,6 @@ def write(path: Path, content: str) -> None:
 def scaffold_repo(root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
         write(root / rel_path, "\n".join(snippets) + "\n")
-    write(root / HEXDUMP_VECTORS_PATH, "pub const perf_cases = .{};\n")
 
     manifest = {
         "perf_posture": dict(EXPECTED_PERF_POSTURE),
@@ -433,6 +440,18 @@ def run_self_test() -> None:
             CHECKSUM_PERF_PATH,
             '.{ .label = "1501", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },',
             '.{ .label = "1501", .len = 1501, .reps = 8_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },',
+        )
+        assert_failure(
+            root,
+            HEXDUMP_VECTORS_PATH,
+            '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
+            '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 650 },',
+        )
+        assert_failure(
+            root,
+            HEXDUMP_VECTORS_PATH,
+            'try std.testing.expectEqual(@as(usize, 4), perf_cases.len);',
+            'try std.testing.expectEqual(@as(usize, 3), perf_cases.len);',
         )
         assert_failure(
             root,
