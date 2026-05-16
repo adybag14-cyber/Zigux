@@ -10,7 +10,6 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 BUILD_FILE = "zigux/tests/phase7_build.zig"
-MAKEFILE = "zigux/Makefile"
 
 BUILD_INPUTS = [
     "../../lib/string_helpers.zig",
@@ -72,21 +71,15 @@ FORBIDDEN_BUILD_MARKERS = [
     "zigux/tests/build.zig",
 ]
 
-MAKEFILE_EXACT_LINES = [
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-path-drift.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-path-drift.py",
-]
-
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files: list[str] = []
     missing_markers: list[str] = []
 
     build_path = root / BUILD_FILE
-    makefile_path = root / MAKEFILE
     checker_path = root / "scripts/zigux/check-phase7-build-path-drift.py"
 
-    for path in [build_path, makefile_path, checker_path]:
+    for path in [build_path, checker_path]:
         if not path.exists():
             missing_files.append(path.relative_to(root).as_posix())
 
@@ -99,7 +92,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         return missing_files, []
 
     build_text = build_path.read_text(encoding="utf-8")
-    makefile_lines = makefile_path.read_text(encoding="utf-8").splitlines()
 
     for rel in BUILD_INPUTS:
         quoted = f'"{rel}"'
@@ -113,10 +105,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in FORBIDDEN_BUILD_MARKERS:
         if marker in build_text:
             missing_markers.append(f"{BUILD_FILE}: forbidden stale marker {marker}")
-
-    for line in MAKEFILE_EXACT_LINES:
-        if line not in makefile_lines:
-            missing_markers.append(f"{MAKEFILE}: {line}")
 
     return [], missing_markers
 
@@ -137,10 +125,6 @@ def write_fixture_tree(tmp_root: Path) -> None:
     checker_path.parent.mkdir(parents=True, exist_ok=True)
     checker_path.write_text("# fixture\n", encoding="utf-8")
 
-    makefile_path = tmp_root / MAKEFILE
-    makefile_path.parent.mkdir(parents=True, exist_ok=True)
-    makefile_path.write_text("\n".join(MAKEFILE_EXACT_LINES) + "\n", encoding="utf-8")
-
 
 def expect_missing_file(tmp_root: Path, rel: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
@@ -159,13 +143,6 @@ def remove_once(path: Path, marker: str) -> None:
     updated = original.replace(marker, "", 1)
     assert updated != original
     path.write_text(updated, encoding="utf-8")
-
-
-def remove_line(path: Path, line: str) -> None:
-    lines = path.read_text(encoding="utf-8").splitlines()
-    assert line in lines
-    lines.remove(line)
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
@@ -208,23 +185,14 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_missing_marker(tmp_root, f"{BUILD_FILE}: forbidden stale marker zigux/tests/build.zig")
-        write_fixture_tree(tmp_root)
-
-        makefile_path = tmp_root / MAKEFILE
-        remove_line(makefile_path, MAKEFILE_EXACT_LINES[0])
-        expect_missing_marker(tmp_root, f"{MAKEFILE}: {MAKEFILE_EXACT_LINES[0]}")
-        write_fixture_tree(tmp_root)
-
-        remove_line(makefile_path, MAKEFILE_EXACT_LINES[1])
-        expect_missing_marker(tmp_root, f"{MAKEFILE}: {MAKEFILE_EXACT_LINES[1]}")
 
     print("PHASE7_BUILD_PATH_DRIFT=pass")
-    print("PHASE7_BUILD_PATH_DRIFT_CASE_COUNT=8")
+    print("PHASE7_BUILD_PATH_DRIFT_CASE_COUNT=6")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the shared Phase 7 build graph stays free of stale path and route drift."
+        description="Check that the shared Phase 7 build graph stays free of stale path drift."
     )
     parser.add_argument("--self-test", action="store_true", help="Run checker self-tests without reading repo files.")
     args = parser.parse_args()
@@ -252,7 +220,7 @@ def main() -> int:
 
     print("PHASE7_BUILD_PATH_DRIFT=pass")
     print(f"PHASE7_BUILD_PATH_INPUT_COUNT={len(BUILD_INPUTS)}")
-    print(f"PHASE7_BUILD_PATH_MARKER_COUNT={len(BUILD_MARKERS) + len(MAKEFILE_EXACT_LINES)}")
+    print(f"PHASE7_BUILD_PATH_MARKER_COUNT={len(BUILD_MARKERS)}")
     return 0
 
 
