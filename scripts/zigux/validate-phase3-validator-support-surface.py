@@ -33,6 +33,7 @@ REQUIRED_MARKERS = (
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "scripts/zigux/run-phase3-checks.py",
     "Documentation/zigux/phase3-kernel-export-shim-governance.md",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
@@ -51,6 +52,14 @@ SELF_TEST_CASES = (
     (
         "scripts/zigux/validate-phase3-validator-support-surface.py",
         "scripts/zigux/validate-phase3-validator-support-surface.py",
+    ),
+    (
+        "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+        "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+    ),
+    (
+        "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+        "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     ),
     (
         "scripts/zigux/check-phase3-abi-dump-gate.py",
