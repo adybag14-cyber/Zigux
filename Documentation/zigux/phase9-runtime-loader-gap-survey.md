@@ -146,11 +146,13 @@ That means the earlier docs-root undercount, the later tests-root undercount,
 and the checklist-local cross-phase non-owner reminder are all cleared on
 current `master`, but the scripts-root shared reminder still undercounts the
 live Phase 9 packet by omitting the dedicated review-checklist boundary checker.
+That remaining scripts-root reminder follow-through belongs to the shared
+owner-map lane recorded under `P9-L11`, not to any pilot-family packet.
 
 ## Next Bounded Step
 
-Refresh `scripts/zigux/README.md` next so the shared scripts-root reminder gains
-its own dedicated Phase 9 flow and names
+Refresh `scripts/zigux/README.md` next from `P9-L11` so the shared scripts-root
+reminder gains its own dedicated Phase 9 flow and names
 `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` beside the
 shared loader-gap packet, the literal `make -C zigux phase9-runtime-loader-shared-tests`
 route, and the still-blocked module-metadata and depmod-publication boundary.
