@@ -34,6 +34,7 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "strHasPrefix returns the matched prefix length with C-string semantics"',
     'test "strstarts mirrors the header-level prefix helper"',
     'test "strEndsWith honors C-string boundaries"',
+    'test "kbasename returns the final path component with C-string semantics"',
     'test "sysfsStreq treats trailing newline and NUL as equivalent"',
     'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
     'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
