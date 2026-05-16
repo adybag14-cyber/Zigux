@@ -125,8 +125,9 @@ REQUIRED_MARKERS = {
         "phase7-rbtree-survey-tests",
         'run_rbtree_survey_tests.setCwd(b.path("../.."));',
     ],
-    # Keep the checker aligned with the cached-root ownership cues that the
-    # live slice note already claims are reviewable inside the shared tests.
+    # Keep the checker aligned with the cached-root ownership cues and the
+    # final linked-root teardown edge that the live slice note already claims
+    # are reviewable inside the shared tests.
     "zigux/tests/phase7_rbtree.zig": [
         "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable",
         "phase 7 rbtree cached helpers return leftmost handoff state",
@@ -141,6 +142,10 @@ REQUIRED_MARKERS = {
         "phase 7 rbtree detached nodes stay non-empty until callers clear them",
         "phase 7 rbtree replaceNode overwrites stale replacement ownership state before reconnecting",
         "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
+        "try std.testing.expect(!rbtree.eraseLinked(&entries[1].linked, &root));",
+        "try std.testing.expect(rbtree.emptyNode(&entries[1].linked.node));",
+        "try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), root.leftmost);",
+        "try std.testing.expect(rbtree.emptyRoot(&root.root));",
         "phase 7 rbtree find helpers walk duplicate-key ranges",
         "phase 7 rbtree postorder traversal matches committed parity fixture",
         "phase 7 rbtree cleared detached nodes stop postorder traversal",
@@ -484,6 +489,34 @@ def run_self_test() -> None:
             "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
             "",
             "zigux/tests/phase7_rbtree.zig: phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
+        ),
+        (
+            "helper_linked_final_return_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "try std.testing.expect(!rbtree.eraseLinked(&entries[1].linked, &root));",
+            "",
+            "zigux/tests/phase7_rbtree.zig: try std.testing.expect(!rbtree.eraseLinked(&entries[1].linked, &root));",
+        ),
+        (
+            "helper_linked_final_empty_node_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "try std.testing.expect(rbtree.emptyNode(&entries[1].linked.node));",
+            "",
+            "zigux/tests/phase7_rbtree.zig: try std.testing.expect(rbtree.emptyNode(&entries[1].linked.node));",
+        ),
+        (
+            "helper_linked_final_leftmost_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), root.leftmost);",
+            "",
+            "zigux/tests/phase7_rbtree.zig: try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), root.leftmost);",
+        ),
+        (
+            "helper_linked_final_empty_root_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "try std.testing.expect(rbtree.emptyRoot(&root.root));",
+            "",
+            "zigux/tests/phase7_rbtree.zig: try std.testing.expect(rbtree.emptyRoot(&root.root));",
         ),
         (
             "helper_duplicate_range_marker",
