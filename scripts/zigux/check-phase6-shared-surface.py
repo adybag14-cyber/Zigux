@@ -147,9 +147,10 @@ REQUIRED_EXACT_CHECKS = {
     "make -C zigux phase6-bsearch-test",
     "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-hexdump-test",
-    "make -C zigux phase6-hexdump-perf",
     "make -C zigux phase6-hexdump-review",
+    "make -C zigux phase6-hexdump-perf",
     "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
+    "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
 }
 
@@ -192,6 +193,7 @@ REQUIRED_HELPER_EVIDENCE_REMINDER_SNIPPETS = [
     "- `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
     "- `make -C zigux phase6-base64-perf`",
     "- `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
+    "- `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`",
     "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
     "- `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`",
     "- `make -C zigux phase6-checksum-perf`",
@@ -273,7 +275,7 @@ REQUIRED_PRESENT_ENTRYPOINTS_SNIPPETS = [
     'EXPECTED_HEXDUMP_PERF_REFRESH = HEXDUMP_PERF_REFRESH_PATH.as_posix()',
 ]
 
-SELF_TEST_CASE_COUNT = 19
+SELF_TEST_CASE_COUNT = 20
 
 
 def read_text(path: Path) -> str:
@@ -564,11 +566,13 @@ def run_self_test() -> None:
         assert_failure(tmpdir, MANIFEST_PATH, '"shared_route_truthfulness_note"', '"shared_route_truthfulness_note_missing"')
         assert_failure(tmpdir, MANIFEST_PATH, '"partially_blocked"', '"blocked"')
         assert_failure(tmpdir, MANIFEST_PATH, '"make -C zigux phase6-base64-perf"', '"make -C zigux phase6-base64-perf-missing"')
+        assert_failure(tmpdir, MANIFEST_PATH, '"zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig"', '"zig build phase6-bsearch-test-missing --build-file zigux/tests/phase6_build.zig"')
         assert_failure(tmpdir, MANIFEST_PATH, '"Documentation/zigux/README.md"', '"Documentation/zigux/README-missing.md"')
         assert_failure(tmpdir, MANIFEST_PATH, '"zigux/tests/README.md"', '"zigux/tests/README-missing.md"')
         assert_failure(tmpdir, MANIFEST_PATH, '"helper_evidence_catalog"', '"helper_evidence_catalog_missing"')
         assert_failure(tmpdir, CATALOG_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
         assert_failure(tmpdir, HELPER_EVIDENCE_CATALOG_PATH, "check-phase6-bsearch-corpus-evidence.py", "check-phase6-bsearch-evidence.py")
+        assert_failure(tmpdir, HELPER_EVIDENCE_CATALOG_PATH, "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig", "zig build phase6-bsearch-test-missing --build-file zigux/tests/phase6_build.zig")
         assert_failure(tmpdir, HELPER_EVIDENCE_CATALOG_PATH, "make -C zigux phase6-checksum-perf", "make -C zigux phase6-checksum-perf-missing")
         assert_failure(tmpdir, BASE64_SLICE_PATH, "phase6_base64_c_casegen.zig", "phase6_base64_c_casegen_missing.zig")
         assert_failure(tmpdir, PERF_SURVEY_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
