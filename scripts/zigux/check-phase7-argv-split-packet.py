@@ -222,6 +222,26 @@ MISSING_MARKER_CASES = [
     ("Documentation/zigux/README.md", "scripts/zigux/check-phase7-argv-split-packet.py"),
     ("Documentation/zigux/phase7-argv-split-slice.md", "PHASE7_LANE_KEY=P7-L09"),
     (
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "keep stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path",
+    ),
+    (
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "keep copied-buffer ownership so later source mutation does not affect split results",
+    ),
+    (
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "non-blank cross-result teardown safety where `deinit()` or `argvFree()` on one live split keeps a sibling caller's storage, argv slices, and exported `cArgv()` view intact",
+    ),
+    (
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "exported storage and argv views resetting back to the canonical empty sentinels after teardown",
+    ),
+    (
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "allocator-failure cleanup so interrupted setup frees partially built ownership state before the helper returns",
+    ),
+    (
         "Documentation/zigux/phase7-helper-lane-sequencing.md",
         "PHASE7_ARGV_SPLIT_SCHEDULE_ALIAS=P7-Y07 -> P7-L09",
     ),
