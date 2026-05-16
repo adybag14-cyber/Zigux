@@ -149,6 +149,8 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch upper-bound c abi helpers match bounded insertion points across ascending and descending ranges"',
         'test "phase 6 bsearch lower-bound c abi record member_size replay stays inside a binary-search budget"',
         'test "phase 6 bsearch upper-bound c abi record member_size replay stays inside a binary-search budget"',
+        'test "phase 6 bsearch lower-bound c abi comparator aliases keep empty and singleton insertion edges"',
+        'test "phase 6 bsearch upper-bound c abi comparator aliases keep empty and singleton insertion edges"',
     ],
     EQUALITY_PATH.as_posix(): [
         "var ascending_storage: [32]u32 = undefined;",
@@ -631,6 +633,18 @@ def run_self_test() -> None:
             LOWER_UPPER_PATH.as_posix(),
             'const max_probe: u32 = if (len == 0) 1 else @as(u32, @intCast((len * 2) + 2));',
             'const max_probe: u32 = if (len == 0) 1 else @as(u32, @intCast((len * 2) + 3));',
+        )
+        assert_failure(
+            root,
+            LOWER_UPPER_PATH.as_posix(),
+            'test "phase 6 bsearch lower-bound c abi comparator aliases keep empty and singleton insertion edges"',
+            'test "phase 6 bsearch lower-bound c abi comparator alias drift"',
+        )
+        assert_failure(
+            root,
+            LOWER_UPPER_PATH.as_posix(),
+            'test "phase 6 bsearch upper-bound c abi comparator aliases keep empty and singleton insertion edges"',
+            'test "phase 6 bsearch upper-bound c abi comparator alias drift"',
         )
         assert_failure(
             root,
