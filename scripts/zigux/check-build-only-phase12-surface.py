@@ -413,6 +413,27 @@ def ensure_contains(
             failures.append(f"{label}:{marker}")
 
 
+def normalize_marker_line(line: str) -> str:
+    stripped = line.strip()
+    if stripped.startswith("- "):
+        return stripped[2:]
+    if stripped.startswith("* "):
+        return stripped[2:]
+    return stripped
+
+
+def ensure_normalized_lines(
+    failures: list[str],
+    label: str,
+    text: str,
+    markers: list[str],
+) -> None:
+    normalized_lines = {normalize_marker_line(line) for line in text.splitlines()}
+    for marker in markers:
+        if marker not in normalized_lines:
+            failures.append(f"{label}:{marker}")
+
+
 def ensure_exact_counts(
     failures: list[str],
     label: str,
@@ -456,59 +477,61 @@ def validate(root: Path) -> list[str]:
     makefile = read_text(root, MAKEFILE_PATH)
     phase12_build = read_text(root, PHASE12_BUILD_PATH)
 
-    ensure_contains(failures, "docs_root", docs_root, DOCS_ROOT_MARKERS)
-    ensure_contains(failures, "review_checklist", review_checklist, REVIEW_CHECKLIST_MARKERS)
-    ensure_contains(failures, "scripts_readme", scripts_readme, SCRIPTS_README_MARKERS)
-    ensure_contains(failures, "tests_readme", tests_readme, TESTS_README_MARKERS)
-    ensure_contains(
+    ensure_normalized_lines(failures, "docs_root", docs_root, DOCS_ROOT_MARKERS)
+    ensure_normalized_lines(
+        failures, "review_checklist", review_checklist, REVIEW_CHECKLIST_MARKERS
+    )
+    ensure_normalized_lines(failures, "scripts_readme", scripts_readme, SCRIPTS_README_MARKERS)
+    ensure_normalized_lines(failures, "tests_readme", tests_readme, TESTS_README_MARKERS)
+    ensure_normalized_lines(
         failures,
         "release_readiness_survey",
         release_readiness_survey,
         RELEASE_READINESS_SURVEY_MARKERS,
     )
-    ensure_contains(
+    ensure_normalized_lines(
         failures,
         "release_sequencing",
         release_sequencing,
         RELEASE_SEQUENCING_MARKERS,
     )
-    ensure_contains(
+    ensure_normalized_lines(
         failures,
         "release_coordination_matrix",
         release_coordination_matrix,
         RELEASE_COORDINATION_MATRIX_MARKERS,
     )
-    ensure_contains(
+    ensure_normalized_lines(
         failures,
         "release_closure_checklist",
         release_closure_checklist,
         RELEASE_CLOSURE_CHECKLIST_MARKERS,
     )
-    ensure_contains(
+    ensure_normalized_lines(
         failures,
         "complex_driver_lane_sequencing",
         complex_driver_lane_sequencing,
         COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS,
     )
-    ensure_contains(
+    ensure_normalized_lines(
         failures,
         "libbpf_heavy_consumer_lane_sequencing",
         libbpf_heavy_consumer_lane_sequencing,
         LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS,
     )
-    ensure_contains(
+    ensure_normalized_lines(
         failures,
         "libbpf_verify_shard_note",
         libbpf_verify_shard_note,
         LIBBPF_VERIFY_SHARD_NOTE_MARKERS,
     )
-    ensure_contains(
+    ensure_normalized_lines(
         failures,
         "libbpf_segment_survey",
         libbpf_segment_survey,
         LIBBPF_SEGMENT_SURVEY_MARKERS,
     )
-    ensure_contains(
+    ensure_normalized_lines(
         failures,
         "raw_github_coverage_survey",
         raw_github_coverage_survey,
@@ -753,6 +776,13 @@ def expect_failure(root: Path, expected: str) -> None:
         raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
 
 
+def remove_marker_line(path: Path, marker: str) -> None:
+    path.write_text(
+        path.read_text(encoding="utf-8").replace(f"- {marker}\n", "", 1),
+        encoding="utf-8",
+    )
+
+
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase12-build-only-surface-"))
     try:
@@ -852,170 +882,77 @@ def run_self_test() -> int:
         for marker in RELEASE_READINESS_SURVEY_MARKERS:
             write_fixture_tree(base)
             release_readiness_path = base / RELEASE_READINESS_SURVEY_PATH
-            release_readiness_path.write_text(
-                release_readiness_path.read_text(encoding="utf-8").replace(
-                    marker,
-                    "",
-                    1,
-                ),
-                encoding="utf-8",
-            )
+            remove_marker_line(release_readiness_path, marker)
             expect_failure(base, f"release_readiness_survey:{marker}")
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
-        docs_root_path.write_text(
-            docs_root_path.read_text(encoding="utf-8").replace(
-                DOCS_ROOT_MARKERS[16],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[16])
         expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[16]}")
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
-        docs_root_path.write_text(
-            docs_root_path.read_text(encoding="utf-8").replace(
-                DOCS_ROOT_MARKERS[14],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[14])
         expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[14]}")
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
-        docs_root_path.write_text(
-            docs_root_path.read_text(encoding="utf-8").replace(
-                DOCS_ROOT_MARKERS[18],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[18])
         expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[18]}")
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
-        docs_root_path.write_text(
-            docs_root_path.read_text(encoding="utf-8").replace(
-                DOCS_ROOT_MARKERS[19],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[19])
         expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[19]}")
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
-        docs_root_path.write_text(
-            docs_root_path.read_text(encoding="utf-8").replace(
-                DOCS_ROOT_MARKERS[22],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[22])
         expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[22]}")
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
-        docs_root_path.write_text(
-            docs_root_path.read_text(encoding="utf-8").replace(
-                DOCS_ROOT_MARKERS[23],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[23])
         expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[23]}")
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
-        docs_root_path.write_text(
-            docs_root_path.read_text(encoding="utf-8").replace(
-                DOCS_ROOT_MARKERS[24],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[24])
         expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[24]}")
 
         write_fixture_tree(base)
+        scripts_readme_path = base / SCRIPTS_README_PATH
+        remove_marker_line(scripts_readme_path, SCRIPTS_README_MARKERS[1])
+        expect_failure(base, f"scripts_readme:{SCRIPTS_README_MARKERS[1]}")
+
+        write_fixture_tree(base)
         sequencing_path = base / RELEASE_SEQUENCING_PATH
-        sequencing_path.write_text(
-            sequencing_path.read_text(encoding="utf-8").replace(
-                RELEASE_SEQUENCING_MARKERS[9],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(sequencing_path, RELEASE_SEQUENCING_MARKERS[9])
         expect_failure(base, f"release_sequencing:{RELEASE_SEQUENCING_MARKERS[9]}")
 
         write_fixture_tree(base)
         sequencing_path = base / RELEASE_SEQUENCING_PATH
-        sequencing_path.write_text(
-            sequencing_path.read_text(encoding="utf-8").replace(
-                RELEASE_SEQUENCING_MARKERS[10],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(sequencing_path, RELEASE_SEQUENCING_MARKERS[10])
         expect_failure(base, f"release_sequencing:{RELEASE_SEQUENCING_MARKERS[10]}")
 
         write_fixture_tree(base)
         sequencing_path = base / RELEASE_SEQUENCING_PATH
-        sequencing_path.write_text(
-            sequencing_path.read_text(encoding="utf-8").replace(
-                RELEASE_SEQUENCING_MARKERS[11],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(sequencing_path, RELEASE_SEQUENCING_MARKERS[11])
         expect_failure(base, f"release_sequencing:{RELEASE_SEQUENCING_MARKERS[11]}")
 
         write_fixture_tree(base)
         coordination_path = base / RELEASE_COORDINATION_MATRIX_PATH
-        coordination_path.write_text(
-            coordination_path.read_text(encoding="utf-8").replace(
-                RELEASE_COORDINATION_MATRIX_MARKERS[2],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(coordination_path, RELEASE_COORDINATION_MATRIX_MARKERS[2])
         expect_failure(base, f"release_coordination_matrix:{RELEASE_COORDINATION_MATRIX_MARKERS[2]}")
 
         write_fixture_tree(base)
         coordination_path = base / RELEASE_COORDINATION_MATRIX_PATH
-        coordination_path.write_text(
-            coordination_path.read_text(encoding="utf-8").replace(
-                RELEASE_COORDINATION_MATRIX_MARKERS[7],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(coordination_path, RELEASE_COORDINATION_MATRIX_MARKERS[7])
         expect_failure(base, f"release_coordination_matrix:{RELEASE_COORDINATION_MATRIX_MARKERS[7]}")
 
         write_fixture_tree(base)
         release_closure_path = base / RELEASE_CLOSURE_CHECKLIST_PATH
-        release_closure_path.write_text(
-            release_closure_path.read_text(encoding="utf-8").replace(
-                RELEASE_CLOSURE_CHECKLIST_MARKERS[7],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(release_closure_path, RELEASE_CLOSURE_CHECKLIST_MARKERS[7])
         expect_failure(
             base,
             f"release_closure_checklist:{RELEASE_CLOSURE_CHECKLIST_MARKERS[7]}",
@@ -1023,54 +960,45 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         complex_driver_lane_path = base / COMPLEX_DRIVER_LANE_SEQUENCING_PATH
-        complex_driver_lane_path.write_text(
-            complex_driver_lane_path.read_text(encoding="utf-8").replace(
-                COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[1],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(complex_driver_lane_path, COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[1])
         expect_failure(
             base,
             f"complex_driver_lane_sequencing:{COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[1]}",
         )
 
         write_fixture_tree(base)
-        review_checklist_path = base / REVIEW_CHECKLIST_PATH
-        review_checklist_path.write_text(
-            review_checklist_path.read_text(encoding="utf-8").replace(
-                REVIEW_CHECKLIST_MARKERS[7],
-                "",
-                1,
-            ),
-            encoding="utf-8",
+        libbpf_heavy_consumer_lane_path = base / LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH
+        remove_marker_line(
+            libbpf_heavy_consumer_lane_path,
+            LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS[5],
         )
+        expect_failure(
+            base,
+            f"libbpf_heavy_consumer_lane_sequencing:{LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS[5]}",
+        )
+
+        write_fixture_tree(base)
+        review_checklist_path = base / REVIEW_CHECKLIST_PATH
+        remove_marker_line(review_checklist_path, REVIEW_CHECKLIST_MARKERS[7])
         expect_failure(base, f"review_checklist:{REVIEW_CHECKLIST_MARKERS[7]}")
 
         write_fixture_tree(base)
         tests_readme_path = base / TESTS_README_PATH
-        tests_readme_path.write_text(
-            tests_readme_path.read_text(encoding="utf-8").replace(
-                TESTS_README_MARKERS[16],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(tests_readme_path, TESTS_README_MARKERS[16])
         expect_failure(base, f"tests_readme:{TESTS_README_MARKERS[16]}")
 
         write_fixture_tree(base)
         tests_readme_path = base / TESTS_README_PATH
-        tests_readme_path.write_text(
-            tests_readme_path.read_text(encoding="utf-8").replace(
-                TESTS_README_MARKERS[17],
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_line(tests_readme_path, TESTS_README_MARKERS[17])
         expect_failure(base, f"tests_readme:{TESTS_README_MARKERS[17]}")
+
+        write_fixture_tree(base)
+        raw_github_coverage_path = base / RAW_GITHUB_COVERAGE_SURVEY_PATH
+        remove_marker_line(raw_github_coverage_path, RAW_GITHUB_COVERAGE_SURVEY_MARKERS[6])
+        expect_failure(
+            base,
+            f"raw_github_coverage_survey:{RAW_GITHUB_COVERAGE_SURVEY_MARKERS[6]}",
+        )
 
         write_fixture_tree(base)
         build_path = base / PHASE12_BUILD_PATH
@@ -1145,7 +1073,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=9:actual=8")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=51")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=54")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
