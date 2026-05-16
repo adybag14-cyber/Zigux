@@ -17,6 +17,7 @@ VERIFY_PATH = "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
 SEQUENCING_PATH = "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
 COORDINATION_PATH = "Documentation/zigux/phase12-release-coordination-matrix.md"
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
+CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-snapshot.py"
 
 EXPECTED_SUPPORTING_NOTES = [
     SURVEY_PATH,
@@ -47,6 +48,7 @@ REQUIRED_MARKERS = {
     SURVEY_PATH: [
         SNAPSHOT_PATH,
         "parked reviewability packet visible",
+        f"`{CHECKER_PATH}`",
         "`tools/lib/bpf/zigux_segments/manifest.json` catalog",
         "tools/lib/bpf/zigux_segments/verify.zig",
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
@@ -60,6 +62,7 @@ REQUIRED_MARKERS = {
     ],
     SEQUENCING_PATH: [
         SNAPSHOT_PATH,
+        f"`{CHECKER_PATH}`",
         "parked note-owned boundaries",
         "tools/lib/bpf/zigux_segments/verify.zig",
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
@@ -262,6 +265,32 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        text = (tmp_root / SURVEY_PATH).read_text(encoding="utf-8").replace(
+            f"`{CHECKER_PATH}`",
+            "`scripts/zigux/check-phase12-libbpf-snapshot-missing.py`",
+            1,
+        )
+        (tmp_root / SURVEY_PATH).write_text(text, encoding="utf-8")
+        expect_marker_error(
+            "missing_survey_checker_marker",
+            tmp_root,
+            f"{SURVEY_PATH}: `{CHECKER_PATH}`",
+        )
+        write_fixture_root(tmp_root)
+
+        text = (tmp_root / SEQUENCING_PATH).read_text(encoding="utf-8").replace(
+            f"`{CHECKER_PATH}`",
+            "`scripts/zigux/check-phase12-libbpf-snapshot-missing.py`",
+            1,
+        )
+        (tmp_root / SEQUENCING_PATH).write_text(text, encoding="utf-8")
+        expect_marker_error(
+            "missing_sequencing_checker_marker",
+            tmp_root,
+            f"{SEQUENCING_PATH}: `{CHECKER_PATH}`",
+        )
+        write_fixture_root(tmp_root)
+
         (tmp_root / "tools/lib/bpf/zigux_segments/verify.zig").parent.mkdir(parents=True, exist_ok=True)
         (tmp_root / "tools/lib/bpf/zigux_segments/verify.zig").write_text("// unexpected\n", encoding="utf-8")
         missing_files, marker_errors, unexpected_files = validate(tmp_root)
@@ -277,7 +306,7 @@ def run_self_test() -> None:
         assert unexpected_files == []
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=6")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=8")
 
 
 def main() -> int:
