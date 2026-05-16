@@ -131,6 +131,21 @@ jobs:
       - name: Validate Phase 2 toolchain packet
         run: python3 scripts/zigux/validate-phase2.py
 
+      - name: Self-test Phase 2 fixdep gate checker
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
+
+      - name: Check Phase 2 fixdep gate packet
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py
+
+      - name: Self-test Phase 2 fixdep diff checker
+        run: python3 scripts/zigux/check-fixdep-diff.py --self-test
+
+      - name: Check Phase 2 fixdep diff packet
+        run: python3 scripts/zigux/check-fixdep-diff.py
+
+      - name: Run Phase 2 fixdep unit tests
+        run: zig test scripts/zigux/fixdep.zig
+
       - name: Validate Phase 2 closure
         run: python3 scripts/zigux/validate-phase2-closure.py
 
