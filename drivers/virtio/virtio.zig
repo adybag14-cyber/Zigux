@@ -77,6 +77,31 @@ pub const InterruptAckSummary = struct {
     unacknowledged_interrupt_count: usize,
 };
 
+pub const DriverLifecycleBlocker = enum {
+    missing_acknowledge,
+    reset_required,
+    driver_not_attached,
+    feature_negotiation_incomplete,
+    driver_not_ready,
+    no_registered_queues,
+};
+
+pub const LifecycleGuardSummary = struct {
+    anchor: []const u8,
+    driver_name: []const u8,
+    has_acknowledge: bool,
+    driver_attached: bool,
+    features_negotiated: bool,
+    driver_ready: bool,
+    reset_required: bool,
+    registered_queue_count: usize,
+    config_lifecycle_ready: bool,
+    interrupt_lifecycle_ready: bool,
+    queue_runtime_ready: bool,
+    blocker: ?DriverLifecycleBlocker,
+    ready_for_runtime: bool,
+};
+
 pub const ResetReplaySummary = struct {
     anchor: []const u8,
     reset_required: bool,
@@ -184,6 +209,7 @@ pub const VirtioCoreLabDevice = struct {
 
     pub fn attachDriverNamed(self: *Self, driver_name: []const u8) !void {
         if (!self.hasStatus(DeviceStatus.acknowledge)) return error.MissingAcknowledge;
+        if (self.isResetRequired()) return error.ResetRequired;
         if (driver_name.len == 0) return error.EmptyDriverName;
 
         self.status |= DeviceStatus.driver;
@@ -192,6 +218,7 @@ pub const VirtioCoreLabDevice = struct {
 
     pub fn offerDriverFeature(self: *Self, feature_bit: u16) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (self.isResetRequired()) return error.ResetRequired;
         if (self.hasStatus(DeviceStatus.features_ok) or self.hasStatus(DeviceStatus.driver_ok)) {
             return error.FeatureWindowClosed;
         }
@@ -204,6 +231,7 @@ pub const VirtioCoreLabDevice = struct {
 
     pub fn finalizeFeatures(self: *Self) !NegotiationSummary {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (self.isResetRequired()) return error.ResetRequired;
 
         self.finalize_count += 1;
         self.negotiated_features = FeatureSet.initEmpty();
@@ -223,9 +251,30 @@ pub const VirtioCoreLabDevice = struct {
         };
     }
 
+    pub fn finalizeFeaturesWithDriverValidation(
+        self: *Self,
+        validated_feature_bits: []const u16,
+    ) !NegotiationSummary {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (self.isResetRequired()) return error.ResetRequired;
+
+        const offered = self.driver_features;
+        var validated = FeatureSet.initEmpty();
+        for (validated_feature_bits) |feature_bit| {
+            const index = try checkedFeatureIndex(feature_bit);
+            if (!offered.isSet(index)) return error.DriverValidationFeatureNotOffered;
+            validated.set(index);
+        }
+
+        self.finalize_count += 1;
+        self.driver_features = validated;
+        return self.finalizeFeatures();
+    }
+
     pub fn markDriverReady(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.acknowledge)) return error.MissingAcknowledge;
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (self.isResetRequired()) return error.ResetRequired;
         if (!self.hasStatus(DeviceStatus.features_ok)) return error.MissingFeaturesOk;
 
         self.status |= DeviceStatus.driver_ok;
@@ -279,6 +328,7 @@ pub const VirtioCoreLabDevice = struct {
     ) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
         if (!self.hasStatus(DeviceStatus.features_ok)) return error.MissingFeaturesOk;
+        if (self.isResetRequired()) return error.ResetRequired;
         if (descriptor_count == 0) return error.EmptyQueueDescriptorSet;
         if (callback_name.len == 0) return error.EmptyQueueCallbackName;
 
@@ -296,6 +346,7 @@ pub const VirtioCoreLabDevice = struct {
     }
 
     pub fn unregisterQueueCallback(self: *Self, queue_index: u16) !void {
+        if (self.isResetRequired()) return error.ResetRequired;
         const index = try checkedQueueIndex(queue_index);
         const slot = &self.queues[index];
         if (!slot.active) return error.QueueNotRegistered;
@@ -305,16 +356,19 @@ pub const VirtioCoreLabDevice = struct {
     }
 
     pub fn disableQueueCallback(self: *Self, queue_index: u16) !void {
+        if (self.isResetRequired()) return error.ResetRequired;
         const slot = try self.checkedQueueSlot(queue_index);
         slot.callback_enabled = false;
     }
 
     pub fn enableQueueCallback(self: *Self, queue_index: u16) !void {
+        if (self.isResetRequired()) return error.ResetRequired;
         const slot = try self.checkedQueueSlot(queue_index);
         slot.callback_enabled = true;
     }
 
     pub fn notifyQueueUsed(self: *Self, queue_index: u16) !bool {
+        if (self.isResetRequired()) return error.ResetRequired;
         const slot = try self.checkedQueueSlot(queue_index);
         slot.notification_count += 1;
         if (!slot.callback_enabled) return false;
@@ -346,6 +400,7 @@ pub const VirtioCoreLabDevice = struct {
         writable_descriptor_count: u16,
         uses_indirect_descriptors: bool,
     ) !void {
+        if (self.isResetRequired()) return error.ResetRequired;
         const slot = try self.checkedQueueSlot(queue_index);
         if (readable_descriptor_count == 0 and writable_descriptor_count == 0) {
             return error.EmptyQueueDescriptorShape;
@@ -453,6 +508,48 @@ pub const VirtioCoreLabDevice = struct {
         };
     }
 
+    pub fn lifecycleGuardSummary(self: *const Self) LifecycleGuardSummary {
+        const has_acknowledge = self.hasStatus(DeviceStatus.acknowledge);
+        const driver_attached = self.hasStatus(DeviceStatus.driver);
+        const features_negotiated = self.hasStatus(DeviceStatus.features_ok);
+        const driver_ready = self.hasStatus(DeviceStatus.driver_ok);
+        const reset_required = self.isResetRequired();
+        const config_lifecycle_ready = driver_attached and !reset_required;
+        const interrupt_lifecycle_ready = driver_attached and !reset_required;
+        const queue_runtime_ready = driver_ready and self.registered_queue_count != 0 and !reset_required;
+
+        const blocker: ?DriverLifecycleBlocker = if (!has_acknowledge)
+            .missing_acknowledge
+        else if (reset_required)
+            .reset_required
+        else if (!driver_attached)
+            .driver_not_attached
+        else if (!features_negotiated)
+            .feature_negotiation_incomplete
+        else if (!driver_ready)
+            .driver_not_ready
+        else if (self.registered_queue_count == 0)
+            .no_registered_queues
+        else
+            null;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .driver_name = self.driver_name orelse "",
+            .has_acknowledge = has_acknowledge,
+            .driver_attached = driver_attached,
+            .features_negotiated = features_negotiated,
+            .driver_ready = driver_ready,
+            .reset_required = reset_required,
+            .registered_queue_count = self.registered_queue_count,
+            .config_lifecycle_ready = config_lifecycle_ready,
+            .interrupt_lifecycle_ready = interrupt_lifecycle_ready,
+            .queue_runtime_ready = queue_runtime_ready,
+            .blocker = blocker,
+            .ready_for_runtime = blocker == null,
+        };
+    }
+
     pub fn resetReplaySummary(self: *const Self) ResetReplaySummary {
         const features_negotiated = self.hasStatus(DeviceStatus.features_ok);
         const has_interrupt_bookkeeping = self.pending_interrupt_reason_bits != 0 or
@@ -538,3 +635,140 @@ pub const VirtioCoreLabDevice = struct {
         return VirtioInterruptReason.queue_used | VirtioInterruptReason.config_change;
     }
 };
+
+test "phase10 virtio core tracks lifecycle guard bookkeeping across driver model milestones" {
+    var device = try VirtioCoreLabDevice.init(&.{ 1, 7, 11 });
+
+    var lifecycle = device.lifecycleGuardSummary();
+    try std.testing.expectEqual(DriverLifecycleBlocker.missing_acknowledge, lifecycle.blocker.?);
+
+    device.acknowledge();
+    lifecycle = device.lifecycleGuardSummary();
+    try std.testing.expectEqual(DriverLifecycleBlocker.driver_not_attached, lifecycle.blocker.?);
+
+    try device.attachDriverNamed("virtio_blk_lab");
+    lifecycle = device.lifecycleGuardSummary();
+    try std.testing.expectEqual(DriverLifecycleBlocker.feature_negotiation_incomplete, lifecycle.blocker.?);
+
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(7);
+    try device.offerDriverFeature(11);
+    _ = try device.finalizeFeaturesWithDriverValidation(&.{ 1, 11 });
+    lifecycle = device.lifecycleGuardSummary();
+    try std.testing.expectEqual(DriverLifecycleBlocker.driver_not_ready, lifecycle.blocker.?);
+
+    try device.markDriverReady();
+    lifecycle = device.lifecycleGuardSummary();
+    try std.testing.expectEqual(DriverLifecycleBlocker.no_registered_queues, lifecycle.blocker.?);
+
+    try device.registerQueueCallback(0, 8, "rx_done");
+    const lifecycle_final = device.lifecycleGuardSummary();
+    try std.testing.expectEqual(@as(usize, 1), lifecycle_final.registered_queue_count);
+    try std.testing.expect(lifecycle_final.queue_runtime_ready);
+    try std.testing.expect(lifecycle_final.ready_for_runtime);
+    try std.testing.expect(lifecycle_final.blocker == null);
+
+    device.noteNeedsReset();
+    lifecycle = device.lifecycleGuardSummary();
+    try std.testing.expectEqual(DriverLifecycleBlocker.reset_required, lifecycle.blocker.?);
+}
+
+test "phase10 virtio core reaches queue runtime readiness after validated feature narrowing" {
+    var device = try VirtioCoreLabDevice.init(&.{ 1, 7, 11 });
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(7);
+    try device.offerDriverFeature(11);
+
+    const negotiation = try device.finalizeFeaturesWithDriverValidation(&.{ 1, 11 });
+    try std.testing.expect(negotiation.accepted_by_transport);
+    try std.testing.expectEqual(@as(usize, 2), negotiation.offered_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), negotiation.negotiated_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), device.finalize_count);
+    try std.testing.expect(try device.hasNegotiatedFeature(1));
+    try std.testing.expect(!(try device.hasNegotiatedFeature(7)));
+    try std.testing.expect(try device.hasNegotiatedFeature(11));
+
+    try device.markDriverReady();
+    try device.registerQueueCallback(0, 8, "rx_done");
+
+    const lifecycle = device.lifecycleGuardSummary();
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.registered_queue_count);
+    try std.testing.expect(lifecycle.queue_runtime_ready);
+    try std.testing.expect(lifecycle.ready_for_runtime);
+
+    const queue_summary = try device.queueRegistrationSummary(0);
+    try std.testing.expectEqualStrings("rx_done", queue_summary.callback_name);
+}
+
+test "phase10 virtio core exposes reset replay bookkeeping before reset clears state" {
+    var device = try VirtioCoreLabDevice.init(&.{ 1, 7, 11 });
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(7);
+    try device.offerDriverFeature(11);
+    _ = try device.finalizeFeaturesWithDriverValidation(&.{ 1, 11 });
+    try device.markDriverReady();
+    try device.disableConfigDriver();
+    try device.noteConfigChanged();
+    try device.enableConfigDriver();
+    try device.acknowledgeConfigGeneration(1);
+    try device.registerQueueCallback(2, 8, "rx_done");
+    try device.configureQueueDescriptorShape(2, 3, 2, true);
+    try device.noteInterruptReason(VirtioInterruptReason.queue_used | VirtioInterruptReason.config_change);
+    try device.acknowledgeInterrupt(VirtioInterruptReason.config_change);
+    device.noteNeedsReset();
+
+    const reset_summary = device.resetReplaySummary();
+    try std.testing.expect(reset_summary.reset_required);
+    try std.testing.expect(reset_summary.features_negotiated);
+    try std.testing.expect(reset_summary.driver_ready);
+    try std.testing.expectEqual(@as(usize, 1), reset_summary.registered_queue_count);
+    try std.testing.expectEqual(VirtioInterruptReason.queue_used, reset_summary.pending_interrupt_reason_bits);
+    try std.testing.expect(reset_summary.will_clear_negotiated_features);
+    try std.testing.expect(reset_summary.will_clear_queue_callbacks);
+    try std.testing.expect(reset_summary.will_clear_config_bookkeeping);
+    try std.testing.expect(reset_summary.will_clear_interrupts);
+
+    device.reset();
+
+    const cleared_summary = device.resetReplaySummary();
+    try std.testing.expect(!cleared_summary.reset_required);
+    try std.testing.expect(!cleared_summary.features_negotiated);
+    try std.testing.expect(!cleared_summary.driver_ready);
+    try std.testing.expectEqual(@as(usize, 0), cleared_summary.registered_queue_count);
+    try std.testing.expect(!cleared_summary.will_clear_negotiated_features);
+    try std.testing.expect(!cleared_summary.will_clear_queue_callbacks);
+    try std.testing.expect(!cleared_summary.will_clear_config_bookkeeping);
+    try std.testing.expect(!cleared_summary.will_clear_interrupts);
+}
+
+test "virtio core reset-required guard blocks queue mutations but keeps queue summaries readable" {
+    var device = try VirtioCoreLabDevice.init(&.{ 1, 7, 11 });
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(1);
+    _ = try device.finalizeFeatures();
+    try device.markDriverReady();
+    try device.registerQueueCallback(1, 4, "control_done");
+    try device.configureQueueDescriptorShape(1, 1, 2, false);
+    device.noteNeedsReset();
+
+    try std.testing.expectError(error.ResetRequired, device.offerDriverFeature(7));
+    try std.testing.expectError(error.ResetRequired, device.finalizeFeatures());
+    try std.testing.expectError(error.ResetRequired, device.markDriverReady());
+    try std.testing.expectError(error.ResetRequired, device.unregisterQueueCallback(1));
+    try std.testing.expectError(error.ResetRequired, device.disableQueueCallback(1));
+    try std.testing.expectError(error.ResetRequired, device.enableQueueCallback(1));
+    try std.testing.expectError(error.ResetRequired, device.notifyQueueUsed(1));
+    try std.testing.expectError(error.ResetRequired, device.configureQueueDescriptorShape(1, 2, 1, true));
+
+    const queue_summary = try device.queueRegistrationSummary(1);
+    try std.testing.expectEqual(@as(u16, 4), queue_summary.descriptor_count);
+
+    const shape_summary = try device.queueDescriptorShapeSummary(1);
+    try std.testing.expectEqual(@as(u16, 1), shape_summary.readable_descriptor_count);
+    try std.testing.expectEqual(@as(u16, 2), shape_summary.writable_descriptor_count);
+}
