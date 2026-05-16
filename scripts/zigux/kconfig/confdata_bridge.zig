@@ -561,14 +561,14 @@ test "confdata bridge ignores empty CONFIG symbol names" {
 }
 
 test "confdata bridge ignores malformed unset comments with extra tokens" {
-    const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator,
+    const testing_allocator = std.testing.allocator;
+    var summary = try parseConfig(testing_allocator,
         \\CONFIG_ALPHA=y
         \\# CONFIG_ALPHA extra is not set
         \\# CONFIG_DEBUG is not set trailing
         \\
     );
-    defer deinitSummary(allocator, &summary);
+    defer deinitSummary(testing_allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 1), summary.set_count);
     try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
@@ -604,10 +604,10 @@ test "confdata bridge ignores malformed unset comments with extra tokens" {
         }
     };
 
-    var capture = try Capture.init(allocator);
+    var capture = try Capture.init(testing_allocator);
     defer capture.deinit();
 
-    try runConfdataBridge(allocator,
+    try runConfdataBridge(testing_allocator,
         \\CONFIG_ALPHA=y
         \\# CONFIG_ALPHA extra is not set
         \\# CONFIG_DEBUG is not set trailing
