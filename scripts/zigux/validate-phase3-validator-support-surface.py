@@ -125,6 +125,46 @@ SELF_TEST_CASES = (
         "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
         "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     ),
+    (
+        "scripts/zigux/validate-phase3.py",
+        "scripts/zigux/validate-phase3.py",
+    ),
+    (
+        "scripts/zigux/validate_phase3_selftest.py",
+        "scripts/zigux/validate_phase3_selftest.py",
+    ),
+    (
+        "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+        "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+    ),
+    (
+        "scripts/zigux/check-phase3-catalog-selftest.py",
+        "scripts/zigux/check-phase3-catalog-selftest.py",
+    ),
+    (
+        "scripts/zigux/check-phase3-policy-byte-guards.py",
+        "scripts/zigux/check-phase3-policy-byte-guards.py",
+    ),
+    (
+        "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+        "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    ),
+    (
+        "scripts/zigux/survey-phase3-abi-constant-parity.py",
+        "scripts/zigux/survey-phase3-abi-constant-parity.py",
+    ),
+    (
+        "zigux/tests/phase3_export_uapi_layout.zig",
+        "zigux/tests/phase3_export_uapi_layout.zig",
+    ),
+    (
+        "zigux/tests/phase3_export_uapi_layout_build.zig",
+        "zigux/tests/phase3_export_uapi_layout_build.zig",
+    ),
+    (
+        "make -C zigux phase3-export-uapi-layout-test",
+        "make -C zigux phase3-export-uapi-layout-test",
+    ),
 )
 EXPECTED_SELF_TEST_CASE_COUNT = len(SELF_TEST_CASES) + 1
 
