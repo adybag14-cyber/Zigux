@@ -186,6 +186,10 @@ EXPECTED_NEXT_SAFE_STEP_NOTE = (
 EXPECTED_CLOSURE_MARKERS = [
     "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation",
     "PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors, committed C-string replacement bytes, and parity fixture keys",
+    'test "sysfsStreq treats trailing newline and NUL as equivalent"',
+    'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
+    'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+    'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
     "PHASE1_STRING_STRSCPY_REVIEW=helper-local string copy-and-pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strscpy or strscpyPad fixture keys",
     "PHASE1_STRING_LOOKUP_AND_STRNCHR_REVIEW=helper-local string C-string list lookup and counted-search anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string or strnchr fixture keys",
 ]
@@ -475,6 +479,12 @@ def run_self_test() -> None:
         closure_path.write_text(original_closure, encoding="utf-8")
         case_count += 1
 
+        for marker in EXPECTED_SYSFS_REVIEW_ANCHORS:
+            closure_path.write_text(original_closure.replace(marker + "\n", "", 1), encoding="utf-8")
+            assert f"phase1_string_closure:{marker}:expected=1:actual=0" in collect_missing_markers(root)
+            closure_path.write_text(original_closure, encoding="utf-8")
+            case_count += 1
+
         lane_note_path = root / "Documentation/zigux/phase1-host-helper-lane-sequencing.md"
         lane_note_path.write_text("", encoding="utf-8")
         assert any(item.startswith("phase1_string_lane_note:") for item in collect_missing_markers(root))
@@ -556,7 +566,7 @@ def main() -> int:
 
     print("PHASE1_STRING_REVIEW_PACKET=pass")
     print(f"PHASE1_STRING_REVIEW_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print("PHASE1_STRING_REVIEW_PACKET_REQUIRED_MARKER_COUNT=25")
+    print("PHASE1_STRING_REVIEW_PACKET_REQUIRED_MARKER_COUNT=29")
     return 0
 
 
