@@ -171,6 +171,37 @@ Phase 3 review packet
   * the focused export/UAPI and low-level-wrapper support routes stay explicit here too: `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`, `make -C zigux phase3-export-uapi-layout-test`, `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`, and `make -C zigux phase3-low-level-wrappers-test`
   * `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` stay explicit as the current starter header-family companion packet rather than implying a broader shipped UAPI family
 
+Phase 10 flow
+  * `Documentation/zigux/phase10-closure-evidence.md`
+  * `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
+  * `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+  * `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+  * `scripts/zigux/check-phase10-harness-coverage.py`
+  * `zigux/tests/phase10_build.zig`
+  * `zigux/tests/phase10_virtio_core.zig`
+  * `zigux/tests/phase10_virtio_core_reset_queue.zig`
+  * `zigux/tests/phase10_virtio_core_survey.zig`
+  * `zigux/tests/phase10_virtio_core_manifest.json`
+  * `zigux/tests/phase10_virtio_driver_id.zig`
+  * `zigux/tests/phase10_virtio_ring.zig`
+  * `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
+  * `zigux/tests/phase10_virtio_ring_survey.zig`
+  * `zigux/tests/phase10_virtio_ring_manifest.json`
+  * `zigux/tests/phase10_virtio_input_probe_preflight.zig`
+  * `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
+  * `zigux/tests/phase10_virtio_input_registration_preflight.zig`
+  * `zigux/tests/phase10_virtio_input_teardown_observation.zig`
+  * `zigux/tests/phase10_virtio_input_status_drain.zig`
+  * `zigux/tests/phase10_virtio_input_manifest.json`
+  * `zigux/tests/phase10_virtio_mmio.zig`
+  * `zigux/tests/phase10_virtio_mmio_survey.zig`
+  * `zigux/tests/phase10_virtio_mmio_manifest.json`
+  * `make -C zigux phase10-validate`
+  * `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+  * `make -C zigux phase10-test`
+  * `make -C zigux phase10`
+  * keep the shared Phase 10 tests-root packet aligned around the direct core, ring, input probe-preflight, queue-callback-preflight, registration-preflight, teardown-observation, status-drain, and MMIO review surfaces while the broader helper names and risky-transport claims stay documented through the closure-manifest-backed reminder notes rather than direct parity claims
+
 Phase 11 review packet
   * `Documentation/zigux/phase11-shared-replay-contract.md`
   * `Documentation/zigux/phase11-closure-note.md`
