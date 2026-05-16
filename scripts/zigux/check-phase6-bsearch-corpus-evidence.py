@@ -192,7 +192,7 @@ REQUIRED_SNIPPETS = {
         "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
         "- direct local corpus evidence checker self-test: `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`",
-        "The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains helper-local support inside that packet today: `phase6_bsearch.zig` still imports it for representative ascending and descending raw-array reuse, and the bounds-focused plus direct C ABI budget replays still reuse its dynamic-length and packed-record seed corpus.",
+        "The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains helper-local support inside that packet today: `phase6_bsearch.zig` still imports it for representative ascending and descending raw-array reuse, while the bounds-focused plus direct C ABI budget replays still reuse its dynamic-length corpus and generate packed-record `member_size` ranges inline inside those focused files.",
         "Reviewers should treat that fixture as compact shared packet support rather than as a separate standalone timing-style route.",
         "Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable`, while the direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` wrappers hand those typed slice and raw byte views back without forcing callers to peel `IndexRange` apart by hand or widening Phase 6 into a separate fixture or routing packet.",
         "The helper now also exports direct `lowerBound`, `lowerBoundMutable`, `upperBound`, `upperBoundMutable`, `bsearchLowerBound`, `bsearchLowerBoundMutable`, `bsearchUpperBound`, and `bsearchUpperBoundMutable` companions so callers can reuse the existing insertion-point semantics as typed or raw pointers without manually translating lower- and upper-bound indexes back into aliases.",
@@ -709,7 +709,7 @@ def run_self_test() -> None:
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
-            "The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains helper-local support inside that packet today: `phase6_bsearch.zig` still imports it for representative ascending and descending raw-array reuse, and the bounds-focused plus direct C ABI budget replays still reuse its dynamic-length and packed-record seed corpus.",
+            "The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains helper-local support inside that packet today: `phase6_bsearch.zig` still imports it for representative ascending and descending raw-array reuse, while the bounds-focused plus direct C ABI budget replays still reuse its dynamic-length corpus and generate packed-record `member_size` ranges inline inside those focused files.",
             "The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains helper-local support outside the packet today.",
         )
         assert_failure(
