@@ -18,6 +18,7 @@
 - direct focused helper replay route: `zig build test --build-file zigux/tests/phase6_build.zig`
 - direct focused perf route: `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`
 - direct Linux-style perf route: `make -C zigux phase6-checksum-perf`
+- dedicated environment-plumbed perf route: the shipped `make -C zigux phase6-checksum-perf` wrapper keeps the checksum slowdown gate on the same repo-local `.zig-toolchain` fallback or caller-provided `ZIG` selection path as the other committed Phase 6 perf wrappers, so this rerun path is more than an inventory marker even while the broader aggregate wrappers still lag
 - direct local C parity checker route: `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
 - built-in parity-script self-test route: `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test`
 - route nuance note: the checksum helper-owned replay, slowdown gate, and Linux-style perf wrapper are readable from the committed helper packet again, but the aggregate `zigux/Makefile` and workflow surfaces still need their own route-truthfulness follow-up before reviewers should treat the broader `phase6-validate`, `phase6-perf`, and `phase6` wrappers as equivalent packet summaries
