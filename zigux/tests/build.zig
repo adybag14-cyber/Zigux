@@ -36,6 +36,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    string_module.addImport("cmdline", cmdline_module);
     const ctype_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/ctype.zig"),
         .target = target,
