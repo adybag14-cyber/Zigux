@@ -646,3 +646,51 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
         "try std.testing.expectError(error.MaxactiveExceeded, module.entryHandler(true, 420));",
     );
 }
+
+test "phase 9 runtime kretprobe survey keeps freeze-map boundary evidence explicit" {
+    const freeze_map = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/freeze-map.md",
+        96 * 1024,
+    );
+    defer std.testing.allocator.free(freeze_map);
+
+    const survey_note = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const module_slice_note = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(module_slice_note);
+
+    try expectContains(freeze_map, "`kernel/workqueue.c`");
+    try expectContains(freeze_map, "`kernel/trace/ring_buffer.c`");
+    try expectContains(
+        freeze_map,
+        "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`",
+    );
+
+    try expectContains(
+        survey_note,
+        "`Documentation/zigux/freeze-map.md` keeps the shared Phase 9 runtime-loader packet review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`",
+    );
+    try expectContains(
+        survey_note,
+        "it must not imply live `register_kretprobe` parity, scheduler-facing substrate closure, or any freeze-map status change.",
+    );
+
+    try expectContains(
+        module_slice_note,
+        "`Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in review-only study scope for the shared loader packet",
+    );
+    try expectContains(
+        module_slice_note,
+        "it must not imply scheduler parity, live runtime registration ownership, or any Architecture Council-approved status change.",
+    );
+}
