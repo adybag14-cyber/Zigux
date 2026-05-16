@@ -207,7 +207,7 @@ def manifest_payload(entries: tuple[Path, ...]) -> str:
     payload = {
         "phase": "Phase 3",
         "status": "active",
-        "slice": "abi-substrate-skeleton",
+        "slice": "abi-and-bindings-boundary-packet",
         "file_count": len(files),
         "files": files,
     }
