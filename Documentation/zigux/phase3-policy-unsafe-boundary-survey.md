@@ -18,7 +18,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_MMIO_BLOB_SHA=d310c9ac47558079c2274af88037f6008dd29820`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
-- `PHASE3_UNSAFE_BLOB_SHA=920cf324c9ef018c0074f420ddaaa8dffc1c2bcf`
+- `PHASE3_UNSAFE_BLOB_SHA=f78eefc1208df3e44662f5d9067edabd18ea4f12`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
 - `PHASE3_ABI_TEST_BLOB_SHA=0574e36bd0943569326494b6a01ad8762456afd4`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
@@ -78,7 +78,7 @@ Current same-family progress already includes helper-local explicit-byte decodin
 
 - the panic helper decodes ABI panic-mode bytes explicitly and rejects nonzero reserved bytes instead of forcing raw-byte callers to re-map `.abort`, `.bug`, and `.warn` elsewhere in the packet
 - the allocator helper decodes ABI allocator-mode bytes explicitly, names caller-prepared versus helper-owned init flow through `InitFlow`, and rejects nonzero reserved bytes so shared callers do not have to rediscover caller ownership, helper-owned initialization, global fallback, or arena-reset policy elsewhere in the packet
-- the narrow unsafe helper decodes ABI unsafe-scope bytes explicitly, now exposes a mutable `sliceAt*` bridge alongside the existing pointer and const-slice relays, and mirrors the typed `InteropPolicy` entry-point style already used by the panic and allocator helpers instead of leaving reserved-byte and unknown-scope handling implicit or forcing shared callers to split bytes by hand
+- the narrow unsafe helper decodes ABI unsafe-scope bytes explicitly, now exposes a mutable `sliceAt*` bridge alongside the existing pointer and const-slice relays, mirrors the typed `InteropPolicy` entry-point style already used by the panic and allocator helpers, and now keeps reserved-byte denial explicit across the remaining `sliceAt*`, `constPointerAt*`, `constSliceAt*`, `pointerAt*`, and `writeValueAt*` relay families instead of leaving those typed-policy rejection paths implicit or forcing shared callers to split bytes by hand
 - the MMIO helper routes policy-aware reads and writes through explicit byte and typed `InteropPolicy` relays while keeping denied-scope accesses fail-closed instead of spreading that contract across unrelated callers
 - the layout helper now keeps the canonical starter layouts, the chrdev budget-window delivery-window layouts, and the interop byte values explicit again, while the shared ABI proof packet still owns the broader exported-constant, helper-decoding, and emitted dump-surface evidence
 - the remaining same-lane gap is only to keep this survey aligned with the live helper roles, shared ABI replay surfaces, and current blob markers without implying a retired focused replay family or a broader runtime policy subsystem
