@@ -335,6 +335,7 @@
     "make -C zigux phase6-hexdump-perf",
     "make -C zigux phase6-hexdump-review",
     "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
+    "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig"
   ],
   "inventory_only_blocked_routes": [
