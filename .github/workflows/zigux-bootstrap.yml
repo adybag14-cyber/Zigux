@@ -332,13 +332,13 @@ jobs:
       - name: Run Phase 11 shared tests
         run: make -C zigux phase11-test
 
-      - name: Validate Phase 12 complex-driver routes
+      - name: Validate Phase 12 degraded-workflow bundle
         run: make -C zigux phase12-validate
 
-      - name: Run Phase 12 smoke routes
+      - name: Run focused Phase 12 smoke shard
         run: make -C zigux phase12-smoke
 
-      - name: Run Phase 12 shared tests
+      - name: Run Phase 12 complex driver tests
         run: make -C zigux phase12-test
 
       - name: Validate Phase 13 release routes
