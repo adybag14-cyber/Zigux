@@ -167,6 +167,7 @@ Phase 3 review packet
   * `make -C zigux phase3-selftest`
   * `make -C zigux phase3`
   * the shared ABI substrate now stays explicit in this tests-root guide through the dedicated ABI-and-bindings survey, the dedicated bindings-governance note, the broader ABI slice note, the adjacent export/UAPI and Linux-facing header-governance notes, the validator-support packet, and the direct `phase3_abi` plus `phase3_abi_dump` replay routes instead of forcing reviewers to reconstruct that packet from the docs root and scripts root alone
+  * the focused export/UAPI and low-level-wrapper support routes stay explicit here too: `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`, `make -C zigux phase3-export-uapi-layout-test`, `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`, and `make -C zigux phase3-low-level-wrappers-test`
   * `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` stay explicit as the current starter header-family companion packet rather than implying a broader shipped UAPI family
 
 Phase 11 review packet
