@@ -207,6 +207,26 @@ pub fn build(b: *std.Build) void {
     const phase3_test_step = b.step("phase3-test", "Run Phase 3 ABI tests");
     phase3_test_step.dependOn(&run_phase3_tests.step);
 
+    const phase3_export_uapi_layout_root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_export_uapi_layout.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_export_uapi_layout_root_module.addImport("abi_bindings", abi_bindings_module);
+    phase3_export_uapi_layout_root_module.addImport("export_shim", export_shim_module);
+    phase3_export_uapi_layout_root_module.addImport("uapi_version", uapi_version_module);
+
+    const phase3_export_uapi_layout_tests = b.addTest(.{
+        .name = "phase3-export-uapi-layout-tests",
+        .root_module = phase3_export_uapi_layout_root_module,
+    });
+    const run_phase3_export_uapi_layout_tests = b.addRunArtifact(phase3_export_uapi_layout_tests);
+    const phase3_export_uapi_layout_test_step = b.step(
+        "phase3-export-uapi-layout-test",
+        "Run Phase 3 export/UAPI layout tests",
+    );
+    phase3_export_uapi_layout_test_step.dependOn(&run_phase3_export_uapi_layout_tests.step);
+
     const phase3_dump_root_module = b.createModule(.{
         .root_source_file = b.path("phase3_abi_dump.zig"),
         .target = target,
