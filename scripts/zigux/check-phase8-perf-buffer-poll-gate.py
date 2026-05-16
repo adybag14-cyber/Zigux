@@ -218,12 +218,19 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{details}")
 
         mutations = (
+            (SCRIPTS_README_PATH, "Phase 8 flow"),
             (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
+            (SCRIPTS_README_PATH, "`make -C zigux phase8-perf-buffer-poll-test`"),
+            (SCRIPTS_README_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
             (TESTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
             (TESTS_README_PATH, "`make -C zigux phase8-perf-buffer-poll-test`"),
+            (TESTS_README_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
             (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
+            (REVIEW_CHECKLIST_PATH, "`make -C zigux phase8-perf-buffer-poll-test`"),
             (REVIEW_CHECKLIST_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
+            (SEQUENCING_PATH, "Focused replay routes:"),
             (SEQUENCING_PATH, "make -C zigux phase8-perf-buffer-poll-test"),
+            (SEQUENCING_PATH, "make -C zigux phase8-libbpf-segments-test"),
             (SLICE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
             (SLICE_PATH, "python3 scripts/zigux/validate-phase8.py --self-test"),
             (SLICE_PATH, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all"),
@@ -380,6 +387,7 @@ def run_self_test() -> int:
             (PACKET_TEST_PATH, "perf_buffer_poll.BufferFdLookupDisposition.found_fd"),
             (PACKET_TEST_PATH, "perf_buffer_poll.BufferWindowLookupDisposition.found_window"),
             (PACKET_ONLY_BUILD_PATH, "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
+            (PACKET_ONLY_BUILD_PATH, "phase8_perf_buffer_poll.zig"),
             (PACKET_ONLY_BUILD_PATH, "phase8-perf-buffer-poll-tests"),
         )
         for rel_path, marker in mutations:
