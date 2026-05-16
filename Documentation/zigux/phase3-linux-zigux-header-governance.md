@@ -5,7 +5,7 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 ## Scope
 
 - `PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`
-- `PHASE3_ZIGUX_H_BLOB_SHA=6ca555f450d674aaf13cb617e364c76ee921a954`
+- `PHASE3_ZIGUX_H_BLOB_SHA=a16163281bff5d2e328705a174fee9084f705b08`
 - `PHASE3_ZIGUX_H_PACKET=shared Phase 3 ABI substrate packet only`
 - `PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`
 - `PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
@@ -32,11 +32,12 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 
 ## Current State
 
-- live `include/linux/zigux.h` now already carries the shipped named relay helpers `zigux_export_status_ok()`, `zigux_boundary_header_make()`, `zigux_boundary_header_make_compatible()`, `zigux_boundary_header_is_current_abi_version()`, `zigux_boundary_header_is_compatible_size()`, `zigux_boundary_header_is_canonical_size()`, `zigux_boundary_header_is_compatible()`, and `zigux_boundary_header_is_canonical()` beside the canonical `include/zigux/abi.h` and `include/zigux/dev_t.h` includes, so the current Phase 3 interop gap is no longer missing header-starter scaffolding
+- live `include/linux/zigux.h` now already carries the shipped named relay helpers `zigux_export_status_ok()`, `zigux_boundary_header_make()`, `zigux_boundary_header_make_compatible()`, `zigux_boundary_header_is_current_abi_version()`, `zigux_boundary_header_is_compatible_size()`, `zigux_boundary_header_is_canonical_size()`, `zigux_boundary_header_is_compatible()`, `zigux_boundary_header_is_canonical()`, `zigux_boundary_header_extends_boundary()`, and `zigux_boundary_header_requested_extra_bytes()` beside the canonical `include/zigux/abi.h` and `include/zigux/dev_t.h` includes, so the current Phase 3 interop gap is no longer missing header-starter scaffolding
 - `scripts/zigux/validate-phase3-linux-zigux-header-governance.py` now keeps this governance note aligned with the live include set, helper inventory, blob marker, and explicit relay-only role marker for `include/linux/zigux.h`, so Linux-facing relay drift fails closed before broader Phase 3 reminder surfaces go stale
 - the new `zigux_boundary_header_make_compatible()` relay keeps the C-facing constructor split aligned with the shipped `zigux/uapi/version.zig` canonical-versus-future-compatible contract without moving boundary-header ownership out of the canonical ABI header
 - the new `zigux_boundary_header_is_current_abi_version()`, `zigux_boundary_header_is_compatible_size()`, and `zigux_boundary_header_is_canonical_size()` relays keep the C-facing ABI-version and header-size checks thin and local to the starter boundary contract without turning `include/linux/zigux.h` into a second semantic home for compatibility policy
 - the new `zigux_boundary_header_is_compatible()` and `zigux_boundary_header_is_canonical()` relays keep whole-header acceptance checks thin and reviewable over the same starter ABI-version and size contract instead of restating compatibility policy in a second home
+- the new `zigux_boundary_header_extends_boundary()` and `zigux_boundary_header_requested_extra_bytes()` relays keep C-facing boundary-extension accounting thin and reviewable over the same starter ABI-version and canonical-size contract without rehoming the shipped evaluation policy out of `zigux/uapi/version.zig`
 - live `include/linux/zigux.h` no longer restates `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally; the C-facing packet now correctly aggregates `include/zigux/dev_t.h` as the single `dev_t` source of truth
 - live `zigux/uapi/` now ships both `version.zig` and `dev_t.zig`, so the current exported boundary ownership is no longer version-only even though it remains a deliberately small starter packet beside the shared relay roots
 - the remaining roadmap gap is that this growth is still concentrated in the shared `zigux.h` relay plus the same curated binding roots `zigux/bindings/abi.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/notifier_abi.zig`, rather than being split into additional top-level curated boundary families with their own proof surfaces
@@ -49,6 +50,7 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 - when the Linux-facing relay needs boundary-header helpers, keep canonical and future-compatible constructors as thin named relays over the canonical header and starter UAPI ownership rather than turning `include/linux/zigux.h` into a second semantic home
 - when the Linux-facing relay needs boundary-header predicates, keep current-ABI-version and canonical-versus-compatible size checks as thin named relays over the canonical header and starter UAPI ownership rather than moving compatibility semantics into a second home
 - when the Linux-facing relay needs whole-header compatibility helpers, keep compatible and canonical acceptance checks as thin named relays over the current-ABI-version and size predicates rather than re-encoding starter compatibility policy in a second home
+- when the Linux-facing relay needs boundary-extension accounting, keep extends-boundary and requested-extra-bytes helpers as thin named relays over the current-ABI-version and canonical-size contract rather than rehoming starter evaluation policy in a second home
 - when the Linux-facing relay needs `dev_t` minor-width aliases, it should aggregate `include/zigux/dev_t.h` rather than restating `ZIGUX_DEV_MINOR_BITS` or `ZIGUX_DEV_MINOR_MASK` locally, because those aliases already belong to the canonical `dev_t` boundary
 - if a helper surface needs new ownership wording before it can be reviewed safely, add that wording here first instead of burying it in a dump-only or wrapper-only follow-up
 - if an already-landed helper surface is rehomed into `include/linux/zigux.h`, refresh this note in the same bounded change so the shared ABI slice and the dedicated header-governance note continue to name the same owner map
