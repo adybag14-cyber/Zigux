@@ -186,6 +186,8 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     const shared_build_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-atomic64-shared-build-boundary") orelse return error.MissingSharedBuildEntry;
     try std.testing.expectEqualStrings("validation", shared_build_entry.kind);
     try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", shared_build_entry.path);
+    try expectContains(shared_build_entry.why_now, "diff");
+    try expectContains(shared_build_entry.why_now, "survey");
     try expectContains(shared_build_entry.why_now, "phase9-runtime-atomic64-loader-tests");
 
     const module_slice_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-atomic64-module-slice-note") orelse return error.MissingModuleSliceEntry;
@@ -205,6 +207,8 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try std.testing.expectEqualStrings("shared_build_bundle", build_owner.role);
     try std.testing.expectEqualStrings("P9-L11", build_owner.owner);
     try expectContains(build_owner.boundary, "phase9-runtime-atomic64-sample-tests");
+    try expectContains(build_owner.boundary, "phase9-runtime-atomic64-diff-tests");
+    try expectContains(build_owner.boundary, "phase9-runtime-atomic64-survey-tests");
     try expectContains(build_owner.boundary, "phase9-runtime-loader-shared-tests");
 
     const build_gap = findGap(manifest.gaps, "phase9-build-gate") orelse return error.MissingBuildGap;
@@ -329,7 +333,9 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(phase9_build, "runtime_atomic64_loader.zig");
     try expectContains(phase9_build, "\"phase9-runtime-atomic64-sample-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-atomic64-module-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-diff-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-atomic64-loader-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-survey-tests\"");
     try expectContains(phase9_build, "runtime_loader_allocator_init_flow.zig");
     try expectContains(phase9_build, "runtime_loader_gap_survey.zig");
     try expectContains(phase9_build, "../kernel/runtime_loader_contract.zig");
