@@ -21,7 +21,6 @@ EXEC_CMD_SOURCE_PATH = "tools/lib/subcmd/exec-cmd.zig"
 EXEC_CMD_C_PATH = "tools/lib/subcmd/exec-cmd.c"
 EXEC_CMD_TEST_PATH = "zigux/tests/phase8_exec_cmd.zig"
 EXEC_CMD_ONLY_BUILD_PATH = "zigux/tests/phase8_exec_cmd_only_build.zig"
-PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
@@ -38,7 +37,6 @@ REQUIRED_FILES = (
     EXEC_CMD_C_PATH,
     EXEC_CMD_TEST_PATH,
     EXEC_CMD_ONLY_BUILD_PATH,
-    PHASE8_BUILD_PATH,
 )
 
 REQUIRED_MARKERS = {
@@ -135,13 +133,6 @@ REQUIRED_MARKERS = {
         '.name = "phase8-exec-cmd-tests"',
         'b.step("test", "Run focused Phase 8 exec-cmd tests")',
     ),
-    PHASE8_BUILD_PATH: (
-        '.name = "phase8-exec-cmd-tests"',
-        '.root_source_file = b.path("phase8_exec_cmd.zig")',
-        'exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);',
-        'test_step.dependOn(&run_exec_cmd_tests.step);',
-        'b.step("test", "Run Phase 8 tooling expansion tests")',
-    ),
     EXEC_CMD_SOURCE_PATH: (
         "pub fn execCmdInit(",
         "pub fn setupPathWithPwd(",
@@ -172,7 +163,6 @@ ORDERED_MARKER_SEQUENCES = {
         "make -C zigux phase8-validate",
         "zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
         "make -C zigux phase8-exec-cmd-test",
-        "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
     ),
     WORKFLOW_PATH: (
         " - name: Validate Phase 8 tooling routes",
@@ -353,10 +343,6 @@ def run_self_test() -> int:
             (EXEC_CMD_ONLY_BUILD_PATH, 'exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);'),
             (EXEC_CMD_ONLY_BUILD_PATH, '.name = "phase8-exec-cmd-tests"'),
             (EXEC_CMD_ONLY_BUILD_PATH, 'b.step("test", "Run focused Phase 8 exec-cmd tests")'),
-            (PHASE8_BUILD_PATH, '.name = "phase8-exec-cmd-tests"'),
-            (PHASE8_BUILD_PATH, '.root_source_file = b.path("phase8_exec_cmd.zig")'),
-            (PHASE8_BUILD_PATH, 'exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);'),
-            (PHASE8_BUILD_PATH, 'test_step.dependOn(&run_exec_cmd_tests.step);'),
             (EXEC_CMD_SOURCE_PATH, "pub fn execCmdInit("),
             (EXEC_CMD_SOURCE_PATH, "pub fn setupPathWithPwd("),
             (EXEC_CMD_SOURCE_PATH, 'test "execCmdInit and setArgvExecPath propagate the expected environment keys" {'),
