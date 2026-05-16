@@ -512,6 +512,10 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     try expectContains(
         runtime_trace_events_loader,
+        "test \"runtime trace-events loader keeps direct shared runtime-load transitions from desynchronizing shared release state\" {",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
         "try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);",
     );
     try expectContains(
