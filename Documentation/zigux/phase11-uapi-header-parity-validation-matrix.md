@@ -5,7 +5,7 @@ This document records the bounded shared validation matrix for the Phase 11 UAPI
 ## Status
 
 - `PHASE11_UAPI_HEADER_MATRIX_STATUS=shared_header_matrix_landed`
-- lane: `P11-L08`
+- lane: `P11-L18`
 - reviewed against current `master` on `2026-05-16`
 - scope: keep the shared header-boundary packet honest about the public `watchdog_info`, `winsize`, and `hv_ops` layouts, the exported `hvc_console.h` constants and helper declarations, and the shared replay route without widening into tty-core or watchdog-core ownership
 - current repo reality:
