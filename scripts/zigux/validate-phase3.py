@@ -172,6 +172,20 @@ README_MARKERS = (
     "make -C zigux phase3",
 )
 
+DOCS_README_MARKERS = (
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "zigux/kernel/export_shim.zig",
+    "include/linux/zigux.h",
+    "zigux/tests/phase3_export_uapi_layout.zig",
+    "zigux/tests/phase3_export_uapi_layout_build.zig",
+    "make -C zigux phase3-export-uapi-layout-test",
+    "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
+)
+
 LOW_LEVEL_WRAPPER_SOURCE_MARKERS = {
     LOW_LEVEL_TEST_PATH: (
         "atomic.load(u32, &value, .seq_cst)",
@@ -334,6 +348,13 @@ def validate_repo(repo_root: Path) -> list[str]:
             if marker not in makefile_text:
                 issues.append(f"missing make marker: {marker}")
 
+    docs_readme_path = repo_root / "Documentation/zigux/README.md"
+    if docs_readme_path.is_file():
+        docs_readme_text = _read(docs_readme_path)
+        for marker in DOCS_README_MARKERS:
+            if marker not in docs_readme_text:
+                issues.append(f"missing docs README marker: {marker}")
+
     readme_path = repo_root / "scripts/zigux/README.md"
     if readme_path.is_file():
         readme_text = _read(readme_path)
@@ -432,6 +453,7 @@ def _populate_repo(root: Path) -> None:
     )
     _write(root / "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
     _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
+    _write(root / "Documentation/zigux/README.md", "\n".join(DOCS_README_MARKERS) + "\n")
     _write(root / LOW_LEVEL_TEST_PATH, _low_level_wrapper_stub())
     _write(root / "scripts/zigux/phase3_check_lib.py", _phase3_check_lib_stub())
     _write(root / "include/zigux/dev_t.h", "#define ZIGUX_DEV_T_BITS 32\n")
@@ -1237,6 +1259,44 @@ def run_self_test() -> int:
 
         _write(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
         _write(
+            root / "Documentation/zigux/README.md",
+            _read(root / "Documentation/zigux/README.md").replace(
+                "Documentation/zigux/phase3-export-uapi-boundary-survey.md\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_docs_readme_marker = (
+            "missing docs README marker: Documentation/zigux/phase3-export-uapi-boundary-survey.md"
+        )
+        if expected_docs_readme_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing docs README export-uapi survey marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "Documentation/zigux/README.md", "\n".join(DOCS_README_MARKERS) + "\n")
+        _write(
+            root / "Documentation/zigux/README.md",
+            _read(root / "Documentation/zigux/README.md").replace(
+                "make -C zigux phase3-export-uapi-layout-test\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected_docs_readme_route_marker = (
+            "missing docs README marker: make -C zigux phase3-export-uapi-layout-test"
+        )
+        if expected_docs_readme_route_marker not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected missing docs README export-uapi route marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / "Documentation/zigux/README.md", "\n".join(DOCS_README_MARKERS) + "\n")
+        _write(
             root / ABI_HEADER_PATH,
             _read(root / ABI_HEADER_PATH) + "#define ZIGUX_ABI_VERSION 3\n",
         )
@@ -1315,7 +1375,11 @@ def main() -> int:
             print(issue)
         return 1
 
-    print(f"validated {args.repo_root / 'scripts/zigux/README.md'}")
+    print(
+        "validated "
+        f"{args.repo_root / 'Documentation/zigux/README.md'} and "
+        f"{args.repo_root / 'scripts/zigux/README.md'}"
+    )
     return 0
 
 
