@@ -66,6 +66,8 @@ fn writeUapiBoundaryHeader(writer: anytype) !void {
     const canonical_header = abi.defaultHeader(flags);
     var future_compatible = abi.defaultHeader(flags);
     future_compatible.size += 16;
+    var undersized = abi.defaultHeader(flags);
+    undersized.size -= 1;
     var mismatched_version = abi.defaultHeader(flags);
     mismatched_version.abi_version += 1;
 
@@ -78,6 +80,8 @@ fn writeUapiBoundaryHeader(writer: anytype) !void {
     try writeHeaderState(writer, canonical_header);
     try writer.writeAll(",\"future_compatible\":");
     try writeHeaderState(writer, future_compatible);
+    try writer.writeAll(",\"undersized\":");
+    try writeHeaderState(writer, undersized);
     try writer.writeAll(",\"mismatched_version\":");
     try writeHeaderState(writer, mismatched_version);
     try writer.writeByte('}');
@@ -93,6 +97,9 @@ fn writeDevT(writer: anytype) !void {
     const range_count: u32 = 4;
     const sample_encoded: u32 = (sample_major << minor_bits) | sample_minor;
     const range_last_encoded: u32 = (sample_major << minor_bits) | (range_first_minor + range_count - 1);
+    const invalid_major: u32 = max_major + 1;
+    const invalid_range_first_minor: u32 = minor_mask - 1;
+    const invalid_range_count: u32 = 3;
 
     try writeQuoted(writer, "dev_t");
     try writer.writeAll(":{\"minor_bits\":");
@@ -115,6 +122,18 @@ fn writeDevT(writer: anytype) !void {
     try writer.print("{d}", .{@intFromBool(range_first_minor + range_count - 1 <= minor_mask)});
     try writer.writeAll(",\"range_last_encoded\":");
     try writer.print("{d}", .{range_last_encoded});
+    try writer.writeAll(",\"invalid_major\":{\"major\":");
+    try writer.print("{d}", .{invalid_major});
+    try writer.writeAll(",\"minor\":");
+    try writer.print("{d}", .{sample_minor});
+    try writer.writeAll(",\"value\":0,\"ok\":0,\"code\":-22,\"flags\":1}");
+    try writer.writeAll(",\"invalid_range\":{\"major\":");
+    try writer.print("{d}", .{sample_major});
+    try writer.writeAll(",\"first_minor\":");
+    try writer.print("{d}", .{invalid_range_first_minor});
+    try writer.writeAll(",\"count\":");
+    try writer.print("{d}", .{invalid_range_count});
+    try writer.writeAll(",\"value\":0,\"ok\":0,\"code\":-34,\"flags\":1}");
     try writer.writeByte('}');
 }
 
