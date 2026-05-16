@@ -28,6 +28,10 @@ EXPECTED_COORDINATION_OWNERS = [
     "ABI and Runtime Team",
     "Shared Subsystems Pod",
 ]
+LOCAL_ONLY_TESTS_README_POSTURE = (
+    "approved local-only benchmark commands and acceptable limits explicit while shared CI perf promotion stays pending"
+)
+LOCAL_ONLY_CHECKER_SUMMARY = "phase4 perf baseline packet stays local-only and self-tested"
 
 REQUIRED_FILES = [
     MANIFEST_REL,
@@ -98,7 +102,7 @@ SURVEY_MARKERS = [
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "PHASE4_PERF_BASELINE_PACKET_CHECK=pass",
     "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass",
-    "phase4 perf baseline packet stays local-only and self-tested",
+    LOCAL_ONLY_CHECKER_SUMMARY,
     "workflow_unexpected_marker:phase4-perf-baseline-survey",
     "workflow_unexpected_marker:check-phase4-perf-baseline-packet.py",
 ]
@@ -157,6 +161,7 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase4_perf_baseline_survey.zig",
     "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
     "make -C zigux phase4-perf-baseline-survey",
+    LOCAL_ONLY_TESTS_README_POSTURE,
 ]
 
 BUILD_PRESENT_MARKERS = [
@@ -203,6 +208,7 @@ SELF_TEST_CASES = [
     "docs_readme_perf_governance_drift",
     "review_checklist_coordination_owner_drift",
     "tests_readme_wrapper_drift",
+    "tests_readme_local_only_posture_drift",
     "makefile_wrapper_drift",
     "build_shared_test_scope_drift",
     "workflow_survey_route_drift",
@@ -348,84 +354,74 @@ def validate_root(root: Path) -> list[str]:
 
 
 def build_fixture_tree(root: Path) -> None:
-    write_text(
-        root / MANIFEST_REL,
-        json.dumps(
-            {
-                "lane_key": "P4-L20",
-                "phase": "Phase 4",
-                "owner": "Validation and Perf Team",
-                "rollback_owner": "Validation and Perf Team",
-                "decision_owner": "Validation and Perf Team",
-                "coordination_owners": [
-                    "ABI and Runtime Team",
-                    "Shared Subsystems Pod",
-                ],
-                "shared_ci_perf_promotion_status": "pending",
-                "reversible_delivery_evidence": (
-                    "keep scripts/zigux/check-phase4-perf-baseline-packet.py, "
-                    "zigux/tests/phase4_perf_baseline_manifest.json, "
-                    "zigux/tests/phase4_perf_baseline_survey.zig, "
-                    "zigux/tests/README.md, "
-                    "Documentation/zigux/phase4-validation-matrix.md, "
-                    "Documentation/zigux/phase4-gate-evidence.md, "
-                    "Documentation/zigux/phase4-reversible-delivery-evidence.md, "
-                    "Documentation/zigux/phase4-validation-lane-sequencing.md, "
-                    "Documentation/zigux/review-checklist.md, "
-                    "zigux/Makefile, and "
-                    "zigux/tests/phase4_build.zig aligned."
-                ),
-                "ready_next": (
-                    "keep the dedicated perf-baseline packet local-only while "
-                    "scripts/zigux/check-phase4-perf-baseline-packet.py, "
-                    "zigux/tests/phase4_perf_baseline_survey.zig, "
-                    "zigux/tests/README.md, "
-                    "Documentation/zigux/phase4-validation-matrix.md, "
-                    "Documentation/zigux/phase4-gate-evidence.md, "
-                    "Documentation/zigux/review-checklist.md continue to fail "
-                    "closed on the same decision-owner, coordination-owner, "
-                    "acceptable-limit, and shared-CI-pending promotion markers; "
-                    "only widen beyond that packet if a later bounded Phase 4 lane "
-                    "intentionally approves broader shared CI perf coverage."
-                ),
-                "surfaces": [
-                    {
-                        "surface": "zigux/tests/atomic64_diff.zig",
-                        "gate_owner": "ABI and Runtime Team",
-                        "gate_rollback_owner": "ABI and Runtime Team",
-                        "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
-                    },
-                    {
-                        "surface": "zigux/tests/bitmap_diff.zig",
-                        "gate_owner": "Shared Subsystems Pod",
-                        "gate_rollback_owner": "Shared Subsystems Pod",
-                        "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
-                    },
-                ],
-                "atomic64": {
-                    "linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey",
-                    "acceptable_limit_status": "approved_local_only",
-                    "acceptable_limit_max_elapsed_ns": 8192,
+    write_manifest(
+        root,
+        {
+            "lane_key": "P4-L20",
+            "phase": "Phase 4",
+            "owner": "Validation and Perf Team",
+            "rollback_owner": "Validation and Perf Team",
+            "decision_owner": "Validation and Perf Team",
+            "coordination_owners": EXPECTED_COORDINATION_OWNERS,
+            "shared_ci_perf_promotion_status": "pending",
+            "reversible_delivery_evidence": (
+                "keep scripts/zigux/check-phase4-perf-baseline-packet.py, "
+                "zigux/tests/phase4_perf_baseline_manifest.json, "
+                "zigux/tests/phase4_perf_baseline_survey.zig, "
+                "zigux/tests/README.md, "
+                "Documentation/zigux/phase4-validation-matrix.md, "
+                "Documentation/zigux/phase4-gate-evidence.md, "
+                "Documentation/zigux/phase4-reversible-delivery-evidence.md, "
+                "Documentation/zigux/phase4-validation-lane-sequencing.md, "
+                "Documentation/zigux/review-checklist.md, "
+                "zigux/Makefile, and zigux/tests/phase4_build.zig aligned."
+            ),
+            "ready_next": (
+                "keep the dedicated perf-baseline packet local-only while "
+                "scripts/zigux/check-phase4-perf-baseline-packet.py, "
+                "zigux/tests/phase4_perf_baseline_survey.zig, "
+                "zigux/tests/README.md, "
+                "Documentation/zigux/phase4-validation-matrix.md, "
+                "Documentation/zigux/phase4-gate-evidence.md, "
+                "Documentation/zigux/review-checklist.md continue to fail "
+                "closed on the same decision-owner, coordination-owner, "
+                "acceptable-limit, and shared-CI-pending promotion markers; "
+                "only widen beyond that packet if a later bounded Phase 4 lane "
+                "intentionally approves broader shared CI perf coverage."
+            ),
+            "surfaces": [
+                {
+                    "surface": "zigux/tests/atomic64_diff.zig",
+                    "gate_owner": "ABI and Runtime Team",
+                    "gate_rollback_owner": "ABI and Runtime Team",
+                    "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
                 },
-                "bitmap": {
-                    "linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey",
-                    "acceptable_limit_status": "approved_local_only",
-                    "acceptable_limit_max_elapsed_ns": 12288,
+                {
+                    "surface": "zigux/tests/bitmap_diff.zig",
+                    "gate_owner": "Shared Subsystems Pod",
+                    "gate_rollback_owner": "Shared Subsystems Pod",
+                    "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
                 },
-                "promotion_decision": {
-                    "id": "phase4-perf-baseline-shared-promotion-decision",
-                    "status": "shared CI perf promotion pending",
-                    "owner": "Validation and Perf Team",
-                    "coordination_owners": [
-                        "ABI and Runtime Team",
-                        "Shared Subsystems Pod",
-                    ],
-                },
+            ],
+            "atomic64": {
+                "linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey",
+                "acceptable_limit_status": "approved_local_only",
+                "acceptable_limit_max_elapsed_ns": 8192,
             },
-            indent=2,
-        )
-        + "\n",
+            "bitmap": {
+                "linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey",
+                "acceptable_limit_status": "approved_local_only",
+                "acceptable_limit_max_elapsed_ns": 12288,
+            },
+            "promotion_decision": {
+                "id": "phase4-perf-baseline-shared-promotion-decision",
+                "status": "shared CI perf promotion pending",
+                "owner": "Validation and Perf Team",
+                "coordination_owners": EXPECTED_COORDINATION_OWNERS,
+            },
+        },
     )
+
     write_text(
         root / SURVEY_REL,
         "\n".join(
@@ -433,115 +429,44 @@ def build_fixture_tree(root: Path) -> None:
                 'const std = @import("std");',
                 "",
                 'test "phase4 perf baseline survey keeps the dedicated local checker packet explicit" {',
-                '    const checker = try std.fs.cwd().readFileAlloc(',
-                "        std.testing.allocator,",
-                '        "scripts/zigux/check-phase4-perf-baseline-packet.py",',
-                "        1024 * 1024,",
-                "    );",
-                "    defer std.testing.allocator.free(checker);",
-                '    try std.testing.expect(std.mem.indexOf(u8, checker, "PHASE4_PERF_BASELINE_PACKET_CHECK=pass") != null);',
-                '    try std.testing.expect(std.mem.indexOf(u8, checker, "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass") != null);',
+                '    _ = "scripts/zigux/check-phase4-perf-baseline-packet.py";',
+                '    _ = "PHASE4_PERF_BASELINE_PACKET_CHECK=pass";',
+                '    _ = "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass";',
                 "}",
                 "",
                 'test "phase4 perf baseline survey keeps the dedicated local checker local-only" {',
-                '    const checker = try std.fs.cwd().readFileAlloc(',
-                "        std.testing.allocator,",
-                '        "scripts/zigux/check-phase4-perf-baseline-packet.py",',
-                "        1024 * 1024,",
-                "    );",
-                "    defer std.testing.allocator.free(checker);",
-                '    try std.testing.expect(std.mem.indexOf(u8, checker, "phase4 perf baseline packet stays local-only and self-tested") != null);',
-                '    try std.testing.expect(std.mem.indexOf(u8, checker, "workflow_unexpected_marker:phase4-perf-baseline-survey") != null);',
-                '    try std.testing.expect(std.mem.indexOf(u8, checker, "workflow_unexpected_marker:check-phase4-perf-baseline-packet.py") != null);',
+                f'    _ = "{LOCAL_ONLY_CHECKER_SUMMARY}";',
+                '    _ = "workflow_unexpected_marker:phase4-perf-baseline-survey";',
+                '    _ = "workflow_unexpected_marker:check-phase4-perf-baseline-packet.py";',
                 "}",
-                "",
-            ]
-        ),
-    )
-    write_text(
-        root / MATRIX_REL,
-        "\n".join(
-            [
-                "# Phase 4 Validation Matrix",
-                "`zigux/tests/phase4_perf_baseline_survey.zig` dedicated local survey that keeps the approved local benchmark commands and the approved local-only acceptable limits machine-checked for both landed rollback gates",
-                "`local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending`",
-                "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners",
-                "* current acceptable-limit status: the dedicated survey packet now carries approved local-only acceptable limits for both atomic64 and bitmap, and shared CI perf coverage is still not claimed",
             ]
         )
         + "\n",
+    )
+
+    write_text(
+        root / MATRIX_REL,
+        "\n".join(["# Phase 4 Validation Matrix", *MATRIX_MARKERS]) + "\n",
     )
     write_text(
         root / GATE_EVIDENCE_REL,
-        "\n".join(
-            [
-                "# Phase 4 Gate Evidence",
-                "zigux/tests/phase4_perf_baseline_manifest.json",
-                "zigux/tests/phase4_perf_baseline_survey.zig",
-                "shared CI perf coverage out of scope",
-                "Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion",
-                "while the ABI and Runtime Team plus Shared Subsystems Pod stay named as the coordination owners for that policy call.",
-                "its manifest, survey, and dedicated local checker exact-pin the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.",
-                "atomic64 keeps `median_elapsed_ns <= 8192` across seven monotonic samples, and bitmap keeps `median_elapsed_ns <= 12288` across seven monotonic samples.",
-            ]
-        )
-        + "\n",
+        "\n".join(["# Phase 4 Gate Evidence", *GATE_EVIDENCE_MARKERS]) + "\n",
     )
     write_text(
         root / DOC_README_REL,
-        "\n".join(
-            [
-                "# Zigux Documentation",
-                "`Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md`",
-                "approved local-only benchmark-command and acceptable-limit split",
-                "still-pending shared-CI perf-promotion posture explicit for the shipped Phase 4 gates",
-            ]
-        )
-        + "\n",
+        "\n".join(["# Zigux Documentation", *DOC_README_MARKERS]) + "\n",
     )
     write_text(
         root / REVERSIBLE_DELIVERY_REL,
-        "\n".join(
-            [
-                "# Phase 4 Reversible Delivery Evidence",
-                "scripts/zigux/check-phase4-perf-baseline-packet.py",
-                "zigux/tests/phase4_perf_baseline_manifest.json",
-                "zigux/tests/phase4_perf_baseline_survey.zig",
-                "Documentation/zigux/phase4-validation-lane-sequencing.md",
-                "`Validation and Perf Team` owns the dedicated local-only perf packet and any future broader perf-promotion decision.",
-                "If the local benchmark commands, acceptable limits, or shared-CI-pending posture drifts, repair the dedicated local-only perf packet first.",
-            ]
-        )
-        + "\n",
+        "\n".join(["# Phase 4 Reversible Delivery Evidence", *REVERSIBLE_DELIVERY_MARKERS]) + "\n",
     )
     write_text(
         root / SEQUENCING_REL,
-        "\n".join(
-            [
-                "# Phase 4 Validation Lane Sequencing",
-                "Documentation/zigux/phase4-reversible-delivery-evidence.md",
-                "scripts/zigux/check-phase4-perf-baseline-packet.py",
-                "zigux/tests/phase4_perf_baseline_manifest.json",
-                "zigux/tests/phase4_perf_baseline_survey.zig",
-                "If a change only refreshes approved local benchmark commands, acceptable limits, or the local-only perf-promotion posture, keep it inside the dedicated perf packet.",
-                "Keep dedicated local perf checker maintenance in that same dedicated perf packet.",
-                "Do not use the perf lane to claim shared CI perf approval unless the broader shared packet has intentionally widened and names that policy decision directly.",
-            ]
-        )
-        + "\n",
+        "\n".join(["# Phase 4 Validation Lane Sequencing", *SEQUENCING_MARKERS]) + "\n",
     )
     write_text(
         root / CHECKLIST_REL,
-        "\n".join(
-            [
-                "# Zigux Review Checklist",
-                "zigux/tests/phase4_perf_baseline_manifest.json",
-                "zigux/tests/phase4_perf_baseline_survey.zig",
-                "the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
-                "the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
-            ]
-        )
-        + "\n",
+        "\n".join(["# Zigux Review Checklist", *CHECKLIST_MARKERS]) + "\n",
     )
     write_text(
         root / TESTS_README_REL,
@@ -552,6 +477,7 @@ def build_fixture_tree(root: Path) -> None:
                 "zigux/tests/phase4_perf_baseline_survey.zig",
                 "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
                 "make -C zigux phase4-perf-baseline-survey",
+                LOCAL_ONLY_TESTS_README_POSTURE,
             ]
         )
         + "\n",
@@ -570,13 +496,7 @@ def build_fixture_tree(root: Path) -> None:
     )
     write_text(
         root / MAKEFILE_REL,
-        "\n".join(
-            [
-                "phase4-perf-baseline-survey:",
-                "\t$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
-            ]
-        )
-        + "\n",
+        "\n".join(MAKEFILE_MARKERS) + "\n",
     )
     write_text(
         root / WORKFLOW_REL,
@@ -665,7 +585,11 @@ def run_self_test() -> int:
 
         write_text(
             root / MANIFEST_REL,
-            replace_once(read_text(root / MANIFEST_REL), '"acceptable_limit_max_elapsed_ns": 12288', '"acceptable_limit_max_elapsed_ns": 12289'),
+            replace_once(
+                read_text(root / MANIFEST_REL),
+                '"acceptable_limit_max_elapsed_ns": 12288',
+                '"acceptable_limit_max_elapsed_ns": 12289',
+            ),
         )
         if not expect_failure(root, 'manifest_marker:"acceptable_limit_max_elapsed_ns": 12288'):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
@@ -691,11 +615,7 @@ def run_self_test() -> int:
 
         write_text(
             root / MANIFEST_REL,
-            replace_once(
-                read_text(root / MANIFEST_REL),
-                "shared-CI-pending promotion",
-                "shared-CI-promoted",
-            ),
+            replace_once(read_text(root / MANIFEST_REL), "shared-CI-pending promotion", "shared-CI-promoted"),
         )
         if not expect_failure(root, "manifest_field:ready_next:shared-CI-pending promotion"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
@@ -792,11 +712,7 @@ def run_self_test() -> int:
 
         write_text(
             root / MATRIX_REL,
-            replace_once(
-                read_text(root / MATRIX_REL),
-                "`local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending`",
-                "`shared_ci_perf_promoted`",
-            ),
+            replace_once(read_text(root / MATRIX_REL), "`local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending`", "`shared_ci_perf_promoted`"),
         )
         if not expect_failure(root, "matrix_marker:`local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending`"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
@@ -882,11 +798,7 @@ def run_self_test() -> int:
 
         write_text(
             root / DOC_README_REL,
-            replace_once(
-                read_text(root / DOC_README_REL),
-                "approved local-only benchmark-command and acceptable-limit split",
-                "approved local-only benchmark-command split",
-            ),
+            replace_once(read_text(root / DOC_README_REL), "approved local-only benchmark-command and acceptable-limit split", "approved local-only benchmark-command split"),
         )
         if not expect_failure(root, "doc_readme_marker:approved local-only benchmark-command and acceptable-limit split"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
@@ -912,15 +824,22 @@ def run_self_test() -> int:
 
         write_text(
             root / TESTS_README_REL,
-            replace_once(
-                read_text(root / TESTS_README_REL),
-                "make -C zigux phase4-perf-baseline-survey",
-                "make -C zigux phase4-perf-baseline-note",
-            ),
+            replace_once(read_text(root / TESTS_README_REL), "make -C zigux phase4-perf-baseline-survey", "make -C zigux phase4-perf-baseline-note"),
         )
         if not expect_failure(root, "tests_readme_marker:make -C zigux phase4-perf-baseline-survey"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("tests README wrapper drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / TESTS_README_REL,
+            replace_once(read_text(root / TESTS_README_REL), LOCAL_ONLY_TESTS_README_POSTURE, "approved local-only benchmark commands explicit while shared CI perf promotion stays pending"),
+        )
+        if not expect_failure(root, f"tests_readme_marker:{LOCAL_ONLY_TESTS_README_POSTURE}"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("tests README local-only posture drift case did not fail closed")
             return 1
         case_count += 1
         build_fixture_tree(root)
@@ -940,10 +859,7 @@ def run_self_test() -> int:
         case_count += 1
         build_fixture_tree(root)
 
-        write_text(
-            root / BUILD_REL,
-            read_text(root / BUILD_REL) + "test_step.dependOn(&run_perf_baseline_survey_tests.step);\n",
-        )
+        write_text(root / BUILD_REL, read_text(root / BUILD_REL) + "test_step.dependOn(&run_perf_baseline_survey_tests.step);\n")
         if not expect_failure(root, "build_unexpected_marker:test_step.dependOn(&run_perf_baseline_survey_tests.step);"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("build shared-test scope drift case did not fail closed")
@@ -951,10 +867,7 @@ def run_self_test() -> int:
         case_count += 1
         build_fixture_tree(root)
 
-        write_text(
-            root / WORKFLOW_REL,
-            read_text(root / WORKFLOW_REL) + "make -C zigux phase4-perf-baseline-survey\n",
-        )
+        write_text(root / WORKFLOW_REL, read_text(root / WORKFLOW_REL) + "make -C zigux phase4-perf-baseline-survey\n")
         if not expect_failure(root, "workflow_unexpected_marker:phase4-perf-baseline-survey"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("workflow survey-route drift case did not fail closed")
@@ -962,10 +875,7 @@ def run_self_test() -> int:
         case_count += 1
         build_fixture_tree(root)
 
-        write_text(
-            root / WORKFLOW_REL,
-            read_text(root / WORKFLOW_REL) + "python3 scripts/zigux/check-phase4-perf-baseline-packet.py\n",
-        )
+        write_text(root / WORKFLOW_REL, read_text(root / WORKFLOW_REL) + "python3 scripts/zigux/check-phase4-perf-baseline-packet.py\n")
         if not expect_failure(root, "workflow_unexpected_marker:check-phase4-perf-baseline-packet.py"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("workflow checker-route drift case did not fail closed")
