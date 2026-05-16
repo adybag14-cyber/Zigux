@@ -13,6 +13,11 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 FILES = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "scripts/zigux/check-phase10-core-packet.py",
+    "scripts/zigux/check-phase10-ring-packet.py",
+    "scripts/zigux/check-phase10-input-packet.py",
+    "scripts/zigux/validate-phase10.py",
+    "scripts/zigux/validate-phase10-closure.py",
     "scripts/zigux/README.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
@@ -67,8 +72,21 @@ MANIFEST_TEXT_MARKERS = [
 ]
 
 EXACT_CHECK_MARKERS = [
+    "python3 scripts/zigux/validate-phase10.py",
+    "python3 scripts/zigux/validate-phase10-closure.py",
+    "make -C zigux phase10-validate",
+    "python3 scripts/zigux/check-phase10-core-packet.py",
+    "python3 scripts/zigux/check-phase10-ring-packet.py",
+    "python3 scripts/zigux/check-phase10-input-packet.py",
+    "python3 scripts/zigux/check-phase10-mmio-packet.py",
+    "python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py",
     "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test",
     "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "python3 scripts/zigux/check-phase10-harness-coverage.py --self-test",
+    "python3 scripts/zigux/check-phase10-harness-coverage.py",
+    "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "make -C zigux phase10-test",
+    "make -C zigux phase10",
 ]
 
 EXPECTED_READY_TRANSPORT_FOLLOWUPS = {
@@ -79,6 +97,11 @@ EXPECTED_READY_TRANSPORT_FOLLOWUPS = {
 EXPECTED_LAB_VALIDATION_EVIDENCE = [
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+    "scripts/zigux/check-phase10-core-packet.py",
+    "scripts/zigux/check-phase10-ring-packet.py",
+    "scripts/zigux/check-phase10-input-packet.py",
+    "scripts/zigux/check-phase10-mmio-packet.py",
+    "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
 ]
@@ -208,6 +231,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         for marker in EXACT_CHECK_MARKERS:
             if marker not in exact_checks:
                 missing.append(f"manifest:exact_checks:{marker}")
+        for marker in exact_checks:
+            if marker not in EXACT_CHECK_MARKERS:
+                missing.append(f"manifest:exact_checks:extra:{marker}")
 
     tests = manifest.get("tests")
     if not isinstance(tests, list):
@@ -278,6 +304,11 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/review-checklist.md": "fixture\n",
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py": "fixture\n",
+        "scripts/zigux/check-phase10-core-packet.py": "fixture\n",
+        "scripts/zigux/check-phase10-ring-packet.py": "fixture\n",
+        "scripts/zigux/check-phase10-input-packet.py": "fixture\n",
+        "scripts/zigux/validate-phase10.py": "fixture\n",
+        "scripts/zigux/validate-phase10-closure.py": "fixture\n",
         "scripts/zigux/check-phase10-mmio-packet.py": "fixture\n",
         "scripts/zigux/check-phase10-mmio-freeze-boundary.py": "fixture\n",
         "scripts/zigux/README.md": "\n".join(SCRIPTS_README_MARKERS) + "\n",
@@ -382,6 +413,15 @@ def run_self_test() -> int:
             "mmio_verify_surface",
             root,
             "drivers/virtio/virtio_mmio_verify.zig",
+        )
+        write_fixture(root)
+
+        validator_path = root / "scripts/zigux/validate-phase10.py"
+        validator_path.unlink()
+        expect_missing_file(
+            "validate_phase10_surface",
+            root,
+            "scripts/zigux/validate-phase10.py",
         )
         write_fixture(root)
 
@@ -602,6 +642,30 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"] = [
+            marker
+            for marker in manifest["exact_checks"]
+            if marker != "python3 scripts/zigux/validate-phase10.py"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_exact_checks_validate_phase10",
+            root,
+            "manifest:exact_checks:python3 scripts/zigux/validate-phase10.py",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"].append("python3 scripts/zigux/check-phase10-ghost.py")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_exact_checks_extra",
+            root,
+            "manifest:exact_checks:extra:python3 scripts/zigux/check-phase10-ghost.py",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["focused_harness_replays"] = {}
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
@@ -721,7 +785,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=34")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
