@@ -208,3 +208,19 @@ pub fn derivePerfBufferAutoCpuCountFromReader(
     const summary = try summarizePossibleCpusFromReader(allocator, scratch, reader);
     return summary.deriveAutoCpuCount(requested_cpu_count);
 }
+
+test "duplicate and overlapping cpu ranges stay idempotent for possible cpu sizing" {
+    const parsed = try parseCpuMaskString(std.testing.allocator, "0-2,1,+2-+4,4\n");
+    defer parsed.deinit(std.testing.allocator);
+
+    const summary = summarizePossibleCpus(parsed.values);
+    try std.testing.expectEqual(@as(usize, 5), summary.mask_bit_len);
+    try std.testing.expectEqual(@as(usize, 5), summary.possible_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 4), summary.highest_cpu_index);
+    try std.testing.expectEqual(@as(usize, 5), parsed.countSet());
+    try std.testing.expect(parsed.values[0]);
+    try std.testing.expect(parsed.values[1]);
+    try std.testing.expect(parsed.values[2]);
+    try std.testing.expect(parsed.values[3]);
+    try std.testing.expect(parsed.values[4]);
+}
