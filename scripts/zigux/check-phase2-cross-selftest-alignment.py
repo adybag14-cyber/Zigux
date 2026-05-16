@@ -596,7 +596,7 @@ def run_self_test() -> int:
     expected_install_scope_pattern_issue = (
         "workflow_scope_pattern:missing_marker:scripts/zigux/install-zig\.py"
     )
-    if missing_install_scope_pattern_issues != [expected_install_scope_PATTERN_issue]:
+    if missing_install_scope_pattern_issues != [expected_install_scope_pattern_issue]:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_install_failure")
     checks_run += 1
 
