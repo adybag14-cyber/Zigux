@@ -12,6 +12,7 @@ This note is the commit-pinned public-read fallback companion for the shipped `v
 - release companions: `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`
 - fallback overview companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - verifier and replay companions: `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`
+- `make -C zigux phase12-validate`
 
 ## Commit-Pinned Paths
 Base raw URL prefix:
@@ -57,9 +58,11 @@ Base raw URL prefix:
 - this note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`
 - this note is a public-read pointer catalog only, not a release-closure claim and not a second survey note
 
-## Current-Master Exact Coverage Evidence
-- public `master` packet rechecked immediately before this note refresh on `2026-05-15`; this run's contents read path did not expose one authoritative branch-head commit, so the evidence below records exact current blob SHAs instead.
-- the same fifteen covered current-master packet paths remain present beside this commit-pinned raw replay note:
+## Current-Master Evidence Snapshot
+- the exact-blob readback below is the last explicit historical current-master snapshot captured for this catalog on `2026-05-15`, not a standing claim that the live branch head still matches those same SHAs after later same-family survey-packet edits
+- current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane: `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
+- this exact-evidence section is therefore a historical fallback snapshot for the pinned raw-read packet, while the newer shared-tree survey companions above remain the truthful source for live current-master packet state
+- the same fifteen covered packet paths were present in that historical `2026-05-15` snapshot beside this commit-pinned raw replay note:
   - `drivers/scsi/virtio_scsi.zig` -> blob `aef0c4205b7d99f7451ee6011adf63b6ac5220f5`
   - `Documentation/zigux/phase12-virtio-scsi-slice.md` -> blob `346ea74e682322135eeb56ee2532e663f32188b2`
   - `Documentation/zigux/phase12-virtio-scsi-survey.md` -> blob `9b10ef0cc480198547fad347d8b137755f190d68`
@@ -75,8 +78,8 @@ Base raw URL prefix:
   - `zigux/tests/phase12_virtio_scsi_survey.zig` -> blob `a74d5ff9c3fe97575f78b784af0459ec2468930a`
   - `zigux/tests/phase12_virtio_scsi_manifest.json` -> blob `dec20bc8cce036aef1a0a9353ed7370f3b681eb4`
   - `zigux/Makefile` -> blob `767510ae3aa2a2ad0e574e6ad2cddc5adb4ff40e`
-- current-master support-material boundary rechecked beside the same packet:
+- the same historical snapshot also recorded these support-material blobs:
   - `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `196cc338346d7ce39e88c8c45bb49cc04d2b08a1`
   - `scripts/zigux/validate-phase12.py` -> blob `6f95fa12c8813c494cace0e66cb06178c12ee9fb`
   - `.github/workflows/zigux-bootstrap.yml` -> blob `1ee77591a9bbf6b3b36060ba44f56f6e2fd929a0`
-- this exact-evidence recheck preserves the existing split: this catalog stays pinned to `ee64eec272a352da1d967999c99bb3c3560c9b97` for direct raw replay, while the blob list above records what the broader current-master packet looked like immediately before this note refresh.
+- keeping this distinction explicit preserves the existing split: this catalog stays pinned to `ee64eec272a352da1d967999c99bb3c3560c9b97` for direct raw replay, while the survey note, manifest, survey gate, packet checker, shared validator, and shared build surfaces above carry live current-master packet truth forward
