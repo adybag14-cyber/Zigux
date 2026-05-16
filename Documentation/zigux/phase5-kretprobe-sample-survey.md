@@ -23,6 +23,12 @@ A later public-tree reread in this lane also confirmed this older shared build p
 
 - `zigux/tests/phase5_build.zig`
 
+The dedicated focused replay entrypoint for this restored packet remains:
+
+- `zig test zigux/tests/phase5_kretprobe_example_survey.zig`
+
+Keep that direct survey-gate command explicit as the focused validation route for this non-runtime packet, while treating the returned shared `zigux/tests/phase5_build.zig` route as current public-tree-backed companion evidence rather than direct authenticated-contents proof.
+
 Keep the restored kretprobe packet anchored to the directly readable sample, focused test, manifest, and survey gate above, while treating the returned shared `zigux/tests/phase5_build.zig` route as current public-tree-backed companion evidence rather than direct authenticated-contents proof.
 
 Fresh Phase 5 readback in this run also confirmed that the shared reminder packet is aligned around that restored direct sample packet:
@@ -53,6 +59,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or one of its d
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` so the packet stays in the non-runtime Phase 5 lane?
 - does the sample still keep the default `kernel_clone` path explicit together with `runRetargetReplay("do_sys_openat2")`, including empty-symbol rejection before init and post-init retarget rejection afterward?
 - do `runAnchorReplay()`, `runLifecycleGuardReplay()`, `runOwnershipReplay()`, and `runRecoveryReplay()` still describe the same bounded packet across the sample, focused test, manifest-backed contract, and survey gate, including `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `nmissed = 1`, `maxactive = 20`, and recovered duration `60`?
+- does this note still keep `zig test zigux/tests/phase5_kretprobe_example_survey.zig` explicit as the dedicated focused replay route for the restored non-runtime packet while leaving `zigux/tests/phase5_build.zig` framed as companion evidence rather than direct authenticated proof?
 - if a shared reminder surface mentions the restored kretprobe packet, does it keep `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` explicit while also keeping the returned shared `zigux/tests/phase5_build.zig` route visible as current public-tree-backed companion evidence rather than direct authenticated proof?
 - do the docs still keep the separate Phase 9 `runtime_kretprobe` family visible without widening this note into `register_kretprobe()` parity, `unregister_kretprobe()` parity, `pt_regs` parity, or runtime module wiring claims?
 
