@@ -105,6 +105,7 @@ SELFTEST_OUTPUT_MARKERS = {
     ),
 }
 MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 PHASE3_VALIDATE_TARGET = "phase3-validate"
 PHASE3_SELFTEST_TARGET = "phase3-selftest"
 PHASE3_SELFTEST_DRIVER_COMMAND = (
@@ -115,6 +116,10 @@ PHASE3_VALIDATE_SUPPORT_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check",
+)
+PHASE3_WORKFLOW_MARKERS = (
+    "Run Phase 3 validator-support selftest packet",
+    "python3 scripts/zigux/validate_phase3_selftest.py",
 )
 INDIRECT_PHASE3_VALIDATE_COMMANDS = frozenset(
     {
@@ -241,6 +246,20 @@ def validate_makefile(repo_root: Path) -> list[str]:
     return issues
 
 
+def validate_workflow(repo_root: Path) -> list[str]:
+    workflow_path = repo_root / WORKFLOW_PATH
+    try:
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return [f"missing repo file: {WORKFLOW_PATH.as_posix()}"]
+
+    return [
+        f"missing workflow marker: {marker}"
+        for marker in PHASE3_WORKFLOW_MARKERS
+        if marker not in workflow_text
+    ]
+
+
 def _validate_selftest_output(rel_path: Path, stdout: str) -> list[str]:
     expected_markers = SELFTEST_OUTPUT_MARKERS.get(rel_path, ())
     if not expected_markers:
@@ -259,6 +278,7 @@ def run_packet(repo_root: Path) -> int:
     missing.extend(validate_script_list(repo_root))
     missing.extend(validate_script_syntax(repo_root))
     missing.extend(validate_makefile(repo_root))
+    missing.extend(validate_workflow(repo_root))
     if missing:
         print("PHASE3_VALIDATE_SELFTEST=fail")
         print("\n".join(missing))
@@ -313,6 +333,18 @@ def _synthetic_makefile_text() -> str:
     )
 
 
+def _synthetic_workflow_text() -> str:
+    return (
+        "name: zigux-bootstrap\n"
+        "jobs:\n"
+        "  bootstrap:\n"
+        "    runs-on: ubuntu-latest\n"
+        "    steps:\n"
+        f"      - name: {PHASE3_WORKFLOW_MARKERS[0]}\n"
+        f"        run: {PHASE3_WORKFLOW_MARKERS[1]}\n"
+    )
+
+
 def _synthetic_selftest_script(rel_path: Path) -> str:
     lines = ["#!/usr/bin/env python3"]
     for marker in SELFTEST_OUTPUT_MARKERS.get(rel_path, ()):
@@ -338,6 +370,11 @@ def run_self_test() -> int:
             _synthetic_makefile_text(),
             encoding="utf-8",
         )
+        (root / WORKFLOW_PATH).parent.mkdir(parents=True, exist_ok=True)
+        (root / WORKFLOW_PATH).write_text(
+            _synthetic_workflow_text(),
+            encoding="utf-8",
+        )
 
         if validate_driver_inventory():
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
@@ -354,6 +391,10 @@ def run_self_test() -> int:
         if validate_makefile(root):
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected synthetic makefile self-test route to validate")
+            return 1
+        if validate_workflow(root):
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected synthetic workflow selftest route to validate")
             return 1
 
         syntax_broken_path = Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")
@@ -623,11 +664,50 @@ def run_self_test() -> int:
             print("expected governance validator to stay indirect through the selftest driver")
             return 1
 
+        workflow_path = root / WORKFLOW_PATH
+        workflow_path.unlink()
+        missing = validate_workflow(root)
+        expected = f"missing repo file: {WORKFLOW_PATH.as_posix()}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing workflow file was not reported")
+            return 1
+        workflow_path.parent.mkdir(parents=True, exist_ok=True)
+        workflow_path.write_text(_synthetic_workflow_text(), encoding="utf-8")
+
+        workflow_path.write_text(
+            _synthetic_workflow_text().replace(PHASE3_WORKFLOW_MARKERS[0], "Run Phase 3 stale step", 1),
+            encoding="utf-8",
+        )
+        missing = validate_workflow(root)
+        expected = f"missing workflow marker: {PHASE3_WORKFLOW_MARKERS[0]}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing workflow step-name marker was not reported")
+            return 1
+        workflow_path.write_text(_synthetic_workflow_text(), encoding="utf-8")
+
+        workflow_path.write_text(
+            _synthetic_workflow_text().replace(PHASE3_WORKFLOW_MARKERS[1], "python3 scripts/zigux/validate-phase3.py --self-test", 1),
+            encoding="utf-8",
+        )
+        missing = validate_workflow(root)
+        expected = f"missing workflow marker: {PHASE3_WORKFLOW_MARKERS[1]}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing workflow command marker was not reported")
+            return 1
+        workflow_path.write_text(_synthetic_workflow_text(), encoding="utf-8")
+
         for rel_path, expected_markers in SELFTEST_OUTPUT_MARKERS.items():
             if not expected_markers:
                 continue
             (root / MAKEFILE_PATH).write_text(
                 _synthetic_makefile_text(),
+                encoding="utf-8",
+            )
+            (root / WORKFLOW_PATH).write_text(
+                _synthetic_workflow_text(),
                 encoding="utf-8",
             )
             stale_script = _synthetic_selftest_script(rel_path).replace(
@@ -670,6 +750,10 @@ def run_self_test() -> int:
 
         (root / MAKEFILE_PATH).write_text(
             _synthetic_makefile_text(),
+            encoding="utf-8",
+        )
+        (root / WORKFLOW_PATH).write_text(
+            _synthetic_workflow_text(),
             encoding="utf-8",
         )
         failing_path = Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")
