@@ -286,6 +286,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 argvSplit deinit on one non-blank result keeps sibling caller-owned views intact");
     try expectContains(helper_tests, "phase 7 argvFree on one non-blank result keeps sibling caller-owned views intact");
     try expectContains(helper_tests, "phase 7 argvFree on a non-blank result restores the canonical blank sentinels");
+    try expectContains(helper_tests, "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another");
+    try expectContains(helper_tests, "phase 7 blank argvFree on one caller keeps shared sentinel views usable for another");
     try expectContains(helper_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable");
     try expectContains(helper_tests, "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup");
     try expectContains(helper_tests, "split.cArgv()");
@@ -300,6 +302,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(checker, "\"zigux/tests/phase7_argv_split_manifest.json\"");
     try expectContains(checker, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"");
     try expectContains(checker, "phase 7 whitespace before first NUL reuses the blank sentinels without allocator space");
+    try expectContains(checker, "phase 7 blank argvSplit deinit on one caller keeps shared sentinel views usable for another");
+    try expectContains(checker, "phase 7 blank argvFree on one caller keeps shared sentinel views usable for another");
 
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-argv-split-packet.py\",");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split.zig\",");
