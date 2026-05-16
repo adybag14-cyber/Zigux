@@ -173,6 +173,12 @@ jobs:
       - name: Check Phase 2 kconfig bridge packet
         run: python3 scripts/zigux/check-kconfig-bridge.py
 
+      - name: Run Phase 2 conf bridge unit tests
+        run: zig test scripts/zigux/kconfig/conf_bridge.zig
+
+      - name: Run Phase 2 confdata bridge unit tests
+        run: zig test scripts/zigux/kconfig/confdata_bridge.zig
+
       - name: Self-test Phase 2 cross-target compile checker
         run: python3 scripts/zigux/check-phase2-cross.py --self-test
 
