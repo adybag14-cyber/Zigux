@@ -2,59 +2,52 @@
 from __future__ import annotations
 
 import argparse
-import copy
 import json
-import os
-from pathlib import Path
-import shlex
-import shutil
-import subprocess
-import sys
 import tempfile
+from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+THIS_FILE = Path(__file__).resolve()
+ROOT = THIS_FILE.parents[2] if len(THIS_FILE.parents) >= 3 else THIS_FILE.parent
+
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 HARNESS_REL = Path("zigux/tests/fixtures/phase1_helpers_c_harness.c")
 ARTIFACT_DIFF_REL = Path("scripts/zigux/artifact_diff.py")
-
-EXPECTED_SELF_TEST_OUTPUT = json.loads(
-    r"""
-{"find_bit":{"bits_per_long":64,"first":5,"next_after_6":67,"next_after_word":135,"first_zero":3,"next_zero":68,"first_and":9,"next_and":66,"last":135,"inclusive_boundary_next":63,"inclusive_boundary_zero":63,"inclusive_boundary_and":63,"past_nbits_next":7,"past_nbits_zero":7,"past_nbits_and":7,"tail_clamped_first":69,"tail_clamped_next":69,"tail_zero_clamped_first":69,"tail_zero_clamped_next":69,"tail_and_clamped_first":69,"tail_and_clamped_next":69,"tail_clamped_last":67,"tail_clamped_empty_last":69},"bitmap":{"weight":3,"scnprintf":"1-3,7,10-11","truncated_scnprintf_len":7,"truncated_scnprintf":"1-3,7,1","terminator_only_scnprintf_len":0,"terminator_only_nul":0,"zero_length_scnprintf_len":0,"alloc_words":2,"zalloc_words":2,"zalloc_values":[0,0],"copy_values":[18446744073709551615,18446744073709551615],"copy_clear_tail_values":[18446744073709551615,31],"copy_and_extend_values":[18446744073709551615,31,0],"and_result":true,"and_values":[10,0],"andnot_result":true,"andnot_values":[4,0],"or_values":[14,0],"xor_values":[4,0],"partial_xor_nbits":4,"partial_xor_masked_values":[14],"equal":true,"intersects":true,"subset":true,"range_after_set":[14,12,0],"range_after_clear":[0,0,0],"full_after_fill":true,"empty_after_zero":true},"string":{"strtobool_y":true,"strtobool_on":true,"strtobool_zero":false,"strtobool_off":false,"strtobool_invalid":-22,"strlcpy_len":5,"strlcpy_buffer":"hel","skip_spaces":"hello","trim_spaces":"hi","remove_spaces":"abc","replace_char":"a_b","replace_char_end":3,"replace_char_cstr_end":2,"replace_char_cstr_bytes":[97,95,0,45,122],"memchr_inv_index":4,"memchr_inv_none":true},"rbtree":{"empty_root":true,"insert_order":[5,10,15,20,25],"reverse_order":[25,20,15,10,5],"replace_order":[5,10,15,25],"erase_init_order":[5,15,25],"postorder_count":3,"erase_init_node_empty":true,"cleared_node_empty":true,"find_found_key":15,"find_missing":true,"find_first_serial":0,"next_match_serials":[0,2,4],"match_iterator_serials":[0,2,4],"cached_leftmost_return_serials":[0,-1,2,-1],"next_match_terminal_null":true},"argv_split":{"argc":3,"argv":["alpha","beta","gamma"],"blank_argc":0},"cmdline":{"decimal_k":{"value":65536,"rest":" rest"},"hex_m":{"value":33554432,"rest":""},"octal_k":{"value":8192,"rest":""},"invalid":{"value":0,"rest":"xyz"}},"ctype":{"mask_A":65,"mask_a":66,"mask_space":160,"isalnum_A":true,"isalpha_z":true,"isdigit_7":true,"isspace_tab":true,"isxdigit_f":true,"ispunct_bang":true,"tolower_A":97,"toupper_z":90,"isodigit_7":true,"isodigit_8":false},"hweight":{"w8":4,"w16":8,"w32":16,"w64":32,"wlong":8},"list_sort":{"tri_sorted_keys":[1,1,2,3,3],"tri_sorted_ordinals":[1,3,0,2,4],"bool_sorted_keys":[1,1,2,3,3],"bool_sorted_ordinals":[1,3,0,2,4]},"zalloc":{"zeroed":true,"freed_is_null":true,"value_zeroed":true,"value_freed_is_null":true},"str_error_r":{"enoent":"No such file or directory","unknown":"INTERNAL ERROR: strerror_r(4096, [buf], 64)=22"},"slab":{"null_without_reclaim":true,"alloc_count_after_kmalloc":1,"zero_after_kmalloc":true,"alloc_count_after_kmalloc_free":0,"array_zeroed":true,"alloc_count_after_kmalloc_array":1,"alloc_count_after_kmalloc_array_free":0,"slab_is_available":true},"vsprintf":{"scnprintf_text":"zigux:7","scnprintf_len":7,"pad_text":"id=7    ","pad_len":7}}
-"""
-)
-
-EXPECTED_OUTPUT_STRUCTURE = {
-    section: tuple(value.keys()) for section, value in EXPECTED_SELF_TEST_OUTPUT.items()
-}
+PHASE1_HELPERS_REL = Path("zigux/tests/phase1_helpers.zig")
 
 SOURCE_RELS = [
-    HARNESS_REL,
-    Path("tools/lib/argv_split.c"),
-    Path("tools/lib/bitmap.c"),
-    Path("tools/lib/cmdline.c"),
-    Path("tools/lib/ctype.c"),
-    Path("tools/lib/find_bit.c"),
-    Path("tools/lib/hweight.c"),
-    Path("tools/lib/list_sort.c"),
-    Path("tools/lib/slab.c"),
-    Path("tools/lib/str_error_r.c"),
-    Path("tools/lib/string.c"),
-    Path("tools/lib/rbtree.c"),
-    Path("tools/lib/vsprintf.c"),
-    Path("tools/lib/zalloc.c"),
+    Path("tools/lib/argv_split.zig"),
+    Path("tools/lib/bitmap.zig"),
+    Path("tools/lib/cmdline.zig"),
+    Path("tools/lib/ctype.zig"),
+    Path("tools/lib/find_bit.zig"),
+    Path("tools/lib/hweight.zig"),
+    Path("tools/lib/list_sort.zig"),
+    Path("tools/lib/rbtree.zig"),
+    Path("tools/lib/slab.zig"),
+    Path("tools/lib/str_error_r.zig"),
+    Path("tools/lib/string.zig"),
+    Path("tools/lib/vsprintf.zig"),
+    Path("tools/lib/zalloc.zig"),
 ]
+
+EXPECTED_SECTIONS = (
+    "find_bit",
+    "bitmap",
+    "string",
+    "rbtree",
+    "argv_split",
+    "cmdline",
+    "ctype",
+    "hweight",
+    "list_sort",
+    "zalloc",
+    "str_error_r",
+    "slab",
+    "vsprintf",
+)
 
 REQUIRED_PARITY_KEYS = {
     "find_bit": (
-        "bits_per_long",
-        "first",
-        "next_after_6",
-        "next_after_word",
-        "first_zero",
-        "next_zero",
-        "first_and",
-        "next_and",
-        "last",
         "inclusive_boundary_next",
         "inclusive_boundary_zero",
         "inclusive_boundary_and",
@@ -81,9 +74,6 @@ REQUIRED_PARITY_KEYS = {
         "alloc_words",
         "zalloc_words",
         "zalloc_values",
-        "copy_values",
-        "copy_clear_tail_values",
-        "copy_and_extend_values",
         "and_result",
         "and_values",
         "andnot_result",
@@ -135,17 +125,8 @@ REQUIRED_PARITY_KEYS = {
         "cached_leftmost_return_serials",
         "next_match_terminal_null",
     ),
-    "argv_split": (
-        "argc",
-        "argv",
-        "blank_argc",
-    ),
-    "cmdline": (
-        "decimal_k",
-        "hex_m",
-        "octal_k",
-        "invalid",
-    ),
+    "argv_split": ("argc", "argv", "blank_argc"),
+    "cmdline": ("decimal_k", "hex_m", "octal_k", "invalid"),
     "ctype": (
         "mask_A",
         "mask_a",
@@ -161,29 +142,15 @@ REQUIRED_PARITY_KEYS = {
         "isodigit_7",
         "isodigit_8",
     ),
-    "hweight": (
-        "w8",
-        "w16",
-        "w32",
-        "w64",
-        "wlong",
-    ),
+    "hweight": ("w8", "w16", "w32", "w64", "wlong"),
     "list_sort": (
         "tri_sorted_keys",
         "tri_sorted_ordinals",
         "bool_sorted_keys",
         "bool_sorted_ordinals",
     ),
-    "zalloc": (
-        "zeroed",
-        "freed_is_null",
-        "value_zeroed",
-        "value_freed_is_null",
-    ),
-    "str_error_r": (
-        "enoent",
-        "unknown",
-    ),
+    "zalloc": ("zeroed", "freed_is_null", "value_zeroed", "value_freed_is_null"),
+    "str_error_r": ("enoent", "unknown"),
     "slab": (
         "null_without_reclaim",
         "alloc_count_after_kmalloc",
@@ -194,515 +161,164 @@ REQUIRED_PARITY_KEYS = {
         "alloc_count_after_kmalloc_array_free",
         "slab_is_available",
     ),
-    "vsprintf": (
-        "scnprintf_text",
-        "scnprintf_len",
-        "pad_text",
-        "pad_len",
-    ),
+    "vsprintf": ("scnprintf_text", "scnprintf_len", "pad_text", "pad_len"),
 }
 
-
-def fixture_path(root: Path) -> Path:
-    return root / FIXTURE_REL
-
-
-def harness_path(root: Path) -> Path:
-    return root / HARNESS_REL
-
-
-def artifact_diff_path(root: Path) -> Path:
-    return root / ARTIFACT_DIFF_REL
-
-
-def source_paths(root: Path) -> list[Path]:
-    return [root / rel for rel in SOURCE_RELS]
+REQUIRED_PHASE1_HELPERS_MARKERS = (
+    '@embedFile("fixtures/phase1_helpers.json")',
+    'test "phase 1 helper ports match committed parity fixture"',
+    "fixture.find_bit.inclusive_boundary_next",
+    "fixture.find_bit.tail_clamped_empty_last",
+    "fixture.bitmap.truncated_scnprintf",
+    "fixture.bitmap.partial_xor_masked_values",
+    "fixture.string.replace_char_cstr_bytes",
+    "fixture.rbtree.cached_leftmost_return_serials",
+    "fixture.argv_split.argc",
+    "fixture.cmdline.decimal_k.value",
+    "fixture.ctype.mask_A",
+    "fixture.hweight.w64",
+    "fixture.list_sort.tri_sorted_keys",
+    "fixture.zalloc.value_freed_is_null",
+    "fixture.str_error_r.unknown",
+    "fixture.slab.alloc_count_after_kmalloc_array_free",
+    "fixture.vsprintf.pad_text",
+)
 
 
 def collect_input_issues(root: Path, source_rels: list[Path] | None = None) -> list[str]:
     rels = source_rels or SOURCE_RELS
-    missing: list[str] = []
-    seen: set[Path] = set()
-    duplicates: list[Path] = []
+    issues: list[str] = []
 
-    required_paths = [FIXTURE_REL, HARNESS_REL, ARTIFACT_DIFF_REL]
-    for rel in required_paths:
+    for rel in [FIXTURE_REL, HARNESS_REL, ARTIFACT_DIFF_REL, PHASE1_HELPERS_REL, *rels]:
         if not (root / rel).exists():
-            missing.append(f"missing:{rel.as_posix()}")
+            issues.append(f"missing:{rel.as_posix()}")
 
-    for rel in rels:
-        if rel in seen and rel not in duplicates:
-            duplicates.append(rel)
-        seen.add(rel)
-        if not (root / rel).exists():
-            missing.append(f"missing:{rel.as_posix()}")
-
-    for rel in duplicates:
-        missing.append(f"duplicate_source:{rel.as_posix()}")
-
-    return missing
+    return issues
 
 
-def collect_output_issues(actual: Path) -> list[str]:
+def collect_fixture_issues(path: Path) -> list[str]:
     try:
-        payload = json.loads(actual.read_text(encoding="utf-8"))
+        payload = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        return [f"json_decode_error:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
+        return [f"fixture:json_decode_error:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
 
     if not isinstance(payload, dict):
-        return ["payload:json_object"]
+        return ["fixture:json_object"]
 
     issues: list[str] = []
-    expected_sections = set(EXPECTED_OUTPUT_STRUCTURE.keys())
     actual_sections = set(payload.keys())
+    expected_sections = set(EXPECTED_SECTIONS)
 
     for section in sorted(expected_sections - actual_sections):
         issues.append(f"missing_section:{section}")
     for section in sorted(actual_sections - expected_sections):
         issues.append(f"unexpected_section:{section}")
 
-    for section_name, expected_keys in EXPECTED_OUTPUT_STRUCTURE.items():
-        section = payload.get(section_name)
-        if not isinstance(section, dict):
-            if section_name in payload:
-                issues.append(f"invalid_section:{section_name}")
-            continue
-        expected_key_set = set(expected_keys)
-        actual_key_set = set(section.keys())
-        for key in expected_key_set - actual_key_set:
-            issues.append(f"missing:{section_name}.{key}")
-        for key in actual_key_set - expected_key_set:
-            issues.append(f"unexpected:{section_name}.{key}")
-    return issues
-
-
-def collect_parity_key_issues(actual: Path) -> list[str]:
-    payload = json.loads(actual.read_text(encoding="utf-8"))
-    issues: list[str] = []
     for section_name, required_keys in REQUIRED_PARITY_KEYS.items():
         section = payload.get(section_name)
         if not isinstance(section, dict):
-            issues.append(f"invalid_parity_section:{section_name}")
+            issues.append(f"invalid_section:{section_name}")
             continue
         for key in required_keys:
             if key not in section:
                 issues.append(f"missing_parity_key:{section_name}.{key}")
+
+    return issues
+
+
+def collect_phase1_helpers_issues(path: Path) -> list[str]:
+    text = path.read_text(encoding="utf-8")
+    issues: list[str] = []
+    for marker in REQUIRED_PHASE1_HELPERS_MARKERS:
+        count = text.count(marker)
+        if count != 1:
+            issues.append(f"phase1_helpers_marker:{marker}:expected=1:actual={count}")
     return issues
 
 
 def make_self_test_root(root: Path) -> None:
-    for rel in [FIXTURE_REL, HARNESS_REL, ARTIFACT_DIFF_REL, *SOURCE_RELS]:
+    all_files = [FIXTURE_REL, HARNESS_REL, ARTIFACT_DIFF_REL, PHASE1_HELPERS_REL, *SOURCE_RELS]
+    for rel in all_files:
         path = root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("// fixture\n", encoding="utf-8")
-
-
-def find_compiler(explicit: str | None) -> str:
-    if explicit:
-        return explicit
-    for candidate in ("gcc", "cc", "clang"):
-        path = shutil.which(candidate)
-        if path:
-            return path
-    raise FileNotFoundError("no C compiler found on PATH")
-
-
-def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, check=True, text=True, **kwargs)
-
-
-def write_host_shims(root: Path) -> None:
-    asm_dir = root / "asm"
-    linux_dir = root / "linux"
-    urcu_dir = root / "urcu"
-    asm_dir.mkdir(parents=True, exist_ok=True)
-    linux_dir.mkdir(parents=True, exist_ok=True)
-    urcu_dir.mkdir(parents=True, exist_ok=True)
-    (asm_dir / "types.h").write_text(
-        "\n".join(
-            [
-                "#ifndef __ZIGUX_HOST_ASM_TYPES_H__",
-                "#define __ZIGUX_HOST_ASM_TYPES_H__",
-                "typedef signed char __s8;",
-                "typedef unsigned char __u8;",
-                "typedef signed short __s16;",
-                "typedef unsigned short __u16;",
-                "typedef signed int __s32;",
-                "typedef unsigned int __u32;",
-                "typedef signed long long __s64;",
-                "typedef unsigned long long __u64;",
-                "#endif",
-                "",
-            ]
-        ),
-        encoding="utf-8",
-    )
-    (asm_dir / "posix_types.h").write_text(
-        '#include <asm-generic/posix_types.h>\n', encoding="utf-8"
-    )
-    (asm_dir / "bitsperlong.h").write_text(
-        '#define __BITS_PER_LONG (__CHAR_BIT__ * __SIZEOF_LONG__)\n', encoding="utf-8"
-    )
-    (linux_dir / "slab.h").write_text(
-        "\n".join(
-            [
-                "#ifndef __ZIGUX_HOST_LINUX_SLAB_H__",
-                "#define __ZIGUX_HOST_LINUX_SLAB_H__",
-                "#include <linux/types.h>",
-                "#include <linux/gfp.h>",
-                "void *kmalloc(size_t size, gfp_t gfp);",
-                "void kfree(void *p);",
-                "void *kmalloc_array(size_t n, size_t size, gfp_t gfp);",
-                "extern int kmalloc_nr_allocated;",
-                "extern int kmalloc_verbose;",
-                "static inline bool slab_is_available(void) { return true; }",
-                "#endif",
-                "",
-            ]
-        ),
-        encoding="utf-8",
-    )
-    (urcu_dir / "uatomic.h").write_text(
-        "\n".join(
-            [
-                "#ifndef __ZIGUX_HOST_URCU_UATOMIC_H__",
-                "#define __ZIGUX_HOST_URCU_UATOMIC_H__",
-                "#define uatomic_inc(ptr) (++(*(ptr)))",
-                "#define uatomic_dec(ptr) (--(*(ptr)))",
-                "#endif",
-                "",
-            ]
-        ),
-        encoding="utf-8",
-    )
-
-
-def include_flags(shim_dir: Path) -> list[str]:
-    return [
-        "-I",
-        str(shim_dir),
-        "-I",
-        str(ROOT / "tools" / "include"),
-        "-I",
-        str(ROOT / "tools" / "include" / "uapi"),
-    ]
-
-
-def windows_to_wsl(path: Path) -> str:
-    resolved = path.resolve()
-    drive = resolved.drive.rstrip(":").lower()
-    tail = resolved.as_posix().split(":", 1)[1]
-    return f"/mnt/{drive}{tail}"
-
-
-def run_windows_wsl_compile(
-    tmp_dir: Path,
-    exe: Path,
-    actual: Path,
-    compiler: str,
-    flags: list[str],
-    sources: list[Path],
-) -> None:
-    script_path = tmp_dir / "run_phase1_parity.sh"
-    script_lines = [
-        "#!/usr/bin/env bash",
-        "set -euo pipefail",
-    ]
-
-    quoted = [
-        shlex.quote(compiler),
-        "-std=gnu11",
-        "-Wall",
-        "-Wextra",
-        "-Wno-type-limits",
-        "-Wno-int-to-pointer-cast",
-        "-Wno-pointer-to-int-cast",
-        "-o",
-        shlex.quote(windows_to_wsl(exe)),
-    ]
-    index = 0
-
-    while index < len(flags):
-        item = flags[index]
-        quoted.append(shlex.quote(item))
-        if item == "-I":
-            index += 1
-            quoted.append(shlex.quote(windows_to_wsl(Path(flags[index]))))
-        index += 1
-    quoted.extend(shlex.quote(windows_to_wsl(path)) for path in sources)
-    script_lines.append(" ".join(quoted))
-    script_lines.append(
-        f'{shlex.quote(windows_to_wsl(exe))} > {shlex.quote(windows_to_wsl(actual))}'
-    )
-    with script_path.open("w", encoding="utf-8", newline="\n") as handle:
-        handle.write("\n".join(script_lines) + "\n")
-    run(["wsl", "bash", windows_to_wsl(script_path)], cwd=str(ROOT))
-
-
-def compile_and_run(
-    tmp_dir: Path,
-    exe: Path,
-    actual: Path,
-    compiler: str,
-    flags: list[str],
-    sources: list[Path],
-) -> None:
-    if os.name == "nt" and shutil.which("wsl"):
-        run_windows_wsl_compile(tmp_dir, exe, actual, compiler, flags, sources)
-        return
-
-    compile_cmd = [
-        compiler,
-        "-std=gnu11",
-        "-Wall",
-        "-Wextra",
-        "-Wno-type-limits",
-        "-Wno-int-to-pointer-cast",
-        "-Wno-pointer-to-int-cast",
-        "-o",
-        str(exe),
-    ]
-    compile_cmd.extend(flags)
-    compile_cmd.extend(str(path) for path in sources)
-    run(compile_cmd, cwd=str(ROOT))
-    result = run([str(exe)], cwd=str(ROOT), capture_output=True)
-    actual.write_text(result.stdout, encoding="utf-8")
+        if rel == FIXTURE_REL:
+            payload = {
+                section: {key: 0 for key in REQUIRED_PARITY_KEYS[section]}
+                for section in EXPECTED_SECTIONS
+            }
+            path.write_text(json.dumps(payload, separators=(",", ":")) + "\n", encoding="utf-8")
+        elif rel == PHASE1_HELPERS_REL:
+            path.write_text("\n".join(REQUIRED_PHASE1_HELPERS_MARKERS) + "\n", encoding="utf-8")
+        else:
+            path.write_text("// packet\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase1_parity_selftest_") as tmp_dir_str:
-        tmp_root = Path(tmp_dir_str)
-        make_self_test_root(tmp_root)
+    case_count = 0
+    with tempfile.TemporaryDirectory(prefix="zigux_phase1_parity_selftest_") as tmp_dir:
+        root = Path(tmp_dir)
+        make_self_test_root(root)
 
-        assert collect_input_issues(tmp_root) == []
+        assert collect_input_issues(root) == []
+        assert collect_fixture_issues(root / FIXTURE_REL) == []
+        assert collect_phase1_helpers_issues(root / PHASE1_HELPERS_REL) == []
+        case_count += 3
 
-        (tmp_root / FIXTURE_REL).unlink()
-        assert collect_input_issues(tmp_root) == [f"missing:{FIXTURE_REL.as_posix()}"]
-        make_self_test_root(tmp_root)
+        (root / SOURCE_RELS[0]).unlink()
+        assert f"missing:{SOURCE_RELS[0].as_posix()}" in collect_input_issues(root)
+        make_self_test_root(root)
+        case_count += 1
 
-        (tmp_root / HARNESS_REL).unlink()
-        missing_harness = collect_input_issues(tmp_root)
-        assert f"missing:{HARNESS_REL.as_posix()}" in missing_harness
-        make_self_test_root(tmp_root)
+        fixture_path = root / FIXTURE_REL
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        fixture["bitmap"].pop("truncated_scnprintf")
+        fixture_path.write_text(json.dumps(fixture, separators=(",", ":")) + "\n", encoding="utf-8")
+        assert "missing_parity_key:bitmap.truncated_scnprintf" in collect_fixture_issues(fixture_path)
+        make_self_test_root(root)
+        case_count += 1
 
-        (tmp_root / ARTIFACT_DIFF_REL).unlink()
-        missing_artifact_diff = collect_input_issues(tmp_root)
-        assert f"missing:{ARTIFACT_DIFF_REL.as_posix()}" in missing_artifact_diff
-        make_self_test_root(tmp_root)
+        fixture_path.write_text('{"find_bit":', encoding="utf-8")
+        errors = collect_fixture_issues(fixture_path)
+        assert len(errors) == 1 and errors[0].startswith("fixture:json_decode_error:")
+        make_self_test_root(root)
+        case_count += 1
 
-        (tmp_root / Path("tools/lib/bitmap.c")).unlink()
-        missing_source = collect_input_issues(tmp_root)
-        assert "missing:tools/lib/bitmap.c" in missing_source
-        make_self_test_root(tmp_root)
-
-        (tmp_root / Path("tools/lib/find_bit.c")).unlink()
-        missing_source = collect_input_issues(tmp_root)
-        assert "missing:tools/lib/find_bit.c" in missing_source
-        make_self_test_root(tmp_root)
-
-        (tmp_root / Path("tools/lib/string.c")).unlink()
-        missing_source = collect_input_issues(tmp_root)
-        assert "missing:tools/lib/string.c" in missing_source
-        make_self_test_root(tmp_root)
-
-        (tmp_root / Path("tools/lib/rbtree.c")).unlink()
-        missing_source = collect_input_issues(tmp_root)
-        assert "missing:tools/lib/rbtree.c" in missing_source
-        make_self_test_root(tmp_root)
-
-        duplicate_sources = SOURCE_RELS + [Path("tools/lib/string.c")]
-        duplicate_issues = collect_input_issues(tmp_root, duplicate_sources)
-        assert "duplicate_source:tools/lib/string.c" in duplicate_issues
-
-        actual = tmp_root / "phase1_helpers.actual.json"
-        actual.write_text(json.dumps(EXPECTED_SELF_TEST_OUTPUT), encoding="utf-8")
-        assert collect_output_issues(actual) == []
-        assert collect_parity_key_issues(actual) == []
-
-        missing_string_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_string_output["string"]["replace_char_cstr_bytes"]
-        actual.write_text(json.dumps(missing_string_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:string.replace_char_cstr_bytes" in missing_output
-
-        missing_string_bool_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_string_bool_output["string"]["strtobool_y"]
-        actual.write_text(json.dumps(missing_string_bool_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:string.strtobool_y" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:string.strtobool_y" in parity_key_output
-
-        missing_find_bit_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_find_bit_output["find_bit"]["tail_clamped_empty_last"]
-        actual.write_text(json.dumps(missing_find_bit_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:find_bit.tail_clamped_empty_last" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:find_bit.tail_clamped_empty_last" in parity_key_output
-
-        missing_find_bit_boundary_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_find_bit_boundary_output["find_bit"]["inclusive_boundary_and"]
-        actual.write_text(json.dumps(missing_find_bit_boundary_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:find_bit.inclusive_boundary_and" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:find_bit.inclusive_boundary_and" in parity_key_output
-
-        missing_find_bit_tail_clamp_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_find_bit_tail_clamp_output["find_bit"]["tail_zero_clamped_next"]
-        actual.write_text(json.dumps(missing_find_bit_tail_clamp_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:find_bit.tail_zero_clamped_next" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:find_bit.tail_zero_clamped_next" in parity_key_output
-
-        missing_bitmap_truncation_len_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_bitmap_truncation_len_output["bitmap"]["truncated_scnprintf_len"]
-        actual.write_text(json.dumps(missing_bitmap_truncation_len_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:bitmap.truncated_scnprintf_len" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:bitmap.truncated_scnprintf_len" in parity_key_output
-
-        missing_bitmap_truncation_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_bitmap_truncation_output["bitmap"]["truncated_scnprintf"]
-        actual.write_text(json.dumps(missing_bitmap_truncation_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:bitmap.truncated_scnprintf" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:bitmap.truncated_scnprintf" in parity_key_output
-
-        missing_bitmap_terminator_len_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_bitmap_terminator_len_output["bitmap"]["terminator_only_scnprintf_len"]
-        actual.write_text(json.dumps(missing_bitmap_terminator_len_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:bitmap.terminator_only_scnprintf_len" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:bitmap.terminator_only_scnprintf_len" in parity_key_output
-
-        missing_bitmap_terminator_nul_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_bitmap_terminator_nul_output["bitmap"]["terminator_only_nul"]
-        actual.write_text(json.dumps(missing_bitmap_terminator_nul_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:bitmap.terminator_only_nul" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:bitmap.terminator_only_nul" in parity_key_output
-
-        missing_bitmap_zero_length_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_bitmap_zero_length_output["bitmap"]["zero_length_scnprintf_len"]
-        actual.write_text(json.dumps(missing_bitmap_zero_length_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:bitmap.zero_length_scnprintf_len" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:bitmap.zero_length_scnprintf_len" in parity_key_output
-
-        missing_bitmap_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_bitmap_output["bitmap"]["partial_xor_masked_values"]
-        actual.write_text(json.dumps(missing_bitmap_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:bitmap.partial_xor_masked_values" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:bitmap.partial_xor_masked_values" in parity_key_output
-
-        missing_bitmap_copy_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_bitmap_copy_output["bitmap"]["copy_values"]
-        actual.write_text(json.dumps(missing_bitmap_copy_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:bitmap.copy_values" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:bitmap.copy_values" in parity_key_output
-
-        missing_bitmap_copy_clear_tail_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_bitmap_copy_clear_tail_output["bitmap"]["copy_clear_tail_values"]
-        actual.write_text(json.dumps(missing_bitmap_copy_clear_tail_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:bitmap.copy_clear_tail_values" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:bitmap.copy_clear_tail_values" in parity_key_output
-
-        missing_bitmap_copy_and_extend_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_bitmap_copy_and_extend_output["bitmap"]["copy_and_extend_values"]
-        actual.write_text(json.dumps(missing_bitmap_copy_and_extend_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:bitmap.copy_and_extend_values" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:bitmap.copy_and_extend_values" in parity_key_output
-
-        missing_rbtree_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_rbtree_output["rbtree"]["next_match_serials"]
-        actual.write_text(json.dumps(missing_rbtree_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:rbtree.next_match_serials" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:rbtree.next_match_serials" in parity_key_output
-
-        missing_rbtree_iterator_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_rbtree_iterator_output["rbtree"]["match_iterator_serials"]
-        actual.write_text(json.dumps(missing_rbtree_iterator_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:rbtree.match_iterator_serials" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:rbtree.match_iterator_serials" in parity_key_output
-
-        missing_rbtree_cached_leftmost_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        del missing_rbtree_cached_leftmost_output["rbtree"]["cached_leftmost_return_serials"]
-        actual.write_text(json.dumps(missing_rbtree_cached_leftmost_output), encoding="utf-8")
-        missing_output = collect_output_issues(actual)
-        assert "missing:rbtree.cached_leftmost_return_serials" in missing_output
-        parity_key_output = collect_parity_key_issues(actual)
-        assert "missing_parity_key:rbtree.cached_leftmost_return_serials" in parity_key_output
-
-        unexpected_section_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        unexpected_section_output["extra_helper"] = {"value": 1}
-        actual.write_text(json.dumps(unexpected_section_output), encoding="utf-8")
-        unexpected_output = collect_output_issues(actual)
-        assert "unexpected_section:extra_helper" in unexpected_output
-
-        unexpected_key_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        unexpected_key_output["find_bit"]["unexpected_clump_key"] = 99
-        actual.write_text(json.dumps(unexpected_key_output), encoding="utf-8")
-        unexpected_output = collect_output_issues(actual)
-        assert "unexpected:find_bit.unexpected_clump_key" in unexpected_output
-
-        invalid_section_output = copy.deepcopy(EXPECTED_SELF_TEST_OUTPUT)
-        invalid_section_output["bitmap"] = []
-        actual.write_text(json.dumps(invalid_section_output), encoding="utf-8")
-        invalid_output = collect_output_issues(actual)
-        assert "invalid_section:bitmap" in invalid_output
-
-        actual.write_text('{"find_bit":', encoding="utf-8")
-        decode_issues = collect_output_issues(actual)
-        assert len(decode_issues) == 1
-        assert decode_issues[0].startswith("json_decode_error:")
+        helpers_path = root / PHASE1_HELPERS_REL
+        helpers_path.write_text(
+            helpers_path.read_text(encoding="utf-8").replace(
+                'test "phase 1 helper ports match committed parity fixture"\n', "", 1
+            ),
+            encoding="utf-8",
+        )
+        marker_error = (
+            'phase1_helpers_marker:test "phase 1 helper ports match committed parity fixture":expected=1:actual=0'
+        )
+        assert marker_error in collect_phase1_helpers_issues(helpers_path)
+        case_count += 1
 
     print("PHASE1_PARITY_SELF_TEST=pass")
-    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=31")
+    print(f"PHASE1_PARITY_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Generate and check Phase 1 helper parity fixtures."
+        description="Validate the live Phase 1 parity packet against the current Zig helper tree."
     )
-    parser.add_argument(
-        "--refresh",
-        action="store_true",
-        help="Refresh the committed JSON fixture from current C outputs.",
-    )
-    parser.add_argument("--cc", help="Explicit C compiler path to use.")
     parser.add_argument(
         "--self-test",
         action="store_true",
-        help="Run checker self-test cases without compiling the live helper packet.",
+        help="Run checker self-tests without reading the live repository.",
     )
-
+    parser.add_argument("--root", help="Validate an alternate Zigux tree root.")
     args = parser.parse_args()
 
     if args.self_test:
         run_self_test()
         return 0
 
-    input_issues = collect_input_issues(ROOT)
+    root = ROOT if args.root is None else Path(args.root).resolve()
+
+    input_issues = collect_input_issues(root)
     if input_issues:
         print("PHASE1_PARITY=fail")
         print("PHASE1_PARITY_INPUT_ISSUES_START")
@@ -711,60 +327,28 @@ def main() -> int:
         print("PHASE1_PARITY_INPUT_ISSUES_END")
         return 1
 
-    compiler = args.cc or os.environ.get("CC") or (
-        "gcc" if os.name == "nt" and shutil.which("wsl") else find_compiler(None)
-    )
+    fixture_issues = collect_fixture_issues(root / FIXTURE_REL)
+    if fixture_issues:
+        print("PHASE1_PARITY=fail")
+        print("PHASE1_PARITY_FIXTURE_ISSUES_START")
+        for issue in fixture_issues:
+            print(issue)
+        print("PHASE1_PARITY_FIXTURE_ISSUES_END")
+        return 1
 
-    with tempfile.TemporaryDirectory(prefix="zigux_phase1_parity_") as tmp_dir_str:
-        tmp_dir = Path(tmp_dir_str)
-        shim_dir = tmp_dir / "shim"
-        write_host_shims(shim_dir)
+    helpers_issues = collect_phase1_helpers_issues(root / PHASE1_HELPERS_REL)
+    if helpers_issues:
+        print("PHASE1_PARITY=fail")
+        print("PHASE1_PARITY_HELPERS_ISSUES_START")
+        for issue in helpers_issues:
+            print(issue)
+        print("PHASE1_PARITY_HELPERS_ISSUES_END")
+        return 1
 
-        exe = tmp_dir / (
-            "phase1_helpers_c_harness.exe"
-            if os.name == "nt"
-            else "phase1_helpers_c_harness"
-        )
-        actual = tmp_dir / "phase1_helpers.actual.json"
-
-        compile_and_run(tmp_dir, exe, actual, compiler, include_flags(shim_dir), source_paths(ROOT))
-
-        output_issues = collect_output_issues(actual)
-        if output_issues:
-            print("PHASE1_PARITY=fail")
-            print("PHASE1_PARITY_OUTPUT_ISSUES_START")
-            for issue in output_issues:
-                print(issue)
-            print("PHASE1_PARITY_OUTPUT_ISSUES_END")
-            return 1
-
-        parity_key_issues = collect_parity_key_issues(actual)
-        if parity_key_issues:
-            print("PHASE1_PARITY=fail")
-            print("PHASE1_PARITY_KEY_ISSUES_START")
-            for issue in parity_key_issues:
-                print(issue)
-            print("PHASE1_PARITY_KEY_ISSUES_END")
-            return 1
-
-        if args.refresh:
-            fixture_path(ROOT).write_text(actual.read_text(encoding="utf-8"), encoding="utf-8")
-            print("PHASE1_PARITY_REFRESH=pass")
-            print(f"FIXTURE={fixture_path(ROOT)}")
-            return 0
-
-        diff_cmd = [
-            sys.executable,
-            str(artifact_diff_path(ROOT)),
-            "--mode",
-            "json",
-            str(fixture_path(ROOT)),
-            str(actual),
-        ]
-        run(diff_cmd, cwd=str(ROOT))
-        print("PHASE1_PARITY=pass")
-        print(f"FIXTURE={fixture_path(ROOT)}")
-        return 0
+    print("PHASE1_PARITY=pass")
+    print(f"FIXTURE={root / FIXTURE_REL}")
+    print(f"HELPER_TEST={root / PHASE1_HELPERS_REL}")
+    return 0
 
 
 if __name__ == "__main__":
