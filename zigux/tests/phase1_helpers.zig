@@ -103,6 +103,7 @@ const Fixture = struct {
         find_first_serial: usize,
         next_match_serials: []const usize,
         match_iterator_serials: []const usize,
+        cached_leftmost_return_serials: []const i64,
         next_match_terminal_null: bool,
     },
     argv_split: struct {
@@ -790,6 +791,52 @@ test "phase 1 helper ports match committed parity fixture" {
         fixture.rbtree.match_iterator_serials,
         match_iterator_serials[0..match_iterator_count],
     );
+
+    const CachedEntry = struct {
+        key: i32,
+        serial: i64,
+        node: rbtree.Node = rbtree.Node.init(),
+    };
+
+    const cachedLess = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const CachedEntry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const CachedEntry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cachedReturnSerial = struct {
+        fn read(node: ?*rbtree.Node) i64 {
+            const current = node orelse return -1;
+            const entry: *const CachedEntry = @fieldParentPtr("node", current);
+            return entry.serial;
+        }
+    }.read;
+
+    var cached_entries = [_]CachedEntry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 12, .serial = 1 },
+        .{ .key = 5, .serial = 2 },
+        .{ .key = 5, .serial = 3 },
+    };
+    var cached_root = rbtree.RootCached.init();
+    const cached_leftmost_return_serials = [_]i64{
+        cachedReturnSerial(rbtree.addCached(&cached_entries[0].node, &cached_root, cachedLess)),
+        cachedReturnSerial(rbtree.addCached(&cached_entries[1].node, &cached_root, cachedLess)),
+        cachedReturnSerial(rbtree.addCached(&cached_entries[2].node, &cached_root, cachedLess)),
+        cachedReturnSerial(rbtree.addCached(&cached_entries[3].node, &cached_root, cachedLess)),
+    };
+    try std.testing.expectEqualSlices(
+        i64,
+        fixture.rbtree.cached_leftmost_return_serials,
+        &cached_leftmost_return_serials,
+    );
+    try std.testing.expectEqual(rbtree.first(&cached_root.root), rbtree.firstCached(&cached_root));
+
     try std.testing.expectEqual(
         fixture.rbtree.next_match_terminal_null,
         rbtree.nextMatch(&duplicate_wanted, match_cursor, searchCmp) == null,
