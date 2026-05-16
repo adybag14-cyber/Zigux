@@ -365,6 +365,8 @@ pub fn build(b: *std.Build) void {
     runtime_atomic64_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
     runtime_atomic64_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     runtime_atomic64_tests_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);
+    runtime_atomic64_tests_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);
+    runtime_atomic64_tests_step.dependOn(&run_runtime_trace_events_loader_substrate_drift_tests.step);
     runtime_atomic64_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
     const runtime_bitmap_top_bit_tests_step = b.step(
@@ -387,6 +389,8 @@ pub fn build(b: *std.Build) void {
     runtime_bitmap_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
     runtime_bitmap_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     runtime_bitmap_tests_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);
+    runtime_bitmap_tests_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);
+    runtime_bitmap_tests_step.dependOn(&run_runtime_trace_events_loader_substrate_drift_tests.step);
     runtime_bitmap_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
     const runtime_trace_events_tests_step = b.step(
@@ -403,6 +407,7 @@ pub fn build(b: *std.Build) void {
     runtime_trace_events_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
     runtime_trace_events_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     runtime_trace_events_tests_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);
+    runtime_trace_events_tests_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);
     runtime_trace_events_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
     const runtime_kretprobe_tests_step = b.step(
@@ -418,6 +423,8 @@ pub fn build(b: *std.Build) void {
     runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
     runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);
+    runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);
+    runtime_kretprobe_tests_step.dependOn(&run_runtime_trace_events_loader_substrate_drift_tests.step);
     runtime_kretprobe_tests_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
 
     const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, runtime-loader facade, contract, allocator/init-flow, selftest-complete-exit-parity, lifecycle-boundary-guard, loader-substrate-drift, and loader-gap survey tests");
