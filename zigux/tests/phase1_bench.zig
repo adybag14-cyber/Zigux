@@ -74,6 +74,21 @@ fn bitmapWindowBench() struct { checksum: u64 } {
             rhs[1] |= @as(bitmap.Word, 1) << 4;
         }
 
+        checksum +%= @intCast(bitmap.weightedOr(&dst, &lhs, &rhs, nbits));
+        checksum +%= @intCast(bitmap.__bitmap_weighted_or(&dst, &lhs, &rhs, nbits));
+        checksum +%= @intCast(bitmap.weightAnd(&lhs, &rhs, nbits));
+        checksum +%= @intCast(bitmap.bitmap_weight_and(&lhs, &rhs, nbits));
+        checksum +%= @intCast(bitmap.__bitmap_weight_and(&lhs, &rhs, nbits));
+        checksum +%= @intCast(bitmap.weightAndNot(&lhs, &rhs, nbits));
+        checksum +%= @intCast(bitmap.bitmap_weight_andnot(&lhs, &rhs, nbits));
+        checksum +%= @intCast(bitmap.__bitmap_weight_andnot(&lhs, &rhs, nbits));
+        checksum +%= @intCast(bitmap.weightedXor(&dst, &lhs, &rhs, nbits));
+        checksum +%= @intCast(bitmap.__bitmap_weighted_xor(&dst, &lhs, &rhs, nbits));
+        bitmap.complement(&dst, &lhs, nbits);
+        checksum +%= @intCast(bitmap.weight(&dst, nbits));
+        bitmap.__bitmap_complement(&dst, &rhs, nbits);
+        checksum +%= @intCast(bitmap.__bitmap_weight(&dst, nbits));
+
         bitmap.orBits(&dst, &lhs, &rhs, nbits);
         checksum +%= @intCast(bitmap.weight(&dst, nbits));
 
@@ -148,10 +163,10 @@ fn findBitEdgeBench() struct { checksum: u64 } {
     const head_nbits = find_bit.bits_per_long * 2;
     const tail_nbits = find_bit.bits_per_long + 5;
     const past_nbits = 7;
-    const boundary_set = [_]find_bit.Word{(@as(find_bit.Word, 1) << @intCast(boundary)), 0};
-    const boundary_zero = [_]find_bit.Word{~(@as(find_bit.Word, 1) << @intCast(boundary)), ~@as(find_bit.Word, 0)};
-    const tail_set = [_]find_bit.Word{0, @as(find_bit.Word, 1) << 3};
-    const tail_full = [_]find_bit.Word{~@as(find_bit.Word, 0), find_bit.lastWordMask(tail_nbits)};
+    const boundary_set = [_]find_bit.Word{ (@as(find_bit.Word, 1) << @intCast(boundary)), 0 };
+    const boundary_zero = [_]find_bit.Word{ ~(@as(find_bit.Word, 1) << @intCast(boundary)), ~@as(find_bit.Word, 0) };
+    const tail_set = [_]find_bit.Word{ 0, @as(find_bit.Word, 1) << 3 };
+    const tail_full = [_]find_bit.Word{ ~@as(find_bit.Word, 0), find_bit.lastWordMask(tail_nbits) };
     const empty = [_]find_bit.Word{};
 
     var checksum: u64 = 0;
@@ -437,7 +452,6 @@ fn rbtreeBench() RbtreeBench {
         var cached_replacement = RbEntry{ .key = 10 };
         var new_leftmost = RbEntry{ .key = 3 };
         var cached_root = rbtree.RootCached.init();
-
         for (&cached_entries) |*entry| {
             rbtree.addCached(&entry.node, &cached_root, less);
         }
