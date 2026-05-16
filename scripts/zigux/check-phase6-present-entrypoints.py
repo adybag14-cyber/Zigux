@@ -24,6 +24,7 @@ BASE64_REPLAY_PATH = Path("zigux/tests/phase6_base64.zig")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
 BASE64_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 BASE64_C_PARITY_PATH = Path("zigux/tests/phase6_base64_c_parity.zig")
+BASE64_C_CASEGEN_PATH = Path("zigux/tests/phase6_base64_c_casegen.zig")
 BASE64_C_PARITY_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")
 BASE64_C_HARNESS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_harness.c")
 BASE64_C_PARITY_CHECKER_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
@@ -63,6 +64,7 @@ REQUIRED_PRESENT_ENTRYPOINTS = {
     BASE64_PERF_PATH.as_posix(),
     BASE64_VECTORS_PATH.as_posix(),
     BASE64_C_PARITY_PATH.as_posix(),
+    BASE64_C_CASEGEN_PATH.as_posix(),
     BASE64_C_PARITY_VECTORS_PATH.as_posix(),
     BASE64_C_HARNESS_PATH.as_posix(),
     BASE64_C_PARITY_CHECKER_PATH.as_posix(),
@@ -138,7 +140,7 @@ EXPECTED_HEXDUMP_FIXTURES = {
 EXPECTED_HEXDUMP_PACKET_CHECKER = HEXDUMP_CHECKER_PATH.as_posix()
 EXPECTED_HEXDUMP_PERF_REFRESH = HEXDUMP_PERF_REFRESH_PATH.as_posix()
 
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 31
 
 
 def read_json(path: Path) -> object:
@@ -352,6 +354,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / BASE64_PERF_PATH, "test \"base64 perf\" {}\n")
     write(root / BASE64_VECTORS_PATH, "pub const perf_cases = .{};\n")
     write(root / BASE64_C_PARITY_PATH, "test \"base64 c parity\" {}\n")
+    write(root / BASE64_C_CASEGEN_PATH, "pub fn main() void {}\n")
     write(root / BASE64_C_PARITY_VECTORS_PATH, "pub const c_parity_cases = .{};\n")
     write(root / BASE64_C_HARNESS_PATH, "/* base64 harness */\n")
     write(root / BASE64_C_PARITY_CHECKER_PATH, "#!/usr/bin/env python3\n")
@@ -516,6 +519,10 @@ def run_self_test() -> None:
         manifest["helpers"] = [row for row in manifest["helpers"] if row["id"] != "hexdump"]
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(tmpdir, "missing hexdump helper row")
+
+        scaffold_repo(tmpdir)
+        (tmpdir / BASE64_C_CASEGEN_PATH).unlink()
+        expect_failure(tmpdir, BASE64_C_CASEGEN_PATH.as_posix())
 
         scaffold_repo(tmpdir)
         (tmpdir / BASE64_C_PARITY_CHECKER_PATH).unlink()
