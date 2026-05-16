@@ -65,6 +65,7 @@ test "phase 5 trace-events sample replays the bounded payload and callback idiom
 
 test "phase 5 trace-events sample keeps payload and callback boundaries explicit" {
     var module = sample.TraceEventsReferenceSample{};
+    const review_contract = sample.TraceEventsReferenceSample.reviewContract();
 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.replayMainIteration(0));
     try module.init();
@@ -98,6 +99,8 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     try std.testing.expect(callback_boundary.callback_path_checked);
     try std.testing.expectEqual(@as(usize, 0), callback_boundary.registration_depth_after_recovery);
     try std.testing.expectEqual(@as(usize, 8), callback_boundary.total_event_calls_after_recovery);
+    try std.testing.expectEqual(@as(usize, review_contract.focus.len), callback_boundary.checked_focus.len);
+    try std.testing.expectEqualSlices(sample.SampleFocus, review_contract.focus, callback_boundary.checked_focus);
 }
 
 test "phase 5 trace-events sample keeps the full string and formatting cycle explicit" {
@@ -156,6 +159,7 @@ test "phase 5 trace-events sample keeps the full string and formatting cycle exp
 
 test "phase 5 trace-events sample makes ownership and teardown boundaries explicit" {
     var module = sample.TraceEventsReferenceSample{};
+    const review_contract = sample.TraceEventsReferenceSample.reviewContract();
 
     const replay = try module.runLifecycleBoundaryReplay();
 
@@ -175,6 +179,8 @@ test "phase 5 trace-events sample makes ownership and teardown boundaries explic
     try std.testing.expect(replay.callback_boundary.callback_path_checked);
     try std.testing.expectEqual(@as(usize, 0), replay.callback_boundary.registration_depth_after_recovery);
     try std.testing.expectEqual(@as(usize, 2), replay.callback_boundary.total_event_calls_after_recovery);
+    try std.testing.expectEqual(@as(usize, review_contract.focus.len), replay.callback_boundary.checked_focus.len);
+    try std.testing.expectEqualSlices(sample.SampleFocus, review_contract.focus, replay.callback_boundary.checked_focus);
     try std.testing.expectEqual(sample.SampleStage.initialized, replay.lifecycle_before_exit.stage);
     try std.testing.expectEqual(@as(usize, 1), replay.lifecycle_before_exit.init_run_count);
     try std.testing.expectEqual(@as(usize, 0), replay.lifecycle_before_exit.replay_run_count);
