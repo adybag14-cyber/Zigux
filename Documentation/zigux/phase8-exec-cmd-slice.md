@@ -1,6 +1,6 @@
 # Phase 8 Exec-Cmd Slice
 
-This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zigux around `tools/lib/subcmd/exec-cmd.c`.
+This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zigux around the original `tools/lib/subcmd/exec-cmd.c` behavior boundary.
 
 ## Status
 - `PHASE8_STATUS=parked`
@@ -20,7 +20,7 @@ The live repo still benefits from keeping `exec-cmd` parked as a helper-first, o
 
 `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` stays the dedicated roadmap-gap survey for this file family while the direct exec-cmd shard remains helper-first and deferred-exec only. It keeps the Phase 8 serious-tooling goal explicit without widening this parked packet into direct process-launch ownership, live environment reads, or terminal-probing parity.
 
-Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the live C helper anchors, checklist hook, and validator route stay aligned around one reviewable packet.
+Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the parked review packet, checklist hook, and validator route stay aligned around one reviewable packet.
 
 ## Gates
 1. Run the focused Zig module tests: `zig test tools/lib/subcmd/exec-cmd.zig`
@@ -53,7 +53,7 @@ The current tests keep these bounded edges explicit:
 - the pure deferred `execv` and `execl` handoff helpers keep the parked argv packet reviewable before any direct `execv_cmd()` or `execvp()` ownership exists
 - the integrated deferred planning helpers keep the parked `PATH` packet and deferred argv handoff aligned before any direct launch ownership exists
 - the `collectExeclArgs()` overflow and missing-null guards stay reviewable before any direct varargs launch path exists
-- the focused Phase 8 replay stays on the integrated deferred-exec packet and keeps the live C helper anchors, checklist hook, and validator route aligned before the broader tooling replay runs
+- the focused Phase 8 replay stays on the integrated deferred-exec packet and keeps the parked review packet, checklist hook, and validator route aligned before the broader tooling replay runs
 - `make -C zigux phase8-exec-cmd-test` exposes that focused replay as a one-command route
 
 ## Non-Goals
