@@ -23,13 +23,15 @@ Direct current-`master` readback in this run materialized these shared reminder 
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `zigux/tests/README.md`
 
-Those files now show that the shared Phase 13 packet is active, helper-backed, and still not closed rather than documentation-only.
+Those files now show that the shared Phase 13 packet is active, helper-backed, still not closed, and already coupled to the shipped cross-phase contributor-sync and tests-root reminder companions rather than documentation-only.
 
 The coupled current-`master` packet also now keeps the shipped helper-local `libfs`, `devres`, and Landlock notes plus adjacent notifier evidence tied to a validator-first release handle instead of the older "survey-only, scripts-root missing" story.
 
@@ -84,6 +86,7 @@ When this survey changes, reread these shared reminder surfaces together first:
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
