@@ -33,6 +33,7 @@ DIRECT_OWNER_MARKERS = [
     "- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, and tail-word skip anchors plus the committed tail-clamped find_bit replay fields already emitted by the shared C harness and consumed by the shared fixture`",
     "- `PHASE1_RBTREE_DIRECT_OWNER=rbtree cached-root coverage stays helper-local while the committed shared replay owns duplicate-search parity and matchIterator() through the dedicated iterator fixture key, so the next widening is the cached-root leftmost-return fixture key only`",
     "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
+    "- current `master` also carries the newer direct `test \"find or bit returns the next set bit from either bitmap\"` proof inside `tools/lib/find_bit.zig`, so notes-only and closure-side rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it",
 ]
 
 COMPANION_MARKERS = [
@@ -63,6 +64,7 @@ NEXT_STEP_MARKERS = [
     "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only for the dedicated cached-root leftmost-return fixture key or for drift inside the already-committed shared iterator replay; do not batch a second widening into the same run`",
     "- `PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() C-string list lookup, counted-search strnchr, embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture drift; keep the helper-local sysfs review anchors aligned across the string review packet and closure note unless dedicated shared sysfs fixture keys land; do not reopen a generic closure-validator pass`",
     "- If those surfaces still agree on current `master`, leave the helper parked and do not widen to a second helper family in the same lane.",
+    "- the already-landed OR-path proof in `test \"find or bit returns the next set bit from either bitmap\"` belongs to that same `find_bit` direct-anchor packet, so if it drifts, refresh the existing helper-family notes or closure evidence instead of widening shared replay ownership",
 ]
 
 MAKEFILE_MARKERS = [
@@ -306,7 +308,7 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_root(root)
-        makefile.write_text("".join(f"\t{marker}\n" for marker in MAKEFILE_MARKERS), encoding="utf-8")
+        makefile.writeText("".join(f"\t{marker}\n" for marker in MAKEFILE_MARKERS), encoding="utf-8")
         assert collect_missing_markers(root) == []
         case_count += 1
 
@@ -585,6 +587,32 @@ def run_self_test() -> None:
             "phase1_direct_owner_next_step",
             NEXT_STEP_MARKERS[14],
             NEXT_STEP_MARKERS[14] + "\n" + NEXT_STEP_MARKERS[14],
+            2,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_next_step",
+            NEXT_STEP_MARKERS[-1],
+            "",
+            0,
+        )
+        case_count += 1
+
+        make_fixture_root(root)
+        lane_note_text = lane_note.read_text(encoding="utf-8")
+        expect_missing_exact_count(
+            root,
+            lane_note,
+            lane_note_text,
+            "phase1_direct_owner_next_step",
+            NEXT_STEP_MARKERS[-1],
+            NEXT_STEP_MARKERS[-1] + "\n" + NEXT_STEP_MARKERS[-1],
             2,
         )
         case_count += 1
