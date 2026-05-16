@@ -94,6 +94,7 @@ REQUIRED_MARKERS = {
         'test "summarizePollExecutionResultFromWaitResult keeps timeout interrupt and wait failure returns aligned" {',
         'test "resolvePollExecutionResultFromWaitResult clamps oversized successful processed-record returns to INT_MAX" {',
         'test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing-failure bookkeeping" {',
+        'test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {',
         'test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {',
         'test "summarizePollExecution rejects processing more ready buffers than the helper counted as ready" {',
         'test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing accounting summaries" {',
@@ -126,6 +127,9 @@ REQUIRED_MARKERS = {
         "perf_buffer_poll.PollError.InconsistentProcessingAccountingSummary",
         "perf_buffer_poll.PollError.ReadyBufferProcessingExceedsObservedEvents",
         "perf_buffer_poll.PollError.ReadyBufferProcessingExceedsReadyCount",
+        "perf_buffer_poll.PollError.WaitResultDisagreesWithExecutionOutcome",
+        "perf_buffer_poll.PollError.WaitResultDisagreesWithReadyEventCount",
+        "perf_buffer_poll.PollError.WaitResultDisagreesWithFailureCode",
         "perf_buffer_poll.BufferFdLookupDisposition.found_fd",
         "perf_buffer_poll.BufferWindowLookupDisposition.found_window",
     ),
@@ -214,10 +218,10 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{details}")
 
         mutations = (
-            (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
-            (TESTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
+            (SCRIPTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
+            (TESTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
             (TESTS_README_PATH, "`make -C zigux phase8-perf-buffer-poll-test`"),
-            (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") ,
+            (REVIEW_CHECKLIST_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
             (REVIEW_CHECKLIST_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
             (SEQUENCING_PATH, "make -C zigux phase8-perf-buffer-poll-test"),
             (SLICE_PATH, "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
@@ -260,6 +264,10 @@ def run_self_test() -> int:
             (
                 PACKET_HELPER_PATH,
                 'test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing-failure bookkeeping" {',
+            ),
+            (
+                PACKET_HELPER_PATH,
+                'test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {',
             ),
             (
                 PACKET_HELPER_PATH,
@@ -366,6 +374,9 @@ def run_self_test() -> int:
             (PACKET_TEST_PATH, "perf_buffer_poll.PollError.InconsistentProcessingAccountingSummary"),
             (PACKET_TEST_PATH, "perf_buffer_poll.PollError.ReadyBufferProcessingExceedsObservedEvents"),
             (PACKET_TEST_PATH, "perf_buffer_poll.PollError.ReadyBufferProcessingExceedsReadyCount"),
+            (PACKET_TEST_PATH, "perf_buffer_poll.PollError.WaitResultDisagreesWithExecutionOutcome"),
+            (PACKET_TEST_PATH, "perf_buffer_poll.PollError.WaitResultDisagreesWithReadyEventCount"),
+            (PACKET_TEST_PATH, "perf_buffer_poll.PollError.WaitResultDisagreesWithFailureCode"),
             (PACKET_TEST_PATH, "perf_buffer_poll.BufferFdLookupDisposition.found_fd"),
             (PACKET_TEST_PATH, "perf_buffer_poll.BufferWindowLookupDisposition.found_window"),
             (PACKET_ONLY_BUILD_PATH, "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
