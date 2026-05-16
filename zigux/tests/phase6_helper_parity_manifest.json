@@ -86,6 +86,7 @@
   "shared_gates": [
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-checksum-slice.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
     "scripts/zigux/README.md",
@@ -96,6 +97,7 @@
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile"
   ],
+  "helper_evidence_catalog": "Documentation/zigux/phase6-helper-evidence-catalog.md",
   "tests_root_present_entrypoints": [
     "zigux/tests/phase6_build.zig",
     "zigux/tests/phase6_helper_parity_manifest.json",
