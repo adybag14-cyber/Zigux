@@ -79,3 +79,28 @@ Key entrypoints
   * `Documentation/zigux/phase6-helper-parity-catalog.md`
   * `Documentation/zigux/phase6-perf-gate-survey.md`
   * `Documentation/zigux/README.md`
+
+Phase 12 review packet
+  * `scripts/zigux/check-build-only-phase12-surface.py`
+  * `Documentation/zigux/phase12-release-sequencing.md`
+  * `Documentation/zigux/phase12-release-closure-checklist.md`
+  * `Documentation/zigux/phase12-release-readiness-survey.md`
+  * `Documentation/zigux/phase12-release-coordination-matrix.md`
+  * `make -C zigux phase12-validate`
+  * `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
+  * `Documentation/zigux/phase12-raw-github-coverage-survey.md`
+  * `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
+  * `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
+  * `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
+  * `Documentation/zigux/phase12-virtio-net-survey.md`
+  * `Documentation/zigux/phase12-libbpf-segment-survey.md`
+  * `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
+  * `scripts/zigux/check-phase12-release-readiness-packet.py`
+  * while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`
+  * current `zigux/tests/phase12_build.zig` also runs `zigux/tests/phase12_virtio_net_transmit_recycle.zig` and `zigux/tests/phase12_virtio_net_queue_resume.zig` in both `smoke` and `test`, but those stay framed as bounded transmit-disposition and queue-resume reviewability rather than live DMA or queue-restart parity
+  * `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`
+  * `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json`
+  * `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+  * `make -C zigux phase12-smoke`
+  * `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+  * `make -C zigux phase12`
