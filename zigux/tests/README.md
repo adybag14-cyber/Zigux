@@ -153,6 +153,7 @@ Phase 3 review packet
   * `scripts/zigux/check-phase3-readme-tooling-inventory.py`
   * `scripts/zigux/check-phase3-abi-dump-gate.py`
   * `scripts/zigux/check-phase3-catalog-selftest.py`
+  * `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
   * `scripts/zigux/validate-phase3-export-uapi-survey.py`
   * `scripts/zigux/validate-phase3-abi-header-family-survey.py`
   * `scripts/zigux/validate-phase3-validator-support-surface.py`
