@@ -325,3 +325,68 @@ jobs:
 
       - name: Run Phase 15 governance tests
         run: make -C zigux phase15-test
+
+  phase2_cross_scope:
+    needs: bootstrap
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.scope.outputs.should_run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Decide Phase 2 cross scope
+        id: scope
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            changed_files="$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}")"
+          else
+            before="${{ github.event.before }}"
+            if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
+              changed_files="$(git show --pretty='' --name-only "${{ github.sha }}")"
+            else
+              changed_files="$(git diff --name-only "$before" "${{ github.sha }}")"
+            fi
+          fi
+
+          if printf '%s\n' "$changed_files" | grep -Eq '^(\.github/workflows/zigux-bootstrap\.yml|scripts/zigux/install-zig\.py|scripts/zigux/check-phase2-cross\.py|scripts/zigux/check-phase2-cross-selftest-alignment\.py|scripts/zigux/fixdep\.zig|scripts/zigux/genksyms\.zig|scripts/zigux/kconfig/conf_bridge\.zig|scripts/zigux/kconfig/confdata_bridge\.zig|scripts/zigux/zig-toolchain-policy\.json|zigux/Makefile|zigux/tests/fixtures/phase2_cross_targets\.json)$'; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  phase2-cross:
+    if: needs.phase2_cross_scope.outputs.should_run == 'true'
+    needs: [bootstrap, phase2_cross_scope]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        zig_target:
+          - x86_64-linux-musl
+          - aarch64-linux-musl
+          - riscv64-linux-musl
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.x'
+
+      - name: Install Zig
+        run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain
+
+      - name: Check bounded Phase 2 cross-target compile
+        run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}
