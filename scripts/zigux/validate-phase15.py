@@ -21,6 +21,7 @@ FILES = [
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
@@ -150,29 +151,28 @@ REVIEW_CHECKLIST_MARKERS = [
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_readiness_gate_manifest.json",
+    "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
+    "zigux/tests/phase15_parity_scorecard.zig",
+    "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
-    "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
-    "zigux/tests/phase15_build.zig",
-    "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_readiness_gate.zig",
-    "make -C zigux phase15-validate",
-    "make -C zigux phase15-test",
-    "make -C zigux phase15",
-    "no-approval-yet posture",
+    "without implying any Architecture Council approval for a freeze-map status change",
 ]
 
 READINESS_SURVEY_MARKERS = [
     "PHASE15_LANE_KEY=P15-L01",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
-    "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-15",
-    "no Architecture Council approval is currently recorded",
+    "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-16",
+    "no Architecture Council approval is currently recorded for a freeze-map status change",
     "the current readiness packet remains a maintenance-mode governance surface only",
+    "later repo movement still requires a fresh bounded provenance refresh before this note should claim a newer reviewed head than `current-master-readback-2026-05-16`",
     "The packet remains parked.",
     "validator-first route stays explicit through `python3 scripts/zigux/validate-phase15.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `make -C zigux phase15-validate`",
+    "the dedicated docs-root, scripts-root, and review-process reminder guards stay explicit through `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, and `python3 scripts/zigux/check-phase15-review-process-handoff.py`",
     "shared replay route stays explicit through `zigux/tests/phase15_build.zig`",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15-test",
@@ -181,6 +181,7 @@ READINESS_SURVEY_MARKERS = [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
@@ -189,17 +190,15 @@ READINESS_SURVEY_MARKERS = [
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase15.py",
     "python3 scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "python3 scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "python3 scripts/zigux/check-phase15-review-process-handoff.py",
     "python3 scripts/zigux/check-phase15-shared-summary-gap.py",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
-    "shared-summary lane `P15-Y07`",
     "zigux/tests/README.md",
     "zigux/Makefile",
     "`make -C zigux phase15` packet still matches the current no-approval-yet maintenance-mode blocker posture",
     "no-approval-yet maintenance-mode blocker posture",
     "the remaining blocker is still `phase15-deep-core-status-change-blocker`",
     "phase15-docs-root-summary-alignment",
-    "Later repo movement still requires a fresh bounded provenance refresh",
 ]
 
 LANE_SEQUENCING_MARKERS = [
@@ -207,15 +206,14 @@ LANE_SEQUENCING_MARKERS = [
     "PHASE15_LANE_KEY=P15-Y07",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
     "historical continuity for this parked maintenance surface still points back to `P15-L06`, but the current shared owner-map refresh is tracked under `P15-Y07`",
-    "- `freeze-map-governance`: owns `Documentation/zigux/freeze-map.md`",
-    "- `review-process`: owns `Documentation/zigux/phase15-architecture-council-review-process.md`",
+    "- `freeze-map-governance`: owns `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `zigux/tests/phase15_freeze_map_manifest.json`, and `zigux/tests/phase15_freeze_map_governance.zig`",
+    "- `review-process`: owns `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_architecture_council_review_process.zig`",
     "- `parity-scorecard-survey`: owns `Documentation/zigux/phase15-parity-scorecard-survey.md`",
     "- `parity-scorecard`: owns `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/tests/phase15_parity_scorecard.json`, and `zigux/tests/phase15_parity_scorecard.zig`",
     "- `indefinite-c-policy`: owns `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
     "- `readiness-gate`: owns `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_readiness_gate.zig`, and `scripts/zigux/validate-phase15.py`",
     "- `handoff-next-steps`: owns `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig`",
-    "scripts/zigux/check-phase15-docs-readme-alignment.py",
-    "scripts/zigux/check-phase15-shared-summary-gap.py",
+    "- `shared-summaries`: owns `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and `scripts/zigux/check-phase15-shared-summary-gap.py`",
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
     "make -C zigux phase15",
@@ -550,6 +548,11 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root, "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     _write(root, "Documentation/zigux/phase15-freeze-map-governance.md", "# freeze governance\n")
     _write(root, "Documentation/zigux/phase15-architecture-council-review-process.md", "# review process\n")
+    _write(
+        root,
+        "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+        "# decision record template\n",
+    )
     _write(root, "Documentation/zigux/phase15-parity-scorecard-survey.md", "# parity survey\n")
     _write(root, "Documentation/zigux/phase15-parity-scorecard.md", "# parity scorecard\n")
     _write(root, "Documentation/zigux/phase15-indefinite-c-policy.md", "# policy\n")
@@ -588,7 +591,7 @@ def _seed_fixture_tree(root: Path) -> None:
         json.dumps(
             {
                 "surveyed_commit_mode": "dated_master_readback",
-                "surveyed_commit": "current-master-readback-2026-05-14",
+                "surveyed_commit": "current-master-readback-2026-05-16",
                 "repo_evidence": {
                     "phase15_validator_script_present": True,
                     "phase15_docs_readme_checker_present": True,
@@ -683,7 +686,7 @@ def run_self_test() -> int:
         case_count += 1
 
         survey_text = _read(root, "Documentation/zigux/phase15-readiness-gate-survey.md")
-        marker = "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-15"
+        marker = "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-16"
         _write(root, "Documentation/zigux/phase15-readiness-gate-survey.md", survey_text.replace(marker + "\n", "", 1))
         _assert_result(*validate(root), [], [f"readiness_survey:{marker}"], "readiness_surveyed_head")
         case_count += 1
