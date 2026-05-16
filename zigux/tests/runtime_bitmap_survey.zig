@@ -217,7 +217,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
         "keep the loader scaffold, top-bit companion contract, prepared-plan drift guard, and shared-request lifecycle proof explicit until the shared runtime loader substrate can consume the handoff plan",
         manifest.roadmap_gap_summary.next_gate,
     );
-    try std.testing.expectEqual(@as(usize, 13), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.gaps.len);
 
@@ -239,6 +239,11 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-bitmap-survey.md", survey_note_entry.path);
     const module_slice_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-bitmap-module-slice-note") orelse return error.MissingModuleSliceNote;
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-bitmap-module-slice.md", module_slice_entry.path);
+    const shared_selftest_complete_exit_parity_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-loader-selftest-complete-exit-parity") orelse return error.MissingSharedSelftestCompleteExitParityEntry;
+    try std.testing.expectEqualStrings("validation", shared_selftest_complete_exit_parity_entry.kind);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_loader_selftest_complete_exit_parity.zig", shared_selftest_complete_exit_parity_entry.path);
+    try expectContains(shared_selftest_complete_exit_parity_entry.why_now, "selftest-complete versus later exit replay");
+    try expectContains(shared_selftest_complete_exit_parity_entry.why_now, "shared release-state synchronization");
 
     const manifest_owner = findOwnershipEntry(manifest.ownership_map, "zigux/tests/runtime_bitmap_manifest.json") orelse return error.MissingManifestOwner;
     try std.testing.expectEqualStrings("packet_truth_manifest", manifest_owner.role);
@@ -380,6 +385,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-loader-selftest-complete-exit-parity-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
 
     try expectContains(makefile, "phase9-runtime-bitmap-top-bit-test:");
@@ -387,4 +393,48 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(makefile, "phase9-runtime-loader-shared-tests:");
     try expectContains(makefile, "$(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all");
     try expectContains(makefile, "phase9: phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test");
+}
+
+test "phase 9 runtime bitmap survey keeps shared selftest-complete exit parity proof explicit" {
+    const manifest_json = try readRepoFileAlloc(
+        std.testing.allocator,
+        "zigux/tests/runtime_bitmap_manifest.json",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const survey_note = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-bitmap-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const module_slice = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(module_slice);
+
+    const phase9_build = try readRepoFileAlloc(
+        std.testing.allocator,
+        "zigux/tests/phase9_build.zig",
+        96 * 1024,
+    );
+    defer std.testing.allocator.free(phase9_build);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+    const manifest = parsed.value;
+
+    const parity_entry = findDeliveryEvidence(manifest.delivery_evidence_catalog, "runtime-loader-selftest-complete-exit-parity") orelse return error.MissingSharedSelftestCompleteExitParityEntry;
+    try std.testing.expectEqualStrings("validation", parity_entry.kind);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_loader_selftest_complete_exit_parity.zig", parity_entry.path);
+    try expectContains(parity_entry.why_now, "selftest-complete versus later exit replay");
+    try expectContains(parity_entry.why_now, "shared release-state synchronization");
+
+    try expectContains(survey_note, "`zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`");
+    try expectContains(module_slice, "`zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`");
+    try expectContains(phase9_build, "\"phase9-runtime-loader-selftest-complete-exit-parity-tests\"");
 }
