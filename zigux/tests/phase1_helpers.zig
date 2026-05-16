@@ -811,8 +811,8 @@ test "phase 1 helper ports match committed parity fixture" {
 
     const cachedReturnSerial = struct {
         fn read(node: ?*rbtree.Node) i64 {
-            const current = node orelse return -1;
-            const entry: *const CachedEntry = @fieldParentPtr("node", current);
+            const current_node = node orelse return -1;
+            const entry: *const CachedEntry = @fieldParentPtr("node", current_node);
             return entry.serial;
         }
     }.read;
