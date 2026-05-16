@@ -41,6 +41,9 @@ pub fn validatePinRootPath(root_path: []const u8) PinPathError!void {
     if (root_path.len == 0 or root_path[0] != '/') {
         return error.InvalidRootPath;
     }
+    if (std.mem.indexOfScalar(u8, root_path, 0) != null) {
+        return error.InvalidRootPath;
+    }
     if (root_path.len > 1 and root_path[root_path.len - 1] == '/') {
         return error.InvalidRootPath;
     }
@@ -119,6 +122,7 @@ test "validated pin-path helpers keep pin-name and root-path shape checks explic
     try validatePinRootPath("/sys/fs/bpf");
     try std.testing.expectError(error.InvalidRootPath, validatePinRootPath("relative/root"));
     try std.testing.expectError(error.InvalidRootPath, validatePinRootPath("/sys/fs/bpf/"));
+    try std.testing.expectError(error.InvalidRootPath, validatePinRootPath("/sys/fs/bpf\x00tmp"));
 
     try std.testing.expectEqualStrings(
         "/sys/fs/bpf/metrics_v1",
@@ -131,6 +135,10 @@ test "validated pin-path helpers keep pin-name and root-path shape checks explic
     try std.testing.expectError(
         error.InvalidRootPath,
         buildValidatedSanitizedMapPinPath(&buffer, "tmp/bpf", "metrics.v1"),
+    );
+    try std.testing.expectError(
+        error.InvalidRootPath,
+        buildValidatedSanitizedMapPinPath(&buffer, "/tmp/bpf\x00tmp", "metrics.v1"),
     );
 }
 
