@@ -147,6 +147,8 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
         "`scripts/zigux/validate-phase13-release.py`",
+        VALIDATE_ROUTE,
+        BLOCKED_ROUTE,
         DEVRES_BOUNDARY,
         LANDLOCK_SYSCALLS_REVIEWABILITY,
         NOTIFIER_CHAIN_VIEW,
