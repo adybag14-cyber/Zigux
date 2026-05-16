@@ -42,7 +42,7 @@ That anchor remains high value because `pci.c` still covers controller bring-up,
 - current `master` now carries `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, and `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, so the bounded starter-plus-verifier support packet is now explicit through driver-local notes as well as the survey surfaces
 - current `master` still does not wire the bounded NVMe direct replay into `zigux/tests/phase12_build.zig` or the shared `phase12-smoke` and `phase12` routes
 
-Those checks mean the current lane now has a truthful slice note, survey note, manifest, and survey gate for the existing NVMe starter packet plus the new queue-count helper, but it is still intentionally below any live DMA-backed queue execution, timeout recovery, or transport-backed reset claim.
+Those checks mean the current lane now has a truthful slice note and survey note for the existing NVMe starter packet plus the new queue-count helper, while the existing manifest and survey gate still cover the broader NVMe packet without yet naming the helper directly. The packet is still intentionally below any live DMA-backed queue execution, timeout recovery, or transport-backed reset claim.
 
 ## Truthful boundary
 
@@ -51,7 +51,7 @@ The truthful current boundary is:
 - the roadmap still wants a bounded `nvme_pci` lane in Phase 12
 - current `master` now carries `drivers/nvme/host/pci.zig`, and the current starter keeps queue-pair sizing, host-DMA budgeting, PRP buffer-shape pressure, reset freeze state, frozen queue-restore budgeting, queue-restart review, dropped-backlog retirement conditions, and rollback-gate review explicitly reviewable
 - current `master` now carries `drivers/nvme/host/pci_queue_count.zig`, so controller-versus-planner I/O queue-count negotiation is also explicitly reviewable below live queue creation
-- current `master` now carries the bounded verifier shard, the direct replay, the queue-count direct replay, the manifest anchor, the slice note, the fallback map, the reopen-governance note, this survey note, and the dedicated survey gate, so the starter is directly reviewable through driver-local surfaces
+- current `master` now carries the bounded verifier shard, the direct replay, the queue-count direct replay, the manifest anchor, the slice note, the fallback map, the reopen-governance note, this survey note, and the dedicated survey gate, so the starter is directly reviewable through driver-local surfaces even though the manifest and survey gate still summarize the broader packet
 - current `master` still does not claim live DMA mapping, PRP or SGL construction, queue submission, blk-mq wiring, interrupt completion, timeout handling, suspend or resume, or transport-backed reset replay
 - current `master` still does not claim shared Phase 12 build wiring, throughput parity, or measured recovery parity for the NVMe packet
 
