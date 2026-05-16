@@ -111,7 +111,7 @@ ALLCONFIG_SENTINEL_MODES = {
     "alldefconfig",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 26
+EXPECTED_SELF_TEST_CASE_COUNT = 27
 
 
 def load_policy(policy_path: Path = TOOLCHAIN_POLICY) -> dict[str, object] | None:
@@ -522,7 +522,7 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "allrandom.config", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
                     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
                     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "defconfig.out", "expected": "savedefconfig_expected.json"},
-                    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "expected": "listnewconfig_expected.json"},
+                    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": True, "expected": "listnewconfig_expected.json"},
                     {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": True, "expected": "helpnewconfig_expected.json"},
                     {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
                     {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
@@ -583,6 +583,7 @@ def build_self_test_root(root: Path) -> None:
                     "savedefconfig",
                 ],
                 "silent_request_packet": [
+                    "listnewconfig_expected.json",
                     "helpnewconfig_expected.json",
                 ],
                 "syncconfig_env_packet": [
@@ -891,6 +892,14 @@ def run_self_test() -> int:
         write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONF_MANIFEST_MODE_ARG_CASES_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
+        manifest["silent_request_packet"] = ["helpnewconfig_expected.json"]
+        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_SILENT_REQUEST_PACKET_MISMATCH" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
