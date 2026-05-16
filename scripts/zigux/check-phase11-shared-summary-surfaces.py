@@ -10,6 +10,7 @@ FILES = {
     "contract_note": "Documentation/zigux/phase11-shared-replay-contract.md",
     "closure_note": "Documentation/zigux/phase11-closure-note.md",
     "lane_note": "Documentation/zigux/phase11-driver-lane-sequencing.md",
+    "contributor_sync_note": "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
     "build_inventory": "zigux/tests/fixtures/phase11_build_inventory.json",
     "makefile": "zigux/Makefile",
     "workflow": ".github/workflows/zigux-bootstrap.yml",
@@ -55,6 +56,15 @@ REQUIRED_MARKERS = {
         "current `master` now directly materializes `zigux/tests/phase11_build.zig` and `zigux/tests/fixtures/phase11_build_inventory.json`",
         "there is no shared `validate-phase11.py`",
         "the shipped `make -C zigux phase11-contract` route",
+    ],
+    "contributor_sync_note": [
+        "# Phase 10, 11, and 13 Contributor Surface Sync",
+        "## Phase 11 contributor packet",
+        "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`scripts/zigux/check-phase11-build-inventory.py`",
+        "`zigux/tests/fixtures/phase11_build_inventory.json`",
+        "`make -C zigux phase11-contract`",
+        "the exact shared `zig build test --build-file zigux/tests/phase11_build.zig --summary all` replay",
     ],
     "build_inventory": [
         "\"phase11-hvc-console-survey-tests\"",
