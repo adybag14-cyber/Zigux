@@ -109,6 +109,11 @@ const ModeArgumentError = error{
     MissingArgument,
 };
 
+const ParseRequestError = ParseBridgeOptionsError || ModeArgumentError || error{
+    InvalidUsage,
+    UnsupportedMode,
+};
+
 fn modeRequiresArgument(mode: Mode) bool {
     return switch (mode) {
         .defconfig, .savedefconfig => true,
@@ -282,6 +287,37 @@ fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsEr
     return options;
 }
 
+fn parseRequest(args: []const []const u8) ParseRequestError!Request {
+    if (args.len < 5 or args.len > 9) {
+        return error.InvalidUsage;
+    }
+
+    const mode = Mode.parse(args[1]) orelse return error.UnsupportedMode;
+
+    var next_index: usize = 5;
+    const mode_arg = blk: {
+        if (!modeRequiresArgument(mode)) break :blk null;
+        if (args.len == next_index) return error.MissingArgument;
+        const value = try validateModeArgument(mode, args[next_index]);
+        next_index += 1;
+        break :blk value;
+    };
+
+    const options = try parseBridgeOptions(mode, args[next_index..]);
+    return .{
+        .mode = mode,
+        .kconfig = args[2],
+        .config = args[3],
+        .arch = args[4],
+        .silent = options.silent,
+        .mode_arg = mode_arg,
+        .allconfig = options.allconfig,
+        .seed = options.seed,
+        .probability = options.probability,
+        .nosilentupdate = options.nosilentupdate,
+    };
+}
+
 pub fn runConfBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"");
     try writer.writeAll(request.mode.text());
@@ -343,47 +379,11 @@ pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const args = try init.minimal.args.toSlice(arena);
 
-    if (args.len < 5 or args.len > 9) {
-        var stderr_buffer: [220]u8 = undefined;
-        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg] [silent] [allconfig=<value>] [seed=<value>] [probability=<value>] [nosilentupdate=<value>]\n");
-        try stderr_writer.interface.flush();
-        std.process.exit(1);
-    }
-
-    const mode = Mode.parse(args[1]) orelse {
-        var stderr_buffer: [160]u8 = undefined;
-        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Error: unsupported kconfig mode\n");
-        try stderr_writer.interface.flush();
-        std.process.exit(1);
-    };
-
-    var next_index: usize = 5;
-    const mode_arg = blk: {
-        if (!modeRequiresArgument(mode)) break :blk null;
-        if (args.len == next_index) {
-            var stderr_buffer: [160]u8 = undefined;
-            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            try stderr_writer.interface.writeAll(missingModeArgumentMessage(mode));
-            try stderr_writer.interface.flush();
-            std.process.exit(1);
-        }
-        const value = validateModeArgument(mode, args[next_index]) catch {
-            var stderr_buffer: [160]u8 = undefined;
-            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            try stderr_writer.interface.writeAll(missingModeArgumentMessage(mode));
-            try stderr_writer.interface.flush();
-            std.process.exit(1);
-        };
-        next_index += 1;
-        break :blk value;
-    };
-
-    const options = parseBridgeOptions(mode, args[next_index..]) catch |err| {
-        var stderr_buffer: [192]u8 = undefined;
-        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+    const request = parseRequest(args) catch |err| {
         const message = switch (err) {
+            error.InvalidUsage => "Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg] [silent] [allconfig=<value>] [seed=<value>] [probability=<value>] [nosilentupdate=<value>]\n",
+            error.UnsupportedMode => "Error: unsupported kconfig mode\n",
+            error.MissingArgument => missingModeArgumentMessage(Mode.parse(args[1]) orelse .defconfig),
             error.DuplicateSilent => "Error: duplicate silent option\n",
             error.DuplicateAllConfig => "Error: duplicate allconfig override option\n",
             error.DuplicateSeed => "Error: duplicate randconfig seed option\n",
@@ -391,6 +391,8 @@ pub fn main(init: std.process.Init) !void {
             error.DuplicateNoSilentUpdate => "Error: duplicate syncconfig nosilentupdate option\n",
             error.UnexpectedArgument => "Error: unexpected bridge option for mode\n",
         };
+        var stderr_buffer: [220]u8 = undefined;
+        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
         try stderr_writer.interface.writeAll(message);
         try stderr_writer.interface.flush();
         std.process.exit(1);
@@ -398,18 +400,7 @@ pub fn main(init: std.process.Init) !void {
 
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
-    try runConfBridge(&stdout_writer.interface, .{
-        .mode = mode,
-        .kconfig = args[2],
-        .config = args[3],
-        .arch = args[4],
-        .silent = options.silent,
-        .mode_arg = mode_arg,
-        .allconfig = options.allconfig,
-        .seed = options.seed,
-        .probability = options.probability,
-        .nosilentupdate = options.nosilentupdate,
-    });
+    try runConfBridge(&stdout_writer.interface, request);
     try stdout_writer.interface.flush();
 }
 
@@ -515,6 +506,43 @@ test "conf bridge parses silentoldconfig alias as syncconfig" {
     try std.testing.expectEqual(Mode.syncconfig, mode);
     try std.testing.expectEqualStrings("syncconfig", mode.text());
     try std.testing.expectEqualStrings("--syncconfig", mode.flag());
+}
+
+test "request parser accepts silentoldconfig alias with syncconfig env" {
+    const request = try parseRequest(&.{
+        "conf_bridge",
+        "silentoldconfig",
+        "Kconfig",
+        "out/.config",
+        "riscv64",
+        "nosilentupdate=1",
+    });
+
+    try std.testing.expectEqual(Mode.syncconfig, request.mode);
+    try std.testing.expectEqualStrings("Kconfig", request.kconfig);
+    try std.testing.expectEqualStrings("out/.config", request.config);
+    try std.testing.expectEqualStrings("riscv64", request.arch);
+    try std.testing.expectEqualStrings("1", request.nosilentupdate.?);
+    try std.testing.expect(request.mode_arg == null);
+    try std.testing.expect(request.allconfig == null);
+    try std.testing.expect(request.seed == null);
+    try std.testing.expect(request.probability == null);
+}
+
+test "request parser keeps mode argument ahead of trailing options" {
+    const request = try parseRequest(&.{
+        "conf_bridge",
+        "defconfig",
+        "Kconfig",
+        "out/.config",
+        "arm64",
+        "arch/arm64/configs/defconfig",
+        "silent",
+    });
+
+    try std.testing.expectEqual(Mode.defconfig, request.mode);
+    try std.testing.expectEqualStrings("arch/arm64/configs/defconfig", request.mode_arg.?);
+    try std.testing.expect(request.silent);
 }
 
 test "conf bridge emits olddefconfig argv and env" {
