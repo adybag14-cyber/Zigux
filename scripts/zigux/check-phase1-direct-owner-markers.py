@@ -308,7 +308,7 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_root(root)
-        makefile.writeText("".join(f"\t{marker}\n" for marker in MAKEFILE_MARKERS), encoding="utf-8")
+        makefile.write_text("".join(f"\t{marker}\n" for marker in MAKEFILE_MARKERS), encoding="utf-8")
         assert collect_missing_markers(root) == []
         case_count += 1
 
