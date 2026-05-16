@@ -12,12 +12,16 @@ DEFAULT_ROOT = Path(__file__).resolve().parent
 LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 
 REQUIRED_EXACT_LINES = {
-    "bitmap_direct_owner": "- `PHASE1_BITMAP_DIRECT_OWNER=bitmap helper-local anchors plus the committed bitmap replay keys and the already-landed shared closure-validator bitmap review markers it already owns`",
+    "missing_phase1_packet_note": "- current authenticated reads do not recover `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, or `zigux/Makefile` on `master`, so this lane should treat those older closure-side and make-route names as historical packet members that need fresh re-materialization before they are reused as live owner-map evidence",
+    "bitmap_direct_owner": "- `PHASE1_BITMAP_DIRECT_OWNER=bitmap helper-local anchors plus the committed bitmap replay keys it already owns; older closure-side bitmap note names stay historical until current master exposes them again`",
     "find_bit_direct_owner": "- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, and tail-word skip anchors plus the committed tail-clamped find_bit replay fields already emitted by the shared C harness and consumed by the shared fixture`",
     "rbtree_direct_owner": "- `PHASE1_RBTREE_DIRECT_OWNER=rbtree cached-root coverage stays helper-local while the committed shared replay owns duplicate-search parity and matchIterator() through the dedicated iterator fixture key, so the next widening is the cached-root leftmost-return fixture key only`",
     "string_direct_owner": "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
-    "find_bit_or_packet_note": '- current `master` also carries the newer direct `test "find or bit returns the next set bit from either bitmap"` proof inside `tools/lib/find_bit.zig`, so notes-only and closure-side rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it',
-    "find_bit_or_next_step_note": '- the already-landed OR-path proof in `test "find or bit returns the next set bit from either bitmap"` belongs to that same `find_bit` direct-anchor packet, so if it drifts, refresh the existing helper-family notes or closure evidence instead of widening shared replay ownership',
+    "find_bit_or_packet_note": '- current `master` also carries the newer direct `test "find or bit returns the next set bit from either bitmap"` proof inside `tools/lib/find_bit.zig`, so notes-only rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it',
+    "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; treat the older `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` names as historical packet members until current `master` exposes them again",
+    "bitmap_next_safe_step": "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen older closure-side or validator-route cue names by default`",
+    "find_bit_or_next_step_note": '- the already-landed OR-path proof in `test "find or bit returns the next set bit from either bitmap"` belongs to that same `find_bit` direct-anchor packet, so if it drifts, refresh the existing helper-family notes instead of widening shared replay ownership',
+    "string_next_safe_step": "- `PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() C-string list lookup, counted-search strnchr, embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture drift; keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default`",
 }
 
 
@@ -56,19 +60,26 @@ def write_file(root: Path, relative_path: Path, text: str) -> None:
 
 def sample_lane_note_text() -> str:
     ordered_lines = [
+        REQUIRED_EXACT_LINES["missing_phase1_packet_note"],
         REQUIRED_EXACT_LINES["find_bit_or_packet_note"],
         REQUIRED_EXACT_LINES["bitmap_direct_owner"],
         REQUIRED_EXACT_LINES["find_bit_direct_owner"],
         REQUIRED_EXACT_LINES["rbtree_direct_owner"],
         REQUIRED_EXACT_LINES["string_direct_owner"],
+        REQUIRED_EXACT_LINES["string_review_rule_note"],
+        REQUIRED_EXACT_LINES["bitmap_next_safe_step"],
         REQUIRED_EXACT_LINES["find_bit_or_next_step_note"],
+        REQUIRED_EXACT_LINES["string_next_safe_step"],
     ]
     return (
         "# Phase 1 Host-Helper Lane Sequencing\n\n"
-        "## Direct-Anchor Owner Map\n\n"
-        + "\n".join(ordered_lines)
+        "## Current Repo Reality\n\n"
+        + "\n".join(ordered_lines[:2])
+        + "\n\n## Direct-Anchor Owner Map\n\n"
+        + "\n".join(ordered_lines[2:7])
         + "\n\n## Next Bounded Step\n\n"
-        "Keep the direct-owner packet parked unless one of those exact lines drifts.\n"
+        + "\n".join(ordered_lines[7:])
+        + "\n"
     )
 
 
