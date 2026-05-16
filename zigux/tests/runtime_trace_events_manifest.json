@@ -28,7 +28,7 @@
     "landed_pilot_state": "family_local_trace_events_review_packet_plus_shared_loader_handoff",
     "missing_capability": "the broader shared runtime substrate that would turn the current reviewable trace-events sample, loader, loader-substrate-drift replay, diff, module, and survey packet into live runtime tracepoint-registration lifecycle parity",
     "blocked_deliverable": "completed live Phase 9 runtime tracepoint registration lifecycle parity beyond the current review packet",
-    "next_gate": "keep the trace-events survey note, module-slice note, manifest, the shipped `prepareSharedRequest`, `requestSharedRuntimeLoad`, and `releaseSharedWithoutSubstrate` bridge helpers, and the loader-substrate-drift replay aligned with the visible family-local packet while leaving the shared runtime-substrate blocker explicit"
+    "next_gate": "keep the trace-events survey note, module-slice note, manifest, direct module gate, the shipped `prepareSharedRequest`, `requestSharedRuntimeLoad`, and `releaseSharedWithoutSubstrate` bridge helpers, and the loader-substrate-drift replay aligned with the visible family-local packet while keeping the bounded pilot-module contract explicit and leaving the shared runtime-substrate blocker explicit"
   },
   "delivery_evidence_catalog": [
     {
@@ -53,7 +53,7 @@
       "id": "trace-events-module-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_trace_events_module.zig",
-      "why_now": "The direct module gate is visible on current master and keeps the bounded lifecycle, selftest-ready failed-exit rollback, rejected re-selftest rollback, and registration-drain packet machine-checkable."
+      "why_now": "The direct module gate is visible on current master and keeps the bounded pilot-module contract through `RuntimeTraceEventsSample.descriptor()` plus `runSelftest()` alongside the bounded lifecycle, selftest-ready failed-exit rollback, rejected re-selftest rollback, and registration-drain packet machine-checkable."
     },
     {
       "id": "trace-events-diff-gate",
@@ -65,7 +65,7 @@
       "id": "trace-events-survey-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_trace_events_survey.zig",
-      "why_now": "The dedicated survey gate is visible on current master and remains the packet-local fail-closed check for note and manifest drift."
+      "why_now": "The dedicated survey gate is visible on current master and remains the packet-local fail-closed check for note, manifest, and bounded pilot-module roadmap drift."
     },
     {
       "id": "trace-events-manifest",
@@ -103,19 +103,19 @@
       "surface": "zigux/tests/runtime_trace_events_manifest.json",
       "role": "packet_truth_manifest",
       "owner": "P9-L10",
-      "boundary": "Records the visible family-local trace-events packet on current master without borrowing proof from unrelated shared-loader lanes."
+      "boundary": "Records the visible family-local trace-events packet on current master, including the bounded pilot-module contract, without borrowing proof from unrelated shared-loader lanes."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
       "role": "survey_note",
       "owner": "P9-L10",
-      "boundary": "Records the reviewable family-local packet and keeps the shared runtime-substrate blocker explicit."
+      "boundary": "Records the reviewable family-local packet, keeps the bounded pilot-module contract explicit, and keeps the shared runtime-substrate blocker explicit."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
       "role": "module_slice_note",
       "owner": "P9-L10",
-      "boundary": "Tracks the same packet-local proof, including the selftest-ready failed-exit rollback note, and shared-loader adjacency without claiming completed runtime-substrate parity."
+      "boundary": "Tracks the same packet-local proof, including the bounded pilot-module contract, the selftest-ready failed-exit rollback note, and shared-loader adjacency without claiming completed runtime-substrate parity."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
