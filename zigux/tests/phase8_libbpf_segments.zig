@@ -219,6 +219,7 @@ test "phase 8 libbpf survey keeps routing helper and perf-buffer boundary explic
         32 * 1024,
     );
     defer std.testing.allocator.free(boundary_note);
+    try expectContains(boundary_note, "`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`");
     try expectContains(boundary_note, "`make -C zigux phase8-perf-buffer-poll-test`");
     try expectContains(boundary_note, "standalone timer helper behavior");
     try expectContains(boundary_note, "clockevent helper behavior");
