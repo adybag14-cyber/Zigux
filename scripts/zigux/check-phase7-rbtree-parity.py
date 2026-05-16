@@ -130,10 +130,12 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_rbtree.zig": [
         "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable",
         "phase 7 rbtree cached helpers return leftmost handoff state",
+        "phase 7 rbtree replaceNodeCached rewires cached leftmost ownership over dirty replacement nodes",
         "phase 7 rbtree eraseInitCached clears detached cached nodes and keeps cached roots reusable",
         "phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
         "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
         "phase 7 rbtree detached nodes stay non-empty until callers clear them",
+        "phase 7 rbtree replaceNode overwrites stale replacement ownership state before reconnecting",
         "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
         "phase 7 rbtree find helpers walk duplicate-key ranges",
         "phase 7 rbtree postorder traversal matches committed parity fixture",
@@ -408,11 +410,25 @@ def run_self_test() -> None:
             "zigux/tests/phase7_rbtree.zig: phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
         ),
         (
+            "helper_replace_cached_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "phase 7 rbtree replaceNodeCached rewires cached leftmost ownership over dirty replacement nodes",
+            "",
+            "zigux/tests/phase7_rbtree.zig: phase 7 rbtree replaceNodeCached rewires cached leftmost ownership over dirty replacement nodes",
+        ),
+        (
             "helper_erase_init_marker",
             "zigux/tests/phase7_rbtree.zig",
             "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
             "",
             "zigux/tests/phase7_rbtree.zig: phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
+        ),
+        (
+            "helper_replace_node_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "phase 7 rbtree replaceNode overwrites stale replacement ownership state before reconnecting",
+            "",
+            "zigux/tests/phase7_rbtree.zig: phase 7 rbtree replaceNode overwrites stale replacement ownership state before reconnecting",
         ),
         (
             "helper_linked_teardown_marker",
