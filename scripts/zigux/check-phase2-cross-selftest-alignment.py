@@ -213,7 +213,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 90
+EXPECTED_SELF_TEST_CASE_COUNT = 93
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
@@ -536,33 +536,35 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_job_missing")
     checks_run += 1
 
-    workflow_job_missing_install = valid_workflow_job.replace(
-        "      - name: Install Zig\n",
-        "",
-        1,
-    )
-    expected_workflow_job_install_issue = (
-        "workflow_phase2_cross_job:missing_marker:      - name: Install Zig"
-    )
-    if validate_phase2_cross_workflow_job(workflow_job_missing_install) != [
-        expected_workflow_job_install_issue
-    ]:
-        raise SystemExit("phase2-cross-alignment:self-test:workflow_job_install_marker_failure")
-    checks_run += 1
+    for marker in PHASE2_CROSS_WORKFLOW_JOB_MARKERS:
+        workflow_job_missing_marker = valid_workflow_job.replace(f"{marker}\n", "", 1)
+        expected_workflow_job_marker_issue = (
+            f"workflow_phase2_cross_job:missing_marker:{marker}"
+        )
+        if validate_phase2_cross_workflow_job(workflow_job_missing_marker) != [
+            expected_workflow_job_marker_issue
+        ]:
+            raise SystemExit("phase2-cross-alignment:self-test:workflow_job_marker_failure")
+        checks_run += 1
 
-    workflow_job_with_forbidden_toolchain_gate = valid_workflow_job.replace(
-        "      - name: Check bounded Phase 2 cross-target compile\n",
-        "      - name: Check Zig toolchain\n        run: python3 scripts/zigux/check-zig-toolchain.py\n      - name: Check bounded Phase 2 cross-target compile\n",
-        1,
-    )
-    expected_workflow_job_forbidden_issue = (
-        "workflow_phase2_cross_job:forbidden_marker:python3 scripts/zigux/check-zig-toolchain.py"
-    )
-    if validate_phase2_cross_workflow_job(workflow_job_with_forbidden_toolchain_gate) != [
-        expected_workflow_job_forbidden_issue
-    ]:
-        raise SystemExit("phase2-cross-alignment:self-test:workflow_job_forbidden_failure")
-    checks_run += 1
+    for marker in PHASE2_CROSS_WORKFLOW_JOB_FORBIDDEN_MARKERS:
+        workflow_job_with_forbidden_toolchain_gate = valid_workflow_job.replace(
+            "      - name: Check bounded Phase 2 cross-target compile\n",
+            "      - name: Check Zig toolchain\n        run: "
+            f"{marker}\n"
+            "      - name: Check bounded Phase 2 cross-target compile\n",
+            1,
+        )
+        expected_workflow_job_forbidden_issues = [
+            f"workflow_phase2_cross_job:forbidden_marker:{forbidden_marker}"
+            for forbidden_marker in PHASE2_CROSS_WORKFLOW_JOB_FORBIDDEN_MARKERS
+            if forbidden_marker in marker
+        ]
+        if validate_phase2_cross_workflow_job(workflow_job_with_forbidden_toolchain_gate) != (
+            expected_workflow_job_forbidden_issues
+        ):
+            raise SystemExit("phase2-cross-alignment:self-test:workflow_job_forbidden_failure")
+        checks_run += 1
 
     scope_text = "\n".join(WORKFLOW_SCOPE_REQUIRED_FRAGMENTS)
     if validate_workflow_scope_fragments(scope_text):
