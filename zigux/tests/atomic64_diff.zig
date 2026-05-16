@@ -392,6 +392,47 @@ test "atomic64 diff wrapper keeps the paired survey gate-evidence self-test mark
     );
 }
 
+test "atomic64 diff wrapper keeps the gate-evidence runtime survey blob pins exact" {
+    const gate_evidence_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-gate-evidence.md",
+    );
+    defer std.testing.allocator.free(gate_evidence_source);
+
+    const manifest_blob_sha = try gitBlobShaHex(phase4_runtime_atomic64_manifest_source);
+    const manifest_blob_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA={s}",
+        .{manifest_blob_sha},
+    );
+    defer std.testing.allocator.free(manifest_blob_marker);
+    try expectMarker(gate_evidence_source, manifest_blob_marker);
+
+    const survey_blob_sha = try gitBlobShaHex(phase4_runtime_atomic64_diff_survey_source);
+    const survey_blob_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA={s}",
+        .{survey_blob_sha},
+    );
+    defer std.testing.allocator.free(survey_blob_marker);
+    try expectMarker(gate_evidence_source, survey_blob_marker);
+
+    const review_checklist_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+    );
+    defer std.testing.allocator.free(review_checklist_source);
+    const review_checklist_blob_sha = try gitBlobShaHex(review_checklist_source);
+    const review_checklist_blob_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={s}",
+        .{review_checklist_blob_sha},
+    );
+    defer std.testing.allocator.free(review_checklist_blob_marker);
+    try expectMarker(gate_evidence_source, review_checklist_blob_marker);
+    try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true");
+}
+
 test "atomic64 diff wrapper keeps the current roadmap gap summary reviewable" {
     try expectOrderedMarkersInSection(
         phase4_runtime_atomic64_manifest_source,
