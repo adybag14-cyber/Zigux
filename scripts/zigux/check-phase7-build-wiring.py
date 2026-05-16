@@ -168,6 +168,15 @@ REQUIRED_MARKERS = {
     ],
 }
 
+REQUIRED_EXACT_LINES = {
+    "zigux/Makefile": [
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
+    ],
+}
+
 
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
@@ -180,6 +189,11 @@ def collect_missing_markers(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
+    for rel, lines in REQUIRED_EXACT_LINES.items():
+        text_lines = (root / rel).read_text(encoding="utf-8").splitlines()
+        for line in lines:
+            if line not in text_lines:
+                missing.append(f"{rel}: {line}")
     return missing
 
 
@@ -194,8 +208,9 @@ def write_fixture_root(tmp_root: Path) -> None:
     for rel in REQUIRED_FILES:
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        markers = REQUIRED_MARKERS.get(rel, ["# fixture"])
-        path.write_text("\n".join(markers) + "\n", encoding="utf-8")
+        markers = list(REQUIRED_MARKERS.get(rel, ["# fixture"]))
+        markers.extend(REQUIRED_EXACT_LINES.get(rel, []))
+        path.write_text("\n".join(dict.fromkeys(markers)) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
@@ -280,6 +295,30 @@ def run_self_test() -> None:
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
             "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
         ),
+        (
+            "missing_makefile_string_helpers_direct_body",
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(ZIG) build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
+        ),
+        (
+            "missing_makefile_cmdline_direct_body",
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(ZIG) build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+        ),
+        (
+            "missing_makefile_argv_split_direct_body",
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(ZIG) build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
+        ),
+        (
+            "missing_makefile_rbtree_direct_body",
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(ZIG) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
+        ),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_build_wiring_") as tmp_dir_str:
@@ -332,7 +371,7 @@ def main() -> int:
 
     print("PHASE7_BUILD_WIRING=pass")
     print(f"PHASE7_BUILD_WIRING_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE7_BUILD_WIRING_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    print(f"PHASE7_BUILD_WIRING_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values()) + sum(len(lines) for lines in REQUIRED_EXACT_LINES.values())}")
     return 0
 
 
