@@ -34,7 +34,7 @@ RELEASE_READINESS_MARKERS = [
     "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
     "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
     "`zigux/tests/phase12_build.zig` wires `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` into the active `smoke` and `test` steps",
-    "The shared release packet now also carries the bounded `virtio_net_transmit_recycle` follow-up through `drivers/net/virtio_net_transmit_recycle.zig` and `zigux/tests/phase12_virtio_net_transmit_recycle.zig`: current `zigux/tests/phase12_build.zig` runs that replay in both `smoke` and `test`, but the release reading must keep it framed as transmit-disposition reviewability rather than as live interrupt-backed completion, refill execution, or DMA parity.",
+    "The shared release packet now also carries the bounded `virtio_net_transmit_recycle` and `virtio_net_queue_resume` follow-ups through `drivers/net/virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_queue_resume.zig`, and `zigux/tests/phase12_virtio_net_queue_resume.zig`: current `zigux/tests/phase12_build.zig` runs both replays in `smoke` and `test`, but the release reading must keep them framed as transmit-disposition and queue-resume reviewability rather than as live interrupt-backed completion, refill execution, queue restart parity, or DMA parity.",
     "The broader shared-summary packet is now closed on current `master`: `scripts/zigux/README.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, and `scripts/zigux/check-build-only-phase12-surface.py` all keep the shipped `python3 scripts/zigux/check-phase12-cross.py --self-test` companion and the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard explicit inside the same `make -C zigux phase12-validate` support bundle rather than describing that reminder split as still open.",
     "`scripts/zigux/check-phase12-release-readiness-packet.py` is now the fail-closed truthfulness guard for that already-aligned shared packet: this note should record the closed reminder split and leave the broader PMO packet parked until a fresh repo-first reread finds a new one-file drift instead of reopening driver-local, fallback-catalog, verify-shard, or cross-build wording first.",
     "If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped Phase 12 surface.",
@@ -213,7 +213,7 @@ def good_release_readiness_text() -> str:
             "",
             "## Current Release Reading",
             "- `zigux/tests/phase12_build.zig` wires `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` into the active `smoke` and `test` steps, with the `smoke` step already running the `virtio_net` syntax lab beside the shipped `virtio_scsi` packet.",
-            "- The shared release packet now also carries the bounded `virtio_net_transmit_recycle` follow-up through `drivers/net/virtio_net_transmit_recycle.zig` and `zigux/tests/phase12_virtio_net_transmit_recycle.zig`: current `zigux/tests/phase12_build.zig` runs that replay in both `smoke` and `test`, but the release reading must keep it framed as transmit-disposition reviewability rather than as live interrupt-backed completion, refill execution, or DMA parity.",
+            "- The shared release packet now also carries the bounded `virtio_net_transmit_recycle` and `virtio_net_queue_resume` follow-ups through `drivers/net/virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_queue_resume.zig`, and `zigux/tests/phase12_virtio_net_queue_resume.zig`: current `zigux/tests/phase12_build.zig` runs both replays in `smoke` and `test`, but the release reading must keep them framed as transmit-disposition and queue-resume reviewability rather than as live interrupt-backed completion, refill execution, queue restart parity, or DMA parity.",
             "- The broader shared-summary packet is now closed on current `master`: `scripts/zigux/README.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, and `scripts/zigux/check-build-only-phase12-surface.py` all keep the shipped `python3 scripts/zigux/check-phase12-cross.py --self-test` companion and the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard explicit inside the same `make -C zigux phase12-validate` support bundle rather than describing that reminder split as still open.",
             "- `scripts/zigux/check-phase12-release-readiness-packet.py` is now the fail-closed truthfulness guard for that already-aligned shared packet: this note should record the closed reminder split and leave the broader PMO packet parked until a fresh repo-first reread finds a new one-file drift instead of reopening driver-local, fallback-catalog, verify-shard, or cross-build wording first.",
             "- If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped Phase 12 surface.",
@@ -400,8 +400,8 @@ def run_self_test() -> int:
         case_count += 1
         expect_contains(
             check(tmp_root, source_text=MARKER),
-            "virtio_net_transmit_recycle",
-            "missing transmit-recycle release marker",
+            "virtio_net_queue_resume",
+            "missing virtio-net follow-up release marker",
         )
 
         write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
@@ -544,8 +544,7 @@ def run_self_test() -> int:
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
                 RELEASE_READINESS_MARKERS[9],
-                "",
-                1,
+                "",                1,
             ),
         )
         case_count += 1
@@ -858,7 +857,6 @@ def run_self_test() -> int:
         )
     finally:
         shutil.rmtree(tmp_root, ignore_errors=True)
-
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
     print(f"PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -866,25 +864,24 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--self-test", action="store_true", help="run the built-in self-test")
     parser.add_argument(
-        "--root",
-        type=Path,
-        default=repo_root(),
-        help="repository root to validate (defaults to the checker directory)",
+        "--self-test",
+        action="store_true",
+        help="run the built-in checker self-test cases",
     )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    errors = check(args.root)
+    root = repo_root()
+    errors = check(root)
     if errors:
         for error in errors:
-            print(error)
+            print(f"ERROR: {error}")
         return 1
 
-    print("phase12 release-readiness packet validated")
+    print("PHASE12_RELEASE_READINESS_PACKET=pass")
     return 0
 
 
