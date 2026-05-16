@@ -55,6 +55,20 @@ pub const KunitRandomPrefixCase = struct {
     expected_compute: u16,
 };
 
+pub const Add16Case = struct {
+    name: []const u8,
+    sum: u16,
+    addend: u16,
+    expected_sum: u16,
+};
+
+pub const Sub16Case = struct {
+    name: []const u8,
+    sum: u16,
+    addend: u16,
+    expected_sum: u16,
+};
+
 pub const PerfCase = struct {
     label: []const u8,
     len: usize,
@@ -153,6 +167,17 @@ pub const carry_discipline_cases = [_]CarryDisciplineCase{
     .{ .name = "all-ones even payload with zero seed", .bytes = &all_ones_even, .seed = 0, .expected_partial = 0xffff, .expected_compute = 0x0000 },
     .{ .name = "single-byte no-carry seed stays one step below overflow", .bytes = &no_carry_single, .seed = 0xffff_fbfb, .expected_partial = 0xfffb, .expected_compute = 0x0004 },
     .{ .name = "two-byte no-carry seed stays one step below overflow", .bytes = &no_carry_pair, .seed = 0xffff_f7f7, .expected_partial = 0xfbfb, .expected_compute = 0x0404 },
+};
+
+pub const add16_cases = [_]Add16Case{
+    .{ .name = "saturated plus one wraps with carry", .sum = 0xffff, .addend = 0x0001, .expected_sum = 0x0001 },
+    .{ .name = "saturated plus zero stays saturated", .sum = 0xffff, .addend = 0x0000, .expected_sum = 0xffff },
+    .{ .name = "saturated plus saturated preserves ones complement", .sum = 0xffff, .addend = 0xffff, .expected_sum = 0xffff },
+};
+
+pub const sub16_cases = [_]Sub16Case{
+    .{ .name = "zero minus one borrows across ones complement", .sum = 0x0000, .addend = 0x0001, .expected_sum = 0xfffe },
+    .{ .name = "subtracting a prior addend recovers the original word", .sum = 0x2345, .addend = 0x1111, .expected_sum = 0x1234 },
 };
 
 pub const kunit_random_prefix_cases = [_]KunitRandomPrefixCase{
