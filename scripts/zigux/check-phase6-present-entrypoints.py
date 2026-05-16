@@ -48,6 +48,8 @@ REQUIRED_CATALOG_SNIPPETS = [
     "* `make -C zigux phase6-hexdump-perf`",
     "* `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
     "* `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`",
+    f"- helper-local packet checker: `{EXPECTED_HEXDUMP_PACKET_CHECKER}`",
+    f"- perf refresh note: `{EXPECTED_HEXDUMP_PERF_REFRESH}`",
 ]
 
 REQUIRED_SHARED_SURFACE_SNIPPETS = [
@@ -57,7 +59,7 @@ REQUIRED_SHARED_SURFACE_SNIPPETS = [
     "require_snippets(repo_root / PRESENT_ENTRYPOINTS_CHECKER_PATH, REQUIRED_PRESENT_ENTRYPOINTS_SNIPPETS)",
 ]
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 12
 
 
 class ValidationError(RuntimeError):
@@ -123,7 +125,6 @@ def validate(repo_root: Path) -> None:
     require_snippets(
         repo_root / SHARED_SURFACE_CHECKER_PATH, REQUIRED_SHARED_SURFACE_SNIPPETS
     )
-
 
 
 def write(path: Path, content: str) -> None:
@@ -254,6 +255,30 @@ def run_self_test() -> None:
             ),
         )
         expect_failure(root, "shared present-entrypoints checker")
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(
+            catalog_path,
+            read_text(catalog_path).replace(
+                f"- helper-local packet checker: `{EXPECTED_HEXDUMP_PACKET_CHECKER}`\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(root, "helper-local packet checker")
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(
+            catalog_path,
+            read_text(catalog_path).replace(
+                f"- perf refresh note: `{EXPECTED_HEXDUMP_PERF_REFRESH}`\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(root, "perf refresh note")
         cases_run += 1
         scaffold_repo(root)
 
