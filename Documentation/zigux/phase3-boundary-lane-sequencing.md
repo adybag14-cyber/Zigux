@@ -54,7 +54,7 @@ The active Phase 3 packet still spans a shared ABI summary, starter kernel relay
   - `scripts/zigux/check-phase3-policy-unsafe-focused-replay.py`
   - `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`
   - `scripts/zigux/validate-phase3-policy-unsafe-survey.py`
-- low-level wrapper packet, lane baseline `P3-Y03`, current validator or replay maintenance `P3-L24`:
+- low-level wrapper packet, lane baseline `P3-Y03`, current helper-local barrier follow-through `P3-L20`, current validator or replay maintenance `P3-L24`:
   - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
   - `zigux/helpers/atomic.zig`
   - `zigux/helpers/barrier.zig`
