@@ -233,13 +233,13 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "_ = string_helpers.strreplace(replaced_text.bytes[0..11], '-', '_');") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "string_helpers.memcpyAndPad(padded_text.bytes[0..5], \"xy\", 2, '.');") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "bounded_escape_text.bytes[0..5],") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "Separate helper-backed sample packet") != null);
+    try expectExactCount(sample_root_readme, "Separate helper-backed sample packet", 1);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "pub fn strreplace") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "pub fn memcpyAndPad") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fixture_source, "sample replay newline hex escape") != null);
-    try std.testing.expect(std.mem.indexOf(u8, build_source, "phase7-string-helpers-sample-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, build_source, "string_helpers_sample_survey_root_module.addImport(\"string_helpers_sample\", string_helpers_sample_module);") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "`samples/zigux/string_helpers_sample.zig`") != null);
+    try expectExactCount(fixture_source, "sample replay newline hex escape", 1);
+    try expectExactCount(build_source, "phase7-string-helpers-sample-tests", 1);
+    try expectExactCount(build_source, "string_helpers_sample_survey_root_module.addImport(\"string_helpers_sample\", string_helpers_sample_module);", 1);
+    try expectExactCount(slice_note, "`samples/zigux/string_helpers_sample.zig`", 2);
 }
 
 test "phase 7 string helper sample survey replays the shared fixture-backed outputs directly" {
