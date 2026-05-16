@@ -68,6 +68,17 @@ pub const AnchorReplaySummary = struct {
     maxactive: usize,
 };
 
+pub const MaxactivePressureReplaySummary = struct {
+    active_instances_before_overflow: usize,
+    overflow_rejected: bool,
+    nmissed_after_overflow: usize,
+    active_instances_after_inner_return: usize,
+    inner_return_duration_ns: i64,
+    outer_return_duration_ns: i64,
+    stage_after_inner_return: SampleStage,
+    stage_after_drain: SampleStage,
+};
+
 pub const LifecycleGuardReplaySummary = struct {
     pre_init_anchor_rejected: bool,
     pre_init_exit_rejected: bool,
@@ -108,6 +119,7 @@ pub const KretprobeExampleSample = struct {
     nmissed: usize = 0,
     skipped_kernel_threads: usize = 0,
     entry_timestamp_ns: i64 = 0,
+    entry_timestamps_ns: [maxactive_budget]i64 = [_]i64{0} ** maxactive_budget,
     last_return_value: usize = 0,
     last_duration_ns: i64 = 0,
 
@@ -155,6 +167,7 @@ pub const KretprobeExampleSample = struct {
         self.nmissed = 0;
         self.skipped_kernel_threads = 0;
         self.entry_timestamp_ns = 0;
+        self.entry_timestamps_ns = [_]i64{0} ** maxactive_budget;
         self.last_return_value = 0;
         self.last_duration_ns = 0;
         self.init_runs += 1;
@@ -168,15 +181,24 @@ pub const KretprobeExampleSample = struct {
     }
 
     pub fn entryHandler(self: *Self, is_kernel_thread: bool, timestamp_ns: i64) !bool {
-        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
-        if (is_kernel_thread) {
-            self.skipped_kernel_threads += 1;
-            return false;
-        }
-        self.active_instances = 1;
-        self.entry_timestamp_ns = timestamp_ns;
-        self.stage_state = .armed;
-        return true;
+        return switch (self.stage()) {
+            .initialized, .armed => blk: {
+                if (is_kernel_thread) {
+                    self.skipped_kernel_threads += 1;
+                    break :blk false;
+                }
+                if (self.active_instances == maxactive_budget) {
+                    self.nmissed += 1;
+                    break :blk false;
+                }
+                self.entry_timestamps_ns[self.active_instances] = timestamp_ns;
+                self.active_instances += 1;
+                self.entry_timestamp_ns = timestamp_ns;
+                self.stage_state = .armed;
+                break :blk true;
+            },
+            else => error.InvalidLifecycleTransition,
+        };
     }
 
     pub fn recordMissedInstance(self: *Self) !void {
@@ -188,14 +210,18 @@ pub const KretprobeExampleSample = struct {
 
     pub fn retHandler(self: *Self, return_value: usize, timestamp_ns: i64) !i64 {
         if (self.stage() != .armed) return error.InvalidLifecycleTransition;
-        if (timestamp_ns < self.entry_timestamp_ns) return error.InvalidTimestampOrder;
+
+        const slot = self.active_instances - 1;
+        const entry_timestamp_ns = self.entry_timestamps_ns[slot];
+        if (timestamp_ns < entry_timestamp_ns) return error.InvalidTimestampOrder;
 
         self.last_return_value = return_value;
-        self.last_duration_ns = timestamp_ns - self.entry_timestamp_ns;
-        self.active_instances = 0;
-        self.entry_timestamp_ns = 0;
+        self.last_duration_ns = timestamp_ns - entry_timestamp_ns;
+        self.entry_timestamps_ns[slot] = 0;
+        self.active_instances = slot;
+        self.entry_timestamp_ns = if (self.active_instances == 0) 0 else self.entry_timestamps_ns[self.active_instances - 1];
         self.replay_runs += 1;
-        self.stage_state = .replay_complete;
+        self.stage_state = if (self.active_instances == 0) .replay_complete else .armed;
         return self.last_duration_ns;
     }
 
@@ -251,6 +277,39 @@ pub const KretprobeExampleSample = struct {
             .duration_ns = duration_ns,
             .nmissed = self.nmissed,
             .maxactive = self.maxactiveBudget(),
+        };
+    }
+
+    pub fn runMaxactivePressureReplay(self: *Self) !MaxactivePressureReplaySummary {
+        try self.init();
+
+        var timestamp_ns: i64 = 100;
+        while (self.active_instances < maxactive_budget) : (timestamp_ns += 1) {
+            const entered = try self.entryHandler(false, timestamp_ns);
+            if (!entered) return error.UnexpectedEntryRejection;
+        }
+
+        const active_instances_before_overflow = self.active_instances;
+        const overflow_entered = try self.entryHandler(false, 200);
+        const inner_return_duration_ns = try self.retHandler(7, 149);
+        const active_instances_after_inner_return = self.active_instances;
+        const stage_after_inner_return = self.stage();
+
+        var intermediate_return_ts: i64 = 150;
+        while (self.active_instances > 1) : (intermediate_return_ts += 1) {
+            _ = try self.retHandler(7, intermediate_return_ts);
+        }
+        const outer_return_duration_ns = try self.retHandler(7, 240);
+
+        return .{
+            .active_instances_before_overflow = active_instances_before_overflow,
+            .overflow_rejected = !overflow_entered,
+            .nmissed_after_overflow = self.nmissed,
+            .active_instances_after_inner_return = active_instances_after_inner_return,
+            .inner_return_duration_ns = inner_return_duration_ns,
+            .outer_return_duration_ns = outer_return_duration_ns,
+            .stage_after_inner_return = stage_after_inner_return,
+            .stage_after_drain = self.stage(),
         };
     }
 
@@ -394,7 +453,7 @@ test "phase5 kretprobe anchor replay keeps the bounded return-probe cues explici
     try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
 }
 
-test "phase5 kretprobe helper replays keep the retarget, lifecycle, ownership, and recovery packet executable" {
+test "phase5 kretprobe helper replays keep the retarget, lifecycle, ownership, maxactive, and recovery packet executable" {
     {
         var sample = KretprobeExampleSample{};
         const replay = try sample.runRetargetReplay("do_sys_openat2");
@@ -402,6 +461,20 @@ test "phase5 kretprobe helper replays keep the retarget, lifecycle, ownership, a
         try std.testing.expect(replay.rejected_post_init_retarget);
         try std.testing.expectEqualStrings("do_sys_openat2", replay.symbol_name);
         try std.testing.expectEqual(SampleStage.initialized, replay.stage_after_init);
+    }
+
+    {
+        var sample = KretprobeExampleSample{};
+        const replay = try sample.runMaxactivePressureReplay();
+        try std.testing.expectEqual(@as(usize, 20), replay.active_instances_before_overflow);
+        try std.testing.expect(replay.overflow_rejected);
+        try std.testing.expectEqual(@as(usize, 1), replay.nmissed_after_overflow);
+        try std.testing.expectEqual(@as(usize, 19), replay.active_instances_after_inner_return);
+        try std.testing.expectEqual(@as(i64, 30), replay.inner_return_duration_ns);
+        try std.testing.expectEqual(@as(i64, 140), replay.outer_return_duration_ns);
+        try std.testing.expectEqual(SampleStage.armed, replay.stage_after_inner_return);
+        try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_drain);
+        try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
     }
 
     {
