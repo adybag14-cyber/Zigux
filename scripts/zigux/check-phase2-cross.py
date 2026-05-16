@@ -280,7 +280,7 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").writeText(
             json.dumps(
                 {
                     "phase": "Phase 2",
@@ -594,21 +594,11 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Run the bounded Phase 2 cross-target compile checks against the current target manifest."
+        description="Validate the Phase 2 cross-target matrix packet and optionally replay one cross compile target."
     )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run internal coverage for fixture parsing and command wiring.",
-    )
-    parser.add_argument(
-        "--target",
-        help="Compile all Phase 2 Zig tools for the provided target triple.",
-    )
-    parser.add_argument(
-        "--zig",
-        help="Override the zig executable path used for target validation.",
-    )
+    parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage.")
+    parser.add_argument("--target", help="Run cross-target Zig test replays for one configured target.")
+    parser.add_argument("--zig", help="Explicit zig executable path.")
     args = parser.parse_args()
 
     if args.self_test:
@@ -623,20 +613,34 @@ def main() -> int:
         print("PHASE2_CROSS_MISSING_FILES_END")
         return 1
 
-    if validate_fixture(ROOT):
+    try:
+        issues = validate_fixture(ROOT)
+    except json.JSONDecodeError as exc:
         print("PHASE2_CROSS=fail")
-        print("PHASE2_CROSS_FIXTURE_ISSUES_START")
-        for issue in validate_fixture(ROOT):
+        print(f"PHASE2_CROSS_NOTE=invalid fixture JSON: {exc.msg}")
+        return 1
+    except ValueError as exc:
+        print("PHASE2_CROSS=fail")
+        print(f"PHASE2_CROSS_NOTE={exc}")
+        return 1
+
+    if issues:
+        print("PHASE2_CROSS=fail")
+        print("PHASE2_CROSS_ISSUES_START")
+        for issue in issues:
             print(issue)
-        print("PHASE2_CROSS_FIXTURE_ISSUES_END")
+        print("PHASE2_CROSS_ISSUES_END")
         return 1
 
     if args.target:
         return run_cross_compile(ROOT, args.target, args.zig)
 
-    print("PHASE2_CROSS=fail")
-    print("PHASE2_CROSS_NOTE=pass --target or --self-test")
-    return 1
+    payload = load_fixture(FIXTURE)
+    targets = payload["targets"]
+    print("PHASE2_CROSS=pass")
+    print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")
+    print(f"PHASE2_CROSS_TARGETS={','.join(targets)}")
+    return 0
 
 
 if __name__ == "__main__":
