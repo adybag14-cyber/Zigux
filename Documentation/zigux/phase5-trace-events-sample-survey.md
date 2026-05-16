@@ -53,10 +53,13 @@ Aligned reminder surfaces in this run:
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
-- `samples/zigux/README.md`
 - `scripts/zigux/README.md`
 
 Those surfaces already keep the landed trace-events packet explicit, keep the selected-string plus `iter=%d` replay positioned as the approved formatting idiom cue instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet. They do not need this survey note to promote `zigux/tests/phase5_build.zig` back into direct authenticated proof while the contents reread still misses that path.
+
+The shared sample-root reminder still needs its own one-file follow-through in this run:
+
+- `samples/zigux/README.md` keeps the landed trace-events packet explicit, but it still describes the shared `zigux/tests/phase5_build.zig` route with older missing-route wording instead of the current public-tree-backed support-material wording recorded by this survey note and the aligned shared reminders above
 
 The tests-root shared reminder is only inventory-aligned in this run:
 
@@ -86,7 +89,8 @@ The precise current gap is no longer "Zigux lacks a trace-events reference sampl
 
 - the roadmap-backed trace-events anchor already has a directly readable non-runtime sample plus focused tests-root evidence
 - the shared `zigux/tests/phase5_build.zig` route still is not directly readable through the current authenticated GitHub-app reread, but the current public tree exposes that shared build route again, so this lane should keep the split explicit instead of calling it absent or claiming fully direct connector proof
-- broader shared-surface cleanup can stay parked unless a future reread finds a new one-file reminder drift, because the directly coupled shared docs-root, sample-root, scripts-root, and tests-root surfaces already align around the landed packet and the still-explicit shared-build split today
+- one shared sample-root reminder still lags the landed packet by calling that shared build route missing instead of current public-tree-backed support material
+- the other directly coupled shared docs-root, scripts-root, and tests-root surfaces already keep the landed packet and the still-explicit shared-build split honest today
 
 So the honest same-lane follow-through is to keep this survey note anchored to the directly readable trace-events packet, keep the shared build route framed as current public-tree-backed support material while authenticated direct reread is still missing, and leave broader shared-surface cleanup for separate one-file repairs.
 
@@ -103,4 +107,6 @@ This survey does not claim:
 
 Leave this lane parked unless a fresh same-lane reread finds a new exact shared-surface truthfulness repair to make for the landed Phase 5 sample packet.
 
-The best next bounded follow-up is the next one-file shared reminder drift that current `master` actually shows after rereading `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and the direct trace-events packet together.
+The best next bounded follow-up is the smallest one-file shared reminder drift that current `master` actually shows after rereading `samples/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and the direct trace-events packet together.
+
+Right now that next candidate remains the sample-root reminder wording in `samples/zigux/README.md`, which should stop calling the shared `phase5_build.zig` route missing while the current public tree still carries it as support material.
