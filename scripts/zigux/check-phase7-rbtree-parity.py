@@ -135,6 +135,7 @@ REQUIRED_MARKERS = {
         "try std.testing.expectEqual(@as(?*rbtree.Node, &root_entry.node), replacement.node.parent);",
         "phase 7 rbtree eraseInitCached clears detached cached nodes and keeps cached roots reusable",
         "phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
+        "try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.eraseCached(&lone.node, &root));",
         "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
         "phase 7 rbtree clearNode marks detached nodes as empty",
         "phase 7 rbtree detached nodes stay non-empty until callers clear them",
@@ -427,6 +428,13 @@ def run_self_test() -> None:
             "phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
             "",
             "zigux/tests/phase7_rbtree.zig: phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
+        ),
+        (
+            "helper_erase_cached_null_handoff_marker",
+            "zigux/tests/phase7_rbtree.zig",
+            "try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.eraseCached(&lone.node, &root));",
+            "",
+            "zigux/tests/phase7_rbtree.zig: try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.eraseCached(&lone.node, &root));",
         ),
         (
             "helper_replace_cached_marker",
