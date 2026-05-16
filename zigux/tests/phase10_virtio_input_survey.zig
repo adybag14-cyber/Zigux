@@ -40,6 +40,7 @@ test "phase10 virtio input survey note keeps the restored verifier and queue cal
     try expectContains(survey_note, "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport");
     try expectSurveyedCommitAlignment(allocator, survey_note, manifest);
     try expectContains(survey_note, "drivers/virtio/virtio_input_verify.zig");
+    try expectContains(survey_note, "drivers/virtio/virtio_input_registration_preflight.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_survey.zig");
 }
@@ -53,6 +54,8 @@ test "phase10 virtio input manifest keeps the restored replay ids and blocked li
     try expectContains(manifest, "\"zigux_destination\": \"drivers/virtio/virtio_input_verify.zig\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-input-queue-callback-preflight-replay\"");
     try expectContains(manifest, "\"zigux_destination\": \"zigux/tests/phase10_virtio_input_queue_callback_preflight.zig\"");
+    try expectContains(manifest, "\"id\": \"phase10-virtio-input-registration-preflight-helper\"");
+    try expectContains(manifest, "\"zigux_destination\": \"drivers/virtio/virtio_input_registration_preflight.zig\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-input-survey-gate\"");
     try expectContains(manifest, "\"status\": \"blocked_on_risky_transport\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-input-registration-lifecycle\"");
@@ -73,11 +76,13 @@ test "phase10 virtio input slice companions keep the replay inventory and blocke
     defer allocator.free(module_note);
 
     try expectContains(slice_note, "scripts/zigux/check-phase10-input-packet.py");
+    try expectContains(slice_note, "drivers/virtio/virtio_input_registration_preflight.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_input_status_drain.zig");
 
+    try expectContains(module_note, "drivers/virtio/virtio_input_registration_preflight.zig");
     try expectContains(module_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
     try expectContains(module_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig");
     try expectContains(module_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig");
