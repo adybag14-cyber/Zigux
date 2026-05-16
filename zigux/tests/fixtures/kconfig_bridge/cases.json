@@ -93,6 +93,7 @@
       "kconfig": "Kconfig",
       "config": "out/list.config",
       "arch": "x86_64",
+      "silent": true,
       "expected": "listnewconfig_expected.json"
     },
     {
