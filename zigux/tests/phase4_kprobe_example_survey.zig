@@ -54,6 +54,39 @@ test "phase4 kprobe survey keeps bootstrap CI posture explicit" {
     );
 }
 
+test "phase4 kprobe survey keeps shared lab-and-ci matrix anchor explicit" {
+    try requireMarker(
+        "\"shared_lab_and_ci_matrix_anchor\": \"Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix\"",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
+        "PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "## Lab And CI Matrix",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "`scripts/zigux/check-phase4-remaining-gap-matrix.py` dedicated remaining-gap matrix replay for the parked `samples/zigux/kprobe_example.zig` and parked `samples/zigux/test_fsmount.zig` starter rows plus the local-only perf-threshold decision row",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-gate-evidence.md",
+        "`scripts/zigux/check-phase4-remaining-gap-matrix.py` remains the dedicated lab-matrix checker for the parked `kprobe_example`, parked `test_fsmount`, and local-only perf-threshold rows",
+    );
+}
+
+test "phase4 kprobe survey keeps the anti-overlap sequencing note aligned" {
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-lane-sequencing.md",
+        "Both packet-local manifests currently still advertise `\\\"lane_key\\\": \\\"P4-L19\\\"` as the shared parked-gap coordination label. Treat that label as historical grouping only, not as permission to batch kprobe and `test_fsmount` follow-through into the same repair.",
+    );
+    try requireRepoMarker(
+        "Documentation/zigux/phase4-validation-lane-sequencing.md",
+        "Even while both parked starter-gap manifests still carry `P4-L19`, reopen only the one parked packet that drifted; do not repair the sibling parked packet in the same run unless the shared exact-readback lane needs a later post-publication catch-up.",
+    );
+}
+
 test "phase4 kprobe survey keeps reversible-delivery evidence explicit" {
     try requireMarker(
         "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the explicit local_lab_replay marker, the local survey wrapper, the explicit bootstrap-CI posture, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface\"",
