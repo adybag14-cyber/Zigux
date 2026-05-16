@@ -30,7 +30,7 @@ This survey exists to make that current helper packet explicit and reviewable on
 - `VirtioMmioLab` stays in-memory and lab-oriented: it stages config bytes and feature words, tracks queue selection and queue readiness, and reports helper summaries without claiming a live hardware transport.
 - the config-write disposition helper now reports `relative_end_offset`, `absolute_end_offset`, `previous_value`, `planned_value`, `changed_byte_mask`, and `has_changes`, which makes a staged config-window change reviewable at byte granularity.
 - the helper-local tests inside `drivers/virtio/virtio_mmio.zig` cover stale-plan invalidation after a config-generation bump, stale-plan invalidation after config-byte restaging, legacy guest-page-size probe gating, and non-mutating config-write disposition reporting.
-- `zigux/tests/phase10_build.zig` remains part of the shared Phase 10 review packet, but current `master` only wires the input-side queue-handling steps there; a dedicated MMIO replay step is still not materialized inside that shared build gate, so fresh build-backed MMIO validation remains pending.
+- `zigux/tests/phase10_build.zig` remains part of the shared Phase 10 review packet, and current `master` now wires the helper-local MMIO tests there by importing `drivers/virtio/virtio_mmio.zig` into the shared build gate beside the input-side queue-handling packet. A separate dedicated `phase10_virtio_mmio` replay step is still not materialized in that shared build route, so the current shared gate should be read as helper-local MMIO coverage rather than a broader transport-backed replay.
 - `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md` remains the packet-local companion for the newest config-write disposition rung and should stay aligned with this broader survey note.
 
 ## Freeze boundary
@@ -50,7 +50,7 @@ This survey does not claim:
 ## Gates
 Current `master` keeps this MMIO lane reviewable through these bounded surfaces:
 1. helper-local tests inside `drivers/virtio/virtio_mmio.zig`
-2. `zigux/tests/phase10_build.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10` remain shared Phase 10 reminder routes, but the current build file still wires only the input-side queue-handling steps
+2. `zigux/tests/phase10_build.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10` remain shared Phase 10 reminder routes, and the current build file now runs the helper-local MMIO tests through `drivers/virtio/virtio_mmio.zig` beside the input-side queue-handling packet even though it still does not materialize a separate dedicated `phase10_virtio_mmio` replay step
 
 These gates should be read as helper-local review evidence and shared packet reminders only, not as proof of a transport-backed MMIO driver or a dedicated MMIO replay.
 
