@@ -226,6 +226,8 @@ test "phase 5 trace-events survey note stays aligned with the focused direct rep
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "packet-inventory support material on current `master`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, approved_idiom_gap, "trace-events-approved-idiom-gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, approved_idiom_gap, "PHASE5_LANE_KEY=P5-L16") != null);
+    try std.testing.expect(std.mem.indexOf(u8, approved_idiom_gap, "PHASE5_LANE_KEY=P5-L23") == null);
     try std.testing.expect(std.mem.indexOf(u8, approved_idiom_gap, "runStringFormattingCycleReplay()") != null);
     try std.testing.expect(std.mem.indexOf(u8, approved_idiom_gap, "selected-string plus `iter=%d` cue remains the approved bounded formatting reminder") != null);
     try std.testing.expect(std.mem.indexOf(u8, approved_idiom_gap, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample") != null);
