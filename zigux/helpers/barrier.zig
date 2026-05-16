@@ -6,6 +6,7 @@ test "phase3 barrier wrappers compile" {
     release();
     full();
     acquireRelease();
+    fullFence();
 }
 
 test "phase3 barrier wrappers keep compiler fences reviewable" {
@@ -109,6 +110,30 @@ test "phase3 barrier wrappers keep barrier handoff reviewable" {
     try std.testing.expectEqual(@as(u32, 73), packet.value);
 }
 
+test "phase3 barrier wrappers keep non-mutating full fences reviewable" {
+    const Packet = struct {
+        published: u32,
+        consumed: u32,
+        ready: bool,
+    };
+
+    var packet = Packet{
+        .published = 21,
+        .consumed = 0,
+        .ready = false,
+    };
+
+    packet.published +%= 8;
+    fullFence();
+    packet.consumed = packet.published;
+    packet.ready = true;
+    fullFence();
+
+    try std.testing.expect(packet.ready);
+    try std.testing.expectEqual(@as(u32, 29), packet.published);
+    try std.testing.expectEqual(packet.published, packet.consumed);
+}
+
 pub fn compiler() void {
     asm volatile ("" ::: .{ .memory = true });
 }
@@ -131,4 +156,9 @@ pub fn full() void {
 pub fn acquireRelease() void {
     var word: u8 = 0;
     _ = @atomicRmw(u8, &word, .Xchg, 0, .acq_rel);
+}
+
+pub fn fullFence() void {
+    var word: u8 = 0;
+    _ = @atomicRmw(u8, &word, .Xchg, 0, .seq_cst);
 }
