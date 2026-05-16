@@ -39,6 +39,10 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/check-phase7-build-wiring.py",
         "make -C zigux phase7-string-helpers-survey",
         "make -C zigux phase7-string-helpers-sample-boundary",
+        "zig build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "zig build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "zig build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "zig build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
         "make -C zigux phase7-test",
     ],
     "samples/zigux/README.md": [
@@ -59,6 +63,10 @@ REQUIRED_MARKERS = {
         "phase7-validate:",
         "scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
+        "phase7-string-helpers-test:",
+        "phase7-cmdline-test:",
+        "phase7-argv-split-test:",
+        "phase7-rbtree-test:",
         "phase7-test:",
         "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
         "phase7: phase7-validate phase7-test",
@@ -67,6 +75,10 @@ REQUIRED_MARKERS = {
 
 REQUIRED_EXACT_LINES = {
     "zigux/Makefile": [
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
         "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
     ],
 }
@@ -191,6 +203,13 @@ def run_self_test() -> None:
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: make -C zigux phase7-string-helpers-sample-boundary",
         ),
         (
+            "alignment_note_cmdline_direct_test_route",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+            "zig build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: zig build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+        ),
+        (
             "scripts_readme_checker_marker",
             "scripts/zigux/README.md",
             "scripts/zigux/check-phase7-make-wrapper.py",
@@ -210,6 +229,34 @@ def run_self_test() -> None:
             "scripts/zigux/check-phase7-make-wrapper.py --self-test",
             "",
             "zigux/Makefile: scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        ),
+        (
+            "makefile_phase7_string_helpers_test_pinned_toolchain_route",
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "cd $(ZIGUX_ROOT) && zig build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(ZIG) build phase7-string-helpers-test --build-file zigux/tests/phase7_build.zig --summary all",
+        ),
+        (
+            "makefile_phase7_cmdline_test_pinned_toolchain_route",
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "cd $(ZIGUX_ROOT) && zig build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(ZIG) build phase7-cmdline-test --build-file zigux/tests/phase7_build.zig --summary all",
+        ),
+        (
+            "makefile_phase7_argv_split_test_pinned_toolchain_route",
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "cd $(ZIGUX_ROOT) && zig build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(ZIG) build phase7-argv-split-test --build-file zigux/tests/phase7_build.zig --summary all",
+        ),
+        (
+            "makefile_phase7_rbtree_test_pinned_toolchain_route",
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "cd $(ZIGUX_ROOT) && zig build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(ZIG) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig --summary all",
         ),
         (
             "makefile_phase7_test_summary_marker",
