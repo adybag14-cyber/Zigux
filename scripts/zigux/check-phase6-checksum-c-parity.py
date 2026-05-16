@@ -62,6 +62,44 @@ FIXTURE_CARRY_DISCIPLINE_CASE_MARKER = "pub const carry_discipline_cases = [_]Ca
 FIXTURE_CASE_NAME_MARKER = ".name = "
 FIXED_INCREMENTAL_REPLACEMENT_CASE_COUNT = 4
 FIXED_DIRECT_16BIT_CARRY_CASE_COUNT = 5
+FIXTURE_MARKER_SELF_TEST_CASES = (
+    (
+        "missing_compute_marker",
+        "compute-cases",
+        FIXTURE_COMPUTE_CASE_MARKER,
+        "pub const missing_compute_cases",
+    ),
+    (
+        "missing_composition_marker",
+        "composition-cases",
+        FIXTURE_COMPOSITION_CASE_MARKER,
+        "pub const missing_composition_cases",
+    ),
+    (
+        "missing_seeded_marker",
+        "seeded-cases",
+        FIXTURE_SEEDED_CASE_MARKER,
+        "pub const missing_seeded_cases",
+    ),
+    (
+        "missing_pseudo_header_marker",
+        "pseudo-header-cases",
+        FIXTURE_PSEUDO_HEADER_CASE_MARKER,
+        "pub const missing_pseudo_header_rows",
+    ),
+    (
+        "missing_ipv6_pseudo_header_marker",
+        "ipv6-pseudo-header-cases",
+        FIXTURE_IPV6_PSEUDO_HEADER_CASE_MARKER,
+        "pub const missing_ipv6_pseudo_header_cases",
+    ),
+    (
+        "missing_carry_discipline_marker",
+        "carry-discipline-cases",
+        FIXTURE_CARRY_DISCIPLINE_CASE_MARKER,
+        "pub const missing_carry_discipline_cases",
+    ),
+)
 
 
 def require_tool(name: str, env_name: str) -> str:
@@ -358,11 +396,14 @@ def run_self_test() -> int:
         "phase6-checksum-c-parity:self-test-missing-case:unexpected_output:"
         f"expected={EXPECTED_SORTED_LINES!r}:actual={missing_replace4_case!r}",
     )
-    expect_system_exit(
-        "missing_compute_marker",
-        lambda: expected_fixture_case_count(fixture_text.replace(FIXTURE_COMPUTE_CASE_MARKER, "pub const missing_compute_cases", 1)),
-        f"phase6-checksum-c-parity:compute-cases:missing_fixture_marker:{FIXTURE_COMPUTE_CASE_MARKER!r}",
-    )
+    for label, extraction_label, marker, replacement in FIXTURE_MARKER_SELF_TEST_CASES:
+        expect_system_exit(
+            label,
+            lambda marker=marker, replacement=replacement: expected_fixture_case_count(
+                fixture_text.replace(marker, replacement, 1)
+            ),
+            f"phase6-checksum-c-parity:{extraction_label}:missing_fixture_marker:{marker!r}",
+        )
     expect_system_exit(
         "mismatch_surface",
         lambda: validate_matching_surface(
@@ -376,7 +417,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=13")
+    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
