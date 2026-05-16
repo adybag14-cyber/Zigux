@@ -1,6 +1,6 @@
 # Phase 9 Runtime Pilot Lane Sequencing
 
-This note keeps the roadmap-backed Phase 9 runtime pilot lane honest when current `master` carries a real shared runtime-loader packet that must stay aligned across reminder, route, build, test, kernel, and sample surfaces.
+This note keeps the roadmap-backed Phase 9 runtime pilot lane honest when current `master` carries only a narrow surviving runtime-pilot packet rather than the older shared runtime-loader family.
 
 ## Roadmap anchor
 
@@ -19,58 +19,57 @@ Phase 9 is still the runtime pilot tranche.
   - `zigux/tests/runtime_*`
   - `samples/zigux/runtime_*`
 
-That roadmap boundary matters more than stale reminder wording. If live `master` still exposes the shared loader-facing packet and the bounded runtime-pilot test families, keep this note aligned with those shipped surfaces instead of downgrading the lane to backlog-only posture.
+That roadmap boundary still matters, but repo reality matters more than stale reminder wording. If live `master` only keeps one direct runtime sample plus a small review packet, say that plainly instead of treating the older shared runtime-loader packet as current evidence.
 
 ## Live repo reality on current master
 
-Current `master` still exposes a broader shared Phase 9 runtime-loader packet.
+Current `master` keeps a narrow Phase 9 runtime-pilot packet.
 
-- shared reminder and route owners: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-build-only-surface.py`, and `zigux/Makefile`
-- shared build and test packet: `zigux/tests/README.md`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`, `zigux/tests/runtime_loader_lifecycle_boundary_guard.zig`, and `zigux/tests/runtime_trace_events_loader_substrate_drift.zig`
-- shared runtime-loader substrate: `zigux/kernel/runtime_loader.zig` and `zigux/kernel/runtime_loader_contract.zig`
-- shared runtime-module sample packet: `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_trace_events.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`
+- surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, and `zigux/tests/README.md`
+- surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`
+- surviving runtime-module evidence inside that sample: `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking
 
-Current `master` therefore does not justify a backlog-only Phase 9 posture. The broader shared packet is still live, even if some reminder surfaces have drifted out of sync with it.
+Current `master` does not currently expose the broader shared runtime-loader packet that earlier reminder surfaces described. Fresh repo-first rereads did not find `zigux/tests/phase9_build.zig`, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds on `master`.
 
 ## Current shared-owner drift
 
-The active shared-owner drift is now reminder-local, not packet-absence reality.
+The active Phase 9 drift is now reminder-local overclaim, not a missing reread of a still-live shared loader packet.
 
-- this sequencing note currently undercounts the live shared Phase 9 packet by describing only a narrow reminder surface
-- `zigux/tests/README.md` also still tells reviewers to treat the broader shared loader packet, the `phase9_build` bundle, and the `make -C zigux phase9*` family as absent even though the shared checklist and Makefile still ship them
-- `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` and `zigux/Makefile` still assume the broader Phase 9 packet is present, which makes the backlog-only reminder posture misleading
+- this sequencing note currently overstates the live Phase 9 packet by treating removed shared loader, build, kernel, and sample surfaces as present
+- `Documentation/zigux/review-checklist.md` still carries the same older shared runtime-loader inventory even though the surviving tree has narrowed
+- `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` and `zigux/tests/README.md` are already centered on the surviving trace-events selftest-hook packet rather than the removed shared runtime-loader family
 
-That means the next honest shared Phase 9 move is reminder-surface truthfulness repair, not invented backlog-only framing and not fresh runtime-loader feature growth.
+That means the next honest shared Phase 9 move is to narrow stale reminder surfaces until they match the surviving trace-events sample packet, not to invent broader runtime-loader continuity that the live tree no longer exposes.
 
 ## Governance rule for this lane
 
 This lane may:
 
 - refresh `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` when current repo reality changes
-- tighten one shared reminder surface at a time when it drifts away from the live tree
-- keep the shared route, build, test, kernel, and sample owners explicit when they are still present on current `master`
-- keep the roadmap target explicit without pretending blocked publication surfaces are already shipped
+- tighten one stale reminder surface at a time when it overclaims removed runtime-loader, build, kernel, or sample owners
+- keep the surviving trace-events runtime sample explicit as real Phase 9 selftest-hook and lifecycle evidence
+- keep the roadmap target explicit without pretending the broader shared runtime-loader family is still shipped
 
 This lane should not reopen:
 
-- new runtime behavior or sample semantics based only on reminder drift
+- new runtime behavior or sample semantics based only on stale reminder wording
 - checker or validator growth when the real issue is a stale shared summary
-- family-local survey or manifest claims that have not been reread on current `master`
+- backlog promotion of removed `phase9_build`, shared runtime-loader, or multi-sample runtime packet surfaces without a fresh repo reread that proves they have returned
 
 ## Shared reminder packet rules
 
-1. Keep the roadmap-versus-repo relationship explicit: Phase 9 still targets runtime modules, selftest hooks, and lifecycle parity, and current `master` still exposes a meaningful shared packet toward that target through reminder, route, build, test, kernel, and sample surfaces.
-2. Do not describe the still-live `phase9_build`, `phase9-test`, or shared runtime-loader packet as absent while `Documentation/zigux/review-checklist.md`, `zigux/Makefile`, and the reread Phase 9 file family still ship them.
-3. Treat reminder-surface undercounts as the active blocker before reopening checker-local or runtime-behavior work.
+1. Keep the roadmap-versus-repo relationship explicit: Phase 9 still targets runtime modules, selftest hooks, and lifecycle parity, but current `master` now shows only a narrow surviving trace-events packet rather than the older shared runtime-loader family.
+2. Do not describe `zigux/tests/phase9_build.zig`, shared `zigux/tests/runtime_*` replays, shared runtime-loader kernel files, `zigux/Makefile`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds as shipped evidence unless a fresh repo reread proves they have returned.
+3. Treat stale reminder overclaim as the active blocker before reopening checker-local or runtime-behavior work.
 4. Refresh one shared reminder surface at a time when the tree changes again.
-5. If the broader shared packet shrinks later, reread the Makefile, tests-root guide, and shared checker before downgrading this note to backlog-only posture.
+5. If the broader shared runtime-loader packet returns later, reread the exact file family before widening this note back out.
 
 ## Recommended next-step order
 
-1. Re-read `zigux/tests/README.md` against the live Phase 9 route, build, runtime-loader, and sample surfaces and trim its backlog-only wording so it matches current `master`.
-2. Re-read `samples/zigux/README.md` for the same Phase 9 undercount and keep the runtime-loader sample family explicit if the sample-root guide still drifts.
-3. Only after the shared reminder packet is honest again should future Phase 9 work decide whether the next bounded step is checker hardening, one reminder surface, or one pilot runtime slice.
+1. Re-read `Documentation/zigux/review-checklist.md` against `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `zigux/tests/README.md`, and `samples/zigux/runtime_trace_events.zig`, then trim the stale shared runtime-loader wording so the checklist matches the surviving trace-events packet.
+2. After that reminder surface is honest, decide whether the checker should stay trace-events-only or whether another small Phase 9 reminder surface still overclaims removed loader files.
+3. Only after the Phase 9 reminder packet is honest again should future runs decide whether the next bounded step is another reminder repair or a new direct runtime sample/tests slice.
 
 ## Anti-overlap rule
 
-If a scheduled run is assigned shared Phase 9 backlog or governance work, keep the run inside repo-reality rereads and one-file reminder repair. Do not reopen runtime behavior just because one shared summary has drifted, and do not replay a parked checker handoff once live `master` no longer supports its premise.
+If a scheduled run is assigned shared Phase 9 backlog or governance work, keep the run inside repo-reality rereads and one-file reminder repair. Do not reopen runtime behavior just because older notes still remember the removed shared runtime-loader packet, and do not treat absent loader, build, kernel, or sample paths as live evidence.
