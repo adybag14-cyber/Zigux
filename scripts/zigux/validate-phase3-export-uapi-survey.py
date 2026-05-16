@@ -344,6 +344,10 @@ def validate(root: Path) -> list[str]:
             "zigux_boundary_header_is_current_abi_version(",
             "zigux_boundary_header_is_compatible_size(",
             "zigux_boundary_header_is_canonical_size(",
+            "zigux_boundary_header_is_compatible(",
+            "zigux_boundary_header_is_canonical(",
+            "zigux_boundary_header_extends_boundary(",
+            "zigux_boundary_header_requested_extra_bytes(",
         ),
         ABI_HEADER: (
             "#define ZIGUX_ABI_VERSION",
@@ -356,6 +360,7 @@ def validate(root: Path) -> list[str]:
         ),
         EXPORT_SHIM: (
             "pub fn compatibilityStatus(",
+            "pub fn extendsBoundary(header_value: Header) bool {",
             "pub fn requestedExtraBytes(header_value: Header) ?u32 {",
             "pub fn encodeDeviceNumber(",
             "pub fn lastDeviceNumberInRange(",
@@ -405,6 +410,7 @@ def build_valid_workspace(root: Path) -> None:
     write(
         root / EXPORT_SHIM,
         "pub fn compatibilityStatus() void {}\n"
+        "pub fn extendsBoundary(header_value: Header) bool { _ = header_value; return false; }\n"
         "pub fn requestedExtraBytes(header_value: Header) ?u32 { _ = header_value; return null; }\n"
         "pub fn encodeDeviceNumber() void {}\n"
         "pub fn lastDeviceNumberInRange() void {}\n"
@@ -431,7 +437,11 @@ def build_valid_workspace(root: Path) -> None:
         "static inline struct zigux_boundary_header zigux_boundary_header_make_compatible(uint32_t size, uint16_t flags) { struct zigux_boundary_header header = zigux_default_header(flags); header.size = size; return header; }\n"
         "static inline int zigux_boundary_header_is_current_abi_version(uint16_t abi_version) { return abi_version == (uint16_t)ZIGUX_ABI_VERSION; }\n"
         "static inline int zigux_boundary_header_is_compatible_size(uint32_t size) { return size >= (uint32_t)sizeof(struct zigux_boundary_header); }\n"
-        "static inline int zigux_boundary_header_is_canonical_size(uint32_t size) { return size == (uint32_t)sizeof(struct zigux_boundary_header); }\n",
+        "static inline int zigux_boundary_header_is_canonical_size(uint32_t size) { return size == (uint32_t)sizeof(struct zigux_boundary_header); }\n"
+        "static inline int zigux_boundary_header_is_compatible(struct zigux_boundary_header header) { return zigux_boundary_header_is_current_abi_version(header.abi_version) && zigux_boundary_header_is_compatible_size(header.size); }\n"
+        "static inline int zigux_boundary_header_is_canonical(struct zigux_boundary_header header) { return zigux_boundary_header_is_current_abi_version(header.abi_version) && zigux_boundary_header_is_canonical_size(header.size); }\n"
+        "static inline int zigux_boundary_header_extends_boundary(struct zigux_boundary_header header) { return zigux_boundary_header_is_compatible(header) && !zigux_boundary_header_is_canonical(header); }\n"
+        "static inline uint32_t zigux_boundary_header_requested_extra_bytes(struct zigux_boundary_header header) { if (!zigux_boundary_header_extends_boundary(header)) return 0U; return header.size - (uint32_t)sizeof(struct zigux_boundary_header); }\n",
     )
     write(root / ABI_HEADER, "#define ZIGUX_ABI_VERSION 1\nstruct zigux_export_status { int code; };\n")
     write(root / LAYOUT_REPLAY, "const export_shim = @import(\"export_shim\");\nconst uapi_version = @import(\"uapi_version\");\ntest \"layout\" { try std.testing.expectEqual(export_shim.boundaryHeader(0), uapi_version.boundaryHeader(0)); }\n")
@@ -619,6 +629,21 @@ def run_self_test() -> int:
         build_valid_workspace(root)
         case_count += 1
 
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_EXPORT_SHIM_PATH={EXPORT_SHIM.as_posix()}`\n", "", 1))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_EXPORT_SHIM_PATH={EXPORT_SHIM.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_UAPI_VERSION_PATH={UAPI_VERSION.as_posix()}`\n", "", 1))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_UAPI_VERSION_PATH={UAPI_VERSION.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
+        write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_UAPI_DEV_T_PATH={UAPI_DEV_T.as_posix()}`\n", "", 1))
+        assert validate(root) == [f"missing_survey_marker:`PHASE3_UAPI_DEV_T_PATH={UAPI_DEV_T.as_posix()}`"]
+        build_valid_workspace(root)
+        case_count += 1
+
         write(root / SURVEY, (root / SURVEY).read_text(encoding="utf-8").replace(f"- `PHASE3_DEV_T_HEADER_PATH={DEV_T_HEADER.as_posix()}`\n", "", 1))
         assert validate(root) == [f"missing_survey_marker:`PHASE3_DEV_T_HEADER_PATH={DEV_T_HEADER.as_posix()}`"]
         build_valid_workspace(root)
@@ -782,12 +807,55 @@ def run_self_test() -> int:
             (root / LINUX_HEADER).read_text(encoding="utf-8").replace(
                 "zigux_boundary_header_is_current_abi_version(",
                 "zigux_boundary_header_matches_current_abi_version(",
-                1,
             ),
         )
         issues = validate(root)
         assert (
             f"missing_marker:{LINUX_HEADER.as_posix()}:zigux_boundary_header_is_current_abi_version(" in issues
+        ), issues
+        case_count += 1
+
+        build_valid_workspace(root)
+        write(
+            root / LINUX_HEADER,
+            (root / LINUX_HEADER).read_text(encoding="utf-8").replace(
+                "zigux_boundary_header_extends_boundary(",
+                "zigux_boundary_header_grows_boundary(",
+            ),
+        )
+        issues = validate(root)
+        assert (
+            f"missing_marker:{LINUX_HEADER.as_posix()}:zigux_boundary_header_extends_boundary(" in issues
+        ), issues
+        case_count += 1
+
+        build_valid_workspace(root)
+        write(
+            root / LINUX_HEADER,
+            (root / LINUX_HEADER).read_text(encoding="utf-8").replace(
+                "zigux_boundary_header_requested_extra_bytes(",
+                "zigux_boundary_header_extra_bytes(",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert (
+            f"missing_marker:{LINUX_HEADER.as_posix()}:zigux_boundary_header_requested_extra_bytes(" in issues
+        ), issues
+        case_count += 1
+
+        build_valid_workspace(root)
+        write(
+            root / EXPORT_SHIM,
+            (root / EXPORT_SHIM).read_text(encoding="utf-8").replace(
+                "pub fn extendsBoundary(header_value: Header) bool {",
+                "pub fn boundaryExtends(header_value: Header) bool {",
+                1,
+            ),
+        )
+        issues = validate(root)
+        assert (
+            f"missing_marker:{EXPORT_SHIM.as_posix()}:pub fn extendsBoundary(header_value: Header) bool {{" in issues
         ), issues
         case_count += 1
 
