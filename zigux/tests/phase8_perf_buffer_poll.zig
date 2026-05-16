@@ -288,6 +288,18 @@ test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and
     );
 }
 
+test "phase 8 perf-buffer poll helper keeps empty buffer-fd tables invalid and errno-shaped" {
+    const summary = perf_buffer_poll.summarizeBufferFdLookup(&.{}, 0);
+    try std.testing.expectEqual(perf_buffer_poll.BufferFdLookupDisposition.invalid_index, summary.disposition);
+    try std.testing.expectEqual(@as(usize, 0), summary.slot_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.requested_index);
+    try std.testing.expectEqual(@as(?i32, null), summary.fd);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_poll.resolveBufferFdLookupReturn(summary),
+    );
+}
+
 test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {
     const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
         .{ .mapped_size = 4096 },
@@ -326,6 +338,21 @@ test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         perf_buffer_poll.resolveBufferWindowLookupReturn(invalid),
+    );
+}
+
+test "phase 8 perf-buffer poll helper keeps empty buffer-window tables invalid and errno-shaped" {
+    const summary = perf_buffer_poll.summarizeBufferWindowLookup(&.{}, 0);
+    try std.testing.expectEqual(
+        perf_buffer_poll.BufferWindowLookupDisposition.invalid_index,
+        summary.disposition,
+    );
+    try std.testing.expectEqual(@as(usize, 0), summary.slot_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.requested_index);
+    try std.testing.expectEqual(@as(?usize, null), summary.mapped_size);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_poll.resolveBufferWindowLookupReturn(summary),
     );
 }
 
