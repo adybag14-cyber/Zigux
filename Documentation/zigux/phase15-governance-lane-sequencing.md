@@ -45,7 +45,7 @@ The current shared governance packet already includes the documented exception p
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
-- `zigux/tests/phase15_build.zig`
+- `zigux/tests/phase15_readiness_gate.zig`
 - `make -C zigux phase15-validate`
 - `make -C zigux phase15-test`
 - `make -C zigux phase15`
