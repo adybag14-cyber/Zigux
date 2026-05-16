@@ -67,6 +67,13 @@ def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
     return []
 
 
+def require_exact_line(text: str, label: str, line: str) -> list[str]:
+    count = sum(1 for current_line in text.splitlines() if current_line.strip() == line)
+    if count != 1:
+        return [f"{label}:expected=1:actual={count}"]
+    return []
+
+
 def require_manifest_string_list(value: Any, label: str) -> tuple[list[str], list[str]]:
     if not isinstance(value, list) or not value or not all(isinstance(item, str) and item for item in value):
         return [], [f"string_manifest:{label}"]
@@ -104,8 +111,7 @@ def collect_string_review_packet_failures(root: Path) -> list[str]:
     missing.extend(require_markers(lane_note_text, "lane_note:string_review_packet", LANE_NOTE_MARKERS))
 
     for label, marker in MAKEFILE_ROUTE_MARKERS.items():
-        if marker not in makefile_text:
-            missing.append(f"makefile:{label}")
+        missing.extend(require_exact_line(makefile_text, f"makefile:{label}", marker))
 
     list_fields = (
         "memparse_review_anchors",
@@ -210,8 +216,8 @@ def sample_closure_text() -> str:
 - `python3 scripts/zigux/check-phase1-string-review-packet.py`
 
 ## String Review Rule
-That means `test "memparse handles decimal hexadecimal octal and suffixes"`, `test "memparse keeps original rest when sign is not followed by digits"`, `test "strscpy keeps NUL termination and reports truncation with -E2BIG"`, `test "strscpyPad zero-pads the tail after a short source"`, `test "strHasPrefix returns the matched prefix length with C-string semantics"`, `test "strstarts mirrors the header-level prefix helper"`, `test "strEndsWith honors C-string boundaries"`, `test "sysfsStreq treats trailing newline and NUL as equivalent"`, `test "sysfsMatchString finds newline-aware matches and preserves first-match order"`, `test "matchString finds C-string matches and preserves first-match order"`, `test "match_string mirrors matchString for empty and matched lists"`, `test "strnchr honors count and C-string boundaries"`, `test "strnchrNul returns the first match, NUL, or count boundary"`, `test "kbasename returns the final path component with C-string semantics"`, and `test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"` stay present and review-visible whenever the helper changes.
-The shared replay must also keep `test "phase 1 string replaceChar stops at embedded NUL"` plus the `strtobool_y`, `replace_char_cstr_bytes`, and `memchr_inv_none` fixture fields explicit, while `test "memchrInv follows the earliest dirty byte as long buffers change"` remains a helper-local review anchor.
+That means `test \"memparse handles decimal hexadecimal octal and suffixes\"`, `test \"memparse keeps original rest when sign is not followed by digits\"`, `test \"strscpy keeps NUL termination and reports truncation with -E2BIG\"`, `test \"strscpyPad zero-pads the tail after a short source\"`, `test \"strHasPrefix returns the matched prefix length with C-string semantics\"`, `test \"strstarts mirrors the header-level prefix helper\"`, `test \"strEndsWith honors C-string boundaries\"`, `test \"sysfsStreq treats trailing newline and NUL as equivalent\"`, `test \"sysfsMatchString finds newline-aware matches and preserves first-match order\"`, `test \"matchString finds C-string matches and preserves first-match order\"`, `test \"match_string mirrors matchString for empty and matched lists\"`, `test \"strnchr honors count and C-string boundaries\"`, `test \"strnchrNul returns the first match, NUL, or count boundary\"`, `test \"kbasename returns the final path component with C-string semantics\"`, and `test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"` stay present and review-visible whenever the helper changes.
+The shared replay must also keep `test \"phase 1 string replaceChar stops at embedded NUL\"` plus the `strtobool_y`, `replace_char_cstr_bytes`, and `memchr_inv_none` fixture fields explicit, while `test \"memchrInv follows the earliest dirty byte as long buffers change\"` remains a helper-local review anchor.
 """
 
 
@@ -227,8 +233,8 @@ PHASE1_STRING_NEXT_SAFE_STEP={next_safe_step_note}
 
 def sample_makefile_text() -> str:
     return """phase1-validate:
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py
 """
 
 
@@ -250,9 +256,21 @@ def run_self_test() -> int:
             "remove",
         ),
         (
+            "missing_closure_live_route",
+            CLOSURE_REL.as_posix(),
+            "`python3 scripts/zigux/check-phase1-string-review-packet.py`\n",
+            "remove",
+        ),
+        (
             "missing_makefile_route",
             MAKEFILE_REL.as_posix(),
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py --self-test\n",
+            "remove",
+        ),
+        (
+            "missing_makefile_live_route",
+            MAKEFILE_REL.as_posix(),
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py\n",
             "remove",
         ),
         (
