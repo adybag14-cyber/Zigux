@@ -1,7 +1,7 @@
 # Phase 4 Artifact-Diff Tooling Survey
 
 ## Status
-- `PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=roadmap_gap_closed_on_current_master`
+- `PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_newline_drift_gap_open_on_current_master`
 - scope: record whether the roadmap-backed Phase 4 host-side artifact-diff tooling packet still lacks a deterministic checker or whether the current `scripts/zigux/` surface already closes that gap
 - current repo reality:
   - `scripts/zigux/artifact_diff.py`
@@ -18,12 +18,17 @@
 
 Phase 4 in `ZAR_TO_ZIGUX_PRODUCT_ROADMAP (1).md` calls for artifact-diff checks for host-side tools and points the work toward `scripts/zigux/` diff and layout tooling.
 
-Current `master` already closes the deterministic-check slice of that requirement:
+Current `master` closes most of the deterministic-check scaffolding for that requirement:
 - `scripts/zigux/artifact_diff.py` ships the bounded text, JSON, and SHA-256 comparison helper plus a deterministic `--self-test` packet.
 - `scripts/zigux/check-artifact-diff-contract.py` replays the helper's outward CLI contract, including help-output, missing-required-args, missing-actual-operand, invalid-mode, missing-path, malformed-JSON, and repeat-run cases, and it also keeps the isolated checker self-test entrypoint reviewable beside the live contract replay.
 - `scripts/zigux/check-phase4-artifact-diff-determinism.py` separately rechecks the helper self-test catalog, the contract self-test catalog, the base-case catalog, the repeat-case catalog, the full contract catalog, the dedicated review note, the docs-root and scripts-root reminder surfaces, and this roadmap-facing survey packet so case-count or reminder-surface drift fails closed.
 - `scripts/zigux/validate-phase4.py` already treats both artifact-diff checkers as part of the shared Phase 4 validator-first route before the Zig rollback gates run.
 - `zigux/Makefile` already exposes the same validator-first replay surface through `make -C zigux phase4-validate`, and `.github/workflows/zigux-bootstrap.yml` keeps the helper, contract, and determinism evidence inside the named `Validate Phase 4 rollback routes` step by calling that same Phase 4 validator-first route rather than by spelling those artifact-diff commands out as separate workflow steps.
+
+The remaining same-lane gap is helper-local determinism, not missing checker inventory:
+- `scripts/zigux/artifact_diff.py` still reads text artifacts through newline-normalizing UTF-8 text mode, so a committed `LF` artifact and an actual `CRLF` artifact compare equal under `--mode text` even though the bytes differ.
+- because `scripts/zigux/check-artifact-diff-contract.py` currently proves `text_pass` with `LF` versus `LF` and proves `text_mismatch` with different text content instead of newline-style drift, the published contract packet does not yet fail closed on that line-ending false-pass shape.
+- that leaves the roadmap-backed host-side artifact-diff helper short of fully deterministic text replay even though the surrounding checker packet is already present.
 
 ## Deterministic Contract Packet
 - `PHASE4_ARTIFACT_DIFF_HELPER_SELF_TEST_CASE_COUNT=19`
@@ -40,18 +45,20 @@ Current `master` already closes the deterministic-check slice of that requiremen
 
 ## Current Conclusion
 
-The live Phase 4 artifact-diff tooling gap is not a missing deterministic checker anymore. The current same-lane follow-through is a fail-closed reminder surface: this survey now records the live helper, contract, and determinism packet counts, the exact base-case and full-case contract catalogs, the direct workflow evidence set carried through the shared `phase4-validate` route, and the bootstrap workflow `phase4-validate` entrypoint so the shared `artifact_diff.py` packet stays visible as reviewable CI evidence rather than only as prose outside the checked catalog packet.
+The live Phase 4 artifact-diff tooling lane is no longer blocked on missing checker scaffolding, but it is not fully closed either. The current same-lane gap is narrower and helper-local: the surrounding contract and determinism packet exists, yet `--mode text` still collapses `LF` versus `CRLF` drift into a false pass, so the host-side artifact-diff helper does not currently provide fully deterministic text replay.
+
+That means the shared helper, contract, and determinism counts above remain useful inventory, but they should not be read as proof that the text-mode behavior is already fail-closed on newline-style drift.
 
 ## Next Safe Step
-- current `master` already closes the helper, contract, deterministic checker, and validator-first workflow evidence for this tooling packet, so the next same-lane move is not another helper feature and not another count-only survey refresh
-- the remaining same-lane closure correction is to widen `scripts/zigux/validate-phase4.py` so `REQUIRED_ARTIFACT_DOC_MARKERS` and the synthetic `Documentation/zigux/artifact-diff.md` self-test fixture also require the published `ARTIFACT_DIFF_RESULT_LINES`, the malformed-JSON marker `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID`, and the helper, contract, and determinism catalog markers that `Documentation/zigux/artifact-diff.md` now treats as reviewable contract
-- until that validator-only follow-through lands, stale review-note catalog drift can still slip past the shared Phase 4 validator even though the dedicated artifact-diff note already publishes those markers
-- keep the follow-through scoped to `scripts/zigux/validate-phase4.py` only; do not widen into helper behavior, bitmap, atomic64, perf-baseline, workflow-route, kprobe, or `test_fsmount` work
+- keep the follow-through scoped to the existing artifact-diff helper packet only
+- update `scripts/zigux/artifact_diff.py` so `--mode text` preserves raw newline bytes while still decoding as UTF-8 text, instead of collapsing `CRLF` and `LF` through newline-normalized reads
+- update `scripts/zigux/check-artifact-diff-contract.py` so the published `text_mismatch` contract packet proves `LF` versus `CRLF` drift directly rather than only a changed content word; that narrower replay can keep the existing helper and contract case catalogs stable if it retargets the current `text_mismatch` witness instead of inventing a new named case
+- do not widen the follow-through into `scripts/zigux/validate-phase4.py`, bitmap, atomic64, perf-baseline, workflow-route, `kprobe_example`, or `test_fsmount` work
 
 ## Owner And Rollback Reminder
 - `Documentation/zigux/artifact-diff.md` remains the dedicated owner, review-rule, and rollback note for the shared host-side helper packet; the broader Phase 4 Zig rollback-gate ownership still stays in `Documentation/zigux/phase4-validation-matrix.md`.
 - if `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, or `scripts/zigux/check-phase4-artifact-diff-determinism.py` changes any published `ARTIFACT_DIFF=*`, `MODE=*`, `EXPECTED=*`, `ACTUAL=*`, `SHA256=*`, `EXPECTED_EXISTS=*`, `ACTUAL_EXISTS=*`, `EXPECTED_JSON_ERROR=*`, or `ACTUAL_JSON_ERROR=*` helper result lines, or changes any published helper, contract, or determinism catalog lines, refresh this survey and `Documentation/zigux/artifact-diff.md` in the same change before treating the tooling slice as closed again.
-- until `scripts/zigux/validate-phase4.py` mirrors the published `ARTIFACT_DIFF_RESULT_LINES`, `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID`, and helper, contract, plus determinism catalog markers from `Documentation/zigux/artifact-diff.md`, that validator-only follow-through stays owned by the neighboring Phase 4 validator packet rather than by this reminder lane.
+- until the helper and contract replay stop treating `LF` and `CRLF` drift as equivalent text artifacts, this lane stays open on helper-local determinism rather than on missing checker inventory.
 
 ## Direct Replay Surface
 - `python3 scripts/zigux/artifact_diff.py --self-test`
@@ -63,7 +70,7 @@ The live Phase 4 artifact-diff tooling gap is not a missing deterministic checke
 - `make -C zigux phase4-validate`
 
 ## Boundary
-- this survey closes only the roadmap-backed deterministic tooling question for the shared host-side artifact-diff packet
+- this survey records the current roadmap-backed deterministic tooling packet plus the remaining helper-local newline-drift gap for the shared host-side artifact-diff helper
 - this survey does not claim that the parked `samples/zigux/kprobe_example.zig` or `samples/zigux/test_fsmount.zig` starter gaps are closed
 - this survey does not promote the dedicated local-only perf-baseline packet into shared CI perf coverage
-- reopen this lane only for helper-contract drift, catalog drift, validator-route drift, or reminder-surface drift tied directly to the existing artifact-diff checker packet
+- reopen this lane only for helper-contract drift, newline-handling drift, catalog drift, validator-route drift, or reminder-surface drift tied directly to the existing artifact-diff checker packet
