@@ -46,6 +46,7 @@
     "savedefconfig"
   ],
   "silent_request_packet": [
+    "listnewconfig_expected.json",
     "helpnewconfig_expected.json"
   ],
   "syncconfig_env_packet": [
