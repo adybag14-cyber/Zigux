@@ -68,6 +68,56 @@ test "transaction acquire planning bounds the staged write buffer and private-da
     try std.testing.expectError(error.PrivateDataAlreadyPresent, libfs.LibfsHelperLab.simpleTransactionGetPlan(8, true));
 }
 
+test "addressability planning keeps zero-block and bounded windows explicit" {
+    const zero_blocks = libfs.LibfsHelperLab.genericCheckAddressablePlan(7, 0, .{
+        .sector_bits = 16,
+        .page_index_bits = 16,
+    });
+    const in_window = libfs.LibfsHelperLab.genericCheckAddressablePlan(12, 8, .{
+        .sector_bits = 16,
+        .page_index_bits = 8,
+    });
+
+    try std.testing.expectEqualStrings("fs/libfs.c", zero_blocks.anchor);
+    try std.testing.expectEqual(libfs.AddressabilityStatus.ok, zero_blocks.status);
+    try std.testing.expect(zero_blocks.short_circuits_on_zero_blocks);
+    try std.testing.expectEqual(@as(?u64, null), zero_blocks.last_fs_block);
+    try std.testing.expectEqual(@as(?u64, null), zero_blocks.last_fs_page);
+    try std.testing.expect(zero_blocks.within_sector_window);
+    try std.testing.expect(zero_blocks.within_page_window);
+
+    try std.testing.expectEqual(libfs.AddressabilityStatus.ok, in_window.status);
+    try std.testing.expectEqual(@as(?u64, 7), in_window.last_fs_block);
+    try std.testing.expectEqual(@as(?u64, 7), in_window.last_fs_page);
+    try std.testing.expectEqual(@as(?u64, 8191), in_window.sector_block_limit);
+    try std.testing.expectEqual(@as(?u64, 255), in_window.max_page_index);
+    try std.testing.expect(in_window.within_sector_window);
+    try std.testing.expect(in_window.within_page_window);
+}
+
+test "addressability planning keeps invalid block sizes and page overflow reviewable" {
+    const too_small = libfs.LibfsHelperLab.genericCheckAddressablePlan(8, 1, libfs.native_addressability_window);
+    const too_large = libfs.LibfsHelperLab.genericCheckAddressablePlan(libfs.page_shift + 1, 1, libfs.native_addressability_window);
+    const page_overflow = libfs.LibfsHelperLab.genericCheckAddressablePlan(12, 9, .{
+        .sector_bits = 16,
+        .page_index_bits = 3,
+    });
+
+    try std.testing.expectEqual(libfs.AddressabilityStatus.invalid_blocksize_bits, too_small.status);
+    try std.testing.expectEqual(libfs.AddressabilityStatus.invalid_blocksize_bits, too_large.status);
+    try std.testing.expect(!too_small.within_sector_window);
+    try std.testing.expect(!too_small.within_page_window);
+    try std.testing.expect(!too_large.within_sector_window);
+    try std.testing.expect(!too_large.within_page_window);
+
+    try std.testing.expectEqual(libfs.AddressabilityStatus.exceeds_page_window, page_overflow.status);
+    try std.testing.expectEqual(@as(?u64, 8), page_overflow.last_fs_block);
+    try std.testing.expectEqual(@as(?u64, 8), page_overflow.last_fs_page);
+    try std.testing.expect(page_overflow.within_sector_window);
+    try std.testing.expect(!page_overflow.within_page_window);
+    try std.testing.expectEqual(@as(?u64, 7), page_overflow.max_page_index);
+}
+
 test "offset seek planning keeps the bounded window and sentinel paths explicit" {
     const window_plan = libfs.LibfsHelperLab.planOffsetDirectorySeek(0, libfs.dir_offset_first + 4, .set);
     const sentinel_plan = libfs.LibfsHelperLab.planOffsetDirectorySeek(0, libfs.dir_offset_end_of_directory, .set);
