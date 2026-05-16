@@ -41,7 +41,7 @@
       "id": "trace-events-loader-scaffold",
       "kind": "runtime_loader_scaffold",
       "path": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "The sample-side loader scaffold is visible on current master and keeps the shared runtime-loader handoff explicit through the shipped `prepareSharedRequest`, `requestSharedRuntimeLoad`, and `releaseSharedWithoutSubstrate` bridge helpers plus prepared-snapshot stability across later selftest or exit activity, shared-release failure, shared-request drift rejection around allocator/init-flow and selftest-hook evidence, registration-snapshot drift, rejection of non-idle registration state at the metadata-only handoff boundary, and outstanding-registration drain proofs without clearing the broader substrate blocker."
+      "why_now": "The sample-side loader scaffold is visible on current master and keeps the shared runtime-loader handoff explicit through the shipped `prepareSharedRequest`, `requestSharedRuntimeLoad`, and `releaseSharedWithoutSubstrate` bridge helpers plus initialized prepared requests staying explicit across later direct registration replay, prepared-snapshot stability across later selftest or exit activity, shared-release failure, shared-request drift rejection around allocator/init-flow and selftest-hook evidence, registration-snapshot drift, rejection of non-idle registration state at the metadata-only handoff boundary, and outstanding-registration drain proofs without clearing the broader substrate blocker."
     },
     {
       "id": "trace-events-loader-substrate-drift",
@@ -77,13 +77,13 @@
       "id": "trace-events-survey-note",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
-      "why_now": "The survey note records the current reviewable family-local packet, including the selftest-ready failed-exit rollback cue, the rejected re-selftest rollback cue, and the landed loader-substrate-drift replay, while keeping the shared runtime-substrate blocker explicit."
+      "why_now": "The survey note records the current reviewable family-local packet, including the initialized prepared-request direct registration replay cue, the selftest-ready failed-exit rollback cue, the rejected re-selftest rollback cue, and the landed loader-substrate-drift replay, while keeping the shared runtime-substrate blocker explicit."
     },
     {
       "id": "trace-events-module-slice-note",
       "kind": "review_note",
       "path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
-      "why_now": "The module-slice note keeps the same packet-local proof, including the selftest-ready failed-exit rollback note, the rejected re-selftest rollback note, the loader-substrate-drift replay, and shared-loader boundary visible for reviewers."
+      "why_now": "The module-slice note keeps the same packet-local proof, including the initialized prepared-request direct registration replay cue, the selftest-ready failed-exit rollback note, the rejected re-selftest rollback note, the loader-substrate-drift replay, and shared-loader boundary visible for reviewers."
     },
     {
       "id": "trace-events-shared-owner-map",
