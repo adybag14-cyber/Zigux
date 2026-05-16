@@ -227,9 +227,9 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
 
     const workflow = try readRepoFile(allocator, ".github/workflows/zigux-bootstrap.yml");
     defer allocator.free(workflow);
-    try expectContains(workflow, "Validate Phase 7 runtime helper gates");
+    try expectContains(workflow, "Validate Phase 7 helper routes");
     try expectContains(workflow, "make -C zigux phase7-validate");
-    try expectContains(workflow, "Run Phase 7 runtime helper tests");
+    try expectContains(workflow, "Run Phase 7 helper tests");
     try expectContains(workflow, "make -C zigux phase7-test");
 
     const cmdline_tests = try readRepoFile(allocator, "zigux/tests/phase7_cmdline.zig");
