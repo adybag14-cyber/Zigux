@@ -10,6 +10,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase7-cmdline-slice.md",
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
@@ -22,6 +23,13 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MARKERS = {
+    "Documentation/zigux/README.md": [
+        "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
+        "Documentation/zigux/phase7-cmdline-slice.md",
+        "zigux/tests/phase7_cmdline.zig",
+        "zigux/tests/phase7_cmdline_survey.zig",
+        "zigux/tests/phase7_build.zig",
+    ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
         "PHASE7_LANE_KEY=P7-L05",
         "scope: first low-risk runtime-safe parsing helpers only",
@@ -223,6 +231,12 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         cases = [
+            (
+                "docs_root_boundary_marker",
+                "Documentation/zigux/README.md",
+                "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
+                "Documentation/zigux/README.md: current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
+            ),
             (
                 "slice_lane_key_marker",
                 "Documentation/zigux/phase7-cmdline-slice.md",
