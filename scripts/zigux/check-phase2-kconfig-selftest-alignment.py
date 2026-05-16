@@ -122,7 +122,7 @@ EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 26
 EXPECTED_CONF_CASE_COUNT = 16
 EXPECTED_CONFDATA_CASE_COUNT = 13
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_SELF_TEST_CASE_COUNT = 22
+EXPECTED_SELF_TEST_CASE_COUNT = 45
 
 
 def under_root(root: Path, path: Path) -> Path:
@@ -398,6 +398,46 @@ def run_self_test() -> int:
         assert ("MISSING_SCRIPTS_README_MARKERS", SCRIPTS_README_MARKERS[2]) in collect_issues(root)
         checks_run += 1
 
+        for marker in VALIDATOR_MARKERS:
+            if marker in (VALIDATOR_MARKERS[1], VALIDATOR_MARKERS[-1]):
+                continue
+            build_self_test_root(root)
+            write_text(
+                under_root(root, PHASE2_VALIDATOR),
+                replace_once(read_text(under_root(root, PHASE2_VALIDATOR)), marker, ""),
+            )
+            assert ("MISSING_VALIDATOR_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in CLOSURE_VALIDATOR_MARKERS:
+            build_self_test_root(root)
+            write_text(
+                under_root(root, PHASE2_CLOSURE_VALIDATOR),
+                replace_once(read_text(under_root(root, PHASE2_CLOSURE_VALIDATOR)), marker, ""),
+            )
+            assert ("MISSING_CLOSURE_VALIDATOR_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in SCRIPTS_README_MARKERS:
+            if marker == SCRIPTS_README_MARKERS[2]:
+                continue
+            build_self_test_root(root)
+            write_text(
+                under_root(root, SCRIPTS_README),
+                replace_once(read_text(under_root(root, SCRIPTS_README)), marker, ""),
+            )
+            assert ("MISSING_SCRIPTS_README_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in TESTS_README_MARKERS:
+            build_self_test_root(root)
+            write_text(
+                under_root(root, TESTS_README),
+                replace_once(read_text(under_root(root, TESTS_README)), marker, ""),
+            )
+            assert ("MISSING_TESTS_README_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
         build_self_test_root(root)
         write_text(under_root(root, WORKFLOW), remove_exact_line(read_text(under_root(root, WORKFLOW)), WORKFLOW_LINES[6]))
         assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[6]) in collect_issues(root)
@@ -467,6 +507,15 @@ def run_self_test() -> int:
         assert ("FORBIDDEN_CONFDATA_SURVEY_MARKERS", "11 fixture cases") in collect_issues(root)
         checks_run += 1
 
+        for marker in PHASE2_CONFDATA_SURVEY_MARKERS:
+            build_self_test_root(root)
+            write_text(
+                under_root(root, PHASE2_CONFDATA_SURVEY),
+                replace_once(read_text(under_root(root, PHASE2_CONFDATA_SURVEY)), marker, ""),
+            )
+            assert ("MISSING_CONFDATA_SURVEY_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
         build_self_test_root(root)
         manifest = json.loads(read_text(under_root(root, KCONFIG_BRIDGE_CONFDATA_MANIFEST)))
         manifest["helper_local_anchors"] = manifest["helper_local_anchors"][:-1]
@@ -478,6 +527,17 @@ def run_self_test() -> int:
         write_text(under_root(root, REVIEW_CHECKLIST), replace_once(read_text(under_root(root, REVIEW_CHECKLIST)), REVIEW_CHECKLIST_MARKERS[1], ""))
         assert ("MISSING_REVIEW_CHECKLIST_MARKERS", REVIEW_CHECKLIST_MARKERS[1]) in collect_issues(root)
         checks_run += 1
+
+        for marker in REVIEW_CHECKLIST_MARKERS:
+            if marker == REVIEW_CHECKLIST_MARKERS[1]:
+                continue
+            build_self_test_root(root)
+            write_text(
+                under_root(root, REVIEW_CHECKLIST),
+                replace_once(read_text(under_root(root, REVIEW_CHECKLIST)), marker, ""),
+            )
+            assert ("MISSING_REVIEW_CHECKLIST_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
 
         for marker in PHASE2_CLOSURE_DOC_MARKERS:
             build_self_test_root(root)
