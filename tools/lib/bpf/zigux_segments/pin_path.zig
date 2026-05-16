@@ -111,6 +111,27 @@ test "buildSanitizedMapPinPath mirrors libbpf dot sanitization for pin names" {
     );
 }
 
+test "buildValidatedMapPinPath keeps unsanitized validated pin paths explicit" {
+    var buffer: [96]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        "/tmp/bpf.v1/metrics.v1",
+        try buildValidatedMapPinPath(&buffer, "/tmp/bpf.v1", "metrics.v1"),
+    );
+    try std.testing.expectEqualStrings(
+        "/sys/fs/bpf/stats.map",
+        try buildValidatedMapPinPath(&buffer, null, "stats.map"),
+    );
+    try std.testing.expectError(
+        error.InvalidName,
+        buildValidatedMapPinPath(&buffer, null, "stats/map"),
+    );
+    try std.testing.expectError(
+        error.InvalidRootPath,
+        buildValidatedMapPinPath(&buffer, "/tmp/bpf\x00tmp", "stats.map"),
+    );
+}
+
 test "validated pin-path helpers keep pin-name and root-path shape checks explicit" {
     var buffer: [96]u8 = undefined;
 
