@@ -66,32 +66,33 @@ pub fn advanceOnlineCpuCursor(
     online_cpu_mask: []const bool,
     start_index: usize,
 ) OnlineCpuCursor {
-    if (start_index >= online_cpu_mask.len) {
+    const bounded_start_index = @min(start_index, online_cpu_mask.len);
+    if (bounded_start_index >= online_cpu_mask.len) {
         return .{
-            .start_index = start_index,
+            .start_index = bounded_start_index,
             .next_scan_index = online_cpu_mask.len,
             .cpu_index = null,
             .skipped_offline_count = 0,
         };
     }
 
-    var index = start_index;
+    var index = bounded_start_index;
     while (index < online_cpu_mask.len) : (index += 1) {
         if (online_cpu_mask[index]) {
             return .{
-                .start_index = start_index,
+                .start_index = bounded_start_index,
                 .next_scan_index = index + 1,
                 .cpu_index = index,
-                .skipped_offline_count = index - start_index,
+                .skipped_offline_count = index - bounded_start_index,
             };
         }
     }
 
     return .{
-        .start_index = start_index,
+        .start_index = bounded_start_index,
         .next_scan_index = online_cpu_mask.len,
         .cpu_index = null,
-        .skipped_offline_count = online_cpu_mask.len - start_index,
+        .skipped_offline_count = online_cpu_mask.len - bounded_start_index,
     };
 }
 
@@ -279,6 +280,12 @@ test "advanceOnlineCpuCursor walks sparse online CPU masks in order" {
     try std.testing.expectEqual(@as(?usize, null), exhausted.cpu_index);
     try std.testing.expectEqual(@as(usize, 5), exhausted.next_scan_index);
     try std.testing.expectEqual(@as(usize, 0), exhausted.skipped_offline_count);
+
+    const past_end = advanceOnlineCpuCursor(&mask, 9);
+    try std.testing.expectEqual(@as(usize, 5), past_end.start_index);
+    try std.testing.expectEqual(@as(?usize, null), past_end.cpu_index);
+    try std.testing.expectEqual(@as(usize, 5), past_end.next_scan_index);
+    try std.testing.expectEqual(@as(usize, 0), past_end.skipped_offline_count);
 }
 
 test "summarizeOnlineCpuSelection keeps auto exact subset and oversized requests explicit" {
