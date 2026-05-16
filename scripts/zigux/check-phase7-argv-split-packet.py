@@ -251,6 +251,10 @@ MISSING_MARKER_CASES = [
     ("zigux/tests/README.md", "  * `make -C zigux phase7`"),
     (
         "zigux/tests/phase7_argv_split.zig",
+        "phase 7 argvSplit token buffer does not alias the source text",
+    ),
+    (
+        "zigux/tests/phase7_argv_split.zig",
         "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy",
     ),
     (
