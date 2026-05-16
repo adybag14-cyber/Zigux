@@ -56,6 +56,7 @@ The exact replay packet recorded by the current shared closure packet is:
 The shared Phase 10 closure packet still keeps two adjacent parity-scoreboard buckets explicit so reviewers do not overcount non-Phase-10 evidence as virtio closure progress.
 - `reference_samples` stays `out_of_scope`; its evidence remains under the landed Phase 5 sample packet and should not widen the active Phase 10 closure claim.
 - `runtime_starters` stays `out_of_scope`; its evidence remains under the bounded Phase 9 runtime-loader packet and should not widen the active Phase 10 risky-transport closure claim.
+- the current cross-phase runtime packet remains reviewable through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_lifecycle_boundary_guard.zig`, `zigux/tests/runtime_trace_events_loader_substrate_drift.zig`, `zigux/tests/runtime_trace_events_module.zig`, `zigux/tests/runtime_trace_events_diff.zig`, `zigux/tests/runtime_trace_events_survey.zig`, `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`, `zigux/tests/runtime_trace_events_manifest.json`, and the `samples/zigux/runtime_{atomic64,bitmap,kretprobe,trace_events}{,_loader}.zig` family without changing the Phase 10 owner boundary.
 
 ## Parked Boundary
 Phase 10 remains limited to `drivers/virtio/*.zig` plus justified helper bridges in `zigux/kernel/` or `zigux/helpers/`, and it stays limited to driver-local lab slices, survey manifests, and shared validation gates as its allowed evidence kinds.
