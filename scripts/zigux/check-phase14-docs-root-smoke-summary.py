@@ -143,8 +143,8 @@ CORE_TRACEABILITY_EXACT_LINE_MARKERS = [
 MAKEFILE_MARKERS = [
     "scripts/zigux/validate-phase14.py",
     CHECKER_PATH,
+    TESTS_README_CHECKER_PATH,
     ROLLBACK_CHECKER_PATH,
-    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     RELEASE_BOUNDARY_CHECKER_PATH,
 ]
 
@@ -153,6 +153,8 @@ MAKEFILE_EXACT_COUNT_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH} --self-test",
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH}",
+    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH} --self-test",
+    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH}",
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH} --self-test",
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH}",
     f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH} --self-test",
@@ -405,6 +407,8 @@ def good_makefile_text() -> str:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
             f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH} --self-test",
             f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {CHECKER_PATH}",
+            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH} --self-test",
+            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH}",
             f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH} --self-test",
             f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH}",
             f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {RELEASE_BOUNDARY_CHECKER_PATH} --self-test",
@@ -867,6 +871,46 @@ def run_self_test() -> int:
         write_text(
             root / MAKEFILE_PATH,
             good_makefile_text().replace(
+                f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH} --self-test\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            f"marker count drift in {MAKEFILE_PATH.as_posix()}: \tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH} --self-test"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing tests-readme makefile self-test route failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / MAKEFILE_PATH, good_makefile_text())
+
+        write_text(
+            root / MAKEFILE_PATH,
+            good_makefile_text().replace(
+                f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH}\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            f"marker count drift in {MAKEFILE_PATH.as_posix()}: \tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH}"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing tests-readme makefile route failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / MAKEFILE_PATH, good_makefile_text())
+
+        write_text(
+            root / MAKEFILE_PATH,
+            good_makefile_text().replace(
                 f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {ROLLBACK_CHECKER_PATH} --self-test\n",
                 "",
                 1,
@@ -1027,7 +1071,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=29")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
