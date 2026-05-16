@@ -44,7 +44,7 @@ FREEZE_MAP_TRACE_BOUNDARY_MARKER = (
 PREPARED_STATE_LANDED_MARKER = (
     "direct readback now also shows `zigux/tests/runtime_loader_allocator_init_flow.zig` already keeps the prepared-plan drift replay explicit across rejected `requestRuntimeLoad()` calls"
 )
-PREPARED_STATE_EXPLICIT_ASSERTION_MARKER = """request.plan.module_name = \\\"runtime_trace_events_drift\\\";
+PREPARED_STATE_EXPLICIT_ASSERTION_MARKER = """request.plan.module_name = \"runtime_trace_events_drift\";
     try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
     try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
@@ -62,7 +62,7 @@ GAP_SURVEY_NEXT_STEP_MARKER = (
 )
 PHASE9_GAP_SURVEY_NOTE_TRACE_EVENTS_PROOF_MARKER = "`zigux/tests/runtime_trace_events_loader_substrate_drift.zig`"
 DEP_MOD_BOUNDARY_MARKER = (
-    "the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state remain review-only boundary references rather than shipped publication surfaces"
+    "the shared module-metadata and depmod-publication boundary is still blocked in the live loader packet: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, `Module.symvers`, and `depmod` script, manifest, or alias publication state remain review-only boundary references rather than shipped publication surfaces"
 )
 DOCS_ROOT_DEPMOD_BOUNDARY_MARKER = (
     "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state stay blocked review-only boundaries"
@@ -484,7 +484,7 @@ def expect_failure(root: Path, expected: str) -> None:
         raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
 
 
-def write_fixture_tree(root: Path) -> None:
+def write_fixtureTree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     for rel_path in REQUIRED_FILES:
@@ -503,15 +503,15 @@ def remove_once(root: Path, rel_path: str, marker: str, count: int) -> None:
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase9-build-only-surface-"))
     try:
-        write_fixture_tree(base)
+        write_fixtureTree(base)
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
         for rel_path, marker, count in SELF_TEST_REMOVALS:
-            write_fixture_tree(base)
+            write_fixtureTree(base)
             remove_once(base, rel_path, marker, count)
             expect_failure(base, f"missing_marker:{rel_path}:{marker}")
-        write_fixture_tree(base)
+        write_fixtureTree(base)
         write_text(base / "scripts/zigux/check-phase9-loader-substrate-plan.py", "# forbidden\n")
         expect_failure(base, "unexpected_file:scripts/zigux/check-phase9-loader-substrate-plan.py")
     finally:
