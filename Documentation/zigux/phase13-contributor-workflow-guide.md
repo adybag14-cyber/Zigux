@@ -52,6 +52,8 @@ When contributor-facing wording changes, keep these broad surfaces aligned:
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
@@ -69,6 +71,8 @@ As of `2026-05-15`, current `master` materializes the bounded `libfs` foothold t
 
 Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`, but that broader convenience route fans out to `phase13-test`, which still calls `zig build test --build-file zigux/tests/phase13_build.zig --summary all` while `zigux/tests/phase13_build.zig` remains a repo-reality gap. Keep `make -C zigux phase13-validate` as the stable contributor-facing handle until that shared build companion lands, and treat the broader `phase13` route as blocked convenience wiring rather than direct shipped current-`master` evidence.
 
+Current `master` also materializes the dedicated shared-summary guard `scripts/zigux/check-phase13-shared-summary-surfaces.py`, and `make -C zigux phase13-validate` now wires that guard's self-test and live check beside `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, and `scripts/zigux/check-phase13-notifier-priority-signal.py`. Keep that shared-summary guard explicit whenever contributor guidance tells reviewers to reread the broad Phase 13 reminder surfaces together.
+
 When a shared reminder or reviewer prompt still names any of those paths, treat that wording as contributor-guidance drift to repair instead of as shipped current-`master` evidence.
 Apply the same reread to the broader `zigux/tests/README.md` guide: keep it in scope as a shared contributor-facing surface, and current `master` now materializes a dedicated Phase 13 packet summary there. Keep that broader tests-root guide aligned with this workflow guide and the shared-helper sequencing note as shipped Phase 13 review evidence instead of framing it as a future shared-surface follow-up, while still keeping any absent direct companions framed as repo-reality gaps rather than landed packet-local proof.
 Current `master` also materializes the adjacent direct-evidence shards `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/notifier_chain_view.zig` helper, and the Linux-side `drivers/tty/hvc/hvc_console.h` header, but it still does not materialize these remaining direct notifier or list companions recorded in `Documentation/zigux/phase13-notifier-list-survey.md`, so shared contributor wording should keep them framed as adjacent repo-reality gaps rather than as independently shipped reviewer evidence:
@@ -83,7 +87,7 @@ Current `master` also materializes the adjacent direct-evidence shards `zigux/bi
 
 1. Confirm the change stays inside one bounded Phase 13 lane.
 2. Keep the owner split visible instead of collapsing `libfs`, `devres`, `landlock`, and notifier evidence into one generic summary.
-3. If a broad reminder changes, reread the shared surfaces together, explicitly including `Documentation/zigux/README.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, and `scripts/zigux/check-phase13-shared-summary-surfaces.py`, before adding packet-local prose.
+3. If a broad reminder changes, reread the shared surfaces together, explicitly including `Documentation/zigux/README.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, and `scripts/zigux/check-phase13-shared-summary-surfaces.py`, before adding packet-local prose.
 4. If a broad docs-root or shared-summary reminder names `make -C zigux phase13`, repair that wording before reopening scripts-root or tests-root wording: keep `make -C zigux phase13-validate` as the stable handle and keep `make -C zigux phase13` blocked while `zigux/tests/phase13_build.zig` remains absent.
 5. Before naming a direct scripts-root checker as review evidence, verify that the exact path is still present on current `master`; if it is not, keep the wording anchored to the shipped docs-root, tests-root, and `make -C zigux phase13-validate` surfaces and note the missing script as a blocker.
 6. Before naming a direct helper-local tests-root companion as review evidence, verify that the exact path is still present on current `master`; if it is not, keep the wording anchored to the shipped docs-root, tests-root, and `make -C zigux phase13-validate` surfaces and note the missing direct companion as repo reality.
