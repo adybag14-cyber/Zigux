@@ -81,6 +81,30 @@ fn assertThreeU32FieldLayout(
     fieldType(T, third, u32);
 }
 
+fn expectedNotifierBlockAlign() usize {
+    return @alignOf(usize);
+}
+
+fn expectedNotifierBlockSize() usize {
+    return std.mem.alignForward(
+        usize,
+        (@sizeOf(usize) * 2) + @sizeOf(i32),
+        expectedNotifierBlockAlign(),
+    );
+}
+
+fn expectedNotifierChainPriorityIncreaseAlign() usize {
+    return @alignOf(usize);
+}
+
+fn expectedNotifierChainPriorityIncreaseSize() usize {
+    return std.mem.alignForward(
+        usize,
+        (@sizeOf(usize) * 2) + (@sizeOf(i32) * 2),
+        expectedNotifierChainPriorityIncreaseAlign(),
+    );
+}
+
 pub fn assertBoundaryHeaderLayout() !void {
     try size(abi.BoundaryHeader, 8);
     try alignment(abi.BoundaryHeader, 4);
@@ -117,23 +141,23 @@ pub fn assertInteropPolicyLayout() !void {
 }
 
 pub fn assertNotifierBlockLayout() !void {
-    try size(abi.NotifierBlock, 24);
-    try alignment(abi.NotifierBlock, 8);
+    try size(abi.NotifierBlock, expectedNotifierBlockSize());
+    try alignment(abi.NotifierBlock, expectedNotifierBlockAlign());
     try offset(abi.NotifierBlock, "notifier_call", 0);
-    try offset(abi.NotifierBlock, "next", 8);
-    try offset(abi.NotifierBlock, "priority", 16);
+    try offset(abi.NotifierBlock, "next", @sizeOf(usize));
+    try offset(abi.NotifierBlock, "priority", @sizeOf(usize) * 2);
     fieldType(abi.NotifierBlock, "notifier_call", usize);
     fieldType(abi.NotifierBlock, "next", usize);
     fieldType(abi.NotifierBlock, "priority", i32);
 }
 
 pub fn assertNotifierChainPriorityIncreaseLayout() !void {
-    try size(abi.ChainPriorityIncrease, 24);
-    try alignment(abi.ChainPriorityIncrease, 8);
+    try size(abi.ChainPriorityIncrease, expectedNotifierChainPriorityIncreaseSize());
+    try alignment(abi.ChainPriorityIncrease, expectedNotifierChainPriorityIncreaseAlign());
     try offset(abi.ChainPriorityIncrease, "previous_index", 0);
-    try offset(abi.ChainPriorityIncrease, "current_index", 8);
-    try offset(abi.ChainPriorityIncrease, "previous_priority", 16);
-    try offset(abi.ChainPriorityIncrease, "current_priority", 20);
+    try offset(abi.ChainPriorityIncrease, "current_index", @sizeOf(usize));
+    try offset(abi.ChainPriorityIncrease, "previous_priority", @sizeOf(usize) * 2);
+    try offset(abi.ChainPriorityIncrease, "current_priority", (@sizeOf(usize) * 2) + @sizeOf(i32));
     fieldType(abi.ChainPriorityIncrease, "previous_index", usize);
     fieldType(abi.ChainPriorityIncrease, "current_index", usize);
     fieldType(abi.ChainPriorityIncrease, "previous_priority", i32);
