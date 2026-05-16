@@ -297,17 +297,26 @@ static void run_rbtree_section(void)
 		{ .key = 10, .serial = 4 },
 		{ .key = 15, .serial = 5 },
 	};
+	struct rb_entry_fixture cached_entries[] = {
+		{ .key = 10, .serial = 0 },
+		{ .key = 12, .serial = 1 },
+		{ .key = 5, .serial = 2 },
+		{ .key = 5, .serial = 3 },
+	};
 	struct rb_root root = RB_ROOT;
 	struct rb_root postorder_root = RB_ROOT;
 	struct rb_root search_root = RB_ROOT;
+	struct rb_root_cached cached_root = RB_ROOT_CACHED;
 	int order[5] = {0};
 	int reverse[5] = {0};
 	int replaced[4] = {0};
 	int erase_init_order[3] = {0};
 	int next_match_serials[3] = {0};
+	int cached_leftmost_return_serials[4] = {0};
 	size_t count = 0;
 	struct rb_node *node;
 	struct rb_node *last_match = NULL;
+	struct rb_node *cached_return;
 	bool empty_root = RB_EMPTY_ROOT(&root);
 	int find_wanted = 15;
 	int missing_wanted = 17;
@@ -356,6 +365,15 @@ static void run_rbtree_section(void)
 		next_match_serials[count++] = rb_entry(node, struct rb_entry_fixture, node)->serial;
 	}
 
+	cached_return = rb_add_cached(&cached_entries[0].node, &cached_root, rb_less);
+	cached_leftmost_return_serials[0] = cached_return ? rb_entry(cached_return, struct rb_entry_fixture, node)->serial : -1;
+	cached_return = rb_add_cached(&cached_entries[1].node, &cached_root, rb_less);
+	cached_leftmost_return_serials[1] = cached_return ? rb_entry(cached_return, struct rb_entry_fixture, node)->serial : -1;
+	cached_return = rb_add_cached(&cached_entries[2].node, &cached_root, rb_less);
+	cached_leftmost_return_serials[2] = cached_return ? rb_entry(cached_return, struct rb_entry_fixture, node)->serial : -1;
+	cached_return = rb_add_cached(&cached_entries[3].node, &cached_root, rb_less);
+	cached_leftmost_return_serials[3] = cached_return ? rb_entry(cached_return, struct rb_entry_fixture, node)->serial : -1;
+
 	RB_CLEAR_NODE(&replacement.node);
 
 	printf("\"rbtree\":{");
@@ -372,6 +390,7 @@ static void run_rbtree_section(void)
 	printf("\"find_first_serial\":%d,", rb_entry(first_match, struct rb_entry_fixture, node)->serial);
 	printf("\"next_match_serials\":"); emit_int_array(next_match_serials, count); printf(",");
 	printf("\"match_iterator_serials\":"); emit_int_array(next_match_serials, count); printf(",");
+	printf("\"cached_leftmost_return_serials\":"); emit_int_array(cached_leftmost_return_serials, 4); printf(",");
 	printf("\"next_match_terminal_null\":%s", rb_next_match(&duplicate_wanted, last_match, rb_cmp_key) ? "false" : "true");
 	printf("}");
 }
