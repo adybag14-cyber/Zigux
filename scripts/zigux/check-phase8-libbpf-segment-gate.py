@@ -209,6 +209,7 @@ EXPECTED_BRIDGE_LANDED_SCOPE = [
     "summarizeMapReuseCompatibility() mismatch reporting for helper-only reused-map compatibility checks",
     "isMapReuseCompatible() helper-only reused-map compatibility comparison",
     "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects",
+    "planTokenPreparation() helper-only token readiness planning from a prepared reuse plan without token materialization",
 ]
 
 EXPECTED_BRIDGE_QUEUED_SCOPE = [
@@ -218,9 +219,9 @@ EXPECTED_BRIDGE_QUEUED_SCOPE = [
 
 EXPECTED_BRIDGE_WHY_NOW = (
     "The shared file-path bridge destination now records the fdinfo parsing foundation, "
-    "helper-only observation shaping, reused-map compatibility summaries, and pinned-map reuse "
-    "planning packet as a reviewable landed helper slice, so future surveys can keep promoting "
-    "bounded bridge behavior without crossing into live descriptor or reopen side effects."
+    "helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, "
+    "and planning-only token-readiness gating as a reviewable landed helper slice, so future surveys can keep promoting "
+    "bounded bridge behavior without crossing into live descriptor, token materialization, or reopen side effects."
 )
 
 FIXTURE_TEXT = {
