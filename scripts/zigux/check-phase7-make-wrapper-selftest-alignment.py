@@ -22,6 +22,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase7-make-wrapper.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "scripts/zigux/check-phase7-build-wiring.py",
+    "scripts/zigux/check-phase7-cmdline-packet.py",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "zigux/Makefile",
@@ -64,6 +65,8 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
         "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        "python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+        "python3 scripts/zigux/check-phase7-cmdline-packet.py",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -151,6 +154,8 @@ REQUIRED_MARKERS = {
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-build-wiring.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
+        "scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py",
         "scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -420,6 +425,32 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        remove_marker(
+            tmp_root,
+            "zigux/Makefile",
+            "scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+            "missing_makefile_cmdline_selftest_route",
+        )
+        expect_missing_marker(
+            "missing_makefile_cmdline_selftest_route",
+            tmp_root,
+            "zigux/Makefile: scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+        )
+        write_fixture_root(tmp_root)
+
+        remove_marker(
+            tmp_root,
+            "zigux/Makefile",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py",
+            "missing_makefile_cmdline_live_route",
+        )
+        expect_missing_marker(
+            "missing_makefile_cmdline_live_route",
+            tmp_root,
+            "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py",
+        )
+        write_fixture_root(tmp_root)
+
         workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8") + "python3 scripts/zigux/check-phase7-build-wiring.py\n",
@@ -445,7 +476,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=13")
+    print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CASE_COUNT=15")
 
 
 def main() -> int:
