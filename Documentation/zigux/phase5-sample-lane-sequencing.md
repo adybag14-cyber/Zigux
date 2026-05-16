@@ -40,6 +40,7 @@ Current `master` still carries the four-anchor Phase 5 reminder packet together 
   - `samples/zigux/kretprobe_example.zig`
   - `zigux/tests/phase5_kretprobe_example.zig`
   - `zigux/tests/phase5_kretprobe_example_manifest.json`
+  - `zigux/tests/phase5_kretprobe_example_survey.zig`
 - directly readable trace-events packet:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
   - `samples/zigux/trace_events_sample.zig`
@@ -53,14 +54,13 @@ Fresh shared-surface readback also keeps these current gaps explicit:
 - `zigux/tests/phase5_bytestream_fifo.zig`
 - `zigux/tests/phase5_bytestream_fifo_survey.zig`
 - `zigux/tests/phase5_kobject_example_survey.zig`
-- `zigux/tests/phase5_kretprobe_example_survey.zig`
 
 Some shared reminder surfaces still narrate the older kretprobe-gap posture. Do not route shared sequencing work as though kretprobe still sits inside a survey-note-only gap, and do not route bytestream or kobject work as though the older tests-root or shared-build companions are directly readable again just because those narrower packets are still reviewable.
 
 That means current Phase 5 work is no longer about adding a missing anchor. The live overlap risk is now two-sided:
 
 - shared reminder-surface edits can still reopen bytestream, kobject, kretprobe, or trace-events packet work when a note accidentally reclassifies those packet shapes
-- stale owner-map wording can still send kretprobe back into missing-path follow-through even though its current public evidence now includes a restored sample-root-plus-tests packet
+- stale owner-map wording can still send kretprobe back into missing-path follow-through even though its current public evidence now includes a restored sample-root-plus-tests-plus-survey packet
 
 ## Owner map
 
@@ -72,7 +72,7 @@ That shared lane owns only:
 
 - the shared contributor packet in `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
 - wording that keeps the roadmap-backed four-anchor packet explicit while also keeping the current direct-readback split explicit
-- wording that keeps bytestream routed through its survey-note-plus-sample-plus-direct-manifest packet, kobject routed through its note-plus-sample-plus-tests packet, kretprobe routed through its restored note-plus-sample-plus-tests packet, and trace-events routed through its directly readable non-runtime packet
+- wording that keeps bytestream routed through its survey-note-plus-sample-plus-direct-manifest packet, kobject routed through its note-plus-sample-plus-tests packet, kretprobe routed through its restored note-plus-sample-plus-tests-plus-manifest-plus-survey packet, and trace-events routed through its directly readable non-runtime packet
 - wording that keeps the current missing shared `zigux/tests/phase5_build.zig` route explicit instead of presenting a live Linux-style shared replay path on current `master`
 - wording that keeps the Phase 5 versus Phase 9 boundary explicit for the later `samples/zigux/runtime_*.zig` and `*_loader.zig` families
 - no-extra-sample reminders for helper families such as `string`, `cmdline`, `argv`, `rbtree`, direct `bitmap`, and standalone formatting samples
@@ -112,10 +112,11 @@ The kretprobe lane currently owns the restored directly readable non-runtime pac
 - `samples/zigux/kretprobe_example.zig`
 - `zigux/tests/phase5_kretprobe_example.zig`
 - `zigux/tests/phase5_kretprobe_example_manifest.json`
+- `zigux/tests/phase5_kretprobe_example_survey.zig`
 
 Keep kretprobe-local follow-through inside that restored packet: `runRetargetReplay()`, `runAnchorReplay()`, `runLifecycleGuardReplay()`, `runOwnershipReplay()`, `runRecoveryReplay()`, the explicit `kernel_clone` default symbol, the direct `do_sys_openat2` retarget cue, the bounded `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `nmissed = 1`, and `maxactive = 20` replay contract, and the `cold` through `exited` ownership snapshots.
 
-Do not restate the missing `zigux/tests/phase5_kretprobe_example_survey.zig` or shared `zigux/tests/phase5_build.zig` route as directly readable evidence from this lane until a fresh reread proves those exact paths returned.
+Do not restate the missing shared `zigux/tests/phase5_build.zig` route as directly readable evidence from this lane until a fresh reread proves that exact path returned.
 
 ### Trace-events packet
 
@@ -150,7 +151,7 @@ Use this note to keep future Phase 5 follow-through bounded:
 - reopen the shared sample lane only for one reminder-surface or owner-map truthfulness repair across the current four-anchor packet and its direct-readback split
 - reopen the bytestream lane only for one packet-local sample-surface, directly coupled survey-note repair, or direct-manifest alignment step inside the still-readable survey-note-plus-sample-plus-direct-manifest packet
 - reopen the kobject lane only for one packet-local manifest, sample-surface, or replay-contract repair inside the still-readable note-plus-sample-plus-tests packet
-- reopen the kretprobe lane only for one packet-local manifest, sample-surface, or replay-contract repair inside the restored note-plus-sample-plus-tests packet
+- reopen the kretprobe lane only for one packet-local manifest, survey, sample-surface, or replay-contract repair inside the restored note-plus-sample-plus-tests-plus-manifest-plus-survey packet
 - reopen the trace-events lane only for one packet-local manifest, survey, replay-contract, or sample-surface repair inside the directly readable non-runtime packet
 - update the directly coupled sample packet first when sample behavior changes, then refresh shared reminder surfaces only after those packet-local paths are directly readable on current `master`
 
