@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 FILES = {
     "workflow_guide": "Documentation/zigux/phase13-contributor-workflow-guide.md",
     "review_checklist": "Documentation/zigux/review-checklist.md",
+    "contributor_surface_sync": "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
     "lane_note": "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
     "release_matrix": "Documentation/zigux/phase13-release-coordination-matrix.md",
     "tests_companion": "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
@@ -56,6 +57,17 @@ REQUIRED_MARKERS = {
         PHASE13_BUILD_GAP,
         NOTIFIER_CHAIN_VIEW,
         HVC_HEADER,
+    ],
+    "contributor_surface_sync": [
+        "# Phase 10, 11, and 13 Contributor Surface Sync",
+        "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
+        CHECKER_MARKER,
+        "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
+        "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
+        "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        VALIDATE_ROUTE,
+        BLOCKED_ROUTE,
     ],
     "lane_note": [
         "# Phase 13 Shared Helper Lane Sequencing",
