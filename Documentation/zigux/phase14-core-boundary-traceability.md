@@ -61,6 +61,7 @@ The honest current statement is freeze-in-C boundary evidence only, not a live b
 
 - treat the older shared smoke packet and the older anchor-local manifest inventory as archival references only until current-`master` readback recovers them again
 - do not use this note to claim live `make -C zigux phase14-*` or `zig build ... --build-file zigux/tests/phase14_build.zig` evidence while that build file and the named manifest bundle are absent from direct readback
+- if broader reminder surfaces such as `Documentation/zigux/README.md` or `Documentation/zigux/review-checklist.md` still mention the older smoke bundle, treat that wording as historical until direct readback recovers the exact survey, manifest, and build files named above; the current truthful review packet is this note plus `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase14-skbuff-bridge-survey.md`
 - any future replay claim for this Phase 14 family must first restore or re-expose the exact survey, manifest, and build files on current `master`
 
 ## What this note does not claim
