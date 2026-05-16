@@ -66,8 +66,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "Documentation/zigux/phase10-closure-evidence.md",
     "zigux/tests/phase10_closure_manifest.json",
-    "make -C zigux phase10-test",
-    "make -C zigux phase10",
+    "make -C zigux phase10-validate",
 ]
 
 SCRIPTS_README_MARKERS = [
