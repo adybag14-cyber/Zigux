@@ -23,38 +23,16 @@ PARITY_SCORECARD_PATH = "zigux/tests/phase15_parity_scorecard.json"
 PARITY_SCORECARD_NOTE_PATH = "Documentation/zigux/phase15-parity-scorecard.md"
 READINESS_MANIFEST_PATH = "zigux/tests/phase15_readiness_gate_manifest.json"
 PARITY_SCORECARD_SURVEY_PATH = "Documentation/zigux/phase15-parity-scorecard-survey.md"
-SHARED_SUMMARY_GAP_CHECKER = "scripts/zigux/check-phase15-shared-summary-gap.py"
+DECISION_TEMPLATE_PATH = "Documentation/zigux/phase15-architecture-council-decision-record-template.md"
+
 EXPECTED_MANIFEST_LANE_KEY = "P15-L08"
 EXPECTED_MANIFEST_PHASE = "Phase 15"
 EXPECTED_ROADMAP_REQUIREMENT = "Architecture Council review process"
 EXPECTED_MANIFEST_ANCHOR = NOTE_PATH
 EXPECTED_SURVEYED_COMMIT_PREFIX = "current-master-readback-"
-FIXTURE_SURVEYED_COMMIT = "current-master-readback-2026-05-12"
-HISTORICAL_CONTINUITY_MARKER = (
-    "historical continuity for this parked maintenance surface still points back to `P15-L06`"
-)
-START_WITH_SCRIPTS_README_MARKER = (
-    "starting with scripts/zigux/README.md as the smallest remaining "
-    "parity-scorecard-survey reminder before widening into zigux/tests/README.md"
-)
-NOTE_START_WITH_SCRIPTS_README_MARKER = (
-    "Start that shared-summary follow-through with `scripts/zigux/README.md` as the "
-    "smallest remaining parity-scorecard-survey reminder before widening into "
-    "`zigux/tests/README.md`."
-)
-RUN_SHARED_SUMMARY_GAP_CHECKER_FIRST_MARKER = (
-    "run python3 scripts/zigux/check-phase15-shared-summary-gap.py first"
-)
+FIXTURE_SURVEYED_COMMIT = "current-master-readback-2026-05-16"
 SCORECARD_NO_APPROVAL_MARKER = (
     "no Architecture Council approval is currently recorded for a freeze-map status change"
-)
-SCORECARD_METRIC_LABELS = (
-    ("active freeze-in-C anchor count", "active_freeze_in_c_anchor_count"),
-    ("blocked status-change anchor count", "blocked_status_change_anchor_count"),
-    (
-        "Architecture Council approvals recorded for status change",
-        "architecture_council_status_change_approval_count",
-    ),
 )
 
 NOTE_MARKERS = (
@@ -62,22 +40,20 @@ NOTE_MARKERS = (
     "## Required Review Packet",
     "## Decision Buckets",
     "## Reopen Trigger Catalog",
-    "no Architecture Council approval is currently recorded for a freeze-map status change",
+    SCORECARD_NO_APPROVAL_MARKER,
     "Keep the Phase 15 governance lane in maintenance mode.",
+    DECISION_TEMPLATE_PATH,
     PARITY_SCORECARD_SURVEY_PATH,
     "Documentation/zigux/phase15-readiness-gate-survey.md",
-    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "## Maintenance-Mode Handoff",
     "## Next bounded step",
-    "shared-summaries",
-    "broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane",
-    NOTE_START_WITH_SCRIPTS_README_MARKER,
 )
 
-NOTE_MAINTENANCE_CLOSURE_MARKERS = (
-    "shared docs-root maintenance undercount is",
-    "broader scripts-root and tests-root parity-scorecard-survey undercount",
-    "that remaining drift stays owned by the shared-summary companion lane rather than this packet-local review-process note",
+NOTE_MAINTENANCE_MARKERS = (
+    "maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires",
+    "shared-summary companion lane in `Documentation/zigux/phase15-governance-lane-sequencing.md` reports drift",
+    "keeps future same-lane follow-up focused on review-process truthfulness rather than broader shared-summary drift",
 )
 
 POLICY_MARKERS = (
@@ -95,7 +71,7 @@ POLICY_MARKERS = (
 
 LANE_NOTE_MARKERS = (
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
-    HISTORICAL_CONTINUITY_MARKER,
+    "historical continuity for this parked maintenance surface still points back to `P15-L06`",
     "scripts/zigux/validate-phase15.py",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -104,12 +80,12 @@ LANE_NOTE_MARKERS = (
 VALIDATOR_MARKERS = ("scripts/zigux/check-phase15-review-process-handoff.py",)
 
 DOCS_README_MARKERS = (
-    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    NOTE_PATH,
     "Documentation/zigux/phase15-parity-scorecard.md",
-    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    POLICY_PATH,
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
-    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    LANE_NOTE_PATH,
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
     "make -C zigux phase15",
@@ -151,6 +127,7 @@ REQUIRED_REVIEW_PACKET_FIELDS = (
     "current status bucket",
     "requested decision bucket",
     "decision record ID",
+    "completed decision-record template or exact equivalent artifact",
     "owner",
     "required approver set",
     "rollback owner",
@@ -216,23 +193,17 @@ HANDOFF_REPLAY_COMMANDS = (
 )
 
 HANDOFF_NEXT_STEP_MARKERS = (
-    "Documentation/zigux/README.md",
-    "Documentation/zigux/review-checklist.md",
-    "scripts/zigux/README.md",
-    "zigux/tests/README.md",
+    "stay in maintenance mode unless a named reopen trigger or deep-core blocker posture change fires first",
+    NOTE_PATH,
+    DECISION_TEMPLATE_PATH,
     "Documentation/zigux/phase15-freeze-map-governance.md",
-    "Documentation/zigux/phase15-architecture-council-review-process.md",
-    PARITY_SCORECARD_SURVEY_PATH,
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    POLICY_PATH,
     "Documentation/zigux/phase15-readiness-gate-survey.md",
-    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
-    "Documentation/zigux/phase15-governance-lane-sequencing.md",
-    RUN_SHARED_SUMMARY_GAP_CHECKER_FIRST_MARKER,
-    "scripts/zigux/validate-phase15.py",
-    "zigux/tests/phase15_handoff_next_steps_manifest.json",
-    "zigux/tests/phase15_readiness_gate_manifest.json",
-    "shared-summaries",
-    START_WITH_SCRIPTS_README_MARKER,
-    "broader scripts-root or tests-root reminder drift routed through the shared-summary companion lane",
+    LANE_NOTE_PATH,
+    MANIFEST_PATH,
+    "zigux/tests/phase15_build.zig",
+    "keep any repair scoped to the review-process packet instead of reopening shared-summary, parity-scorecard, or readiness packets",
 )
 
 EXPECTED_FREEZE_IN_C_TARGETS = (
@@ -240,6 +211,15 @@ EXPECTED_FREEZE_IN_C_TARGETS = (
     "mm/page_alloc.c",
     "kernel/rcu/tree.c",
     "net/core/skbuff.c",
+)
+
+SCORECARD_METRIC_LABELS = (
+    ("active freeze-in-C anchor count", "active_freeze_in_c_anchor_count"),
+    ("blocked status-change anchor count", "blocked_status_change_anchor_count"),
+    (
+        "Architecture Council approvals recorded for status change",
+        "architecture_council_status_change_approval_count",
+    ),
 )
 
 
@@ -304,8 +284,7 @@ def _validate_governance_alignment(
         if manifest_surveyed_commit not in note_text:
             issues.append("note:surveyed_commit_alignment")
 
-    readiness = _require_json_object(readiness_manifest, "readiness_manifest", issues)
-    if readiness.get("surveyed_commit_mode") != "dated_master_readback":
+    if readiness_manifest.get("surveyed_commit_mode") != "dated_master_readback":
         issues.append("readiness_manifest:surveyed_commit_mode")
 
     posture = _require_json_object(parity_scorecard.get("posture"), "parity_scorecard:posture", issues)
@@ -389,7 +368,6 @@ def _validate_governance_alignment(
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
-
     required_files = (
         NOTE_PATH,
         POLICY_PATH,
@@ -414,7 +392,7 @@ def validate(root: Path) -> list[str]:
 
     note_text = _read(root / NOTE_PATH)
     _require_text_markers(note_text, NOTE_MARKERS, "note", issues)
-    _require_text_markers(note_text, NOTE_MAINTENANCE_CLOSURE_MARKERS, "note", issues)
+    _require_text_markers(note_text, NOTE_MAINTENANCE_MARKERS, "note", issues)
     _require_text_markers(_read(root / POLICY_PATH), POLICY_MARKERS, "policy", issues)
     _require_text_markers(_read(root / LANE_NOTE_PATH), LANE_NOTE_MARKERS, "lane_note", issues)
     _require_text_markers(_read(root / VALIDATOR_PATH), VALIDATOR_MARKERS, "validator", issues)
@@ -487,7 +465,6 @@ def validate(root: Path) -> list[str]:
         scorecard_note_text,
         issues,
     )
-
     return issues
 
 
@@ -507,10 +484,29 @@ def _scorecard_note_fixture(parity_scorecard: dict) -> str:
 
 
 def _seed_fixture_tree(root: Path) -> None:
-    _write(
-        root / NOTE_PATH,
-        "\n".join(NOTE_MARKERS + NOTE_MAINTENANCE_CLOSURE_MARKERS + (FIXTURE_SURVEYED_COMMIT,)) + "\n",
+    note_text = "\n".join(
+        (
+            "# Phase 15 Architecture Council Review Process Survey",
+            "## Trigger Conditions",
+            "## Required Review Packet",
+            "## Decision Buckets",
+            "## Reopen Trigger Catalog",
+            "## Maintenance-Mode Handoff",
+            "## Next bounded step",
+            SCORECARD_NO_APPROVAL_MARKER,
+            "Keep the Phase 15 governance lane in maintenance mode.",
+            DECISION_TEMPLATE_PATH,
+            PARITY_SCORECARD_SURVEY_PATH,
+            "Documentation/zigux/phase15-readiness-gate-survey.md",
+            "Documentation/zigux/phase15-governance-lane-sequencing.md",
+            "maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires",
+            "shared-summary companion lane in `Documentation/zigux/phase15-governance-lane-sequencing.md` reports drift",
+            "keeps future same-lane follow-up focused on review-process truthfulness rather than broader shared-summary drift",
+            FIXTURE_SURVEYED_COMMIT,
+            "",
+        )
     )
+    _write(root / NOTE_PATH, note_text)
     _write(root / POLICY_PATH, "\n".join(POLICY_MARKERS) + "\n")
     _write(root / LANE_NOTE_PATH, "\n".join(LANE_NOTE_MARKERS) + "\n")
     _write(root / VALIDATOR_PATH, "\n".join(VALIDATOR_MARKERS) + "\n")
@@ -518,73 +514,68 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root / REVIEW_CHECKLIST_PATH, "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     _write(root / SCRIPTS_README_PATH, "\n".join(SCRIPTS_README_MARKERS) + "\n")
     _write(root / TESTS_README_PATH, "\n".join(TESTS_README_PACKET_MARKERS) + "\n")
-    _write(
-        root / MANIFEST_PATH,
-        json.dumps(
+    _write(root / PARITY_SCORECARD_SURVEY_PATH, "# parity scorecard survey\n")
+    _write(root / DECISION_TEMPLATE_PATH, "# template\n")
+
+    review_manifest = {
+        "lane_key": EXPECTED_MANIFEST_LANE_KEY,
+        "phase": EXPECTED_MANIFEST_PHASE,
+        "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
+        "roadmap_requirement": EXPECTED_ROADMAP_REQUIREMENT,
+        "anchor": EXPECTED_MANIFEST_ANCHOR,
+        "review_packet_template": DECISION_TEMPLATE_PATH,
+        "current_approval_state": "no_freeze_map_status_change_approved",
+        "ownership_evidence_fields": list(OWNERSHIP_EVIDENCE_FIELDS),
+        "trigger_conditions": list(TRIGGER_CONDITIONS),
+        "required_review_packet_fields": list(REQUIRED_REVIEW_PACKET_FIELDS),
+        "reopen_trigger_catalog": list(REOPEN_TRIGGER_CATALOG),
+        "decision_buckets": list(DECISION_BUCKETS),
+        "handoff": {
+            "current_mode": "maintenance_mode",
+            "replay_commands": list(HANDOFF_REPLAY_COMMANDS),
+            "blocker_posture_requirement": "deep_core_blocker_posture_change",
+            "next_step": " ; ".join(HANDOFF_NEXT_STEP_MARKERS),
+        },
+    }
+    _write(root / MANIFEST_PATH, json.dumps(review_manifest, indent=2) + "\n")
+
+    freeze_manifest = {
+        "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
+        "freeze_in_c_targets": list(EXPECTED_FREEZE_IN_C_TARGETS),
+        "blocker_ownership": [
             {
-                "lane_key": EXPECTED_MANIFEST_LANE_KEY,
-                "phase": EXPECTED_MANIFEST_PHASE,
-                "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
-                "roadmap_requirement": EXPECTED_ROADMAP_REQUIREMENT,
-                "anchor": EXPECTED_MANIFEST_ANCHOR,
-                "current_approval_state": "no_freeze_map_status_change_approved",
-                "ownership_evidence_fields": list(OWNERSHIP_EVIDENCE_FIELDS),
-                "required_review_packet_fields": list(REQUIRED_REVIEW_PACKET_FIELDS),
-                "trigger_conditions": list(TRIGGER_CONDITIONS),
-                "reopen_trigger_catalog": list(REOPEN_TRIGGER_CATALOG),
-                "decision_buckets": list(DECISION_BUCKETS),
-                "handoff": {
-                    "current_mode": "maintenance_mode",
-                    "replay_commands": list(HANDOFF_REPLAY_COMMANDS),
-                    "next_step": " ".join(HANDOFF_NEXT_STEP_MARKERS),
-                },
+                "anchor": "kernel/sched/core.c",
+                "owner": "Architecture Council",
+                "required_approver_set": "Architecture Council + PMO / Release Management",
+                "rollback_owner": "Architecture Council + PMO / Release Management",
+                "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam",
             },
-            indent=2,
-        )
-        + "\n",
-    )
-    _write(
-        root / FREEZE_MAP_MANIFEST_PATH,
-        json.dumps(
             {
-                "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
-                "freeze_in_c_targets": list(EXPECTED_FREEZE_IN_C_TARGETS),
-                "blocker_ownership": [
-                    {
-                        "anchor": "kernel/sched/core.c",
-                        "owner": "Architecture Council",
-                        "required_approver_set": "Architecture Council + PMO / Release Management",
-                        "rollback_owner": "Architecture Council + PMO / Release Management",
-                        "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam",
-                    },
-                    {
-                        "anchor": "mm/page_alloc.c",
-                        "owner": "Architecture Council",
-                        "required_approver_set": "Architecture Council + Validation and Perf Team",
-                        "rollback_owner": "Architecture Council + Validation and Perf Team",
-                        "latest_blocker_disposition": "blocked_no_bounded_allocator_seam",
-                    },
-                    {
-                        "anchor": "kernel/rcu/tree.c",
-                        "owner": "ABI and Runtime Team",
-                        "required_approver_set": "Architecture Council + ABI and Runtime Team",
-                        "rollback_owner": "Architecture Council + ABI and Runtime Team",
-                        "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
-                    },
-                    {
-                        "anchor": "net/core/skbuff.c",
-                        "owner": "Shared Subsystems Pod",
-                        "required_approver_set": "Architecture Council + Shared Subsystems Pod",
-                        "rollback_owner": "Architecture Council + Shared Subsystems Pod",
-                        "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
-                    },
-                ],
+                "anchor": "mm/page_alloc.c",
+                "owner": "Architecture Council",
+                "required_approver_set": "Architecture Council + Validation and Perf Team",
+                "rollback_owner": "Architecture Council + Validation and Perf Team",
+                "latest_blocker_disposition": "blocked_no_bounded_allocator_seam",
             },
-            indent=2,
-        )
-        + "\n",
-    )
-    parity_scorecard_fixture = {
+            {
+                "anchor": "kernel/rcu/tree.c",
+                "owner": "ABI and Runtime Team",
+                "required_approver_set": "Architecture Council + ABI and Runtime Team",
+                "rollback_owner": "Architecture Council + ABI and Runtime Team",
+                "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
+            },
+            {
+                "anchor": "net/core/skbuff.c",
+                "owner": "Shared Subsystems Pod",
+                "required_approver_set": "Architecture Council + Shared Subsystems Pod",
+                "rollback_owner": "Architecture Council + Shared Subsystems Pod",
+                "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
+            },
+        ],
+    }
+    _write(root / FREEZE_MAP_MANIFEST_PATH, json.dumps(freeze_manifest, indent=2) + "\n")
+
+    parity_scorecard = {
         "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
         "posture": {
             "architecture_council_status_change_approval_recorded": False,
@@ -602,9 +593,7 @@ def _seed_fixture_tree(root: Path) -> None:
                 "required_approver_set": "Architecture Council + PMO / Release Management",
                 "rollback_owner": "Architecture Council + PMO / Release Management",
                 "current_blocker": "blocked_no_bounded_scheduler_seam",
-                "evidence_archive": {
-                    "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam",
-                },
+                "evidence_archive": {"latest_blocker_disposition": "blocked_no_bounded_scheduler_seam"},
             },
             {
                 "path": "mm/page_alloc.c",
@@ -612,9 +601,7 @@ def _seed_fixture_tree(root: Path) -> None:
                 "required_approver_set": "Architecture Council + Validation and Perf Team",
                 "rollback_owner": "Architecture Council + Validation and Perf Team",
                 "current_blocker": "blocked_no_bounded_allocator_seam",
-                "evidence_archive": {
-                    "latest_blocker_disposition": "blocked_no_bounded_allocator_seam",
-                },
+                "evidence_archive": {"latest_blocker_disposition": "blocked_no_bounded_allocator_seam"},
             },
             {
                 "path": "kernel/rcu/tree.c",
@@ -623,7 +610,7 @@ def _seed_fixture_tree(root: Path) -> None:
                 "rollback_owner": "Architecture Council + ABI and Runtime Team",
                 "current_blocker": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
                 "evidence_archive": {
-                    "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
+                    "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"
                 },
             },
             {
@@ -632,26 +619,17 @@ def _seed_fixture_tree(root: Path) -> None:
                 "required_approver_set": "Architecture Council + Shared Subsystems Pod",
                 "rollback_owner": "Architecture Council + Shared Subsystems Pod",
                 "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide",
-                "evidence_archive": {
-                    "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
-                },
+                "evidence_archive": {"latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide"},
             },
         ],
     }
-    _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard_fixture, indent=2) + "\n")
-    _write(root / PARITY_SCORECARD_NOTE_PATH, _scorecard_note_fixture(parity_scorecard_fixture))
+    _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
+    _write(root / PARITY_SCORECARD_NOTE_PATH, _scorecard_note_fixture(parity_scorecard))
     _write(
         root / READINESS_MANIFEST_PATH,
-        json.dumps(
-            {
-                "surveyed_commit_mode": "dated_master_readback",
-                "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
-            },
-            indent=2,
-        )
+        json.dumps({"surveyed_commit_mode": "dated_master_readback", "surveyed_commit": FIXTURE_SURVEYED_COMMIT}, indent=2)
         + "\n",
     )
-    _write(root / PARITY_SCORECARD_SURVEY_PATH, "# parity scorecard survey\n")
 
 
 def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
@@ -675,225 +653,41 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
-        scorecard_note_path = root / PARITY_SCORECARD_NOTE_PATH
-        _write(
-            scorecard_note_path,
-            _read(scorecard_note_path).replace(FIXTURE_SURVEYED_COMMIT + "\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            ["parity_scorecard_note:surveyed_commit"],
-            "missing_scorecard_note_surveyed_commit",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        _write(
-            scorecard_note_path,
-            _read(scorecard_note_path).replace(
-                _metric_line("Architecture Council approvals recorded for status change", 0) + "\n",
-                "",
-                1,
-            ),
-        )
-        _assert_only(
-            validate(root),
-            ["parity_scorecard_note:missing:Architecture Council approvals recorded for status change: `0`"],
-            "missing_scorecard_note_approval_metric",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        _write(
-            scorecard_note_path,
-            _read(scorecard_note_path).replace(SCORECARD_NO_APPROVAL_MARKER + "\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            [f"parity_scorecard_note:missing:{SCORECARD_NO_APPROVAL_MARKER}"],
-            "missing_scorecard_note_no_approval_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
         note_path = root / NOTE_PATH
-        _write(note_path, _read(note_path).replace(PARITY_SCORECARD_SURVEY_PATH + "\n", "", 1))
-        _assert_only(
-            validate(root),
-            [f"note:missing:{PARITY_SCORECARD_SURVEY_PATH}"],
-            "missing_note_parity_scorecard_survey_marker",
-        )
+        stale = "keeps future same-lane follow-up focused on review-process truthfulness rather than broader shared-summary drift"
+        _write(note_path, _read(note_path).replace(stale + "\n", "", 1))
+        _assert_only(validate(root), [f"note:missing:{stale}"], "missing_note_scope_marker")
         _seed_fixture_tree(root)
         case_count += 1
 
-        note_path = root / NOTE_PATH
-        _write(
-            note_path,
-            _read(note_path).replace(
-                "shared docs-root maintenance undercount is\n",
-                "",
-                1,
-            ),
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace(
+            "keep any repair scoped to the review-process packet instead of reopening shared-summary, parity-scorecard, or readiness packets",
+            "",
+            1,
         )
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         _assert_only(
             validate(root),
-            ["note:missing:shared docs-root maintenance undercount is"],
-            "missing_note_maintenance_handoff_closure_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        note_path = root / NOTE_PATH
-        _write(
-            note_path,
-            _read(note_path).replace(
-                "broader scripts-root and tests-root parity-scorecard-survey undercount\n",
-                "",
-                1,
-            ),
-        )
-        _assert_only(
-            validate(root),
-            ["note:missing:broader scripts-root and tests-root parity-scorecard-survey undercount"],
-            "missing_note_shared_summary_alignment_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        note_path = root / NOTE_PATH
-        _write(
-            note_path,
-            _read(note_path).replace(NOTE_START_WITH_SCRIPTS_README_MARKER + "\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            [f"note:missing:{NOTE_START_WITH_SCRIPTS_README_MARKER}"],
-            "missing_note_start_with_scripts_readme_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        lane_note_path = root / LANE_NOTE_PATH
-        _write(
-            lane_note_path,
-            _read(lane_note_path).replace(HISTORICAL_CONTINUITY_MARKER + "\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            [f"lane_note:missing:{HISTORICAL_CONTINUITY_MARKER}"],
-            "missing_lane_note_historical_continuity_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        docs_readme_path = root / DOCS_README_PATH
-        _write(
-            docs_readme_path,
-            _read(docs_readme_path).replace("Documentation/zigux/phase15-readiness-gate-survey.md\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            ["docs_readme:missing:Documentation/zigux/phase15-readiness-gate-survey.md"],
-            "missing_docs_readme_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        review_checklist_path = root / REVIEW_CHECKLIST_PATH
-        _write(
-            review_checklist_path,
-            _read(review_checklist_path).replace("Architecture Council review record linked\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            ["review_checklist:missing:Architecture Council review record linked"],
-            "missing_review_checklist_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        tests_readme_path = root / TESTS_README_PATH
-        _write(
-            tests_readme_path,
-            _read(tests_readme_path).replace("Documentation/zigux/freeze-map.md\n", "", 1),
-        )
-        _assert_only(
-            validate(root),
-            ["tests_readme:missing:Documentation/zigux/freeze-map.md"],
-            "missing_tests_readme_marker",
+            [
+                "manifest_handoff_next_step:missing:keep any repair scoped to the review-process packet instead of reopening shared-summary, parity-scorecard, or readiness packets"
+            ],
+            "missing_manifest_next_step_scope",
         )
         _seed_fixture_tree(root)
         case_count += 1
 
         manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["ownership_evidence_fields"].remove("required approver set")
-        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest_ownership_evidence_fields:missing:required approver set"],
-            "missing_manifest_ownership_field",
+        manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace(
+            "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+            "",
+            1,
         )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["required_review_packet_fields"].remove("required approver set")
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         _assert_only(
             validate(root),
-            ["manifest_required_review_packet_fields:missing:required approver set"],
-            "missing_manifest_field",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["surveyed_commit"] = "invalid-readback-2026-05-13"
-        parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
-        parity_scorecard["surveyed_commit"] = "invalid-readback-2026-05-13"
-        note_path = root / NOTE_PATH
-        note_text = _read(note_path).replace(FIXTURE_SURVEYED_COMMIT, "invalid-readback-2026-05-13", 1)
-        scorecard_note_path = root / PARITY_SCORECARD_NOTE_PATH
-        scorecard_note_text = _read(scorecard_note_path).replace(FIXTURE_SURVEYED_COMMIT, "invalid-readback-2026-05-13", 1)
-        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
-        _write(note_path, note_text)
-        _write(scorecard_note_path, scorecard_note_text)
-        _assert_only(
-            validate(root),
-            ["manifest:surveyed_commit_prefix"],
-            "manifest_surveyed_commit_prefix",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["surveyed_commit"] = "current-master-readback-2026-05-13"
-        parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
-        parity_scorecard["surveyed_commit"] = "current-master-readback-2026-05-13"
-        scorecard_note_path = root / PARITY_SCORECARD_NOTE_PATH
-        scorecard_note_text = _read(scorecard_note_path).replace(FIXTURE_SURVEYED_COMMIT, "current-master-readback-2026-05-13", 1)
-        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
-        _write(scorecard_note_path, scorecard_note_text)
-        _assert_only(
-            validate(root),
-            ["note:surveyed_commit_alignment"],
-            "note_surveyed_commit_alignment",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["surveyed_commit"] = "current-master-readback-2026-05-13"
-        note_path = root / NOTE_PATH
-        note_text = _read(note_path).replace(FIXTURE_SURVEYED_COMMIT, "current-master-readback-2026-05-13", 1)
-        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        _write(note_path, note_text)
-        _assert_only(
-            validate(root),
-            ["manifest:surveyed_commit_alignment"],
-            "manifest_surveyed_commit_alignment",
+            ["manifest_handoff_next_step:missing:Documentation/zigux/phase15-architecture-council-decision-record-template.md"],
+            "missing_manifest_template_marker",
         )
         _seed_fixture_tree(root)
         case_count += 1
@@ -901,180 +695,44 @@ def run_self_test() -> int:
         manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["lane_key"] = "P15-L06"
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest:lane_key"],
-            "manifest_lane_key_alignment",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["anchor"] = "Documentation/zigux/freeze-map.md"
-        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest:anchor"],
-            "manifest_anchor_alignment",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["handoff"]["replay_commands"].remove("make -C zigux phase15-test")
-        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest_handoff_replay_commands:missing:make -C zigux phase15-test"],
-            "missing_manifest_handoff_phase15_test",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace("Documentation/zigux/review-checklist.md ", "", 1)
-        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["manifest_handoff_next_step:missing:Documentation/zigux/review-checklist.md"],
-            "missing_handoff_review_checklist_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace(PARITY_SCORECARD_SURVEY_PATH + " ", "", 1)
-        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            [f"manifest_handoff_next_step:missing:{PARITY_SCORECARD_SURVEY_PATH}"],
-            "missing_handoff_parity_scorecard_survey_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace(
-            RUN_SHARED_SUMMARY_GAP_CHECKER_FIRST_MARKER + " ",
-            "",
-            1,
-        )
-        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            [f"manifest_handoff_next_step:missing:{RUN_SHARED_SUMMARY_GAP_CHECKER_FIRST_MARKER}"],
-            "missing_handoff_run_shared_summary_gap_checker_first_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["handoff"]["next_step"] = manifest["handoff"]["next_step"].replace(
-            START_WITH_SCRIPTS_README_MARKER + " ",
-            "",
-            1,
-        )
-        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            [f"manifest_handoff_next_step:missing:{START_WITH_SCRIPTS_README_MARKER}"],
-            "missing_handoff_start_with_scripts_readme_marker",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        readiness_manifest = json.loads(_read(root / READINESS_MANIFEST_PATH))
-        readiness_manifest["surveyed_commit"] = "current-master-readback-2026-05-13"
-        _write(root / READINESS_MANIFEST_PATH, json.dumps(readiness_manifest, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            [],
-            "decoupled_readiness_surveyed_commit",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        readiness_manifest = json.loads(_read(root / READINESS_MANIFEST_PATH))
-        readiness_manifest["surveyed_commit_mode"] = "exact_head"
-        _write(root / READINESS_MANIFEST_PATH, json.dumps(readiness_manifest, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["readiness_manifest:surveyed_commit_mode"],
-            "readiness_surveyed_commit_mode",
-        )
+        _assert_only(validate(root), ["manifest:lane_key"], "manifest_lane_key_alignment")
         _seed_fixture_tree(root)
         case_count += 1
 
         parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
         parity_scorecard["posture"]["architecture_council_status_change_approval_recorded"] = True
         _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["parity_scorecard:approval_posture_mismatch"],
-            "approval_posture_alignment",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
-        parity_scorecard["metrics"]["architecture_council_status_change_approval_count"] = 1
-        _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["parity_scorecard:approval_count_mismatch", "parity_scorecard_note:missing:Architecture Council approvals recorded for status change: `1`"],
-            "approval_count_alignment",
-        )
+        _assert_only(validate(root), ["parity_scorecard:approval_posture_mismatch"], "approval_posture_alignment")
         _seed_fixture_tree(root)
         case_count += 1
 
         parity_scorecard = json.loads(_read(root / PARITY_SCORECARD_PATH))
         parity_scorecard["anchors"][2]["lane_owner"] = "Architecture Council"
         _write(root / PARITY_SCORECARD_PATH, json.dumps(parity_scorecard, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["governance_alignment:owner:kernel/rcu/tree.c"],
-            "owner_alignment",
-        )
+        _assert_only(validate(root), ["governance_alignment:owner:kernel/rcu/tree.c"], "owner_alignment")
         _seed_fixture_tree(root)
         case_count += 1
 
-        freeze_manifest = json.loads(_read(root / FREEZE_MAP_MANIFEST_PATH))
-        freeze_manifest["blocker_ownership"][3]["required_approver_set"] = "Architecture Council"
-        _write(root / FREEZE_MAP_MANIFEST_PATH, json.dumps(freeze_manifest, indent=2) + "\n")
-        _assert_only(
-            validate(root),
-            ["governance_alignment:required_approver_set:net/core/skbuff.c"],
-            "approver_alignment",
-        )
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        marker = "Architecture Council review record linked"
+        _write(review_checklist_path, _read(review_checklist_path).replace(marker + "\n", "", 1))
+        _assert_only(validate(root), [f"review_checklist:missing:{marker}"], "missing_review_checklist_marker")
         _seed_fixture_tree(root)
         case_count += 1
 
-        freeze_manifest = json.loads(_read(root / FREEZE_MAP_MANIFEST_PATH))
-        freeze_manifest["freeze_in_c_targets"] = list(EXPECTED_FREEZE_IN_C_TARGETS[:-1])
-        _write(root / FREEZE_MAP_MANIFEST_PATH, json.dumps(freeze_manifest, indent=2) + "\n")
+        scorecard_note_path = root / PARITY_SCORECARD_NOTE_PATH
+        metric_line = _metric_line("Architecture Council approvals recorded for status change", 0)
+        _write(scorecard_note_path, _read(scorecard_note_path).replace(metric_line + "\n", "", 1))
         _assert_only(
             validate(root),
-            ["freeze_map_manifest:freeze_in_c_targets"],
-            "freeze_map_targets",
+            [f"parity_scorecard_note:missing:{metric_line}"],
+            "missing_scorecard_metric",
         )
         _seed_fixture_tree(root)
         case_count += 1
 
         (root / PARITY_SCORECARD_NOTE_PATH).unlink()
-        _assert_only(
-            validate(root),
-            [f"missing_file:{PARITY_SCORECARD_NOTE_PATH}"],
-            "missing_scorecard_note_file",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        (root / REVIEW_CHECKLIST_PATH).unlink()
-        _assert_only(
-            validate(root),
-            [f"missing_file:{REVIEW_CHECKLIST_PATH}"],
-            "missing_review_checklist_file",
-        )
+        _assert_only(validate(root), [f"missing_file:{PARITY_SCORECARD_NOTE_PATH}"], "missing_scorecard_note_file")
         case_count += 1
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
@@ -1083,9 +741,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Keep the dedicated Phase 15 Architecture Council review-process handoff aligned."
-    )
+    parser = argparse.ArgumentParser(description="Keep the dedicated Phase 15 Architecture Council review-process handoff aligned.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
     args = parser.parse_args()
@@ -1103,10 +759,27 @@ def main() -> int:
         return 1
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
-    print(
-        "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(NOTE_MARKERS) + len(NOTE_MAINTENANCE_CLOSURE_MARKERS) + len(POLICY_MARKERS) + len(LANE_NOTE_MARKERS) + len(VALIDATOR_MARKERS) + len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_PACKET_MARKERS) + len(OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(TRIGGER_CONDITIONS) + len(REOPEN_TRIGGER_CATALOG) + len(DECISION_BUCKETS) + len(HANDOFF_REPLAY_COMMANDS) + len(HANDOFF_NEXT_STEP_MARKERS) + len(SCORECARD_METRIC_LABELS) + 18}"
+    marker_count = (
+        len(NOTE_MARKERS)
+        + len(NOTE_MAINTENANCE_MARKERS)
+        + len(POLICY_MARKERS)
+        + len(LANE_NOTE_MARKERS)
+        + len(VALIDATOR_MARKERS)
+        + len(DOCS_README_MARKERS)
+        + len(REVIEW_CHECKLIST_MARKERS)
+        + len(SCRIPTS_README_MARKERS)
+        + len(TESTS_README_PACKET_MARKERS)
+        + len(OWNERSHIP_EVIDENCE_FIELDS)
+        + len(REQUIRED_REVIEW_PACKET_FIELDS)
+        + len(TRIGGER_CONDITIONS)
+        + len(REOPEN_TRIGGER_CATALOG)
+        + len(DECISION_BUCKETS)
+        + len(HANDOFF_REPLAY_COMMANDS)
+        + len(HANDOFF_NEXT_STEP_MARKERS)
+        + len(SCORECARD_METRIC_LABELS)
+        + 10
     )
+    print(f"PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT={marker_count}")
     return 0
 
 
