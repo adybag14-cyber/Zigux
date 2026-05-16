@@ -534,6 +534,24 @@ def run_self_test() -> None:
                 '.name = "leading equals sign stays in the parameter token",',
                 'zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig: .name = "leading equals sign stays in the parameter token",',
             ),
+            (
+                "fixture_unterminated_quoted_value_marker",
+                "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+                '.name = "unterminated quoted value consumes the token tail",',
+                'zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig: .name = "unterminated quoted value consumes the token tail",',
+            ),
+            (
+                "fixture_trailing_spaces_marker",
+                "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+                '.name = "trailing spaces after key=value trim to empty rest",',
+                'zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig: .name = "trailing spaces after key=value trim to empty rest",',
+            ),
+            (
+                "fixture_whitespace_only_tail_marker",
+                "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+                '.name = "whitespace-only tail after key=value trims to empty rest",',
+                'zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig: .name = "whitespace-only tail after key=value trims to empty rest",',
+            ),
         ]
 
         for case, rel, marker, expected in cases:
