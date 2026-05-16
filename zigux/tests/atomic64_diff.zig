@@ -289,7 +289,7 @@ test "atomic64 diff wrapper keeps the manifest build, validator, and matrix blob
 }
 
 test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"lane_key\": \"P4-L02\"");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"lane_key\": \"P4-L04\"");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"roadmap_target_path\": \"zigux/tests/atomic64_diff.zig\"");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"owner\": \"ABI and Runtime Team\"");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"rollback_owner\": \"ABI and Runtime Team\"");
@@ -645,7 +645,7 @@ test "atomic64 diff wrapper keeps the manifest-backed runtime packet structurall
 
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P4-L02", manifest.lane_key);
+    try std.testing.expectEqualStrings("P4-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", manifest.roadmap_target_path);
     try std.testing.expect(manifest.roadmap_atomic64_diff_present);
