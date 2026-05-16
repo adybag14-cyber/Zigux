@@ -248,8 +248,14 @@ jobs:
       - name: Check Phase 3 ABI interop packet
         run: python3 scripts/zigux/check-phase3-abi.py
 
+      - name: Run Phase 3 ABI compile proof
+        run: zig build phase3-test --build-file zigux/tests/build.zig
+
       - name: Run Phase 3 export/UAPI layout proof
         run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig
+
+      - name: Run Phase 3 ABI dump replay
+        run: zig build phase3-dump --build-file zigux/tests/build.zig
 
       - name: Run Phase 3 low-level wrapper compile proof
         run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig
