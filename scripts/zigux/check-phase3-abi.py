@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import tempfile
 
 
@@ -140,6 +141,12 @@ CHECK_LIB_MARKERS = (
     '("zig", "build", "phase3-dump", "--build-file", "zigux/tests/build.zig"),',
     "def run_phase3_slice_entry(",
 )
+HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+([A-Z0-9_]+)\b")
+HEADER_STRUCT_RE = re.compile(r"^\s*struct\s+([A-Za-z_][A-Za-z0-9_]*)\b")
+ZIG_CONST_RE = re.compile(r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*[:=]")
+ZIG_EXTERN_STRUCT_RE = re.compile(
+    r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*extern struct\b"
+)
 SOURCE_MARKERS = {
     Path("include/linux/zigux.h"): (
         "zigux_boundary_header_make(",
@@ -180,6 +187,32 @@ SOURCE_MARKERS = {
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def _record_duplicate(
+    seen: dict[str, int], issues: list[str], label: str, name: str, lineno: int
+) -> None:
+    previous = seen.get(name)
+    if previous is None:
+        seen[name] = lineno
+        return
+    issues.append(
+        f"duplicate {label}: {name} (first line {previous}, duplicate line {lineno})"
+    )
+
+
+def _validate_duplicate_declarations(
+    text: str, matchers: tuple[tuple[str, re.Pattern[str]], ...]
+) -> list[str]:
+    issues: list[str] = []
+    for label, pattern in matchers:
+        seen: dict[str, int] = {}
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            match = pattern.match(line)
+            if match is None:
+                continue
+            _record_duplicate(seen, issues, label, match.group(1), lineno)
+    return issues
 
 
 def extract_section(text: str, heading: str, next_heading: str | None) -> str | None:
@@ -256,6 +289,36 @@ def validate_source_markers(repo_root: Path) -> list[str]:
     return issues
 
 
+def validate_abi_surface_sanity(repo_root: Path) -> list[str]:
+    issues: list[str] = []
+
+    header_path = repo_root / Path("include/zigux/abi.h")
+    if header_path.is_file():
+        issues.extend(
+            _validate_duplicate_declarations(
+                _read(header_path),
+                (
+                    ("ABI header #define", HEADER_DEFINE_RE),
+                    ("ABI header struct", HEADER_STRUCT_RE),
+                ),
+            )
+        )
+
+    bindings_path = repo_root / Path("zigux/bindings/abi.zig")
+    if bindings_path.is_file():
+        issues.extend(
+            _validate_duplicate_declarations(
+                _read(bindings_path),
+                (
+                    ("ABI binding const", ZIG_CONST_RE),
+                    ("ABI binding extern struct", ZIG_EXTERN_STRUCT_RE),
+                ),
+            )
+        )
+
+    return issues
+
+
 def validate_abi_slice_note(repo_root: Path) -> list[str]:
     note_path = repo_root / ABI_SLICE_NOTE_PATH
     if not note_path.is_file():
@@ -300,6 +363,7 @@ def validate_repo(repo_root: Path) -> list[str]:
 
     issues.extend(validate_manifest_entries(repo_root))
     issues.extend(validate_source_markers(repo_root))
+    issues.extend(validate_abi_surface_sanity(repo_root))
     issues.extend(validate_abi_slice_note(repo_root))
     return issues
 
@@ -877,6 +941,62 @@ def run_self_test() -> int:
         if expected_helper_marker not in issues:
             print("PHASE3_ABI_SELF_TEST=fail")
             print("expected missing shared helper marker was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / CHECK_LIB_PATH, "\n".join(CHECK_LIB_MARKERS) + "\n")
+        _write(
+            root / Path("include/zigux/abi.h"),
+            "#define ZIGUX_ABI_VERSION 1U\n"
+            "struct zigux_layout {\n"
+            "    int value;\n"
+            "};\n"
+            "#define ZIGUX_ABI_VERSION 2U\n"
+            "struct zigux_layout {\n"
+            "    int value2;\n"
+            "};\n",
+        )
+        issues = validate_repo(root)
+        expected_duplicate_define = (
+            "duplicate ABI header #define: ZIGUX_ABI_VERSION "
+            "(first line 1, duplicate line 5)"
+        )
+        if expected_duplicate_define not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected duplicate ABI header define was not reported")
+            return 1
+        expected_duplicate_struct = (
+            "duplicate ABI header struct: zigux_layout (first line 2, duplicate line 6)"
+        )
+        if expected_duplicate_struct not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected duplicate ABI header struct was not reported")
+            return 1
+        case_count += 1
+        _write(root / Path("include/zigux/abi.h"))
+
+        _write(
+            root / Path("zigux/bindings/abi.zig"),
+            "pub const ABI_VERSION: u16 = 1;\n"
+            "pub const BoundaryHeader = extern struct {};\n"
+            "pub const ABI_VERSION: u16 = 2;\n"
+            "pub const BoundaryHeader = extern struct {};\n",
+        )
+        issues = validate_repo(root)
+        expected_duplicate_const = (
+            "duplicate ABI binding const: ABI_VERSION (first line 1, duplicate line 3)"
+        )
+        if expected_duplicate_const not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected duplicate ABI binding const was not reported")
+            return 1
+        expected_duplicate_extern_struct = (
+            "duplicate ABI binding extern struct: BoundaryHeader "
+            "(first line 2, duplicate line 4)"
+        )
+        if expected_duplicate_extern_struct not in issues:
+            print("PHASE3_ABI_SELF_TEST=fail")
+            print("expected duplicate ABI binding extern struct was not reported")
             return 1
         case_count += 1
 
