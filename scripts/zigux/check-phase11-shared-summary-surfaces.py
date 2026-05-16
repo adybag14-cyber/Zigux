@@ -102,6 +102,7 @@ REQUIRED_MARKERS = {
         "`drivers/watchdog/dw_wdt.zig`",
         "`drivers/watchdog/dw_wdt_verify.zig`",
         "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+        "`zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, and `zigux/tests/phase11_uapi_header_parity_survey.zig` should stay visible here as directly readable bounded replay evidence on current `master`",
     ],
     "review_checklist": [
         "if the change touches the shared Phase 11 simple-driver packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`",
