@@ -97,13 +97,14 @@ Fresh direct readback of `samples/zigux/bytestream_fifo.zig` on 2026-05-16 shows
 
 ## Latest verification snapshot
 
-The latest full-packet replay snapshot still preserved in the coupled survey gate remains useful as a compatibility record even though fresh direct sample-file readback above now shows eight in-file `test` blocks on current `master`. That broader replay snapshot should not be treated as proof that the public focused replay companion already matches the current sample-local helper names and field names.
+The latest broader full-packet replay snapshot still preserved in the coupled survey gate remains useful as a compatibility record, but it is no longer the only current verification evidence for this lane. On 2026-05-16, the attached Zig toolchain reran the directly readable sample-local surface in scratch and passed all eight in-file checks, while the older shared build snapshot remains compatibility-only evidence until the public focused replay companion and split-readback routes converge again.
 
 - `0.17.0-dev.87+9b177a7d2`
+- `zig fmt --check samples/zigux/bytestream_fifo.zig`
 - `zig test samples/zigux/bytestream_fifo.zig`
-- the preserved sample-local replay snapshot predates the current eight-test sample file and recorded `5/5` sample self-checks at that time
-- shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route for the bytestream packet without relying on a brittle aggregate build-step or test count
-- passed `5/5` build steps and `8/8` tests
+- focused sample-local replay rerun on 2026-05-16 passed formatting and `8/8` in-file tests
+- the older shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route remains useful compatibility evidence without relying on a brittle aggregate build-step or test count
+- preserved broader snapshot still recorded `5/5` build steps and `8/8` tests
 - `len_after_initial_fill = 15`
 - `first_out = "hello"`
 - `second_out = {0, 1}`
