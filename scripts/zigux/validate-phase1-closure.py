@@ -408,6 +408,68 @@ EXPECTED_STRING_PARITY_FIXTURE_KEYS = [
     "memchr_inv_none",
 ]
 
+EXPECTED_STRING_MANIFEST_SCALARS = {
+    "prefix_suffix_review_summary": (
+        "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared "
+        "Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields, "
+        "so strHasPrefix and str_has_prefix plus strstarts plus strEndsWith and str_ends_with plus strends remain review-visible "
+        "at the helper surface"
+    ),
+    "lookup_review_summary": (
+        "helper-local string lookup anchors stay explicit through the direct string tests because the shared Phase 1 replay still "
+        "does not carry dedicated matchString() or match_string() fixture keys, so C-string list lookup order and the Linux-style "
+        "alias remain review-visible at the helper surface"
+    ),
+    "sysfs_review_summary": (
+        "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit through the direct string tests because "
+        "the shared Phase 1 replay still carries no dedicated sysfs fixture keys, so sysfsStreq and sysfs_streq plus "
+        "sysfsMatchString and sysfs_match_string remain review-visible at the helper surface"
+    ),
+    "strscpy_review_summary": (
+        "helper-local string copy-and-pad anchors stay explicit through the direct string tests because the shared Phase 1 "
+        "replay still does not carry dedicated strscpy() or strscpyPad() fixture keys"
+    ),
+    "strnchr_review_summary": (
+        "the direct counted-search follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated "
+        "counted-search fixture keys, so strnchr() count-limited scanning and strnchrNul() or strnchrnul() match-or-NUL "
+        "boundary behavior remain owned by the helper-local anchors"
+    ),
+    "basename_review_summary": (
+        "helper-local basename path-tail anchor stays explicit through the direct string tests because the shared Phase 1 "
+        "replay still does not carry dedicated kbasename fixture keys, so final path-component extraction at the first "
+        "C-string terminator remains review-visible at the helper surface"
+    ),
+    "trim_nul_review_summary": (
+        "the direct trim follow-up stays explicit because the shared Phase 1 string fixture records the trimmed bytes but not "
+        "the preserved tail bytes beyond the first embedded terminator"
+    ),
+    "phase1_trim_cstr_replay_summary": (
+        "the shared Phase 1 string replay still only locks the plain trailing-whitespace trimSpaces bytes from the committed "
+        "fixture, while the direct helper-local trim follow-up keeps embedded-NUL trimming for trimSpaces and strim plus "
+        "strstrip and preserved tail-byte review explicit because the shared packet still does not exercise every trim alias "
+        "or every post-NUL byte position"
+    ),
+    "memchr_moving_dirty_review_summary": (
+        "the direct memchrInv follow-up stays explicit because the shared Phase 1 fixture pins one fixed dirty index and the "
+        "clean case, but not the moving earliest-mismatch ownership as later dirty bytes become the next live divergence"
+    ),
+    "memparse_review_summary": (
+        "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input "
+        "preserves rest, signed inputs keep their trailing-rest split aligned with unsigned parsing, implicit and explicit "
+        "signed overflow clamp instead of trapping, and suffixes are still consumed after saturation"
+    ),
+    "shared_replace_char_cstr_review_summary": (
+        "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, removeSpaces, replaceChar, "
+        "and memchrInv fixture parity, while the dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop "
+        "rule explicit without widening helper-local memparse ownership"
+    ),
+    "next_safe_step_note": (
+        "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the string review packet and "
+        "closure note unless current master later adds dedicated shared sysfs fixture keys; until then, newline-aware equality "
+        "and lookup order remain owned by the direct string tests."
+    ),
+}
+
 STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES = (
     'test "strHasPrefix ',
     'test "strstarts ',
@@ -632,6 +694,9 @@ def collect_string_manifest_markers(root: Path, manifest: Any) -> list[str]:
         missing.append("string_manifest:phase1_helper_replay_anchor")
     if string_anchors.get("parity_fixture_keys") != EXPECTED_STRING_PARITY_FIXTURE_KEYS:
         missing.append("string_manifest:parity_fixture_keys")
+    for key, expected in EXPECTED_STRING_MANIFEST_SCALARS.items():
+        if string_anchors.get(key) != expected:
+            missing.append(f"string_manifest:{key}")
     return missing
 
 
@@ -712,6 +777,7 @@ def make_fixture_root(root: Path) -> None:
                         "strnchrnul_review_anchor": expected_string_strnchrnul_review_anchor(EXPECTED_STRING_HELPER_TESTS),
                         "phase1_helper_replay_anchor": EXPECTED_STRING_PHASE1_HELPER_REPLAY_ANCHOR,
                         "parity_fixture_keys": EXPECTED_STRING_PARITY_FIXTURE_KEYS,
+                        **EXPECTED_STRING_MANIFEST_SCALARS,
                     },
                 }
             },
@@ -913,6 +979,14 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
+        for key in EXPECTED_STRING_MANIFEST_SCALARS:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["review_anchors"]["tools/lib/string.zig"][key] = "drift"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            assert f"string_manifest:{key}" in collect_missing_markers(root)
+            case_count += 1
+            make_fixture_root(root)
+
         bench_path = root / "zigux/tests/fixtures/phase1_bench_expectations.json"
         bench = json.loads(bench_path.read_text(encoding="utf-8"))
         bench["exact_checksums"]["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"] = 1
@@ -1005,7 +1079,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + len(EXPECTED_RBTREE_MANIFEST) + 9}"
+        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + len(EXPECTED_RBTREE_MANIFEST) + 9 + len(EXPECTED_STRING_MANIFEST_SCALARS)}"
     )
     return 0
 
