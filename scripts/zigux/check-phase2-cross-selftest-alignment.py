@@ -74,6 +74,7 @@ WORKFLOW_SCOPE_REQUIRED_FRAGMENTS = [
 WORKFLOW_SCOPE_PATTERN_MARKERS = [
     "\\.github/workflows/zigux-bootstrap\\.yml",
     "scripts/zigux/install-zig\\.py",
+    "scripts/zigux/check-zig-toolchain\\.py",
     "scripts/zigux/check-phase2-cross\\.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment\\.py",
     "scripts/zigux/fixdep\\.zig",
@@ -213,7 +214,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 104
+EXPECTED_SELF_TEST_CASE_COUNT = 105
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
@@ -600,7 +601,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_failure")
         checks_run += 1
 
-    scope_pattern_text = """if printf '%s\\n' \\\"$changed_files\\\" | grep -Eq '^(\\.github/workflows/zigux-bootstrap\\.yml|scripts/zigux/install-zig\\.py|scripts/zigux/check-phase2-cross\\.py|scripts/zigux/check-phase2-cross-selftest-alignment\\.py|scripts/zigux/fixdep\\.zig|scripts/zigux/genksyms\\.zig|scripts/zigux/kconfig/conf_bridge\\.zig|scripts/zigux/kconfig/confdata_bridge\\.zig|scripts/zigux/zig-toolchain-policy\\.json|zigux/Makefile|zigux/tests/fixtures/phase2_cross_targets\\.json)$'; then"""
+    scope_pattern_text = """if printf '%s\\n' \\\"$changed_files\\\" | grep -Eq '^(\\.github/workflows/zigux-bootstrap\\.yml|scripts/zigux/install-zig\\.py|scripts/zigux/check-zig-toolchain\\.py|scripts/zigux/check-phase2-cross\\.py|scripts/zigux/check-phase2-cross-selftest-alignment\\.py|scripts/zigux/fixdep\\.zig|scripts/zigux/genksyms\\.zig|scripts/zigux/kconfig/conf_bridge\\.zig|scripts/zigux/kconfig/confdata_bridge\\.zig|scripts/zigux/zig-toolchain-policy\\.json|zigux/Makefile|zigux/tests/fixtures/phase2_cross_targets\\.json)$'; then"""
     if validate_workflow_scope_pattern(scope_pattern_text):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern")
     checks_run += 1
