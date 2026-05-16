@@ -181,13 +181,23 @@ test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary e
     try std.testing.expect(std.mem.indexOf(u8, slice, "`make -C zigux phase8-exec-cmd-test`") != null);
 }
 
-test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {
+test "phase 8 exec-cmd deferred boundary note still matches the parked review packet" {
     const slice = try readRepoFile("Documentation/zigux/phase8-exec-cmd-slice.md");
     defer std.testing.allocator.free(slice);
 
     const helper = try readRepoFile("tools/lib/subcmd/exec-cmd.zig");
     defer std.testing.allocator.free(helper);
 
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        slice,
+        "original `tools/lib/subcmd/exec-cmd.c` behavior boundary",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        slice,
+        "parked review packet, checklist hook, and validator route",
+    ) != null);
     try std.testing.expect(std.mem.indexOf(
         u8,
         slice,
