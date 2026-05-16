@@ -126,7 +126,7 @@ def seed_fixture_tree(root: Path) -> None:
                 "lane_key": "P12-L12",
                 "phase": "Phase 12",
                 "surveyed_commit": "unresolved_on_master",
-                "verified_on": "2026-05-14",
+                "verified_on": "2026-05-16",
                 "packet": "phase12-virtio-scsi-support",
                 "status": "bounded infra prep metadata cleanup",
                 "anchor": "drivers/scsi/virtio_scsi.c",
@@ -142,7 +142,6 @@ def seed_fixture_tree(root: Path) -> None:
                     "Documentation/zigux/phase12-virtio-scsi-slice.md",
                 ],
                 "repo_gaps": [
-                    "drivers/nvme/host/pci.zig",
                     "Documentation/zigux/phase12-closure.md",
                 ],
                 "validation": [
@@ -161,7 +160,7 @@ def seed_fixture_tree(root: Path) -> None:
                 "# Phase 12 virtio_scsi Slice",
                 "",
                 "- `PHASE12_SLICE=virtio-scsi-queue-lab-support`",
-                "- reread against live `master` and the current `P12-L09` survey packet on `2026-05-14`",
+                "- reread against live `master` and the current `P12-L13` survey packet on `2026-05-16`",
                 "- lane: `P12-L12`",
                 "- anchor: `drivers/scsi/virtio_scsi.c`",
                 "",
@@ -173,7 +172,6 @@ def seed_fixture_tree(root: Path) -> None:
                 "",
                 "## Repo-reality gaps",
                 "",
-                "- `drivers/nvme/host/pci.zig` is still absent on the surveyed head",
                 "- `Documentation/zigux/phase12-closure.md` is still absent on the surveyed head",
             ]
         )
@@ -196,7 +194,7 @@ def seed_fixture_tree(root: Path) -> None:
                 "    try expectContains(manifest_text, \"\\\"lane_key\\\": \\\"P12-L12\\\"\");",
                 "    try expectContains(manifest_text, \"\\\"phase\\\": \\\"Phase 12\\\"\");",
                 "    try expectContains(manifest_text, \"\\\"surveyed_commit\\\": \\\"unresolved_on_master\\\"\");",
-                "    try expectContains(manifest_text, \"\\\"verified_on\\\": \\\"2026-05-14\\\"\");",
+                "    try expectContains(manifest_text, \"\\\"verified_on\\\": \\\"2026-05-16\\\"\");",
                 "}",
             ]
         )
@@ -319,8 +317,7 @@ def run_self_test() -> int:
             validate(root),
             [
                 "slice:lane_key_mismatch:P12-L12",
-                "slice:verified_on_mismatch:2026-05-14",
-                "slice:missing_gap_marker:drivers/nvme/host/pci.zig",
+                "slice:verified_on_mismatch:2026-05-16",
                 "slice:missing_gap_marker:Documentation/zigux/phase12-closure.md",
                 "slice:missing_slice_marker",
             ],
