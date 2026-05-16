@@ -176,7 +176,7 @@ SELF_TEST_CASES = (
     ["baseline_round_trip", "missing_note_file"]
     + [f"missing_{slug}_file" for slug, _, _ in TARGETS]
     + [f"{slug}_blob_pin_drift" for slug, _, _ in TARGETS]
-    + ["missing_checker_presence_marker"]
+    + ["missing_checker_presence_marker", "self_test_case_count_drift"]
 )
 
 
@@ -243,7 +243,7 @@ def build_fixture_tree(root: Path) -> None:
         Path("scripts/zigux/check-phase4-remaining-gap-matrix.py"): "#!/usr/bin/env python3\nprint('remaining gap')\n",
         Path("scripts/zigux/check-phase4-workflow-route-counts.py"): "#!/usr/bin/env python3\nprint('route counts')\n",
         Path("scripts/zigux/validate-phase4.py"): "#!/usr/bin/env python3\nprint('validate phase4')\n",
-        Path("zigux/tests/phase4_build.zig"): 'pub fn build(_: *std.Build) void {}\n',
+        Path("zigux/tests/phase4_build.zig"): "pub fn build(_: *std.Build) void {}\n",
         Path("zigux/Makefile"): "phase4-validate:\n\t@true\n",
         Path(".github/workflows/zigux-bootstrap.yml"): "name: zigux-bootstrap\n",
         Path("Documentation/zigux/review-checklist.md"): "# review checklist\n",
@@ -390,6 +390,30 @@ def run_self_test() -> int:
         ):
             print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
             print("missing checker marker case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        note_path.write_text(
+            replace_once(
+                read_text(note_path),
+                f"PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}",
+                (
+                    "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT="
+                    f"{len(SELF_TEST_CASES) - 1}"
+                ),
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            (
+                "self_test_case_count:PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT="
+                f"{len(SELF_TEST_CASES)}"
+            ),
+        ):
+            print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
+            print("self-test case count drift case did not fail closed")
             return 1
         case_count += 1
 
