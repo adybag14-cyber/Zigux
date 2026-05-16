@@ -109,12 +109,14 @@
     "expected": "help_expected.json"
   },
   {
-    "name": "version_then_short_help",
+    "name": "version_then_unexpected_help_argument",
     "argv": [
-      "-Vh"
+      "--version",
+      "--help=extra"
     ],
     "mode": "process_json",
-    "expected": "version_then_help_expected.json"
+    "expected": "version_then_unexpected_help_argument_expected.json",
+    "normalize_stderr": true
   },
   {
     "name": "version_then_long_help",
