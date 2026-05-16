@@ -355,10 +355,10 @@ def write_fixture(root: Path) -> None:
         "scripts/zigux/check-phase10-ring-packet.py": "# synthetic fixture for self-test\n",
         "Documentation/zigux/freeze-map.md": "# synthetic freeze map\n",
         "drivers/virtio/virtio_ring.zig": "pub const VirtioRingLab = struct {};\n",
-        "drivers/virtio/virtio_ring_verify.zig": "test \"virtio ring reset readiness tracks unpublished, outstanding, and unpolled work\" {}\n",
-        "zigux/tests/phase10_virtio_ring.zig": "test \"phase10 virtio ring reset clears queue bookkeeping but preserves queue shape for reuse\" {}\n",
-        "zigux/tests/phase10_virtio_ring_reset_reuse.zig": "test \"phase10 virtio ring drained reset clears the broken flag so the queue can be reused\" {}\n",
-        "zigux/tests/phase10_virtio_ring_survey.zig": "test \"phase10 virtio ring survey gate\" {}\n",
+        "drivers/virtio/virtio_ring_verify.zig": 'test "virtio ring reset readiness tracks unpublished, outstanding, and unpolled work" {}\n',
+        "zigux/tests/phase10_virtio_ring.zig": 'test "phase10 virtio ring reset clears queue bookkeeping but preserves queue shape for reuse" {}\n',
+        "zigux/tests/phase10_virtio_ring_reset_reuse.zig": 'test "phase10 virtio ring drained reset clears the broken flag so the queue can be reused" {}\n',
+        "zigux/tests/phase10_virtio_ring_survey.zig": 'test "phase10 virtio ring survey gate" {}\n',
     }
     for rel_path, markers in MARKERS.items():
         if rel_path in fixture or rel_path == "zigux/tests/phase10_virtio_ring_manifest.json":
@@ -514,6 +514,29 @@ def run_self_test() -> int:
                 gap for gap in manifest["gaps"] if gap["id"] == "phase10-ring-lab-driver-bridge"
             ).__setitem__("why_now", "transport backlog cleared"),
             "manifest:gap_why_now:phase10-ring-lab-driver-bridge='transport backlog cleared'",
+        )
+        mutate_manifest(
+            lambda manifest: next(
+                gap for gap in manifest["gaps"] if gap["id"] == "phase10-virtqueue-shape-helper"
+            ).__setitem__("kind", "documentation"),
+            "manifest:gap_kind:phase10-virtqueue-shape-helper='documentation'",
+        )
+        mutate_manifest(
+            lambda manifest: next(
+                gap for gap in manifest["gaps"] if gap["id"] == "phase10-ring-lab-driver-bridge"
+            ).__setitem__("zigux_destination", "drivers/virtio/virtio_ring.zig"),
+            "manifest:gap_destination:phase10-ring-lab-driver-bridge='drivers/virtio/virtio_ring.zig'",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__("freeze_boundary_owner_lane", "P10-L12"),
+            "manifest:freeze_boundary_owner_lane='P10-L12'",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__(
+                "allowed_evidence_kinds",
+                ["driver_local_lab_slices", "survey_manifests"],
+            ),
+            "manifest:allowed_evidence_kinds",
         )
 
         for rel_path in (
