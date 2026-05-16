@@ -83,6 +83,7 @@ REQUIRED_MARKERS = {
     ],
     "tests_companion": [
         "## Phase 13 tests-root packet",
+        CHECKER_MARKER,
         "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
         "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
         "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
