@@ -6,7 +6,7 @@ This note records the current connector-readback checkpoint for the shipped Phas
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
-- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=cb8ffe99a6f26f7665eaaf2cbf1d36ecd4de1568`
+- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=d73679558764fcdd3fcc9962c59d4e28bf3a3b6f`
 - `PHASE4_VALIDATOR_BLOB_SHA=694ad85743612aa0a595cd1752dd03c1013603ab`
 - `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=7b913e4ba293354fd841934a449697d230dec25a`
 - `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=57ecc3199ca4608828771456f8b6c417c4ab9f1c`
