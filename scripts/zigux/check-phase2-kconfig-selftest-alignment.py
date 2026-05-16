@@ -120,7 +120,7 @@ EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 26
 EXPECTED_CONF_CASE_COUNT = 16
 EXPECTED_CONFDATA_CASE_COUNT = 13
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_SELF_TEST_CASE_COUNT = 13
+EXPECTED_SELF_TEST_CASE_COUNT = 16
 
 
 def under_root(root: Path, path: Path) -> Path:
@@ -447,6 +447,15 @@ def run_self_test() -> int:
         write_text(under_root(root, REVIEW_CHECKLIST), replace_once(read_text(under_root(root, REVIEW_CHECKLIST)), REVIEW_CHECKLIST_MARKERS[1], ""))
         assert ("MISSING_REVIEW_CHECKLIST_MARKERS", REVIEW_CHECKLIST_MARKERS[1]) in collect_issues(root)
         checks_run += 1
+
+        for marker in PHASE2_CLOSURE_DOC_MARKERS:
+            build_self_test_root(root)
+            write_text(
+                under_root(root, PHASE2_CLOSURE_DOC),
+                replace_once(read_text(under_root(root, PHASE2_CLOSURE_DOC)), marker, ""),
+            )
+            assert ("MISSING_CLOSURE_DOC_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass")
