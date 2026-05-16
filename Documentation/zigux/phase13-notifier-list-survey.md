@@ -39,7 +39,7 @@ notifier-facing surfaces:
 - `drivers/tty/hvc/hvc_console.h`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
-- `make -C zigux phase13`
+- blocked convenience route `make -C zigux phase13`
 
 The shipped `zigux/helpers/notifier_chain_view.zig` helper stays read-only: it
 walks `NotifierBlock` links, checks nonincreasing priority ordering, and now
@@ -117,8 +117,8 @@ priority-break witness, the shipped `zigux/bindings/notifier_abi.zig` plus
 `include/zigux/abi.h` ABI footholds, the Linux-side
 `drivers/tty/hvc/hvc_console.h` notifier declarations, the shared release-notes,
 release-coordination-matrix, and roadmap-traceability packet, the paired
-Landlock ownership and syscall-governance notes, and the stable `phase13-validate`
-or `phase13` make routes visible while framing the still-missing direct notifier
+Landlock ownership and syscall-governance notes, and the stable `make -C zigux phase13-validate`
+route plus blocked convenience route `make -C zigux phase13` visible while framing the still-missing direct notifier
 packet, list-helper, dedicated header, and tests-root companions as repo-reality
 gaps rather than shipped current-`master` evidence.
 
