@@ -68,7 +68,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_string_helpers.zig",
         "The next bounded follow-through should keep the expanded starter packet truthful",
         "The current starter replay also keeps these ownership-focused boundaries explicit:",
-        "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results",
+        "`kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, reject overflow before sizing the NULL-terminated pointer view, preserve the shared zero-length sentinel, and keep teardown ownership explicit for caller-held results",
         "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries",
         "leading whitespace skipping that stops at the first NUL",
         "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting",
