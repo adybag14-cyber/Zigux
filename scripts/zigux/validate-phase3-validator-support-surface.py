@@ -318,7 +318,7 @@ def sample_boundary_note_text() -> str:
         "`scripts/zigux/README.md` now keeps the canonical `include/zigux/dev_t.h`,",
         "`zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` split explicit",
     ]
-    sample = "## Current landed surface\n" + "\n".join(expand_marker_counts(BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS))
+    sample = "\n## Current landed surface\n" + "\n".join(expand_marker_counts(BOUNDARY_NOTE_CURRENT_SURFACE_MARKERS))
     sample += "\n## Next bounded step\n" + "\n".join(next_step_markers)
     sample += "\n## Non-goals\n- stub\n"
     return sample
@@ -346,6 +346,7 @@ def run_self_test() -> int:
         ("## Current packet", "## Review boundary", "Documentation/zigux/phase3-export-uapi-boundary-survey.md", "expected current-packet export-uapi survey drift was not reported"),
         ("## Current packet", "## Review boundary", "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md", "expected current-packet policy survey drift was not reported"),
         ("## Current packet", "## Review boundary", "scripts/zigux/validate-phase3-export-uapi-survey.py", "expected current-packet export-uapi validator drift was not reported"),
+        ("## Current packet", "## Review boundary", "scripts/zigux/validate-phase3-linux-zigux-header-governance.py", "expected current-packet header-governance validator drift was not reported"),
         ("## Current packet", "## Review boundary", "scripts/zigux/validate-phase3-policy-unsafe-survey.py", "expected current-packet policy validator drift was not reported"),
         ("## Current packet", "## Review boundary", "scripts/zigux/check-phase3-policy-byte-guards.py", "expected current-packet policy-byte-guard drift was not reported"),
         ("## Current packet", "## Review boundary", "zigux/tests/phase3_export_uapi_layout.zig", "expected current-packet export-uapi layout replay drift was not reported"),
@@ -353,10 +354,17 @@ def run_self_test() -> int:
         ("## Current packet", "## Review boundary", "make -C zigux phase3-export-uapi-layout-test", "expected current-packet export-uapi make route drift was not reported"),
         ("## Current packet", "## Review boundary", "include/zigux/dev_t.h", "expected current-packet dev_t header drift was not reported"),
         ("## Current packet", "## Review boundary", "zigux/uapi/version.zig", "expected current-packet version companion drift was not reported"),
+        ("## Current packet", "## Review boundary", "zigux/uapi/dev_t.zig", "expected current-packet dev_t starter companion drift was not reported"),
+        ("## Current packet", "## Review boundary", "zigux/bindings/abi.zig", "expected current-packet abi binding drift was not reported"),
         ("## Current packet", "## Review boundary", "zigux/bindings/dev_t.zig", "expected current-packet dev_t binding drift was not reported"),
         ("## Current packet", "## Review boundary", "zigux/bindings/notifier_abi.zig", "expected current-packet notifier binding drift was not reported"),
         ("## Current packet", "## Review boundary", "scripts/zigux/check-phase3-abi.py", "expected current-packet focused ABI gate drift was not reported"),
         ("## Current packet", "## Review boundary", "zigux/tests/phase3_low_level_wrappers_build.zig", "expected current-packet low-level-wrapper build drift was not reported"),
+        ("## Current packet", "## Review boundary", "zigux/Makefile", "expected current-packet makefile anchor drift was not reported"),
+        ("## Current packet", "## Review boundary", "scripts/zigux/validate-phase3-abi-header-family-survey.py", "expected current-packet header-family validator drift was not reported"),
+        ("## Current packet", "## Review boundary", "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py", "expected current-packet focused policy replay drift was not reported"),
+        ("## Current packet", "## Review boundary", "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py", "expected current-packet mmio consumer drift was not reported"),
+        ("## Current packet", "## Review boundary", "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test", "expected current-packet wrapper self-test route drift was not reported"),
         ("## Review boundary", "## Non-goals", "Documentation/zigux/phase3-abi-bindings-survey.md", "expected review-boundary bindings-survey drift was not reported"),
         ("## Shared reminder", None, "scripts/zigux/validate-phase3-linux-zigux-header-governance.py", "expected shared-reminder governance-validator drift was not reported"),
         ("## Shared reminder", None, "scripts/zigux/check-phase3-abi.py", "expected shared-reminder focused ABI gate drift was not reported"),
