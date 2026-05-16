@@ -35,7 +35,7 @@ That anchor remains high value because `virtio_net.c` still covers probe-time ne
 - current `master` now carries `drivers/net/virtio_net.zig`
 - current `master` now also carries `drivers/net/virtio_net_queue_resume.zig`
 - current `master` now also carries `drivers/net/virtio_net_transmit_recycle.zig`
-- the current bounded starter exposes `captureProbeSnapshot()` for queue-pair fallback plus header-shape selection, `summarizeQueueTopology()` for receive, transmit, and optional control-virtqueue placement, `planMergeableReceiveBuffer()` for the probe-time packet-buffer choice, `summarizeReceiveRefill()` for room-reuse versus single-page versus mergeable-chain posting order, `controlQueueRecoveryPlan()` for restore ordering plus bounded receive-mode, hash-report, MAC, VLAN, and RSS resync planning, `planControlQueuePayloadShape()` for bounded control-queue payload sizing, and `freezeForReset()`, `recoveryQueuePlan()`, plus `restoreAfterReset()` for bounded queue-reset recovery planning
+- the current bounded starter exposes `captureProbeSnapshot()` for queue-pair fallback plus header-shape selection, `summarizeQueueTopology()` for receive, transmit, and optional control-virtqueue placement, `planMergeableReceiveBuffer()` for the probe-time packet-buffer choice, `summarizeReceiveRefill()` for room-reuse versus single-page versus mergeable-chain posting order, `controlQueueRecoveryPlan()` for restore ordering plus bounded receive-mode, hash-report, MAC, VLAN, and RSS resync planning, and `planControlQueuePayloadShape()` for bounded control-queue payload sizing, and `freezeForReset()`, `recoveryQueuePlan()`, plus `restoreAfterReset()` for bounded queue-reset recovery planning
 - the current bounded queue-resume follow-up now also exposes `summarizeQueueResume()` in `drivers/net/virtio_net_queue_resume.zig`, keeping post-reset resume checkpoints, refill-versus-control restore scope, fresh probe replay requirements, and throughput guard state reviewable without claiming live queue restart
 - the current bounded follow-up now also exposes `summarizeTransmitRecycle()` in `drivers/net/virtio_net_transmit_recycle.zig`, keeping completed-descriptor freeing, wake-threshold checks, and stopped-versus-running transmit-queue disposition reviewable without claiming interrupt-backed completion handling
 - current `master` now carries `zigux/tests/phase12_virtio_net.zig` as the direct starter replay for this bounded packet
@@ -76,12 +76,12 @@ This note does not claim:
 
 ## Next bounded step
 
-The next honest same-lane move is now an exact reviewability refresh if this packet drifts again, not a runtime data-path jump.
+The next honest same-lane move is now a docs-root exact reviewability refresh because the shared Phase 12 summary still stops at the direct `virtio_net` starter, syntax lab, manifest, and survey files even though the live packet already includes the queue-resume and transmit-recycle follow-up drivers plus their direct replays; this is still a reviewability refresh, not a runtime data-path jump.
 
 The next bounded step is:
 
 1. keep the current starter focused on probe fallback, queue-topology summary, packet-buffer choice, refill-order reviewability, control-queue recovery sequencing, control-queue payload shaping, queue-reset recovery planning, queue-resume gating, and transmit-recycle disposition reviewability instead of widening into live DMA or lifecycle code
-2. revisit the direct test, queue-resume replay, transmit-recycle replay, syntax lab, manifest, survey gate, or this note only if another exact reviewability refresh becomes necessary inside the same packet
+2. refresh `Documentation/zigux/README.md` only if that shared Phase 12 summary still omits `drivers/net/virtio_net_queue_resume.zig`, `drivers/net/virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_queue_resume.zig`, or `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, and otherwise revisit the direct test, syntax lab, manifest, survey gate, or this note only when another exact reviewability refresh becomes necessary inside the same packet
 3. treat runtime queue execution, throughput parity, and DMA-safe ownership as blocked until later roadmap-backed abstractions land elsewhere
 
 Until then, treat the current starter as a real but deliberately small Phase 12 queue-resume and transmit-recycle follow-up step, not as a live runtime proof.
