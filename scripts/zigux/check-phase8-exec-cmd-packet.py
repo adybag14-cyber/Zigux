@@ -18,7 +18,6 @@ BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-bound
 SEQUENCING_PATH = "Documentation/zigux/phase8-tooling-lane-sequencing.md"
 EXEC_CMD_SLICE_PATH = "Documentation/zigux/phase8-exec-cmd-slice.md"
 EXEC_CMD_SOURCE_PATH = "tools/lib/subcmd/exec-cmd.zig"
-EXEC_CMD_C_PATH = "tools/lib/subcmd/exec-cmd.c"
 EXEC_CMD_TEST_PATH = "zigux/tests/phase8_exec_cmd.zig"
 EXEC_CMD_ONLY_BUILD_PATH = "zigux/tests/phase8_exec_cmd_only_build.zig"
 
@@ -34,7 +33,6 @@ REQUIRED_FILES = (
     SEQUENCING_PATH,
     EXEC_CMD_SLICE_PATH,
     EXEC_CMD_SOURCE_PATH,
-    EXEC_CMD_C_PATH,
     EXEC_CMD_TEST_PATH,
     EXEC_CMD_ONLY_BUILD_PATH,
 )
@@ -105,7 +103,7 @@ REQUIRED_MARKERS = {
         "identity-based `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` helpers",
         "a pure `buildDeferredExecvCall()` helper that keeps that null-terminated argv packet reviewable before any direct launch ownership exists",
         "a pure `buildDeferredExeclCall()` helper that preserves the same deferred argv-handoff packet while the parked packet stops before any ownership of `execl_cmd()`",
-        "Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the live C helper anchors, checklist hook, and validator route stay aligned around one reviewable packet.",
+        "Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the parked review packet, checklist hook, and validator route stay aligned around one reviewable packet.",
         "rooted `argv[0]` slash-avoidance edge",
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` stays the dedicated roadmap-gap survey for this file family while the direct exec-cmd shard remains helper-first and deferred-exec only.",
         "zig test tools/lib/subcmd/exec-cmd.zig",
@@ -119,7 +117,7 @@ REQUIRED_MARKERS = {
         'test "phase 8 exec-cmd focused replay keeps logical PWD deferred planning explicit" {',
         'test "phase 8 exec-cmd focused replay accepts the last deferred execl handoff before overflow" {',
         'test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary explicit" {',
-        'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {',
+        'test "phase 8 exec-cmd deferred boundary note still matches the parked review packet" {',
         'test "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit" {',
         'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {',
         'test "phase 8 exec-cmd workflow keeps the focused replay ahead of the shared phase 8 bundle" {',
@@ -149,10 +147,6 @@ REQUIRED_MARKERS = {
         "pub fn planDeferredExecvCall(",
         "pub fn planDeferredExecvCallWithPwd(",
         "pub fn planDeferredExeclCallWithPwd(",
-    ),
-    EXEC_CMD_C_PATH: (
-        "int execv_cmd",
-        "int execl_cmd",
     ),
 }
 
@@ -323,7 +317,7 @@ def run_self_test() -> int:
             ),
             (
                 EXEC_CMD_SLICE_PATH,
-                "Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the live C helper anchors, checklist hook, and validator route stay aligned around one reviewable packet.",
+                "Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, while the focused Phase 8 replay stays on the integrated deferred-exec packet so the parked review packet, checklist hook, and validator route stay aligned around one reviewable packet.",
             ),
             (EXEC_CMD_SLICE_PATH, "rooted `argv[0]` slash-avoidance edge"),
             (EXEC_CMD_SLICE_PATH, "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` stays the dedicated roadmap-gap survey for this file family while the direct exec-cmd shard remains helper-first and deferred-exec only."),
@@ -332,7 +326,7 @@ def run_self_test() -> int:
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet reviewable" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay keeps logical PWD deferred planning explicit" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd focused replay accepts the last deferred execl handoff before overflow" {'),
-            (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {'),
+            (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd deferred boundary note still matches the parked review packet" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd scripts root summary keeps the focused replay route explicit" {'),
             (EXEC_CMD_TEST_PATH, 'test "phase 8 exec-cmd workflow keeps the focused replay ahead of the shared phase 8 bundle" {'),
