@@ -93,6 +93,11 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_survey.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_manifest.json", .{});
+    try std.Io.Dir.cwd().access(io, "samples/zigux/README.md", .{});
+    try std.Io.Dir.cwd().access(io, "scripts/zigux/validate-phase7.py", .{});
+    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-make-wrapper.py", .{});
+    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py", .{});
+    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-build-wiring.py", .{});
 
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-string-helpers-slice.md");
     defer allocator.free(slice_note);
@@ -162,4 +167,18 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(manifest, "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
+
+    const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
+    defer allocator.free(samples_readme);
+    try expectContains(samples_readme, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;");
+
+    // Keep the expanded helper packet tied to the shared validator route without claiming those shared-control files as lane-owned.
+    const shared_validator = try readRepoFile(allocator, "scripts/zigux/validate-phase7.py");
+    defer allocator.free(shared_validator);
+    try expectContains(shared_validator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(shared_validator, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(shared_validator, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
+    try expectContains(shared_validator, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectContains(shared_validator, "zigux/tests/phase7_string_helpers_survey.zig");
+    try expectContains(shared_validator, "zigux/tests/phase7_string_helpers_manifest.json");
 }
