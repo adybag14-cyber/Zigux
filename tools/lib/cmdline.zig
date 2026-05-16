@@ -5,6 +5,12 @@ pub const MemparseResult = struct {
     rest: []const u8,
 };
 
+pub const NextArgResult = struct {
+    param: []const u8,
+    value: ?[]const u8,
+    remaining: []const u8,
+};
+
 pub fn parseOptionStr(optionstr: []const u8, option: []const u8) bool {
     if (optionstr.len == 0) {
         return false;
@@ -113,6 +119,67 @@ fn clampSignedMagnitude(magnitude: u64, negative: bool) u64 {
     return magnitude;
 }
 
+fn skipLeadingSpaces(text: []const u8, start: usize) usize {
+    var idx = start;
+    while (idx < text.len and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
+    return idx;
+}
+
+pub fn nextArg(args: []const u8) ?NextArgResult {
+    const start = skipLeadingSpaces(args, 0);
+    if (start >= args.len) {
+        return null;
+    }
+
+    const quoted_prefix = args[start] == '"';
+    const token_start = if (quoted_prefix) start + 1 else start;
+
+    var idx = token_start;
+    var equals_idx: ?usize = null;
+    var in_quote = quoted_prefix;
+
+    while (idx < args.len) : (idx += 1) {
+        const ch = args[idx];
+        if (std.ascii.isWhitespace(ch) and !in_quote) {
+            break;
+        }
+        if (equals_idx == null and ch == '=') {
+            equals_idx = idx;
+        }
+        if (ch == '"') {
+            in_quote = !in_quote;
+        }
+    }
+
+    const remaining_start = skipLeadingSpaces(args, idx);
+    const token_end = if (quoted_prefix and idx > token_start and args[idx - 1] == '"') idx - 1 else idx;
+
+    if (equals_idx) |eq| {
+        var value_start = eq + 1;
+        var value_end = token_end;
+        if (value_start < value_end and args[value_start] == '"') {
+            value_start += 1;
+            if (value_end > value_start and args[value_end - 1] == '"') {
+                value_end -= 1;
+            }
+        }
+
+        return .{
+            .param = args[token_start..eq],
+            .value = args[value_start..value_end],
+            .remaining = args[remaining_start..],
+        };
+    }
+
+    return .{
+        .param = args[token_start..token_end],
+        .value = null,
+        .remaining = args[remaining_start..],
+    };
+}
+
+pub const next_arg = nextArg;
+
 pub fn memparse(text: []const u8) MemparseResult {
     const prefix = parseSignedPrefix(text);
     const base_info = parseBase(text, prefix.start);
@@ -220,4 +287,34 @@ test "parseOptionStr matches only exact bare options" {
     try std.testing.expect(!parseOptionStr("debug,", ""));
     try std.testing.expect(!parseOptionStr("", ""));
     try std.testing.expect(parse_option_str("quiet,debug,nohlt", "quiet"));
+}
+
+test "nextArg returns null for blank input" {
+    try std.testing.expect(nextArg(" \t \n") == null);
+}
+
+test "nextArg parses bare parameters and keeps the remaining text" {
+    const first = nextArg(" debug nohlt") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("debug", first.param);
+    try std.testing.expect(first.value == null);
+    try std.testing.expectEqualStrings("nohlt", first.remaining);
+}
+
+test "nextArg parses key value pairs and quoted values" {
+    const parsed = nextArg("console=ttyS0,115200 root=\"/dev/sda1 quiet\" panic=-1") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("console", parsed.param);
+    try std.testing.expectEqualStrings("ttyS0,115200", parsed.value.?);
+    try std.testing.expectEqualStrings("root=\"/dev/sda1 quiet\" panic=-1", parsed.remaining);
+
+    const second = nextArg(parsed.remaining) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("root", second.param);
+    try std.testing.expectEqualStrings("/dev/sda1 quiet", second.value.?);
+    try std.testing.expectEqualStrings("panic=-1", second.remaining);
+}
+
+test "nextArg handles a quoted full token that contains a key value pair" {
+    const parsed = next_arg("\"mode=fast path\" tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("mode", parsed.param);
+    try std.testing.expectEqualStrings("fast path", parsed.value.?);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
