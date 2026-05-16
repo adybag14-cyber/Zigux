@@ -290,7 +290,7 @@ REQUIRED_MARKERS = {
         "test_step.dependOn(&run_runtime_trace_events_loader_substrate_drift_tests.step);",
         "test_step.dependOn(&run_runtime_loader_gap_survey_tests.step);",
         "test_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);",
-        "test_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);",
+        "test_step.dependOn(&run_runtime_loader_lifecycle_boundary_guardTests.step);",
         "\"phase9-runtime-bitmap-top-bit-tests\"",
         "runtime_bitmap_top_bit_contract.zig",
     ],
@@ -484,7 +484,7 @@ def expect_failure(root: Path, expected: str) -> None:
         raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
 
 
-def write_fixtureTree(root: Path) -> None:
+def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     for rel_path in REQUIRED_FILES:
@@ -503,15 +503,15 @@ def remove_once(root: Path, rel_path: str, marker: str, count: int) -> None:
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase9-build-only-surface-"))
     try:
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
         for rel_path, marker, count in SELF_TEST_REMOVALS:
-            write_fixtureTree(base)
+            write_fixture_tree(base)
             remove_once(base, rel_path, marker, count)
             expect_failure(base, f"missing_marker:{rel_path}:{marker}")
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         write_text(base / "scripts/zigux/check-phase9-loader-substrate-plan.py", "# forbidden\n")
         expect_failure(base, "unexpected_file:scripts/zigux/check-phase9-loader-substrate-plan.py")
     finally:
