@@ -58,19 +58,26 @@ The bounded evidence packet for that parked command surface remains:
 - `make -C zigux phase8-validate`
 
 The same shared Phase 8 boundary packet also keeps the landed helper-local
-file, path, and handle bridge packet, the still-parked broader bridge boundary,
-and the already-landed bounded perf-buffer poll helper reviewable through:
+file, path, and handle bridge packet, the landed helper-plus-build libbpf
+compile packet, the still-parked broader bridge boundary, and the already-
+landed bounded perf-buffer poll helper reviewable through:
 - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
+- `Documentation/zigux/phase8-libbpf-segment-survey.md`
 - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
 - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+- `tools/lib/bpf/zigux_segments/verify.zig`
 - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
 - `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`
 - `zigux/tests/phase8_file_path_handle_bridge.zig`
 - `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
+- `zigux/tests/phase8_libbpf_segments.zig`
+- `zigux/tests/phase8_libbpf_segments_only_build.zig`
 - `zigux/tests/phase8_perf_buffer_poll.zig`
 - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
 - `make -C zigux phase8-file-path-handle-bridge-test`
 - `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
+- `make -C zigux phase8-libbpf-segments-test`
+- `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
 - `make -C zigux phase8-perf-buffer-poll-test`
 - `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
 - `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
@@ -79,7 +86,9 @@ and the already-landed bounded perf-buffer poll helper reviewable through:
 
 Current 2026-05-16 authenticated contents readback from this environment still
 keeps that broader bridge-plus-build packet mixed rather than uniformly stable:
-`zigux/tests/phase8_file_path_handle_bridge.zig` and
+`tools/lib/bpf/zigux_segments/verify.zig`,
+`zigux/tests/phase8_file_path_handle_bridge.zig`,
+`zigux/tests/phase8_libbpf_segments.zig`, and
 `zigux/tests/phase8_libbpf_segments_only_build.zig` now read cleanly, while
 `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`,
 `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, and
@@ -115,6 +124,16 @@ routing-summary packet explicit through
 `advanceOnlineCpuCursor()`, `summarizeNextOnlineCpuRoute()`, and
 `summarizeOnlineCpuRouting()` stay reviewable below the deferred setup-side
 `perf-buffer-online-cpu-routing` packet.
+
+Current `master` also keeps the helper-plus-build libbpf compile packet
+explicit through `tools/lib/bpf/zigux_segments/verify.zig`, where the combined
+segment proof still imports `logging.zig`, `pin_path.zig`, `cpu_mask.zig`,
+`type_names.zig`, `file_path_handle_bridge.zig`, `perf_buffer_poll.zig`, and
+`online_cpu_routing.zig`, and through `zigux/tests/phase8_libbpf_segments.zig`
+plus `zigux/tests/phase8_libbpf_segments_only_build.zig`, where the dedicated
+survey and focused build shard keep that manifest-backed helper bundle
+reviewable without widening into the deferred resource-boundary or
+interrupt-routing setup paths.
 
 That packet still does not claim token materialization or capability handoff,
 map reopen or bpffs compatibility closure, or fd close or ownership semantics.
@@ -174,18 +193,22 @@ contents reads for the helper, focused bridge build shard, and shared Phase 8
 build replay still return `404`, even though the documented public default-
 branch blob and raw fallback keeps those exact paths reviewable on current
 `master`. The same survey must also keep the directly readable helper-local
-`online_cpu_routing.zig` cursor and routing-summary packet explicit while
-leaving `/sys` reads, `perf_event_open()` setup, `mmap()`-backed ring ownership,
-epoll registration, and poll waits inside the deferred setup-side
-interrupt-routing boundary.
+`online_cpu_routing.zig` cursor and routing-summary packet plus the dedicated
+`verify.zig` and `phase8_libbpf_segments` helper-plus-build control-plane
+packet explicit while leaving `/sys` reads, `perf_event_open()` setup,
+`mmap()`-backed ring ownership, epoll registration, and poll waits inside the
+deferred setup-side interrupt-routing boundary.
 
 ## Next Bounded Step
 
 If a later Phase 8 lane changes any of the parked command-lane, help-lane,
-file-path-and-handle bridge, or bounded perf-buffer poll files, re-read this
-note together with `Documentation/zigux/phase8-tooling-lane-sequencing.md`,
+file-path-and-handle bridge, helper-plus-build libbpf compile packet, or
+bounded perf-buffer poll files, re-read this note together with
+`Documentation/zigux/phase8-tooling-lane-sequencing.md`,
 `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`,
+`Documentation/zigux/phase8-libbpf-segment-survey.md`,
 `Documentation/zigux/phase8-perf-buffer-poll-slice.md`,
+`tools/lib/bpf/zigux_segments/verify.zig`,
 `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`,
 `python3 scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`,
 `scripts/zigux/README.md`, `zigux/Makefile`, and the current Phase 8 test tree
@@ -200,13 +223,15 @@ reads cleanly through authenticated contents readback, while
 broader bridge-plus-build packet on mixed-source evidence from this environment
 because authenticated contents readback still returns `404` for those exact
 paths even while the documented public default-branch blob and raw fallback
-keeps them reviewable on current `master`. `zigux/tests/phase8_file_path_handle_bridge.zig` and
+keeps them reviewable on current `master`. `tools/lib/bpf/zigux_segments/verify.zig`,
+`zigux/tests/phase8_file_path_handle_bridge.zig`,
+`zigux/tests/phase8_libbpf_segments.zig`, and
 `zigux/tests/phase8_libbpf_segments_only_build.zig` now read cleanly again, and
 `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` also reads cleanly as the
 smaller helper-local routing packet, so follow-up should keep that bounded
-cursor-and-summary evidence explicit without widening into `/sys` reads,
-`perf_event_open()` setup, `mmap()`-backed ring ownership, epoll registration,
-or poll waits.
+compile, bridge, and cursor-summary evidence explicit without widening into
+`/sys` reads, `perf_event_open()` setup, `mmap()`-backed ring ownership,
+epoll registration, or poll waits.
 
 Current `master` also shows that `Documentation/zigux/README.md` and
 `Documentation/zigux/review-checklist.md` already carry the refreshed shared-wording
