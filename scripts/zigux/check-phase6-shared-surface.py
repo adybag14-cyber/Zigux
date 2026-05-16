@@ -187,6 +187,21 @@ REQUIRED_HELPER_EVIDENCE_SNIPPETS = [
     "Reopen this catalog only when one of the four roadmap anchors gains or loses a truthful helper-evidence row on `master`.",
 ]
 
+REQUIRED_HELPER_EVIDENCE_REMINDER_SNIPPETS = [
+    "- `python3 scripts/zigux/check-phase6-base64-c-parity.py`",
+    "- `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
+    "- `make -C zigux phase6-base64-perf`",
+    "- `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
+    "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
+    "- `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`",
+    "- `make -C zigux phase6-checksum-perf`",
+    "- `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
+    "- `make -C zigux phase6-bsearch-test`",
+    "- `make -C zigux phase6-hexdump-review`",
+    "- `make -C zigux phase6-hexdump-test`",
+    "- `make -C zigux phase6-hexdump-perf`",
+]
+
 REQUIRED_BASE64_SLICE_SNIPPETS = [
     "- direct focused perf route: `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
     "- current wrapper nuance: the helper-owned perf gate is directly runnable through `zigux/tests/phase6_build.zig`, and current `zigux/Makefile` now exposes a committed `phase6-base64-perf` target body; the remaining shared-route lag is the broader aggregate wrapper inventory plus the bootstrap workflow, not the helper-local Linux-style wrapper itself",
@@ -258,7 +273,7 @@ REQUIRED_PRESENT_ENTRYPOINTS_SNIPPETS = [
     'EXPECTED_HEXDUMP_PERF_REFRESH = HEXDUMP_PERF_REFRESH_PATH.as_posix()',
 ]
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 17
 
 
 def read_text(path: Path) -> str:
@@ -413,6 +428,7 @@ def run_checks(repo_root: Path) -> None:
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
     require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_HELPER_EVIDENCE_SNIPPETS)
+    require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_HELPER_EVIDENCE_REMINDER_SNIPPETS)
     require_snippets(repo_root / BASE64_SLICE_PATH, REQUIRED_BASE64_SLICE_SNIPPETS)
     require_snippets(repo_root / BSEARCH_SLICE_PATH, REQUIRED_BSEARCH_SLICE_SNIPPETS)
     require_snippets(repo_root / CHECKSUM_SLICE_PATH, REQUIRED_CHECKSUM_SLICE_SNIPPETS)
@@ -470,7 +486,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / HEXDUMP_PERF_REFRESH_PATH, "# Phase 6 Hexdump Perf Refresh\n")
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n")
     write(root / CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
-    write(root / HELPER_EVIDENCE_CATALOG_PATH, "\n".join(REQUIRED_HELPER_EVIDENCE_SNIPPETS) + "\n")
+    write(root / HELPER_EVIDENCE_CATALOG_PATH, "\n".join(REQUIRED_HELPER_EVIDENCE_SNIPPETS + REQUIRED_HELPER_EVIDENCE_REMINDER_SNIPPETS) + "\n")
     write(root / BASE64_SLICE_PATH, "\n".join(REQUIRED_BASE64_SLICE_SNIPPETS) + "\n")
     write(root / BSEARCH_SLICE_PATH, "\n".join(REQUIRED_BSEARCH_SLICE_SNIPPETS) + "\n")
     write(root / CHECKSUM_SLICE_PATH, "\n".join(REQUIRED_CHECKSUM_SLICE_SNIPPETS) + "\n")
@@ -549,6 +565,7 @@ def run_self_test() -> None:
         assert_failure(tmpdir, MANIFEST_PATH, '"helper_evidence_catalog"', '"helper_evidence_catalog_missing"')
         assert_failure(tmpdir, CATALOG_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
         assert_failure(tmpdir, HELPER_EVIDENCE_CATALOG_PATH, "check-phase6-bsearch-corpus-evidence.py", "check-phase6-bsearch-evidence.py")
+        assert_failure(tmpdir, HELPER_EVIDENCE_CATALOG_PATH, "make -C zigux phase6-checksum-perf", "make -C zigux phase6-checksum-perf-missing")
         assert_failure(tmpdir, BASE64_SLICE_PATH, "phase6_base64_c_casegen.zig", "phase6_base64_c_casegen_missing.zig")
         assert_failure(tmpdir, PERF_SURVEY_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
         assert_failure(tmpdir, CHECKSUM_SLICE_PATH, "phase6-checksum-perf", "phase6-checksum-perf-missing")
