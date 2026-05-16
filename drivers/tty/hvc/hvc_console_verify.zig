@@ -337,6 +337,55 @@ test "hvc_console verify keeps targeted unregister requests explicit" {
     try std.testing.expect(summary.edge.keeps_live_notifier_execution_out_of_scope);
 }
 
+test "hvc_console verify keeps notifier irq helper failures explicit" {
+    const active = console.summarizeNotifierIrqHelper(.{
+        .irq = 3,
+        .notifier_registered = true,
+        .target_present = true,
+        .hangup_requested = true,
+    });
+    const targetless = console.summarizeNotifierIrqHelper(.{
+        .irq = 7,
+        .notifier_registered = true,
+        .target_present = false,
+        .hangup_requested = true,
+    });
+    const invalid = console.summarizeNotifierIrqHelper(.{
+        .irq = -1,
+        .notifier_registered = false,
+        .target_present = false,
+        .hangup_requested = false,
+    });
+    const fake_hp: *console.HvcStruct = @ptrFromInt(1);
+
+    try std.testing.expect(active.irq_valid);
+    try std.testing.expectEqual(@as(c_int, 0), active.add_result);
+    try std.testing.expect(active.del_surface_visible);
+    try std.testing.expect(active.hangup_surface_visible);
+    try std.testing.expect(!active.targetless_hangup_short_circuit);
+    try std.testing.expect(active.keeps_live_notifier_execution_out_of_scope);
+
+    try std.testing.expect(targetless.irq_valid);
+    try std.testing.expectEqual(@as(c_int, 0), targetless.add_result);
+    try std.testing.expect(targetless.del_surface_visible);
+    try std.testing.expect(!targetless.hangup_surface_visible);
+    try std.testing.expect(targetless.targetless_hangup_short_circuit);
+    try std.testing.expect(targetless.keeps_live_notifier_execution_out_of_scope);
+
+    try std.testing.expect(!invalid.irq_valid);
+    try std.testing.expectEqual(@as(c_int, -1), invalid.add_result);
+    try std.testing.expect(!invalid.del_surface_visible);
+    try std.testing.expect(!invalid.hangup_surface_visible);
+    try std.testing.expect(!invalid.targetless_hangup_short_circuit);
+    try std.testing.expect(invalid.keeps_live_notifier_execution_out_of_scope);
+
+    try std.testing.expectEqual(active.add_result, console.notifier_add_irq(fake_hp, 3));
+    try std.testing.expectEqual(invalid.add_result, console.notifier_add_irq(fake_hp, -1));
+
+    console.notifier_del_irq(fake_hp, 7);
+    console.notifier_hangup_irq(fake_hp, 9);
+}
+
 test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks" {
     const summary = summarizeTargetlessSysrqDispatch(.{
         .target_vtermno = null,
