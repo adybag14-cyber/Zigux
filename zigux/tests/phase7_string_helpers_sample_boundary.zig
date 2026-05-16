@@ -103,6 +103,7 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(slice_note, "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting");
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown");
     try expectContains(slice_note, "allocator-backed duplicate-and-replace behavior that rewrites only the exported C-string prefix and leaves the source buffer untouched");
+    try expectContains(slice_note, "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries");
     try expectNotContains(slice_note, "restored starter packet");
     try expectNotContains(slice_note, "missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
 
@@ -144,6 +145,8 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(survey, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
     try expectContains(survey, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(survey, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
+    try expectContains(survey, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
+    try expectContains(survey, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectNotContains(survey, "Documentation/zigux/review-checklist.md");
     try expectNotContains(survey, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
     try expectNotContains(survey, "zigux/tests/phase7_build.zig");
@@ -156,6 +159,7 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     try expectContains(manifest, "\"bounded sequential string-array allocation with NULL-terminated pointer views\"");
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
+    try expectContains(manifest, "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 }
