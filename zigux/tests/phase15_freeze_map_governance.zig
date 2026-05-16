@@ -81,6 +81,11 @@ const ScorecardAnchor = struct {
 const ScorecardMetrics = struct {
     active_freeze_in_c_anchor_count: usize,
     blocked_status_change_anchor_count: usize,
+    phase15_governance_only_blocker_anchor_count: usize,
+    phase14_coupled_blocker_anchor_count: usize,
+    anchors_still_blocked_on_prior_phase_bridge_evidence: usize,
+    study_only_anchors_tracked_outside_scorecard: usize,
+    architecture_council_status_change_approval_count: usize,
 };
 
 const ScorecardManifest = struct {
@@ -264,6 +269,11 @@ test "phase 15 freeze-map required terms, maintenance handoff, and scorecard own
     try std.testing.expectEqual(parsed.value.freeze_in_c_targets.len, scorecard.value.metrics.active_freeze_in_c_anchor_count);
     try std.testing.expectEqual(parsed.value.blocker_ownership.len, scorecard.value.metrics.blocked_status_change_anchor_count);
     try std.testing.expectEqual(parsed.value.deep_core_blocker_survey.len, scorecard.value.metrics.blocked_status_change_anchor_count);
+    try std.testing.expectEqual(@as(usize, 2), scorecard.value.metrics.phase15_governance_only_blocker_anchor_count);
+    try std.testing.expectEqual(@as(usize, 2), scorecard.value.metrics.phase14_coupled_blocker_anchor_count);
+    try std.testing.expectEqual(@as(usize, 2), scorecard.value.metrics.anchors_still_blocked_on_prior_phase_bridge_evidence);
+    try std.testing.expectEqual(parsed.value.study_only_targets.len, scorecard.value.metrics.study_only_anchors_tracked_outside_scorecard);
+    try std.testing.expectEqual(@as(usize, 0), scorecard.value.metrics.architecture_council_status_change_approval_count);
 
     try expectContains(scorecard_doc, "validator-first gate wording");
     try expectContains(scorecard_doc, "python3 scripts/zigux/validate-phase15.py");
@@ -272,6 +282,11 @@ test "phase 15 freeze-map required terms, maintenance handoff, and scorecard own
     try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
     try expectContains(scorecard_doc, "make -C zigux phase15-validate");
     try expectContains(scorecard_doc, "## Gates");
+    try expectContains(scorecard_doc, "anchors blocked entirely within Phase 15 governance evidence: `2`");
+    try expectContains(scorecard_doc, "Phase 14 coupled blocker anchor count: `2`");
+    try expectContains(scorecard_doc, "anchors still blocked on prior-phase bridge evidence: `2`");
+    try expectContains(scorecard_doc, "study-only anchors tracked outside this scorecard: `2`");
+    try expectContains(scorecard_doc, "Architecture Council approvals recorded for status change: `0`");
 
     for (parsed.value.governance_requirements) |requirement| {
         for (requirement.required_terms) |term| {
