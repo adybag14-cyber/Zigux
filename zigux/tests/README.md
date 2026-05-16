@@ -219,6 +219,7 @@ Phase 10 flow
   * `scripts/zigux/check-phase10-harness-coverage.py`
   * `zigux/tests/phase10_build.zig`
   * `zigux/tests/phase10_virtio_core.zig`
+  * `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`
   * `zigux/tests/phase10_virtio_core_reset_queue.zig`
   * `zigux/tests/phase10_virtio_core_survey.zig`
   * `zigux/tests/phase10_virtio_core_manifest.json`
@@ -240,7 +241,7 @@ Phase 10 flow
   * `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
   * `make -C zigux phase10-test`
   * `make -C zigux phase10`
-  * keep the shared Phase 10 tests-root packet aligned around the direct core, ring, input probe-preflight, queue-callback-preflight, registration-preflight, teardown-observation, status-drain, and MMIO review surfaces while the broader helper names and risky-transport claims stay documented through the closure-manifest-backed reminder notes rather than direct parity claims
+  * keep the shared Phase 10 tests-root packet aligned around the direct core, core interrupt-compound-ack, ring, input probe-preflight, queue-callback-preflight, registration-preflight, teardown-observation, status-drain, and MMIO review surfaces while the broader helper names and risky-transport claims stay documented through the closure-manifest-backed reminder notes rather than direct parity claims
 
 Phase 11 review packet
   * `Documentation/zigux/phase11-shared-replay-contract.md`
