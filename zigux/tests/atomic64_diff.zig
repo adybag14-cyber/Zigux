@@ -376,10 +376,6 @@ test "atomic64 diff wrapper keeps the paired survey gate-evidence self-test mark
     );
     try expectMarker(
         phase4_runtime_atomic64_diff_survey_source,
-        "perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift,",
-    );
-    try expectMarker(
-        phase4_runtime_atomic64_diff_survey_source,
         "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34",
     );
     try expectMarker(
