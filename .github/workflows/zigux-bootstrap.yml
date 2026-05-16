@@ -278,6 +278,12 @@ jobs:
       - name: Check Phase 6 shared helper surface
         run: python3 scripts/zigux/check-phase6-shared-surface.py
 
+      - name: Self-test Phase 6 present-entrypoints checker
+        run: python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test
+
+      - name: Check Phase 6 present entrypoints
+        run: python3 scripts/zigux/check-phase6-present-entrypoints.py
+
       - name: Run Phase 6 base64 C parity packet
         run: python3 scripts/zigux/check-phase6-base64-c-parity.py
 
