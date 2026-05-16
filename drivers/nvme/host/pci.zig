@@ -19,11 +19,20 @@ pub const RecoveryState = enum {
     reset_frozen,
 };
 
+pub const RecoveryRollbackBlocker = enum {
+    none,
+    reset_frozen,
+    admin_queue_replay,
+    queue_count_parity,
+    dma_page_parity,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_lab_queue_planner: bool,
     provides_dropped_io_retirement_helper: bool,
+    provides_recovery_rollback_gate_helper: bool,
     touches_live_dma: bool,
     touches_pci_probe: bool,
     touches_irq_recovery: bool,
@@ -112,6 +121,24 @@ pub const DroppedIoRetirementSummary = struct {
     can_retire_dropped_io_backlog: bool,
 };
 
+pub const RecoveryRollbackGateSummary = struct {
+    anchor: []const u8,
+    state: RecoveryState,
+    reset_generation: u32,
+    admin_queue_replayed_after_reset: bool,
+    queue_count_parity_recovered: bool,
+    host_dma_parity_recovered: bool,
+    queue_numbering_restarted: bool,
+    dropped_io_queue_count: usize,
+    rebuilt_io_queue_count: usize,
+    remaining_io_queue_count: usize,
+    dropped_io_host_dma_pages: u32,
+    rebuilt_io_host_dma_pages: u32,
+    remaining_io_host_dma_pages: u32,
+    rollback_blocker: RecoveryRollbackBlocker,
+    can_clear_rollback_gate: bool,
+};
+
 pub const IoQueueCountPlanSummary = struct {
     anchor: []const u8,
     requested_io_queues: usize,
@@ -163,6 +190,7 @@ pub const NvmePciQueueLab = struct {
     last_admin_host_dma_pages: u16 = 0,
     planned_io_host_dma_pages: u32 = 0,
     last_reset_io_queue_count: usize = 0,
+    last_reset_io_host_dma_pages: u32 = 0,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -170,6 +198,7 @@ pub const NvmePciQueueLab = struct {
             .anchor = "drivers/nvme/host/pci.c",
             .provides_lab_queue_planner = true,
             .provides_dropped_io_retirement_helper = true,
+            .provides_recovery_rollback_gate_helper = true,
             .touches_live_dma = false,
             .touches_pci_probe = false,
             .touches_irq_recovery = false,
@@ -353,6 +382,7 @@ pub const NvmePciQueueLab = struct {
 
     pub fn beginReset(self: *Self) RecoverySummary {
         self.last_reset_io_queue_count = self.planned_io_queues;
+        self.last_reset_io_host_dma_pages = self.planned_io_host_dma_pages;
         self.recovery_state = .reset_frozen;
         self.reset_generation += 1;
         return self.recoverySummary();
@@ -430,6 +460,55 @@ pub const NvmePciQueueLab = struct {
                 dropped_io_queue_count != 0 and
                 !admin_queue_must_be_replayed and
                 remaining_io_queue_count == 0,
+        };
+    }
+
+    pub fn recoveryRollbackGateSummary(self: *const Self) RecoveryRollbackGateSummary {
+        const retirement = self.summarizeDroppedIoRetirement();
+        const dropped_io_host_dma_pages = if (self.recovery_state == .reset_frozen)
+            self.planned_io_host_dma_pages
+        else
+            self.last_reset_io_host_dma_pages;
+        const rebuilt_io_host_dma_pages = if (self.recovery_state == .running)
+            self.planned_io_host_dma_pages
+        else
+            0;
+        const remaining_io_host_dma_pages = if (rebuilt_io_host_dma_pages >= dropped_io_host_dma_pages)
+            0
+        else
+            dropped_io_host_dma_pages - rebuilt_io_host_dma_pages;
+        const queue_count_parity_recovered = !retirement.admin_queue_must_be_replayed and
+            retirement.dropped_io_queue_count != 0 and
+            retirement.remaining_io_queue_count == 0;
+        const host_dma_parity_recovered = queue_count_parity_recovered and
+            remaining_io_host_dma_pages == 0;
+
+        const rollback_blocker: RecoveryRollbackBlocker = blk: {
+            if (self.recovery_state == .reset_frozen) break :blk .reset_frozen;
+            if (retirement.admin_queue_must_be_replayed) break :blk .admin_queue_replay;
+            if (retirement.remaining_io_queue_count != 0) break :blk .queue_count_parity;
+            if (remaining_io_host_dma_pages != 0) break :blk .dma_page_parity;
+            break :blk .none;
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .state = self.recovery_state,
+            .reset_generation = self.reset_generation,
+            .admin_queue_replayed_after_reset = retirement.admin_queue_replayed_after_reset,
+            .queue_count_parity_recovered = queue_count_parity_recovered,
+            .host_dma_parity_recovered = host_dma_parity_recovered,
+            .queue_numbering_restarted = retirement.queue_numbering_restarted,
+            .dropped_io_queue_count = retirement.dropped_io_queue_count,
+            .rebuilt_io_queue_count = retirement.rebuilt_io_queue_count,
+            .remaining_io_queue_count = retirement.remaining_io_queue_count,
+            .dropped_io_host_dma_pages = dropped_io_host_dma_pages,
+            .rebuilt_io_host_dma_pages = rebuilt_io_host_dma_pages,
+            .remaining_io_host_dma_pages = remaining_io_host_dma_pages,
+            .rollback_blocker = rollback_blocker,
+            .can_clear_rollback_gate = rollback_blocker == .none and
+                retirement.dropped_io_queue_count != 0 and
+                retirement.queue_numbering_restarted,
         };
     }
 
@@ -566,6 +645,55 @@ pub const NvmePciQueueLab = struct {
         return std.math.add(usize, lhs, rhs) catch error.QueueCountOverflow;
     }
 };
+
+test "nvme pci recovery rollback gate waits for queue count and DMA parity after reset replay" {
+    var lab = try NvmePciQueueLab.init(4096, 8);
+    const descriptor = NvmePciQueueLab.descriptor();
+    try std.testing.expect(descriptor.provides_recovery_rollback_gate_helper);
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(64, 64, false);
+    _ = try lab.planIoQueue(128, 64, false);
+
+    _ = lab.beginReset();
+    const frozen = lab.recoveryRollbackGateSummary();
+    try std.testing.expectEqual(RecoveryRollbackBlocker.reset_frozen, frozen.rollback_blocker);
+    try std.testing.expect(!frozen.can_clear_rollback_gate);
+
+    _ = lab.completeReset();
+    const replay_blocked = lab.recoveryRollbackGateSummary();
+    try std.testing.expectEqual(RecoveryRollbackBlocker.admin_queue_replay, replay_blocked.rollback_blocker);
+    try std.testing.expect(!replay_blocked.can_clear_rollback_gate);
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, true);
+    const queue_blocked = lab.recoveryRollbackGateSummary();
+    try std.testing.expectEqual(RecoveryRollbackBlocker.queue_count_parity, queue_blocked.rollback_blocker);
+    try std.testing.expectEqual(@as(usize, 1), queue_blocked.remaining_io_queue_count);
+    try std.testing.expect(!queue_blocked.can_clear_rollback_gate);
+
+    _ = try lab.planIoQueue(32, 64, true);
+    const dma_blocked = lab.recoveryRollbackGateSummary();
+    try std.testing.expectEqual(RecoveryRollbackBlocker.dma_page_parity, dma_blocked.rollback_blocker);
+    try std.testing.expectEqual(@as(u32, 3), dma_blocked.remaining_io_host_dma_pages);
+    try std.testing.expect(!dma_blocked.can_clear_rollback_gate);
+
+    var parity_lab = try NvmePciQueueLab.init(4096, 8);
+    _ = try parity_lab.planAdminQueue(48, 64, false);
+    _ = try parity_lab.planIoQueue(16, 64, false);
+    _ = try parity_lab.planIoQueue(32, 64, true);
+    _ = parity_lab.beginReset();
+    _ = parity_lab.completeReset();
+    _ = try parity_lab.planAdminQueue(48, 64, false);
+    _ = try parity_lab.planIoQueue(16, 64, false);
+    _ = try parity_lab.planIoQueue(32, 64, true);
+    const ready = parity_lab.recoveryRollbackGateSummary();
+    try std.testing.expectEqual(RecoveryRollbackBlocker.none, ready.rollback_blocker);
+    try std.testing.expect(ready.queue_count_parity_recovered);
+    try std.testing.expect(ready.host_dma_parity_recovered);
+    try std.testing.expect(ready.queue_numbering_restarted);
+    try std.testing.expect(ready.can_clear_rollback_gate);
+}
 
 test "nvme pci recovery restore summary snapshots frozen queue DMA budget" {
     var lab = try NvmePciQueueLab.init(4096, 8);
