@@ -16,12 +16,23 @@ LAYOUT_ASSERT_REL = Path("zigux/helpers/layout_assert.zig")
 
 SURVEY_REQUIRED = (
     "PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig",
-    "PHASE3_BOUNDARY_GAP=dedicated-focused-policy-unsafe-replay-pair-ships-while-the-shared-abi-packet-still-owns-the-broader-policy-and-unsafe-review-surface",
+    "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
     "PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py",
-    "The current tree now ships a dedicated `phase3_policy_unsafe` replay pair through `zigux/tests/phase3_policy_unsafe.zig` and `zigux/tests/phase3_policy_unsafe_build.zig`, but the live validator packet still keeps the broader policy-and-unsafe boundary inside the shared `abi` slice rather than turning that focused replay pair into a new standalone tranche.",
+    "The current tree still does not ship a dedicated `phase3_policy_unsafe` replay pair, so the live validator packet keeps the broader policy-and-unsafe boundary inside the shared `abi` slice rather than splitting this surface into a standalone subslice.",
 )
 
 SURVEY_NEXT_STEP_REQUIRED = (
+    "keep the next same-lane change to one shared-ABI marker or one validator-wording refresh tied only to this packet",
+    "if the shared ABI packet, the directly coupled focused low-level replay, one of the dedicated policy packet checks, or a broader policy-and-unsafe helper family changes later, resurvey this note against the exact live files before claiming that surface here",
+)
+
+SURVEY_FORBIDDEN = (
+    "PHASE3_POLICY_UNSAFE_TEST_PATH=zigux/tests/phase3_policy_unsafe.zig",
+    "PHASE3_POLICY_UNSAFE_BUILD_PATH=zigux/tests/phase3_policy_unsafe_build.zig",
+    "PHASE3_POLICY_UNSAFE_FOCUSED_GATE=zig build test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
+    "PHASE3_BOUNDARY_GAP=dedicated-focused-policy-unsafe-replay-pair-ships-while-the-shared-abi-packet-still-owns-the-broader-policy-and-unsafe-review-surface",
+    "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-shared-abi-manifest-the-shared-abi-slice-or-the-dedicated-phase3_policy_unsafe-replay-pair-drifts-again",
+    "The current tree now ships a dedicated `phase3_policy_unsafe` replay pair through `zigux/tests/phase3_policy_unsafe.zig` and `zigux/tests/phase3_policy_unsafe_build.zig`, but the live validator packet still keeps the broader policy-and-unsafe boundary inside the shared `abi` slice rather than turning that focused replay pair into a new standalone tranche.",
     "keep the next same-lane change to one shared-ABI marker, one dedicated `phase3_policy_unsafe` replay note refresh, or one validator-wording refresh tied only to this packet",
     "if the dedicated `phase3_policy_unsafe` replay pair, the directly coupled focused low-level replay, one of the dedicated policy packet checks, or a broader policy-and-unsafe helper family changes later, resurvey this note against the exact live files before claiming that surface here",
 )
@@ -123,6 +134,7 @@ def forbid_markers(path: Path, markers: tuple[str, ...]) -> None:
 def check_repo_root(repo_root: Path) -> None:
     require_markers(repo_root / SURVEY_REL, SURVEY_REQUIRED)
     require_markers(repo_root / SURVEY_REL, SURVEY_NEXT_STEP_REQUIRED)
+    forbid_markers(repo_root / SURVEY_REL, SURVEY_FORBIDDEN)
     require_markers(repo_root / ABI_SLICE_REL, ABI_SLICE_REQUIRED)
     forbid_markers(repo_root / ABI_SLICE_REL, ABI_SLICE_FORBIDDEN)
     require_markers(repo_root / ABI_MANIFEST_REL, MANIFEST_REQUIRED)
@@ -177,6 +189,21 @@ def run_self_test() -> None:
 
         write_fixture(tmpdir)
         survey_path = tmpdir / SURVEY_REL
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8") + SURVEY_FORBIDDEN[0] + "\n",
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert SURVEY_REL.as_posix() in str(exc)
+            assert SURVEY_FORBIDDEN[0] in str(exc)
+        else:
+            raise AssertionError("expected stale survey dedicated replay marker failure")
+
+        write_fixture(tmpdir)
+        survey_path = tmpdir / SURVEY_REL
+        survey_path.writeText = survey_path.write_text
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(SURVEY_NEXT_STEP_REQUIRED[0] + "\n", ""),
             encoding="utf-8",
