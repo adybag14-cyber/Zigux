@@ -70,6 +70,30 @@ pub fn compareExchangeWeak(
     return @cmpxchgWeak(T, ptr, expected_value, new_value, success_order, failure_order);
 }
 
+fn isCompareExchangeSuccessOrderAllowed(comptime order: std.builtin.AtomicOrder) bool {
+    return switch (order) {
+        .monotonic, .acquire, .release, .acq_rel, .seq_cst => true,
+        .unordered => false,
+    };
+}
+
+fn isCompareExchangeFailureOrderAllowed(
+    comptime success_order: std.builtin.AtomicOrder,
+    comptime failure_order: std.builtin.AtomicOrder,
+) bool {
+    if (!isCompareExchangeSuccessOrderAllowed(success_order)) return false;
+
+    return switch (failure_order) {
+        .monotonic => true,
+        .acquire => switch (success_order) {
+            .acquire, .acq_rel, .seq_cst => true,
+            .unordered, .monotonic, .release => false,
+        },
+        .seq_cst => success_order == .seq_cst,
+        .unordered, .release, .acq_rel => false,
+    };
+}
+
 fn ensureCompareExchangeSuccessOrder(comptime order: std.builtin.AtomicOrder) void {
     switch (order) {
         .monotonic, .acquire, .release, .acq_rel, .seq_cst => {},
@@ -295,6 +319,24 @@ test "phase3 atomic wrappers keep compare-exchange failure orderings reviewable"
     );
     try std.testing.expectEqual(@as(?u32, 29), acquire_failure_mismatch);
     try std.testing.expectEqual(@as(u32, 29), weak_acquire_value);
+}
+
+test "phase3 atomic wrappers keep invalid compare-exchange order pairs reviewable" {
+    try std.testing.expect(!isCompareExchangeSuccessOrderAllowed(.unordered));
+    try std.testing.expect(isCompareExchangeSuccessOrderAllowed(.release));
+
+    try std.testing.expect(isCompareExchangeFailureOrderAllowed(.monotonic, .monotonic));
+    try std.testing.expect(isCompareExchangeFailureOrderAllowed(.acquire, .acquire));
+    try std.testing.expect(isCompareExchangeFailureOrderAllowed(.acq_rel, .acquire));
+    try std.testing.expect(isCompareExchangeFailureOrderAllowed(.seq_cst, .seq_cst));
+
+    try std.testing.expect(!isCompareExchangeFailureOrderAllowed(.monotonic, .unordered));
+    try std.testing.expect(!isCompareExchangeFailureOrderAllowed(.release, .release));
+    try std.testing.expect(!isCompareExchangeFailureOrderAllowed(.acquire, .acq_rel));
+    try std.testing.expect(!isCompareExchangeFailureOrderAllowed(.monotonic, .acquire));
+    try std.testing.expect(!isCompareExchangeFailureOrderAllowed(.release, .acquire));
+    try std.testing.expect(!isCompareExchangeFailureOrderAllowed(.release, .seq_cst));
+    try std.testing.expect(!isCompareExchangeFailureOrderAllowed(.acq_rel, .seq_cst));
 }
 
 test "phase3 atomic wrappers keep signed arithmetic orderings reviewable" {
