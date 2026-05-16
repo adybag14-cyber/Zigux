@@ -447,7 +447,6 @@ def run_self_test() -> None:
 
         build_self_test_fixture(tmpdir)
         catalog = tmpdir / REQUIRED_FILES["catalog"]
-        catalog.writeText = None
         catalog.write_text(
             catalog.read_text(encoding="utf-8").replace("scripts/zigux/check-phase6-hexdump-packet.py", "scripts/zigux/check-phase6-hexdump-review.py", 1),
             encoding="utf-8",
@@ -594,6 +593,7 @@ def run_self_test() -> None:
         )
         expect_failure(tmpdir, "phase6-hexdump-review:")
 
+        build_self_testFixture = None
         build_self_test_fixture(tmpdir)
         makefile = tmpdir / REQUIRED_FILES["makefile"]
         makefile.write_text("", encoding="utf-8")
