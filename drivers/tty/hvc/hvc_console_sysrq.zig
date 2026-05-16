@@ -6,6 +6,7 @@ pub const SysrqHandoffRequest = struct {
     toggles_sysrq_mode: bool,
     invokes_sysrq_handler: bool,
     is_kernel_console: bool,
+    teardown_complete: bool = false,
     keeps_live_sysrq_execution_out_of_scope: bool = true,
 };
 
@@ -13,6 +14,7 @@ pub const SysrqHandoffSnapshot = struct {
     toggles_sysrq_mode: bool,
     invokes_sysrq_handler: bool,
     falls_back_to_literal: bool,
+    teardown_blocks_dispatch: bool,
     keeps_live_sysrq_execution_out_of_scope: bool,
 };
 
@@ -20,10 +22,14 @@ pub const keeps_live_sysrq_execution_out_of_scope = true;
 
 pub fn summarizeSysrqHandoff(request: SysrqHandoffRequest) SysrqHandoffSnapshot {
     const literal_fallback = !request.is_kernel_console or request.target_vtermno == null;
+    const teardown_blocks_dispatch = request.teardown_complete;
+    const dispatch_available = !literal_fallback and !teardown_blocks_dispatch;
+
     return .{
-        .toggles_sysrq_mode = request.toggles_sysrq_mode,
-        .invokes_sysrq_handler = request.invokes_sysrq_handler and !literal_fallback,
-        .falls_back_to_literal = literal_fallback,
+        .toggles_sysrq_mode = request.toggles_sysrq_mode and !teardown_blocks_dispatch,
+        .invokes_sysrq_handler = request.invokes_sysrq_handler and dispatch_available,
+        .falls_back_to_literal = literal_fallback or teardown_blocks_dispatch,
+        .teardown_blocks_dispatch = teardown_blocks_dispatch,
         .keeps_live_sysrq_execution_out_of_scope = request.keeps_live_sysrq_execution_out_of_scope and keeps_live_sysrq_execution_out_of_scope,
     };
 }
@@ -39,6 +45,7 @@ test "phase11 hvc sysrq handoff keeps live execution out of scope" {
 
     try std.testing.expect(snapshot.toggles_sysrq_mode);
     try std.testing.expect(snapshot.invokes_sysrq_handler);
+    try std.testing.expect(!snapshot.teardown_blocks_dispatch);
     try std.testing.expect(snapshot.keeps_live_sysrq_execution_out_of_scope);
 }
 
@@ -54,6 +61,7 @@ test "phase11 hvc sysrq handoff falls back to literal bytes when no target vterm
     try std.testing.expect(!snapshot.toggles_sysrq_mode);
     try std.testing.expect(!snapshot.invokes_sysrq_handler);
     try std.testing.expect(snapshot.falls_back_to_literal);
+    try std.testing.expect(!snapshot.teardown_blocks_dispatch);
     try std.testing.expect(snapshot.keeps_live_sysrq_execution_out_of_scope);
 }
 
@@ -69,5 +77,23 @@ test "phase11 hvc sysrq handoff keeps non-kernel consoles on the literal fallbac
     try std.testing.expect(snapshot.toggles_sysrq_mode);
     try std.testing.expect(!snapshot.invokes_sysrq_handler);
     try std.testing.expect(snapshot.falls_back_to_literal);
+    try std.testing.expect(!snapshot.teardown_blocks_dispatch);
+    try std.testing.expect(snapshot.keeps_live_sysrq_execution_out_of_scope);
+}
+
+test "phase11 hvc sysrq handoff keeps post-teardown unavailability explicit" {
+    const snapshot = summarizeSysrqHandoff(.{
+        .target_vtermno = 0,
+        .byte = 0x0f,
+        .toggles_sysrq_mode = true,
+        .invokes_sysrq_handler = true,
+        .is_kernel_console = true,
+        .teardown_complete = true,
+    });
+
+    try std.testing.expect(!snapshot.toggles_sysrq_mode);
+    try std.testing.expect(!snapshot.invokes_sysrq_handler);
+    try std.testing.expect(snapshot.falls_back_to_literal);
+    try std.testing.expect(snapshot.teardown_blocks_dispatch);
     try std.testing.expect(snapshot.keeps_live_sysrq_execution_out_of_scope);
 }
