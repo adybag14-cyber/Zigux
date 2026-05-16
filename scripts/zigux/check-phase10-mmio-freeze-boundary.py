@@ -288,6 +288,40 @@ def run_manifest_case(root: Path) -> None:
         raise SystemExit(f"phase10-mmio-freeze-self-test:expected={expected}:actual={actual}")
 
 
+def run_manifest_scalar_case(root: Path, key: str, replacement: object, expected: str) -> None:
+    manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest[key] = replacement
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    _, missing_markers = validate(root)
+    if expected not in missing_markers:
+        actual = ",".join(missing_markers) if missing_markers else "none"
+        raise SystemExit(f"phase10-mmio-freeze-self-test:expected={expected}:actual={actual}")
+
+
+def run_manifest_list_case(root: Path, key: str, replacement: list[str], expected: str) -> None:
+    manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest[key] = replacement
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    _, missing_markers = validate(root)
+    if expected not in missing_markers:
+        actual = ",".join(missing_markers) if missing_markers else "none"
+        raise SystemExit(f"phase10-mmio-freeze-self-test:expected={expected}:actual={actual}")
+
+
+def run_manifest_summary_case(root: Path, key: str, replacement: object, expected: str) -> None:
+    manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    summary = manifest.setdefault("survey_summary", {})
+    summary[key] = replacement
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    _, missing_markers = validate(root)
+    if expected not in missing_markers:
+        actual = ",".join(missing_markers) if missing_markers else "none"
+        raise SystemExit(f"phase10-mmio-freeze-self-test:expected={expected}:actual={actual}")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_mmio_freeze_") as tmp_dir:
         root = Path(tmp_dir)
@@ -408,9 +442,68 @@ def run_self_test() -> int:
             expect_missing_marker(root, rel_path, old, new, expected)
 
         run_manifest_case(root)
+        run_manifest_scalar_case(
+            root,
+            "freeze_boundary_status",
+            "drifted",
+            "mmio_manifest:freeze_boundary_status='drifted'",
+        )
+        run_manifest_scalar_case(
+            root,
+            "freeze_status_change_claimed",
+            True,
+            "mmio_manifest:freeze_status_change_claimed=True",
+        )
+        run_manifest_scalar_case(
+            root,
+            "architecture_council_reopen_required",
+            False,
+            "mmio_manifest:architecture_council_reopen_required=False",
+        )
+        run_manifest_scalar_case(
+            root,
+            "architecture_council_reopen_attached",
+            True,
+            "mmio_manifest:architecture_council_reopen_attached=True",
+        )
+        run_manifest_scalar_case(
+            root,
+            "lane_key",
+            "P10-L12",
+            "mmio_manifest:lane_key='P10-L12'",
+        )
+        run_manifest_list_case(
+            root,
+            "roadmap_destinations",
+            ["drivers/virtio/*.zig", "zigux/kernel/"],
+            "mmio_manifest:roadmap_destinations",
+        )
+        run_manifest_list_case(
+            root,
+            "allowed_evidence_kinds",
+            ["driver_local_lab_slices", "survey_manifests"],
+            "mmio_manifest:allowed_evidence_kinds",
+        )
+        run_manifest_list_case(
+            root,
+            "forbidden_transport_claims",
+            [
+                "queue_setup_reset_paths",
+                "irq_parity",
+                "dma_paths",
+                "input_registration_lifecycle",
+            ],
+            "mmio_manifest:forbidden_transport_claims",
+        )
+        run_manifest_summary_case(
+            root,
+            "preexisting_virtio_mmio_verify_present",
+            False,
+            "mmio_manifest:survey_summary:preexisting_virtio_mmio_verify_present=False",
+        )
 
     print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
