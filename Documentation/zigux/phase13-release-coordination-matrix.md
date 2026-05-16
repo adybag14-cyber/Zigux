@@ -33,6 +33,18 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 
 Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`, but that broader convenience route currently fans out to `phase13-test`, which still calls `zig build test --build-file zigux/tests/phase13_build.zig --summary all` while `zigux/tests/phase13_build.zig` remains a repo-reality gap. Keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands, and treat the broader `phase13` route as blocked convenience wiring rather than direct shipped current-`master` evidence.
 
+## Closure Checklist
+1. Shared release surfaces still agree.
+   `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-release-notes-survey.md`, this matrix, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` must keep the same active-not-closed Phase 13 packet, the same stable validator-first handle, and the same blocked convenience-route posture.
+2. The stable handle remains truthful.
+   `python3 scripts/zigux/validate-phase13-release.py` and `make -C zigux phase13-validate` remain the only stable contributor-facing replay handle on current `master`; `make -C zigux phase13` must stay described as blocked convenience wiring until `zigux/tests/phase13_build.zig` actually lands.
+3. The bounded helper packets remain explicit.
+   Broad release wording must keep the shipped `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` packets explicit through their direct helper, survey, reviewability, manifest, and checker-backed surfaces instead of collapsing the tranche into a generic helper bucket.
+4. Repo-reality gaps stay named as gaps.
+   `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `scripts/zigux/check-phase13-devres-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` must stay framed as repo-reality gaps until current `master` materializes them.
+5. Adjacent notifier evidence stays adjacent.
+   `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `include/zigux/abi.h`, and `drivers/tty/hvc/hvc_console.h` remain release-surface support rather than a fifth helper anchor or a substitute for the missing direct notifier packet.
+
 ## Repo-Reality Gaps
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `zigux/tests/phase13_build.zig`
