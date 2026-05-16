@@ -10,6 +10,18 @@ ROOT = Path(__file__).resolve().parents[2]
 DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 
+DOCS_ROOT_PHASE2_BOUNDARY_SENTENCE = (
+    "the docs-root Phase 2 summary should also keep the current bootstrap-versus-cross "
+    "verification split explicit: the dedicated `phase2-cross` workflow job still reuses "
+    "the pinned installer path and reaches the same live toolchain gate indirectly through "
+    "`python3 scripts/zigux/check-phase2-cross.py --target <matrix-zig-target>`, because "
+    "that target-mode replay starts with `python3 scripts/zigux/check-zig-toolchain.py --zig "
+    "\"<resolved-zig>\"` before the cross-target Zig tests, while the Linux-style "
+    "`make -C zigux phase2-cross` route still picks up `phase2-toolchain` and its direct "
+    "`python3 scripts/zigux/check-zig-toolchain.py --zig \"$(ZIG)\"` replay through "
+    "`zigux/Makefile`."
+)
+
 DOCS_ROOT_MARKERS = (
     "Phase 2 notes - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "- `scripts/zigux/check-phase2-tests-readme-alignment.py`",
@@ -18,6 +30,7 @@ DOCS_ROOT_MARKERS = (
     "`make -C zigux phase2-cross`",
     "the repo-local `.zig-toolchain` fallback reused by those Linux-style Phase 2 routes when `ZIG` is unset stays explicit here",
     "The broader Phase 2 fixdep, genksyms, kconfig bridge, artifact-tools, manifest, cross-target, and closure-route inventory should stay documented through `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile`.",
+    DOCS_ROOT_PHASE2_BOUNDARY_SENTENCE,
 )
 
 TESTS_README_MARKERS = (
@@ -37,7 +50,7 @@ SHARED_ROUTE_MARKERS = (
     "`make -C zigux phase2-cross`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 21
+EXPECTED_SELF_TEST_CASE_COUNT = 22
 
 
 def read_text(path: Path) -> str:
@@ -129,7 +142,12 @@ def run_self_test() -> int:
         for marker in DOCS_ROOT_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, DOCS_ROOT_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            original = path.read_text(encoding="utf-8")
+            if marker == SHARED_ROUTE_MARKERS[1]:
+                rewritten = original.replace(marker, "", 2)
+            else:
+                rewritten = replace_once(original, marker)
+            path.write_text(rewritten, encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_DOCS_ROOT_MARKERS", marker) in issues
             checks_run += 1
