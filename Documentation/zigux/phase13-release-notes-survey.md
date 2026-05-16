@@ -33,6 +33,8 @@ Those files now show that the shared Phase 13 packet is active, helper-backed, a
 
 The coupled current-`master` packet also now keeps the shipped helper-local `libfs`, `devres`, and Landlock notes plus adjacent notifier evidence tied to a validator-first release handle instead of the older "survey-only, scripts-root missing" story.
 
+The helper-local `devres` release wording should stay anchored to `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, and `scripts/zigux/check-phase13-devres-packet-alignment.py`. Those current-`master` companions keep the adjacent coherent-DMA evidence shard and the helper-only DMA/scatterlist boundary explicit without presenting live DMA mappings or live scatterlist ownership as shipped helper parity.
+
 ## Current Shared Release Handle
 
 The coupled current-`master` packet now keeps these release surfaces explicit rather than treating them as repo-reality gaps:
