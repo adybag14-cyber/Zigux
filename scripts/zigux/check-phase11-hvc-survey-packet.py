@@ -248,6 +248,9 @@ CONSOLE_REPLAY_MARKERS = [
     'test "phase11 hvc console keeps tty-registration handoff boundaries reviewable" {',
     'test "phase11 hvc console keeps sysrq handoff boundaries reviewable" {',
     'test "phase11 hvc console keeps notifier handoff boundaries reviewable" {',
+    'test "phase11 hvc console keeps hangup-disconnect teardown boundaries reviewable" {',
+    'test "phase11 hvc console keeps remove-path teardown ordering reviewable" {',
+    'test "phase11 hvc console keeps incomplete remove ownership out of slot-release claims" {',
 ]
 
 CLEANUP_REPLAY_MARKERS = [
@@ -551,7 +554,10 @@ def run_self_test() -> None:
             (REQUIRED_FILES["survey_gate"], "try std.testing.expect(manifest.survey_summary.hvc_console_test_present);"),
             (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[0]),
             (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[1]),
-            (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[-1]),
+            (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[2]),
+            (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[3]),
+            (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[4]),
+            (REQUIRED_FILES["console_replay"], CONSOLE_REPLAY_MARKERS[5]),
             (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[0]),
             (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[1]),
             (REQUIRED_FILES["cleanup_replay"], CLEANUP_REPLAY_MARKERS[2]),
