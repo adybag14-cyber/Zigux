@@ -80,3 +80,22 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
     try std.testing.expect(summary.queue_size_programmed);
     try std.testing.expect(summary.queue_ready_for_handoff);
 }
+
+test "phase10 virtio mmio drops stale config-write disposition after generation drift" {
+    var device = try virtio_mmio.VirtioMmioLab.init(89, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 9, 8, 7, 6, 5, 4, 3, 2 });
+    const before = device.config_bytes;
+
+    const first_plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x5566_7788);
+    try std.testing.expectEqual(@as(u32, 0), first_plan.config_generation);
+    try std.testing.expect((try device.configWriteDispositionSummary()).has_changes);
+
+    device.bumpConfigGeneration();
+    try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
+    try std.testing.expectEqualSlices(u8, before[0..8], device.config_bytes[0..8]);
+
+    const second_plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x99aa_bbcc);
+    try std.testing.expectEqual(@as(u32, 1), second_plan.config_generation);
+    try std.testing.expectEqual(@as(u32, 4), second_plan.relative_offset);
+    try std.testing.expectEqual(before[4], device.config_bytes[4]);
+}
