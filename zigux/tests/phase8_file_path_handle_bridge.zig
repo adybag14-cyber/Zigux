@@ -25,7 +25,7 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     );
     defer std.testing.allocator.free(note);
 
-    try expectContains(note, "\"/proc/%d/fdinfo/%d\"");
+    try expectContains(note, "\\\"/proc/%d/fdinfo/%d\\\"");
     try expectContains(note, "map_type");
     try expectContains(note, "key_size");
     try expectContains(note, "value_size");
@@ -126,15 +126,19 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
 
     try expectContains(
         manifest,
-        "\"slug\": \"fdinfo-map-info-helpers\",\n      \"status\": \"starter_landed\"",
+        "\\\"slug\\\": \\\"fdinfo-map-info-helpers\\\",\\n      \\\"status\\\": \\\"starter_landed\\\"",
     );
     try expectContains(
         manifest,
-        "\"slug\": \"map-reuse-compatibility\",\n      \"status\": \"starter_landed\"",
+        "\\\"slug\\\": \\\"map-reuse-compatibility\\\",\\n      \\\"status\\\": \\\"starter_landed\\\"",
     );
     try expectContains(
         manifest,
-        "\"slug\": \"file-path-and-handle-bridge\",\n      \"status\": \"deferred_high_risk\"",
+        "\\\"slug\\\": \\\"file-path-and-handle-bridge\\\",\\n      \\\"status\\\": \\\"deferred_high_risk\\\"",
+    );
+    try expectContains(
+        manifest,
+        "\\\"slug\\\": \\\"file-path-and-handle-bridge\\\",\\n      \\\"status\\\": \\\"deferred_high_risk\\\",\\n      \\\"kind\\\": \\\"resource_boundary\\\"",
     );
     try expectContains(
         manifest,
@@ -155,11 +159,11 @@ test "phase 8 file-path handle bridge helper keeps proc fdinfo path formatting e
 
 test "phase 8 file-path handle bridge helper keeps fdinfo map info parsing compact" {
     const parsed = try file_path_handle_bridge.parseFdinfoMapInfo(
-        \\map_type: 5
-        \\key_size: 8
-        \\value_size: 16
-        \\max_entries: 1024
-        \\map_flags: 0x20
+        \\\map_type: 5
+        \\\key_size: 8
+        \\\value_size: 16
+        \\\max_entries: 1024
+        \\\map_flags: 0x20
     );
     const summary = file_path_handle_bridge.summarizeFdinfoMapInfo(parsed);
 
@@ -174,7 +178,7 @@ test "phase 8 file-path handle bridge helper keeps malformed fdinfo values expli
 
     try std.testing.expectError(
         error.InvalidInteger,
-        file_path_handle_bridge.applyFdinfoMapInfoLine(&info, "map_flags:\t-1"),
+        file_path_handle_bridge.applyFdinfoMapInfoLine(&info, "map_flags:\\t-1"),
     );
     try std.testing.expectError(
         error.MissingSeparator,
