@@ -98,7 +98,7 @@ This note still does not claim:
 
 Leave this lane parked unless a fresh kobject reread changes one bounded fact inside the same packet:
 
-- `scripts/zigux/README.md` still compresses the live kobject packet to a narrower note-plus-sample-plus-tests shape, so the next same-packet follow-through is one scripts-root wording repair that keeps `zigux/tests/phase5_kobject_example_manifest.json` explicit beside the survey note, sample, focused test, public-tree-backed survey replay, and public-tree-backed `zigux/tests/phase5_build.zig` route
+- `scripts/zigux/README.md` now keeps `zigux/tests/phase5_kobject_example_manifest.json` explicit beside the survey note, sample, focused test, and the public-tree-backed `zigux/tests/phase5_kobject_example_survey.zig` plus `zigux/tests/phase5_build.zig` companion routes, so leave the shared scripts-root reminder parked unless a future reread drops one of those packet cues again
 - authenticated contents readback starts returning `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` too, so this note can drop the connector-flakiness warning and treat the broader packet as both public-tree-backed and connector-readable
 
 Do not widen that follow-up into sample behavior unless the sample-root file, focused test, manifest-backed contract, dedicated survey replay, or shared build route actually changes.
