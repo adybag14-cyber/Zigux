@@ -603,3 +603,60 @@ test "runtime bitmap sample copyFrom rejects an exited source and preserves dest
     try destination.setRange(0, 1);
     try std.testing.expect(destination.isSet(0));
 }
+
+test "runtime bitmap sample zero-length mutations keep state stable without bypassing lifecycle guards" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long + 2 });
+
+    const initialized_summary = module.summary();
+    const initialized_snapshot = module.lifecycleSnapshot();
+
+    try module.setRange(RuntimeBitmapSample.bitmap_nbits, 0);
+    try module.clearRange(RuntimeBitmapSample.bitmap_nbits + 11, 0);
+
+    const after_initialized_summary = module.summary();
+    const after_initialized_snapshot = module.lifecycleSnapshot();
+
+    try std.testing.expectEqual(initialized_summary.first_set, after_initialized_summary.first_set);
+    try std.testing.expectEqual(initialized_summary.first_zero, after_initialized_summary.first_zero);
+    try std.testing.expectEqual(initialized_summary.weight, after_initialized_summary.weight);
+    try std.testing.expectEqual(initialized_summary.nbits, after_initialized_summary.nbits);
+    try std.testing.expectEqual(initialized_snapshot.stage, after_initialized_snapshot.stage);
+    try std.testing.expectEqual(initialized_snapshot.init_runs, after_initialized_snapshot.init_runs);
+    try std.testing.expectEqual(initialized_snapshot.selftest_runs, after_initialized_snapshot.selftest_runs);
+    try std.testing.expectEqual(initialized_snapshot.exit_runs, after_initialized_snapshot.exit_runs);
+    try std.testing.expectEqual(initialized_snapshot.allows_mutation, after_initialized_snapshot.allows_mutation);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 2));
+    try std.testing.expect(!module.isSet(1));
+
+    _ = try module.runSelftest();
+
+    const selftested_summary = module.summary();
+    const selftested_snapshot = module.lifecycleSnapshot();
+
+    try module.setRange(RuntimeBitmapSample.bitmap_nbits, 0);
+    try module.clearRange(RuntimeBitmapSample.bitmap_nbits + 11, 0);
+
+    const after_selftested_summary = module.summary();
+    const after_selftested_snapshot = module.lifecycleSnapshot();
+
+    try std.testing.expectEqual(selftested_summary.first_set, after_selftested_summary.first_set);
+    try std.testing.expectEqual(selftested_summary.first_zero, after_selftested_summary.first_zero);
+    try std.testing.expectEqual(selftested_summary.weight, after_selftested_summary.weight);
+    try std.testing.expectEqual(selftested_summary.nbits, after_selftested_summary.nbits);
+    try std.testing.expectEqual(selftested_snapshot.stage, after_selftested_snapshot.stage);
+    try std.testing.expectEqual(selftested_snapshot.init_runs, after_selftested_snapshot.init_runs);
+    try std.testing.expectEqual(selftested_snapshot.selftest_runs, after_selftested_snapshot.selftest_runs);
+    try std.testing.expectEqual(selftested_snapshot.exit_runs, after_selftested_snapshot.exit_runs);
+    try std.testing.expectEqual(selftested_snapshot.allows_mutation, after_selftested_snapshot.allows_mutation);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 2));
+    try std.testing.expect(!module.isSet(1));
+
+    try module.exit();
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.setRange(RuntimeBitmapSample.bitmap_nbits, 0));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.clearRange(RuntimeBitmapSample.bitmap_nbits + 11, 0));
+}
