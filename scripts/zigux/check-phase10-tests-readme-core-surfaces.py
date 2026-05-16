@@ -14,6 +14,7 @@ PHASE10_END = "Phase 11 review packet"
 REQUIRED_MARKERS = (
     "`zigux/tests/phase10_build.zig`",
     "`zigux/tests/phase10_virtio_core.zig`",
+    "`zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`",
     "`zigux/tests/phase10_virtio_core_reset_queue.zig`",
     "`zigux/tests/phase10_virtio_core_survey.zig`",
     "`zigux/tests/phase10_virtio_core_manifest.json`",
@@ -36,6 +37,7 @@ REQUIRED_MARKERS = (
 EXPECTED_MARKER_COUNTS = {
     "`zigux/tests/phase10_build.zig`": 1,
     "`zigux/tests/phase10_virtio_core.zig`": 1,
+    "`zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`": 1,
     "`zigux/tests/phase10_virtio_ring.zig`": 1,
     "`zigux/tests/phase10_virtio_input_probe_preflight.zig`": 1,
     "`zigux/tests/phase10_virtio_mmio_manifest.json`": 1,
@@ -86,6 +88,7 @@ Phase 10 flow
 
   * `zigux/tests/phase10_build.zig`
   * `zigux/tests/phase10_virtio_core.zig`
+  * `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`
   * `zigux/tests/phase10_virtio_core_reset_queue.zig`
   * `zigux/tests/phase10_virtio_core_survey.zig`
   * `zigux/tests/phase10_virtio_core_manifest.json`
@@ -131,6 +134,18 @@ Phase 11 review packet
         assert "`zigux/tests/phase10_build.zig`" in str(exc)
     else:
         raise AssertionError("expected missing phase10 build marker failure")
+
+    missing_interrupt_compound_ack = good.replace(
+        "  * `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`\n",
+        "",
+        1,
+    )
+    try:
+        check_text(missing_interrupt_compound_ack)
+    except SystemExit as exc:
+        assert "`zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`" in str(exc)
+    else:
+        raise AssertionError("expected missing interrupt compound ack marker failure")
 
     missing_core_reset_queue = good.replace(
         "  * `zigux/tests/phase10_virtio_core_reset_queue.zig`\n",
@@ -188,6 +203,19 @@ Phase 11 review packet
     else:
         raise AssertionError("expected missing MMIO manifest marker failure")
 
+    duplicate_interrupt_compound_ack = good.replace(
+        "`zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`",
+        "`zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`\n  * `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`",
+        1,
+    )
+    try:
+        check_text(duplicate_interrupt_compound_ack)
+    except SystemExit as exc:
+        assert "`zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`" in str(exc)
+        assert "expected exactly 1 occurrences" in str(exc)
+    else:
+        raise AssertionError("expected duplicate interrupt compound ack marker failure")
+
     duplicate_ring_surface = good.replace(
         "`zigux/tests/phase10_virtio_ring.zig`",
         "`zigux/tests/phase10_virtio_ring.zig`\n  * `zigux/tests/phase10_virtio_ring.zig`",
@@ -202,7 +230,7 @@ Phase 11 review packet
         raise AssertionError("expected duplicate ring marker failure")
 
     print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
