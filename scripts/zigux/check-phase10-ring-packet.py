@@ -20,6 +20,7 @@ DIRECT_PACKET_FILES = [
     "scripts/zigux/check-phase10-ring-packet.py",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
+    "Documentation/zigux/phase10-virtio-ring-slice.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "zigux/tests/phase10_virtio_ring_manifest.json",
 ]
@@ -31,6 +32,7 @@ MARKERS = {
         "scripts/zigux/check-phase10-ring-packet.py",
         "zigux/tests/phase10_virtio_ring_manifest.json",
         "Documentation/zigux/phase10-virtio-ring-survey.md",
+        "Documentation/zigux/phase10-virtio-ring-slice.md",
     ],
     "Documentation/zigux/phase10-virtio-ring-survey.md": [
         "`PHASE10_STATUS=parked`",
@@ -38,13 +40,24 @@ MARKERS = {
         "lane: `P10-L10`",
         SURVEYED_COMMIT,
         "zigux/tests/phase10_virtio_ring_manifest.json",
+        "Documentation/zigux/phase10-virtio-ring-slice.md",
         "phase10-ring-lab-driver-bridge",
         "blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
+    ],
+    "Documentation/zigux/phase10-virtio-ring-slice.md": [
+        "scripts/zigux/check-phase10-ring-packet.py",
+        "drivers/virtio/virtio_ring.zig",
+        "drivers/virtio/virtio_ring_verify.zig",
+        "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+        "phase10-notification-data-summary-helper",
+        "phase10-ring-lab-driver-bridge",
+        "drivers/virtio/virtio_mmio.zig",
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "scripts/zigux/check-phase10-ring-packet.py",
         "zigux/tests/phase10_virtio_ring_manifest.json",
         "Documentation/zigux/phase10-virtio-ring-survey.md",
+        "Documentation/zigux/phase10-virtio-ring-slice.md",
         "closure-manifest-backed ring packet vocabulary",
         "do not restate the helper and replay paths as freshly direct re-reads unless a fresh reread proves they materialize again",
     ],
@@ -258,6 +271,10 @@ def write_fixture(root: Path) -> None:
             MARKERS["Documentation/zigux/phase10-virtio-ring-survey.md"]
         )
         + "\n",
+        "Documentation/zigux/phase10-virtio-ring-slice.md": "\n".join(
+            MARKERS["Documentation/zigux/phase10-virtio-ring-slice.md"]
+        )
+        + "\n",
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(
             MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
         )
@@ -350,6 +367,18 @@ def run_self_test() -> int:
             "phase10-virtio-ring-survey.md:blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
         )
         replace_once(
+            "Documentation/zigux/phase10-virtio-ring-slice.md",
+            "phase10-notification-data-summary-helper",
+            "phase10-notify-summary-helper",
+            "phase10-virtio-ring-slice.md:phase10-notification-data-summary-helper",
+        )
+        replace_once(
+            "Documentation/zigux/phase10-virtio-ring-slice.md",
+            "drivers/virtio/virtio_mmio.zig",
+            "drivers/virtio/virtio_mmio_missing.zig",
+            "phase10-virtio-ring-slice.md:drivers/virtio/virtio_mmio.zig",
+        )
+        replace_once(
             "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
             "closure-manifest-backed ring packet vocabulary",
             "closure-backed ring packet vocabulary",
@@ -379,10 +408,19 @@ def run_self_test() -> int:
         )
         mutate_manifest(
             lambda manifest: next(
-                gap for gap in manifest["gaps"] if gap["id"] == "phase10-ring-lab-driver-bridge"
-            ).__setitem__("zigux_destination", "drivers/virtio/virtio_ring.zig"),
-            "manifest:gap_destination:phase10-ring-lab-driver-bridge='drivers/virtio/virtio_ring.zig'",
+                gap
+                for gap in manifest["gaps"]
+                if gap["id"] == "phase10-virtio-ring-slice-note"
+            ).__setitem__("zigux_destination", "Documentation/zigux/phase10-virtio-ring-survey.md"),
+            "manifest:gap_destination:phase10-virtio-ring-slice-note='Documentation/zigux/phase10-virtio-ring-survey.md'",
         )
+
+        slice_path = root / "Documentation/zigux/phase10-virtio-ring-slice.md"
+        slice_original = slice_path.read_text(encoding="utf-8")
+        slice_path.unlink()
+        expect_missing_file("Documentation/zigux/phase10-virtio-ring-slice.md")
+        slice_path.parent.mkdir(parents=True, exist_ok=True)
+        slice_path.write_text(slice_original, encoding="utf-8")
 
         survey_path = root / "Documentation/zigux/phase10-virtio-ring-survey.md"
         survey_original = survey_path.read_text(encoding="utf-8")
