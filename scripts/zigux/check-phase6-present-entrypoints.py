@@ -59,7 +59,7 @@ REQUIRED_SHARED_SURFACE_SNIPPETS = [
     "require_snippets(repo_root / PRESENT_ENTRYPOINTS_CHECKER_PATH, REQUIRED_PRESENT_ENTRYPOINTS_SNIPPETS)",
 ]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 14
 
 
 class ValidationError(RuntimeError):
@@ -96,7 +96,23 @@ def require_string_list(
     if not isinstance(value, list):
         raise ValidationError(f"missing {key} in {MANIFEST_PATH.as_posix()}")
 
-    actual_values = {item for item in value if isinstance(item, str)}
+    actual_values: set[str] = set()
+    duplicate_values: set[str] = set()
+    for item in value:
+        if not isinstance(item, str):
+            raise ValidationError(
+                f"non-string entry in {key} of {MANIFEST_PATH.as_posix()}: {item!r}"
+            )
+        if item in actual_values:
+            duplicate_values.add(item)
+        actual_values.add(item)
+
+    if duplicate_values:
+        raise ValidationError(
+            f"duplicate {key} entries in {MANIFEST_PATH.as_posix()}: "
+            f"{sorted(duplicate_values)!r}"
+        )
+
     if actual_values != expected_values:
         missing = sorted(expected_values - actual_values)
         extra = sorted(actual_values - expected_values)
@@ -201,9 +217,23 @@ def run_self_test() -> None:
         scaffold_repo(root)
 
         manifest_obj = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest_obj["shared_gates"].append("make -C zigux phase6-bsearch-test")
+        write(manifest_path, json.dumps(manifest_obj, indent=2) + "\n")
+        expect_failure(root, "duplicate shared_gates entries")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest_obj = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest_obj["inventory_only_blocked_routes"].remove("make -C zigux phase6-perf")
         write(manifest_path, json.dumps(manifest_obj, indent=2) + "\n")
         expect_failure(root, "make -C zigux phase6-perf")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest_obj = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest_obj["inventory_only_blocked_routes"].append("make -C zigux phase6")
+        write(manifest_path, json.dumps(manifest_obj, indent=2) + "\n")
+        expect_failure(root, "duplicate inventory_only_blocked_routes entries")
         cases_run += 1
         scaffold_repo(root)
 
