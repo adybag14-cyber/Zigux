@@ -151,6 +151,7 @@ MANIFEST_SCALARS = {
     "risky_transport_posture": "blocked_on_risky_transport",
     "architecture_council_reopen_required": True,
     "architecture_council_reopen_attached": False,
+    "freeze_boundary_owner_lane": "P10-L11",
 }
 
 EXPECTED_ROADMAP_DESTINATIONS = ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]
@@ -165,6 +166,16 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
     "dma_paths",
     "input_registration_lifecycle",
     "probe_remove_lifecycle",
+]
+EXPECTED_STUDY_ONLY_ANCHORS = [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+]
+EXPECTED_FREEZE_IN_C_ANCHORS = [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
 ]
 EXPECTED_SUMMARY = {
     "virtio_ring_c_lines": 3940,
@@ -260,6 +271,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:allowed_evidence_kinds")
     if manifest.get("forbidden_transport_claims") != EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS:
         missing_markers.append("manifest:forbidden_transport_claims")
+    if manifest.get("study_only_anchors") != EXPECTED_STUDY_ONLY_ANCHORS:
+        missing_markers.append("manifest:study_only_anchors")
+    if manifest.get("freeze_in_c_anchors") != EXPECTED_FREEZE_IN_C_ANCHORS:
+        missing_markers.append("manifest:freeze_in_c_anchors")
 
     summary = manifest.get("survey_summary", {})
     for key, value in EXPECTED_SUMMARY.items():
@@ -319,6 +334,9 @@ def build_fixture() -> dict[str, str]:
             "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
             "architecture_council_reopen_required": True,
             "architecture_council_reopen_attached": False,
+            "freeze_boundary_owner_lane": "P10-L11",
+            "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
+            "freeze_in_c_anchors": EXPECTED_FREEZE_IN_C_ANCHORS,
             "survey_summary": EXPECTED_SUMMARY,
             "gaps": [
                 {
@@ -517,6 +535,18 @@ def run_self_test() -> int:
         run_manifest_case(
             lambda manifest: manifest.__setitem__("architecture_council_reopen_required", False),
             "manifest:architecture_council_reopen_required=False",
+        )
+        run_manifest_case(
+            lambda manifest: manifest.__setitem__("freeze_boundary_owner_lane", "P10-L10"),
+            "manifest:freeze_boundary_owner_lane='P10-L10'",
+        )
+        run_manifest_case(
+            lambda manifest: manifest.__setitem__("study_only_anchors", ["kernel/workqueue.c"]),
+            "manifest:study_only_anchors",
+        )
+        run_manifest_case(
+            lambda manifest: manifest.__setitem__("freeze_in_c_anchors", ["kernel/sched/core.c"]),
+            "manifest:freeze_in_c_anchors",
         )
         run_missing_file_case("zigux/tests/phase10_build.zig")
         run_missing_file_case("Documentation/zigux/phase10-virtio-ring-survey.md")
