@@ -62,6 +62,21 @@ pub const OnlineCpuRoutingSummary = struct {
     disposition: OnlineCpuRoutingDisposition,
 };
 
+pub const OnlineCpuRoutePlanEntry = struct {
+    cpu_index: usize,
+    buffer_index: usize,
+    buffer_fd: i32,
+};
+
+pub const OnlineCpuRoutePlan = struct {
+    routing: OnlineCpuRoutingSummary,
+    routes: []OnlineCpuRoutePlanEntry,
+
+    pub fn deinit(self: OnlineCpuRoutePlan, allocator: std.mem.Allocator) void {
+        allocator.free(self.routes);
+    }
+};
+
 pub fn advanceOnlineCpuCursor(
     online_cpu_mask: []const bool,
     start_index: usize,
@@ -253,6 +268,51 @@ pub fn summarizeOnlineCpuRouting(
             .requested_exceeds_online => .requested_exceeds_online,
             else => .complete,
         },
+    };
+}
+
+pub fn collectOnlineCpuRoutePlan(
+    allocator: std.mem.Allocator,
+    online_cpu_mask: []const bool,
+    requested_cpu_count: usize,
+    buffer_fds: []const ?i32,
+) std.mem.Allocator.Error!OnlineCpuRoutePlan {
+    const routing = summarizeOnlineCpuRouting(
+        online_cpu_mask,
+        requested_cpu_count,
+        buffer_fds,
+    );
+    const routes = try allocator.alloc(OnlineCpuRoutePlanEntry, routing.routed_cpu_count);
+    errdefer allocator.free(routes);
+
+    var cursor_index: usize = 0;
+    var route_index: usize = 0;
+    while (route_index < routes.len) {
+        const route = summarizeNextOnlineCpuRoute(
+            online_cpu_mask,
+            cursor_index,
+            buffer_fds,
+            route_index,
+        );
+        switch (route.disposition) {
+            .routed_cpu => {
+                routes[route_index] = .{
+                    .cpu_index = route.cpu_index.?,
+                    .buffer_index = route.buffer_index,
+                    .buffer_fd = route.buffer_fd.?,
+                };
+                route_index += 1;
+                cursor_index = route.next_scan_index;
+            },
+            else => break,
+        }
+    }
+
+    std.debug.assert(route_index == routes.len);
+
+    return .{
+        .routing = routing,
+        .routes = routes,
     };
 }
 
@@ -537,4 +597,71 @@ test "summarizeOnlineCpuRouting keeps empty masks compact and non-claiming" {
         OnlineCpuRoutingDisposition.no_online_cpu,
         summary.disposition,
     );
+}
+
+test "collectOnlineCpuRoutePlan keeps auto-selected routes explicit and ordered" {
+    const plan = try collectOnlineCpuRoutePlan(
+        std.testing.allocator,
+        &.{ true, false, true, true },
+        0,
+        &.{ 11, 17, 21 },
+    );
+    defer plan.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(OnlineCpuRoutingDisposition.complete, plan.routing.disposition);
+    try std.testing.expectEqual(@as(usize, 3), plan.routes.len);
+    try std.testing.expectEqualDeep(OnlineCpuRoutePlanEntry{ .cpu_index = 0, .buffer_index = 0, .buffer_fd = 11 }, plan.routes[0]);
+    try std.testing.expectEqualDeep(OnlineCpuRoutePlanEntry{ .cpu_index = 2, .buffer_index = 1, .buffer_fd = 17 }, plan.routes[1]);
+    try std.testing.expectEqualDeep(OnlineCpuRoutePlanEntry{ .cpu_index = 3, .buffer_index = 2, .buffer_fd = 21 }, plan.routes[2]);
+}
+
+test "collectOnlineCpuRoutePlan keeps requested subsets explicit without inventing later routes" {
+    const plan = try collectOnlineCpuRoutePlan(
+        std.testing.allocator,
+        &.{ false, true, true, false, true },
+        2,
+        &.{ 11, 17, 21 },
+    );
+    defer plan.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(
+        OnlineCpuRoutingDisposition.requested_subset,
+        plan.routing.disposition,
+    );
+    try std.testing.expectEqual(@as(?usize, 4), plan.routing.next_online_cpu_index);
+    try std.testing.expectEqual(@as(usize, 2), plan.routes.len);
+    try std.testing.expectEqualDeep(OnlineCpuRoutePlanEntry{ .cpu_index = 1, .buffer_index = 0, .buffer_fd = 11 }, plan.routes[0]);
+    try std.testing.expectEqualDeep(OnlineCpuRoutePlanEntry{ .cpu_index = 2, .buffer_index = 1, .buffer_fd = 17 }, plan.routes[1]);
+}
+
+test "collectOnlineCpuRoutePlan keeps partial routes explicit when the next online cpu has no fd" {
+    const plan = try collectOnlineCpuRoutePlan(
+        std.testing.allocator,
+        &.{ false, true, false, true, true },
+        0,
+        &.{ 11, null, 29 },
+    );
+    defer plan.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(
+        OnlineCpuRoutingDisposition.missing_buffer_fd,
+        plan.routing.disposition,
+    );
+    try std.testing.expectEqual(@as(?usize, 3), plan.routing.next_online_cpu_index);
+    try std.testing.expectEqual(@as(?usize, 1), plan.routing.missing_buffer_index);
+    try std.testing.expectEqual(@as(usize, 1), plan.routes.len);
+    try std.testing.expectEqualDeep(OnlineCpuRoutePlanEntry{ .cpu_index = 1, .buffer_index = 0, .buffer_fd = 11 }, plan.routes[0]);
+}
+
+test "collectOnlineCpuRoutePlan keeps empty masks compact and non-claiming" {
+    const plan = try collectOnlineCpuRoutePlan(
+        std.testing.allocator,
+        &.{ false, false },
+        3,
+        &.{},
+    );
+    defer plan.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(OnlineCpuRoutingDisposition.no_online_cpu, plan.routing.disposition);
+    try std.testing.expectEqual(@as(usize, 0), plan.routes.len);
 }
