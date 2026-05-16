@@ -47,11 +47,13 @@
     "kfree_strarray",
     "kstrdupAndReplace",
     "kstrdup_and_replace",
+    "kstrdupQuotable",
+    "kstrdup_quotable",
     "memcpyAndPad",
     "memcpy_and_pad",
     "strreplace"
   ],
-  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` now ships an expanded starter packet on current master. The helper-local packet keeps the slice note, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, and this manifest aligned on the any-NP and string-wrapper escape helpers, the bounded string-array ownership pair, and the duplicate-and-replace helper without overstating the broader parse, quotable, or device-managed follow-ons as landed.",
+  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` now ships an expanded starter packet on current master. The helper-local packet keeps the slice note, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, and this manifest aligned on the any-NP and string-wrapper escape helpers, the bounded string-array ownership pair, the duplicate-and-replace helper, and the quotable log-safe duplication pair without overstating the broader parse, cmdline, file-path, or device-managed follow-ons as landed.",
   "starter_packet_focus": [
     "first-NUL-bounded whitespace trimming and prefix skipping",
     "newline-aware sysfs string equality",
@@ -61,6 +63,7 @@
     "bounded string escaping across space, special, null, octal, hex, append-limited dictionary modes, and first-NUL-bounded string-wrapper modes",
     "bounded sequential string-array allocation with NULL-terminated pointer views",
     "allocator-backed duplicate-and-replace helper semantics",
+    "quoted-log-safe helper duplication for special characters and double quotes",
     "bounded memcpy-and-pad copy semantics",
     "in-place replacement inside the exported C-string prefix",
     "shared no-sample boundary and validator-backed reviewability"
@@ -72,7 +75,8 @@
     "stringEscapeMemAnyNp(), stringEscapeStr(), and stringEscapeStrAnyNp() keep any-NP and first-NUL-bounded string-wrapper escaping explicit without widening beyond caller-owned storage",
     "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet",
     "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched",
+    "kstrdupQuotable() keeps returned storage caller-owned, hex-escapes special logging hazards and double quotes, and still stops at the duplicated exported prefix",
     "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries"
   ],
-  "next_bounded_step": "Keep the expanded starter packet truthful across the slice note, helper-local manifest, dedicated survey, and dedicated no-string-sample boundary replay, then take the next helper-local string_helpers expansion only if the remaining non-goals still read the same way everywhere."
+  "next_bounded_step": "Keep the quotable helper packet truthful across the slice note, helper-local manifest, dedicated survey, and dedicated no-string-sample boundary replay, then decide whether `kstrdup_quotable_cmdline()` can join the same helper-local packet without widening into shared-control or file-path semantics."
 }
