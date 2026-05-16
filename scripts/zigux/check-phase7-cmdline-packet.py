@@ -10,19 +10,31 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase7-cmdline-slice.md",
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
     "Documentation/zigux/review-checklist.md",
     "samples/zigux/README.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase7.py",
     "lib/cmdline.zig",
+    "zigux/tests/phase7_build.zig",
     "zigux/tests/phase7_cmdline.zig",
     "zigux/tests/phase7_cmdline_survey.zig",
     "zigux/tests/phase7_cmdline_manifest.json",
     "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+    "zigux/Makefile",
 ]
 
 REQUIRED_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": [
+        "Validate Phase 7 runtime helper gates",
+        "make -C zigux phase7-validate",
+        "Run Phase 7 runtime helper tests",
+        "make -C zigux phase7-test",
+    ],
     "Documentation/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
         "Documentation/zigux/phase7-cmdline-slice.md",
@@ -52,6 +64,13 @@ REQUIRED_MARKERS = {
         "PHASE7_CMDLINE_LANE=P7-L05",
         "`P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, checker, or same-slice reminder drift;",
     ],
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
+        "python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+        "`python3 scripts/zigux/check-phase7-cmdline-packet.py`",
+        "make -C zigux phase7-cmdline-survey",
+        "make -C zigux phase7-validate",
+        "make -C zigux phase7-test",
+    ],
     "Documentation/zigux/review-checklist.md": [
         "there is no standalone `samples/zigux/*cmdline*` reference sample",
         "Documentation/zigux/phase7-cmdline-slice.md",
@@ -70,6 +89,19 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_cmdline_manifest.json",
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
     ],
+    "scripts/zigux/README.md": [
+        "scripts/zigux/validate-phase7.py",
+        "scripts/zigux/check-phase7-cmdline-packet.py",
+        "zigux/tests/phase7_cmdline_survey.zig",
+        "make -C zigux phase7-validate",
+    ],
+    "scripts/zigux/validate-phase7.py": [
+        "\"scripts/zigux/check-phase7-cmdline-packet.py\"",
+        "\"zigux/tests/phase7_cmdline.zig\"",
+        "\"zigux/tests/phase7_cmdline_survey.zig\"",
+        "\"zigux/tests/phase7_cmdline_manifest.json\"",
+        "\"zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig\"",
+    ],
     "lib/cmdline.zig": [
         "pub fn getOption",
         "pub fn getOptions",
@@ -87,6 +119,11 @@ REQUIRED_MARKERS = {
         'test "getOption preserves validator-only numeric acceptance without explicit leading plus"',
         'test "memparse saturates oversized unsigned prefixes before applying suffix handling"',
         'test "memparse keeps saturated prefixes aligned when size suffixes still apply"',
+    ],
+    "zigux/tests/phase7_build.zig": [
+        '"phase7_cmdline.zig"',
+        '"phase7-cmdline-survey-tests"',
+        'run_cmdline_survey_tests.setCwd(b.path("../.."));',
     ],
     "zigux/tests/phase7_cmdline.zig": [
         'const next_arg_vectors = @import("fixtures/phase7_cmdline_next_arg_vectors.zig");',
@@ -148,6 +185,14 @@ REQUIRED_MARKERS = {
         '.name = "unterminated quoted value consumes the token tail",',
         '.name = "trailing spaces after key=value trim to empty rest",',
         '.name = "whitespace-only tail after key=value trims to empty rest",',
+    ],
+    "zigux/Makefile": [
+        "phase7-validate:",
+        "scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-packet.py",
+        "phase7-cmdline-survey:",
+        "phase7-test:",
+        "phase7: phase7-validate phase7-test",
     ],
 }
 
@@ -224,6 +269,14 @@ def run_self_test() -> None:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
+
+        (tmp_root / ".github/workflows/zigux-bootstrap.yml").unlink()
+        expect_missing_file(
+            "missing_workflow",
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml",
+        )
+        write_fixture_root(tmp_root)
 
         (tmp_root / "zigux/tests/phase7_cmdline_manifest.json").unlink()
         expect_missing_file(
@@ -307,6 +360,18 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase7-helper-lane-sequencing.md: `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, checker, or same-slice reminder drift;",
             ),
             (
+                "alignment_checker_selftest_marker",
+                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+                "python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+            ),
+            (
+                "alignment_cmdline_survey_marker",
+                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+                "make -C zigux phase7-cmdline-survey",
+                "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: make -C zigux phase7-cmdline-survey",
+            ),
+            (
                 "review_checklist_boundary_marker",
                 "Documentation/zigux/review-checklist.md",
                 "there is no standalone `samples/zigux/*cmdline*` reference sample",
@@ -317,6 +382,24 @@ def run_self_test() -> None:
                 "samples/zigux/README.md",
                 "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;",
                 "samples/zigux/README.md: current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;",
+            ),
+            (
+                "scripts_readme_checker_marker",
+                "scripts/zigux/README.md",
+                "scripts/zigux/check-phase7-cmdline-packet.py",
+                "scripts/zigux/README.md: scripts/zigux/check-phase7-cmdline-packet.py",
+            ),
+            (
+                "shared_validator_fixture_marker",
+                "scripts/zigux/validate-phase7.py",
+                "\"zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig\"",
+                "scripts/zigux/validate-phase7.py: \"zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig\"",
+            ),
+            (
+                "workflow_phase7_validate_marker",
+                ".github/workflows/zigux-bootstrap.yml",
+                "make -C zigux phase7-validate",
+                ".github/workflows/zigux-bootstrap.yml: make -C zigux phase7-validate",
             ),
             (
                 "helper_next_arg_marker",
@@ -383,6 +466,12 @@ def run_self_test() -> None:
                 "lib/cmdline.zig",
                 'test "memparse keeps saturated prefixes aligned when size suffixes still apply"',
                 'lib/cmdline.zig: test "memparse keeps saturated prefixes aligned when size suffixes still apply"',
+            ),
+            (
+                "build_survey_cwd_marker",
+                "zigux/tests/phase7_build.zig",
+                'run_cmdline_survey_tests.setCwd(b.path("../.."));',
+                'zigux/tests/phase7_build.zig: run_cmdline_survey_tests.setCwd(b.path("../.."));',
             ),
             (
                 "tests_fixture_marker",
@@ -552,6 +641,18 @@ def run_self_test() -> None:
                 '.name = "whitespace-only tail after key=value trims to empty rest",',
                 'zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig: .name = "whitespace-only tail after key=value trims to empty rest",',
             ),
+            (
+                "makefile_checker_selftest_marker",
+                "zigux/Makefile",
+                "scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+                "zigux/Makefile: scripts/zigux/check-phase7-cmdline-packet.py --self-test",
+            ),
+            (
+                "makefile_cmdline_survey_target_marker",
+                "zigux/Makefile",
+                "phase7-cmdline-survey:",
+                "zigux/Makefile: phase7-cmdline-survey:",
+            ),
         ]
 
         for case, rel, marker, expected in cases:
@@ -559,7 +660,7 @@ def run_self_test() -> None:
             expect_missing_marker(case, tmp_root, expected)
             write_fixture_root(tmp_root)
 
-    case_count = 1 + len(cases)
+    case_count = 2 + len(cases)
     print("PHASE7_CMDLINE_PACKET_SELF_TEST=pass")
     print(f"PHASE7_CMDLINE_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
