@@ -610,6 +610,48 @@ test "captureArgv0Path clears stale argv0 state when argv0 is absent" {
     try std.testing.expectEqual(@as(?[]u8, null), state.argv0_path);
 }
 
+test "captureArgv0Path keeps rooted argv0 packets from injecting empty PATH entries" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+
+    const command = (try captureArgv0Path(std.testing.allocator, &state, "/perf")) orelse unreachable;
+    try std.testing.expectEqualStrings("perf", command);
+    try std.testing.expect(state.argv0_path != null);
+    try std.testing.expectEqual(@as(usize, 0), state.argv0_path.?.len);
+
+    try env.set("PATH", "/usr/bin");
+
+    var plan = try planDeferredExecvCall(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        &[_][]const u8{"record"},
+    );
+    defer plan.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings("/repo/tools/bin:/usr/bin", plan.path);
+    try std.testing.expectEqualStrings(plan.path, env.get("PATH").?);
+    try std.testing.expectEqual(@as(usize, 3), plan.call.argv.len);
+    try std.testing.expectEqualStrings("perf", plan.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", plan.call.argv[1].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), plan.call.argv[2]);
+}
+
 test "makeNonrelativePath keeps root and trailing-slash cwd joins stable" {
     const rooted = try makeNonrelativePath(std.testing.allocator, "/", "scripts");
     defer std.testing.allocator.free(rooted);
