@@ -24,33 +24,33 @@ REQUIRED_PACKET_PATHS = (
 )
 EXPECTED_SORTED_LINES = sorted(
     [
-        "add16\tsaturated plus one wraps with carry\t0x0001",
-        "add16\tsaturated plus saturated preserves ones complement\t0xffff",
-        "add16\tsaturated plus zero stays saturated\t0xffff",
-        "carry-discipline\tall-ones even payload with zero seed\t0x0000",
-        "carry-discipline\tall-ones odd payload with saturated seed\t0x00ff",
-        "carry-discipline\tsingle-byte no-carry seed stays one step below overflow\t0x0004",
-        "carry-discipline\ttwo-byte no-carry seed stays one step below overflow\t0x0404",
-        "compose\teven split\t0x00000e7b",
-        "compose\todd split\t0x00000e7b",
-        "compute\tcarry-heavy payload\t0x80ff",
-        "compute\tempty\t0xffff",
-        "compute\tipv4 header\t0x9c5d",
-        "compute\todd payload\t0xd638",
-        "compute\ttwo-byte word\t0xfffe",
-        "partial\tcarry-heavy payload with unfolded seed\t0x00007f00",
-        "partial\tipv4 fragment with arbitrary seed\t0x00004d50",
-        "partial\todd payload with saturated seed\t0x000029c7",
-        "replace\tpayload-word\t0xffffd8dd",
-        "replace-by-diff\tipv4-total-length\t0x9c59",
-        "replace2\tipv4-total-length\t0x9c59",
-        "replace4\tipv4-saddr\t0x9c58",
-        "sub16\tsubtracting a prior addend recovers the original word\t0x1234",
-        "sub16\tzero minus one borrows across ones complement\t0xfffe",
-        "tcpudp-nofold\tudp pseudo header\t0x000085e4",
-        "tcpudpv6-nofold\ticmpv6 preserves upper declared length bits\t0x00007e10",
-        "tcpudpv6-nofold\ttcp carry payload even\t0x0000b842",
-        "tcpudpv6-nofold\tudp doc payload odd\t0x0000f876",
+        "add16	saturated plus one wraps with carry	0x0001",
+        "add16	saturated plus saturated preserves ones complement	0xffff",
+        "add16	saturated plus zero stays saturated	0xffff",
+        "carry-discipline	all-ones even payload with zero seed	0x0000",
+        "carry-discipline	all-ones odd payload with saturated seed	0x00ff",
+        "carry-discipline	single-byte no-carry seed stays one step below overflow	0x0004",
+        "carry-discipline	two-byte no-carry seed stays one step below overflow	0x0404",
+        "compose	even split	0x00000e7b",
+        "compose	odd split	0x00000e7b",
+        "compute	carry-heavy payload	0x80ff",
+        "compute	empty	0xffff",
+        "compute	ipv4 header	0x9c5d",
+        "compute	odd payload	0xd638",
+        "compute	two-byte word	0xfffe",
+        "partial	carry-heavy payload with unfolded seed	0x00007f00",
+        "partial	ipv4 fragment with arbitrary seed	0x00004d50",
+        "partial	odd payload with saturated seed	0x000029c7",
+        "replace	payload-word	0xffffd8dd",
+        "replace-by-diff	ipv4-total-length	0x9c59",
+        "replace2	ipv4-total-length	0x9c59",
+        "replace4	ipv4-saddr	0x9c58",
+        "sub16	subtracting a prior addend recovers the original word	0x1234",
+        "sub16	zero minus one borrows across ones complement	0xfffe",
+        "tcpudp-nofold	udp pseudo header	0x000085e4",
+        "tcpudpv6-nofold	icmpv6 preserves upper declared length bits	0x00007e10",
+        "tcpudpv6-nofold	tcp carry payload even	0x0000b842",
+        "tcpudpv6-nofold	udp doc payload odd	0x0000f876",
     ]
 )
 FIXTURE_COMPUTE_CASE_MARKER = "pub const compute_cases = [_]ComputeCase"
@@ -59,9 +59,10 @@ FIXTURE_SEEDED_CASE_MARKER = "pub const seeded_cases = [_]SeededCase"
 FIXTURE_PSEUDO_HEADER_CASE_MARKER = "pub const pseudo_header_cases = [_]PseudoHeaderCase"
 FIXTURE_IPV6_PSEUDO_HEADER_CASE_MARKER = "pub const ipv6_pseudo_header_cases = [_]Ipv6PseudoHeaderCase"
 FIXTURE_CARRY_DISCIPLINE_CASE_MARKER = "pub const carry_discipline_cases = [_]CarryDisciplineCase"
+FIXTURE_ADD16_CASE_MARKER = "pub const add16_cases = [_]Add16Case"
+FIXTURE_SUB16_CASE_MARKER = "pub const sub16_cases = [_]Sub16Case"
 FIXTURE_CASE_NAME_MARKER = ".name = "
 FIXED_INCREMENTAL_REPLACEMENT_CASE_COUNT = 4
-FIXED_DIRECT_16BIT_CARRY_CASE_COUNT = 5
 FIXTURE_MARKER_SELF_TEST_CASES = (
     (
         "missing_compute_marker",
@@ -98,6 +99,18 @@ FIXTURE_MARKER_SELF_TEST_CASES = (
         "carry-discipline-cases",
         FIXTURE_CARRY_DISCIPLINE_CASE_MARKER,
         "pub const missing_carry_discipline_cases",
+    ),
+    (
+        "missing_add16_marker",
+        "add16-cases",
+        FIXTURE_ADD16_CASE_MARKER,
+        "pub const missing_add16_cases",
+    ),
+    (
+        "missing_sub16_marker",
+        "sub16-cases",
+        FIXTURE_SUB16_CASE_MARKER,
+        "pub const missing_sub16_cases",
     ),
 )
 
@@ -174,6 +187,8 @@ def expected_fixture_case_count(fixture_text: str) -> int:
     carry_discipline_cases = extract_named_case_count(
         fixture_text, FIXTURE_CARRY_DISCIPLINE_CASE_MARKER, "carry-discipline-cases"
     )
+    add16_cases = extract_named_case_count(fixture_text, FIXTURE_ADD16_CASE_MARKER, "add16-cases")
+    sub16_cases = extract_named_case_count(fixture_text, FIXTURE_SUB16_CASE_MARKER, "sub16-cases")
 
     if compute_cases < 1:
         raise SystemExit("phase6-checksum-c-parity:compute-cases:expected_at_least_one_case")
@@ -185,8 +200,9 @@ def expected_fixture_case_count(fixture_text: str) -> int:
         + pseudo_header_cases
         + ipv6_pseudo_header_cases
         + carry_discipline_cases
+        + add16_cases
+        + sub16_cases
         + FIXED_INCREMENTAL_REPLACEMENT_CASE_COUNT
-        + FIXED_DIRECT_16BIT_CARRY_CASE_COUNT
     )
 
 
@@ -203,36 +219,36 @@ def run_checked(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 def build_zig_build_text() -> str:
     return textwrap.dedent(
         f"""
-        const std = @import(\"std\");
+        const std = @import("std");
 
         pub fn build(b: *std.Build) void {{
             const target = b.standardTargetOptions(.{{}});
             const optimize = b.standardOptimizeOption(.{{}});
 
             const checksum_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{HELPER_SOURCE}\" }},
+                .root_source_file = .{{ .cwd_relative = "{HELPER_SOURCE}" }},
                 .target = target,
                 .optimize = optimize,
             }});
             const fixtures_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{FIXTURE_SOURCE}\" }},
+                .root_source_file = .{{ .cwd_relative = "{FIXTURE_SOURCE}" }},
                 .target = target,
                 .optimize = optimize,
             }});
             const root_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{ZIG_RUNNER}\" }},
+                .root_source_file = .{{ .cwd_relative = "{ZIG_RUNNER}" }},
                 .target = target,
                 .optimize = optimize,
             }});
-            root_module.addImport(\"checksum\", checksum_module);
-            root_module.addImport(\"phase6_checksum_vectors\", fixtures_module);
+            root_module.addImport("checksum", checksum_module);
+            root_module.addImport("phase6_checksum_vectors", fixtures_module);
 
             const exe = b.addExecutable(.{{
-                .name = \"phase6-checksum-c-parity\",
+                .name = "phase6-checksum-c-parity",
                 .root_module = root_module,
             }});
             const run = b.addRunArtifact(exe);
-            const step = b.step(\"run\", \"Run Phase 6 checksum C parity spot check\");
+            const step = b.step("run", "Run Phase 6 checksum C parity spot check");
             step.dependOn(&run.step);
         }}
         """
@@ -370,6 +386,15 @@ def run_self_test() -> int:
             .{ .name = "single-byte no-carry seed stays one step below overflow" },
             .{ .name = "two-byte no-carry seed stays one step below overflow" },
         };
+        pub const add16_cases = [_]Add16Case{
+            .{ .name = "saturated plus one wraps with carry" },
+            .{ .name = "saturated plus zero stays saturated" },
+            .{ .name = "saturated plus saturated preserves ones complement" },
+        };
+        pub const sub16_cases = [_]Sub16Case{
+            .{ .name = "zero minus one borrows across ones complement" },
+            .{ .name = "subtracting a prior addend recovers the original word" },
+        };
         """
     )
     expected_case_count = expected_fixture_case_count(fixture_text)
@@ -417,7 +442,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=18")
+    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
