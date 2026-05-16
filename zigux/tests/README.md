@@ -46,6 +46,8 @@ Key entrypoints
   * `scripts/zigux/check-phase4-gate-evidence.py`
   * `scripts/zigux/check-phase4-remaining-gap-matrix.py`
   * `scripts/zigux/check-phase4-workflow-route-counts.py`
+  * `Documentation/zigux/phase4-reversible-delivery-evidence.md`
+  * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
   * `scripts/zigux/check-phase4-perf-baseline-packet.py`
   * `zigux/tests/phase4_build.zig`
   * `Documentation/zigux/phase5-kfifo-sample-survey.md`
