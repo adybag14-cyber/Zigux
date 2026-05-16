@@ -253,15 +253,51 @@ def run_self_test() -> int:
         case_count += 1
         write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
 
+        write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text().replace(REVIEW_CHECKLIST_MARKERS[1], "", 1))
+        if not any(REVIEW_CHECKLIST_MARKERS[1] in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing review-checklist support-route marker was not detected")
+        case_count += 1
+        write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
+
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text().replace(RELEASE_READINESS_MARKERS[2], "", 1))
+        if not any(RELEASE_READINESS_MARKERS[2] in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing readiness build-packet marker was not detected")
+        case_count += 1
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
+
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text().replace(RELEASE_READINESS_MARKERS[3], "", 1))
+        if not any(RELEASE_READINESS_MARKERS[3] in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing readiness follow-up replay marker was not detected")
+        case_count += 1
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
+
         write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text().replace(RELEASE_READINESS_MARKERS[4], "", 1))
         if not any(RELEASE_READINESS_MARKERS[4] in error for error in check(tmp_root, source_text=MARKER)):
             raise SystemExit("missing readiness closure marker was not detected")
         case_count += 1
         write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
 
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text().replace(RELEASE_READINESS_MARKERS[7], "", 1))
+        if not any(RELEASE_READINESS_MARKERS[7] in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing readiness validator-first boundary marker was not detected")
+        case_count += 1
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
+
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text().replace(RELEASE_READINESS_MARKERS[8], "", 1))
+        if not any(RELEASE_READINESS_MARKERS[8] in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing readiness degraded-workflow quartet marker was not detected")
+        case_count += 1
+        write_text(tmp_root / RELEASE_READINESS_PATH, good_release_readiness_text())
+
         write_text(tmp_root / MAKEFILE_PATH, good_makefile_text().replace("scripts/zigux/check-phase12-cross.py --self-test", "", 1))
         if not any("scripts/zigux/check-phase12-cross.py --self-test" in error for error in check(tmp_root, source_text=MARKER)):
             raise SystemExit("missing makefile cross self-test marker was not detected")
+        case_count += 1
+        write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
+
+        write_text(tmp_root / MAKEFILE_PATH, good_makefile_text().replace("scripts/zigux/check-phase12-release-readiness-packet.py --self-test", "", 1))
+        if not any("scripts/zigux/check-phase12-release-readiness-packet.py --self-test" in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing makefile release-readiness self-test marker was not detected")
         case_count += 1
         write_text(tmp_root / MAKEFILE_PATH, good_makefile_text())
 
@@ -276,12 +312,30 @@ def run_self_test() -> int:
 
         write_text(
             tmp_root / FREEZE_MAP_PATH,
+            good_freeze_map_text().replace(FREEZE_MAP_MARKERS[0], "", 1),
+        )
+        if not any(FREEZE_MAP_MARKERS[0] in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing freeze-map release-packet marker was not detected")
+        case_count += 1
+        write_text(tmp_root / FREEZE_MAP_PATH, good_freeze_map_text())
+
+        write_text(
+            tmp_root / FREEZE_MAP_PATH,
             good_freeze_map_text().replace(FREEZE_MAP_MARKERS[1], "", 1),
         )
         if not any(FREEZE_MAP_MARKERS[1] in error for error in check(tmp_root, source_text=MARKER)):
             raise SystemExit("missing freeze-map validator bundle marker was not detected")
         case_count += 1
         write_text(tmp_root / FREEZE_MAP_PATH, good_freeze_map_text())
+
+        write_text(
+            tmp_root / SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(SCRIPTS_README_MARKERS[0], "", 1),
+        )
+        if not any(SCRIPTS_README_MARKERS[0] in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing scripts-readme phase12 flow marker was not detected")
+        case_count += 1
+        write_text(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
 
         write_text(
             tmp_root / SCRIPTS_README_PATH,
@@ -298,6 +352,15 @@ def run_self_test() -> int:
         )
         if not any("run: make -C zigux phase12-validate" in error for error in check(tmp_root, source_text=MARKER)):
             raise SystemExit("missing workflow phase12-validate step was not detected")
+        case_count += 1
+        write_text(tmp_root / WORKFLOW_PATH, good_workflow_text())
+
+        write_text(
+            tmp_root / WORKFLOW_PATH,
+            good_workflow_text().replace("Run focused Phase 12 smoke shard", "", 1),
+        )
+        if not any("Run focused Phase 12 smoke shard" in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("missing workflow smoke step marker was not detected")
         case_count += 1
         write_text(tmp_root / WORKFLOW_PATH, good_workflow_text())
 
