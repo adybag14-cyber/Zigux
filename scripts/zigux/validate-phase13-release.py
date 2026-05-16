@@ -277,6 +277,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-devres-survey.md`",
         "`zigux/tests/phase13_devres.zig`",
         "`zigux/tests/phase13_devres_reviewability.zig`",
+        "`zigux/tests/phase13_devres_dma_coherent.zig`",
         "`zigux/tests/phase13_devres_boundary_evidence.zig`",
         "stay explicit as the current direct evidence set without inventing a broader shared build route.",
         "`zigux/bindings/notifier_abi.zig`",
@@ -1011,6 +1012,26 @@ def run_self_test() -> int:
                 "missing_marker:scripts/zigux/README.md:`zigux/tests/phase13_libfs_reviewability.zig`"
             ],
             "missing_scripts_readme_libfs_reviewability_anchor_failed",
+        )
+        write_text(root, "scripts/zigux/README.md", "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"]) + "\n")
+        case_count += 1
+
+        write_text(
+            root,
+            "scripts/zigux/README.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS["scripts/zigux/README.md"]
+                if marker != "`zigux/tests/phase13_devres_dma_coherent.zig`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "missing_marker:scripts/zigux/README.md:`zigux/tests/phase13_devres_dma_coherent.zig`"
+            ],
+            "missing_scripts_readme_devres_dma_coherent_anchor_failed",
         )
         write_text(root, "scripts/zigux/README.md", "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"]) + "\n")
         case_count += 1
