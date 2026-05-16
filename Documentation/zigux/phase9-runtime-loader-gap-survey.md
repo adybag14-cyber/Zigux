@@ -92,8 +92,7 @@ runtime command or environment follow-through.
 
 ## Current Shared Reminder State
 
-Fresh repo-first inspection now shows `Documentation/zigux/README.md` and
-`scripts/zigux/README.md` both keep
+Fresh repo-first inspection now shows `Documentation/zigux/README.md` keeps
 `Documentation/zigux/phase9-runtime-loader-gap-survey.md`,
 `zigux/tests/runtime_loader_gap_manifest.json`, and
 `zigux/tests/runtime_loader_gap_survey.zig` explicit beside
@@ -128,6 +127,13 @@ fail-closes that cross-phase non-owner reminder directly, and
 `review_checklist_cross_phase_non_owner_boundary_present: true` instead of
 leaving that reviewer-facing follow-through open.
 
+Fresh repo-first inspection now also shows `scripts/zigux/README.md` still has
+no dedicated Phase 9 flow and therefore still stops short of naming
+`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` beside the
+shared loader-gap packet, even though the broader shared reminder packet now
+depends on that checker to keep the older Phase 8, Phase 2, and Phase 3
+non-owner boundaries fail-closed.
+
 Fresh repo-first inspection now also shows
 `zigux/tests/runtime_loader_gap_manifest.json` no longer records any remaining
 sample-local parity gap for trace-events and instead points at
@@ -138,15 +144,20 @@ family-local follow-through.
 
 That means the earlier docs-root undercount, the later tests-root undercount,
 and the checklist-local cross-phase non-owner reminder are all cleared on
-current `master`. The remaining same-lane job is just keeping the shared
-reviewer-facing packet truthful when one of those already-landed reminder or
-boundary surfaces moves again.
+current `master`, but the scripts-root shared reminder still undercounts the
+live Phase 9 packet by omitting the dedicated review-checklist boundary checker.
 
 ## Next Bounded Step
 
-Leave this note parked unless `Documentation/zigux/review-checklist.md`,
-`Documentation/zigux/README.md`, `scripts/zigux/README.md`,
-`zigux/tests/README.md`,
+Refresh `scripts/zigux/README.md` next so the shared scripts-root reminder gains
+its own dedicated Phase 9 flow and names
+`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` beside the
+shared loader-gap packet, the literal `make -C zigux phase9-runtime-loader-shared-tests`
+route, and the still-blocked module-metadata and depmod-publication boundary.
+
+After that scripts-root repair lands, park this note again unless
+`Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`,
+`scripts/zigux/README.md`, `zigux/tests/README.md`,
 `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, or
 `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` drifts again
 around the shared loader-gap packet, the landed
@@ -154,8 +165,8 @@ around the shared loader-gap packet, the landed
 Phase 2 Kconfig and Phase 3 export non-owner boundaries, or the blocked
 module-metadata and depmod-publication boundary.
 
-If this packet reopens, start by rereading the shared survey note,
-`zigux/tests/runtime_loader_gap_manifest.json`,
+If this packet reopens after the scripts-root repair, start by rereading the
+shared survey note, `zigux/tests/runtime_loader_gap_manifest.json`,
 `Documentation/zigux/review-checklist.md`, and
 `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` together on a
 fresh readback, then repair the smallest reminder surface that actually drifted
