@@ -13,8 +13,26 @@ int main(void)
         zigux_boundary_header_make_compatible(
             (uint32_t)sizeof(struct zigux_boundary_header) + 16U,
             0x22U);
+    const struct zigux_boundary_header undersized_header =
+        zigux_boundary_header_make_compatible(
+            (uint32_t)sizeof(struct zigux_boundary_header) - 1U,
+            0x22U);
     struct zigux_boundary_header mismatched_version_header = zigux_boundary_header_make(0x22U);
     mismatched_version_header.abi_version = (uint16_t)(ZIGUX_ABI_VERSION + 1U);
+
+    const struct zigux_export_status invalid_major_status = {
+        .code = -22,
+        .facility = ZIGUX_FACILITY_DRIVERS,
+        .flags = ZIGUX_STATUS_FLAG_ERROR,
+    };
+    const struct zigux_export_status invalid_range_status = {
+        .code = -34,
+        .facility = ZIGUX_FACILITY_HELPERS,
+        .flags = ZIGUX_STATUS_FLAG_ERROR,
+    };
+    const uint32_t invalid_major_id = ZIGUX_DEV_MAJOR_MAX + 1U;
+    const uint32_t invalid_range_first_minor = ZIGUX_DEV_MINOR_MASK - 1U;
+    const uint32_t invalid_range_count = 3U;
 
     const struct zigux_notifier_block single = {
         .notifier_call = 0,
@@ -107,6 +125,18 @@ int main(void)
         "\"extends_boundary\":%u,"
         "\"requested_extra_bytes\":%u"
         "},"
+        "\"undersized\":{"
+        "\"size\":%u,"
+        "\"abi_version\":%u,"
+        "\"flags\":%u,"
+        "\"current_abi\":%u,"
+        "\"compatible_size\":%u,"
+        "\"canonical_size\":%u,"
+        "\"compatible\":%u,"
+        "\"canonical\":%u,"
+        "\"extends_boundary\":%u,"
+        "\"requested_extra_bytes\":%u"
+        "},"
         "\"mismatched_version\":{"
         "\"size\":%u,"
         "\"abi_version\":%u,"
@@ -130,7 +160,9 @@ int main(void)
         "\"range_first_minor\":%u,"
         "\"range_count\":%u,"
         "\"range_fits\":%u,"
-        "\"range_last_encoded\":%u"
+        "\"range_last_encoded\":%u,"
+        "\"invalid_major\":{\"major\":%u,\"minor\":%u,\"value\":%u,\"ok\":%u,\"code\":%d,\"flags\":%u},"
+        "\"invalid_range\":{\"major\":%u,\"first_minor\":%u,\"count\":%u,\"value\":%u,\"ok\":%u,\"code\":%d,\"flags\":%u}"
         "},"
         "\"notifier_chain\":{"
         "\"empty_ok\":%u,"
@@ -196,6 +228,16 @@ int main(void)
         (unsigned)(zigux_boundary_header_is_compatible(future_compatible_header) &&
                    !zigux_boundary_header_is_canonical(future_compatible_header)),
         (unsigned)(future_compatible_header.size - (uint32_t)sizeof(struct zigux_boundary_header)),
+        undersized_header.size,
+        undersized_header.abi_version,
+        undersized_header.flags,
+        (unsigned)zigux_boundary_header_is_current_abi_version(undersized_header.abi_version),
+        (unsigned)zigux_boundary_header_is_compatible_size(undersized_header.size),
+        (unsigned)zigux_boundary_header_is_canonical_size(undersized_header.size),
+        (unsigned)zigux_boundary_header_is_compatible(undersized_header),
+        (unsigned)zigux_boundary_header_is_canonical(undersized_header),
+        0U,
+        0U,
         mismatched_version_header.size,
         mismatched_version_header.abi_version,
         mismatched_version_header.flags,
@@ -218,6 +260,19 @@ int main(void)
                    zigux_minor(zigux_mkdev(42U, 7U)) == 7U &&
                    (7U + 4U - 1U) <= ZIGUX_DEV_MINOR_MASK),
         zigux_mkdev(42U, 7U + 4U - 1U),
+        invalid_major_id,
+        7U,
+        0U,
+        (unsigned)zigux_export_status_ok(invalid_major_status),
+        invalid_major_status.code,
+        invalid_major_status.flags,
+        42U,
+        invalid_range_first_minor,
+        invalid_range_count,
+        0U,
+        (unsigned)zigux_export_status_ok(invalid_range_status),
+        invalid_range_status.code,
+        invalid_range_status.flags,
         (unsigned)zigux_notifier_chain_has_nonincreasing_priority(NULL),
         (unsigned)zigux_notifier_chain_has_nonincreasing_priority(&single),
         (unsigned)zigux_notifier_chain_has_nonincreasing_priority(&descending_first),
@@ -250,7 +305,7 @@ int main(void)
         offsetof(zigux_notifier_chain_priority_increase, previous_priority),
         offsetof(zigux_notifier_chain_priority_increase, current_priority),
         sizeof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view),
-        _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view),
+        _Alignof(struct zigux_chrdev_notify_ack_window_policy_budget_window_DELIVERY_WINDOW_view),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view, ack_window),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view, delivery_window),
         offsetof(struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view, status),
