@@ -66,6 +66,7 @@ pub const ProbePreflightSummary = struct {
     version_supported: bool,
     bounded_queue_register_window_ready: bool,
     interrupt_ack_ready: bool,
+    legacy_guest_page_size_ready: bool,
     consumes_identity_snapshot: bool,
     ready_for_probe_handoff: bool,
 };
@@ -216,6 +217,7 @@ pub const VirtioMmioLab = struct {
         const identity = self.transportIdentitySummary();
         const queue_register_window_ready = self.queue_count != 0;
         const interrupt_ack_ready = self.interrupt_ack_mask != 0;
+        const legacy_guest_page_size_ready = !identity.requires_legacy_guest_page_size or self.legacy_guest_page_size != 0;
         return .{
             .anchor = anchor_path,
             .device_present = identity.device_present,
@@ -223,13 +225,15 @@ pub const VirtioMmioLab = struct {
             .version_supported = identity.version_supported,
             .bounded_queue_register_window_ready = queue_register_window_ready,
             .interrupt_ack_ready = interrupt_ack_ready,
+            .legacy_guest_page_size_ready = legacy_guest_page_size_ready,
             .consumes_identity_snapshot = identity.magic_matches,
             .ready_for_probe_handoff = identity.magic_matches and
                 identity.version_supported and
                 identity.device_present and
                 identity.vendor_id_present and
                 queue_register_window_ready and
-                interrupt_ack_ready,
+                interrupt_ack_ready and
+                legacy_guest_page_size_ready,
         };
     }
 
@@ -286,4 +290,18 @@ test "phase10 virtio mmio config-generation bumps clear stale planned config wri
     try std.testing.expect((try device.configWriteDispositionSummary()).has_changes);
     device.bumpConfigGeneration();
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
+}
+
+test "phase10 virtio mmio legacy probe preflight requires guest-page-size programming" {
+    var device = try VirtioMmioLab.init(73, &[_]u16{ 8, 16 });
+    device.version = mmio_version_legacy;
+
+    var summary = device.probePreflightSummary();
+    try std.testing.expect(!summary.legacy_guest_page_size_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    _ = try device.writeRegister(.guest_page_size, 4096);
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.legacy_guest_page_size_ready);
+    try std.testing.expect(summary.ready_for_probe_handoff);
 }
