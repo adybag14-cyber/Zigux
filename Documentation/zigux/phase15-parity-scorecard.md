@@ -39,7 +39,7 @@ That means the current parity-tracking gap is narrower and maintenance-only: kee
 
 ## Validator-first route
 
-- the shared validator-first route exists through `python3 scripts/zigux/validate-phase15.py`, `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-review-process-handoff.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `make -C zigux phase15-validate`
+- the shared validator-first route exists through `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-review-process-handoff.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `make -C zigux phase15-validate`
 - the dedicated Phase 15 build replay exists through `zig build test --build-file zigux/tests/phase15_build.zig`
 - the convenience replay exists through `make -C zigux phase15`
 
@@ -119,7 +119,6 @@ This scorecard does not claim:
 ## Gates
 
 1. run the shared validator-first gate
-   - `python3 scripts/zigux/validate-phase15.py`
    - `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`
    - `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
    - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
