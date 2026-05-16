@@ -20,6 +20,7 @@ def infer_repo_root() -> Path:
 ROOT = infer_repo_root()
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 MAKEFILE_PATH = "zigux/Makefile"
+TESTS_README_PATH = "zigux/tests/README.md"
 
 PHASE9_SHARED_PACKET_MARKER = "if the change touches the shared Phase 9 runtime-loader packet"
 PHASE2_CONF_BRIDGE_MARKER = "`scripts/zigux/kconfig/conf_bridge.zig`"
@@ -32,6 +33,9 @@ MAKEFILE_PHASE9_TEST_MARKER = "phase9-test:"
 MAKEFILE_SELFTEST_MARKER = "$(PYTHON) scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test"
 MAKEFILE_ROUTE_MARKER = """\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-review-checklist-phase-boundaries.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-build-only-surface.py"""
+TESTS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
+TESTS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
+TESTS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
 
 CHECKLIST_REQUIRED_MARKERS = [
     PHASE9_SHARED_PACKET_MARKER,
@@ -49,6 +53,12 @@ MAKEFILE_REQUIRED_MARKERS = [
     MAKEFILE_ROUTE_MARKER,
 ]
 
+TESTS_README_REQUIRED_MARKERS = [
+    TESTS_README_TRACE_EVENTS_SAMPLE_MARKER,
+    TESTS_README_SELFTEST_HOOK_MARKER,
+    TESTS_README_LIFECYCLE_MARKER,
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -63,10 +73,13 @@ def validate(root: Path) -> list[str]:
     failures: list[str] = []
     checklist_path = root / REVIEW_CHECKLIST_PATH
     makefile_path = root / MAKEFILE_PATH
+    tests_readme_path = root / TESTS_README_PATH
     if not checklist_path.exists():
         failures.append(f"missing_file:{REVIEW_CHECKLIST_PATH}")
     if not makefile_path.exists():
         failures.append(f"missing_file:{MAKEFILE_PATH}")
+    if not tests_readme_path.exists():
+        failures.append(f"missing_file:{TESTS_README_PATH}")
     if failures:
         return failures
 
@@ -79,6 +92,11 @@ def validate(root: Path) -> list[str]:
     for marker in MAKEFILE_REQUIRED_MARKERS:
         if marker not in makefile:
             failures.append(f"missing_marker:{MAKEFILE_PATH}:{marker}")
+
+    tests_readme = read_text(root, TESTS_README_PATH)
+    for marker in TESTS_README_REQUIRED_MARKERS:
+        if marker not in tests_readme:
+            failures.append(f"missing_marker:{TESTS_README_PATH}:{marker}")
 
     return failures
 
@@ -101,6 +119,14 @@ def build_makefile_fixture_text() -> str:
 """
 
 
+def build_tests_readme_fixture_text() -> str:
+    return f"""# zigux/tests
+
+Phase 9 review packet
+  * the surviving trace-events sample still keeps the roadmap-backed runtime pilot shape concrete by exposing {TESTS_README_SELFTEST_HOOK_MARKER} together with {TESTS_README_LIFECYCLE_MARKER} inside {TESTS_README_TRACE_EVENTS_SAMPLE_MARKER}, so reviewers can still inspect one real runtime-module and selftest-hook surface while the broader shared loader packet remains backlog
+"""
+
+
 def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
     if expected not in failures:
@@ -112,8 +138,10 @@ def run_self_test() -> int:
     try:
         fixture_path = base / REVIEW_CHECKLIST_PATH
         makefile_path = base / MAKEFILE_PATH
+        tests_readme_path = base / TESTS_README_PATH
         write_text(fixture_path, build_fixture_text())
         write_text(makefile_path, build_makefile_fixture_text())
+        write_text(tests_readme_path, build_tests_readme_fixture_text())
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
@@ -121,32 +149,49 @@ def run_self_test() -> int:
         for marker in CHECKLIST_REQUIRED_MARKERS:
             write_text(fixture_path, build_fixture_text().replace(marker, "", 1))
             write_text(makefile_path, build_makefile_fixture_text())
+            write_text(tests_readme_path, build_tests_readme_fixture_text())
             expect_failure(base, f"missing_marker:{REVIEW_CHECKLIST_PATH}:{marker}")
             write_text(fixture_path, build_fixture_text())
 
         for marker in MAKEFILE_REQUIRED_MARKERS:
             write_text(fixture_path, build_fixture_text())
             write_text(makefile_path, build_makefile_fixture_text().replace(marker, "", 1))
+            write_text(tests_readme_path, build_tests_readme_fixture_text())
             expect_failure(base, f"missing_marker:{MAKEFILE_PATH}:{marker}")
             write_text(makefile_path, build_makefile_fixture_text())
+
+        for marker in TESTS_README_REQUIRED_MARKERS:
+            write_text(fixture_path, build_fixture_text())
+            write_text(makefile_path, build_makefile_fixture_text())
+            write_text(tests_readme_path, build_tests_readme_fixture_text().replace(marker, "", 1))
+            expect_failure(base, f"missing_marker:{TESTS_README_PATH}:{marker}")
+            write_text(tests_readme_path, build_tests_readme_fixture_text())
 
         shutil.rmtree(base / "Documentation", ignore_errors=True)
         expect_failure(base, f"missing_file:{REVIEW_CHECKLIST_PATH}")
         write_text(fixture_path, build_fixture_text())
         write_text(makefile_path, build_makefile_fixture_text())
+        write_text(tests_readme_path, build_tests_readme_fixture_text())
 
         shutil.rmtree(base / "zigux", ignore_errors=True)
         expect_failure(base, f"missing_file:{MAKEFILE_PATH}")
+        write_text(fixture_path, build_fixture_text())
+        write_text(makefile_path, build_makefile_fixture_text())
+        write_text(tests_readme_path, build_tests_readme_fixture_text())
+
+        shutil.rmtree(base / "zigux/tests", ignore_errors=True)
+        expect_failure(base, f"missing_file:{TESTS_README_PATH}")
     finally:
         shutil.rmtree(base, ignore_errors=True)
 
     print("PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SELF_TEST=pass")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist keeps the older Phase 2 and Phase 3 non-owner boundaries explicit and that the Phase 9 make route reruns that checker."
+        description="Check that the Phase 9 review checklist keeps the older Phase 2 and Phase 3 non-owner boundaries explicit, that the Phase 9 make route reruns that checker, and that the tests guide keeps the surviving trace-events selftest-hook lifecycle packet visible."
     )
     parser.add_argument(
         "--repo-root",
@@ -172,6 +217,7 @@ def main() -> int:
 
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_CHECKLIST_MARKER_COUNT={len(CHECKLIST_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_MAKEFILE_MARKER_COUNT={len(MAKEFILE_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
     print("PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES=pass")
     return 0
 
