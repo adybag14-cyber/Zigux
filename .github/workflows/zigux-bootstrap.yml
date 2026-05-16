@@ -212,6 +212,9 @@ jobs:
       - name: Validate Phase 3 slices
         run: python3 scripts/zigux/validate-phase3.py
 
+      - name: Run Phase 3 validator-support selftest packet
+        run: python3 scripts/zigux/validate_phase3_selftest.py
+
       - name: Self-test Phase 3 validator-support surface
         run: python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test
 
