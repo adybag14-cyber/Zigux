@@ -55,6 +55,8 @@ MANIFEST_MARKERS = [
     '"rollback_owner": "Validation and Perf Team"',
     '"decision_owner": "Validation and Perf Team"',
     '"shared_ci_perf_promotion_status": "pending"',
+    '"dedicated_local_checker": "scripts/zigux/check-phase4-perf-baseline-packet.py"',
+    '"dedicated_local_checker_scope": "local_only_self_test_and_packet_check"',
     '"surface": "zigux/tests/atomic64_diff.zig"',
     '"surface": "zigux/tests/bitmap_diff.zig"',
     '"gate_owner": "ABI and Runtime Team"',
@@ -187,6 +189,8 @@ SELF_TEST_CASES = [
     "baseline_round_trip",
     "missing_manifest_file",
     "manifest_checker_reference_drift",
+    "manifest_dedicated_local_checker_drift",
+    "manifest_dedicated_local_checker_scope_drift",
     "manifest_reversible_delivery_tests_readme_drift",
     "manifest_reversible_delivery_makefile_drift",
     "ready_next_tests_readme_drift",
@@ -364,6 +368,10 @@ def build_fixture_tree(root: Path) -> None:
             "decision_owner": "Validation and Perf Team",
             "coordination_owners": EXPECTED_COORDINATION_OWNERS,
             "shared_ci_perf_promotion_status": "pending",
+            "local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.",
+            "dedicated_local_survey_wrapper": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+            "dedicated_local_checker": "scripts/zigux/check-phase4-perf-baseline-packet.py",
+            "dedicated_local_checker_scope": "local_only_self_test_and_packet_check",
             "reversible_delivery_evidence": (
                 "keep scripts/zigux/check-phase4-perf-baseline-packet.py, "
                 "zigux/tests/phase4_perf_baseline_manifest.json, "
@@ -549,6 +557,36 @@ def run_self_test() -> int:
         if not expect_failure(root, "manifest_field:reversible_delivery_evidence:scripts/zigux/check-phase4-perf-baseline-packet.py"):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("manifest checker reference drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / MANIFEST_REL,
+            replace_once(
+                read_text(root / MANIFEST_REL),
+                '"dedicated_local_checker": "scripts/zigux/check-phase4-perf-baseline-packet.py"',
+                '"dedicated_local_checker": "scripts/zigux/check-phase4-perf-baseline-note.py"',
+            ),
+        )
+        if not expect_failure(root, 'manifest_marker:"dedicated_local_checker": "scripts/zigux/check-phase4-perf-baseline-packet.py"'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest dedicated local checker drift case did not fail closed")
+            return 1
+        case_count += 1
+        build_fixture_tree(root)
+
+        write_text(
+            root / MANIFEST_REL,
+            replace_once(
+                read_text(root / MANIFEST_REL),
+                '"dedicated_local_checker_scope": "local_only_self_test_and_packet_check"',
+                '"dedicated_local_checker_scope": "shared_validator_packet_check"',
+            ),
+        )
+        if not expect_failure(root, 'manifest_marker:"dedicated_local_checker_scope": "local_only_self_test_and_packet_check"'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest dedicated local checker scope drift case did not fail closed")
             return 1
         case_count += 1
         build_fixture_tree(root)
