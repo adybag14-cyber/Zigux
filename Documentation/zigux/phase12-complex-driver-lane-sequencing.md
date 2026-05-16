@@ -29,7 +29,8 @@ It keeps the starter-present network and storage packet reviewable without turni
   4. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
   5. `make -C zigux phase12`
 - Keep the degraded-workflow support bundle explicit beside that same order too:
-  - python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
+  - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
+  - `python3 scripts/zigux/check-phase12-cross.py --self-test`
   - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
   - `make -C zigux phase12-validate`
 
