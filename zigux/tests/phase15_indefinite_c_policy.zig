@@ -86,7 +86,7 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, roadm
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-14", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-16", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try expectContains(manifest.surveyed_commit_mode_reason, "dated master-readback marker");
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
@@ -113,7 +113,7 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, roadm
     try expectContains(policy_note, "PHASE15_STATUS=indefinite_c_policy_packet_landed");
     try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
     try expectContains(policy_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(policy_note, "current-master-readback-2026-05-14");
+    try expectContains(policy_note, "current-master-readback-2026-05-16");
     try expectContains(policy_note, "explicit dated readback marker instead of a quickly stale exact-head commit");
     try expectContains(policy_note, "exact branch-head parity is not recorded");
     try expectContains(policy_note, "explicit stay-in-C decisions where warranted");
@@ -210,7 +210,7 @@ test "phase 15 indefinite-C policy packet matches the live stay-in-C note, roadm
     const dated_refresh = findGap(manifest.gaps, "phase15-indefinite-c-dated-readback-provenance-refresh") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("landed", dated_refresh.status);
     try std.testing.expectEqualStrings("provenance_refresh", dated_refresh.kind);
-    try expectContains(dated_refresh.why_now, "2026-05-14 survey marker");
+    try expectContains(dated_refresh.why_now, "2026-05-16 survey marker");
 
     const handoff_gap = findGap(manifest.gaps, "phase15-indefinite-c-maintenance-handoff") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("landed", handoff_gap.status);
