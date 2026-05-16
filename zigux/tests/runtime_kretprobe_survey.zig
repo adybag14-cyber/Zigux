@@ -12,6 +12,7 @@ const LifecycleBoundarySummary = struct {
     pre_execution_handoff_only: bool,
     requires_idle_registration_snapshot: bool,
     failed_exit_state_retained_until_drain: bool,
+    metadata_only_lifecycle_labels: []const []const u8,
     metadata_only_registration_labels: []const []const u8,
     shared_request_surface: []const u8,
     shared_loader_lane: []const u8,
@@ -195,6 +196,15 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     try std.testing.expectEqualStrings(
         "blocked_on_runtime_substrate",
         manifest.lifecycle_boundary_summary.live_registration_parity,
+    );
+    try std.testing.expectEqual(@as(usize, 2), manifest.lifecycle_boundary_summary.metadata_only_lifecycle_labels.len);
+    try std.testing.expectEqualStrings(
+        "zigux_runtime_kretprobe_init",
+        manifest.lifecycle_boundary_summary.metadata_only_lifecycle_labels[0],
+    );
+    try std.testing.expectEqualStrings(
+        "zigux_runtime_kretprobe_exit",
+        manifest.lifecycle_boundary_summary.metadata_only_lifecycle_labels[1],
     );
     try std.testing.expectEqual(@as(usize, 2), manifest.lifecycle_boundary_summary.metadata_only_registration_labels.len);
     try std.testing.expectEqualStrings(
