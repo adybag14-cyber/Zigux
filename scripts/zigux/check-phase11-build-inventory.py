@@ -140,6 +140,7 @@ TEXT_MARKERS = {
         "`scripts/zigux/check-phase11-build-inventory.py`",
         "`zigux/tests/fixtures/phase11_build_inventory.json`",
         "`zigux/tests/phase11_build.zig`",
+        "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
     ],
     "closure_note": [
         "`scripts/zigux/check-phase11-build-inventory.py`",
@@ -154,6 +155,7 @@ TEXT_MARKERS = {
     "scripts_root": [
         "`scripts/zigux/check-phase11-build-inventory.py`",
         "`zigux/tests/fixtures/phase11_build_inventory.json`",
+        "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
     ],
     "shared_contract_checker": [
         "`scripts/zigux/check-phase11-build-inventory.py`",
