@@ -327,6 +327,13 @@ pub fn strends(str: []const u8, suffix: []const u8) bool {
     return strEndsWith(str, suffix);
 }
 
+pub fn kbasename(path: []const u8) []const u8 {
+    const path_len = cStringLen(path);
+    const visible = path[0..path_len];
+    const slash_idx = std.mem.lastIndexOfScalar(u8, visible, '/') orelse return visible;
+    return visible[slash_idx + 1 ..];
+}
+
 test "strtobool accepts common Linux forms" {
     try std.testing.expect(try strtobool("y"));
     try std.testing.expect(try strtobool("On"));
@@ -516,6 +523,16 @@ test "strEndsWith honors C-string boundaries" {
     try std.testing.expect(strends(&cstr, &embedded_suffix));
     try std.testing.expect(!strEndsWith(&cstr, &trailing_miss));
     try std.testing.expect(!strends(&cstr, &trailing_miss));
+}
+
+test "kbasename returns the final path component with C-string semantics" {
+    try std.testing.expectEqualStrings("file.txt", kbasename("dir/file.txt"));
+    try std.testing.expectEqualStrings("file.txt", kbasename("file.txt"));
+    try std.testing.expectEqualStrings("", kbasename("/"));
+    try std.testing.expectEqualStrings("", kbasename("dir/"));
+
+    const embedded_nul = [_]u8{ '/', 't', 'm', 'p', '/', 'o', 'k', 0, '/', 'b', 'a', 'd' };
+    try std.testing.expectEqualStrings("ok", kbasename(&embedded_nul));
 }
 
 test "sysfsStreq treats trailing newline and NUL as equivalent" {
