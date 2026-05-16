@@ -464,6 +464,12 @@ test "memparse handles size suffixes, rejects explicit leading plus, and reports
     try std.testing.expectEqual(@as(u64, 16 * 1024), memparse("0x10Krest", &index));
     try std.testing.expectEqual(@as(usize, 5), index);
 
+    try std.testing.expectEqual(@as(u64, 0), memparse("0x", &index));
+    try std.testing.expectEqual(@as(usize, 1), index);
+
+    try std.testing.expectEqual(@as(u64, 0), memparse("0X", &index));
+    try std.testing.expectEqual(@as(usize, 1), index);
+
     try std.testing.expectEqual(@as(u64, 0), memparse("0xK", &index));
     try std.testing.expectEqual(@as(usize, 1), index);
 
