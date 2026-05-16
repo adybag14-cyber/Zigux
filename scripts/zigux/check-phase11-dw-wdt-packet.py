@@ -73,6 +73,7 @@ MARKERS = {
     ],
     "verify_file": [
         'test "phase11 dw_wdt verify keeps registration-blocking failure paths explicit" {',
+        'test "phase11 dw_wdt verify keeps mmio-blocked registration handoff explicit" {',
         'test "phase11 dw_wdt verify keeps imported-running handoff and shared-clock fallback explicit" {',
         'test "phase11 dw_wdt verify keeps continued-heartbeat teardown and remove failure modes explicit" {',
         'test "phase11 dw_wdt verify keeps reset-backed teardown and remove cleanup distinct" {',
