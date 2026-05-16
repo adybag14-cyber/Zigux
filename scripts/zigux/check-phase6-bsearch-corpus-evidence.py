@@ -25,7 +25,7 @@ SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 
 
-FIXTURE_BASELINE = """const std = @import("std");
+FIXTURE_BASELINE = """const std = @import(\"std\");
 
 pub const representative_ascending_values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
 pub const representative_descending_values = [_]u32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
@@ -35,10 +35,10 @@ pub const representative_hit_queries = [_]u32{ 3, 21, 24, 39, 45 };
 pub const representative_miss_queries = [_]u32{ 1, 10, 26, 44, 50 };
 
 pub const sorted_symbols = [_][]const u8{
-    "do_exit",
-    "kfree",
-    "kmalloc",
-    "schedule",
+    \"do_exit\",
+    \"kfree\",
+    \"kmalloc\",
+    \"schedule\",
 };
 
 pub const RawRecord = extern struct {
@@ -71,7 +71,7 @@ pub fn rawQuerySeed(index: usize) u32 {
     return representative_miss_queries[index % representative_miss_queries.len];
 }
 
-test "phase 6 bsearch vectors stay deterministic, sorted, and duplicate-aware" {
+test \"phase 6 bsearch vectors stay deterministic, sorted, and duplicate-aware\" {
     try std.testing.expectEqual(@as(usize, 15), representative_ascending_values.len);
     try std.testing.expectEqual(@as(usize, 15), representative_descending_values.len);
     try std.testing.expectEqual(@as(usize, 15), representative_duplicate_values.len);
@@ -97,8 +97,16 @@ test "phase 6 bsearch vectors stay deterministic, sorted, and duplicate-aware" {
 
 REQUIRED_SNIPPETS = {
     HELPER_PATH.as_posix(): [
+        "pub fn lowerBound(",
+        "pub fn lowerBoundMutable(",
+        "pub fn upperBound(",
+        "pub fn upperBoundMutable(",
         "pub fn equalRange(",
         "pub fn equalRangeMutable(",
+        "pub fn bsearchLowerBound(",
+        "pub fn bsearchLowerBoundMutable(",
+        "pub fn bsearchUpperBound(",
+        "pub fn bsearchUpperBoundMutable(",
         "pub fn bsearchEqualRange(",
         "pub fn bsearchEqualRangeMutable(",
         'test "search keeps native and C comparator pointer support"',
@@ -158,7 +166,11 @@ REQUIRED_SNIPPETS = {
         "- `search`",
         "- `searchMutable`",
         "- `lowerBoundIndex`",
+        "- `lowerBound`",
+        "- `lowerBoundMutable`",
         "- `upperBoundIndex`",
+        "- `upperBound`",
+        "- `upperBoundMutable`",
         "- `IndexRange`",
         "- `equalRangeIndex`",
         "- `equalRange`",
@@ -167,7 +179,11 @@ REQUIRED_SNIPPETS = {
         "- `bsearch`",
         "- `bsearchMutable`",
         "- `bsearchLowerBoundIndex`",
+        "- `bsearchLowerBound`",
+        "- `bsearchLowerBoundMutable`",
         "- `bsearchUpperBoundIndex`",
+        "- `bsearchUpperBound`",
+        "- `bsearchUpperBoundMutable`",
         "- `bsearchEqualRangeIndex`",
         "- `bsearchEqualRange`",
         "- `bsearchEqualRangeMutable`",
@@ -177,6 +193,7 @@ REQUIRED_SNIPPETS = {
         "The shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` companion remains helper-local support inside that packet today: `phase6_bsearch.zig` still imports it for representative ascending and descending raw-array reuse, and the bounds-focused plus direct C ABI budget replays still reuse its dynamic-length and packed-record seed corpus.",
         "Reviewers should treat that fixture as compact shared packet support rather than as a separate standalone timing-style route.",
         "Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable`, while the direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` wrappers hand those typed slice and raw byte views back without forcing callers to peel `IndexRange` apart by hand or widening Phase 6 into a separate fixture or routing packet.",
+        "The helper now also exports direct `lowerBound`, `lowerBoundMutable`, `upperBound`, `upperBoundMutable`, `bsearchLowerBound`, `bsearchLowerBoundMutable`, `bsearchUpperBound`, and `bsearchUpperBoundMutable` companions so callers can reuse the existing insertion-point semantics as typed or raw pointers without manually translating lower- and upper-bound indexes back into aliases.",
         "`lib/bsearch.zig` now also exports direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` companions on top of `IndexRange`",
     ],
     PERF_SURVEY_PATH.as_posix(): [
@@ -540,6 +557,18 @@ def run_self_test() -> None:
         assert_failure(
             root,
             HELPER_PATH.as_posix(),
+            'pub fn lowerBound(',
+            'pub fn lowerBoundDrift(',
+        )
+        assert_failure(
+            root,
+            HELPER_PATH.as_posix(),
+            'pub fn bsearchUpperBoundMutable(',
+            'pub fn bsearchUpperBoundMutableDrift(',
+        )
+        assert_failure(
+            root,
+            HELPER_PATH.as_posix(),
             'pub fn equalRange(',
             'pub fn equalRangeDrift(',
         )
@@ -630,8 +659,14 @@ def run_self_test() -> None:
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
-            "- `searchMutable`",
-            "- `searchMutableDrift`",
+            "- `lowerBound`",
+            "- `lowerBoundDrift`",
+        )
+        assert_failure(
+            root,
+            SLICE_PATH.as_posix(),
+            "- `upperBoundMutable`",
+            "- `upperBoundMutableDrift`",
         )
         assert_failure(
             root,
@@ -642,8 +677,14 @@ def run_self_test() -> None:
         assert_failure(
             root,
             SLICE_PATH.as_posix(),
-            "- `bsearchUpperBoundIndex`",
-            "- `bsearchUpperBoundIndexDrift`",
+            "- `bsearchLowerBound`",
+            "- `bsearchLowerBoundDrift`",
+        )
+        assert_failure(
+            root,
+            SLICE_PATH.as_posix(),
+            "- `bsearchUpperBoundMutable`",
+            "- `bsearchUpperBoundMutableDrift`",
         )
         assert_failure(
             root,
@@ -668,6 +709,12 @@ def run_self_test() -> None:
             SLICE_PATH.as_posix(),
             "Within that helper-local surface, the exported `IndexRange` result type keeps duplicate-span length, emptiness, typed slice, and raw byte views explicit through `len`, `isEmpty`, `sliceConst`, `sliceMutable`, `bytes`, and `bytesMutable`, while the direct `equalRange`, `equalRangeMutable`, `bsearchEqualRange`, and `bsearchEqualRangeMutable` wrappers hand those typed slice and raw byte views back without forcing callers to peel `IndexRange` apart by hand or widening Phase 6 into a separate fixture or routing packet.",
             "Within that helper-local surface, the exported `IndexRange` result type drifted.",
+        )
+        assert_failure(
+            root,
+            SLICE_PATH.as_posix(),
+            "The helper now also exports direct `lowerBound`, `lowerBoundMutable`, `upperBound`, `upperBoundMutable`, `bsearchLowerBound`, `bsearchLowerBoundMutable`, `bsearchUpperBound`, and `bsearchUpperBoundMutable` companions so callers can reuse the existing insertion-point semantics as typed or raw pointers without manually translating lower- and upper-bound indexes back into aliases.",
+            "The helper no longer exports direct lower and upper bound companions.",
         )
         assert_failure(
             root,
