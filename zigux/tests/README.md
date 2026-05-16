@@ -145,18 +145,10 @@ Phase 3 review packet
   * `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` stay explicit as the current starter header-family companion packet rather than implying a broader shipped UAPI family
 
 Phase 7 review packet
-  * `Documentation/zigux/phase7-helper-lane-sequencing.md`
-  * `Documentation/zigux/phase7-rbtree-slice.md`
-  * `scripts/zigux/check-phase7-rbtree-parity.py`
-  * `zigux/tests/phase7_rbtree.zig`
-  * the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate
-  * `zigux/tests/phase7_rbtree_manifest.json`
-  * `zigux/tests/fixtures/phase7_rbtree.json`
-  * `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
-  * `zigux/tests/phase7_build.zig`
-  * `make -C zigux phase7-validate`
-  * `make -C zigux phase7`
-  * keep the parked Phase 7 rbtree packet explicit here too: `scripts/zigux/check-phase7-rbtree-parity.py`, the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and the shared `make -C zigux phase7-validate` plus `make -C zigux phase7` replay handles keep the current runtime-safe leaf-helper reminder surface visible without widening into deeper helper-family expansion
+  * current direct-readback Phase 7 anchor: `zigux/tests/phase7_rbtree_survey.zig`
+  * repo-reality warning for the broader Phase 7 rbtree packet: repeated authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `zigux/tests/phase7_build.zig`
+  * treat those paths plus the older `make -C zigux phase7-validate` and `make -C zigux phase7` route names as last-known packet members that need fresh reread or re-materialization before they are presented here as shipped direct evidence again
+  * keep the narrower current Phase 7 reminder surface tied to the directly readable `zigux/tests/phase7_rbtree_survey.zig` anchor instead of reconstructing the broader helper packet from older route names alone
 
 Phase 8 review packet
   * `Documentation/zigux/phase8-tooling-lane-sequencing.md`
@@ -201,30 +193,6 @@ Phase 8 review packet
   * `make -C zigux phase8-test`
   * `make -C zigux phase8`
   * keep the shared Phase 8 tooling packet explicit here too: the focused exec-cmd, help, symbol, cpu-mask, file-path bridge, segmented libbpf, and perf-buffer poll replay surfaces stay reviewable from the tests root without widening into deferred process-launch, handle-ownership, or online-CPU routing work
-
-Phase 12 review packet
-  * `scripts/zigux/check-build-only-phase12-surface.py`
-  * `Documentation/zigux/phase12-release-sequencing.md`
-  * `Documentation/zigux/phase12-release-closure-checklist.md`
-  * `Documentation/zigux/phase12-release-readiness-survey.md`
-  * `Documentation/zigux/phase12-release-coordination-matrix.md`
-  * `make -C zigux phase12-validate`
-  * `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
-  * `Documentation/zigux/phase12-raw-github-coverage-survey.md`
-  * `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
-  * `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
-  * `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
-  * `Documentation/zigux/phase12-virtio-net-survey.md`
-  * `Documentation/zigux/phase12-libbpf-segment-survey.md`
-  * `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
-  * `scripts/zigux/check-phase12-release-readiness-packet.py`
-  * while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`
-  * `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`
-  * `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json`
-  * `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
-  * `make -C zigux phase12-smoke`
-  * `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-  * `make -C zigux phase12`
 
 Phase 13 review packet
   * `Documentation/zigux/phase13-contributor-workflow-guide.md`
