@@ -28,6 +28,7 @@ pub const ModuleDescriptor = struct {
     provides_offset_add_planning: bool,
     provides_offset_remove_planning: bool,
     provides_offset_rename_planning: bool,
+    provides_cursor_reposition_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -212,6 +213,31 @@ pub const CursorPreconditionPlan = struct {
     requires_private_cursor: bool,
 };
 
+pub const CursorRepositionPlacement = enum {
+    none,
+    before_scan_result,
+    behind_scan_result,
+};
+
+pub const CursorRepositionStatus = enum {
+    ok,
+    missing_reposition_placement,
+    missing_reposition_target,
+};
+
+pub const CursorRepositionPlan = struct {
+    anchor: []const u8,
+    scan_result_present: bool,
+    placement: CursorRepositionPlacement,
+    status: CursorRepositionStatus,
+    uses_hlist_del_init: bool,
+    uses_hlist_add_before: bool,
+    uses_hlist_add_behind: bool,
+    reinserts_cursor: bool,
+    keeps_private_cursor: bool,
+    releases_scan_reference: bool,
+};
+
 pub const OffsetSlotClass = enum {
     missing,
     dot_entry_window,
@@ -332,6 +358,7 @@ pub const LibfsHelperLab = struct {
             .provides_offset_add_planning = true,
             .provides_offset_remove_planning = true,
             .provides_offset_rename_planning = true,
+            .provides_cursor_reposition_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -672,6 +699,36 @@ pub const LibfsHelperLab = struct {
         };
     }
 
+    pub fn planDcacheCursorReposition(
+        scan_result_present: bool,
+        placement: CursorRepositionPlacement,
+    ) CursorRepositionPlan {
+        const status: CursorRepositionStatus = if (scan_result_present)
+            switch (placement) {
+                .none => .missing_reposition_placement,
+                .before_scan_result, .behind_scan_result => .ok,
+            }
+        else
+            switch (placement) {
+                .none => .ok,
+                .before_scan_result, .behind_scan_result => .missing_reposition_target,
+            };
+
+        const reinserts_cursor = status == .ok and scan_result_present;
+        return .{
+            .anchor = descriptor().anchor,
+            .scan_result_present = scan_result_present,
+            .placement = placement,
+            .status = status,
+            .uses_hlist_del_init = true,
+            .uses_hlist_add_before = reinserts_cursor and placement == .before_scan_result,
+            .uses_hlist_add_behind = reinserts_cursor and placement == .behind_scan_result,
+            .reinserts_cursor = reinserts_cursor,
+            .keeps_private_cursor = true,
+            .releases_scan_reference = reinserts_cursor,
+        };
+    }
+
     pub fn classifyOffsetSlot(offset: ?i64) OffsetSlotClass {
         if (offset == null) {
             return .missing;
@@ -838,6 +895,7 @@ test "libfs helper descriptor stays anchored to fs/libfs.c" {
     try std.testing.expect(descriptor.provides_offset_add_planning);
     try std.testing.expect(descriptor.provides_offset_remove_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
+    try std.testing.expect(descriptor.provides_cursor_reposition_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 }
@@ -1150,6 +1208,56 @@ test "cursor precondition planner keeps emit_dots and private-cursor resume path
     const invalid = LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(-1, true, true);
     try std.testing.expectEqual(CursorPreconditionStatus.negative_position, invalid.status);
     try std.testing.expectEqual(@as(?CursorResumeMode, null), invalid.mode);
+}
+
+test "cursor reposition planner keeps hlist del-init bookkeeping explicit" {
+    const unhashed = LibfsHelperLab.planDcacheCursorReposition(false, .none);
+    try std.testing.expectEqualStrings("fs/libfs.c", unhashed.anchor);
+    try std.testing.expectEqual(CursorRepositionStatus.ok, unhashed.status);
+    try std.testing.expect(unhashed.uses_hlist_del_init);
+    try std.testing.expect(!unhashed.uses_hlist_add_before);
+    try std.testing.expect(!unhashed.uses_hlist_add_behind);
+    try std.testing.expect(!unhashed.reinserts_cursor);
+    try std.testing.expect(unhashed.keeps_private_cursor);
+    try std.testing.expect(!unhashed.releases_scan_reference);
+
+    const before = LibfsHelperLab.planDcacheCursorReposition(true, .before_scan_result);
+    try std.testing.expectEqual(CursorRepositionStatus.ok, before.status);
+    try std.testing.expect(before.uses_hlist_del_init);
+    try std.testing.expect(before.uses_hlist_add_before);
+    try std.testing.expect(!before.uses_hlist_add_behind);
+    try std.testing.expect(before.reinserts_cursor);
+    try std.testing.expect(before.keeps_private_cursor);
+    try std.testing.expect(before.releases_scan_reference);
+
+    const behind = LibfsHelperLab.planDcacheCursorReposition(true, .behind_scan_result);
+    try std.testing.expectEqual(CursorRepositionStatus.ok, behind.status);
+    try std.testing.expect(behind.uses_hlist_del_init);
+    try std.testing.expect(!behind.uses_hlist_add_before);
+    try std.testing.expect(behind.uses_hlist_add_behind);
+    try std.testing.expect(behind.reinserts_cursor);
+    try std.testing.expect(behind.keeps_private_cursor);
+    try std.testing.expect(behind.releases_scan_reference);
+}
+
+test "cursor reposition planner flags placement drift without claiming live dcache mutation" {
+    const missing_placement = LibfsHelperLab.planDcacheCursorReposition(true, .none);
+    try std.testing.expectEqual(CursorRepositionStatus.missing_reposition_placement, missing_placement.status);
+    try std.testing.expect(missing_placement.uses_hlist_del_init);
+    try std.testing.expect(!missing_placement.uses_hlist_add_before);
+    try std.testing.expect(!missing_placement.uses_hlist_add_behind);
+    try std.testing.expect(!missing_placement.reinserts_cursor);
+    try std.testing.expect(missing_placement.keeps_private_cursor);
+    try std.testing.expect(!missing_placement.releases_scan_reference);
+
+    const missing_target = LibfsHelperLab.planDcacheCursorReposition(false, .behind_scan_result);
+    try std.testing.expectEqual(CursorRepositionStatus.missing_reposition_target, missing_target.status);
+    try std.testing.expect(missing_target.uses_hlist_del_init);
+    try std.testing.expect(!missing_target.uses_hlist_add_before);
+    try std.testing.expect(!missing_target.uses_hlist_add_behind);
+    try std.testing.expect(!missing_target.reinserts_cursor);
+    try std.testing.expect(missing_target.keeps_private_cursor);
+    try std.testing.expect(!missing_target.releases_scan_reference);
 }
 
 test "offset slot classification distinguishes managed entries from reserved sentinels" {
