@@ -383,10 +383,12 @@ pub const CleanupHandoffSummary = struct {
 };
 
 pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {
+    const tty_port_release_handoff = request.tty_port_release_handoff;
+
     return .{
-        .tty_port_release_handoff = request.tty_port_release_handoff,
-        .cleanup_time_tty_port_ownership = request.cleanup_time_tty_port_ownership,
-        .port_reference_drop_timing = request.port_reference_drop_timing,
+        .tty_port_release_handoff = tty_port_release_handoff,
+        .cleanup_time_tty_port_ownership = request.cleanup_time_tty_port_ownership and tty_port_release_handoff,
+        .port_reference_drop_timing = request.port_reference_drop_timing and tty_port_release_handoff,
     };
 }
 
@@ -760,6 +762,18 @@ test "phase11 hvc console keeps active hangup and cleanup ownership handoffs rev
     try std.testing.expect(cleanup.tty_port_release_handoff);
     try std.testing.expect(cleanup.cleanup_time_tty_port_ownership);
     try std.testing.expect(cleanup.port_reference_drop_timing);
+}
+
+test "phase11 hvc console keeps missing tty-port release from claiming cleanup ownership" {
+    const cleanup = summarizeCleanupHandoff(.{
+        .tty_port_release_handoff = false,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expect(!cleanup.tty_port_release_handoff);
+    try std.testing.expect(!cleanup.cleanup_time_tty_port_ownership);
+    try std.testing.expect(!cleanup.port_reference_drop_timing);
 }
 
 test "phase11 hvc console keeps stale hangup short-circuit ownership reviewable" {
