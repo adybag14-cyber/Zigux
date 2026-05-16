@@ -49,6 +49,18 @@
       "extends_boundary": 1,
       "requested_extra_bytes": 16
     },
+    "undersized": {
+      "size": 7,
+      "abi_version": 1,
+      "flags": 34,
+      "current_abi": 1,
+      "compatible_size": 0,
+      "canonical_size": 0,
+      "compatible": 0,
+      "canonical": 0,
+      "extends_boundary": 0,
+      "requested_extra_bytes": 0
+    },
     "mismatched_version": {
       "size": 8,
       "abi_version": 2,
@@ -72,7 +84,24 @@
     "range_first_minor": 7,
     "range_count": 4,
     "range_fits": 1,
-    "range_last_encoded": 44040202
+    "range_last_encoded": 44040202,
+    "invalid_major": {
+      "major": 4096,
+      "minor": 7,
+      "value": 0,
+      "ok": 0,
+      "code": -22,
+      "flags": 1
+    },
+    "invalid_range": {
+      "major": 42,
+      "first_minor": 1048574,
+      "count": 3,
+      "value": 0,
+      "ok": 0,
+      "code": -34,
+      "flags": 1
+    }
   },
   "notifier_chain": {
     "empty_ok": 1,
