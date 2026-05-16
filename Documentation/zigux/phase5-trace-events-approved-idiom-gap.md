@@ -31,11 +31,15 @@ Fresh direct readback on 2026-05-14 recovered this directly readable trace-event
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-That same direct readback still did not recover this older shared build path:
+Current authenticated contents readback in this lane still did not recover this older shared build path:
 
 - `zigux/tests/phase5_build.zig`
 
-Treat the current evidence for this lane as a directly readable sample-backed packet with one still-missing shared build route, not as a survey-only reminder packet and not as evidence for a fifth Phase 5 sample.
+A same-lane public-tree reread on 2026-05-16 still exposed this shared build path on current `master`:
+
+- `zigux/tests/phase5_build.zig`
+
+Treat the current evidence for this lane as a directly readable sample-backed packet with one shared build route that is publicly readable but not yet returned through authenticated contents readback, not as a survey-only reminder packet and not as evidence for a fifth Phase 5 sample.
 
 ## Approved idiom closure
 
@@ -44,7 +48,7 @@ The roadmap decision stays the same, but the current packet evidence is now dire
 - tracing-example closure belongs in `runAnchorReplay()`, `formattedMessage()`, `runPayloadBoundaryReplay()`, `runStringFormattingCycleReplay()`, `runCallbackBoundaryRecoveryReplay()`, the focused event-family counts, and the explicit non-runtime boundary around tracepoint macros, scheduling, and module wiring
 - ownership-and-lifetime closure belongs in the same packet through `lifecycleSummary()`, `runLifecycleBoundaryReplay()`, the registration-balance restoration cue, `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection, and the post-`exit()` replay plus callback-registration rejection boundaries
 
-The honest remaining gap is therefore not missing trace-events sample evidence. It is simply the still-missing shared `zigux/tests/phase5_build.zig` route plus the need to keep reminder surfaces truthful about that split.
+The honest remaining gap is therefore not missing trace-events sample evidence. It is simply the still-split shared `zigux/tests/phase5_build.zig` route plus the need to keep reminder surfaces truthful about that split: public-tree-backed support material has returned, but authenticated contents proof for that exact path still has not.
 
 ## Contributor reminder
 
@@ -56,7 +60,7 @@ Keep these exact review cues explicit together instead of softening them into a 
 - the exact `checked_focus` order stays `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime`
 - the selected-string plus `iter=%d` cue remains the approved bounded formatting reminder through the directly readable packet, with the full modulo-selected string cycle still reviewable across counts `0` through `4`
 - `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection and the post-`exit()` replay plus callback-registration rejection remain the explicit callback-boundary and teardown guard rails for this non-runtime packet
-- if `Documentation/zigux/README.md`, `scripts/zigux/README.md`, or `zigux/tests/README.md` summarises this anchor, keep the same packet split there too: do not call `zigux/tests/phase5_build.zig` current direct-readback evidence until a fresh reread proves that exact path returned
+- if `Documentation/zigux/README.md`, `scripts/zigux/README.md`, or `zigux/tests/README.md` summarises this anchor, keep the same packet split there too: do not call `zigux/tests/phase5_build.zig` current authenticated direct-readback evidence until a fresh reread proves that exact path returned, and do not call it missing while the current public tree still exposes it
 
 ## Boundary reminders
 
@@ -68,5 +72,5 @@ Keep these exact review cues explicit together instead of softening them into a 
 
 Leave this note parked unless current `master` later shows one of two same-packet changes:
 
-- the missing `zigux/tests/phase5_build.zig` route returns to direct readback and this note needs to narrow its missing-route wording
+- the shared `zigux/tests/phase5_build.zig` route returns through authenticated contents readback and this note needs to retire its split-readback wording
 - another directly coupled reminder surface starts implying the trace-events packet is survey-only again, uses the older helper names, or suggests a separate fifth sample
