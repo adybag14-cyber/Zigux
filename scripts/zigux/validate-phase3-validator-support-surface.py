@@ -90,6 +90,10 @@ SELF_TEST_CASES = (
         "scripts/zigux/check-phase3-abi.py",
     ),
     (
+        "scripts/zigux/check-phase3-selftest-surface.py",
+        "scripts/zigux/check-phase3-selftest-surface.py",
+    ),
+    (
         "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
         "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     ),
