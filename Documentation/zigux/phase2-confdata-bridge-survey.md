@@ -11,15 +11,16 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 ## Current Master Readback
 
 - `scripts/zigux/kconfig/confdata_bridge.zig` is present on `master` and ships a bounded `runConfdataBridge()` entrypoint plus a CLI `main()` wrapper that reads one config path and emits a JSON summary, alongside `20` helper-local tests covering the current bridge-local edge cases.
-- `zigux/tests/fixtures/kconfig_bridge/cases.json` currently carries a `confdata_cases` packet with 13 fixture cases: `sample`, `escaped_strings`, `escaped_control_sequences`, `trailing_escaped_backslash`, `sample_crlf`, `explicit_n_tristate`, `final_trailing_carriage_return`, `final_unterminated_unset_comment`, `uppercase_tristate`, `non_config_lines`, `empty_config_symbol_names`, `last_state_transitions`, and `duplicate_malformed_quoted_assignment`.
-- `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.
+- `zigux/tests/fixtures/kconfig_bridge/cases.json` currently carries a `confdata_cases` packet with 14 fixture cases: `sample`, `escaped_strings`, `escaped_control_sequences`, `trailing_escaped_backslash`, `sample_crlf`, `explicit_n_tristate`, `final_trailing_carriage_return`, `final_unterminated_unset_comment`, `uppercase_tristate`, `non_config_lines`, `empty_config_symbol_names`, `malformed_unset_comment_tokens`, `last_state_transitions`, and `duplicate_malformed_quoted_assignment`.
+- `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 14-case packet, and names the current helper-local anchor list for the bridge tests.
 - `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` already keep the dedicated `scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py` guard explicit, while `zigux/tests/README.md` continues to carry the shared kconfig packet together with the shared `scripts/zigux/check-kconfig-bridge.py` gate plus the direct `zig test scripts/zigux/kconfig/confdata_bridge.zig` replay. Together these reminder surfaces keep the bridge reviewable without implying any current-`master` surface is missing.
 
 ## Verified Behavior
 
 - Current `master` still carries the helper-local anchor `confdata bridge ignores malformed quoted values like upstream confdata`, and the live parser continues to short-circuit malformed leading quoted assignments before they can fall through to raw scalar handling.
+- The live bridge packet now also keeps malformed unset-comment rejection explicit in both the helper-local coverage and the shared external packet, so review of `# CONFIG_*` comment handling no longer has to infer that guard indirectly from neighboring malformed-line cases.
 - The bounded duplicate-malformed probe remains explicit in both the bridge-local test packet and the external fixture packet: `CONFIG_ALPHA="stable"` followed by a malformed duplicate quoted reassignment keeps the prior stable value while later entries continue to parse, yielding `{\"counts\":{\"set\":2,\"unset\":1},\"entries\":[{\"name\":\"CONFIG_ALPHA\",\"kind\":\"string\",\"value\":\"stable\"},{\"name\":\"CONFIG_DEBUG\",\"kind\":\"unset\",\"value\":\"n\"},{\"name\":\"CONFIG_BETA\",\"kind\":\"tristate\",\"value\":\"y\"}]}`.
-- Together, the live helper-local malformed-quote behavior and the shared `13`-case external packet mean this file family no longer has a remaining evidence gap framed as a pending malformed-first-quote correction.
+- Together, the live helper-local malformed-quote behavior and the shared `14`-case external packet mean this file family no longer has a remaining evidence gap framed as a pending malformed-first-quote correction.
 
 ## Survey Result
 
@@ -29,6 +30,6 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 
 ## Next Bounded Step
 
-- When a writable checkout and Zig toolchain are available, rerun `python3 scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py --self-test`, `python3 scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py`, `python3 scripts/zigux/check-kconfig-bridge.py --self-test`, the full `python3 scripts/zigux/check-kconfig-bridge.py` gate, and the shared Phase 2 closure validators against the now `13-case` confdata packet.
+- When a writable checkout and Zig toolchain are available, rerun `python3 scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py --self-test`, `python3 scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py`, `python3 scripts/zigux/check-kconfig-bridge.py --self-test`, the full `python3 scripts/zigux/check-kconfig-bridge.py` gate, and the shared Phase 2 closure validators against the now `14-case` confdata packet.
 - Leave this survey parked unless one of the live confdata bridge packet surfaces drifts again.
 - If it reopens, first reread `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/kconfig_bridge/cases.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, `scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py`, and `scripts/zigux/check-kconfig-bridge.py` together, then update evidence only for genuinely new bridge-local drift.
