@@ -85,6 +85,9 @@ PHASE9_LANE_SEQUENCING_LIFECYCLE_BOUNDARY_MARKER = (
 PHASE9_LANE_SEQUENCING_TRACE_EVENTS_SHARED_ROUTE_MARKER = (
     "`zigux/tests/runtime_trace_events_loader_substrate_drift.zig` now rides the same `phase9-runtime-loader-shared-tests` bundle while staying trace-events-local for pilot-family ownership"
 )
+PHASE9_LANE_SEQUENCING_DEPMOD_ALIASES_BOUNDARY_MARKER = (
+    "direct readback now also shows `zigux/kernel/runtime_loader_contract.zig` keeps `depmod_aliases` outside the shared `LoadPlan` beside `depmod_script` and `depmod_manifest`, so the shared owner-map note should keep depmod alias publication state parked with that same blocked module-metadata boundary instead of implying alias publication has moved into the shipped loader packet"
+)
 LANE_NOTE_BITMAP_TOP_BIT_SPLIT_MARKER = (
     "`Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, while the bitmap-local `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig` replay stays with the family packet instead of being flattened into shared loader evidence, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet"
 )
@@ -172,6 +175,7 @@ REQUIRED_MARKERS = {
         GAP_SURVEY_DRIFT_MARKER,
         GAP_SURVEY_NEXT_STEP_MARKER,
         DEP_MOD_BOUNDARY_MARKER,
+        PHASE9_LANE_SEQUENCING_DEPMOD_ALIASES_BOUNDARY_MARKER,
         PHASE9_LANE_SEQUENCING_PHASE8_BOUNDARY_MARKER,
         PHASE9_LANE_SEQUENCING_LIFECYCLE_BOUNDARY_MARKER,
         PHASE9_LANE_SEQUENCING_TRACE_EVENTS_SHARED_ROUTE_MARKER,
@@ -331,6 +335,7 @@ SELF_TEST_REMOVALS = [
     (FREEZE_MAP_PATH, "`scripts/zigux/check-phase9-build-only-surface.py`", 1),
     (PHASE9_LANE_SEQUENCING_PATH, PREPARED_STATE_LANDED_MARKER, 1),
     (PHASE9_LANE_SEQUENCING_PATH, DEP_MOD_BOUNDARY_MARKER, 1),
+    (PHASE9_LANE_SEQUENCING_PATH, PHASE9_LANE_SEQUENCING_DEPMOD_ALIASES_BOUNDARY_MARKER, 1),
     (PHASE9_LANE_SEQUENCING_PATH, PHASE9_LANE_SEQUENCING_PHASE8_BOUNDARY_MARKER, 1),
     (PHASE9_LANE_SEQUENCING_PATH, PHASE9_LANE_SEQUENCING_LIFECYCLE_BOUNDARY_MARKER, 1),
     (PHASE9_LANE_SEQUENCING_PATH, PHASE9_LANE_SEQUENCING_TRACE_EVENTS_SHARED_ROUTE_MARKER, 1),
