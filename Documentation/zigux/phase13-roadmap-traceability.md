@@ -65,14 +65,21 @@ Keep that adjacent packet explicit through:
 
 ## Repo-Reality Gaps
 
-Keep this remaining older shared-summary gap explicit until current `master` materializes it again:
+Keep the remaining shared-summary and direct-companion gaps explicit until current `master` materializes them again:
 
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `Documentation/zigux/phase13-libfs-slice.md`
 - `zigux/tests/phase13_build.zig`
+- `zigux/tests/phase13_libfs_addressability.zig`
+- `scripts/zigux/check-phase13-devres-packet.py`
+- `zigux/tests/phase13_notifier_list_manifest.json`
+- `zigux/tests/phase13_notifier_list_reviewability.zig`
+- `scripts/zigux/check-phase13-notifier-packet.py`
+- `include/zigux/notifier_abi.h`
+- `zigux/helpers/list_view.zig`
+- `zigux/helpers/hlist_view.zig`
 
-Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, so keep that workflow note aligned as a shipped shared surface while `zigux/tests/phase13_build.zig` stays recorded here as a repo-reality gap and keeps `make -C zigux phase13` framed as blocked convenience wiring rather than a stable shared replay handle.
-
-Keep older or missing direct helper companions recorded as repo-reality gaps when current `master` cannot materialize them instead of presenting them here as shipped evidence.
+Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, so keep that workflow note aligned as a shipped shared surface while the missing shared-summary checker, the absent shared build companion, and the older missing direct helper or notifier companions stay recorded here as repo-reality gaps. That gap set is also what keeps `make -C zigux phase13` framed as blocked convenience wiring rather than a stable shared replay handle.
 
 ## Boundaries
 
