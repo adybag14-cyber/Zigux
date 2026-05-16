@@ -123,7 +123,7 @@ REQUIRED_MANIFEST_FIELDS = {
     "phase": "Phase 6",
     "tranche": "leaf-helper-parity",
     "status": "partially_blocked",
-    "surveyed_commit": "a0f4d7e",
+    "surveyed_commit": "525a32e",
 }
 
 REQUIRED_MANIFEST_SHARED_GATES = {
