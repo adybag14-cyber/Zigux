@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -230,7 +231,8 @@ def collect_phase1_helpers_issues(path: Path) -> list[str]:
     text = path.read_text(encoding="utf-8")
     issues: list[str] = []
     for marker in REQUIRED_PHASE1_HELPERS_MARKERS:
-        count = text.count(marker)
+        pattern = rf"(?<![A-Za-z0-9_]){re.escape(marker)}(?![A-Za-z0-9_])"
+        count = len(re.findall(pattern, text))
         if count != 1:
             issues.append(f"phase1_helpers_marker:{marker}:expected=1:actual={count}")
     return issues
@@ -294,6 +296,17 @@ def run_self_test() -> None:
             'phase1_helpers_marker:test "phase 1 helper ports match committed parity fixture":expected=1:actual=0'
         )
         assert marker_error in collect_phase1_helpers_issues(helpers_path)
+        case_count += 1
+
+        helpers_path.write_text(
+            "\n".join(
+                REQUIRED_PHASE1_HELPERS_MARKERS
+                + ("fixture.bitmap.truncated_scnprintf_len",)
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        assert collect_phase1_helpers_issues(helpers_path) == []
         case_count += 1
 
     print("PHASE1_PARITY_SELF_TEST=pass")
