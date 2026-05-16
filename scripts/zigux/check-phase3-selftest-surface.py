@@ -116,6 +116,7 @@ VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX = "## Shared reminder"
 VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS = {
     "scripts/zigux/README.md": 2,
     "zigux/tests/README.md": 2,
+    "scripts/zigux/check-phase3-abi.py": 2,
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
     "Documentation/zigux/review-checklist.md": 1,
@@ -491,6 +492,7 @@ def _populate_repo(root: Path) -> None:
                 "zigux/tests/phase3_low_level_wrappers.zig",
                 "zigux/tests/phase3_low_level_wrappers_build.zig",
                 "scripts/zigux/check-phase3-abi.py",
+                "keep `scripts/zigux/check-phase3-abi.py` explicit in this note even though broad summaries still route that focused ABI gate through shared entrypoints",
             )
         )
         + "\n",
@@ -879,6 +881,26 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected validator-support review-checklist drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
+                "scripts/zigux/check-phase3-abi.py",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "scripts/zigux/check-phase3-abi.py (expected 2, found 1)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support shared-reminder ABI gate drift was not reported")
             return 1
 
         _populate_repo(root)
