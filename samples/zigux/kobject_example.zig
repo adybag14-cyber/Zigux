@@ -207,10 +207,19 @@ pub const KobjectExampleSample = struct {
         return self.stage_value;
     }
 
+    pub fn attributesAreAccessible(self: *const Self) bool {
+        return self.stage_value == .registered;
+    }
+
+    pub fn activeAttrCount(self: *const Self) usize {
+        if (!self.attributesAreAccessible()) return 0;
+        return self.active_attr_count;
+    }
+
     pub fn ownershipSummary(self: *const Self) OwnershipSummary {
         return .{
             .stage = self.stage_value,
-            .active_attr_count = self.active_attr_count,
+            .active_attr_count = self.activeAttrCount(),
             .init_runs = self.init_runs,
             .register_runs = self.register_runs,
             .exit_runs = self.exit_runs,
@@ -235,13 +244,13 @@ pub const KobjectExampleSample = struct {
     }
 
     pub fn showValue(self: *Self, attr_name: []const u8) !RenderedValue {
-        if (self.stage_value != .registered) return error.InvalidLifecycleTransition;
+        if (!self.attributesAreAccessible()) return error.InvalidLifecycleTransition;
         const value = try self.valueFor(attr_name);
         return renderValue(attr_name, value);
     }
 
     pub fn storeValue(self: *Self, attr_name: []const u8, raw_value: []const u8) !usize {
-        if (self.stage_value != .registered) return error.InvalidLifecycleTransition;
+        if (!self.attributesAreAccessible()) return error.InvalidLifecycleTransition;
         const parsed = try parseInteger(raw_value);
         try self.assignValue(attr_name, parsed);
         return raw_value.len;
@@ -301,7 +310,7 @@ pub const KobjectExampleSample = struct {
             .directory_name = descriptor().name,
             .stage_before_replay = before,
             .stage_after_replay = self.stage_value,
-            .attr_count = self.active_attr_count,
+            .attr_count = self.activeAttrCount(),
             .group_is_named = false,
             .uses_shared_b_handlers = true,
             .attribute_specs = attributeSpecs(),
@@ -335,7 +344,7 @@ pub const KobjectExampleSample = struct {
             .anchor = descriptor().anchor,
             .stage_before_boundary_checks = .initialized,
             .stage_after_boundary_checks = self.stage_value,
-            .active_attr_count = self.active_attr_count,
+            .active_attr_count = self.activeAttrCount(),
             .rejected_show = rejected_show,
             .rejected_store = rejected_store,
         };
@@ -357,7 +366,7 @@ pub const KobjectExampleSample = struct {
             .anchor = descriptor().anchor,
             .stage_before_second_init = .initialized,
             .stage_after_second_init = self.stage_value,
-            .active_attr_count = self.active_attr_count,
+            .active_attr_count = self.activeAttrCount(),
             .init_runs = self.init_runs,
             .register_runs = self.register_runs,
             .exit_runs = self.exit_runs,
@@ -380,10 +389,10 @@ pub const KobjectExampleSample = struct {
         try self.init();
         const stage_after_init = self.stage_value;
         const stage_before_register = self.stage_value;
-        const active_attr_count_before_register = self.active_attr_count;
+        const active_attr_count_before_register = self.activeAttrCount();
         try self.registerAttributes();
         const stage_after_register = self.stage_value;
-        const active_attr_count_after_register = self.active_attr_count;
+        const active_attr_count_after_register = self.activeAttrCount();
 
         const rejected_duplicate_registration = blk: {
             self.registerAttributes() catch |err| {
@@ -483,7 +492,7 @@ pub const KobjectExampleSample = struct {
             .anchor = descriptor().anchor,
             .stage_before_boundary_checks = .registered,
             .stage_after_boundary_checks = self.stage_value,
-            .active_attr_count = self.active_attr_count,
+            .active_attr_count = self.activeAttrCount(),
             .init_runs = self.init_runs,
             .register_runs = self.register_runs,
             .exit_runs = self.exit_runs,
@@ -585,7 +594,7 @@ pub const KobjectExampleSample = struct {
             .exit_summary = exit_summary,
             .values_before_exit = values_before_exit,
             .values_after_exit = values_after_exit,
-            .active_attr_count_after_exit = self.active_attr_count,
+            .active_attr_count_after_exit = self.activeAttrCount(),
             .rejected_reinit = rejected_reinit,
             .rejected_reregister = rejected_reregister,
             .rejected_show = rejected_show,
@@ -696,6 +705,25 @@ test "kobject example sample keeps the single-init boundary self-check local to 
     try std.testing.expectEqual(@as(usize, 0), replay.exit_runs);
     try std.testing.expect(replay.rejected_second_init);
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+}
+
+test "kobject example sample keeps attribute accessibility explicit across ownership stages" {
+    var sample = KobjectExampleSample{};
+
+    try std.testing.expect(!sample.attributesAreAccessible());
+    try std.testing.expectEqual(@as(usize, 0), sample.activeAttrCount());
+
+    try sample.init();
+    try std.testing.expect(!sample.attributesAreAccessible());
+    try std.testing.expectEqual(@as(usize, 0), sample.activeAttrCount());
+
+    try sample.registerAttributes();
+    try std.testing.expect(sample.attributesAreAccessible());
+    try std.testing.expectEqual(@as(usize, 3), sample.activeAttrCount());
+
+    _ = try sample.exit();
+    try std.testing.expect(!sample.attributesAreAccessible());
+    try std.testing.expectEqual(@as(usize, 0), sample.activeAttrCount());
 }
 
 test "kobject example sample keeps the registration-lifetime replay self-check local to the sample file" {
