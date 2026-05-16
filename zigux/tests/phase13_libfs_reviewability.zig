@@ -18,6 +18,7 @@ test "descriptor keeps the current bounded helper surface explicit" {
     try std.testing.expect(descriptor.provides_offset_add_planning);
     try std.testing.expect(descriptor.provides_offset_remove_planning);
     try std.testing.expect(descriptor.provides_offset_rename_planning);
+    try std.testing.expect(descriptor.provides_cursor_reposition_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 }
@@ -118,6 +119,46 @@ test "cursor-open and cursor-precondition helpers stay reviewable without implyi
     const invalid = libfs.LibfsHelperLab.dcacheReaddirCursorPreconditionsPlan(-1, true, true);
     try std.testing.expectEqual(libfs.CursorPreconditionStatus.negative_position, invalid.status);
     try std.testing.expectEqual(@as(?libfs.CursorResumeMode, null), invalid.mode);
+}
+
+test "cursor reposition planner stays reviewable without implying live sibling-list mutation" {
+    const unhashed = libfs.LibfsHelperLab.planDcacheCursorReposition(false, .none);
+    try std.testing.expectEqualStrings("fs/libfs.c", unhashed.anchor);
+    try std.testing.expectEqual(libfs.CursorRepositionStatus.ok, unhashed.status);
+    try std.testing.expect(unhashed.uses_hlist_del_init);
+    try std.testing.expect(!unhashed.uses_hlist_add_before);
+    try std.testing.expect(!unhashed.uses_hlist_add_behind);
+    try std.testing.expect(!unhashed.reinserts_cursor);
+    try std.testing.expect(unhashed.keeps_private_cursor);
+    try std.testing.expect(!unhashed.releases_scan_reference);
+
+    const before = libfs.LibfsHelperLab.planDcacheCursorReposition(true, .before_scan_result);
+    try std.testing.expectEqual(libfs.CursorRepositionStatus.ok, before.status);
+    try std.testing.expect(before.uses_hlist_del_init);
+    try std.testing.expect(before.uses_hlist_add_before);
+    try std.testing.expect(!before.uses_hlist_add_behind);
+    try std.testing.expect(before.reinserts_cursor);
+    try std.testing.expect(before.keeps_private_cursor);
+    try std.testing.expect(before.releases_scan_reference);
+
+    const behind = libfs.LibfsHelperLab.planDcacheCursorReposition(true, .behind_scan_result);
+    try std.testing.expectEqual(libfs.CursorRepositionStatus.ok, behind.status);
+    try std.testing.expect(behind.uses_hlist_del_init);
+    try std.testing.expect(!behind.uses_hlist_add_before);
+    try std.testing.expect(behind.uses_hlist_add_behind);
+    try std.testing.expect(behind.reinserts_cursor);
+    try std.testing.expect(behind.keeps_private_cursor);
+    try std.testing.expect(behind.releases_scan_reference);
+
+    const missing_placement = libfs.LibfsHelperLab.planDcacheCursorReposition(true, .none);
+    try std.testing.expectEqual(libfs.CursorRepositionStatus.missing_reposition_placement, missing_placement.status);
+    try std.testing.expect(!missing_placement.reinserts_cursor);
+    try std.testing.expect(!missing_placement.releases_scan_reference);
+
+    const missing_target = libfs.LibfsHelperLab.planDcacheCursorReposition(false, .before_scan_result);
+    try std.testing.expectEqual(libfs.CursorRepositionStatus.missing_reposition_target, missing_target.status);
+    try std.testing.expect(!missing_target.reinserts_cursor);
+    try std.testing.expect(!missing_target.releases_scan_reference);
 }
 
 test "addressability planner stays reviewable without implying live page-cache ownership" {
