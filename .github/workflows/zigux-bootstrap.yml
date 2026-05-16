@@ -239,11 +239,32 @@ jobs:
       - name: Run Phase 4 rollback tests
         run: make -C zigux phase4-test
 
-      - name: Validate Phase 6 helper routes
-        run: make -C zigux phase6-validate
+      - name: Self-test Phase 6 shared-surface checker
+        run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test
 
-      - name: Run Phase 6 helper tests
-        run: make -C zigux phase6-test
+      - name: Check Phase 6 shared helper surface
+        run: python3 scripts/zigux/check-phase6-shared-surface.py
+
+      - name: Run Phase 6 base64 C parity packet
+        run: python3 scripts/zigux/check-phase6-base64-c-parity.py
+
+      - name: Run Phase 6 bsearch focused packet
+        run: make -C zigux phase6-bsearch-test
+
+      - name: Self-test Phase 6 checksum C parity checker
+        run: python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test
+
+      - name: Check Phase 6 checksum C parity packet
+        run: python3 scripts/zigux/check-phase6-checksum-c-parity.py
+
+      - name: Self-test Phase 6 perf-threshold checker
+        run: python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test
+
+      - name: Check Phase 6 perf threshold markers
+        run: python3 scripts/zigux/check-phase6-perf-threshold-markers.py
+
+      - name: Run Phase 6 hexdump perf gate
+        run: make -C zigux phase6-hexdump-perf
 
       - name: Validate Phase 7 helper routes
         run: make -C zigux phase7-validate
