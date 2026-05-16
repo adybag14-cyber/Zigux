@@ -383,6 +383,27 @@ EXPECTED_STRING_HELPER_TESTS = [
     'test "strnchrNul returns the first match, NUL, or count boundary"',
 ]
 
+EXPECTED_STRING_PHASE1_HELPER_REPLAY_ANCHOR = 'test "phase 1 string replaceChar stops at embedded NUL"'
+
+EXPECTED_STRING_PARITY_FIXTURE_KEYS = [
+    "strtobool_y",
+    "strtobool_on",
+    "strtobool_zero",
+    "strtobool_off",
+    "strtobool_invalid",
+    "strlcpy_len",
+    "strlcpy_buffer",
+    "skip_spaces",
+    "trim_spaces",
+    "remove_spaces",
+    "replace_char",
+    "replace_char_end",
+    "replace_char_cstr_end",
+    "replace_char_cstr_bytes",
+    "memchr_inv_index",
+    "memchr_inv_none",
+]
+
 STRING_PREFIX_SUFFIX_ANCHOR_PREFIXES = (
     'test "strHasPrefix ',
     'test "strstarts ',
@@ -603,6 +624,10 @@ def collect_string_manifest_markers(root: Path, manifest: Any) -> list[str]:
         missing.append("string_manifest:strnchr_review_anchor")
     if string_anchors.get("strnchrnul_review_anchor") != expected_string_strnchrnul_review_anchor(helper_tests):
         missing.append("string_manifest:strnchrnul_review_anchor")
+    if string_anchors.get("phase1_helper_replay_anchor") != EXPECTED_STRING_PHASE1_HELPER_REPLAY_ANCHOR:
+        missing.append("string_manifest:phase1_helper_replay_anchor")
+    if string_anchors.get("parity_fixture_keys") != EXPECTED_STRING_PARITY_FIXTURE_KEYS:
+        missing.append("string_manifest:parity_fixture_keys")
     return missing
 
 
@@ -681,6 +706,8 @@ def make_fixture_root(root: Path) -> None:
                         "lookup_review_anchors": expected_string_lookup_review_anchors(EXPECTED_STRING_HELPER_TESTS),
                         "strnchr_review_anchor": expected_string_strnchr_review_anchor(EXPECTED_STRING_HELPER_TESTS),
                         "strnchrnul_review_anchor": expected_string_strnchrnul_review_anchor(EXPECTED_STRING_HELPER_TESTS),
+                        "phase1_helper_replay_anchor": EXPECTED_STRING_PHASE1_HELPER_REPLAY_ANCHOR,
+                        "parity_fixture_keys": EXPECTED_STRING_PARITY_FIXTURE_KEYS,
                     },
                 }
             },
@@ -868,6 +895,20 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["phase1_helper_replay_anchor"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "string_manifest:phase1_helper_replay_anchor" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["parity_fixture_keys"] = ["drift"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "string_manifest:parity_fixture_keys" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
         bench_path = root / "zigux/tests/fixtures/phase1_bench_expectations.json"
         bench = json.loads(bench_path.read_text(encoding="utf-8"))
         bench["exact_checksums"]["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"] = 1
@@ -960,7 +1001,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + len(EXPECTED_RBTREE_MANIFEST) + 7}"
+        f"{len(WORKFLOW_MARKERS) + len(DOCS_ROOT_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(EXPECTED_BITMAP_MANIFEST) + len(EXPECTED_FIND_BIT_MANIFEST) + len(EXPECTED_RBTREE_MANIFEST) + 9}"
     )
     return 0
 
