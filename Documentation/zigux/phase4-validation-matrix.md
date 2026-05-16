@@ -8,10 +8,11 @@
     * `scripts/zigux/check-phase4-artifact-diff-determinism.py`
     * `scripts/zigux/check-phase4-gate-evidence.py`
     * `scripts/zigux/check-phase4-remaining-gap-matrix.py`
+    * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
     * `scripts/zigux/check-phase4-workflow-route-counts.py`
-    * `scripts/zigux/check-phase4-perf-baseline-packet.py`
     * `Documentation/zigux/artifact-diff.md`
     * `Documentation/zigux/phase4-gate-evidence.md`
+    * `Documentation/zigux/phase4-reversible-delivery-evidence.md`
     * `Documentation/zigux/review-checklist.md`
     * `Documentation/zigux/README.md`
     * `scripts/zigux/README.md`
@@ -41,6 +42,7 @@ The roadmap says Phase 4 must make future Zigux ports measurable and reversible.
   * the shipped host-side artifact-diff contract packet, the dedicated artifact-diff determinism checker, the dedicated gate-evidence checker-plus-note packet, the dedicated remaining-gap matrix checker for the parked kprobe, `test_fsmount`, and local-only perf-threshold rows, and the dedicated workflow-route-count checker that the broader validator already depends on
   * the dedicated local perf-baseline survey route that keeps the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked without treating it as shared CI perf approval
   * the shared review-checklist guardrail that keeps the same Phase 4 packet explicit when reviewers touch it
+  * the dedicated reversible-delivery handoff note and pin checker that keep the shared exact-readback packet, the validator-first route inventory, and the dedicated local-only perf packet exact together as the smallest current reversible-delivery evidence set
   * the remaining roadmap-backed gaps that are still intentionally outside the shipped Phase 4 packet
 
 Without that record, Phase 4 validation exists in code but not yet as a product-facing ownership note.
