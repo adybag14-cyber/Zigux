@@ -54,7 +54,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
-  group: ${{ format('{0}-{1}', github.workflow, github.ref) }}
+  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
@@ -114,6 +114,18 @@ jobs:
 
       - name: Validate Phase 1 closure
         run: python3 scripts/zigux/validate-phase1-closure.py
+
+      - name: Check Phase 1 parity gate
+        run: python3 scripts/zigux/check-phase1-parity.py
+
+      - name: Run Phase 1 helper tests
+        run: zig build test --build-file zigux/tests/build.zig
+
+      - name: Check Phase 1 bench gate
+        run: python3 scripts/zigux/check-phase1-bench.py
+
+      - name: Run Phase 1 helper bench smoke
+        run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe
 
       - name: Validate Phase 2 toolchain packet
         run: python3 scripts/zigux/validate-phase2.py
