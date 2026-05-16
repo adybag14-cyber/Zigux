@@ -79,6 +79,21 @@ TARGETS = [
         "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA",
         Path("zigux/tests/phase4_perf_baseline_survey.zig"),
     ),
+    (
+        "kprobe_gap_note",
+        "PHASE4_REVERSIBLE_DELIVERY_KPROBE_GAP_NOTE_BLOB_SHA",
+        Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md"),
+    ),
+    (
+        "kprobe_gap_manifest",
+        "PHASE4_REVERSIBLE_DELIVERY_KPROBE_GAP_MANIFEST_BLOB_SHA",
+        Path("zigux/tests/phase4_kprobe_example_manifest.json"),
+    ),
+    (
+        "kprobe_gap_survey",
+        "PHASE4_REVERSIBLE_DELIVERY_KPROBE_GAP_SURVEY_BLOB_SHA",
+        Path("zigux/tests/phase4_kprobe_example_survey.zig"),
+    ),
 ]
 
 REQUIRED_STATUS_MARKERS = [
@@ -101,6 +116,9 @@ REQUIRED_STATUS_MARKERS = [
     "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_CHECKER_BLOB_SHA=",
     "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_MANIFEST_BLOB_SHA=",
     "PHASE4_REVERSIBLE_DELIVERY_LOCAL_PERF_SURVEY_BLOB_SHA=",
+    "PHASE4_REVERSIBLE_DELIVERY_KPROBE_GAP_NOTE_BLOB_SHA=",
+    "PHASE4_REVERSIBLE_DELIVERY_KPROBE_GAP_MANIFEST_BLOB_SHA=",
+    "PHASE4_REVERSIBLE_DELIVERY_KPROBE_GAP_SURVEY_BLOB_SHA=",
     "PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true",
     "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=",
 ]
@@ -120,8 +138,14 @@ REQUIRED_PROSE_MARKERS = [
     "`scripts/zigux/check-phase4-perf-baseline-packet.py`",
     "`zigux/tests/phase4_perf_baseline_manifest.json`",
     "`zigux/tests/phase4_perf_baseline_survey.zig`",
+    "`Documentation/zigux/phase4-kprobe-example-gap-survey.md`",
+    "`zigux/tests/phase4_kprobe_example_manifest.json`",
+    "`zigux/tests/phase4_kprobe_example_survey.zig`",
+    "`make -C zigux phase4-kprobe-example-survey`",
+    "`zig test zigux/tests/phase4_kprobe_example_survey.zig`",
     "repair the shared exact-readback packet first.",
     "repair the dedicated local-only perf packet first.",
+    "repair the parked kprobe packet first",
 ]
 
 SELF_TEST_CASES = (
@@ -178,125 +202,35 @@ def validate_root(root: Path) -> list[str]:
         if expected_line not in note_text:
             failures.append(f"{slug}_blob_pin:{expected_line}")
 
-    exact_case_count_line = (
+    case_count_line = (
         "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT="
         + str(len(SELF_TEST_CASES))
     )
-    if exact_case_count_line not in note_text:
-        failures.append(f"self_test_case_count:{exact_case_count_line}")
+    if case_count_line not in note_text:
+        failures.append(f"self_test_case_count:{case_count_line}")
 
     return failures
 
 
 def build_fixture_tree(root: Path) -> None:
     fixture_contents = {
-        Path("Documentation/zigux/phase4-gate-evidence.md"): "\n".join(
-            [
-                "# Phase 4 Gate Evidence",
-                "",
-                "- exact readback packet",
-                "",
-            ]
-        ),
-        Path("Documentation/zigux/phase4-validation-matrix.md"): "\n".join(
-            [
-                "# Phase 4 Validation Matrix",
-                "",
-                "- rollback owner matrix",
-                "",
-            ]
-        ),
-        Path("scripts/zigux/check-phase4-remaining-gap-matrix.py"): "\n".join(
-            [
-                "#!/usr/bin/env python3",
-                'print("phase4 remaining gap")',
-                "",
-            ]
-        ),
-        Path("scripts/zigux/check-phase4-workflow-route-counts.py"): "\n".join(
-            [
-                "#!/usr/bin/env python3",
-                'print("phase4 route counts")',
-                "",
-            ]
-        ),
-        Path("scripts/zigux/validate-phase4.py"): "\n".join(
-            [
-                "#!/usr/bin/env python3",
-                'print("phase4 validator")',
-                "",
-            ]
-        ),
-        Path("zigux/tests/phase4_build.zig"): "\n".join(
-            [
-                'const std = @import("std");',
-                "",
-                "pub fn build(_: *std.Build) void {}",
-                "",
-            ]
-        ),
-        Path("zigux/Makefile"): "\n".join(
-            [
-                "phase4-validate:",
-                "\t@true",
-                "",
-            ]
-        ),
-        Path(".github/workflows/zigux-bootstrap.yml"): "\n".join(
-            [
-                "name: zigux-bootstrap",
-                "on: [push]",
-                "jobs:",
-                "  phase4:",
-                "    runs-on: ubuntu-latest",
-                "",
-            ]
-        ),
-        Path("Documentation/zigux/review-checklist.md"): "\n".join(
-            [
-                "# Zigux Review Checklist",
-                "",
-                "- `zigux/Makefile`",
-                "- `Documentation/zigux/review-checklist.md`",
-                "",
-            ]
-        ),
-        Path("Documentation/zigux/phase4-validation-lane-sequencing.md"): "\n".join(
-            [
-                "# Phase 4 Validation Lane Sequencing",
-                "",
-                "- keep the shared exact-readback packet narrow",
-                "- keep the dedicated local-only perf packet separate",
-                "",
-            ]
-        ),
-        Path("scripts/zigux/check-phase4-perf-baseline-packet.py"): "\n".join(
-            [
-                "#!/usr/bin/env python3",
-                'print("phase4 perf packet")',
-                "",
-            ]
-        ),
-        Path("zigux/tests/phase4_perf_baseline_manifest.json"): "\n".join(
-            [
-                "{",
-                '  "lane_key": "P4-L20"',
-                "}",
-                "",
-            ]
-        ),
-        Path("zigux/tests/phase4_perf_baseline_survey.zig"): "\n".join(
-            [
-                'const std = @import("std");',
-                "",
-                'test "phase4 perf baseline survey fixture" {',
-                "    _ = std.testing.allocator;",
-                "}",
-                "",
-            ]
-        ),
+        Path("Documentation/zigux/phase4-gate-evidence.md"): "# gate evidence\n",
+        Path("Documentation/zigux/phase4-validation-matrix.md"): "# validation matrix\n",
+        Path("scripts/zigux/check-phase4-remaining-gap-matrix.py"): "#!/usr/bin/env python3\nprint('remaining gap')\n",
+        Path("scripts/zigux/check-phase4-workflow-route-counts.py"): "#!/usr/bin/env python3\nprint('route counts')\n",
+        Path("scripts/zigux/validate-phase4.py"): "#!/usr/bin/env python3\nprint('validate phase4')\n",
+        Path("zigux/tests/phase4_build.zig"): 'pub fn build(_: *std.Build) void {}\n',
+        Path("zigux/Makefile"): "phase4-validate:\n\t@true\n",
+        Path(".github/workflows/zigux-bootstrap.yml"): "name: zigux-bootstrap\n",
+        Path("Documentation/zigux/review-checklist.md"): "# review checklist\n",
+        Path("Documentation/zigux/phase4-validation-lane-sequencing.md"): "# sequencing\n",
+        Path("scripts/zigux/check-phase4-perf-baseline-packet.py"): "#!/usr/bin/env python3\nprint('perf packet')\n",
+        Path("zigux/tests/phase4_perf_baseline_manifest.json"): '{"lane_key":"P4-L20"}\n',
+        Path("zigux/tests/phase4_perf_baseline_survey.zig"): 'test "perf" {}\n',
+        Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md"): "# kprobe gap\n",
+        Path("zigux/tests/phase4_kprobe_example_manifest.json"): '{"lane_key":"P4-L19"}\n',
+        Path("zigux/tests/phase4_kprobe_example_survey.zig"): 'test "kprobe" {}\n',
     }
-
     for rel_path, content in fixture_contents.items():
         write_text(root / rel_path, content)
 
@@ -304,7 +238,7 @@ def build_fixture_tree(root: Path) -> None:
         "- `PHASE4_REVERSIBLE_DELIVERY_STATUS=shared_evidence_packet_landed`",
         "- `PHASE4_REVERSIBLE_DELIVERY_LANE_KEY=P4-L23`",
         "- `PHASE4_REVERSIBLE_DELIVERY_PHASE=Phase 4`",
-        "- `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_DATE=2026-05-15`",
+        "- `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_DATE=2026-05-16`",
         "- `PHASE4_REVERSIBLE_DELIVERY_MODE=github_connector_readback`",
         "- `PHASE4_REVERSIBLE_DELIVERY_EXACT_READBACK_REF=master`",
     ]
@@ -335,16 +269,23 @@ def build_fixture_tree(root: Path) -> None:
         "  - `zigux/Makefile`",
         "  - `.github/workflows/zigux-bootstrap.yml`",
         "  - `Documentation/zigux/review-checklist.md`",
-        "- anti-overlap boundary:",
-        "  - `Documentation/zigux/phase4-validation-lane-sequencing.md`",
         "- dedicated local-only perf packet:",
         "  - `scripts/zigux/check-phase4-perf-baseline-packet.py`",
         "  - `zigux/tests/phase4_perf_baseline_manifest.json`",
         "  - `zigux/tests/phase4_perf_baseline_survey.zig`",
+        "- dedicated parked kprobe reversible-delivery packet:",
+        "  - `Documentation/zigux/phase4-kprobe-example-gap-survey.md`",
+        "  - `zigux/tests/phase4_kprobe_example_manifest.json`",
+        "  - `zigux/tests/phase4_kprobe_example_survey.zig`",
+        "- anti-overlap boundary:",
+        "  - `Documentation/zigux/phase4-validation-lane-sequencing.md`",
+        "",
+        "The parked kprobe packet stays measurable through `make -C zigux phase4-kprobe-example-survey` and `zig test zigux/tests/phase4_kprobe_example_survey.zig`.",
         "",
         "## Review Rules",
         "- If the rollback-owner map drifts, repair the shared exact-readback packet first.",
         "- If the local benchmark commands drift, repair the dedicated local-only perf packet first.",
+        "- If the parked kprobe packet drifts, repair the parked kprobe packet first before refreshing this shared handoff note.",
         "",
     ]
     write_text(root / NOTE_REL, "\n".join(note_lines))
@@ -375,7 +316,7 @@ def run_self_test() -> int:
         build_fixture_tree(root)
 
         note_path = root / NOTE_REL
-        for slug, key, rel_path in TARGETS:
+        for slug, _, rel_path in TARGETS:
             (root / rel_path).unlink()
             if not expect_failure(root, f"missing_file:{rel_path.as_posix()}"):
                 print("PHASE4_REVERSIBLE_DELIVERY_PIN_CHECK_SELF_TEST=fail")
@@ -385,12 +326,12 @@ def run_self_test() -> int:
             build_fixture_tree(root)
 
         for slug, key, rel_path in TARGETS:
-            target_text = (root / rel_path).read_bytes()
-            drifted_sha = git_blob_sha1(target_text + b"# drift\n")
+            target_bytes = (root / rel_path).read_bytes()
+            drifted_sha = git_blob_sha1(target_bytes + b"# drift\n")
             note_path.write_text(
                 replace_once(
                     read_text(note_path),
-                    f"{key}=" + git_blob_sha1(target_text),
+                    f"{key}=" + git_blob_sha1(target_bytes),
                     f"{key}={drifted_sha}",
                 ),
                 encoding="utf-8",
