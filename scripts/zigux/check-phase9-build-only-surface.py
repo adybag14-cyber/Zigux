@@ -58,7 +58,7 @@ GAP_SURVEY_DRIFT_MARKER = (
     "direct readback now also shows `scripts/zigux/README.md` and `zigux/tests/README.md` both keep `zigux/tests/runtime_loader_gap_survey.zig` explicit beside the shared loader-facing packet, so the remaining shared reminder follow-through has narrowed back to reviewer-facing truthfulness around the still-blocked module-metadata and depmod-publication boundary instead of loader-gap inventory sync"
 )
 GAP_SURVEY_NEXT_STEP_MARKER = (
-    "If the shared reminder packet already defers correctly to this note, refresh the smallest shipped shared summary that still drifts around the blocked module-metadata and depmod-publication boundary and the stale repo-root loader inventory, starting with `Documentation/zigux/README.md`, then `zigux/tests/README.md`, while keeping `scripts/zigux/README.md` parked unless a later reread shows it reclaiming family-local owner-map detail again."
+    "If the shared reminder packet already defers correctly to this note, refresh the smallest shipped shared summary that still undercounts the live shared loader packet or drifts around the blocked module-metadata and depmod-publication boundary and the stale repo-root loader inventory, starting with `Documentation/zigux/README.md`, then `zigux/tests/README.md`, while keeping `scripts/zigux/README.md` parked unless a later reread shows it reclaiming family-local owner-map detail again."
 )
 PHASE9_GAP_SURVEY_NOTE_TRACE_EVENTS_PROOF_MARKER = "`zigux/tests/runtime_trace_events_loader_substrate_drift.zig`"
 DEP_MOD_BOUNDARY_MARKER = (
