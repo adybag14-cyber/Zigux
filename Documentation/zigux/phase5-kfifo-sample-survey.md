@@ -24,11 +24,11 @@ This note tracks the bounded Phase 5 reference-sample survey for the roadmap's `
 
 The roadmap's Phase 5 target is still "Samples and Reference Patterns" and explicitly names `samples/kfifo/bytestream-example.c` as one of the approved Linux anchors that should make a Zigux idiom reviewable and repeatable.
 
-For this anchor, the repo still exposes the sample-root port itself in `samples/zigux/bytestream_fifo.zig`. The bounded same-lane job for this note is therefore narrower than "write a new sample": keep the approved in-memory FIFO idiom clear, keep the roadmap gap stated honestly, and stop collapsing the broader focused replay, manifest, survey, or shared build packet into either "fully direct connector proof" or "missing from `master`" when fresh readback now splits across those two paths.
+For this anchor, the repo still exposes the sample-root port itself in `samples/zigux/bytestream_fifo.zig`. The bounded same-lane job for this note is therefore narrower than "write a new sample": keep the approved in-memory FIFO idiom clear, keep the roadmap gap stated honestly, stop collapsing the broader focused replay, manifest, survey, or shared build packet into either "fully direct connector proof" or "missing from `master`" when fresh readback now splits across those two paths, and stop treating the older public-tree focused replay companion as if it were already the same helper packet as the current sample-local surface.
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-15 confirmed these same-lane facts:
+Fresh repo-first inspection on 2026-05-16 confirmed these same-lane facts:
 
 - `samples/kfifo/bytestream-example.c` remains the Linux anchor for this slice.
 - `samples/zigux/bytestream_fifo.zig` is directly readable on current `master`.
@@ -40,12 +40,14 @@ Fresh repo-first inspection on 2026-05-15 confirmed these same-lane facts:
   - `zigux/tests/phase5_bytestream_fifo_survey.zig`
   - `zigux/tests/phase5_build.zig`
 - authenticated GitHub contents readback in this environment now does recover `zigux/tests/phase5_bytestream_fifo_manifest.json`, including the bytestream manifest's `lane_key` `P5-L01` and current `surveyed_commit` marker.
-- current public-tree blob readback on `master` still exposes those remaining companion paths, including the survey gate's approved in-memory FIFO checks and the shared `phase5_build.zig` route that wires `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` together.
+- current public-tree blob readback on `master` still exposes those remaining companion paths, but the focused replay companion is still a compatibility packet rather than a current helper-name mirror: `zigux/tests/phase5_bytestream_fifo.zig` still references `runHelperBoundaryReplay()`, `runShortDrainReplay()`, `runQueueShapeReplay()`, and `snapshot_sequence`, while the directly readable sample-local packet now exposes its current helper surface through eight in-file tests around `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `runRemainingCapacityReplay()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and `snapshot_before_final_drain`.
+- current public-tree blob readback also still exposes the survey replay companion and the shared `phase5_build.zig` route that wire the bytestream packet together, but those broader current paths should be treated as split-readback companion evidence until both readback routes and the sample-local helper vocabulary line up again.
 
 That means the honest same-lane posture today is:
 
 - the roadmap-backed kfifo sample idiom is still present at the sample root
-- the manifest-backed packet is directly readable through authenticated contents readback, the tests-root README now keeps that direct manifest companion explicit, and the broader focused replay, survey replay, and shared Phase 5 build route are publicly visible on current `master`
+- the manifest-backed packet is directly readable through authenticated contents readback, and the tests-root README now keeps that direct manifest companion explicit
+- the broader focused replay, survey replay, and shared Phase 5 build route are publicly visible on current `master`, but the focused replay companion still uses older helper names and field names than the current sample-local packet
 - authenticated connector readback for the remaining focused replay, survey replay, and shared-build files still fails in this environment, so reminder surfaces should describe the split readback honestly instead of calling those files absent or pretending the connector path already recovered them all
 
 ## Approved idiom for the current bytestream sample
@@ -76,9 +78,9 @@ The directly readable sample still keeps these cues visible on current `master`:
 - ownership and lifetime stay explicit through the `cold`, `initialized`, `replay_complete`, and `exited` stages
 - docs should keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample
 
-## Exact checks verified on 2026-05-15
+## Exact checks verified on 2026-05-16
 
-Fresh direct readback of `samples/zigux/bytestream_fifo.zig` on 2026-05-15 shows eight in-file `test` blocks on current `master`. Those directly readable checks cover:
+Fresh direct readback of `samples/zigux/bytestream_fifo.zig` on 2026-05-16 shows eight in-file `test` blocks on current `master`. Those directly readable checks cover:
 
 - descriptor, Linux anchor, and review packet markers stay aligned: `bytestream_fifo`, `samples/kfifo/bytestream-example.c`, `requires_runtime_substrate = false`, `provides_selfcheck = true`, `StorageBacking.embedded_fixed_buffer`, the ten-item `reviewContract().focus` order, and the four non-goals all match the current sample packet
 - `runAnchorReplay()` still proves the bounded FIFO replay body exactly: `"hello"` drains first, `{ 0, 1 }` is requeued, `skipByte()` removes `2`, `peekByte()` then sees `3`, `previewInto()` reports `copied = 8`, `total_visible = 32`, and `truncated = true`, `snapshotInto()` captures the full 32-byte queue, the fill range remains `20` through `42`, and the final drained sequence is `[3, 4, 5, 6, 7, 8, 9, 0, 1, 20..42]`
@@ -90,12 +92,12 @@ Fresh direct readback of `samples/zigux/bytestream_fifo.zig` on 2026-05-15 shows
 - ownership and lifetime guards remain explicit: replay helpers reject `.cold`, `init()` rejects a second call, queue-shape replays reject the `.replay_complete` stage, `exit()` clears the queue and moves to `.exited`, post-exit replay attempts still fail closed, and `reset()` clears queue contents without rewinding stage or the `init_runs` and `exit_runs` bookkeeping counters
 - does that same helper-facing packet still keep the bounded helper contract explicit: empty-queue peek and skip return `null`, empty enqueue copies `0` bytes, skip-at-capacity returns `0`, `pop-after-reset` returning `null`, draining a three-byte destination from the queued string `"hello"` yields `"hel"`, leaves the remaining prefix `"lo"` queued in order, and follow-up drain on the now-empty queue returns `0`
 - `runPreviewBoundaryReplay()` keeps preview truncation stay non-destructive: truncated preview stays non-destructive, `snapshotInto()` still begins with `[2,3,4,5]`, `previewInto()` copies `[2,3,4,5,6,7,8,9]`, reports `10` visible bytes, leaves the queued data intact, and the preview truncation boundary plus preview-boundary replay also held with `snapshot_prefix = {2, 3, 4, 5}`, `preview_prefix = {2, 3, 4, 5, 6, 7, 8, 9}`, `preview_total_visible = 10`, and `queue_len_after_preview = 10`
-- `available()` reports `32` at cold, initialized, replay-complete, reset, and exited boundaries, `27` after enqueueing `"hello"`, `22` after the preview-boundary setup, `0` at full capacity`, and `1` immediately after skip-at-capacity`
+- `available()` reports `32` at cold, initialized, replay-complete, reset, and exited boundaries, `27` after enqueueing `"hello"`, `22` after the preview-boundary setup, `0` at full capacity, and `1` immediately after skip-at-capacity`
 - `usesWrappedStorageWindow()` stays `false` at cold, initialized, reset, preview-boundary, replay-complete, and full-capacity states, flips `true` only after the skip-at-capacity plus refill rollover cue, and `visibleSpanSummary()` keeps the same bounded split cues reviewers expect from the ring window: `{ first_span_len = 0, second_span_len = 0 }` at cold, initialized, replay-complete, reset, and exited boundaries, `{ 5, 0 }` after enqueueing `"hello"`, `{ 32, 0 }` at full capacity, `{ 31, 0 }` immediately after skip-at-capacity, `{ 31, 1 }` once refill makes the bounded window wrap, the queue-shape replay also held, `usesWrappedStorageWindow()` stayed `false` until the refill-after-skip rollover flipped it `true`, and `runWrappedPreviewReplay()` keeps that same wrapped-window boundary reviewable without mutation too by draining `"hell"`, refilling `{200,201,202,203}`, keeping `previewInto()` at `['o',0,1,2,3,4,5,6]`, holding `available_after_preview` at `0`, and preserving the wrapped `{28,4}` split cue
 
 ## Latest verification snapshot
 
-The latest full-packet replay snapshot still preserved in the coupled survey gate remains useful as a compatibility record even though fresh direct sample-file readback above now shows eight in-file `test` blocks on current `master`.
+The latest full-packet replay snapshot still preserved in the coupled survey gate remains useful as a compatibility record even though fresh direct sample-file readback above now shows eight in-file `test` blocks on current `master`. That broader replay snapshot should not be treated as proof that the public focused replay companion already matches the current sample-local helper names and field names.
 
 - `0.17.0-dev.87+9b177a7d2`
 - `zig test samples/zigux/bytestream_fifo.zig`
@@ -143,7 +145,7 @@ Keep these current packet markers visible while `zigux/tests/phase5_bytestream_f
 
 An older commit-pinned replay snapshot for this bytestream packet remains recorded in prior survey wording, but it should no longer be presented as the only broader current proof now that public-tree readback exposes the companion files again.
 
-Treat earlier references to `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, or `zigux/tests/phase5_build.zig` as mixed current packet evidence: the manifest now returns through authenticated contents readback, while the focused replay, survey replay, and shared build route still rely on public-tree-backed current packet evidence until a fresh reread proves those exact paths return cleanly through both readback routes.
+Treat earlier references to `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, or `zigux/tests/phase5_build.zig` as mixed current packet evidence: the manifest now returns through authenticated contents readback, while the focused replay, survey replay, and shared build route still rely on public-tree-backed current packet evidence until a fresh reread proves those exact paths return cleanly through both readback routes. Within that mixed packet, keep the public focused replay companion framed as older compatibility evidence until it stops naming `runHelperBoundaryReplay()`, `runShortDrainReplay()`, `runQueueShapeReplay()`, and `snapshot_sequence` where the current sample-local packet now exposes `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `runRemainingCapacityReplay()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and `snapshot_before_final_drain`.
 
 ## Contributor refresh prompts for the current packet
 
@@ -154,6 +156,7 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig` or one of its dir
 - does `reviewContract().focus` still keep the cue order explicit for `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `remaining_capacity`, `queue_shape_boundaries`, `helper_boundaries`, `reset_and_replay`, and `ownership_and_lifetime`?
 - do `previewInto()`, `snapshotInto()`, `runPreviewBoundaryReplay()`, `runWrappedPreviewReplay()`, `runRemainingCapacityReplay()`, `available()`, `occupancySummary()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()` still keep preview, rollover, remaining-capacity, occupancy, queue-shape, and writable-span evidence visible from the sample file itself?
 - if a shared Phase 5 doc, README, or checklist mentions `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, or `zigux/tests/phase5_build.zig`, did a fresh reread confirm whether that mention is grounded in authenticated connector readback, public-tree blob readback, or both?
+- if a shared surface leans on the public focused replay companion, does it keep that file's older helper vocabulary framed as compatibility-only evidence instead of the current sample-local packet?
 - do the docs still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
 
 ## Recorded gap vs roadmap
@@ -163,9 +166,10 @@ The roadmap gap here is no longer "Zigux still needs a kfifo reference sample." 
 - the roadmap-backed `kfifo` anchor already has a directly readable sample-root implementation
 - current `master` now directly exposes the manifest-backed packet and still publicly exposes the focused replay, survey replay, and shared `phase5_build.zig` route for that anchor
 - authenticated contents readback for the focused replay, survey replay, and shared build files still fails in this environment
-- Phase 5 reminder surfaces therefore need to keep the approved idiom explicit without collapsing that split into either a missing-packet claim or a fully recovered connector-proof claim
+- the public focused replay companion still lags the current sample-local helper packet, so Phase 5 reminder surfaces cannot treat that public replay as equal current proof yet
+- Phase 5 reminder surfaces therefore need to keep the approved idiom explicit without collapsing the split into either a missing-packet claim or a fully recovered connector-proof claim
 
-So the honest same-lane follow-through is a truthfulness repair: keep this survey aligned with the sample-root file, the direct manifest readback, the public-tree bytestream packet, and the current shared guide surfaces now, and only simplify the wording again if both readback routes converge.
+So the honest same-lane follow-through is a truthfulness repair: keep this survey aligned with the sample-root file, the direct manifest readback, the public-tree bytestream packet, and the current shared guide surfaces now, keep the public focused replay companion framed as compatibility-only evidence until its helper vocabulary catches up, and only simplify the wording again if both readback routes converge and the bytestream replay packet itself is refreshed.
 
 ## Review gates for this survey
 
@@ -179,6 +183,8 @@ So the honest same-lane follow-through is a truthfulness repair: keep this surve
 
 3. confirm broader replay or build-path wording with both authenticated connector readback and public-tree blob readback before claiming the routes are fully recovered
 
+4. if the public focused replay companion is reused as evidence, confirm whether it still carries older helper names or whether it has been refreshed to the current sample-local packet
+
 ## Non-goals
 
 This survey does not yet claim:
@@ -190,9 +196,10 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Leave the bytestream survey packet parked unless a fresh bytestream-local reread changes one of two bounded facts:
+Leave the bytestream survey packet parked unless a fresh bytestream-local reread changes one of three bounded facts:
 
 - authenticated connector readback for `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig` starts returning again, so the survey note can collapse back to fully direct wording
+- the public focused replay companion is refreshed from the older `runHelperBoundaryReplay()` / `runShortDrainReplay()` / `runQueueShapeReplay()` / `snapshot_sequence` vocabulary to the current sample-local helper packet, so the compatibility-only caveat can be removed
 - the split between direct manifest readback and the remaining public-tree-backed bytestream packet stays live and one more bytestream-local truthfulness repair is needed, starting with the smallest stale split-readback marker inside `Documentation/zigux/phase5-kfifo-sample-survey.md`
 
 Do not widen that follow-up into runtime work or broader sample behavior unless the sample-root file itself changes.
