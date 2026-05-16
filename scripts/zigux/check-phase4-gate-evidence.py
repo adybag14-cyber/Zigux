@@ -14,7 +14,7 @@ SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 GATE_EVIDENCE_REL = Path("Documentation/zigux/phase4-gate-evidence.md")
 EXPECTED_SHIPPED_TARGET_COUNT = 19
-EXPECTED_SELF_TEST_CASE_COUNT = 33
+EXPECTED_SELF_TEST_CASE_COUNT = 34
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "shipped_target_count_drift",
@@ -29,6 +29,7 @@ SELF_TEST_CASES = [
     "tests_readme_blob_pin_drift",
     "gate_evidence_self_test_case_count_drift",
     "gate_evidence_self_test_cases_drift",
+    "shared_validator_reruns_gate_evidence_check_drift",
     "shared_validator_reruns_gate_evidence_self_test_drift",
     "shared_validator_expected_target_count_drift",
     "shared_validator_expected_self_test_case_count_drift",
@@ -726,6 +727,26 @@ def run_self_test() -> int:
             gate_evidence_path,
             "self-test case catalog drift",
             exact_failure=f"status_exact_count:{SELF_TEST_CASES_LINE}:0",
+        ):
+            return 1
+        case_count += 1
+        gate_evidence_path.write_text(original_note, encoding="utf-8")
+
+        gate_evidence_path.write_text(
+            replace_once(
+                original_note,
+                "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true",
+                "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=false",
+            ),
+            encoding="utf-8",
+        )
+        if not expect_failure(
+            root,
+            gate_evidence_path,
+            "shared validator rerun gate-evidence check drift",
+            exact_failure=(
+                "status_exact_count:PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true:0"
+            ),
         ):
             return 1
         case_count += 1
