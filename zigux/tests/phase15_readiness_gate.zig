@@ -57,14 +57,10 @@ test "phase 15 readiness manifest preserves the parked validator-first route" {
         "policy for code that remains in C indefinitely",
         manifest.roadmap_required_features[3],
     );
-    try std.testing.expectEqual(@as(usize, 2), manifest.remaining_readiness_gaps.len);
+    try std.testing.expectEqual(@as(usize, 1), manifest.remaining_readiness_gaps.len);
     try std.testing.expectEqualStrings(
         "phase15-deep-core-status-change-blocker",
         manifest.remaining_readiness_gaps[0],
-    );
-    try std.testing.expectEqualStrings(
-        "phase15-shared-summaries-scripts-root-validator-route-drift",
-        manifest.remaining_readiness_gaps[1],
     );
     try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
@@ -116,7 +112,6 @@ test "phase 15 readiness note and replay routes stay aligned" {
     try expectContains(readiness_note, "The roadmap requires the freeze map, Architecture Council review process, parity scorecard, and policy for code that remains in C indefinitely.");
     try expectContains(readiness_note, "The bootstrap ledger anchor for this governance family was `docs(zigux): add documentation root, review checklist, and freeze map`.");
     try expectContains(readiness_note, "Current `master` already exceeds that ledger foothold.");
-    try expectContains(readiness_note, "`phase15-shared-summaries-scripts-root-validator-route-drift`");
     try expectContains(readiness_note, "python3 scripts/zigux/validate-phase15.py");
     try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-docs-readme-alignment.py");
     try expectContains(readiness_note, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
@@ -135,11 +130,11 @@ test "phase 15 readiness note and replay routes stay aligned" {
     );
     try expectContains(
         readiness_note,
-        "a fresh 2026-05-15 reread confirmed that the only live non-readiness drift remains the scripts-root `phase15-validate` undercount in `scripts/zigux/README.md` plus `scripts/zigux/check-phase15-scripts-readme-alignment.py`, but the current owner map in `Documentation/zigux/phase15-governance-lane-sequencing.md` now routes that bounded repair through the `shared-summaries` lane instead of this readiness packet",
+        "A fresh same-lane reread on 2026-05-16 also showed the older shared-summary scripts-root validator-route drift is already closed on current `master`:",
     );
     try expectContains(
         readiness_note,
-        "keep this readiness packet parked while that narrower shared-summary repair is pending;",
+        "the older scripts-root `phase15-validate` route mismatch is already closed on current `master`",
     );
 
     try expectContains(scripts_readme, "validate-phase15.py");
