@@ -11,7 +11,10 @@ FILES = {
     "closure_note": "Documentation/zigux/phase11-closure-note.md",
     "lane_note": "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "contributor_sync_note": "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
+    "tests_companion_note": "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "docs_readme": "Documentation/zigux/README.md",
     "scripts_readme": "scripts/zigux/README.md",
+    "tests_readme": "zigux/tests/README.md",
     "build_inventory": "zigux/tests/fixtures/phase11_build_inventory.json",
     "makefile": "zigux/Makefile",
     "workflow": ".github/workflows/zigux-bootstrap.yml",
@@ -69,6 +72,29 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase11-contract`",
         "the exact shared `zig build test --build-file zigux/tests/phase11_build.zig --summary all` replay",
     ],
+    "tests_companion_note": [
+        "# Phase 10, 11, and 13 Tests-Root Review Companion",
+        "## Phase 11 tests-root packet",
+        "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`scripts/zigux/check-phase11-build-inventory.py`",
+        "`zigux/tests/fixtures/phase11_build_inventory.json`",
+        "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
+        "`make -C zigux phase11-contract`",
+        "`make -C zigux phase11-hvc-survey`",
+        "Direct GitHub contents reads now materialize `zigux/tests/phase11_build.zig` and the shared `zigux/tests/fixtures/phase11_build_inventory.json` anchor",
+    ],
+    "docs_readme": [
+        "Phase 11 notes - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
+        "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`scripts/zigux/check-phase11-build-inventory.py`",
+        "`zigux/tests/fixtures/phase11_build_inventory.json`",
+        "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
+        "`make -C zigux phase11-contract`",
+        "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
+        "`drivers/watchdog/dw_wdt.zig`",
+        "`drivers/watchdog/dw_wdt_verify.zig`",
+        "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+    ],
     "scripts_readme": [
         "Phase 11 flow - the current shared Phase 11 scripts-root reminder on `master` is",
         "`Documentation/zigux/phase11-shared-replay-contract.md`",
@@ -84,6 +110,18 @@ REQUIRED_MARKERS = {
         "`drivers/watchdog/dw_wdt.zig`",
         "`drivers/watchdog/dw_wdt_verify.zig`",
         "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+    ],
+    "tests_readme": [
+        "Phase 11 review packet",
+        "`Documentation/zigux/phase11-shared-replay-contract.md`",
+        "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+        "`scripts/zigux/check-phase11-build-inventory.py`",
+        "`zigux/tests/fixtures/phase11_build_inventory.json`",
+        "`zigux/tests/phase11_build.zig`",
+        "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
+        "`make -C zigux phase11-contract`",
+        "`make -C zigux phase11-hvc-survey`",
+        "there is no shared `validate-phase11.py` or `make -C zigux phase11-validate` route on current `master`",
     ],
     "build_inventory": [
         '"phase11-hvc-console-survey-tests"',
@@ -135,13 +173,11 @@ class CheckError(RuntimeError):
     pass
 
 
-
 def read_text(root: Path, relative_path: str) -> str:
     path = root / relative_path
     if not path.is_file():
         raise CheckError(f"missing required file: {relative_path}")
     return path.read_text(encoding="utf-8")
-
 
 
 def expect_markers(label: str, text: str, markers: list[str]) -> None:
@@ -150,12 +186,10 @@ def expect_markers(label: str, text: str, markers: list[str]) -> None:
             raise CheckError(f"missing marker in {label}: {marker}")
 
 
-
 def expect_forbidden_markers_absent(label: str, text: str) -> None:
     for marker in FORBIDDEN_MARKERS.get(label, []):
         if marker in text:
             raise CheckError(f"forbidden marker in {label}: {marker}")
-
 
 
 def run_check(root: Path) -> None:
@@ -165,11 +199,9 @@ def run_check(root: Path) -> None:
         expect_forbidden_markers_absent(label, text)
 
 
-
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
 
 
 def build_self_test_fixture(root: Path) -> None:
@@ -180,7 +212,6 @@ def build_self_test_fixture(root: Path) -> None:
         write(root / relative_path, "\n".join(lines) + "\n")
 
 
-
 def expect_failure(root: Path, expected_fragment: str) -> None:
     try:
         run_check(root)
@@ -189,7 +220,6 @@ def expect_failure(root: Path, expected_fragment: str) -> None:
             raise AssertionError(f"expected {expected_fragment!r}, got {exc!r}") from exc
         return
     raise AssertionError(f"expected failure containing {expected_fragment!r}")
-
 
 
 def run_self_test() -> None:
@@ -245,7 +275,6 @@ def run_self_test() -> None:
         )
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
-
 
 
 def main() -> int:
