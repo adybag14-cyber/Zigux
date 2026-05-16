@@ -384,6 +384,22 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         runtime_kretprobe_loader,
+        "test \"runtime kretprobe loader keeps initialized shared-request snapshots stable across later clean exit activity\"",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "const exit_report = try module.exit();",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try std.testing.expectEqual(@as(usize, 0), exit_report.selftest_runs);",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
+        "try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);",
+    );
+    try expectContains(
+        runtime_kretprobe_loader,
         "test \"runtime kretprobe loader keeps the prepared snapshot stable across later sample mutation\"",
     );
     try expectContains(
