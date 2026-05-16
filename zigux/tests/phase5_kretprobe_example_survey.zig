@@ -57,8 +57,8 @@ test "phase5 kretprobe manifest records the restored direct replay packet" {
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expectEqualStrings("zig test zigux/tests/phase5_kretprobe_example_survey.zig", manifest.validation_entrypoint);
-    try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     const anchor_check = manifestById(manifest, "descriptor-anchor") orelse return error.MissingExactCheck;
@@ -66,6 +66,11 @@ test "phase5 kretprobe manifest records the restored direct replay packet" {
 
     const retarget_check = manifestById(manifest, "retarget-replay") orelse return error.MissingExactCheck;
     try std.testing.expect(std.mem.indexOf(u8, retarget_check.expected, "do_sys_openat2") != null);
+
+    const maxactive_check = manifestById(manifest, "maxactive-pressure") orelse return error.MissingExactCheck;
+    try std.testing.expect(std.mem.indexOf(u8, maxactive_check.expected, "nmissed_after_overflow = 1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, maxactive_check.expected, "inner return duration 30") != null);
+    try std.testing.expect(std.mem.indexOf(u8, maxactive_check.expected, "outer return duration 140") != null);
 
     const recovery_check = manifestById(manifest, "recovery-replay") orelse return error.MissingExactCheck;
     try std.testing.expect(std.mem.indexOf(u8, recovery_check.expected, "recovered duration 60") != null);
@@ -97,10 +102,14 @@ test "phase5 kretprobe survey note and manifest stay aligned with the restored p
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "public-tree reread") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current public-tree-backed companion evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused validation route") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "runMaxactivePressureReplay()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runRetargetReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runLifecycleGuardReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runOwnershipReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runRecoveryReplay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "nmissed_after_overflow = 1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "inner return duration `30`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "outer return duration `140`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-sample-review-guide.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "review-checklist.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
