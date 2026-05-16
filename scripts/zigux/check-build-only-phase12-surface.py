@@ -815,6 +815,23 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_file:{PHASE12_RELEASE_READINESS_PACKET_CHECKER_PATH}")
 
         write_fixture_tree(base)
+        (base / PHASE12_VALIDATE_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE12_VALIDATE_PATH}")
+
+        for marker in RELEASE_READINESS_SURVEY_MARKERS:
+            write_fixture_tree(base)
+            release_readiness_path = base / RELEASE_READINESS_SURVEY_PATH
+            release_readiness_path.write_text(
+                release_readiness_path.read_text(encoding="utf-8").replace(
+                    marker,
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_failure(base, f"release_readiness_survey:{marker}")
+
+        write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
         docs_root_path.write_text(
             docs_root_path.read_text(encoding="utf-8").replace(
@@ -1082,7 +1099,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=9:actual=8")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=41")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=50")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
