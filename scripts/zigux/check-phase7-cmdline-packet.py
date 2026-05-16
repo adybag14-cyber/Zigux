@@ -428,10 +428,40 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_cmdline_survey.zig: zigux/tests/phase7_cmdline_manifest.json",
             ),
             (
+                "survey_shared_route_marker",
+                "zigux/tests/phase7_cmdline_survey.zig",
+                "shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`",
+                "zigux/tests/phase7_cmdline_survey.zig: shared-route note: fresh 2026-05-13 current-master readback confirms `zigux/tests/phase7_build.zig` together with the sibling `string_helpers`, `argv_split`, and `rbtree` helper-local replays is directly readable on `master`",
+            ),
+            (
+                "survey_range_parsing_marker",
+                "zigux/tests/phase7_cmdline_survey.zig",
+                "phase 7 getOption and getOptions preserve Linux-style range parsing",
+                "zigux/tests/phase7_cmdline_survey.zig: phase 7 getOption and getOptions preserve Linux-style range parsing",
+            ),
+            (
+                "survey_clear_output_marker",
+                "zigux/tests/phase7_cmdline_survey.zig",
+                "phase 7 getOption clears caller output on malformed signed and unsigned input",
+                "zigux/tests/phase7_cmdline_survey.zig: phase 7 getOption clears caller output on malformed signed and unsigned input",
+            ),
+            (
+                "survey_next_arg_fixture_marker",
+                "zigux/tests/phase7_cmdline_survey.zig",
+                "phase 7 nextArg matches serialized edge fixtures",
+                "zigux/tests/phase7_cmdline_survey.zig: phase 7 nextArg matches serialized edge fixtures",
+            ),
+            (
                 "survey_fixture_name_marker",
                 "zigux/tests/phase7_cmdline_survey.zig",
                 "leading equals sign stays in the parameter token",
                 "zigux/tests/phase7_cmdline_survey.zig: leading equals sign stays in the parameter token",
+            ),
+            (
+                "survey_trailing_spaces_marker",
+                "zigux/tests/phase7_cmdline_survey.zig",
+                "trailing spaces after key=value trim to empty rest",
+                "zigux/tests/phase7_cmdline_survey.zig: trailing spaces after key=value trim to empty rest",
             ),
             (
                 "manifest_checker_marker",
