@@ -22,6 +22,10 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectMissing(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+}
+
 fn expectOrderedStrings(actual: []const []const u8, expected: []const []const u8) !void {
     try std.testing.expectEqual(expected.len, actual.len);
     for (expected, actual) |expected_value, actual_value| {
@@ -164,4 +168,50 @@ test "phase 9 runtime loader lifecycle boundary guard keeps shared review-checkl
         review_checklist,
         "keep `rust/exports.c` and `zigux/kernel/export_shim.zig` explicit as Phase 3 export-boundary references",
     );
+}
+
+test "phase 9 runtime loader lifecycle boundary guard keeps trace-events and kretprobe registration details metadata-only outside the shared request" {
+    const allocator = std.testing.allocator;
+
+    const runtime_loader_contract = try readRepoFileAlloc(
+        allocator,
+        "zigux/kernel/runtime_loader_contract.zig",
+        64 * 1024,
+    );
+    defer allocator.free(runtime_loader_contract);
+
+    const trace_loader = try readRepoFileAlloc(
+        allocator,
+        "samples/zigux/runtime_trace_events_loader.zig",
+        256 * 1024,
+    );
+    defer allocator.free(trace_loader);
+
+    const kretprobe_loader = try readRepoFileAlloc(
+        allocator,
+        "samples/zigux/runtime_kretprobe_loader.zig",
+        256 * 1024,
+    );
+    defer allocator.free(kretprobe_loader);
+
+    try expectContains(runtime_loader_contract, "pub const blocked_registration_summary_fields = [_][]const u8{");
+    try expectContains(runtime_loader_contract, "\"register_api\"");
+    try expectContains(runtime_loader_contract, "\"unregister_api\"");
+    try expectContains(runtime_loader_contract, "\"summary\"");
+    try expectContains(runtime_loader_contract, "\"registration_snapshot\"");
+    try expectContains(runtime_loader_contract, "pub fn keepsRegistrationSummaryBoundaryExplicit() bool");
+    try expectContains(runtime_loader_contract, "!requestBoundaryDeclaresAnyField(&blocked_registration_summary_fields)");
+
+    try expectContains(trace_loader, "pub fn registrationSnapshot(plan: RuntimeTraceEventsLoadPlan)");
+    try expectContains(trace_loader, ".register_api = plan.register_api,");
+    try expectContains(trace_loader, ".unregister_api = plan.unregister_api,");
+    try expectContains(trace_loader, "pub fn toSharedLoadPlan(plan: RuntimeTraceEventsLoadPlan) runtime_loader.LoadPlan");
+    try expectMissing(trace_loader, ".register_api = \"tracepoint_probe_register\"");
+    try expectMissing(trace_loader, ".unregister_api = \"tracepoint_probe_unregister\"");
+
+    try expectContains(kretprobe_loader, ".register_api = \"register_kretprobe\"");
+    try expectContains(kretprobe_loader, ".unregister_api = \"unregister_kretprobe\"");
+    try expectContains(kretprobe_loader, "pub fn toSharedLoadPlan(plan: RuntimeKretprobeLoadPlan) runtime_loader.LoadPlan");
+    try expectMissing(kretprobe_loader, ".register_api = plan.register_api");
+    try expectMissing(kretprobe_loader, ".unregister_api = plan.unregister_api");
 }
