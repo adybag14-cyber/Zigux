@@ -15,6 +15,12 @@ HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase14-[^"]+)"')
 BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
+SHARED_SMOKE_ANCHOR_REPLAY_SOURCES = [
+    "zigux/tests/phase14_workqueue_bridge.zig",
+    "zigux/tests/phase14_skbuff_bridge.zig",
+    "zigux/tests/phase14_ring_buffer_survey.zig",
+    "zigux/tests/phase14_rcu_tree_survey.zig",
+]
 
 FILES = [
     "scripts/zigux/validate-phase14.py",
@@ -39,11 +45,12 @@ FILES = [
     "zigux/tests/phase14_build.zig",
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
     "zigux/tests/phase14_end_to_end_smoke_survey.zig",
+    "zigux/tests/phase14_workqueue_reviewability.zig",
+    *SHARED_SMOKE_ANCHOR_REPLAY_SOURCES,
     "zigux/tests/phase14_workqueue_bridge_manifest.json",
     "zigux/tests/phase14_skbuff_bridge_manifest.json",
     "zigux/tests/phase14_ring_buffer_manifest.json",
     "zigux/tests/phase14_rcu_tree_manifest.json",
-    "zigux/tests/phase14_workqueue_reviewability.zig",
 ]
 
 MAKE_MARKERS = [
@@ -239,6 +246,7 @@ REQUIRED_SHARED_SMOKE_SURFACES = [
     "zigux/tests/phase14_end_to_end_smoke_survey.zig",
     "zigux/tests/phase14_build.zig",
     "zigux/tests/phase14_workqueue_reviewability.zig",
+    *SHARED_SMOKE_ANCHOR_REPLAY_SOURCES,
     "zigux/tests/README.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
@@ -601,6 +609,17 @@ def run_self_test() -> int:
         print("PHASE14_SELF_TEST=fail")
         print("SELF_TEST_REASON=tests_readme_checker_missing_from_required_survey_summary_keys")
         return 1
+    for required_surface in SHARED_SMOKE_ANCHOR_REPLAY_SOURCES:
+        if required_surface not in FILES:
+            print("PHASE14_SELF_TEST=fail")
+            print(f"SELF_TEST_REASON=anchor_replay_source_missing_from_files:{required_surface}")
+            return 1
+        if required_surface not in REQUIRED_SHARED_SMOKE_SURFACES:
+            print("PHASE14_SELF_TEST=fail")
+            print(
+                f"SELF_TEST_REASON=anchor_replay_source_missing_from_required_shared_smoke_surfaces:{required_surface}"
+            )
+            return 1
 
     good_tests_readme = "\n".join(
         [TESTS_README_PACKET_ANCHOR] + TESTS_README_EXACT_LINES
@@ -1050,7 +1069,7 @@ def run_validation() -> int:
                 if anchor_manifest.get("anchor") != anchor:
                     missing.append(f"{manifest_path}:anchor")
                 if anchor_manifest.get("surveyed_commit") != packet_commit:
-                    missing.append(f"{manifest_path}:surveyed_commit")
+                    missing.append(f"{manifest_path}:surveyed_commit={packet_commit}")
 
                 expected_ready_next_gap, expected_blocked_gap = summarize_gap_ids(anchor_manifest)
                 if ready_next_gap != expected_ready_next_gap:
