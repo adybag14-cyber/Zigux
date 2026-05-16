@@ -16,7 +16,7 @@ test "phase 15 governance lane sequencing note keeps the lane family split expli
 
     try expectContains(note, "PHASE15_STATUS=lane_sequencing_note_landed");
     try expectContains(note, "PHASE15_LANE_KEY=P15-Y07");
-    try expectContains(note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-15");
+    try expectContains(note, "PHASE15_SURVEYED_HEAD=current-master-readback-2026-05-16");
     try expectContains(note, "freeze-map-governance");
     try expectContains(note, "review-process");
     try expectContains(note, "parity-scorecard-survey");
@@ -44,6 +44,7 @@ test "phase 15 governance lane sequencing note keeps the lane family split expli
     try expectContains(note, "scripts/zigux/check-phase15-docs-readme-alignment.py");
     try expectContains(note, "scripts/zigux/check-phase15-scripts-readme-alignment.py");
     try expectContains(note, "scripts/zigux/check-phase15-shared-summary-gap.py");
+    try expectContains(note, "No active shared-summary drift remains inside this lane today");
     try expectContains(note, "make -C zigux phase15-validate");
     try expectContains(note, "make -C zigux phase15-test");
     try expectContains(note, "make -C zigux phase15");
@@ -67,6 +68,7 @@ test "phase 15 governance lane sequencing note matches the shared summary follow
     try expectContains(review_checklist, "zigux/tests/phase15_handoff_next_steps_manifest.json");
     try expectContains(review_checklist, "zigux/tests/phase15_readiness_gate_manifest.json");
     try expectContains(scripts_readme, "check-phase15-review-process-handoff.py");
+    try expectContains(scripts_readme, "check-phase15-shared-summary-gap.py");
     try expectContains(scripts_readme, "make -C zigux phase15-validate");
     try expectContains(tests_readme, "zigux/tests/phase15_governance_lane_sequencing.zig");
     try expectContains(tests_readme, "zigux/tests/phase15_readiness_gate.zig");
