@@ -39,12 +39,12 @@ test "phase5 kretprobe focused test keeps manifest and survey note aligned with 
     const survey_note = try readFile(std.testing.allocator, "Documentation/zigux/phase5-kretprobe-sample-survey.md");
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, manifest, "\"lane_key\": \"P5-L18\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest, "\"lane_key\": \"P5-L13\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest, "\"sample_path\": \"samples/zigux/kretprobe_example.zig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest, "runRetargetReplay") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest, "runRecoveryReplay") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L18") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L13") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/kretprobe_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kretprobe_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
