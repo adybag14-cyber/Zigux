@@ -582,7 +582,131 @@ def run_self_test() -> int:
                 print(issue)
             return 1
 
+        readme_path = root / README_PATH
+        note_path = root / NOTE_PATH
+        survey_path = root / SURVEY_PATH
         validator_support_path = root / VALIDATOR_SUPPORT_PATH
+
+        _populate_repo(root)
+        readme_path.write_text(
+            _read(readme_path).replace(
+                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "docs README Phase 3 notes marker count drift: "
+            "Documentation/zigux/phase3-abi-h-boundary-next-step.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected docs README next-step drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        note_path.write_text(
+            _replace_in_section(
+                _read(note_path),
+                NOTE_NEXT_STEP_PREFIX,
+                NOTE_NEXT_STEP_NEXT_PREFIX,
+                NOTE_POLICY_MARKERS[0],
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "abi.h next-step note marker count drift: "
+            "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey "
+            "(expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected abi.h next-step policy drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _replace_in_section(
+                _read(survey_path),
+                HEADER_FAMILY_SURVEY_CURRENT_PACKET_PREFIX,
+                HEADER_FAMILY_SURVEY_CURRENT_PACKET_NEXT_PREFIX,
+                "zigux/uapi/dev_t.zig",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey current packet marker count drift: "
+            "zigux/uapi/dev_t.zig (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-family survey dev_t companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _replace_in_section(
+                _read(survey_path),
+                HEADER_FAMILY_SURVEY_CURRENT_PACKET_PREFIX,
+                HEADER_FAMILY_SURVEY_CURRENT_PACKET_NEXT_PREFIX,
+                "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey current packet marker count drift: "
+            "scripts/zigux/validate-phase3-abi-bindings-syntax.py (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-family survey bindings-syntax drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _replace_in_section(
+                _read(survey_path),
+                HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX,
+                None,
+                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "Documentation/zigux/phase3-abi-h-boundary-next-step.md (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-family survey next-step drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        survey_path.write_text(
+            _replace_in_section(
+                _read(survey_path),
+                HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX,
+                None,
+                "should stay anchored in this dedicated survey and the paired next-step note",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "header-family survey shared reminder marker count drift: "
+            "should stay anchored in this dedicated survey and the paired next-step note "
+            "(expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected header-family survey shared-reminder wording drift was not reported")
+            return 1
 
         _populate_repo(root)
         validator_support_path.write_text(
