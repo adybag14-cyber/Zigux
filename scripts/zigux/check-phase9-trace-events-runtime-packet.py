@@ -38,6 +38,10 @@ TESTS_README_BACKLOG_MARKER = (
 SAMPLE_DESCRIPTOR_MARKER = ".provides_selftest_hook = true"
 SAMPLE_RUN_SELFTEST_MARKER = "pub fn runSelftest(self: *Self) !EmissionSummary {"
 SAMPLE_EXIT_MARKER = "pub fn exit(self: *Self) !void {"
+SAMPLE_DUPLICATE_REGISTRATION_TEST_MARKER = (
+    'test "trace-events sample rejects duplicate function-thread registration" {'
+)
+SAMPLE_DUPLICATE_REGISTRATION_ERROR_MARKER = "error.FunctionThreadAlreadyRegistered"
 SAMPLE_CONTINUITY_TEST_MARKER = (
     'test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {'
 )
@@ -71,6 +75,8 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_DESCRIPTOR_MARKER,
     SAMPLE_RUN_SELFTEST_MARKER,
     SAMPLE_EXIT_MARKER,
+    SAMPLE_DUPLICATE_REGISTRATION_TEST_MARKER,
+    SAMPLE_DUPLICATE_REGISTRATION_ERROR_MARKER,
     SAMPLE_CONTINUITY_TEST_MARKER,
     SAMPLE_FAILED_EXIT_TEST_MARKER,
     SAMPLE_REJECTED_SELFTEST_TEST_MARKER,
@@ -161,6 +167,10 @@ pub fn runSelftest(self: *Self) !EmissionSummary {{
 pub fn exit(self: *Self) !void {{
     _ = self;
     return error.InvalidLifecycleTransition;
+}}
+
+test "trace-events sample rejects duplicate function-thread registration" {{
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
 }}
 
 test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {{
