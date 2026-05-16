@@ -16,128 +16,37 @@ ROOT = (
 
 SURVEYED_COMMIT = "e42103fc02f544e1bd23a5ec2e5b584734f5af7d"
 
-RING_DIRECT_FILES = [
-    "drivers/virtio/virtio_ring.zig",
-    "drivers/virtio/virtio_ring_verify.zig",
-    "zigux/tests/phase10_virtio_ring.zig",
-    "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
-    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
-    "zigux/tests/phase10_virtio_ring_survey.zig",
-]
-
-FILES = [
+DIRECT_PACKET_FILES = [
     "scripts/zigux/check-phase10-ring-packet.py",
     "Documentation/zigux/phase10-closure-evidence.md",
-    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
-    "Documentation/zigux/phase10-virtio-ring-slice.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-    "Documentation/zigux/freeze-map.md",
-    "scripts/zigux/README.md",
-    "zigux/tests/README.md",
-    "zigux/tests/phase10_build.zig",
-    "zigux/tests/phase10_closure_manifest.json",
     "zigux/tests/phase10_virtio_ring_manifest.json",
-    "zigux/Makefile",
-    *RING_DIRECT_FILES,
 ]
 
 MARKERS = {
     "Documentation/zigux/phase10-closure-evidence.md": [
-        "python3 scripts/zigux/check-phase10-ring-packet.py",
-        "zigux/tests/phase10_virtio_ring_manifest.json",
-        "drivers/virtio/virtio_ring_verify.zig",
-        "phase10-validate",
-        "phase10-test",
-        "phase10_virtio_ring_survey.zig",
-    ],
-    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
-        "ring lane `P10-L10`",
+        "`virtqueue_wrappers=starter_landed`",
+        "`dual_implementations_for_risky_areas=blocked_on_risky_transport`",
+        "scripts/zigux/check-phase10-ring-packet.py",
         "zigux/tests/phase10_virtio_ring_manifest.json",
         "Documentation/zigux/phase10-virtio-ring-survey.md",
-        "Documentation/zigux/phase10-virtio-ring-slice.md",
-        "zigux/tests/phase10_build.zig",
-        "scripts/zigux/check-phase10-ring-packet.py",
     ],
     "Documentation/zigux/phase10-virtio-ring-survey.md": [
         "`PHASE10_STATUS=parked`",
         "`PHASE10_SLICE=virtio-ring-survey`",
         "lane: `P10-L10`",
         SURVEYED_COMMIT,
-        "drivers/virtio/virtio_ring.zig",
-        "drivers/virtio/virtio_ring_verify.zig",
-        "zigux/tests/phase10_virtio_ring.zig",
-        "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
-        "zigux/tests/phase10_virtio_ring_survey.zig",
-        "scripts/zigux/check-phase10-ring-packet.py",
-        "zigux/tests/phase10_build.zig",
-        "phase10-virtio-ring-survey-gate",
-        "phase10-ring-verify-replay",
-        "phase10-ring-lab-driver-bridge",
-    ],
-    "Documentation/zigux/phase10-virtio-ring-slice.md": [
-        "# Phase 10 Virtio Ring Slice",
-        "drivers/virtio/virtio_ring.c",
-        "drivers/virtio/virtio_ring.zig",
-        "drivers/virtio/virtio_ring_verify.zig",
-        "zigux/tests/phase10_virtio_ring.zig",
         "zigux/tests/phase10_virtio_ring_manifest.json",
-        "zigux/tests/phase10_virtio_ring_survey.zig",
-        "Documentation/zigux/phase10-virtio-ring-survey.md",
-        "scripts/zigux/check-phase10-ring-packet.py",
+        "phase10-ring-lab-driver-bridge",
+        "blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "scripts/zigux/check-phase10-ring-packet.py",
-        "zigux/tests/phase10_build.zig",
-        "drivers/virtio/virtio_ring_verify.zig",
-        "Documentation/zigux/phase10-virtio-ring-survey.md",
-        "Documentation/zigux/phase10-virtio-ring-slice.md",
         "zigux/tests/phase10_virtio_ring_manifest.json",
-    ],
-    "scripts/zigux/README.md": [
-        "check-phase10-ring-packet.py",
         "Documentation/zigux/phase10-virtio-ring-survey.md",
-        "Documentation/zigux/phase10-virtio-ring-slice.md",
-        "zigux/tests/phase10_virtio_ring_manifest.json",
-        "zigux/tests/phase10_build.zig",
-        "drivers/virtio/virtio_ring.zig",
-        "drivers/virtio/virtio_ring_verify.zig",
-        "make -C zigux phase10-validate",
-        "make -C zigux phase10-test",
-    ],
-    "zigux/tests/README.md": [
-        "phase10_virtio_ring.zig",
-        "phase10_virtio_ring_survey.zig",
-        "phase10_virtio_ring_manifest.json",
-        "phase10_build.zig",
-        "phase10-phase11-phase13-tests-root-review-companion.md",
-    ],
-    "zigux/tests/phase10_build.zig": [
-        "phase10_virtio_ring_module",
-        "\"phase10-virtio-ring-tests\"",
-        "run_phase10_virtio_ring_tests",
-        "phase10_virtio_ring_prepare_kick_idempotent_module",
-        "\"phase10-virtio-ring-prepare-kick-idempotent-tests\"",
-        "run_phase10_virtio_ring_prepare_kick_idempotent_tests",
-        "phase10_virtio_ring_survey_module",
-        "\"phase10-virtio-ring-survey-tests\"",
-        "run_phase10_virtio_ring_survey_tests",
-        "phase10_virtio_ring_verify_module",
-        "\"phase10-virtio-ring-verify-tests\"",
-        "run_phase10_virtio_ring_verify_tests",
-    ],
-    "zigux/tests/phase10_closure_manifest.json": [
-        "\"scripts/zigux/check-phase10-ring-packet.py\"",
-        "\"drivers/virtio/virtio_ring_verify.zig\"",
-        "\"zig build test --build-file zigux/tests/phase10_build.zig --summary all\"",
-        "\"make -C zigux phase10-test\"",
-        "\"make -C zigux phase10\"",
-    ],
-    "zigux/Makefile": [
-        "phase10-validate:",
-        "scripts/zigux/check-phase10-ring-packet.py --self-test",
-        "scripts/zigux/check-phase10-ring-packet.py",
-        "$(ZIG) build test --build-file zigux/tests/phase10_build.zig",
+        "closure-manifest-backed ring packet vocabulary",
+        "do not restate the helper and replay paths as freshly direct re-reads unless a fresh reread proves they materialize again",
     ],
 }
 
@@ -178,16 +87,6 @@ EXPECTED_FREEZE_IN_C_ANCHORS = [
     "kernel/rcu/tree.c",
     "net/core/skbuff.c",
 ]
-EXPECTED_SUMMARY = {
-    "virtio_ring_c_lines": 3940,
-    "preexisting_phase10_test_files": 7,
-    "preexisting_phase10_build_present": True,
-    "preexisting_phase10_core_doc_present": True,
-    "preexisting_virtio_core_zig_present": True,
-    "preexisting_virtio_ring_zig_present": True,
-    "preexisting_virtio_ring_doc_present": True,
-    "preexisting_ring_verify_present": True,
-}
 EXPECTED_GAPS = {
     "phase10-build-gate": {
         "status": "starter_landed",
@@ -271,30 +170,13 @@ EXPECTED_GAPS = {
     },
 }
 
-EXPECTED_VERIFY_TEST_MARKERS = [
-    'test "virtio ring packed event-index summary stays queue-local and reports when polling can wait" {',
-    "try testing.expectError(error.QueueLayoutDoesNotSupportPackedEventIndex, lab.packedEventIndexSummary(1));",
-    "try testing.expectError(error.QueueDoesNotUseEventIndex, lab.packedEventIndexSummary(2));",
-    "try testing.expectEqual(@as(u16, 3), summary.event_index_window);",
-    "try testing.expect(!summary.should_poll);",
-    "try testing.expectEqual(@as(u16, 1), summary.event_index_window);",
-    "try testing.expect(summary.should_poll);",
-    'test "virtio ring clearBroken exposes the next reset blocker instead of hiding queue debt" {',
-    "_ = try lab.clearBroken(4);",
-    "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpublished_chains, readiness.blocker.?);",
-    "_ = try lab.clearBroken(5);",
-    "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.outstanding_chains, readiness.blocker.?);",
-    "_ = try lab.clearBroken(6);",
-    "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);",
-]
-
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
-    missing_files = [path for path in FILES if not (root / path).exists()]
+    missing_files = [path for path in DIRECT_PACKET_FILES if not (root / path).exists()]
     if missing_files:
         return missing_files, []
 
@@ -306,11 +188,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         for marker in markers:
             if marker not in text:
                 missing_markers.append(f"{label}:{marker}")
-
-    verify_text = read_text(root, "drivers/virtio/virtio_ring_verify.zig")
-    for marker in EXPECTED_VERIFY_TEST_MARKERS:
-        if marker not in verify_text:
-            missing_markers.append(f"verify:{marker}")
 
     manifest = json.loads(read_text(root, "zigux/tests/phase10_virtio_ring_manifest.json"))
     for key, value in MANIFEST_SCALARS.items():
@@ -326,11 +203,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:study_only_anchors")
     if manifest.get("freeze_in_c_anchors") != EXPECTED_FREEZE_IN_C_ANCHORS:
         missing_markers.append("manifest:freeze_in_c_anchors")
-
-    summary = manifest.get("survey_summary", {})
-    for key, value in EXPECTED_SUMMARY.items():
-        if summary.get(key) != value:
-            missing_markers.append(f"manifest:survey_summary:{key}={summary.get(key)!r}")
 
     gaps = manifest.get("gaps", [])
     if len(gaps) != len(EXPECTED_GAPS):
@@ -356,38 +228,41 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 def write_fixture(root: Path) -> None:
     fixture = {
         "scripts/zigux/check-phase10-ring-packet.py": "# synthetic fixture for self-test\n",
-        "Documentation/zigux/freeze-map.md": "# synthetic freeze map\n",
-        "drivers/virtio/virtio_ring.zig": "pub const VirtioRingLab = struct {};\n",
-        "drivers/virtio/virtio_ring_verify.zig": "\n".join(EXPECTED_VERIFY_TEST_MARKERS) + "\n",
+        "Documentation/zigux/phase10-closure-evidence.md": "\n".join(
+            MARKERS["Documentation/zigux/phase10-closure-evidence.md"]
+        )
+        + "\n",
+        "Documentation/zigux/phase10-virtio-ring-survey.md": "\n".join(
+            MARKERS["Documentation/zigux/phase10-virtio-ring-survey.md"]
+        )
+        + "\n",
+        "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(
+            MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
+        )
+        + "\n",
+        "zigux/tests/phase10_virtio_ring_manifest.json": json.dumps(
+            {
+                **MANIFEST_SCALARS,
+                "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
+                "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
+                "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
+                "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
+                "freeze_in_c_anchors": EXPECTED_FREEZE_IN_C_ANCHORS,
+                "gaps": [
+                    {
+                        "id": gap_id,
+                        "status": expected["status"],
+                        "kind": expected["kind"],
+                        "zigux_destination": expected["zigux_destination"],
+                        "why_now": f"synthetic:{gap_id}",
+                    }
+                    for gap_id, expected in EXPECTED_GAPS.items()
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
     }
-    for rel_path in RING_DIRECT_FILES:
-        fixture.setdefault(rel_path, f"// {rel_path}\n")
-    for rel_path, markers in MARKERS.items():
-        if rel_path in fixture or rel_path == "zigux/tests/phase10_virtio_ring_manifest.json":
-            continue
-        fixture[rel_path] = "\n".join(markers) + "\n"
-    fixture["zigux/tests/phase10_virtio_ring_manifest.json"] = json.dumps(
-        {
-            **MANIFEST_SCALARS,
-            "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
-            "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
-            "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
-            "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
-            "freeze_in_c_anchors": EXPECTED_FREEZE_IN_C_ANCHORS,
-            "survey_summary": EXPECTED_SUMMARY,
-            "gaps": [
-                {
-                    "id": gap_id,
-                    "status": expected["status"],
-                    "kind": expected["kind"],
-                    "zigux_destination": expected["zigux_destination"],
-                    "why_now": f"synthetic:{gap_id}",
-                }
-                for gap_id, expected in EXPECTED_GAPS.items()
-            ],
-        },
-        indent=2,
-    ) + "\n"
     for rel_path, content in fixture.items():
         target = root / rel_path
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -447,37 +322,25 @@ def run_self_test() -> int:
         )
         replace_once(
             "Documentation/zigux/phase10-virtio-ring-survey.md",
-            "phase10-ring-verify-replay",
-            "phase10-ring-verify-drift",
-            "phase10-virtio-ring-survey.md:phase10-ring-verify-replay",
+            "blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
+            "blocked `phase10-ring-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
+            "phase10-virtio-ring-survey.md:blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
         )
         replace_once(
-            "Documentation/zigux/phase10-virtio-ring-slice.md",
-            "Documentation/zigux/phase10-virtio-ring-survey.md",
-            "Documentation/zigux/phase10-virtio-ring-survey-drift.md",
-            "phase10-virtio-ring-slice.md:Documentation/zigux/phase10-virtio-ring-survey.md",
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            "closure-manifest-backed ring packet vocabulary",
+            "closure-backed ring packet vocabulary",
+            "phase10-phase11-phase13-tests-root-review-companion.md:closure-manifest-backed ring packet vocabulary",
         )
         replace_once(
-            "zigux/tests/phase10_build.zig",
-            "run_phase10_virtio_ring_prepare_kick_idempotent_tests",
-            "run_phase10_virtio_ring_prepare_kick_idempotent_gate",
-            "phase10_build.zig:run_phase10_virtio_ring_prepare_kick_idempotent_tests",
-        )
-        replace_once(
-            "zigux/Makefile",
-            "scripts/zigux/check-phase10-ring-packet.py --self-test",
-            "scripts/zigux/check-phase10-ring-packet-drift.py --self-test",
-            "Makefile:scripts/zigux/check-phase10-ring-packet.py --self-test",
+            "Documentation/zigux/phase10-closure-evidence.md",
+            "`dual_implementations_for_risky_areas=blocked_on_risky_transport`",
+            "`dual_implementations_for_risky_areas=starter_landed`",
+            "phase10-closure-evidence.md:`dual_implementations_for_risky_areas=blocked_on_risky_transport`",
         )
         mutate_manifest(
-            lambda manifest: manifest["survey_summary"].__setitem__("preexisting_virtio_ring_zig_present", False),
-            "manifest:survey_summary:preexisting_virtio_ring_zig_present=False",
-        )
-        mutate_manifest(
-            lambda manifest: next(
-                gap for gap in manifest["gaps"] if gap["id"] == "phase10-ring-lab-driver-bridge"
-            ).__setitem__("status", "starter_landed"),
-            "manifest:gap_status:phase10-ring-lab-driver-bridge='starter_landed'",
+            lambda manifest: manifest.__setitem__("allowed_evidence_kinds", ["survey_manifests"]),
+            "manifest:allowed_evidence_kinds",
         )
         mutate_manifest(
             lambda manifest: next(
@@ -491,18 +354,13 @@ def run_self_test() -> int:
             ).__setitem__("zigux_destination", "drivers/virtio/virtio_ring.zig"),
             "manifest:gap_destination:phase10-ring-lab-driver-bridge='drivers/virtio/virtio_ring.zig'",
         )
-        mutate_manifest(
-            lambda manifest: manifest.__setitem__("allowed_evidence_kinds", ["driver_local_lab_slices"]),
-            "manifest:allowed_evidence_kinds",
-        )
 
-        for rel_path in RING_DIRECT_FILES:
-            path = root / rel_path
-            original = path.read_text(encoding="utf-8")
-            path.unlink()
-            expect_missing_file(rel_path)
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(original, encoding="utf-8")
+        survey_path = root / "Documentation/zigux/phase10-virtio-ring-survey.md"
+        survey_original = survey_path.read_text(encoding="utf-8")
+        survey_path.unlink()
+        expect_missing_file("Documentation/zigux/phase10-virtio-ring-survey.md")
+        survey_path.parent.mkdir(parents=True, exist_ok=True)
+        survey_path.write_text(survey_original, encoding="utf-8")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
     print(f"PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT={case_count}")
@@ -510,7 +368,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the bounded Phase 10 virtio ring review packet.")
+    parser = argparse.ArgumentParser(description="Validate the directly readable Phase 10 virtio ring review packet.")
     parser.add_argument("--self-test", action="store_true", help="Run built-in drift checks against a synthetic fixture tree.")
     args = parser.parse_args()
 
@@ -535,7 +393,7 @@ def main() -> int:
         return 1
 
     print("PHASE10_RING_PACKET=pass")
-    print(f"PHASE10_RING_REQUIRED_FILE_COUNT={len(FILES)}")
+    print(f"PHASE10_RING_REQUIRED_FILE_COUNT={len(DIRECT_PACKET_FILES)}")
     return 0
 
 
