@@ -48,4 +48,17 @@ static inline int zigux_boundary_header_is_canonical(struct zigux_boundary_heade
         zigux_boundary_header_is_canonical_size(header.size);
 }
 
+static inline int zigux_boundary_header_extends_boundary(struct zigux_boundary_header header)
+{
+    return zigux_boundary_header_is_compatible(header) &&
+        !zigux_boundary_header_is_canonical(header);
+}
+
+static inline uint32_t zigux_boundary_header_requested_extra_bytes(struct zigux_boundary_header header)
+{
+    if (!zigux_boundary_header_extends_boundary(header))
+        return 0U;
+    return header.size - (uint32_t)sizeof(struct zigux_boundary_header);
+}
+
 #endif
