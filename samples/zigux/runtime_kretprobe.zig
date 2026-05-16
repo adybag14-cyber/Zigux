@@ -472,23 +472,47 @@ test "runtime kretprobe sample keeps overlapping entry timestamps distinct under
     try std.testing.expect(try module.entryHandler(true, 100));
     try std.testing.expect(try module.entryHandler(true, 140));
 
+    const armed_summary = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 2), armed_summary.active_instances);
+    try std.testing.expect(armed_summary.entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 0), armed_summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 0), armed_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 0), armed_summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), armed_summary.selftest_runs);
+
     const inner = try module.retHandler(7, 170);
     try std.testing.expectEqual(@as(usize, 7), inner.retval);
     try std.testing.expectEqual(@as(i64, 30), inner.duration_ns);
 
     const mid_summary = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
     try std.testing.expectEqual(@as(usize, 1), mid_summary.active_instances);
     try std.testing.expect(mid_summary.entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 0), mid_summary.nmissed);
     try std.testing.expectEqual(@as(usize, 7), mid_summary.last_retval);
     try std.testing.expectEqual(@as(i64, 30), mid_summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), mid_summary.selftest_runs);
 
     const outer = try module.retHandler(11, 240);
     try std.testing.expectEqual(@as(usize, 11), outer.retval);
     try std.testing.expectEqual(@as(i64, 140), outer.duration_ns);
 
     const final_summary = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
     try std.testing.expectEqual(@as(usize, 0), final_summary.active_instances);
     try std.testing.expect(!final_summary.entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 0), final_summary.nmissed);
     try std.testing.expectEqual(@as(usize, 11), final_summary.last_retval);
     try std.testing.expectEqual(@as(i64, 140), final_summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), final_summary.selftest_runs);
+
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.missed_instances);
+    try std.testing.expectEqual(@as(usize, 11), exit_report.last_retval);
+    try std.testing.expectEqual(@as(i64, 140), exit_report.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.selftest_runs);
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
 }
