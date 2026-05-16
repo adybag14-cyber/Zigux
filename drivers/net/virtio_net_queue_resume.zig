@@ -294,7 +294,7 @@ test "summarizeQueueResume rejects control restore without an index" {
         .effective_queue_pairs = 2,
         .receive_queue_count = 2,
         .transmit_queue_count = 2,
-        .total_queue_count = 5,
+        .total_queue_count = 4,
         .requires_control_queue_restore = true,
     }));
 }
