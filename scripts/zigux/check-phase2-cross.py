@@ -513,7 +513,80 @@ def run_self_test() -> int:
         )
         case_count += 1
 
-    assert case_count == 22
+        build_self_test_root(root)
+        missing_target_output = io.StringIO()
+        with contextlib.redirect_stdout(missing_target_output):
+            missing_target_rc = run_cross_compile(
+                root,
+                "powerpc64-linux-musl",
+                zig_executable="/custom/zig",
+                toolchain_runner=lambda *args, **kwargs: subprocess.CompletedProcess(
+                    args[0], 0, stdout="ZIG_TOOLCHAIN_STATUS=present\n", stderr=""
+                ),
+                zig_runner=lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("zig runner should not execute")),
+            )
+        assert missing_target_rc == 1
+        assert "PHASE2_CROSS=fail" in missing_target_output.getvalue()
+        assert "PHASE2_CROSS_TARGET=powerpc64-linux-musl" in missing_target_output.getvalue()
+        assert "PHASE2_CROSS_NOTE=target not listed in fixture" in missing_target_output.getvalue()
+        case_count += 1
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/fixtures/phase2_cross_targets.json",
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES[:-1] + [7],
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        invalid_zig_test_files_output = io.StringIO()
+        with contextlib.redirect_stdout(invalid_zig_test_files_output):
+            invalid_zig_test_files_rc = run_cross_compile(
+                root,
+                EXPECTED_TARGETS[0],
+                zig_executable="/custom/zig",
+                toolchain_runner=lambda *args, **kwargs: subprocess.CompletedProcess(
+                    args[0], 0, stdout="ZIG_TOOLCHAIN_STATUS=present\n", stderr=""
+                ),
+                zig_runner=lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("zig runner should not execute")),
+            )
+        assert invalid_zig_test_files_rc == 1
+        assert "PHASE2_CROSS=fail" in invalid_zig_test_files_output.getvalue()
+        assert "PHASE2_CROSS_NOTE=fixture zig_test_files is invalid" in invalid_zig_test_files_output.getvalue()
+        case_count += 1
+
+        build_self_test_root(root)
+        compile_failure_output = io.StringIO()
+
+        def compile_failure_zig_runner(command, cwd, check=False):
+            if command[2] == EXPECTED_ZIG_TEST_FILES[1]:
+                return subprocess.CompletedProcess(command, 9, stdout="", stderr="")
+            return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+        with contextlib.redirect_stdout(compile_failure_output):
+            compile_failure_rc = run_cross_compile(
+                root,
+                EXPECTED_TARGETS[0],
+                zig_executable="/custom/zig",
+                toolchain_runner=lambda *args, **kwargs: subprocess.CompletedProcess(
+                    args[0], 0, stdout="ZIG_TOOLCHAIN_STATUS=present\n", stderr=""
+                ),
+                zig_runner=compile_failure_zig_runner,
+            )
+        assert compile_failure_rc == 9
+        assert "PHASE2_CROSS=fail" in compile_failure_output.getvalue()
+        assert f"PHASE2_CROSS_TARGET={EXPECTED_TARGETS[0]}" in compile_failure_output.getvalue()
+        assert f"PHASE2_CROSS_FAILED_FILE={EXPECTED_ZIG_TEST_FILES[1]}" in compile_failure_output.getvalue()
+        case_count += 1
+
+    assert case_count == 25
     print("PHASE2_CROSS_SELF_TEST=pass")
     print(f"PHASE2_CROSS_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -521,11 +594,21 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the Phase 2 cross-target matrix packet and optionally replay one cross compile target."
+        description="Run the bounded Phase 2 cross-target compile checks against the current target manifest."
     )
-    parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage.")
-    parser.add_argument("--target", help="Run cross-target Zig test replays for one configured target.")
-    parser.add_argument("--zig", help="Explicit zig executable path.")
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run internal coverage for fixture parsing and command wiring.",
+    )
+    parser.add_argument(
+        "--target",
+        help="Compile all Phase 2 Zig tools for the provided target triple.",
+    )
+    parser.add_argument(
+        "--zig",
+        help="Override the zig executable path used for target validation.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
@@ -540,34 +623,20 @@ def main() -> int:
         print("PHASE2_CROSS_MISSING_FILES_END")
         return 1
 
-    try:
-        issues = validate_fixture(ROOT)
-    except json.JSONDecodeError as exc:
+    if validate_fixture(ROOT):
         print("PHASE2_CROSS=fail")
-        print(f"PHASE2_CROSS_NOTE=invalid fixture JSON: {exc.msg}")
-        return 1
-    except ValueError as exc:
-        print("PHASE2_CROSS=fail")
-        print(f"PHASE2_CROSS_NOTE={exc}")
-        return 1
-
-    if issues:
-        print("PHASE2_CROSS=fail")
-        print("PHASE2_CROSS_ISSUES_START")
-        for issue in issues:
+        print("PHASE2_CROSS_FIXTURE_ISSUES_START")
+        for issue in validate_fixture(ROOT):
             print(issue)
-        print("PHASE2_CROSS_ISSUES_END")
+        print("PHASE2_CROSS_FIXTURE_ISSUES_END")
         return 1
 
     if args.target:
         return run_cross_compile(ROOT, args.target, args.zig)
 
-    payload = load_fixture(FIXTURE)
-    targets = payload["targets"]
-    print("PHASE2_CROSS=pass")
-    print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")
-    print(f"PHASE2_CROSS_TARGETS={','.join(targets)}")
-    return 0
+    print("PHASE2_CROSS=fail")
+    print("PHASE2_CROSS_NOTE=pass --target or --self-test")
+    return 1
 
 
 if __name__ == "__main__":
