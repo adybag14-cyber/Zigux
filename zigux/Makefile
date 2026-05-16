@@ -322,6 +322,8 @@ phase9-runtime-loader-shared-tests:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-loader-substrate-drift-tests --build-file zigux/tests/phase9_build.zig --summary all
 
 phase9-test:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-review-checklist-phase-boundaries.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-build-only-surface.py
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase9_build.zig --summary all
 
@@ -417,7 +419,6 @@ phase14-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all
 
 phase14: phase14-validate phase14-smoke phase14-test
-
 phase15-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase15.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase15.py
