@@ -26,6 +26,7 @@ Broad summaries should keep the active shared-helper release handle visible thro
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/validate-phase13-release.py`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
@@ -67,10 +68,13 @@ Broad summaries should also keep the compact PMO coordination companion explicit
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `scripts/zigux/validate-phase13-release.py`
 
-Broad summaries should use that compact coordination companion to keep the active-not-closed packet, the shared validator-first replay handle, and the current repo-reality gaps explicit without inventing a broader shared build route. Current `master` now keeps the shared contributor-surface sync note, the shared tests-root review companion, the broader tests-root guide, the scripts-root reminder, the docs-root summary, and the compact PMO coordination packet aligned around the shipped `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `Documentation/zigux/phase13-devres-slice.md`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, the shipped Landlock helper packet, and adjacent notifier evidence. `Documentation/zigux/README.md` and `zigux/tests/README.md` already keep `make -C zigux phase13` framed as blocked convenience wiring beside the stable `make -C zigux phase13-validate` handle while `zigux/tests/phase13_build.zig` remains absent, so the next same-lane broad-summary follow-through should stay parked unless one of those shared reminder surfaces drifts again rather than reopening an already-closed docs-root or tests-root command-posture repair.
+Broad summaries should use that compact coordination companion together with the dedicated shared-summary checker to keep the active-not-closed packet, the shared validator-first replay handle, and the current repo-reality gaps explicit without inventing a broader shared build route. Current `master` now keeps the shared contributor-surface sync note, the shared tests-root review companion, the broader tests-root guide, the scripts-root reminder, the docs-root summary, and the compact PMO coordination packet aligned around the shipped `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `Documentation/zigux/phase13-devres-slice.md`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, the shipped Landlock helper packet, and adjacent notifier evidence. `Documentation/zigux/README.md` and `zigux/tests/README.md` already keep `make -C zigux phase13` framed as blocked convenience wiring beside the stable `make -C zigux phase13-validate` handle while `zigux/tests/phase13_build.zig` remains absent, so the next same-lane broad-summary follow-through should stay parked unless one of those shared reminder surfaces drifts again rather than reopening an already-closed docs-root or tests-root command-posture repair.
+
+Current `master` also carries `scripts/zigux/check-phase13-shared-summary-surfaces.py` as the dedicated guard for the broader contributor-facing reminder packet, so broad release wording should keep that checker explicit beside `scripts/zigux/validate-phase13-release.py` instead of leaving the shared-summary guard implied only through the coordination matrix or `zigux/Makefile`.
 
 Current `master` no longer frames shipped `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, or `zigux/helpers/notifier_chain_view.zig` as missing in `scripts/zigux/README.md`, so broad summaries should keep the scripts-root reminder aligned with the same shipped libfs, devres, Landlock, and adjacent notifier packet instead of reintroducing the older undercount there.
 
@@ -122,6 +126,7 @@ Broad summaries should also keep the shipped adjacent direct-evidence shards vis
 Broad summaries should also keep the shipped adjacent notifier release surface visible through:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/validate-phase13-release.py`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
@@ -141,7 +146,7 @@ cannot be materialized on current `master`, broad summaries should record them a
 
 Keep Phase 13 release wording inside these boundaries:
 - the shared-helper packet is active rather than closed
-- the validator-first release handle stays grounded in `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, and blocked convenience route `make -C zigux phase13`
+- the validator-first release handle stays grounded in `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, and blocked convenience route `make -C zigux phase13`
 - direct missing companions should stay recorded as repo-reality gaps until current `master` can materialize them again
 - `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, the direct `zigux/tests/phase13_landlock_ruleset.zig` replay, the direct `zigux/tests/phase13_landlock_syscalls.zig` replay, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, the shipped `zigux/bindings/notifier_abi.zig`, the read-only `zigux/helpers/notifier_chain_view.zig` helper, the shipped `include/zigux/abi.h` ABI foothold, the Linux-side `drivers/tty/hvc/hvc_console.h` header, and the shipped `security/landlock/ruleset.zig` plus `security/landlock/syscalls.zig` starters stay adjacent direct evidence rather than extra shared replay steps, while the older shared `zigux/tests/phase13_build.zig` route stays a repo-reality gap
 - the helper-only DMA/scatterlist boundary stays explicit through `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, and `scripts/zigux/check-phase13-devres-packet-alignment.py`; it remains a no-DMA-mapping, no-live-scatterlist-ownership, no-`sg_table`-lifecycle boundary rather than an extra shared replay step
@@ -173,6 +178,7 @@ Refresh these notes together when a contributor-facing Phase 13 summary changes:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/validate-phase13-release.py`
 
 ## Non-Goals
