@@ -581,6 +581,22 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
         "try std.testing.expectError(error.OutstandingProbeInstance, module.exit());",
     );
     try expectContains(
+        runtime_kretprobe_sample,
+        "test \"runtime kretprobe sample keeps rejected selftest rollback explicit\"",
+    );
+    try expectContains(
+        runtime_kretprobe_sample,
+        "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());",
+    );
+    try expectContains(
+        runtime_kretprobe_sample,
+        "try std.testing.expectEqual(before_rejected_selftest.selftest_runs, after_rejected_selftest.selftest_runs);",
+    );
+    try expectContains(
+        runtime_kretprobe_sample,
+        "try std.testing.expectEqual(before_rejected_exit_selftest.selftest_runs, after_rejected_exit_selftest.selftest_runs);",
+    );
+    try expectContains(
         runtime_kretprobe_diff,
         "test \"runtime kretprobe diff gate keeps maxactive pressure and nmissed explicit\"",
     );
