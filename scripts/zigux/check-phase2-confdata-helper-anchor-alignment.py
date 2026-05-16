@@ -19,7 +19,7 @@ CONFDATA_MANIFEST = (
 CONFDATA_SURVEY = ROOT / "Documentation" / "zigux" / "phase2-confdata-bridge-survey.md"
 
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_CONFDATA_CASE_COUNT = 13
+EXPECTED_CONFDATA_CASE_COUNT = 14
 EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 SELFTEST_CONFDATA_CASE_NAMES = (
@@ -34,6 +34,7 @@ SELFTEST_CONFDATA_CASE_NAMES = (
     "uppercase_tristate",
     "non_config_lines",
     "empty_config_symbol_names",
+    "malformed_unset_comment_tokens",
     "last_state_transitions",
     "duplicate_malformed_quoted_assignment",
 )
@@ -63,8 +64,8 @@ SELFTEST_CONFDATA_HELPER_ANCHORS = (
 
 REQUIRED_SURVEY_MARKERS = (
     "`20` helper-local tests covering the current bridge-local edge cases.",
-    "`confdata_cases` packet with 13 fixture cases:",
-    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.",
+    "`confdata_cases` packet with 14 fixture cases:",
+    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 14-case packet, and names the current helper-local anchor list for the bridge tests.",
     "`scripts/zigux/check-kconfig-bridge.py` gate plus the direct `zig test scripts/zigux/kconfig/confdata_bridge.zig` replay",
 )
 
@@ -374,8 +375,8 @@ def render_confdata_survey() -> str:
             "# Phase 2 Confdata Bridge Survey",
             "",
             "- `scripts/zigux/kconfig/confdata_bridge.zig` is present on `master` and ships a bounded `runConfdataBridge()` entrypoint plus a CLI `main()` wrapper that reads one config path and emits a JSON summary, alongside `20` helper-local tests covering the current bridge-local edge cases.",
-            "- `zigux/tests/fixtures/kconfig_bridge/cases.json` currently carries a `confdata_cases` packet with 13 fixture cases: `sample`, `escaped_strings`, `escaped_control_sequences`, `trailing_escaped_backslash`, `sample_crlf`, `explicit_n_tristate`, `final_trailing_carriage_return`, `final_unterminated_unset_comment`, `uppercase_tristate`, `non_config_lines`, `empty_config_symbol_names`, `last_state_transitions`, and `duplicate_malformed_quoted_assignment`.",
-            "- `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.",
+            "- `zigux/tests/fixtures/kconfig_bridge/cases.json` currently carries a `confdata_cases` packet with 14 fixture cases: `sample`, `escaped_strings`, `escaped_control_sequences`, `trailing_escaped_backslash`, `sample_crlf`, `explicit_n_tristate`, `final_trailing_carriage_return`, `final_unterminated_unset_comment`, `uppercase_tristate`, `non_config_lines`, `empty_config_symbol_names`, `malformed_unset_comment_tokens`, `last_state_transitions`, and `duplicate_malformed_quoted_assignment`.",
+            "- `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 14-case packet, and names the current helper-local anchor list for the bridge tests.",
             "- `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already describe the same shared kconfig packet and keep the bridge reviewable through the shared `scripts/zigux/check-kconfig-bridge.py` gate plus the direct `zig test scripts/zigux/kconfig/confdata_bridge.zig` replay instead of implying either current-`master` surface is missing.",
             "",
         )
@@ -515,15 +516,15 @@ def run_self_test() -> int:
         path.write_text(
             replace_once(
                 path.read_text(encoding="utf-8"),
+                "`confdata_cases` packet with 14 fixture cases:",
                 "`confdata_cases` packet with 13 fixture cases:",
-                "`confdata_cases` packet with 12 fixture cases:",
             ),
             encoding="utf-8",
         )
         issues = collect_issues(root)
         assert (
             "CONFDATA_HELPER_ANCHOR_SURVEY_MISSING_MARKER",
-            "`confdata_cases` packet with 13 fixture cases:",
+            "`confdata_cases` packet with 14 fixture cases:",
         ) in issues
         checks_run += 1
 
@@ -532,7 +533,7 @@ def run_self_test() -> int:
         path.write_text(
             replace_once(
                 path.read_text(encoding="utf-8"),
-                "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.",
+                "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 14-case packet, and names the current helper-local anchor list for the bridge tests.",
                 "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, records the same packet, and names the helper-local anchor list for the bridge tests.",
             ),
             encoding="utf-8",
@@ -540,7 +541,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "CONFDATA_HELPER_ANCHOR_SURVEY_MISSING_MARKER",
-            "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 13-case packet, and names the current helper-local anchor list for the bridge tests.",
+            "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` is present, marks the tool `closed`, records the same 14-case packet, and names the current helper-local anchor list for the bridge tests.",
         ) in issues
         checks_run += 1
 
@@ -574,7 +575,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "CONFDATA_CASE_CHECKER_COUNT_MISMATCH",
-            "actual=12:expected=13",
+            "actual=13:expected=14",
         ) in issues
         checks_run += 1
 
@@ -603,7 +604,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "CONFDATA_CASE_PACKET_COUNT_MISMATCH",
-            "actual=12:expected=13",
+            "actual=13:expected=14",
         ) in issues
         checks_run += 1
 
@@ -625,12 +626,12 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, CONFDATA_MANIFEST)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["case_count"] = 12
+        payload["case_count"] = 13
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
         assert (
             "CONFDATA_CASE_MANIFEST_COUNT_MISMATCH",
-            "actual=12:expected=13",
+            "actual=13:expected=14",
         ) in issues
         checks_run += 1
 
