@@ -83,6 +83,7 @@
     "genksyms bridge keeps version as a side effect while parsing later options",
     "genksyms bridge preserves version side effects before later parse failures",
     "genksyms bridge accepts unambiguous abbreviated long options",
+    "genksyms bridge keeps version side effect before long help",
     "genksyms bridge keeps version side effect before unexpected long option argument",
     "genksyms bridge canonicalizes unexpected long option argument failures",
     "genksyms bridge treats lone dash as positional passthrough",
