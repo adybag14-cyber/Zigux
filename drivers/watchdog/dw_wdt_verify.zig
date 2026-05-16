@@ -78,6 +78,7 @@ test "phase11 dw_wdt verify keeps mmio-blocked registration handoff explicit" {
     try testing.expect(blocked_handoff.reset_release_requested);
     try testing.expect(blocked_handoff.pretimeout_irq_optional);
     try testing.expect(!blocked_handoff.pretimeout_irq_present);
+    try testing.expectEqualStrings("platform_get_irq_optional", blocked_handoff.pretimeout_irq_call);
     try testing.expect(blocked_handoff.timeout_programming_requested);
     try testing.expect(!blocked_handoff.imported_running_state);
     try testing.expect(!blocked_handoff.stop_on_reboot_requested);
@@ -259,4 +260,18 @@ test "phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit"
     try testing.expect(!remove_summary.running_after_remove);
     try testing.expect(!remove_summary.interrupt_pending_after_remove);
     try testing.expect(!remove_summary.remove_leaves_hardware_running);
+
+    var idle_remove_without_reset = try dw_wdt.DwWdtLab.initFixedTops(9, false);
+    try idle_remove_without_reset.setInterruptPending(true);
+    const idle_remove_without_reset_summary = idle_remove_without_reset.removeSummary();
+    try testing.expectEqualStrings(dw_wdt.anchor_path, idle_remove_without_reset_summary.anchor);
+    try testing.expect(idle_remove_without_reset_summary.debugfs_clear_requested);
+    try testing.expect(idle_remove_without_reset_summary.unregister_device_requested);
+    try testing.expect(!idle_remove_without_reset_summary.reset_control_available);
+    try testing.expect(!idle_remove_without_reset_summary.reset_assert_requested);
+    try testing.expect(!idle_remove_without_reset_summary.hardware_running_before_remove);
+    try testing.expect(!idle_remove_without_reset_summary.hardware_running_after_remove);
+    try testing.expect(!idle_remove_without_reset_summary.running_after_remove);
+    try testing.expect(!idle_remove_without_reset_summary.interrupt_pending_after_remove);
+    try testing.expect(!idle_remove_without_reset_summary.remove_leaves_hardware_running);
 }
