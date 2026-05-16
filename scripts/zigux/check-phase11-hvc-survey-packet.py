@@ -218,6 +218,7 @@ DRIVER_STARTER_TEST_MARKERS = [
 
 VERIFY_HELPER_MARKERS = [
     'test "hvc_console verify keeps remove handoff explicit when tty is already absent" {',
+    'test "hvc_console verify keeps attached remove handoff explicit before tty detach" {',
     'test "hvc_console verify keeps cleanup prerequisite failures explicit" {',
     'test "hvc_console verify keeps hangup-only cleanup prerequisites explicit" {',
     'test "hvc_console verify keeps combined cleanup trigger explicit" {',
@@ -523,6 +524,7 @@ def run_self_test() -> None:
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[8]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[9]),
             (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[10]),
+            (REQUIRED_FILES["verify_helper"], VERIFY_HELPER_MARKERS[11]),
             (REQUIRED_FILES["survey_note"], PRESENT_DIRECT_COMPANION_MARKER),
             (REQUIRED_FILES["survey_note"], "khvcd sleep-and-reschedule handoff summary"),
             (REQUIRED_FILES["survey_note"], "`__hvc_poll` drain-order summary"),
