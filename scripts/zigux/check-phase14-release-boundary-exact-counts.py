@@ -105,6 +105,11 @@ EXPECTED_TRANSFER_RATIONALE = (
     "packets, machine-checked surveyed commits, and explicit blocker posture without "
     "importing ZAR runtime-core behavior into Zigux."
 )
+SURVEY_TRANSFER_RATIONALE_MARKER = (
+    "ZAR-to-product transfer rationale: absorb ZAR runtime research as product discipline only by keeping "
+    "exported evidence packets, machine-checked surveyed commits, compile-shard coverage, and explicit blocker "
+    "posture, without importing ZAR runtime-core behavior into Zigux."
+)
 RELEASE_BOUNDARY_FALLBACK_MARKER = (
     "attached-toolchain replay fallback: `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`, "
     "`ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`, and "
@@ -331,6 +336,12 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
 
     require_exact_count(errors, release_path.relative_to(root).as_posix(), release_text, RELEASE_BOUNDARY_MARKERS)
     require_exact_count(errors, survey_path.relative_to(root).as_posix(), survey_text, SURVEY_EXACT_COUNT_MARKERS)
+    require_exact_count(
+        errors,
+        survey_path.relative_to(root).as_posix(),
+        survey_text,
+        [SURVEY_TRANSFER_RATIONALE_MARKER],
+    )
     require_exact_line_count(
         errors,
         scripts_readme_path.relative_to(root).as_posix(),
@@ -382,7 +393,9 @@ def good_release_boundary_text() -> str:
 
 
 def good_survey_text() -> str:
-    return "\n".join(f"- `{marker}`" for marker in SURVEY_EXACT_COUNT_MARKERS) + "\n"
+    lines = [f"- `{marker}`" for marker in SURVEY_EXACT_COUNT_MARKERS]
+    lines.append(f"- {SURVEY_TRANSFER_RATIONALE_MARKER}")
+    return "\n".join(lines) + "\n"
 
 
 def good_scripts_readme_text() -> str:
@@ -438,6 +451,7 @@ def good_roadmap_text() -> str:
             PHASE14_SECTION_HEADING,
             "Primary Linux anchors:",
             *[f"- {item}" for item in ROADMAP_ANCHORS],
+
             "",
         ]
     )
@@ -797,6 +811,22 @@ def run_self_test() -> int:
 
         write(
             root,
+            "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+            good_survey_text().replace(
+                f"- {SURVEY_TRANSFER_RATIONALE_MARKER}\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            SURVEY_TRANSFER_RATIONALE_MARKER,
+            "self-test expected missing survey transfer-rationale failure",
+        )
+        write(root, "Documentation/zigux/phase14-end-to-end-smoke-survey.md", good_survey_text())
+
+        write(
+            root,
             TESTS_README_PATH,
             good_tests_readme_text().replace(
                 "  * `zigux/tests/phase14_workqueue_reviewability.zig`\n",
@@ -1091,7 +1121,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=40")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=41")
     return 0
 
 
