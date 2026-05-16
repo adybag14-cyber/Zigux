@@ -171,6 +171,42 @@ Phase 3 review packet
   * the focused export/UAPI and low-level-wrapper support routes stay explicit here too: `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`, `make -C zigux phase3-export-uapi-layout-test`, `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`, and `make -C zigux phase3-low-level-wrappers-test`
   * `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` stay explicit as the current starter header-family companion packet rather than implying a broader shipped UAPI family
 
+Phase 9 review packet
+  * `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
+  * `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `Documentation/zigux/README.md`
+  * `scripts/zigux/README.md`
+  * `scripts/zigux/check-phase9-build-only-surface.py`
+  * `zigux/kernel/runtime_loader.zig`
+  * `zigux/kernel/runtime_loader_contract.zig`
+  * `zigux/tests/runtime_loader_allocator_init_flow.zig`
+  * `zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`
+  * `zigux/tests/runtime_loader_lifecycle_boundary_guard.zig`
+  * `zigux/tests/runtime_trace_events_loader_substrate_drift.zig`
+  * `zigux/tests/runtime_loader_gap_manifest.json`
+  * `zigux/tests/runtime_loader_gap_survey.zig`
+  * `zigux/tests/runtime_atomic64_manifest.json`
+  * `zigux/tests/runtime_bitmap_manifest.json`
+  * `zigux/tests/runtime_trace_events_manifest.json`
+  * `zigux/tests/runtime_kretprobe_manifest.json`
+  * `zigux/tests/runtime_atomic64_survey.zig`
+  * `zigux/tests/runtime_bitmap_survey.zig`
+  * `zigux/tests/runtime_trace_events_survey.zig`
+  * `zigux/tests/runtime_kretprobe_survey.zig`
+  * `zigux/tests/phase9_build.zig`
+  * `make -C zigux phase9-runtime-loader-shared-tests`
+  * `make -C zigux phase9-test`
+  * `make -C zigux phase9`
+  * `make -C zigux phase9-runtime-atomic64-test`
+  * `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig`
+  * `make -C zigux phase9-runtime-bitmap-top-bit-test`
+  * `make -C zigux phase9-runtime-trace-events-test`
+  * `make -C zigux phase9-runtime-kretprobe-test`
+  * keep the shared Phase 9 tests-root packet aligned around the shipped runtime-loader facade, runtime-loader contract, allocator/init-flow replay, selftest-complete exit parity replay, lifecycle-boundary guard, trace-events loader-substrate-drift proof, and loader-gap manifest-backed survey gate while `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the owner of the exact shared-loader target list, convenience-target names, and the still-blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest boundary instead of leaving that owner map implicit in the tests root
+  * there is no dedicated shared `validate-phase9.py` on current `master`; keep the build-only checker plus the literal shared and family-local replay routes above explicit instead of inventing a broader shared validator surface
+  * keep the older non-owner boundaries explicit here too: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence
+
 Phase 10 flow
   * `Documentation/zigux/phase10-closure-evidence.md`
   * `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
