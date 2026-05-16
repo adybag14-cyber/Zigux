@@ -44,6 +44,11 @@ pub const LibbpfErrno = enum(i32) {
     nlparse,
 };
 
+fn normalizeLibbpfErrno(err: i32) u32 {
+    const widened: i64 = err;
+    return @intCast(if (widened < 0) -widened else widened);
+}
+
 pub fn parseLogLevelSetting(value: ?[]const u8) ParsedLogLevel {
     if (value) |raw| {
         if (std.ascii.eqlIgnoreCase(raw, "warn")) {
@@ -91,7 +96,7 @@ pub fn libbpfVersionString(buffer: []u8) error{NoSpaceLeft}![]const u8 {
 }
 
 pub fn libbpfErrorMessage(err: i32) ?[]const u8 {
-    const normalized = if (err < 0) -err else err;
+    const normalized = normalizeLibbpfErrno(err);
 
     return switch (normalized) {
         @intFromEnum(LibbpfErrno.libelf) => "Something wrong in libelf",
@@ -117,8 +122,7 @@ pub fn formatLibbpfError(buffer: []u8, err: i32) error{NoSpaceLeft}![]const u8 {
         return std.fmt.bufPrint(buffer, "{s}", .{message});
     }
 
-    const normalized = if (err < 0) -err else err;
-    return std.fmt.bufPrint(buffer, "Unknown libbpf error {d}", .{normalized});
+    return std.fmt.bufPrint(buffer, "Unknown libbpf error {d}", .{normalizeLibbpfErrno(err)});
 }
 
 test "log level parsing matches the base libbpf env contract" {
@@ -186,4 +190,14 @@ test "unknown errors stay reviewable instead of silently disappearing" {
     const message = try formatLibbpfError(buffer[0..], -4999);
 
     try std.testing.expectEqualStrings("Unknown libbpf error 4999", message);
+}
+
+test "error normalization stays defined for the i32 minimum edge" {
+    var buffer: [40]u8 = undefined;
+
+    try std.testing.expect(libbpfErrorMessage(std.math.minInt(i32)) == null);
+    try std.testing.expectEqualStrings(
+        "Unknown libbpf error 2147483648",
+        try formatLibbpfError(buffer[0..], std.math.minInt(i32)),
+    );
 }
