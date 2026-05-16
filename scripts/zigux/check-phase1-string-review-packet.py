@@ -138,7 +138,7 @@ EXPECTED_PREFIX_SUFFIX_REVIEW_SUMMARY = (
 )
 EXPECTED_LOOKUP_REVIEW_SUMMARY = (
     "helper-local string lookup anchors stay explicit through the direct string tests because the shared Phase 1 replay still "
-    "does not carry dedicated matchString or match_string fixture keys, so C-string list lookup order and the Linux-style "
+    "does not carry dedicated matchString() or match_string() fixture keys, so C-string list lookup order and the Linux-style "
     "alias remain review-visible at the helper surface"
 )
 EXPECTED_SYSFS_REVIEW_SUMMARY = (
@@ -148,7 +148,7 @@ EXPECTED_SYSFS_REVIEW_SUMMARY = (
 )
 EXPECTED_STRSCPY_REVIEW_SUMMARY = (
     "helper-local string copy-and-pad anchors stay explicit through the direct string tests because the shared Phase 1 "
-    "replay still does not carry dedicated strscpy or strscpyPad fixture keys"
+    "replay still does not carry dedicated strscpy() or strscpyPad() fixture keys"
 )
 EXPECTED_STRNCHR_REVIEW_SUMMARY = (
     "the direct counted-search follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated "
@@ -514,6 +514,20 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/string.zig"]["basename_review_anchor"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_string_manifest:basename_review_anchor" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["lookup_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:lookup_review_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["strscpy_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:strscpy_review_summary" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
 
