@@ -57,11 +57,11 @@ WORKFLOW_MARKERS = [
 
 DOCS_ROOT_MARKERS = [
     "Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `scripts/zigux/check-phase1-installer-review-surfaces.py` - `Documentation/zigux/phase1-host-helper-lane-sequencing.md`",
-    "while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
+    "while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `python3 scripts/zigux/install-zig.py --self-test`, and `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
 ]
 
 TESTS_README_MARKERS = [
-    "keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface",
+    "current Phase 1 review-and-replay stack: `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -122,7 +122,7 @@ CLOSURE_MARKERS = [
     "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation",
     "PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors, committed C-string replacement bytes, and parity fixture keys",
     "PHASE1_STRING_STRSCPY_REVIEW=helper-local string copy-and-pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strscpy or strscpyPad fixture keys",
-    "PHASE1_STRING_LOOKUP_AND_STRNCHR_REVIEW=helper-local string C-string list lookup and counted-search anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string or strnchr fixture keys",
+    "PHASE1_STRING_LOOKUP_AND_STRNCHR_REVIEW=helper-local string C-string list lookup and counted-search anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string or strnchr or strnchrNul or strnchrnul fixture keys",
     "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior",
     "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start",
     "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_OWNER=the shared Phase 1 replay now consumes the committed inclusive_boundary_* fixture fields directly, while the direct helper-local inclusive-boundary test remains a review-visible same-word anchor for that path",
@@ -171,7 +171,7 @@ EXPECTED_BENCH = {
     ],
     "exact_checksums": {
         "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 2260000,
-        "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 4820000,
+        "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 8570000,
         "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 15621472,
         "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 37500000,
         "PHASE1_BENCH_STRING_CHECKSUM": 320000,
@@ -210,6 +210,8 @@ EXPECTED_BITMAP_MANIFEST = {
         'test "bitmap copy and extend leaves words past the requested size untouched"',
         'test "bitmap zero-bit helpers stay explicit no-ops"',
         'test "bitmap zero-bit binary helpers stay explicit identity operations"',
+        'test "bitmap weight and clamps tail bits and aliases mirror the primary helper"',
+        'test "bitmap weight and keeps zero-bit windows empty"',
         'test "bitmap Linux-style aliases keep zero-bit windows explicit no-ops"',
         'test "bitmap low-level __bitmap aliases mirror the primary helper surface"',
         'test "bitmap Linux-style aliases mirror the primary helper surface"',
@@ -253,6 +255,7 @@ EXPECTED_FIND_BIT_MANIFEST = {
     "helper_test_anchors": [
         'test "find first and next set bits across words"',
         'test "find zero bits respects the declared bit count"',
+        'test "find or bit returns the next set bit from either bitmap"',
         'test "find and bit returns the first shared set bit"',
         'test "underscore entry points reuse the public helper behavior"',
         'test "single-word next scans honor start masks"',
@@ -268,6 +271,7 @@ EXPECTED_FIND_BIT_MANIFEST = {
         'test "tail-word next set scans skip earlier in-range matches before clamping"',
         'test "clump8 scans align to the containing byte and return its value"',
         'test "clump8 scans keep tail bytes reachable from partial final words"',
+        'test "clump8 scans mask out-of-range bits from partial final bytes"',
         'test "clump8 scans leave the caller byte untouched when no set bit remains"',
         'test "getValue8 reads aligned bytes from bitmap words"',
         'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
@@ -338,8 +342,8 @@ EXPECTED_RBTREE_MANIFEST = {
         'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
         'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
     ],
-    "review_packet_summary": "shared find, first-match, next-match, and match-iterator duplicate-search parity stays explicit through the Phase 1 fixture and replay, while cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships a dedicated cached-root leftmost-return fixture key",
-    "next_safe_step_note": "If this helper lane reopens, the smallest shared-replay expansion is now the dedicated cached-root leftmost-return fixture key; until then, cached-root leftmost-return and singleton-erase behavior stay owned by direct helper-local anchors.",
+    "review_packet_summary": "shared find, first-match, next-match, and match-iterator duplicate-search parity stays explicit through the Phase 1 fixture and replay, and current master already consumes `cached_leftmost_return_serials` as shared cached-root leftmost-return evidence, while the remaining cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed review anchors stay explicit at the helper surface for any paths the shared replay still does not cover",
+    "next_safe_step_note": "If this helper lane reopens, keep the already-landed shared-replay promotion for `cached_leftmost_return_serials` aligned across the committed fixture, shared replay, and direct cached-root anchors; until another committed cached-root field lands, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior stay owned by direct helper-local anchors.",
 }
 
 EXPECTED_STRING_HELPER_TESTS = [
@@ -759,7 +763,7 @@ def run_self_test() -> None:
             "PHASE1_BITMAP_SCNPRINTF_TRUNCATION_REVIEW=helper-local bitmap.scnprintf truncation proof stays explicit through the direct bitmap test anchor because the shared Phase 1 parity fixture only locks the full rendered range string",
             "PHASE1_BITMAP_SCNPRINTF_TINY_BUFFER_REVIEW=helper-local bitmap.scnprintf tiny-buffer proof stays explicit through the direct bitmap test anchor plus the shared Phase 1 parity fixture and replay so terminator-only caller buffers stay NUL-terminated and zero-length caller views return without writing hidden bytes",
             "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, duplicate-search, and iterator replay stay explicit so the committed match-iterator fixture key now joins the shared duplicate-search packet while cached-root leftmost-return, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior keep direct review anchors until a cached-root leftmost-return fixture key lands",
-            "PHASE1_STRING_LOOKUP_AND_STRNCHR_REVIEW=helper-local string C-string list lookup and counted-search anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string or strnchr fixture keys",
+            "PHASE1_STRING_LOOKUP_AND_STRNCHR_REVIEW=helper-local string C-string list lookup and counted-search anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string or strnchr or strnchrNul or strnchrnul fixture keys",
         ]:
             closure_path.write_text(
                 closure_path.read_text(encoding="utf-8").replace(marker, "", 1),
@@ -952,7 +956,7 @@ def run_self_test() -> None:
             "PHASE1_RBTREE_CACHED_LEFTMOST_RETURN_REVIEW=helper-local cached-root leftmost-return proof stays explicit through the direct rbtree test anchor so addCached and insertColorCached only report the inserted node when cached insertion actually becomes the new leftmost node",
             "PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors, committed C-string replacement bytes, and parity fixture keys",
             "PHASE1_STRING_STRSCPY_REVIEW=helper-local string copy-and-pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strscpy or strscpyPad fixture keys",
-            "PHASE1_STRING_LOOKUP_AND_STRNCHR_REVIEW=helper-local string C-string list lookup and counted-search anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string or strnchr fixture keys",
+            "PHASE1_STRING_LOOKUP_AND_STRNCHR_REVIEW=helper-local string C-string list lookup and counted-search anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string or strnchr or strnchrNul or strnchrnul fixture keys",
             "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points, including the andnot scan aliases, remain behaviorally locked to the primary Zig helpers",
             "PHASE1_FIND_BIT_BENCH_REVIEW=the shared Phase 1 benchmark packet keeps the exact next-bit and edge-loop iteration and checksum contract explicit so the steady-state and edge-case find_bit smoke paths remain live and review-visible",
             "PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring",
