@@ -50,14 +50,16 @@ The bootstrap ledger anchor for this governance family was `docs(zigux): add doc
 
 Current `master` already exceeds that ledger foothold. The freeze-map, review-process, parity-scorecard-survey, parity-scorecard, and indefinite-C policy packet is landed and wired into the validator-first and replay-backed maintenance routes.
 
-That means the remaining readiness gaps are now narrower than the roadmap feature list itself: `phase15-deep-core-status-change-blocker` and `phase15-shared-summaries-scripts-root-validator-route-drift`.
+That means the remaining readiness gap is now narrower than the roadmap feature list itself: `phase15-deep-core-status-change-blocker`.
+
+The earlier shared-summary scripts-root validator-route drift is already closed on current `master`, and any future reminder drift belongs to shared-summary lane `P15-Y07` rather than this readiness packet.
 
 ## Readiness Gate
 
 The readiness gate for this packet is still architectural truthfulness, not a new deep-core implementation claim.
 
 Readiness here means:
-- the freeze-map, review-process, parity-scorecard survey, parity-scorecard, indefinite-C policy, handoff-next-steps, readiness-gate, and governance-lane-sequencing notes all point at the same blocked posture
+- the freeze-map, review-process, parity scorecard survey, parity-scorecard, indefinite-C policy, handoff-next-steps, readiness-gate, and governance-lane-sequencing notes all point at the same blocked posture
 - the validator-first route stays explicit through `python3 scripts/zigux/validate-phase15.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `make -C zigux phase15-validate`
 - the dedicated docs-root, scripts-root, and review-process reminder guards stay explicit through `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, and `python3 scripts/zigux/check-phase15-review-process-handoff.py`, so shared-summary and reviewer-surface drift stays bounded inside the parked governance packet instead of being mistaken for a status-change signal
 - the shared replay route stays explicit through `zigux/tests/phase15_build.zig`, `zig build test --build-file zigux/tests/phase15_build.zig`, `make -C zigux phase15-test`, and `make -C zigux phase15`
@@ -67,7 +69,7 @@ Readiness here means:
 ## Remaining Gaps
 
 - `phase15-deep-core-status-change-blocker`: the parity-scorecard and stay-in-C governance packet still do not carry enough reviewed evidence to justify a freeze-map status change for the deep-core anchors
-- `phase15-shared-summaries-scripts-root-validator-route-drift`: the only live non-readiness drift remains the scripts-root `phase15-validate` undercount in `scripts/zigux/README.md` plus `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and that bounded repair belongs to shared-summary lane `P15-Y07`, not the `P15-L01` readiness lane
+- the earlier `phase15-shared-summaries-scripts-root-validator-route-drift` is closed on current `master`: `scripts/zigux/README.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/validate-phase15.py`, `zigux/Makefile`, and `Documentation/zigux/phase15-governance-lane-sequencing.md` now agree on the shipped `phase15-validate` route, so shared-summary lane `P15-Y07` should reopen only if a new reminder mismatch appears
 - until those gaps change, the Phase 15 packet stays in governance maintenance mode only
 - `phase15-docs-root-summary-alignment` remains a required truthfulness check whenever broad Phase 15 summaries move, and `python3 scripts/zigux/check-phase15-docs-readme-alignment.py` is now the dedicated docs-root guard for that reread
 
@@ -75,6 +77,6 @@ Readiness here means:
 
 - keep this readiness packet parked unless a named reopen trigger or a real blocker-posture change appears
 - before widening anywhere else, confirm that the dedicated `make -C zigux phase15` packet still matches the current no-approval-yet maintenance-mode blocker posture
-- a fresh 2026-05-15 reread confirmed that the only live non-readiness drift remains the scripts-root `phase15-validate` undercount in `scripts/zigux/README.md` plus `scripts/zigux/check-phase15-scripts-readme-alignment.py`, but the current owner map in `Documentation/zigux/phase15-governance-lane-sequencing.md` now routes that bounded repair through the `shared-summaries` lane instead of this readiness packet
-- keep this readiness packet parked while that narrower shared-summary repair is pending; once it lands, reread `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `scripts/zigux/validate-phase15.py`, `zigux/Makefile`, `zigux/tests/phase15_readiness_gate_manifest.json`, and `zigux/tests/phase15_readiness_gate.zig` together and reopen this lane only if the readiness note itself or the maintenance-mode blocker posture stops matching current `master`
+- a fresh 2026-05-15 reread already shows the older scripts-root `phase15-validate` undercount is closed on current `master`: `scripts/zigux/README.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/validate-phase15.py`, `zigux/Makefile`, and `Documentation/zigux/phase15-governance-lane-sequencing.md` now agree on the shipped route, so shared-summary lane `P15-Y07` should stay parked unless a new reminder drift appears
+- keep this readiness packet parked while that closed shared-summary repair stays truthful; reread `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `scripts/zigux/validate-phase15.py`, `zigux/Makefile`, `zigux/tests/phase15_readiness_gate_manifest.json`, and `zigux/tests/phase15_readiness_gate.zig` together and reopen this lane only if the readiness note itself or the maintenance-mode blocker posture stops matching current `master`
 - if the readiness packet drifts again after that shared-summary repair, re-check `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_readiness_gate.zig`, `zigux/tests/README.md`, and `zigux/Makefile` together, starting with whether the dedicated readiness packet still keeps the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes aligned with the current no-approval-yet maintenance-mode blocker posture before widening into any new governance slice
