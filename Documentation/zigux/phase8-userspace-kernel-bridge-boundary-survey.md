@@ -5,7 +5,7 @@
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_LANE_KEY=P8-L01`
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_ROADMAP_PHASE=Phase 8`
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_SCOPE=shared-command-environment-and-libbpf-bridge-boundary-review`
-- `PHASE8_USERSPACE_KERNEL_BRIDGE_C_ANCHORS=tools/lib/subcmd/exec-cmd.c;tools/lib/subcmd/help.c;tools/lib/bpf/libbpf.c`
+- `PHASE8_USERSPACE_KERNEL_BRIDGE_C_ANCHORS=tools/lib/subcmd/exec-cmd.c;tools/lib/subcmd/help.c;tools/lib/symbol/kallsyms.c;tools/lib/bpf/libbpf.c`
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_SHARED_NOTE=Documentation/zigux/phase8-tooling-lane-sequencing.md`
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_VALIDATION_ENTRYPOINT=python3 scripts/zigux/validate-phase8.py`
 - `PHASE8_USERSPACE_KERNEL_BRIDGE_LINUX_STYLE_VALIDATION=make -C zigux phase8-validate`
@@ -21,6 +21,13 @@ and handle bridge packet plus the still-parked broader bridge boundary explicit
 without pretending that the current Zigux packet has closed token
 materialization or capability handoff, map reopen or bpffs compatibility
 closure, or fd close or ownership semantics.
+
+Within the full Phase 8 anchor list, this note stays deliberately narrower than
+the dedicated symbol lane: it keeps the command, environment, and libbpf
+resource-boundary surfaces reviewable while the parser-local `kallsyms` packet
+remains owned by `Documentation/zigux/phase8-kallsyms-slice.md` and the shared
+Phase 8 sequencing note instead of being retold here as a command or bridge
+owner.
 
 The note is intentionally narrow:
 - keep the roadmap anchors explicit
@@ -142,7 +149,13 @@ process-launch ownership, live OS environment reads, or direct terminal probing.
 The product roadmap still names Phase 8 as the first tooling-expansion tranche for:
 - `tools/lib/subcmd/exec-cmd.c`
 - `tools/lib/subcmd/help.c`
+- `tools/lib/symbol/kallsyms.c`
 - `tools/lib/bpf/libbpf.c`
+
+This boundary survey remains narrower than that full phase inventory: it keeps
+the command, environment, and libbpf bridge surfaces honest while the
+parser-local `kallsyms` reminder, compile, and packet-truthfulness work stays
+owned by the dedicated symbol lane.
 
 Current `master` still preserves the parked command-and-help reminder packet,
 and it also preserves the landed helper-local file-path-and-handle bridge packet
