@@ -7,18 +7,20 @@ This note tracks the bounded Phase 5 approved-idiom packet for the roadmap's `sa
 - `PHASE5_STATUS=verified-public-tree-backed-packet`
 - `PHASE5_LANE_KEY=P5-L20`
 - `PHASE5_SURVEYED_COMMIT=28a3bde2b3d68612f18d9bdd786be50c71c3173e`
-- scope: keep the approved idiom truthful against the roadmap while recording the current directly reviewable kobject packet only
+- scope: keep the approved idiom truthful against the roadmap while recording the current mixed direct-and-public-tree-backed kobject packet without widening past the landed non-runtime sample
 - current kobject packet evidence on `master`:
-  - `Documentation/zigux/phase5-kobject-sample-survey.md`
-  - `Documentation/zigux/phase5-sample-review-guide.md`
-  - `samples/zigux/README.md`
-  - `scripts/zigux/README.md`
-  - `zigux/tests/README.md`
-  - `samples/zigux/kobject_example.zig`
-  - `zigux/tests/phase5_kobject_example.zig`
-  - `zigux/tests/phase5_kobject_example_manifest.json`
-  - `zigux/tests/phase5_kobject_example_survey.zig`
-  - `zigux/tests/phase5_build.zig`
+  - directly readable in this environment:
+    - `Documentation/zigux/phase5-kobject-sample-survey.md`
+    - `Documentation/zigux/phase5-sample-review-guide.md`
+    - `samples/zigux/README.md`
+    - `scripts/zigux/README.md`
+    - `zigux/tests/README.md`
+    - `samples/zigux/kobject_example.zig`
+    - `zigux/tests/phase5_kobject_example.zig`
+    - `zigux/tests/phase5_kobject_example_manifest.json`
+  - current public-tree-backed companion evidence:
+    - `zigux/tests/phase5_kobject_example_survey.zig`
+    - `zigux/tests/phase5_build.zig`
 
 ## Why this note exists
 
@@ -80,7 +82,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or one of its dir
 - if a reminder surface mentions `zigux/tests/phase5_kobject_example_survey.zig` or `zigux/tests/phase5_build.zig`, did a fresh reread confirm whether the current public tree still carries those files instead of treating a connector-local `404` as repo absence?
 - if `zigux/tests/README.md` is refreshed for this sample packet, does it keep `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` framed as current public-tree-backed companion evidence rather than falling back to older gap wording?
 - shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too: `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
-- keep the directly reviewable packet explicit instead of collapsing back to the older narrower packet unless fresh repo readback truly drops the dedicated survey or shared build routes again
+- keep the mixed direct-plus-public-tree-backed packet explicit instead of collapsing back to the older narrower packet unless fresh repo readback truly drops the dedicated survey or shared build routes again
 
 ## Non-goals
 
