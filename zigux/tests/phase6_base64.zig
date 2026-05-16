@@ -36,11 +36,51 @@ fn bytesVariantPinned(input: []const u8, padding: bool, variant: base64.Variant)
     };
 }
 
+fn encodeVariantPinned(dst: []u8, input: []const u8, padding: bool, variant: base64.Variant) base64.EncodeError!usize {
+    return switch (variant) {
+        .std => base64.encodeStd(dst, input, padding),
+        .urlsafe => base64.encodeUrlsafe(dst, input, padding),
+        .imap => base64.encodeImap(dst, input, padding),
+    };
+}
+
+fn encodeVariantPinnedSlice(dst: []u8, input: []const u8, padding: bool, variant: base64.Variant) base64.EncodeError![]u8 {
+    return switch (variant) {
+        .std => base64.encodeStdSlice(dst, input, padding),
+        .urlsafe => base64.encodeUrlsafeSlice(dst, input, padding),
+        .imap => base64.encodeImapSlice(dst, input, padding),
+    };
+}
+
+fn encodeVariantPinnedAlloc(allocator: std.mem.Allocator, input: []const u8, padding: bool, variant: base64.Variant) base64.EncodeAllocError![]u8 {
+    return switch (variant) {
+        .std => base64.encodeStdAlloc(allocator, input, padding),
+        .urlsafe => base64.encodeUrlsafeAlloc(allocator, input, padding),
+        .imap => base64.encodeImapAlloc(allocator, input, padding),
+    };
+}
+
 fn decodeVariantPinned(dst: []u8, input: []const u8, padding: bool, variant: base64.Variant) base64.DecodeError!usize {
     return switch (variant) {
         .std => base64.decodeStd(dst, input, padding),
         .urlsafe => base64.decodeUrlsafe(dst, input, padding),
         .imap => base64.decodeImap(dst, input, padding),
+    };
+}
+
+fn decodeVariantPinnedSlice(dst: []u8, input: []const u8, padding: bool, variant: base64.Variant) base64.DecodeError![]u8 {
+    return switch (variant) {
+        .std => base64.decodeStdSlice(dst, input, padding),
+        .urlsafe => base64.decodeUrlsafeSlice(dst, input, padding),
+        .imap => base64.decodeImapSlice(dst, input, padding),
+    };
+}
+
+fn decodeVariantPinnedAlloc(allocator: std.mem.Allocator, input: []const u8, padding: bool, variant: base64.Variant) base64.DecodeAllocError![]u8 {
+    return switch (variant) {
+        .std => base64.decodeStdAlloc(allocator, input, padding),
+        .urlsafe => base64.decodeUrlsafeAlloc(allocator, input, padding),
+        .imap => base64.decodeImapAlloc(allocator, input, padding),
     };
 }
 
@@ -77,6 +117,42 @@ fn expectConvenienceVariantForeignAlphabetRejection(padding: bool) !void {
             try std.testing.expectEqualSlices(u8, untouched[0..], rejected_buf[0..]);
         }
     }
+}
+
+fn expectConvenienceWrapperRoundTrip(input: []const u8, expected: []const u8, padding: bool, variant: base64.Variant) !void {
+    var direct_encoded_buf = [_]u8{0xaa} ** 128;
+    var slice_encoded_buf = [_]u8{0xbb} ** 128;
+    var direct_decoded_buf = [_]u8{0xcc} ** 128;
+    var slice_decoded_buf = [_]u8{0xdd} ** 128;
+
+    const direct_encoded_len = try encodeVariantPinned(direct_encoded_buf[0..], input, padding, variant);
+    try std.testing.expectEqual(expected.len, direct_encoded_len);
+    try std.testing.expectEqual(expected.len, base64.chars(input.len, padding));
+    try std.testing.expectEqualStrings(expected, direct_encoded_buf[0..direct_encoded_len]);
+    try std.testing.expectEqual(@as(u8, 0xaa), direct_encoded_buf[direct_encoded_len]);
+
+    const slice_encoded = try encodeVariantPinnedSlice(slice_encoded_buf[0..], input, padding, variant);
+    try std.testing.expectEqualStrings(expected, slice_encoded);
+    try std.testing.expectEqual(@as(u8, 0xbb), slice_encoded_buf[slice_encoded.len]);
+
+    const alloc_encoded = try encodeVariantPinnedAlloc(std.testing.allocator, input, padding, variant);
+    defer std.testing.allocator.free(alloc_encoded);
+    try std.testing.expectEqualStrings(expected, alloc_encoded);
+
+    try std.testing.expectEqual(input.len, try bytesVariantPinned(expected, padding, variant));
+
+    const direct_decoded_len = try decodeVariantPinned(direct_decoded_buf[0..], expected, padding, variant);
+    try std.testing.expectEqual(input.len, direct_decoded_len);
+    try std.testing.expectEqualSlices(u8, input, direct_decoded_buf[0..direct_decoded_len]);
+    try std.testing.expectEqual(@as(u8, 0xcc), direct_decoded_buf[direct_decoded_len]);
+
+    const slice_decoded = try decodeVariantPinnedSlice(slice_decoded_buf[0..], expected, padding, variant);
+    try std.testing.expectEqualSlices(u8, input, slice_decoded);
+    try std.testing.expectEqual(@as(u8, 0xdd), slice_decoded_buf[slice_decoded.len]);
+
+    const alloc_decoded = try decodeVariantPinnedAlloc(std.testing.allocator, expected, padding, variant);
+    defer std.testing.allocator.free(alloc_decoded);
+    try std.testing.expectEqualSlices(u8, input, alloc_decoded);
 }
 
 fn fixtureVariant(name: []const u8) base64.Variant {
@@ -206,6 +282,15 @@ test "phase 6 base64 variant decode parity keeps bytes and decode aligned with k
             .variant = fixtureVariant(case.variant_name),
         });
     }
+}
+
+test "phase 6 base64 convenience wrappers round-trip exact std urlsafe and imap encodings" {
+    try expectConvenienceWrapperRoundTrip("hi", "aGk=", true, .std);
+    try expectConvenienceWrapperRoundTrip("hi", "aGk", false, .std);
+    try expectConvenienceWrapperRoundTrip(&fixtures.variant_sample, "APv_f4A=", true, .urlsafe);
+    try expectConvenienceWrapperRoundTrip(&fixtures.variant_sample, "APv_f4A", false, .urlsafe);
+    try expectConvenienceWrapperRoundTrip(&fixtures.variant_sample, "APv,f4A=", true, .imap);
+    try expectConvenienceWrapperRoundTrip(&fixtures.variant_sample, "APv,f4A", false, .imap);
 }
 
 test "phase 6 base64 convenience wrappers reject foreign alphabet tails in padded and unpadded modes" {
