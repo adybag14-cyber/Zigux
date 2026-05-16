@@ -1,0 +1,416 @@
+const std = @import("std");
+const virtio = @import("virtio");
+
+pub const feature_mergeable_rx_buffers: u16 = 15;
+pub const feature_control_vq: u16 = 17;
+pub const feature_multiqueue: u16 = 22;
+pub const feature_any_layout: u16 = 27;
+pub const feature_version_1: u16 = 32;
+pub const feature_hash_report: u16 = 57;
+pub const feature_rss: u16 = 60;
+pub const feature_guest_udp_tunnel_gso: u16 = 65;
+pub const feature_host_udp_tunnel_gso: u16 = 67;
+
+pub const RecoveryAction = enum {
+    freeze,
+    restore,
+};
+
+pub const QueueFallbackReason = enum {
+    none,
+    multiqueue_not_negotiated,
+    missing_control_vq,
+    invalid_max_queue_pairs,
+};
+
+pub const RecoveryState = enum {
+    stable,
+    renegotiate_features,
+    reset_required,
+};
+
+pub const QueueRecoveryAction = enum {
+    none,
+    degrade_to_single_queue,
+    renegotiate_features,
+    require_reset,
+};
+
+pub const RssSummary = enum {
+    not_requested,
+    requested_but_unavailable,
+    hash_report_only,
+    downgraded_single_queue,
+    active,
+};
+
+pub const HeaderShape = enum {
+    legacy,
+    mrg_rxbuf,
+    hash_report,
+    hash_report_tunnel,
+};
+
+pub const HeaderScatterSource = enum {
+    linear_header_only,
+    any_layout,
+    version_1,
+};
+
+pub const ProbeRequest = struct {
+    driver_feature_bits: []const u16,
+    requested_queue_pairs: u16,
+    max_queue_pairs: u16,
+    transport_accepts_features: bool = true,
+    device_signals_reset: bool = false,
+};
+
+pub const ProbeSnapshot = struct {
+    requested_queue_pairs: u16,
+    planned_queue_pairs: u16,
+    total_queue_count: u16,
+    control_queue_index: ?u16,
+    mergeable_rx_buffers: bool,
+    has_rss: bool,
+    has_rss_hash_report: bool,
+    header_shape: HeaderShape,
+    hdr_len_bytes: u16,
+    uses_hash_report_header: bool,
+    uses_udp_tunnel_header: bool,
+    header_scatter_source: HeaderScatterSource,
+    supports_split_header_sg: bool,
+    needed_headroom_bytes: u16,
+    rss_summary: RssSummary,
+    fallback_reason: QueueFallbackReason,
+    recovery_state: RecoveryState,
+    queue_recovery_action: QueueRecoveryAction,
+};
+
+pub const HeaderScatterSummary = struct {
+    header_shape: HeaderShape,
+    hdr_len_bytes: u16,
+    header_scatter_source: HeaderScatterSource,
+    supports_split_header_sg: bool,
+    needed_headroom_bytes: u16,
+};
+
+pub const QueueRecoverySummary = struct {
+    action: RecoveryAction,
+    was_frozen: bool,
+    is_frozen: bool,
+    planned_queue_pairs_available: bool,
+    remembered_planned_queue_pairs: u16,
+    remembered_total_queue_count: u16,
+    remembered_control_queue_index: ?u16,
+    remembered_rss_summary: RssSummary,
+    remembered_recovery_state: RecoveryState,
+    remembered_queue_recovery_action: QueueRecoveryAction,
+    recovery_generation: u16,
+};
+
+pub const VirtioNetProbeLab = struct {
+    const Self = @This();
+
+    core: virtio.VirtioCoreLabDevice,
+    last_snapshot: ?ProbeSnapshot = null,
+    frozen_snapshot: ?ProbeSnapshot = null,
+    transport_recovery_frozen: bool = false,
+    recovery_generation: u16 = 0,
+
+    pub fn init(device_feature_bits: []const u16) !Self {
+        return .{
+            .core = try virtio.VirtioCoreLabDevice.init(device_feature_bits),
+        };
+    }
+
+    pub fn captureProbeSnapshot(self: *Self, request: ProbeRequest) !ProbeSnapshot {
+        if (self.transport_recovery_frozen) return error.TransportRecoveryFrozen;
+        if (request.requested_queue_pairs == 0) return error.InvalidRequestedQueuePairs;
+
+        self.core.reset();
+        self.core.acknowledge();
+        try self.core.attachDriver();
+        self.core.setTransportFeatureAcceptance(request.transport_accepts_features);
+
+        for (request.driver_feature_bits) |feature_bit| {
+            try self.core.offerDriverFeature(feature_bit);
+        }
+
+        const negotiation = try self.core.finalizeFeatures();
+        if (request.device_signals_reset) {
+            self.core.noteNeedsReset();
+        }
+
+        const has_control_vq = try self.core.hasNegotiatedFeature(feature_control_vq);
+        const has_multiqueue = try self.core.hasNegotiatedFeature(feature_multiqueue);
+        const has_any_layout = try self.core.hasNegotiatedFeature(feature_any_layout);
+        const has_rss = try self.core.hasNegotiatedFeature(feature_rss);
+        const has_hash_report = try self.core.hasNegotiatedFeature(feature_hash_report);
+        const mergeable_rx_buffers = try self.core.hasNegotiatedFeature(feature_mergeable_rx_buffers);
+        const has_version_1 = try self.core.hasNegotiatedFeature(feature_version_1);
+        const has_guest_udp_tunnel_gso = try self.core.hasNegotiatedFeature(feature_guest_udp_tunnel_gso);
+        const has_host_udp_tunnel_gso = try self.core.hasNegotiatedFeature(feature_host_udp_tunnel_gso);
+        const requested_rss = featureRequested(request.driver_feature_bits, feature_rss);
+        const requested_hash_report = featureRequested(request.driver_feature_bits, feature_hash_report);
+
+        var max_queue_pairs: u16 = 1;
+        var fallback_reason: QueueFallbackReason = .none;
+
+        if (has_multiqueue or has_rss) {
+            if (!has_control_vq) {
+                fallback_reason = .missing_control_vq;
+            } else if (request.max_queue_pairs == 0) {
+                fallback_reason = .invalid_max_queue_pairs;
+            } else {
+                max_queue_pairs = request.max_queue_pairs;
+            }
+        } else if (request.requested_queue_pairs > 1) {
+            fallback_reason = .multiqueue_not_negotiated;
+        }
+
+        const planned_queue_pairs = @min(request.requested_queue_pairs, max_queue_pairs);
+        const data_queue_count = try checkedMulU16(planned_queue_pairs, 2);
+        const total_queue_count = try checkedAddU16(data_queue_count, if (has_control_vq) 1 else 0);
+
+        const recovery_state: RecoveryState = if (self.core.hasStatus(virtio.DeviceStatus.device_needs_reset))
+            .reset_required
+        else if (!negotiation.accepted_by_transport)
+            .renegotiate_features
+        else
+            .stable;
+
+        const header_shape = summarizeHeaderShape(
+            mergeable_rx_buffers,
+            has_hash_report,
+            has_version_1,
+            has_guest_udp_tunnel_gso,
+            has_host_udp_tunnel_gso,
+        );
+        const header_scatter = summarizeHeaderScatter(
+            has_any_layout,
+            has_version_1,
+            header_shape.hdr_len_bytes,
+        );
+
+        const snapshot = ProbeSnapshot{
+            .requested_queue_pairs = request.requested_queue_pairs,
+            .planned_queue_pairs = planned_queue_pairs,
+            .total_queue_count = total_queue_count,
+            .control_queue_index = if (has_control_vq) data_queue_count else null,
+            .mergeable_rx_buffers = mergeable_rx_buffers,
+            .has_rss = has_rss,
+            .has_rss_hash_report = has_hash_report,
+            .header_shape = header_shape.shape,
+            .hdr_len_bytes = header_shape.hdr_len_bytes,
+            .uses_hash_report_header = header_shape.uses_hash_report_header,
+            .uses_udp_tunnel_header = header_shape.uses_udp_tunnel_header,
+            .header_scatter_source = header_scatter.source,
+            .supports_split_header_sg = header_scatter.supports_split_header_sg,
+            .needed_headroom_bytes = header_scatter.needed_headroom_bytes,
+            .rss_summary = summarizeRss(
+                requested_rss,
+                requested_hash_report,
+                has_rss,
+                has_hash_report,
+                request.requested_queue_pairs,
+                planned_queue_pairs,
+            ),
+            .fallback_reason = fallback_reason,
+            .recovery_state = recovery_state,
+            .queue_recovery_action = summarizeQueueRecoveryAction(
+                recovery_state,
+                request.requested_queue_pairs,
+                planned_queue_pairs,
+            ),
+        };
+
+        self.last_snapshot = snapshot;
+        return snapshot;
+    }
+
+    pub fn summarizeHeaderScatterConstraint(self: *Self) !HeaderScatterSummary {
+        const snapshot = self.last_snapshot orelse return error.ProbeSnapshotUnavailable;
+        return .{
+            .header_shape = snapshot.header_shape,
+            .hdr_len_bytes = snapshot.hdr_len_bytes,
+            .header_scatter_source = snapshot.header_scatter_source,
+            .supports_split_header_sg = snapshot.supports_split_header_sg,
+            .needed_headroom_bytes = snapshot.needed_headroom_bytes,
+        };
+    }
+
+    pub fn freezeForRecovery(self: *Self) !QueueRecoverySummary {
+        if (self.transport_recovery_frozen) return error.TransportRecoveryAlreadyFrozen;
+
+        const snapshot = self.last_snapshot orelse return error.ProbeSnapshotUnavailable;
+        self.transport_recovery_frozen = true;
+        self.frozen_snapshot = snapshot;
+
+        return summarizeRecovery(.freeze, false, true, false, snapshot, self.recovery_generation);
+    }
+
+    pub fn restoreAfterRecovery(self: *Self) !QueueRecoverySummary {
+        if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
+
+        const snapshot = self.frozen_snapshot orelse return error.ProbeSnapshotUnavailable;
+        self.transport_recovery_frozen = false;
+        self.frozen_snapshot = null;
+        self.last_snapshot = null;
+        self.recovery_generation = try checkedAddU16(self.recovery_generation, 1);
+
+        return summarizeRecovery(.restore, true, false, true, snapshot, self.recovery_generation);
+    }
+
+    fn featureRequested(feature_bits: []const u16, wanted: u16) bool {
+        for (feature_bits) |feature_bit| {
+            if (feature_bit == wanted) return true;
+        }
+        return false;
+    }
+
+    fn summarizeRss(
+        requested_rss: bool,
+        requested_hash_report: bool,
+        has_rss: bool,
+        has_hash_report: bool,
+        requested_queue_pairs: u16,
+        planned_queue_pairs: u16,
+    ) RssSummary {
+        if (!requested_rss and !requested_hash_report) return .not_requested;
+        if (has_rss and planned_queue_pairs > 1) return .active;
+        if (has_rss and requested_queue_pairs > planned_queue_pairs) return .downgraded_single_queue;
+        if (has_hash_report) return .hash_report_only;
+        return .requested_but_unavailable;
+    }
+
+    fn summarizeQueueRecoveryAction(
+        recovery_state: RecoveryState,
+        requested_queue_pairs: u16,
+        planned_queue_pairs: u16,
+    ) QueueRecoveryAction {
+        return switch (recovery_state) {
+            .reset_required => .require_reset,
+            .renegotiate_features => .renegotiate_features,
+            .stable => if (planned_queue_pairs < requested_queue_pairs)
+                .degrade_to_single_queue
+            else
+                .none,
+        };
+    }
+
+    fn summarizeRecovery(
+        action: RecoveryAction,
+        was_frozen: bool,
+        is_frozen: bool,
+        planned_queue_pairs_available: bool,
+        snapshot: ProbeSnapshot,
+        recovery_generation: u16,
+    ) QueueRecoverySummary {
+        return .{
+            .action = action,
+            .was_frozen = was_frozen,
+            .is_frozen = is_frozen,
+            .planned_queue_pairs_available = planned_queue_pairs_available,
+            .remembered_planned_queue_pairs = snapshot.planned_queue_pairs,
+            .remembered_total_queue_count = snapshot.total_queue_count,
+            .remembered_control_queue_index = snapshot.control_queue_index,
+            .remembered_rss_summary = snapshot.rss_summary,
+            .remembered_recovery_state = snapshot.recovery_state,
+            .remembered_queue_recovery_action = snapshot.queue_recovery_action,
+            .recovery_generation = recovery_generation,
+        };
+    }
+
+    const HeaderShapeSummary = struct {
+        shape: HeaderShape,
+        hdr_len_bytes: u16,
+        uses_hash_report_header: bool,
+        uses_udp_tunnel_header: bool,
+    };
+
+    const HeaderScatterState = struct {
+        source: HeaderScatterSource,
+        supports_split_header_sg: bool,
+        needed_headroom_bytes: u16,
+    };
+
+    fn summarizeHeaderShape(
+        mergeable_rx_buffers: bool,
+        has_hash_report: bool,
+        has_version_1: bool,
+        has_guest_udp_tunnel_gso: bool,
+        has_host_udp_tunnel_gso: bool,
+    ) HeaderShapeSummary {
+        if (has_guest_udp_tunnel_gso or has_host_udp_tunnel_gso) {
+            return .{
+                .shape = .hash_report_tunnel,
+                .hdr_len_bytes = 24,
+                .uses_hash_report_header = true,
+                .uses_udp_tunnel_header = true,
+            };
+        }
+
+        if (has_hash_report) {
+            return .{
+                .shape = .hash_report,
+                .hdr_len_bytes = 20,
+                .uses_hash_report_header = true,
+                .uses_udp_tunnel_header = false,
+            };
+        }
+
+        if (mergeable_rx_buffers or has_version_1) {
+            return .{
+                .shape = .mrg_rxbuf,
+                .hdr_len_bytes = 12,
+                .uses_hash_report_header = false,
+                .uses_udp_tunnel_header = false,
+            };
+        }
+
+        return .{
+            .shape = .legacy,
+            .hdr_len_bytes = 10,
+            .uses_hash_report_header = false,
+            .uses_udp_tunnel_header = false,
+        };
+    }
+
+    fn summarizeHeaderScatter(
+        has_any_layout: bool,
+        has_version_1: bool,
+        hdr_len_bytes: u16,
+    ) HeaderScatterState {
+        if (has_version_1) {
+            return .{
+                .source = .version_1,
+                .supports_split_header_sg = true,
+                .needed_headroom_bytes = hdr_len_bytes,
+            };
+        }
+
+        if (has_any_layout) {
+            return .{
+                .source = .any_layout,
+                .supports_split_header_sg = true,
+                .needed_headroom_bytes = hdr_len_bytes,
+            };
+        }
+
+        return .{
+            .source = .linear_header_only,
+            .supports_split_header_sg = false,
+            .needed_headroom_bytes = 0,
+        };
+    }
+
+    fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
+        const value = @as(u32, lhs) * rhs;
+        return std.math.cast(u16, value) orelse error.QueueCountOverflow;
+    }
+
+    fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
+        const value = @as(u32, lhs) + rhs;
+        return std.math.cast(u16, value) orelse error.QueueCountOverflow;
+    }
+};
