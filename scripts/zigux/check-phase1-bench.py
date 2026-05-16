@@ -153,8 +153,8 @@ REQUIRED_STRING_SOURCE_MARKERS = [
     "const trimmed = string.trimSpaces(&trim_buf);",
     'const parsed = string.memparse(if (even) "64K rest" else "-17 tail");',
     "const dirty = if (even)",
-    'string.memchrInv("aaaaXaaa", \'a\')',
-    'string.memchrInv("bbbb", \'b\');',
+    "string.memchrInv(\"aaaaXaaa\", 'a')",
+    "string.memchrInv(\"bbbb\", 'b');",
     "checksum +%= @as(u64, @intFromBool(enabled));",
     "checksum +%= @intCast(trimmed.len);",
     "checksum +%= @intCast(parsed.rest.len);",
@@ -480,6 +480,19 @@ def run_self_test() -> None:
     )
     cases += 1
 
+    string_mismatch_output = ok_output.replace(
+        f"PHASE1_BENCH_STRING_CHECKSUM={exact['PHASE1_BENCH_STRING_CHECKSUM']}",
+        f"PHASE1_BENCH_STRING_CHECKSUM={exact['PHASE1_BENCH_STRING_CHECKSUM'] + 1}",
+    )
+    kind, payload = validate_output(full_expectations, string_mismatch_output)
+    assert kind == "exact_checksum_mismatch"
+    assert payload == (
+        "PHASE1_BENCH_STRING_CHECKSUM",
+        exact["PHASE1_BENCH_STRING_CHECKSUM"],
+        exact["PHASE1_BENCH_STRING_CHECKSUM"] + 1,
+    )
+    cases += 1
+
     missing_output = ok_output.replace(
         f"\nPHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={exact['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']}",
         "",
@@ -487,6 +500,15 @@ def run_self_test() -> None:
     kind, payload = validate_output(full_expectations, missing_output)
     assert kind == "missing_find_bit_exact_checksums"
     assert payload == ["PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM"]
+    cases += 1
+
+    missing_cached_output = ok_output.replace(
+        f"\nPHASE1_BENCH_RBTREE_CACHED_CHECKSUM={exact['PHASE1_BENCH_RBTREE_CACHED_CHECKSUM']}",
+        "",
+    )
+    kind, payload = validate_output(full_expectations, missing_cached_output)
+    assert kind == "missing_exact_checksums"
+    assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]
     cases += 1
 
     print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
