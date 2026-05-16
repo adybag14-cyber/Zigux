@@ -15,6 +15,7 @@ FILES = {
     "contract_note": "Documentation/zigux/phase11-shared-replay-contract.md",
     "closure_note": "Documentation/zigux/phase11-closure-note.md",
     "lane_note": "Documentation/zigux/phase11-driver-lane-sequencing.md",
+    "scripts_root": "scripts/zigux/README.md",
     "shared_contract_checker": "scripts/zigux/check-phase11-shared-replay-contract.py",
     "shared_summary_checker": "scripts/zigux/check-phase11-shared-summary-surfaces.py",
     "makefile": "zigux/Makefile",
@@ -149,6 +150,11 @@ TEXT_MARKERS = {
         "`scripts/zigux/check-phase11-build-inventory.py`",
         "`zigux/tests/fixtures/phase11_build_inventory.json` anchor",
         "`make -C zigux phase11-contract`",
+    ],
+    "scripts_root": [
+        "`scripts/zigux/check-phase11-build-inventory.py`",
+        "`zigux/tests/fixtures/phase11_build_inventory.json`",
+        "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
     ],
     "shared_contract_checker": [
         "`scripts/zigux/check-phase11-build-inventory.py`",
