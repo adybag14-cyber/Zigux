@@ -169,7 +169,7 @@ DOCS_ROOT_MARKERS = [
     "while the bounded `nvme_pci` driver-local packet is now explicit through `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` even though `zigux/tests/phase12_build.zig` and `zigux/Makefile` still keep it outside the shared smoke-first route",
     "`make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12` keep the shipped validator-first then smoke-first release order visible",
     "`scripts/zigux/check-phase12-release-readiness-packet.py`",
-    "only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts",
+    "`Documentation/zigux/phase12-raw-github-coverage-survey.md` remains the shared overview note for the commit-pinned `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, the current-master `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` gap-inventory companion, and the shared-tree-only anchors `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md`",
     "`Documentation/zigux/phase12-virtio-net-survey.md`",
     "`zigux/tests/phase12_virtio_net_manifest.json`",
     "`zigux/tests/phase12_virtio_net_survey.zig`",
