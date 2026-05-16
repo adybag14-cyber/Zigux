@@ -57,6 +57,7 @@ and the already-landed bounded perf-buffer poll helper reviewable through:
 - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
 - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
 - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+- `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`
 - `zigux/tests/phase8_file_path_handle_bridge.zig`
 - `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
 - `zigux/tests/phase8_perf_buffer_poll.zig`
@@ -77,6 +78,13 @@ that broader bridge-plus-build packet mixed rather than uniformly stable:
 `zigux/tests/phase8_build.zig` still return `404` through the same contents
 route.
 
+Current 2026-05-16 authenticated contents readback also keeps the smaller
+interrupt-routing-adjacent helper packet directly readable:
+`tools/lib/bpf/zigux_segments/online_cpu_routing.zig` now reads cleanly through
+the same contents route, so the lane should keep that helper-local cursor and
+routing-summary evidence explicit instead of collapsing everything under the
+broader deferred setup-side boundary.
+
 That same-lane bridge packet now has a landed helper-local core while the
 broader file-path-and-handle resource boundary stays parked: it names
 `mapReuseObservationFromFdinfo()`, `resolveReusePinnedMapAttempt()`, and
@@ -89,6 +97,13 @@ packet explicit as a smaller helper-adjacent review surface around observed
 wait-result normalization, ready-buffer bookkeeping, bounded buffer-slot lookup,
 and ordered record-processing summaries rather than broader routing or event-loop
 ownership.
+
+Current `master` also keeps a smaller helper-local online CPU cursor and
+routing-summary packet explicit through
+`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, where
+`advanceOnlineCpuCursor()`, `summarizeNextOnlineCpuRoute()`, and
+`summarizeOnlineCpuRouting()` stay reviewable below the deferred setup-side
+`perf-buffer-online-cpu-routing` packet.
 
 That packet still does not claim token materialization or capability handoff,
 map reopen or bpffs compatibility closure, or fd close or ownership semantics.
@@ -137,7 +152,11 @@ This note should therefore remain the truthful bridge between the roadmap target
 and the bounded current-tree evidence: the direct exec-cmd shard now reads
 cleanly through authenticated contents readback on current `master`, while the
 broader shared Phase 8 build and neighboring file-path bridge packet still
-depend on mixed-source review evidence from this environment.
+depend on mixed-source review evidence from this environment. The same survey
+must also keep the directly readable helper-local `online_cpu_routing.zig`
+cursor and routing-summary packet explicit while leaving `/sys` reads,
+`perf_event_open()` setup, `mmap()`-backed ring ownership, epoll registration,
+and poll waits inside the deferred setup-side interrupt-routing boundary.
 
 ## Next Bounded Step
 
@@ -158,9 +177,12 @@ reads cleanly through authenticated contents readback, while
 `zigux/tests/phase8_file_path_handle_bridge_only_build.zig` still keep the
 broader bridge-plus-build packet on mixed-source evidence from this
 environment. `zigux/tests/phase8_file_path_handle_bridge.zig` and
-`zigux/tests/phase8_libbpf_segments_only_build.zig` now read cleanly again, so
-follow-up should not undercount those two landed review surfaces when the shared
-wording lane reopens.
+`zigux/tests/phase8_libbpf_segments_only_build.zig` now read cleanly again, and
+`tools/lib/bpf/zigux_segments/online_cpu_routing.zig` also reads cleanly as the
+smaller helper-local routing packet, so follow-up should keep that bounded
+cursor-and-summary evidence explicit without widening into `/sys` reads,
+`perf_event_open()` setup, `mmap()`-backed ring ownership, epoll registration,
+or poll waits.
 
 Current `master` also shows that `Documentation/zigux/README.md` and
 `Documentation/zigux/review-checklist.md` already carry the refreshed shared-wording
