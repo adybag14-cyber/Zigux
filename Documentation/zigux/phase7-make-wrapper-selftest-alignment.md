@@ -82,7 +82,7 @@ aligned around the route-present shared packet and the Phase 5 no-sample
 boundary. Treat future docs-root or scripts-root drift there as adjacent
 shared-reminder backlog, not as a currently open blocker recorded by this note.
 
-For `string_helpers`, those shared no-sample reminders should also keep the ownership-focus packet explicit: first-NUL trimming and prefix skipping stop at the exported C-string boundary, exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned, append-limited escape accounting stays inside caller storage, `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results, and `memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations.
+For `string_helpers`, those shared no-sample reminders should also keep the ownership-focus packet explicit: first-NUL trimming and prefix skipping stop at the exported C-string boundary, exact-fit, terminator-only, and zero-capacity unescape destinations stay caller-owned, append-limited escape accounting stays inside caller storage, `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, the NULL-terminated pointer view, the shared zero-length sentinel, and teardown ownership explicit for caller-held results, `kstrdupAndReplace()` keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source slice unchanged, and `memcpyAndPad()` plus `strreplace()` stay bounded by caller-provided destinations.
 
 Keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase7-string-helpers-slice.md`,
