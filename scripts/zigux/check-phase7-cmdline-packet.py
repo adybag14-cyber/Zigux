@@ -80,6 +80,8 @@ REQUIRED_MARKERS = {
         'test "getOptions expands negative ranges and negative upper bounds like Linux get_range"',
         'test "parseOptionStr only matches full comma-delimited options"',
         'try std.testing.expect(!parseOptionStr("", ""));',
+        'test "nextArg keeps param, value, and rest borrowed from the caller buffer"',
+        'test "nextArg keeps leading quoted param, value, and rest borrowed from the caller buffer"',
         'test "nextArg returns an empty sentinel token before leading whitespace and trims the following rest"',
         'test "getOption and getOptions preserve oversized wrap semantics"',
         'test "getOption preserves validator-only numeric acceptance without explicit leading plus"',
@@ -96,6 +98,7 @@ REQUIRED_MARKERS = {
         "phase 7 parseOptionStr matches only exact bare options",
         'try std.testing.expect(!cmdline.parseOptionStr("", ""));',
         "phase 7 nextArg matches serialized edge fixtures",
+        "phase 7 nextArg keeps caller-owned buffer slices and sentinel writes explicit",
         "phase 7 nextArg keeps empty-input and leading-whitespace ownership explicit",
         "phase 7 nextArg keeps leading quoted param, value, and rest borrowed from the caller buffer",
         "phase 7 memparse saturates oversized unsigned prefixes before applying suffix handling",
@@ -322,6 +325,18 @@ def run_self_test() -> None:
                 "lib/cmdline.zig: pub fn nextArg",
             ),
             (
+                "helper_next_arg_buffer_ownership_marker",
+                "lib/cmdline.zig",
+                'test "nextArg keeps param, value, and rest borrowed from the caller buffer"',
+                'lib/cmdline.zig: test "nextArg keeps param, value, and rest borrowed from the caller buffer"',
+            ),
+            (
+                "helper_next_arg_leading_quoted_buffer_ownership_marker",
+                "lib/cmdline.zig",
+                'test "nextArg keeps leading quoted param, value, and rest borrowed from the caller buffer"',
+                'lib/cmdline.zig: test "nextArg keeps leading quoted param, value, and rest borrowed from the caller buffer"',
+            ),
+            (
                 "helper_whitespace_sentinel_marker",
                 "lib/cmdline.zig",
                 'test "nextArg returns an empty sentinel token before leading whitespace and trims the following rest"',
@@ -374,6 +389,12 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_cmdline.zig",
                 "phase 7 nextArg matches serialized edge fixtures",
                 "zigux/tests/phase7_cmdline.zig: phase 7 nextArg matches serialized edge fixtures",
+            ),
+            (
+                "tests_next_arg_buffer_ownership_marker",
+                "zigux/tests/phase7_cmdline.zig",
+                "phase 7 nextArg keeps caller-owned buffer slices and sentinel writes explicit",
+                "zigux/tests/phase7_cmdline.zig: phase 7 nextArg keeps caller-owned buffer slices and sentinel writes explicit",
             ),
             (
                 "tests_negative_range_marker",
