@@ -89,6 +89,23 @@ test "phase11 hvc console keeps final-close cleanup distinct from hangup cleanup
     try std.testing.expectEqual(console.CleanupTrigger.final_close_only, final_close_cleanup.trigger);
 }
 
+test "phase11 hvc console keeps missing tty-port release from claiming cleanup ownership" {
+    const cleanup_without_release = try console.summarizeCleanupHandoff(.{
+        .final_close = false,
+        .hangup_seen = true,
+        .tty_port_release_handoff = false,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expect(!cleanup_without_release.cleanup.tty_port_release_handoff);
+    try std.testing.expect(!cleanup_without_release.cleanup.cleanup_time_tty_port_ownership);
+    try std.testing.expect(!cleanup_without_release.cleanup.port_reference_drop_timing);
+    try std.testing.expect(!cleanup_without_release.drops_tty_port_reference);
+    try std.testing.expect(cleanup_without_release.hangup_cleanup_boundary);
+    try std.testing.expectEqual(console.CleanupTrigger.hangup_only, cleanup_without_release.trigger);
+}
+
 test "phase11 hvc console keeps combined cleanup trigger explicit" {
     const combined_cleanup = try console.summarizeCleanupHandoff(.{
         .final_close = true,
