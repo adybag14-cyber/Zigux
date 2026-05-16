@@ -30,6 +30,7 @@ Fresh GitHub-app readback on 2026-05-15 in this run confirmed that current `mast
 
 The shared reminder surfaces presently present on `master` are:
 
+* `Documentation/zigux/phase5-sample-lane-sequencing.md`
 * `Documentation/zigux/phase5-sample-review-guide.md`
 * `Documentation/zigux/phase5-kfifo-sample-survey.md`
 * `Documentation/zigux/phase5-kobject-sample-survey.md`
@@ -93,7 +94,7 @@ Treat the current Phase 5 packet as landed but intentionally non-runtime:
 
 When Phase 5 follow-through is doc-only, keep the shared-versus-sample-local split explicit so reminder-surface work does not reopen neighboring sample packets by accident.
 
-* shared Phase 5 packet work belongs in `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` only when the change preserves the same four-sample non-runtime packet and the same direct-readback caveats recorded above
+* shared Phase 5 packet work belongs in `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` only when the change preserves the same four-sample non-runtime packet and the same direct-readback caveats recorded above
 * within that shared set, future follow-through should start from whichever one-file reminder surface actually drifts next instead of reusing the older survey-note-only kretprobe posture or treating the returned shared `zigux/tests/phase5_build.zig` route as direct authenticated proof instead of current public-tree-backed companion evidence
 * bytestream packet work currently belongs in `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, the aligned tests-root reminder in `zigux/tests/README.md`, and the directly readable companion manifest `zigux/tests/phase5_bytestream_fifo_manifest.json`; do not restate the focused replay, survey replay, or shared-build companions as directly readable evidence until a fresh reread proves those remaining paths returned
 * kobject packet work currently belongs in `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`; keep the current public-tree-backed companion packet `zigux/tests/phase5_kobject_example_survey.zig` plus `zigux/tests/phase5_build.zig` explicit when shared guidance needs the broader packet, but do not restate those two paths as direct authenticated-contents evidence unless a fresh reread proves the connector path returned
