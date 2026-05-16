@@ -3,7 +3,8 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
-WORKFLOW_EXACT_RUN_COUNTS = {
+
+BASE_WORKFLOW_EXACT_RUN_COUNTS = {
     'python3 scripts/zigux/check-zig-toolchain.py --self-test': 1,
     'python3 scripts/zigux/check-zig-toolchain.py': 1,
     'python3 scripts/zigux/validate-phase1.py': 1,
@@ -33,6 +34,9 @@ WORKFLOW_EXACT_RUN_COUNTS = {
     'python3 scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
     'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
     'python3 scripts/zigux/check-genksyms-bridge.py': 1,
+}
+
+LEGACY_WORKFLOW_EXACT_RUN_COUNTS = {
     'python3 scripts/zigux/check-phase6-shared-surface.py --self-test': 1,
     'python3 scripts/zigux/check-phase6-shared-surface.py': 1,
     'python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test': 1,
@@ -52,6 +56,33 @@ WORKFLOW_EXACT_RUN_COUNTS = {
     'python3 scripts/zigux/check-phase15-shared-summary-gap.py': 1,
     'make -C zigux phase15-test': 1,
 }
+
+COMPACT_WORKFLOW_EXACT_RUN_COUNTS = {
+    'make -C zigux phase4-validate': 1,
+    'make -C zigux phase4-test': 1,
+    'make -C zigux phase6-validate': 1,
+    'make -C zigux phase6-test': 1,
+    'make -C zigux phase7-validate': 1,
+    'make -C zigux phase7-test': 1,
+    'make -C zigux phase8-validate': 1,
+    'make -C zigux phase8-test': 1,
+    'make -C zigux phase9-test': 1,
+    'make -C zigux phase10-validate': 1,
+    'make -C zigux phase10-test': 1,
+    'make -C zigux phase11-contract': 1,
+    'make -C zigux phase11-test': 1,
+    'make -C zigux phase12-validate': 1,
+    'make -C zigux phase12-smoke': 1,
+    'make -C zigux phase12-test': 1,
+    'make -C zigux phase13-validate': 1,
+    'make -C zigux phase13-test': 1,
+    'make -C zigux phase14-validate': 1,
+    'make -C zigux phase14-smoke': 1,
+    'make -C zigux phase14-test': 1,
+    'make -C zigux phase15-validate': 1,
+    'make -C zigux phase15-test': 1,
+}
+
 required_files = [
     ROOT / 'zigux-alpha' / 'README.md',
     ROOT / 'zigux-alpha' / 'ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md',
@@ -103,77 +134,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'runtime_loader_allocator_init_flow.zig',
 ]
 
-
-def count_step_command_matches(workflow_text: str, step_name: str, command: str) -> int:
-    step_blocks = workflow_text.split('\n      - name: ')
-    matches = 0
-    command_path = command.split(' ', 1)[1]
-    command_leaf = command_path.rsplit('/', 1)[-1]
-    for block in step_blocks[1:]:
-        lines = block.splitlines()
-        if not lines:
-            continue
-        if lines[0].strip() != step_name:
-            continue
-        step_text = '\n'.join(lines[1:])
-        direct_line = f'run: {command}'
-        if (
-            direct_line in step_text
-            or command in step_text
-            or f'run_path("{command_path}"' in step_text
-            or f"run_path('{command_path}'" in step_text
-            or command_leaf in step_text
-        ):
-            matches += 1
-    return matches
-
-
-def validate_exact_workflow_runs(text: str) -> list[str]:
-    issues = []
-    lines = [line.strip() for line in text.splitlines()]
-    for command, expected_count in WORKFLOW_EXACT_RUN_COUNTS.items():
-        expected_line = f'run: {command}'
-        count = sum(1 for line in lines if line == expected_line)
-        if count == 0 and command == 'python3 scripts/zigux/validate-phase1-closure.py':
-            count = count_step_command_matches(text, 'Validate Phase 1 closure', command)
-        if count != expected_count:
-            issues.append(
-                f'workflow_exact_run:{command}:count={count}:expected={expected_count}'
-            )
-    return issues
-
-
-missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
-if missing:
-    print('BOOTSTRAP_VALIDATION=fail')
-    print('MISSING_FILES_START')
-    for item in missing:
-        print(item)
-    print('MISSING_FILES_END')
-    sys.exit(1)
-
-roadmap = (ROOT / 'zigux-alpha' / 'ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md').read_text(encoding='utf-8')
-required_markers = [
-    '## Non-Negotiable Product Rules',
-    '## Product Features by Phase',
-    '## Freeze Map for Near- and Mid-Term Planning',
-    '## First Commit and Push Sequence for Zigux',
-    'kernel/sched/core.c',
-    'mm/page_alloc.c',
-    'kernel/rcu/tree.c',
-    'net/core/skbuff.c',
-]
-missing_markers = [marker for marker in required_markers if marker not in roadmap]
-if missing_markers:
-    print('BOOTSTRAP_VALIDATION=fail')
-    print('MISSING_MARKERS_START')
-    for marker in missing_markers:
-        print(marker)
-    print('MISSING_MARKERS_END')
-    sys.exit(1)
-
-workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
-required_workflow_markers = [
+BASE_REQUIRED_WORKFLOW_MARKERS = [
     'lib/**',
     'zigux-alpha/**',
     'Documentation/zigux/**',
@@ -236,6 +197,9 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-genksyms-bridge.py --self-test',
     'Check Phase 2 genksyms bridge packet',
     'python3 scripts/zigux/check-genksyms-bridge.py',
+]
+
+LEGACY_REQUIRED_WORKFLOW_MARKERS = [
     'Self-test Phase 6 shared-surface checker',
     'python3 scripts/zigux/check-phase6-shared-surface.py --self-test',
     'Check Phase 6 shared surface',
@@ -280,7 +244,34 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-phase15-shared-summary-gap.py',
     'Run Phase 15 governance tests',
 ]
-required_workflow_marker_aliases = [
+
+COMPACT_REQUIRED_WORKFLOW_MARKERS = [
+    'Validate Phase 4 rollback routes',
+    'Run Phase 4 rollback tests',
+    'Validate Phase 6 helper routes',
+    'Run Phase 6 helper tests',
+    'Validate Phase 7 helper routes',
+    'Run Phase 7 helper tests',
+    'Validate Phase 8 tooling routes',
+    'Run Phase 8 tooling tests',
+    'Run Phase 9 runtime shared tests',
+    'Validate Phase 10 virtio routes',
+    'Run Phase 10 virtio tests',
+    'Validate Phase 11 shared routes',
+    'Run Phase 11 shared tests',
+    'Validate Phase 12 complex-driver routes',
+    'Run Phase 12 smoke routes',
+    'Run Phase 12 shared tests',
+    'Validate Phase 13 release routes',
+    'Run Phase 13 release tests',
+    'Validate Phase 14 smoke routes',
+    'Run Phase 14 smoke routes',
+    'Run Phase 14 shared tests',
+    'Validate Phase 15 governance routes',
+    'Run Phase 15 governance tests',
+]
+
+LEGACY_REQUIRED_WORKFLOW_MARKER_ALIASES = [
     (
         'Run Phase 12 complex driver tests',
         'Run Phase 12 complex driver and libbpf tests',
@@ -290,13 +281,109 @@ required_workflow_marker_aliases = [
         'zig build test --build-file zigux/tests/phase7_build.zig --summary all',
     ),
 ]
+
+
+def count_step_command_matches(workflow_text: str, step_name: str, command: str) -> int:
+    step_blocks = workflow_text.split('\n      - name: ')
+    matches = 0
+    command_path = command.split(' ', 1)[1]
+    command_leaf = command_path.rsplit('/', 1)[-1]
+    for block in step_blocks[1:]:
+        lines = block.splitlines()
+        if not lines:
+            continue
+        if lines[0].strip() != step_name:
+            continue
+        step_text = '\n'.join(lines[1:])
+        direct_line = f'run: {command}'
+        if (
+            direct_line in step_text
+            or command in step_text
+            or f'run_path("{command_path}"' in step_text
+            or f"run_path('{command_path}'" in step_text
+            or command_leaf in step_text
+        ):
+            matches += 1
+    return matches
+
+
+
+def workflow_uses_compact_routes(workflow_text: str) -> bool:
+    compact_markers = [
+        'Validate Phase 6 helper routes',
+        'Run Phase 9 runtime shared tests',
+        'Validate Phase 15 governance routes',
+        'run: make -C zigux phase15-test',
+    ]
+    return all(marker in workflow_text for marker in compact_markers)
+
+
+
+def validate_exact_workflow_runs(text: str, expected_runs: dict[str, int]) -> list[str]:
+    issues = []
+    lines = [line.strip() for line in text.splitlines()]
+    for command, expected_count in expected_runs.items():
+        expected_line = f'run: {command}'
+        count = sum(1 for line in lines if line == expected_line)
+        if count == 0 and command == 'python3 scripts/zigux/validate-phase1-closure.py':
+            count = count_step_command_matches(text, 'Validate Phase 1 closure', command)
+        if count != expected_count:
+            issues.append(
+                f'workflow_exact_run:{command}:count={count}:expected={expected_count}'
+            )
+    return issues
+
+
+missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
+if missing:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_FILES_START')
+    for item in missing:
+        print(item)
+    print('MISSING_FILES_END')
+    sys.exit(1)
+
+roadmap = (ROOT / 'zigux-alpha' / 'ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md').read_text(encoding='utf-8')
+required_markers = [
+    '## Non-Negotiable Product Rules',
+    '## Product Features by Phase',
+    '## Freeze Map for Near- and Mid-Term Planning',
+    '## First Commit and Push Sequence for Zigux',
+    'kernel/sched/core.c',
+    'mm/page_alloc.c',
+    'kernel/rcu/tree.c',
+    'net/core/skbuff.c',
+]
+missing_markers = [marker for marker in required_markers if marker not in roadmap]
+if missing_markers:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_MARKERS_START')
+    for marker in missing_markers:
+        print(marker)
+    print('MISSING_MARKERS_END')
+    sys.exit(1)
+
+workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
+compact_workflow = workflow_uses_compact_routes(workflow)
+expected_runs = dict(BASE_WORKFLOW_EXACT_RUN_COUNTS)
+required_workflow_markers = list(BASE_REQUIRED_WORKFLOW_MARKERS)
+required_workflow_marker_aliases = []
+
+if compact_workflow:
+    expected_runs.update(COMPACT_WORKFLOW_EXACT_RUN_COUNTS)
+    required_workflow_markers.extend(COMPACT_REQUIRED_WORKFLOW_MARKERS)
+else:
+    expected_runs.update(LEGACY_WORKFLOW_EXACT_RUN_COUNTS)
+    required_workflow_markers.extend(LEGACY_REQUIRED_WORKFLOW_MARKERS)
+    required_workflow_marker_aliases.extend(LEGACY_REQUIRED_WORKFLOW_MARKER_ALIASES)
+
 missing_workflow_markers = [marker for marker in required_workflow_markers if marker not in workflow]
 for alias_group in required_workflow_marker_aliases:
     if not any(marker in workflow for marker in alias_group):
         missing_workflow_markers.append(
             'workflow_any_of:' + '||'.join(alias_group)
         )
-missing_workflow_markers.extend(validate_exact_workflow_runs(workflow))
+missing_workflow_markers.extend(validate_exact_workflow_runs(workflow, expected_runs))
 if missing_workflow_markers:
     print('BOOTSTRAP_VALIDATION=fail')
     print('MISSING_WORKFLOW_MARKERS_START')
@@ -309,5 +396,5 @@ print('BOOTSTRAP_VALIDATION=pass')
 print(f'BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'BOOTSTRAP_REQUIRED_MARKER_COUNT='
-    f'{len(required_markers) + len(required_workflow_markers) + len(required_workflow_marker_aliases) + len(WORKFLOW_EXACT_RUN_COUNTS)}'
+    f'{len(required_markers) + len(required_workflow_markers) + len(required_workflow_marker_aliases) + len(expected_runs)}'
 )
