@@ -800,6 +800,20 @@ test "getOption and getOptions preserve oversized wrap semantics" {
     try std.testing.expectEqual(@as(i32, 2), overflow_validate_only[0]);
 }
 
+test "getOption preserves validator-only numeric acceptance without explicit leading plus" {
+    var plain: []const u8 = "7";
+    try std.testing.expectEqual(@as(u8, 1), getOption(&plain, null));
+    try std.testing.expectEqualStrings("", plain);
+
+    var plus: []const u8 = "+9,tail";
+    try std.testing.expectEqual(@as(u8, 0), getOption(&plus, null));
+    try std.testing.expectEqualStrings("+9,tail", plus);
+
+    var range: []const u8 = "5-8";
+    try std.testing.expectEqual(@as(u8, 3), getOption(&range, null));
+    try std.testing.expectEqualStrings("-8", range);
+}
+
 test "memparse saturates oversized unsigned prefixes before applying suffix handling" {
     var index: usize = 0;
 
