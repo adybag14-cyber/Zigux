@@ -670,6 +670,30 @@ def run_self_test() -> int:
             "missing review-checklist support-route marker",
         )
 
+        write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
+        write_text(
+            tmp_root / REVIEW_CHECKLIST_PATH,
+            good_review_checklist_text() + f"{REVIEW_CHECKLIST_MARKERS[0]}\n",
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            f"marker count drift in {REVIEW_CHECKLIST_PATH}: {REVIEW_CHECKLIST_MARKERS[0]} (expected 1, found 2)",
+            "duplicate review-checklist marker not detected",
+        )
+
+        write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
+        write_text(
+            tmp_root / REVIEW_CHECKLIST_PATH,
+            good_review_checklist_text() + f"{REVIEW_CHECKLIST_MARKERS[1]}\n",
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            f"marker count drift in {REVIEW_CHECKLIST_PATH}: {REVIEW_CHECKLIST_MARKERS[1]} (expected 1, found 2)",
+            "duplicate review-checklist support-route marker not detected",
+        )
+
         write_text(tmp_root / FREEZE_MAP_PATH, good_freeze_map_text())
         write_text(
             tmp_root / FREEZE_MAP_PATH,
