@@ -315,6 +315,7 @@ test "phase 9 runtime atomic64 survey keeps the manifest and current review pack
     try expectContains(runtime_atomic64_loader, "counter_snapshot: i64");
     try expectContains(runtime_atomic64_loader, "selftest_runs: usize");
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps initialized shared-request snapshots stable across later selftest activity");
+    try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps initialized shared-request snapshots stable across later clean exit activity");
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader keeps selftest-complete shared-request snapshots stable across later exit activity");
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader rejects prepared shared allocator and init-flow drift before any local runtime handoff");
     try expectContains(runtime_atomic64_loader, "runtime atomic64 loader surfaces prepared shared selftest-hook drift before any live atomic64 claim");
