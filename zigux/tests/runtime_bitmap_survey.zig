@@ -2,6 +2,7 @@ const std = @import("std");
 
 const direct_phase5_reference_anchors = [_][]const u8{
     "`samples/zigux/bytestream_fifo.zig`",
+    "`samples/zigux/kobject_example.zig`",
     "`samples/zigux/kretprobe_example.zig`",
     "`samples/zigux/trace_events_sample.zig`",
 };
@@ -157,7 +158,6 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
         128 * 1024,
     );
     defer std.testing.allocator.free(runtime_bitmap_loader);
-
     const runtime_bitmap_module = try readRepoFileAlloc(
         std.testing.allocator,
         "zigux/tests/runtime_bitmap_module.zig",
@@ -283,6 +283,7 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(sample_root_readme, "`phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local");
     try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-bitmap-top-bit-test`");
     try expectContains(sample_root_readme, "`make -C zigux phase9-runtime-loader-shared-tests`");
+    for (direct_phase5_reference_anchors) |marker| try expectContains(sample_root_readme, marker);
     for (phase5_kobject_packet_markers) |marker| try expectContains(sample_root_readme, marker);
 
     try expectContains(runtime_bitmap_sample, "runtime bitmap sample review contract keeps bounded starter focus explicit");
@@ -314,10 +315,38 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(top_bit_contract_source, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.selftest_complete, snapshot.stage);");
     try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 1), snapshot.selftest_runs);");
     try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 0), snapshot.exit_runs);");
-    try expectContains(top_bit_contract_source, "try std.testing.expect(destination.isSet(top_bit));");
+    try expectContains(top_bit_contract_source, "try expectContains(top_bit_contract_source, "summary.weight");
+    try expectContains(top_bit_contract_source, "ModuleStage.initialized");
+    try expectContains(top_bit_contract_source, "ModuleStage.exited");
+    try expectContains(top_bit_contract_source, "try destination.copyFrom(&source);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.selftest_complete, snapshot.stage);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 1), snapshot.selftest_runs);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 0), snapshot.exit_runs);");
+    try expectContains(top_bit_contract_source, "try expectContains(top_bit_contract_source, "summary.weight");
+    try expectContains(top_bit_contract_source, "ModuleStage.initialized");
+    try expectContains(top_bit_contract_source, "ModuleStage.exited");
+    try expectContains(top_bit_contract_source, "try destination.copyFrom(&source);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.selftest_complete, snapshot.stage);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 1), snapshot.selftest_runs);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 0), snapshot.exit_runs);");
+    try expectContains(top_bit_contract_source, "try destination.copyFrom(&source);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.selftest_complete, snapshot.stage);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 1), snapshot.selftest_runs);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 0), snapshot.exit_runs);");
+    try expectContains(top_bit_contract_source, "try expectContains(top_bit_contract_source, "summary.weight");
+    try expectContains(top_bit_contract_source, "ModuleStage.initialized");
+    try expectContains(top_bit_contract_source, "ModuleStage.exited");
+    try expectContains(top_bit_contract_source, "try destination.copyFrom(&source);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.selftest_complete, snapshot.stage);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 1), snapshot.selftest_runs);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 0), snapshot.exit_runs);");
+    try expectContains(top_bit_contract_source, "try destination.copyFrom(&source);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.selftest_complete, snapshot.stage);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 1), snapshot.selftest_runs);");
+    try expectContains(top_bit_contract_source, "try std.testing.expectEqual(@as(usize, 0), snapshot.exit_runs);");
+    try expectContains(top_bit_contract_source, "try destination.isSet(top_bit));");
     try expectContains(top_bit_contract_source, "BitRangeOutOfBounds");
     try expectContains(top_bit_contract_source, "InvalidLifecycleTransition");
-
     try expectContains(runtime_bitmap_loader, "runtime bitmap loader keeps initialized shared-request snapshots stable across later selftest activity");
     try expectContains(runtime_bitmap_loader, "runtime bitmap loader keeps selftest-complete shared-request snapshots stable across later exit activity");
     try expectContains(runtime_bitmap_loader, "runtime bitmap loader bridges the shared request lifecycle without widening bitmap claims");
