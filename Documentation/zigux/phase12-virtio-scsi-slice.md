@@ -4,7 +4,7 @@
 - reread against live `master` and the current `P12-L09` survey packet on `2026-05-14`
 - lane: `P12-L12`
 - anchor: `drivers/scsi/virtio_scsi.c`
-- refreshed against the current `P12-L13` rollback-and-reversible-delivery survey packet on `2026-05-15` without changing the older support-packet ownership markers that `zigux/tests/phase12_virtio_scsi_packet.zig` and `scripts/zigux/check-phase12-virtio-scsi-packet.py` still enforce
+- refreshed against the current `P12-L13` rollback-and-reversible-delivery survey packet on `2026-05-16` so the support packet drops the stale `drivers/nvme/host/pci.zig` repo-gap claim while keeping the older support-packet ownership markers that `zigux/tests/phase12_virtio_scsi_packet.zig` and `scripts/zigux/check-phase12-virtio-scsi-packet.py` still enforce
 
 ## Shipped packet
 
@@ -14,14 +14,13 @@
 - `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig` keeps the second-cycle recovery boundary explicit
 - `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig` keeps the paired second-cycle rollback boundary explicit so the survey packet can talk about rollback readiness without inventing a broader runtime reset replay
 - `zigux/tests/phase12_virtio_scsi_packet.zig` remains the manifest-backed support replay for this bounded infra-prep slice
-- `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json` now pins the lane-local metadata cleanup, unresolved support-packet commit state on live `master`, shipped paths, and direct validation commands for the current support packet
+- `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json` now pins the lane-local metadata cleanup, unresolved support-packet commit state on live `master`, shipped paths, the remaining shared closure-note gap, and direct validation commands for the current support packet
 - `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` keep the newer `P12-L13` roadmap-gap survey machine-checkable beside the earlier support packet, and that newer survey now makes the rollback owner, smoke-first rollback drill, repeated rollback boundary, request-submit sequencing, completion-handback sequencing, command-buffer ownership, control-path governance, and reversible-delivery recovery summaries explicit without turning this support note into a second survey note
 - `zigux/tests/phase12_build.zig` keeps the direct replay, syntax-lab smoke, repeated-replan gate, survey gate, and support packet wired into the shared `phase12` smoke and test routes
 - `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the support manifest, support replay, slice note, or build route drifts
 
 ## Repo-reality gaps
 
-- `drivers/nvme/host/pci.zig` is still absent on the surveyed head
 - `Documentation/zigux/phase12-closure.md` is still absent on the surveyed head
 
 ## Why this packet exists
