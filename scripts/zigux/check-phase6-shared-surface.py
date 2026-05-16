@@ -37,6 +37,7 @@ BASE64_REPLAY_PATH = Path("zigux/tests/phase6_base64.zig")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
 BASE64_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 BASE64_C_PARITY_PATH = Path("zigux/tests/phase6_base64_c_parity.zig")
+BASE64_C_CASEGEN_PATH = Path("zigux/tests/phase6_base64_c_casegen.zig")
 BASE64_C_PARITY_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")
 BASE64_C_HARNESS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_harness.c")
 BASE64_C_PARITY_CHECKER_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
@@ -103,6 +104,7 @@ REQUIRED_PRESENT_ENTRYPOINTS = {
     MANIFEST_PATH.as_posix(),
     BASE64_REPLAY_PATH.as_posix(),
     BASE64_C_PARITY_PATH.as_posix(),
+    BASE64_C_CASEGEN_PATH.as_posix(),
     BASE64_PERF_PATH.as_posix(),
     BASE64_VECTORS_PATH.as_posix(),
     BASE64_C_PARITY_VECTORS_PATH.as_posix(),
@@ -187,6 +189,7 @@ REQUIRED_HELPER_EVIDENCE_SNIPPETS = [
 REQUIRED_BASE64_SLICE_SNIPPETS = [
     "- direct focused perf route: `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
     "- current wrapper nuance: the helper-owned perf gate is directly runnable through `zigux/tests/phase6_build.zig`, and current `zigux/Makefile` now exposes a committed `phase6-base64-perf` target body; the remaining shared-route lag is the broader aggregate wrapper inventory plus the bootstrap workflow, not the helper-local Linux-style wrapper itself",
+    "phase6_base64_c_casegen.zig",
 ]
 
 REQUIRED_BSEARCH_SLICE_SNIPPETS = [
@@ -372,6 +375,7 @@ def validate_paths(repo_root: Path) -> None:
         BASE64_PERF_PATH,
         BASE64_VECTORS_PATH,
         BASE64_C_PARITY_PATH,
+        BASE64_C_CASEGEN_PATH,
         BASE64_C_PARITY_VECTORS_PATH,
         BASE64_C_HARNESS_PATH,
         BASE64_C_PARITY_CHECKER_PATH,
@@ -433,6 +437,7 @@ def scaffold_repo(root: Path) -> None:
         BASE64_PERF_PATH,
         BASE64_VECTORS_PATH,
         BASE64_C_PARITY_PATH,
+        BASE64_C_CASEGEN_PATH,
         BASE64_C_PARITY_VECTORS_PATH,
         BASE64_C_HARNESS_PATH,
         BASE64_C_PARITY_CHECKER_PATH,
@@ -542,7 +547,7 @@ def run_self_test() -> None:
         assert_failure(tmpdir, MANIFEST_PATH, '"helper_evidence_catalog"', '"helper_evidence_catalog_missing"')
         assert_failure(tmpdir, CATALOG_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
         assert_failure(tmpdir, HELPER_EVIDENCE_CATALOG_PATH, "check-phase6-bsearch-corpus-evidence.py", "check-phase6-bsearch-evidence.py")
-        assert_failure(tmpdir, BASE64_SLICE_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
+        assert_failure(tmpdir, BASE64_SLICE_PATH, "phase6_base64_c_casegen.zig", "phase6_base64_c_casegen_missing.zig")
         assert_failure(tmpdir, PERF_SURVEY_PATH, "phase6-base64-perf", "phase6-base64-perf-missing")
         assert_failure(tmpdir, CHECKSUM_SLICE_PATH, "phase6-checksum-perf", "phase6-checksum-perf-missing")
         assert_failure(tmpdir, MAKEFILE_PATH, "phase6-base64-perf:", "phase6-base64-perf-missing:")
