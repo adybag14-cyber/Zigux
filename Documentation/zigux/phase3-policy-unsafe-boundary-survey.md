@@ -20,7 +20,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_UNSAFE_BLOB_SHA=f78eefc1208df3e44662f5d9067edabd18ea4f12`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
-- `PHASE3_ABI_TEST_BLOB_SHA=0574e36bd0943569326494b6a01ad8762456afd4`
+- `PHASE3_ABI_TEST_BLOB_SHA=beae4ef4ca27d08606835421945cc149a3b4acd9`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=243141d56c39fd7f8a16ed32fe36c6fd7a91661f`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=bfceb3241a2a9b4f3d0122c5b193727d2a57c728`
