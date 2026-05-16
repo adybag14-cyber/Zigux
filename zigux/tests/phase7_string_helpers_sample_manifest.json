@@ -25,6 +25,7 @@
       "deterministic_escape_subset",
       "bounded_destination_discipline",
       "bounded_buffer_mutation",
+      "case_conversion_preview",
       "non_allocating_runtime_safe"
     ],
     "lifecycle_states": [
@@ -39,7 +40,9 @@
       "var size_text = RenderedText{};\n        size_text.len = string_helpers.stringGetSize(",
       "var compact_size_text = RenderedText{};\n        compact_size_text.len = string_helpers.stringGetSize(",
       "_ = string_helpers.strreplace(replaced_text.bytes[0..11], '-', '_');",
-      "string_helpers.memcpyAndPad(padded_text.bytes[0..5], \"xy\", 2, \".\");",
+      "string_helpers.memcpyAndPad(padded_text.bytes[0..5], \"xy\", 2, '.');",
+      "var upper_text = RenderedText{};\n        string_helpers.stringUpper(upper_text.bytes[0..6], \"miXeD\\x00tail\");",
+      "var lower_text = RenderedText{};\n        string_helpers.stringLower(lower_text.bytes[0..5], \"HeLP\\x00tail\");",
       "var unescaped_text = RenderedText{};\n        unescaped_text.len = string_helpers.stringUnescape(",
       "var exact_unescape_text = RenderedText{};\n        exact_unescape_text.len = string_helpers.stringUnescape(",
       "var escaped_text = RenderedText{};\n        escaped_text.len = string_helpers.stringEscapeMem(",
@@ -60,6 +63,8 @@
       "try std.testing.expectEqual(@as(usize, 6), replay.compact_size_text.len);",
       "try std.testing.expectEqualStrings(\"mode_ready\", cStringPrefix(&replay.replaced_text.bytes));",
       "try std.testing.expectEqualSlices(u8, \"xy...\", replay.padded_text.bytes[0..replay.padded_text.len]);",
+      "try std.testing.expectEqualSlices(u8, \"MIXED\", replay.upper_text.bytes[0..replay.upper_text.len]);",
+      "try std.testing.expectEqualSlices(u8, \"help\", replay.lower_text.bytes[0..replay.lower_text.len]);",
       "try std.testing.expectEqualSlices(u8, \"line\\n\", replay.unescaped_text.bytes[0..replay.unescaped_text.len]);",
       "try std.testing.expectEqual(@as(usize, 1), replay.exact_unescape_text.len);",
       "try std.testing.expectEqualSlices(u8, \"\\n\", replay.exact_unescape_text.bytes[0..replay.exact_unescape_text.len]);",
@@ -69,7 +74,7 @@
       "try std.testing.expectEqualSlices(u8, \"\\\\x0a?\", replay.bounded_escape_text.bytes[0..5]);",
       "try std.testing.expectEqualSlices(u8, \"A\\\\n\\tZ\", replay.selected_escape_text.bytes[0..replay.selected_escape_text.len]);",
       "try std.testing.expectEqualSlices(u8, \"A\\\\x0aZ\", replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);",
-      "try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);"
+      "try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);"
     ]
   },
   "verification_checks": [
@@ -83,13 +88,14 @@
     "`stringGetSize(1536, 1, STRING_UNITS_2 | STRING_UNITS_NO_SPACE | STRING_UNITS_NO_BYTES)` renders `1.50Ki` with reported length `6`",
     "in-place `strreplace(\"mode-ready\")` rewrites the replay buffer to `mode_ready`",
     "bounded `memcpyAndPad(\"xy\", count=2, pad='.')` fills the five-byte replay window as `xy...`",
+    "bounded `stringUpper(\"miXeD\")` and `stringLower(\"HeLP\")` previews render `MIXED` and `help` through fixed destinations",
     "`stringUnescape(\"line\\\\n\")` produces `line` plus a trailing newline byte",
     "exact-fit `stringUnescape(\"\\\\n\", size=2)` returns length `1` and leaves a trailing NUL terminator",
     "`stringEscapeMem(\"\\n\", ESCAPE_HEX)` produces `\\\\x0a`",
     "bounded `stringEscapeMem(\"\\n\", dst[0..5], ESCAPE_HEX)` reports length `4` and leaves the untouched `?` sentinel in `\\\\x0a?`",
     "dictionary-limited `stringEscapeMem(\"A\\n\\tZ\", ESCAPE_SPACE, only=\"\\n\")` produces `A\\\\n\\tZ`",
     "append-selected `stringEscapeMem(\"A\\nZ\", ESCAPE_NAP | ESCAPE_HEX | ESCAPE_APPEND, only=\"\\n\")` produces `A\\\\x0aZ`",
-    "the replay records exactly six checked focus markers"
+    "the replay records exactly seven checked focus markers"
   ],
   "gaps": [
     {
@@ -125,14 +131,14 @@
       "status": "starter_landed",
       "kind": "reference_sample",
       "zigux_destination": "samples/zigux/string_helpers_sample.zig",
-      "why_now": "The bounded non-runtime sample makes the already-landed helper contract easier to review by replaying descriptor, lifecycle, newline matching, binary size rendering, compact formatting, one in-place replacement preview, one fixed-width padding preview, one exact-fit unescape destination proof, one bounded no-terminator escape window proof, deterministic only-selected newline escaping, and append-selected newline hex escaping without widening helper semantics."
+      "why_now": "The bounded non-runtime sample makes the already-landed helper contract easier to review by replaying descriptor, lifecycle, newline matching, binary size rendering, compact formatting, one in-place replacement preview, one fixed-width padding preview, one bounded ASCII case-conversion preview, one exact-fit unescape destination proof, one bounded no-terminator escape window proof, deterministic only-selected newline escaping, and append-selected newline hex escaping without widening helper semantics."
     },
     {
       "id": "phase7-string-helpers-sample-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_string_helpers_sample_survey.zig",
-      "why_now": "A manifest-backed survey gate keeps the helper, shared fixtures, sample replay, and shared Phase 7 build entrypoint aligned so the widened sample evidence, including buffer mutation previews, the exact-fit unescape boundary, bounded no-terminator escape window, stage transitions, invalid-match behavior, and only-selected and append-selected newline escaping, does not land as an undocumented side path."
+      "why_now": "A manifest-backed survey gate keeps the helper, shared fixtures, sample replay, and shared Phase 7 build entrypoint aligned so the widened sample evidence, including buffer mutation previews, one bounded ASCII case-conversion preview, the exact-fit unescape boundary, bounded no-terminator escape window, stage transitions, invalid-match behavior, and only-selected and append-selected newline escaping, does not land as an undocumented side path."
     },
     {
       "id": "phase7-string-helpers-slice-note",
