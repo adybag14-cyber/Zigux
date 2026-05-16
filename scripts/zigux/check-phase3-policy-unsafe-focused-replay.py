@@ -65,6 +65,7 @@ MANIFEST_REQUIRED = (
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    '"slice": "abi-and-bindings-boundary-packet",',
 )
 
 MANIFEST_FORBIDDEN = ABI_SLICE_FORBIDDEN
@@ -268,6 +269,20 @@ def run_self_test() -> None:
         write_fixture(tmpdir)
         manifest_path = tmpdir / ABI_MANIFEST_REL
         manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8").replace(MANIFEST_REQUIRED[-1] + "\n", ""),
+            encoding="utf-8",
+        )
+        try:
+            check_repo_root(tmpdir)
+        except CheckFailure as exc:
+            assert ABI_MANIFEST_REL.as_posix() in str(exc)
+            assert MANIFEST_REQUIRED[-1] in str(exc)
+        else:
+            raise AssertionError("expected missing manifest slice marker failure")
+
+        write_fixture(tmpdir)
+        manifest_path = tmpdir / ABI_MANIFEST_REL
+        manifest_path.write_text(
             manifest_path.read_text(encoding="utf-8") + MANIFEST_FORBIDDEN[0] + "\n",
             encoding="utf-8",
         )
@@ -350,7 +365,7 @@ def run_self_test() -> None:
             raise AssertionError("expected missing low-level build anchor failure")
 
         print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST=pass")
-        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=16")
+        print("PHASE3_POLICY_UNSAFE_PACKET_SELF_TEST_CASE_COUNT=17")
     finally:
         shutil.rmtree(tmpdir)
 
