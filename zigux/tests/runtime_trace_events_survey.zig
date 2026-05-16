@@ -500,6 +500,34 @@ test "phase 9 runtime trace-events survey packet matches the current manifest an
     );
     try expectContains(
         runtime_trace_events_loader,
+        "last_main_conditional_event_count: ?usize,",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        ".last_main_conditional_event_count = plan.summary.last_main_conditional_event_count,",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "snapshot.last_main_conditional_event_count == plan.summary.last_main_conditional_event_count and",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "try std.testing.expectEqual(@as(?usize, null), prepared.summary.last_main_conditional_event_count);",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "try std.testing.expectEqual(@as(?usize, 2), pending_plan.summary.last_main_conditional_event_count);",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "try std.testing.expectEqual(@as(?usize, 2), prepared_snapshot.last_main_conditional_event_count);",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
+        "try std.testing.expectEqual(@as(?usize, 2), pending_snapshot.last_main_conditional_event_count);",
+    );
+    try expectContains(
+        runtime_trace_events_loader,
         "test \"runtime trace-events loader rejects non-idle registration state at the metadata-only handoff boundary\" {",
     );
     try expectContains(
