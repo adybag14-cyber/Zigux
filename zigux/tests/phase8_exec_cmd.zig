@@ -208,6 +208,11 @@ test "phase 8 exec-cmd deferred boundary note still matches the parked review pa
         slice,
         "any ownership of `execl_cmd()` or the direct varargs launch path",
     ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        slice,
+        "deferred queue ownership or scheduler-facing transport",
+    ) != null);
     try std.testing.expect(std.mem.indexOf(u8, helper, "pub fn buildDeferredExecvCall(") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper, "pub fn buildDeferredExeclCall(") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper, "pub fn planDeferredExeclCallWithPwd(") != null);
