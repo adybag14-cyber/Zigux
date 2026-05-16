@@ -213,7 +213,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 102
+EXPECTED_SELF_TEST_CASE_COUNT = 104
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
@@ -842,6 +842,15 @@ def run_self_test() -> int:
         if review_checklist_missing != [expected_review_checklist_issue]:
             raise SystemExit("phase2-cross-alignment:self-test:review_checklist_marker_failure")
         checks_run += 1
+
+    closure_issues = validate_required_markers(
+        "\n".join(CLOSURE_MARKERS),
+        label="phase2_closure_doc",
+        markers=CLOSURE_MARKERS,
+    )
+    if closure_issues:
+        raise SystemExit("phase2-cross-alignment:self-test:closure_marker_presence")
+    checks_run += 1
 
     for marker in CLOSURE_MARKERS:
         closure_missing = validate_required_markers(
