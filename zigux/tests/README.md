@@ -259,3 +259,78 @@ Phase 11 review packet
   * surviving DesignWare continuity stays explicit through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
   * dedicated HVC archival packet stays explicit through `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `scripts/zigux/check-phase11-hvc-survey-packet.py`
   * there is no shared `validate-phase11.py` or `make -C zigux phase11-validate` route on current `master`
+
+Phase 12 review packet
+  * `scripts/zigux/check-build-only-phase12-surface.py`
+  * `Documentation/zigux/phase12-release-sequencing.md`
+  * `Documentation/zigux/phase12-release-closure-checklist.md`
+  * `Documentation/zigux/phase12-release-readiness-survey.md`
+  * `Documentation/zigux/phase12-release-coordination-matrix.md`
+  * `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
+  * `make -C zigux phase12-validate`
+  * the shipped validator-first support bundle is `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-cross.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`, and it should stay explicit here as support-bundle evidence rather than a second direct replay route
+  * `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
+  * `Documentation/zigux/phase12-raw-github-coverage-survey.md`
+  * `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
+  * `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
+  * `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
+  * `Documentation/zigux/phase12-virtio-net-survey.md`
+  * `Documentation/zigux/phase12-libbpf-segment-survey.md`
+  * `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
+  * `scripts/zigux/check-phase12-release-readiness-packet.py`
+  * while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`
+  * current `zigux/tests/phase12_build.zig` also runs `zigux/tests/phase12_virtio_net_transmit_recycle.zig` and `zigux/tests/phase12_virtio_net_queue_resume.zig` in both `smoke` and `test`, but those stay framed as bounded transmit-disposition and queue-resume reviewability rather than live DMA or queue-restart parity
+  * `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`
+  * `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json`
+  * `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+  * `make -C zigux phase12-smoke`
+  * `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+  * `make -C zigux phase12`
+  * if `zig` is unavailable on `PATH`, keep the same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, rerun only the shipped Make routes as `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` rather than inventing another Phase 12 route
+
+Phase 13 review packet
+  * `Documentation/zigux/phase13-contributor-workflow-guide.md`
+  * `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+  * `Documentation/zigux/phase13-release-coordination-matrix.md`
+  * `Documentation/zigux/phase13-release-notes-survey.md`
+  * `Documentation/zigux/phase13-roadmap-traceability.md`
+  * `Documentation/zigux/phase13-libfs-survey.md`
+  * `fs/libfs.zig`
+  * `zigux/tests/phase13_libfs.zig`
+  * `zigux/tests/phase13_libfs_reviewability.zig`
+  * `zigux/tests/phase13_libfs_manifest.json`
+  * `Documentation/zigux/phase13-devres-slice.md`
+  * `Documentation/zigux/phase13-devres-survey.md`
+  * `lib/devres.zig`
+  * `zigux/tests/phase13_devres.zig`
+  * `zigux/tests/phase13_devres_reviewability.zig`
+  * `zigux/tests/phase13_devres_dma_coherent.zig`
+  * `zigux/tests/phase13_devres_boundary_evidence.zig`
+  * `zigux/tests/phase13_devres_manifest.json`
+  * `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+  * `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+  * `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+  * `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+  * `Documentation/zigux/phase13-landlock-syscalls-slice.md`
+  * `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+  * `security/landlock/ruleset.zig`
+  * `security/landlock/syscalls.zig`
+  * `zigux/tests/phase13_landlock_ruleset.zig`
+  * `zigux/tests/phase13_landlock_ruleset_manifest.json`
+  * `zigux/tests/phase13_landlock_syscalls.zig`
+  * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+  * `zigux/tests/phase13_landlock_syscalls_manifest.json`
+  * `Documentation/zigux/phase13-notifier-list-survey.md`
+  * `scripts/zigux/check-phase13-devres-packet-alignment.py`
+  * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
+  * `scripts/zigux/check-phase13-notifier-priority-signal.py`
+  * `scripts/zigux/validate-phase13-release.py`
+  * `zigux/bindings/notifier_abi.zig`
+  * `zigux/helpers/notifier_chain_view.zig`
+  * `include/zigux/abi.h`
+  * `drivers/tty/hvc/hvc_console.h`
+  * `make -C zigux phase13-validate`
+  * blocked convenience route `make -C zigux phase13`
+  * current `master` now materializes the bounded `libfs`, `devres`, and Landlock helper packets plus the adjacent notifier evidence above, so this tests-root reminder should keep those shipped surfaces explicit instead of collapsing the active Phase 13 packet into a generic future-work summary
+  * current `master` still does not materialize `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, older `scripts/zigux/check-phase13-devres-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, or `zigux/helpers/hlist_view.zig`, so keep those paths framed as repo-reality gaps instead of shipped evidence
+  * keep `make -C zigux phase13-validate` as the stable contributor-facing handle; `zigux/Makefile` still exposes `make -C zigux phase13`, but that broader convenience route fans out to `phase13-test`, which still calls `zig build test --build-file zigux/tests/phase13_build.zig --summary all` while `zigux/tests/phase13_build.zig` remains absent on current `master`
