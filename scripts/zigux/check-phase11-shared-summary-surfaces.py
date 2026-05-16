@@ -65,6 +65,7 @@ REQUIRED_MARKERS = {
     ],
     "contributor_sync_note": [
         "# Phase 10, 11, and 13 Contributor Surface Sync",
+        "Shared surfaces to keep aligned:\n- `Documentation/zigux/README.md`\n- `Documentation/zigux/review-checklist.md`",
         "## Phase 11 contributor packet",
         "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
         "`scripts/zigux/check-phase11-build-inventory.py`",
