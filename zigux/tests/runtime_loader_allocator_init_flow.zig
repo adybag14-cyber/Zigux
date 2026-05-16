@@ -34,6 +34,7 @@ const LifecycleBoundarySummary = struct {
     pre_execution_handoff_only: bool,
     requires_idle_registration_snapshot: bool,
     failed_exit_state_retained_until_drain: bool,
+    metadata_only_lifecycle_labels: []const []const u8,
     metadata_only_registration_labels: []const []const u8,
     shared_request_surface: []const u8,
     live_registration_parity: []const u8,
@@ -727,6 +728,9 @@ test "phase 9 runtime loader allocator/init-flow replay keeps exact current init
     try std.testing.expect(kretprobe.value.lifecycle_boundary_summary.requires_idle_registration_snapshot);
     try std.testing.expect(kretprobe.value.lifecycle_boundary_summary.failed_exit_state_retained_until_drain);
     try std.testing.expect(kretprobe.value.lifecycle_boundary_summary.prepared_snapshot_owned_by_loader_request);
+    try std.testing.expectEqual(@as(usize, 2), kretprobe.value.lifecycle_boundary_summary.metadata_only_lifecycle_labels.len);
+    try std.testing.expectEqualStrings("zigux_runtime_kretprobe_init", kretprobe.value.lifecycle_boundary_summary.metadata_only_lifecycle_labels[0]);
+    try std.testing.expectEqualStrings("zigux_runtime_kretprobe_exit", kretprobe.value.lifecycle_boundary_summary.metadata_only_lifecycle_labels[1]);
     try std.testing.expectEqual(@as(usize, 2), kretprobe.value.lifecycle_boundary_summary.metadata_only_registration_labels.len);
     try std.testing.expectEqualStrings("register_kretprobe", kretprobe.value.lifecycle_boundary_summary.metadata_only_registration_labels[0]);
     try std.testing.expectEqualStrings("unregister_kretprobe", kretprobe.value.lifecycle_boundary_summary.metadata_only_registration_labels[1]);
