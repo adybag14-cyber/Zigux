@@ -166,7 +166,7 @@ test "phase 8 libbpf survey note stays grounded in the current helper-plus-build
     );
     try expectContains(
         phase8_note,
-        "The real current gap is now survey truthfulness about the already-landed checker packet, helper-local routing evidence, and the landed bridge-plus-build packet itself, not environment-specific contents-route flakiness or a missing checker rule.",
+        "The real current gap is now survey truthfulness about the already-landed checker packet, helper-local routing evidence, the timing-adjacent poll note, and the landed bridge-plus-build packet itself, not environment-specific contents-route flakiness or a missing checker rule.",
     );
     try expectContains(
         phase8_note,
