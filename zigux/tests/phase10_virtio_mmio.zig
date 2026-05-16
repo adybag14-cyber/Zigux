@@ -43,20 +43,37 @@ test "phase10 virtio mmio summarizes bounded probe preflight readiness before li
     const summary = device.probePreflightSummary();
     try std.testing.expect(summary.bounded_queue_register_window_ready);
     try std.testing.expect(summary.interrupt_ack_ready);
+    try std.testing.expect(summary.legacy_guest_page_size_ready);
+    try std.testing.expect(summary.ready_for_probe_handoff);
+}
+
+test "phase10 virtio mmio requires guest-page-size programming before legacy probe preflight is ready" {
+    var device = try virtio_mmio.VirtioMmioLab.init(85, &[_]u16{ 8, 16 });
+    device.version = virtio_mmio.mmio_version_legacy;
+
+    var summary = device.probePreflightSummary();
+    try std.testing.expect(summary.version_supported);
+    try std.testing.expect(!summary.legacy_guest_page_size_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    _ = try device.writeRegister(.guest_page_size, 4096);
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.legacy_guest_page_size_ready);
     try std.testing.expect(summary.ready_for_probe_handoff);
 }
 
 test "phase10 virtio mmio keeps the legacy probe preflight path ready when transport identity stays aligned" {
-    var device = try virtio_mmio.VirtioMmioLab.init(85, &[_]u16{ 8, 16 });
+    var device = try virtio_mmio.VirtioMmioLab.init(86, &[_]u16{ 8, 16 });
     device.version = virtio_mmio.mmio_version_legacy;
     _ = try device.writeRegister(.guest_page_size, 4096);
     const summary = device.probePreflightSummary();
+    try std.testing.expect(summary.legacy_guest_page_size_ready);
     try std.testing.expect(summary.ready_for_probe_handoff);
     try std.testing.expect(summary.version_supported);
 }
 
 test "phase10 virtio mmio marks probe preflight incomplete when identity presence falls away" {
-    var device = try virtio_mmio.VirtioMmioLab.init(86, &[_]u16{ 8, 16 });
+    var device = try virtio_mmio.VirtioMmioLab.init(87, &[_]u16{ 8, 16 });
     device.vendor_id = 0;
     const summary = device.probePreflightSummary();
     try std.testing.expect(!summary.vendor_id_present);
@@ -64,7 +81,7 @@ test "phase10 virtio mmio marks probe preflight incomplete when identity presenc
 }
 
 test "phase10 virtio mmio marks probe preflight incomplete when transport identity drifts" {
-    var device = try virtio_mmio.VirtioMmioLab.init(87, &[_]u16{ 8, 16 });
+    var device = try virtio_mmio.VirtioMmioLab.init(88, &[_]u16{ 8, 16 });
     device.magic_value = 0;
     const summary = device.probePreflightSummary();
     try std.testing.expect(summary.device_present);
@@ -72,7 +89,7 @@ test "phase10 virtio mmio marks probe preflight incomplete when transport identi
 }
 
 test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {
-    var device = try virtio_mmio.VirtioMmioLab.init(88, &[_]u16{ 8, 16 });
+    var device = try virtio_mmio.VirtioMmioLab.init(89, &[_]u16{ 8, 16 });
     _ = try device.writeRegister(.queue_sel, 1);
     _ = try device.writeRegister(.queue_num, 16);
     _ = try device.writeRegister(.queue_ready, 1);
@@ -82,7 +99,7 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
 }
 
 test "phase10 virtio mmio drops stale config-write disposition after generation drift" {
-    var device = try virtio_mmio.VirtioMmioLab.init(89, &[_]u16{ 8, 16 });
+    var device = try virtio_mmio.VirtioMmioLab.init(90, &[_]u16{ 8, 16 });
     try device.stageConfigBytes(&[_]u8{ 9, 8, 7, 6, 5, 4, 3, 2 });
     const before = device.config_bytes;
 
