@@ -34,9 +34,9 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "newline-aware sysfs equality");
     try expectContains(slice_note, "bounded null-sentinel table matching through the first NULL entry");
     try expectContains(slice_note, "bounded string escaping across space, special, null, octal, hex, append-limited dictionary mode, and string-wrapper mode");
-    try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view");
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown");
     try expectContains(slice_note, "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit");
+    try expectContains(slice_note, "reject overflow before sizing the NULL-terminated pointer view");
     try expectContains(slice_note, "bounded memcpy-and-pad behavior that truncates long copies, pads short ones, and stays inside the provided source slice");
     try expectContains(slice_note, "in-place replacement behavior that stops at the first NUL");
     try expectContains(slice_note, "`stringEscapeMem()` keeps append-limited and dictionary-mode output accounting inside caller-owned storage");
