@@ -612,7 +612,7 @@ def run_self_test() -> None:
         expect_failure(tmpdir, f"missing required file: {REQUIRED_FILES['verify_helper']}")
 
         reset_fixture(tmpdir)
-        (tmpdir / REQUIRED_FILES["manifest"]).writeText(build_manifest_text("z" * 40), encoding="utf-8")
+        (tmpdir / REQUIRED_FILES["manifest"]).write_text(build_manifest_text("z" * 40), encoding="utf-8")
         expect_failure(tmpdir, "invalid surveyed_commit")
 
         reset_fixture(tmpdir)
