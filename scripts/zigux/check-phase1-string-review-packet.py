@@ -198,7 +198,7 @@ EXPECTED_CLOSURE_MARKERS = [
     'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
     'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
     "PHASE1_STRING_STRSCPY_REVIEW=helper-local string copy-and-pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strscpy or strscpyPad fixture keys",
-    "PHASE1_STRING_LOOKUP_AND_STRNCHR_REVIEW=helper-local string C-string list lookup and counted-search anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string or strnchr fixture keys",
+    "PHASE1_STRING_LOOKUP_AND_STRNCHR_REVIEW=helper-local string C-string list lookup and counted-search anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated matchString or match_string or strnchr or strnchrNul or strnchrnul fixture keys",
 ]
 
 EXPECTED_LANE_NOTE_MARKER = (
