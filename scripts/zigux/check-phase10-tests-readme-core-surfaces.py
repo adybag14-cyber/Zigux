@@ -9,7 +9,7 @@ import sys
 
 TESTS_README_PATH = Path("zigux/tests/README.md")
 PHASE10_START = "Phase 10 flow"
-PHASE10_END = "Phase 3 fixtures"
+PHASE10_END = "Phase 11 review packet"
 
 REQUIRED_MARKERS = (
     "`zigux/tests/phase10_build.zig`",
@@ -52,7 +52,7 @@ def phase10_section(text: str) -> str:
     end = text.find(PHASE10_END, start)
     if end == -1:
         raise SystemExit(
-            "phase10 tests-readme core-surfaces checker missing `Phase 3 fixtures` section heading"
+            "phase10 tests-readme core-surfaces checker missing `Phase 11 review packet` section heading"
         )
 
     return text[start:end]
@@ -103,9 +103,8 @@ Phase 10 flow
   * `zigux/tests/phase10_virtio_mmio.zig`
   * `zigux/tests/phase10_virtio_mmio_survey.zig`
   * `zigux/tests/phase10_virtio_mmio_manifest.json`
-  * `zigux/tests/phase11_build.zig`
 
-Phase 3 fixtures
+Phase 11 review packet
 """
     check_text(good)
 
@@ -117,13 +116,13 @@ Phase 3 fixtures
     else:
         raise AssertionError("expected missing Phase 10 heading failure")
 
-    missing_phase3_heading = good.replace("Phase 3 fixtures", "Phase Three fixtures", 1)
+    missing_phase11_heading = good.replace("Phase 11 review packet", "Phase Eleven review packet", 1)
     try:
-        check_text(missing_phase3_heading)
+        check_text(missing_phase11_heading)
     except SystemExit as exc:
-        assert "`Phase 3 fixtures`" in str(exc)
+        assert "`Phase 11 review packet`" in str(exc)
     else:
-        raise AssertionError("expected missing Phase 3 fixtures heading failure")
+        raise AssertionError("expected missing Phase 11 review packet heading failure")
 
     missing_phase10_build = good.replace("  * `zigux/tests/phase10_build.zig`\n", "", 1)
     try:
