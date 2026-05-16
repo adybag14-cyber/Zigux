@@ -24,7 +24,7 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
   3. `make -C zigux phase12-smoke`
   4. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
   5. `make -C zigux phase12`
-- If `zig` is unavailable on `PATH`, reuse that same validator-first then smoke-first order only through the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12`, instead of inventing a focused libbpf-only fallback entrypoint.
+- If `zig` is unavailable on `PATH`, reuse that same validator-first then smoke-first order only through the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, instead of inventing a focused libbpf-only fallback entrypoint.
 - Keep the degraded-workflow support bundle explicit beside that same order too:
   - `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`
   - `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`
