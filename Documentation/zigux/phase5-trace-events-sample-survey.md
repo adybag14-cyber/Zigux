@@ -20,6 +20,7 @@ The bounded same-lane job here is not to widen runtime behavior. It is to keep t
 
 Fresh repo-first inspection on 2026-05-15 directly confirmed these trace-events packet paths on current `master`:
 
+- `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/README.md`
@@ -50,6 +51,7 @@ The directly coupled trace-events packet is currently strongest in the sample-ba
 
 Aligned reminder surfaces in this run:
 
+- `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
@@ -66,7 +68,7 @@ The tests-root shared reminder is only inventory-aligned in this run:
 
 - `zigux/tests/README.md` names `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
 - it also keeps the current shared-build split explicit through `zigux/tests/phase5_build.zig`
-- it does not restate helper-level trace-events cues such as `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, the selected-string plus `iter=%d` formatting cue, or `OutstandingRegistration`; those cues remain explicit in this survey note, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
+- it does not restate helper-level trace-events cues such as `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, the selected-string plus `iter=%d` formatting cue, or `OutstandingRegistration`; those cues remain explicit in this survey note, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
 
 Treat the tests-root reminder as packet-inventory support material on current `master`, not as the place where the helper-level trace-events cue list is spelled out.
 
@@ -91,7 +93,7 @@ The precise current gap is no longer "Zigux lacks a trace-events reference sampl
 - the roadmap-backed trace-events anchor already has a directly readable non-runtime sample plus focused tests-root evidence
 - the shared `zigux/tests/phase5_build.zig` route still is not directly readable through the current authenticated GitHub-app reread, but the current public tree exposes that shared build route again, so this lane should keep the split explicit instead of calling it absent or claiming fully direct connector proof
 - the shared sample-root reminder now matches the landed packet by keeping that shared build route framed as current public-tree-backed support material rather than a missing path
-- the directly coupled shared docs-root, sample-root, scripts-root, and tests-root surfaces already keep the landed packet and the still-explicit shared-build split honest today
+- the directly coupled shared docs-root, approved-idiom, sample-root, scripts-root, and tests-root surfaces already keep the landed packet and the still-explicit shared-build split honest today
 
 So the honest same-lane follow-through is to keep this survey note anchored to the directly readable trace-events packet, keep the shared build route framed as current public-tree-backed support material while authenticated direct reread is still missing, and leave the lane parked unless a fresh reread exposes a new one-file shared-surface drift.
 
@@ -108,4 +110,4 @@ This survey does not claim:
 
 Leave this lane parked unless a fresh same-lane reread finds a new exact shared-surface truthfulness repair to make for the landed Phase 5 sample packet.
 
-The best next bounded follow-up is the next smallest one-file shared reminder drift that current `master` actually shows after rereading `samples/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and the direct trace-events packet together.
+The best next bounded follow-up is the next smallest one-file shared reminder drift that current `master` actually shows after rereading `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and the direct trace-events packet together.
