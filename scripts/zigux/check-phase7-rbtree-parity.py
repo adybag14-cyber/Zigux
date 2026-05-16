@@ -167,7 +167,9 @@ REQUIRED_MARKERS = {
         '"zigux_destination": "zigux/tests/fixtures/phase7_rbtree.json"',
         '"zigux_destination": "scripts/zigux/check-phase7-rbtree-parity.py"',
         "duplicate-key range helpers keep ordered match ownership explicit through findFirst() and nextMatch() instead of hidden cursors",
+        "detached-node ownership stays explicit through clearNode(), eraseInit(), and eraseInitCached() after erase paths",
         "linked-node teardown reconnects prev and next ownership together with leftmost continuity during eraseLinked()",
+        "replaceNode() copies victim links onto replacement nodes before reconnecting parent and child ownership",
         "postorder traversal helpers treat cleared detached nodes as empty so stale parent walks do not leak past the reusable leaf packet",
     ],
     # Fail closed on the concrete alias exercise points, not just the alias
@@ -548,6 +550,20 @@ def run_self_test() -> None:
             'zigux/tests/phase7_rbtree_manifest.json: "zigux_destination": "scripts/zigux/check-phase7-rbtree-parity.py"',
         ),
         (
+            "manifest_detached_ownership_marker",
+            "zigux/tests/phase7_rbtree_manifest.json",
+            "detached-node ownership stays explicit through clearNode(), eraseInit(), and eraseInitCached() after erase paths",
+            "",
+            "zigux/tests/phase7_rbtree_manifest.json: detached-node ownership stays explicit through clearNode(), eraseInit(), and eraseInitCached() after erase paths",
+        ),
+        (
+            "manifest_replace_node_ownership_marker",
+            "zigux/tests/phase7_rbtree_manifest.json",
+            "replaceNode() copies victim links onto replacement nodes before reconnecting parent and child ownership",
+            "",
+            "zigux/tests/phase7_rbtree_manifest.json: replaceNode() copies victim links onto replacement nodes before reconnecting parent and child ownership",
+        ),
+        (
             "manifest_postorder_ownership_marker",
             "zigux/tests/phase7_rbtree_manifest.json",
             "postorder traversal helpers treat cleared detached nodes as empty so stale parent walks do not leak past the reusable leaf packet",
@@ -643,24 +659,20 @@ def main() -> int:
 
     missing_files, missing_markers = validate(ROOT)
     if missing_files:
-        print("PHASE7_RBTREE_PARITY=fail")
-        print("MISSING_PHASE7_RBTREE_PARITY_FILES_START")
-        for item in missing_files:
-            print(item)
-        print("MISSING_PHASE7_RBTREE_PARITY_FILES_END")
+        for rel in missing_files:
+            print(f"MISSING FILE: {rel}")
         return 1
-
     if missing_markers:
-        print("PHASE7_RBTREE_PARITY=fail")
-        print("MISSING_PHASE7_RBTREE_PARITY_MARKERS_START")
-        for item in missing_markers:
-            print(item)
-        print("MISSING_PHASE7_RBTREE_PARITY_MARKERS_END")
+        for marker in missing_markers:
+            print(f"MISSING MARKER: {marker}")
         return 1
 
     print("PHASE7_RBTREE_PARITY=pass")
-    print(f"PHASE7_RBTREE_PARITY_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE7_RBTREE_PARITY_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    print(f"PHASE7_RBTREE_PARITY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(
+        "PHASE7_RBTREE_PARITY_REQUIRED_MARKER_COUNT="
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
     return 0
 
 
