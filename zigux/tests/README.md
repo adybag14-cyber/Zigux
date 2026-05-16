@@ -218,6 +218,7 @@ Phase 10 flow
   * `scripts/zigux/check-phase10-harness-coverage.py`
   * `zigux/tests/phase10_build.zig`
   * `zigux/tests/phase10_virtio_core.zig`
+  * `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`
   * `zigux/tests/phase10_virtio_core_reset_queue.zig`
   * `zigux/tests/phase10_virtio_core_survey.zig`
   * `zigux/tests/phase10_virtio_core_manifest.json`
