@@ -213,7 +213,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 79
+EXPECTED_SELF_TEST_CASE_COUNT = 90
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
@@ -453,21 +453,16 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:cross_checker_marker_presence")
     checks_run += 1
 
-    cross_checker_missing = validate_required_markers(
-        "\n".join(
-            marker
-            for marker in PHASE2_CROSS_CHECKER_MARKERS
-            if marker != "def run_toolchain_preflight("
-        ),
-        label="phase2_cross_checker",
-        markers=PHASE2_CROSS_CHECKER_MARKERS,
-    )
-    expected_cross_checker_issue = (
-        "phase2_cross_checker:missing_marker:def run_toolchain_preflight("
-    )
-    if cross_checker_missing != [expected_cross_checker_issue]:
-        raise SystemExit("phase2-cross-alignment:self-test:cross_checker_marker_failure")
-    checks_run += 1
+    for marker in PHASE2_CROSS_CHECKER_MARKERS:
+        cross_checker_missing = validate_required_markers(
+            "\n".join(item for item in PHASE2_CROSS_CHECKER_MARKERS if item != marker),
+            label="phase2_cross_checker",
+            markers=PHASE2_CROSS_CHECKER_MARKERS,
+        )
+        expected_cross_checker_issue = f"phase2_cross_checker:missing_marker:{marker}"
+        if cross_checker_missing != [expected_cross_checker_issue]:
+            raise SystemExit("phase2-cross-alignment:self-test:cross_checker_marker_failure")
+        checks_run += 1
 
     validator_issues = validate_required_markers(
         "\n".join(PHASE2_VALIDATOR_MARKERS),
