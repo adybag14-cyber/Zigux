@@ -20,7 +20,9 @@ REQUIRED_EXACT_LINES = {
     "find_bit_or_packet_note": '- current `master` also carries the newer direct `test "find or bit returns the next set bit from either bitmap"` proof inside `tools/lib/find_bit.zig`, so notes-only rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it',
     "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; treat the older `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` names as historical packet members until current `master` exposes them again",
     "bitmap_next_safe_step": "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen older closure-side or validator-route cue names by default`",
+    "find_bit_next_safe_step": "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or for committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families`",
     "find_bit_or_next_step_note": '- the already-landed OR-path proof in `test "find or bit returns the next set bit from either bitmap"` belongs to that same `find_bit` direct-anchor packet, so if it drifts, refresh the existing helper-family notes instead of widening shared replay ownership',
+    "rbtree_next_safe_step": "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only for the dedicated cached-root leftmost-return fixture key or for drift inside the already-committed shared iterator replay; do not batch a second widening into the same run`",
     "string_next_safe_step": "- `PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() C-string list lookup, counted-search strnchr, embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture drift; keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default`",
 }
 
@@ -68,7 +70,9 @@ def sample_lane_note_text() -> str:
         REQUIRED_EXACT_LINES["string_direct_owner"],
         REQUIRED_EXACT_LINES["string_review_rule_note"],
         REQUIRED_EXACT_LINES["bitmap_next_safe_step"],
+        REQUIRED_EXACT_LINES["find_bit_next_safe_step"],
         REQUIRED_EXACT_LINES["find_bit_or_next_step_note"],
+        REQUIRED_EXACT_LINES["rbtree_next_safe_step"],
         REQUIRED_EXACT_LINES["string_next_safe_step"],
     ]
     return (
