@@ -64,6 +64,17 @@ MANIFEST_SCALARS = {
     "freeze_boundary_owner_lane": "P10-L11",
 }
 
+EXPECTED_SURVEY_SUMMARY = {
+    "virtio_ring_c_lines": 3940,
+    "preexisting_phase10_test_files": 7,
+    "preexisting_virtio_core_zig_present": True,
+    "preexisting_phase10_build_present": True,
+    "preexisting_phase10_core_doc_present": True,
+    "preexisting_virtio_ring_zig_present": True,
+    "preexisting_virtio_ring_doc_present": True,
+    "preexisting_ring_verify_present": True,
+}
+
 EXPECTED_ROADMAP_DESTINATIONS = ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]
 EXPECTED_ALLOWED_EVIDENCE_KINDS = [
     "driver_local_lab_slices",
@@ -193,6 +204,17 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for key, value in MANIFEST_SCALARS.items():
         if manifest.get(key) != value:
             missing_markers.append(f"manifest:{key}={manifest.get(key)!r}")
+
+    survey_summary = manifest.get("survey_summary")
+    if not isinstance(survey_summary, dict):
+        missing_markers.append("manifest:survey_summary")
+    else:
+        for key, value in EXPECTED_SURVEY_SUMMARY.items():
+            if survey_summary.get(key) != value:
+                missing_markers.append(
+                    f"manifest:survey_summary:{key}={survey_summary.get(key)!r}"
+                )
+
     if manifest.get("roadmap_destinations") != EXPECTED_ROADMAP_DESTINATIONS:
         missing_markers.append("manifest:roadmap_destinations")
     if manifest.get("allowed_evidence_kinds") != EXPECTED_ALLOWED_EVIDENCE_KINDS:
@@ -243,6 +265,7 @@ def write_fixture(root: Path) -> None:
         "zigux/tests/phase10_virtio_ring_manifest.json": json.dumps(
             {
                 **MANIFEST_SCALARS,
+                "survey_summary": EXPECTED_SURVEY_SUMMARY,
                 "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
                 "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
                 "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
@@ -341,6 +364,12 @@ def run_self_test() -> int:
         mutate_manifest(
             lambda manifest: manifest.__setitem__("allowed_evidence_kinds", ["survey_manifests"]),
             "manifest:allowed_evidence_kinds",
+        )
+        mutate_manifest(
+            lambda manifest: manifest["survey_summary"].__setitem__(
+                "preexisting_phase10_test_files", 6
+            ),
+            "manifest:survey_summary:preexisting_phase10_test_files=6",
         )
         mutate_manifest(
             lambda manifest: next(
