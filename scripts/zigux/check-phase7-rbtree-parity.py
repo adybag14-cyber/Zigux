@@ -143,6 +143,8 @@ REQUIRED_MARKERS = {
         "phase 7 rbtree postorder traversal matches committed parity fixture",
         "phase 7 rbtree cleared detached nodes stop postorder traversal",
     ],
+    # Keep the survey gate aligned with the same cached-root and erase-reset
+    # ownership thread that the slice note already presents as landed.
     "zigux/tests/phase7_rbtree_survey.zig": [
         "Documentation/zigux/phase7-helper-lane-sequencing.md",
         "scripts/zigux/validate-phase7.py",
@@ -153,6 +155,10 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "phase 7 rbtree cached helpers return leftmost handoff state",
+        "phase 7 rbtree replaceNodeCached rewires cached leftmost ownership over dirty replacement nodes",
+        "phase 7 rbtree eraseInitCached clears detached cached nodes and keeps cached roots reusable",
+        "phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
+        "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
         "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours",
         "phase 7 rbtree postorder traversal matches committed parity fixture",
         "phase 7 rbtree cleared detached nodes stop postorder traversal",
@@ -499,6 +505,34 @@ def run_self_test() -> None:
             "phase 7 rbtree cached helpers return leftmost handoff state",
             "",
             "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree cached helpers return leftmost handoff state",
+        ),
+        (
+            "survey_replace_cached_marker",
+            "zigux/tests/phase7_rbtree_survey.zig",
+            "phase 7 rbtree replaceNodeCached rewires cached leftmost ownership over dirty replacement nodes",
+            "",
+            "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree replaceNodeCached rewires cached leftmost ownership over dirty replacement nodes",
+        ),
+        (
+            "survey_erase_init_cached_marker",
+            "zigux/tests/phase7_rbtree_survey.zig",
+            "phase 7 rbtree eraseInitCached clears detached cached nodes and keeps cached roots reusable",
+            "",
+            "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree eraseInitCached clears detached cached nodes and keeps cached roots reusable",
+        ),
+        (
+            "survey_erase_cached_final_marker",
+            "zigux/tests/phase7_rbtree_survey.zig",
+            "phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
+            "",
+            "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree eraseCached clears final cached-leftmost handoff state",
+        ),
+        (
+            "survey_erase_init_marker",
+            "zigux/tests/phase7_rbtree_survey.zig",
+            "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
+            "",
+            "zigux/tests/phase7_rbtree_survey.zig: phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
         ),
         (
             "survey_linked_teardown_marker",
