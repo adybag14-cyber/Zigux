@@ -51,6 +51,7 @@ When contributor-facing wording changes, keep these broad surfaces aligned:
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
@@ -82,7 +83,7 @@ Current `master` also materializes the adjacent direct-evidence shards `zigux/bi
 
 1. Confirm the change stays inside one bounded Phase 13 lane.
 2. Keep the owner split visible instead of collapsing `libfs`, `devres`, `landlock`, and notifier evidence into one generic summary.
-3. If a broad reminder changes, reread the shared surfaces together, explicitly including `Documentation/zigux/README.md` and `Documentation/zigux/phase13-release-coordination-matrix.md`, before adding packet-local prose.
+3. If a broad reminder changes, reread the shared surfaces together, explicitly including `Documentation/zigux/README.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, and `scripts/zigux/check-phase13-shared-summary-surfaces.py`, before adding packet-local prose.
 4. If a broad docs-root or shared-summary reminder names `make -C zigux phase13`, repair that wording before reopening scripts-root or tests-root wording: keep `make -C zigux phase13-validate` as the stable handle and keep `make -C zigux phase13` blocked while `zigux/tests/phase13_build.zig` remains absent.
 5. Before naming a direct scripts-root checker as review evidence, verify that the exact path is still present on current `master`; if it is not, keep the wording anchored to the shipped docs-root, tests-root, and `make -C zigux phase13-validate` surfaces and note the missing script as a blocker.
 6. Before naming a direct helper-local tests-root companion as review evidence, verify that the exact path is still present on current `master`; if it is not, keep the wording anchored to the shipped docs-root, tests-root, and `make -C zigux phase13-validate` surfaces and note the missing direct companion as repo reality.
