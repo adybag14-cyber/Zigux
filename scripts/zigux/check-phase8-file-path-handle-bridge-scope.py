@@ -147,22 +147,46 @@ test "fdinfo" {
 }
 """
 
+FAILING_FDINFO_HELPER = """
+pub fn buildProcFdinfoPath() void {}
+pub fn applyFdinfoMapInfoLine() void {}
+pub fn parseFdinfoMapInfo() void {}
+pub fn summarizeFdinfoMapInfo() void {}
+"""
+
+
+def expect_failure(
+    helper_text: str,
+    test_text: str,
+    manifest: dict,
+    expected_scope: str,
+) -> None:
+    try:
+        check_scope(helper_text, test_text, manifest)
+    except CheckFailure as exc:
+        message = str(exc)
+        if expected_scope not in message:
+            raise CheckFailure(
+                f"self-test expected a {expected_scope} failure, got: {message}"
+            ) from exc
+        return
+    raise CheckFailure(f"self-test expected a {expected_scope} scope failure")
+
 
 def run_self_test() -> None:
     check_scope(PASSING_HELPER, PASSING_TEST, PASSING_MANIFEST)
-    try:
-        check_scope(FAILING_HELPER, FAILING_TEST, FAILING_MANIFEST)
-    except CheckFailure as exc:
-        message = str(exc)
-        if "map-reuse-compatibility" not in message:
-            raise CheckFailure(
-                "self-test expected a map-reuse-compatibility failure, got: "
-                + message
-            ) from exc
-    else:
-        raise CheckFailure(
-            "self-test expected a map-reuse-compatibility scope failure"
-        )
+    expect_failure(
+        FAILING_FDINFO_HELPER,
+        PASSING_TEST,
+        PASSING_MANIFEST,
+        "fdinfo-map-info-helpers",
+    )
+    expect_failure(
+        FAILING_HELPER,
+        FAILING_TEST,
+        FAILING_MANIFEST,
+        "map-reuse-compatibility",
+    )
     print("PHASE8_FILE_PATH_HANDLE_BRIDGE_SCOPE_SELF_TEST=pass")
 
 
