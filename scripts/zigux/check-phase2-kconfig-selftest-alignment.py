@@ -58,6 +58,8 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
+    "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
+    "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
 )
 
 MAKEFILE_LINES = (
@@ -120,7 +122,7 @@ EXPECTED_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT = 26
 EXPECTED_CONF_CASE_COUNT = 16
 EXPECTED_CONFDATA_CASE_COUNT = 13
 EXPECTED_CONFDATA_HELPER_ANCHOR_COUNT = 20
-EXPECTED_SELF_TEST_CASE_COUNT = 16
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def under_root(root: Path, path: Path) -> Path:
@@ -395,6 +397,16 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(under_root(root, WORKFLOW), read_text(under_root(root, WORKFLOW)) + WORKFLOW_LINES[2] + "\n")
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{WORKFLOW_LINES[2]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(under_root(root, WORKFLOW), replace_once(read_text(under_root(root, WORKFLOW)), WORKFLOW_LINES[10], ""))
+        assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[10]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(under_root(root, WORKFLOW), read_text(under_root(root, WORKFLOW)) + WORKFLOW_LINES[11] + "\n")
+        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{WORKFLOW_LINES[11]}:count=2") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
