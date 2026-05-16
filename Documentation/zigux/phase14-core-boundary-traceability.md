@@ -5,8 +5,8 @@ This note records the current roadmap-to-repo traceability for the Phase 14 core
 ## Why this note exists
 
 The Phase 14 roadmap still names these anchors as study-only or freeze-in-C work.
-What this shared note can honestly do on current `master` is restate that retained-in-C posture in one place and point reviewers at the remaining directly readable boundary evidence.
-What it must not do anymore is pretend that the older manifest-backed shared smoke packet and anchor-local replay bundle are still present when direct current-`master` reads do not recover those files.
+What this shared note can honestly do on current `master` is restate that retained-in-C posture in one place and point reviewers at the remaining directly readable boundary evidence plus the still-live shared smoke packet that ties those reminders together.
+What it must not do is turn that shared packet into a parity claim, an ownership transfer, or a reason to reopen the freeze posture for any of the four anchors.
 
 This note stays narrow on purpose.
 It does not add a bridge, reopen a freeze decision, or claim a new status.
@@ -21,19 +21,9 @@ It only records the current bounded evidence posture and the explicit reasons th
 
 ## Current direct readback
 
-- current authenticated reads still recover this note, `Documentation/zigux/README.md`, and `Documentation/zigux/phase14-skbuff-bridge-survey.md`
-- current authenticated reads do not recover these previously named Phase 14 packet files:
-  - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
-  - `Documentation/zigux/phase14-ring-buffer-survey.md`
-  - `Documentation/zigux/phase14-rcu-tree-survey.md`
-  - `Documentation/zigux/phase14-workqueue-bridge-survey.md`
-  - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
-  - `zigux/tests/phase14_skbuff_bridge_manifest.json`
-  - `zigux/tests/phase14_ring_buffer_manifest.json`
-  - `zigux/tests/phase14_rcu_tree_manifest.json`
-  - `zigux/tests/phase14_build.zig`
-- the surviving `Documentation/zigux/phase14-skbuff-bridge-survey.md` already says the earlier skbuff anchor packet is absent and that its older compile-route wording is archival only
-- because those packet files are absent from direct current-`master` readback, this note must stay limited to roadmap posture and retained-in-C ownership; it is not a live replay contract
+- current direct reads in this slot still recover this note, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `scripts/zigux/validate-phase14.py`, `zigux/Makefile`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_build.zig`
+- those shared packet surfaces still keep the four-checker reminder packet explicit around `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, along with `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `make -C zigux phase14-test`
+- because that shared smoke packet is still directly readable on current `master`, this note should treat it as live shared evidence while keeping the anchor-local bridges, surveys, and retained-in-C decisions explicitly bounded
 
 ## Retained-in-C boundaries
 
@@ -59,10 +49,10 @@ The honest current statement is freeze-in-C boundary evidence only, not a live b
 
 ## Shared packet status
 
-- treat the older shared smoke packet and the older anchor-local manifest inventory as archival references only until current-`master` readback recovers them again
-- do not use this note to claim live `make -C zigux phase14-*` or `zig build ... --build-file zigux/tests/phase14_build.zig` evidence while that build file and the named manifest bundle are absent from direct readback
-- if broader reminder surfaces such as `Documentation/zigux/README.md` or `Documentation/zigux/review-checklist.md` still mention the older smoke bundle, treat that wording as historical until direct readback recovers the exact survey, manifest, and build files named above; the current truthful review packet is this note plus `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase14-skbuff-bridge-survey.md`
-- any future replay claim for this Phase 14 family must first restore or re-expose the exact survey, manifest, and build files on current `master`
+- treat the current shared smoke packet as live shared evidence for the validator-first route, the focused smoke shard, and the full replay entrypoints named above
+- do not use that packet to claim direct ownership transfer, parity, or unfrozen delivery for workqueue, ring buffer, skbuff, or RCU tree
+- if a future direct readback loses any of the shared survey, manifest, validator, Makefile, or build-file anchors again, narrow this note back to a truthfulness-only retained-in-C summary and update the shared packet wording immediately
+- any future expansion beyond this shared reminder packet still needs explicit re-read evidence for the anchor-local files it names, plus the existing freeze-map discipline
 
 ## What this note does not claim
 
@@ -70,11 +60,11 @@ The honest current statement is freeze-in-C boundary evidence only, not a live b
 - `kernel/trace/ring_buffer.zig`
 - `net/core/skbuff.c` parity or lifetime ownership
 - any live `kernel/rcu/tree_bridge.zig` ownership claim
-- any live shared smoke replay packet on current `master`
+- any anchor-local parity or execution claim beyond the shared smoke packet
 - any freeze-map status change
 - any Architecture Council reopen request
 
 ## Next bounded step
 
-Keep this cross-anchor note aligned only when direct current-`master` reads either recover the missing Phase 14 packet files or another visible Phase 14 note starts claiming them as live again.
-Until then, keep follow-through note-local and truthfulness-only rather than reopening anchor-local bridge, manifest, validator, or freeze-governance work from this shared boundary note.
+Keep this cross-anchor note aligned when the shared smoke packet moves.
+On the next same-lane reread, compare this note with `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `scripts/zigux/validate-phase14.py`, `zigux/Makefile`, and `zigux/tests/phase14_end_to_end_smoke_manifest.json` for the next already-landed shared marker that still lacks fail-closed coverage, without reopening anchor-local bridge or freeze-governance work from this shared boundary note.
