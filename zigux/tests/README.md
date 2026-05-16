@@ -56,7 +56,7 @@ Key entrypoints
   * `samples/zigux/kobject_example.zig`
   * `zigux/tests/phase5_kobject_example.zig`
   * `zigux/tests/phase5_kobject_example_manifest.json`
-  * `zigux/tests/phase5_kobject_example_survey.zig`
+  * current public-tree-backed Phase 5 kobject survey companion: `zigux/tests/phase5_kobject_example_survey.zig`
   * `Documentation/zigux/phase5-kretprobe-sample-survey.md`
   * `samples/zigux/kretprobe_example.zig`
   * `zigux/tests/phase5_kretprobe_example.zig`
@@ -185,7 +185,7 @@ Phase 11 review packet
   * `make -C zigux phase11`
   * `make -C zigux phase11-hvc-survey`
   * surviving DesignWare continuity stays explicit through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
-  * dedicated HVC archival packet stays explicit through `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `scripts/zigux/check-phase11-hvc-survey-packet.py`
+  * dedicated HVC archival packet stays explicit through `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, and `scripts/zigux/check-phase11-hvc-survey-packet.py`
   * there is no shared `validate-phase11.py` or `make -C zigux phase11-validate` route on current `master`
 
 Phase 12 review packet
@@ -240,7 +240,6 @@ Phase 13 review packet
   * `Documentation/zigux/phase13-landlock-syscalls-slice.md`
   * `Documentation/zigux/phase13-landlock-syscalls-survey.md`
   * `security/landlock/ruleset.zig`
-  * `security/landlock/syscalls.zig`
   * `zigux/tests/phase13_landlock_ruleset.zig`
   * `zigux/tests/phase13_landlock_ruleset_manifest.json`
   * `zigux/tests/phase13_landlock_syscalls.zig`
