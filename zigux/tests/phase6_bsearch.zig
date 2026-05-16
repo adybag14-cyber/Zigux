@@ -12,6 +12,11 @@ const CountedOpaqueKey = struct {
     comparisons: *usize,
 };
 
+const Entry = struct {
+    name: []const u8,
+    value: u32,
+};
+
 fn compareCountedInt(key: *const CountedKey, item: *const u32) i32 {
     key.comparisons.* += 1;
     return switch (std.math.order(key.target, item.*)) {
@@ -54,6 +59,20 @@ fn compareCountedOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaq
 
 fn compareCOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
     return compareCountedOpaqueDescendingInt(key, item);
+}
+
+fn compareName(key: *const []const u8, item: *const Entry) i32 {
+    return switch (std.mem.order(u8, key.*, item.name)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareOpaqueName(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const []const u8 = @ptrCast(@alignCast(key));
+    const typed_item: *const Entry = @ptrCast(@alignCast(item));
+    return compareName(typed_key, typed_item);
 }
 
 fn typedProbe(items: []const u32, target: u32, expect_hit: bool, compare: anytype) !usize {
@@ -246,6 +265,85 @@ test "phase 6 bsearch bounded typed and raw equality probes stay inside a binary
         }
     }.compare);
     try std.testing.expectEqual(bsearch.IndexRange{ .lower = 4, .upper = 7 }, raw_range);
+}
+
+test "phase 6 bsearch bound and range helpers support heterogeneous duplicate keys" {
+    var entries = [_]Entry{
+        .{ .name = "alpha", .value = 1 },
+        .{ .name = "beta", .value = 2 },
+        .{ .name = "beta", .value = 3 },
+        .{ .name = "beta", .value = 5 },
+        .{ .name = "delta", .value = 8 },
+        .{ .name = "omega", .value = 13 },
+    };
+
+    const key = @as([]const u8, "beta");
+    const gap_key = @as([]const u8, "charlie");
+
+    try std.testing.expectEqual(@as(usize, 1), bsearch.lowerBoundIndex([]const u8, Entry, &key, entries[0..], compareName));
+    try std.testing.expectEqual(@as(usize, 4), bsearch.upperBoundIndex([]const u8, Entry, &key, entries[0..], compareName));
+    try std.testing.expectEqual(
+        bsearch.IndexRange{ .lower = 1, .upper = 4 },
+        bsearch.equalRangeIndex([]const u8, Entry, &key, entries[0..], compareName),
+    );
+    try std.testing.expectEqual(@as(usize, 4), bsearch.lowerBoundIndex([]const u8, Entry, &gap_key, entries[0..], compareName));
+    try std.testing.expectEqual(@as(usize, 4), bsearch.upperBoundIndex([]const u8, Entry, &gap_key, entries[0..], compareName));
+
+    const typed_lower = bsearch.lowerBound([]const u8, Entry, &key, entries[0..], compareName) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@intFromPtr(&entries[1]), @intFromPtr(typed_lower));
+    const typed_upper = bsearch.upperBound([]const u8, Entry, &key, entries[0..], compareName) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@intFromPtr(&entries[4]), @intFromPtr(typed_upper));
+
+    const typed_range = bsearch.equalRange([]const u8, Entry, &key, entries[0..], compareName);
+    try std.testing.expectEqual(@as(usize, 3), typed_range.len);
+    try std.testing.expectEqual(@as(u32, 2), typed_range[0].value);
+    try std.testing.expectEqual(@as(u32, 5), typed_range[2].value);
+
+    const gap_lower = bsearch.lowerBound([]const u8, Entry, &gap_key, entries[0..], compareName) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@intFromPtr(&entries[4]), @intFromPtr(gap_lower));
+    const gap_upper = bsearch.upperBound([]const u8, Entry, &gap_key, entries[0..], compareName) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@intFromPtr(&entries[4]), @intFromPtr(gap_upper));
+
+    const raw_base: [*]const u8 = @ptrCast(entries[0..].ptr);
+    try std.testing.expectEqual(@as(usize, 1), bsearch.bsearchLowerBoundIndex(@ptrCast(&key), raw_base, entries.len, @sizeOf(Entry), compareOpaqueName));
+    try std.testing.expectEqual(@as(usize, 4), bsearch.bsearchUpperBoundIndex(@ptrCast(&key), raw_base, entries.len, @sizeOf(Entry), compareOpaqueName));
+    try std.testing.expectEqual(
+        bsearch.IndexRange{ .lower = 1, .upper = 4 },
+        bsearch.bsearchEqualRangeIndex(@ptrCast(&key), raw_base, entries.len, @sizeOf(Entry), compareOpaqueName),
+    );
+    try std.testing.expectEqual(@as(usize, 4), bsearch.bsearchLowerBoundIndex(@ptrCast(&gap_key), raw_base, entries.len, @sizeOf(Entry), compareOpaqueName));
+    try std.testing.expectEqual(@as(usize, 4), bsearch.bsearchUpperBoundIndex(@ptrCast(&gap_key), raw_base, entries.len, @sizeOf(Entry), compareOpaqueName));
+
+    const raw_lower = bsearch.bsearchLowerBound(@ptrCast(&key), raw_base, entries.len, @sizeOf(Entry), compareOpaqueName) orelse return error.TestUnexpectedResult;
+    const typed_raw_lower: *const Entry = @ptrCast(@alignCast(raw_lower));
+    try std.testing.expectEqual(@intFromPtr(&entries[1]), @intFromPtr(typed_raw_lower));
+    const raw_upper = bsearch.bsearchUpperBound(@ptrCast(&key), raw_base, entries.len, @sizeOf(Entry), compareOpaqueName) orelse return error.TestUnexpectedResult;
+    const typed_raw_upper: *const Entry = @ptrCast(@alignCast(raw_upper));
+    try std.testing.expectEqual(@intFromPtr(&entries[4]), @intFromPtr(typed_raw_upper));
+
+    const raw_bytes = bsearch.bsearchEqualRange(@ptrCast(&key), raw_base, entries.len, @sizeOf(Entry), compareOpaqueName);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(Entry)), raw_bytes.len);
+    const typed_raw_range: [*]const Entry = @ptrCast(@alignCast(raw_bytes.ptr));
+    try std.testing.expectEqual(@as(u32, 2), typed_raw_range[0].value);
+    try std.testing.expectEqual(@as(u32, 5), typed_raw_range[2].value);
+
+    var typed_mutable_entries = entries;
+    const typed_mutable_range = bsearch.equalRangeMutable([]const u8, Entry, &key, typed_mutable_entries[0..], compareName);
+    typed_mutable_range[1].value = 34;
+    try std.testing.expectEqual(@as(u32, 34), typed_mutable_entries[2].value);
+
+    var raw_mutable_entries = entries;
+    const raw_mutable_bytes = bsearch.bsearchEqualRangeMutable(
+        @ptrCast(&key),
+        @ptrCast(raw_mutable_entries[0..].ptr),
+        raw_mutable_entries.len,
+        @sizeOf(Entry),
+        compareOpaqueName,
+    );
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(Entry)), raw_mutable_bytes.len);
+    const raw_mutable_range: [*]Entry = @ptrCast(@alignCast(raw_mutable_bytes.ptr));
+    raw_mutable_range[2].value = 55;
+    try std.testing.expectEqual(@as(u32, 55), raw_mutable_entries[3].value);
 }
 
 test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers" {
