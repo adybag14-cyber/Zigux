@@ -1,4 +1,5 @@
 name: zigux-bootstrap
+# Keep this lane tied to files that the current checkout actually contains.
 
 on:
   push:
