@@ -74,9 +74,11 @@ test "phase11 hvc console keeps sysrq toggle handoff distinct from literal fallb
     try std.testing.expect(handoff.toggles_sysrq_mode);
     try std.testing.expect(handoff.invokes_sysrq_handler);
     try std.testing.expect(!handoff.falls_back_to_literal);
+    try std.testing.expect(!handoff.teardown_blocks_dispatch);
     try std.testing.expect(!literal.toggles_sysrq_mode);
     try std.testing.expect(!literal.invokes_sysrq_handler);
     try std.testing.expect(literal.falls_back_to_literal);
+    try std.testing.expect(!literal.teardown_blocks_dispatch);
 }
 
 test "phase11 hvc console keeps pending sysrq dispatch separate from ordinary poll bytes" {
@@ -116,6 +118,7 @@ test "phase11 hvc console keeps non-kernel ^O as a literal byte without toggling
     try std.testing.expect(!literal.toggles_sysrq_mode);
     try std.testing.expect(!literal.invokes_sysrq_handler);
     try std.testing.expect(literal.falls_back_to_literal);
+    try std.testing.expect(!literal.teardown_blocks_dispatch);
 }
 
 test "phase11 hvc console keeps sysrq handoff unavailable after teardown" {
@@ -134,11 +137,12 @@ test "phase11 hvc console keeps sysrq handoff unavailable after teardown" {
         .port_reference_drop_timing = true,
     });
     const post_teardown = hvc_console_sysrq.summarizeSysrqHandoff(.{
-        .target_vtermno = null,
+        .target_vtermno = 0,
         .byte = 0x0f,
         .toggles_sysrq_mode = true,
         .invokes_sysrq_handler = true,
         .is_kernel_console = true,
+        .teardown_complete = true,
     });
 
     try std.testing.expect(teardown.tty_detached);
@@ -149,7 +153,9 @@ test "phase11 hvc console keeps sysrq handoff unavailable after teardown" {
     try std.testing.expect(cleanup.tty_port_release_handoff);
     try std.testing.expect(cleanup.cleanup_time_tty_port_ownership);
     try std.testing.expect(cleanup.port_reference_drop_timing);
+    try std.testing.expect(!post_teardown.toggles_sysrq_mode);
     try std.testing.expect(!post_teardown.invokes_sysrq_handler);
     try std.testing.expect(post_teardown.falls_back_to_literal);
+    try std.testing.expect(post_teardown.teardown_blocks_dispatch);
     try std.testing.expect(post_teardown.keeps_live_sysrq_execution_out_of_scope);
 }
