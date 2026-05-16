@@ -9,6 +9,22 @@ fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
 }
 
+fn expectSurveyedCommitAlignment(
+    allocator: std.mem.Allocator,
+    survey_note: []const u8,
+    manifest: []const u8,
+) !void {
+    const manifest_marker = "\"surveyed_commit\": \"";
+    const marker_index = std.mem.indexOf(u8, manifest, manifest_marker) orelse return error.MissingManifestSurveyedCommit;
+    const commit_start = marker_index + manifest_marker.len;
+    const commit_end = std.mem.indexOfScalarPos(u8, manifest, commit_start, '"') orelse return error.UnterminatedManifestSurveyedCommit;
+    const commit = manifest[commit_start..commit_end];
+
+    const note_marker = try std.fmt.allocPrint(allocator, "PHASE10_SURVEYED_COMMIT={s}", .{commit});
+    defer allocator.free(note_marker);
+    try expectContains(survey_note, note_marker);
+}
+
 test "phase10 virtio input survey note keeps the restored verifier and queue callback packet explicit" {
     const allocator = std.testing.allocator;
     const survey_note = try readRepoRelative(
@@ -17,8 +33,12 @@ test "phase10 virtio input survey note keeps the restored verifier and queue cal
     );
     defer allocator.free(survey_note);
 
+    const manifest = try readRepoRelative(allocator, "zigux/tests/phase10_virtio_input_manifest.json");
+    defer allocator.free(manifest);
+
     try expectContains(survey_note, "PHASE10_STATUS=parked");
     try expectContains(survey_note, "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport");
+    try expectSurveyedCommitAlignment(allocator, survey_note, manifest);
     try expectContains(survey_note, "drivers/virtio/virtio_input_verify.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_survey.zig");
