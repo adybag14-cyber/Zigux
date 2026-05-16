@@ -60,6 +60,13 @@ def require_markers(text: str, label: str, markers: list[str]) -> list[str]:
     return missing
 
 
+def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
+    count = text.count(marker)
+    if count != 1:
+        return [f"{label}:expected=1:actual={count}"]
+    return []
+
+
 def require_manifest_string_list(value: Any, label: str) -> tuple[list[str], list[str]]:
     if not isinstance(value, list) or not value or not all(isinstance(item, str) and item for item in value):
         return [], [f"string_manifest:{label}"]
@@ -127,6 +134,20 @@ def collect_string_review_packet_failures(root: Path) -> list[str]:
         if not field_missing and marker not in closure_text:
             missing.append(f"phase1_closure:{field}:{marker}")
 
+    next_safe_step_note, field_missing = require_manifest_string(
+        string_anchors.get("next_safe_step_note"),
+        "next_safe_step_note",
+    )
+    missing.extend(field_missing)
+    if not field_missing:
+        missing.extend(
+            require_exact_occurrence(
+                lane_note_text,
+                "lane_note:string_next_safe_step_note",
+                next_safe_step_note,
+            )
+        )
+
     return missing
 
 
@@ -174,6 +195,7 @@ def sample_manifest() -> dict[str, Any]:
                 "trim_nul_review_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
                 "memchr_moving_dirty_anchor": 'test "memchrInv follows the earliest dirty byte as long buffers change"',
                 "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
+                "next_safe_step_note": "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the string review packet and closure note unless current master later adds dedicated shared sysfs fixture keys; until then, newline-aware equality and lookup order remain owned by the direct string tests.",
             }
         }
     }
@@ -194,16 +216,19 @@ The shared replay must also keep `test "phase 1 string replaceChar stops at embe
 
 
 def sample_lane_note_text() -> str:
-    return """# Phase 1 Host-Helper Lane Sequencing
+    next_safe_step_note = sample_manifest()["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"]
+    return f"""# Phase 1 Host-Helper Lane Sequencing
 
 The still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/validate-phase1-closure.py`.
+
+PHASE1_STRING_NEXT_SAFE_STEP={next_safe_step_note}
 """
 
 
 def sample_makefile_text() -> str:
     return """phase1-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py
 """
 
 
@@ -215,41 +240,60 @@ def build_sample_repo(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    cases: list[tuple[str, str | None, str | None]] = [
-        ("success", None, None),
+    next_safe_step_note = sample_manifest()["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"]
+    cases: list[tuple[str, str | None, str | None, str]] = [
+        ("success", None, None, "none"),
         (
             "missing_closure_route",
             CLOSURE_REL.as_posix(),
             "`python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`\n",
+            "remove",
         ),
         (
             "missing_makefile_route",
             MAKEFILE_REL.as_posix(),
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py --self-test\n",
+            "remove",
         ),
         (
             "missing_prefix_suffix_anchor",
             CLOSURE_REL.as_posix(),
             'test "strEndsWith honors C-string boundaries"',
+            "remove",
         ),
         (
             "missing_basename_anchor",
             CLOSURE_REL.as_posix(),
             'test "kbasename returns the final path component with C-string semantics"',
+            "remove",
         ),
         (
             "missing_sysfs_anchor",
             CLOSURE_REL.as_posix(),
             'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+            "remove",
         ),
         (
             "missing_lane_note_marker",
             LANE_NOTE_REL.as_posix(),
             "`scripts/zigux/check-phase1-string-review-packet.py`",
+            "remove",
+        ),
+        (
+            "missing_next_safe_step_note",
+            LANE_NOTE_REL.as_posix(),
+            next_safe_step_note,
+            "remove",
+        ),
+        (
+            "duplicate_next_safe_step_note",
+            LANE_NOTE_REL.as_posix(),
+            next_safe_step_note,
+            "duplicate",
         ),
     ]
 
-    for name, relative_path, needle in cases:
+    for name, relative_path, needle, operation in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-string-review-{name}-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
@@ -257,7 +301,10 @@ def run_self_test() -> int:
             if relative_path and needle:
                 target = root / relative_path
                 text = target.read_text(encoding="utf-8")
-                target.write_text(text.replace(needle, "", 1), encoding="utf-8")
+                if operation == "remove":
+                    target.write_text(text.replace(needle, "", 1), encoding="utf-8")
+                elif operation == "duplicate":
+                    target.write_text(text.replace(needle, needle + "\n" + needle, 1), encoding="utf-8")
 
             missing = collect_string_review_packet_failures(root)
             if name == "success":
