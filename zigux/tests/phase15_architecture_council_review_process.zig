@@ -67,7 +67,7 @@ test "phase 15 architecture council review-process manifest records the current 
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-decision-record-template.md", manifest.review_packet_template);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
-    try std.testing.expectEqual(@as(usize, 7), manifest.directly_coupled_evidence_surfaces.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.directly_coupled_evidence_surfaces.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.ownership_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.trigger_conditions.len);
     try std.testing.expectEqual(@as(usize, 23), manifest.required_review_packet_fields.len);
@@ -81,7 +81,8 @@ test "phase 15 architecture council review-process manifest records the current 
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", manifest.directly_coupled_evidence_surfaces[3]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-readiness-gate-survey.md", manifest.directly_coupled_evidence_surfaces[4]);
     try std.testing.expectEqualStrings("Documentation/zigux/review-checklist.md", manifest.directly_coupled_evidence_surfaces[5]);
-    try std.testing.expectEqualStrings("zigux/tests/phase15_build.zig", manifest.directly_coupled_evidence_surfaces[6]);
+    try std.testing.expectEqualStrings("scripts/zigux/check-phase15-review-process-handoff.py", manifest.directly_coupled_evidence_surfaces[6]);
+    try std.testing.expectEqualStrings("zigux/tests/phase15_build.zig", manifest.directly_coupled_evidence_surfaces[7]);
 
     try std.testing.expectEqualStrings("owner", manifest.ownership_evidence_fields[0]);
     try std.testing.expectEqualStrings("required approver set", manifest.ownership_evidence_fields[1]);
@@ -132,6 +133,7 @@ test "phase 15 architecture council review-process manifest records the current 
     try expectContains(manifest.handoff.next_step, "Documentation/zigux/phase15-architecture-council-review-process.md");
     try expectContains(manifest.handoff.next_step, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectContains(manifest.handoff.next_step, "Documentation/zigux/phase15-governance-lane-sequencing.md");
+    try expectContains(manifest.handoff.next_step, "scripts/zigux/check-phase15-review-process-handoff.py");
     try expectContains(manifest.handoff.next_step, "zigux/tests/phase15_architecture_council_review_process_manifest.json");
 
     var landed_count: usize = 0;
@@ -186,6 +188,7 @@ test "phase 15 architecture council review-process doc records the current proce
     try expectContains(survey_doc, "current-master-readback-2026-05-16");
     try expectContains(survey_doc, "exact branch-head parity is not recorded");
     try expectContains(survey_doc, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
+    try expectContains(survey_doc, "scripts/zigux/check-phase15-review-process-handoff.py");
     try expectContains(survey_doc, "completed `Documentation/zigux/phase15-architecture-council-decision-record-template.md` artifact");
     try expectContains(survey_doc, "automatic return-to-blocked trigger");
     try expectContains(survey_doc, "trigger-specific evidence refresh");
