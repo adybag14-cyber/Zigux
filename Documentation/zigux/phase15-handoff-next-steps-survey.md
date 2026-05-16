@@ -4,10 +4,10 @@ This document records the bounded Phase 15 handoff packet for the remaining open
 
 ## Status
 
-- `PHASE15_LANE_KEY=P15-L07`
-- `PHASE15_STATUS=handoff_next_steps_shared_build_replay_landed`
+- `PHASE15_LANE_KEY=P15-L08`
+- `PHASE15_STATUS=handoff_next_steps_docs_root_pointer_synced`
 - `PHASE15_SLICE=phase-handoff-and-next-bound-synthesis`
-- survey provenance refreshed against current `master` commit `9ea8a26` observed on May 5, 2026
+- survey provenance refreshed against current `master` commit `a0e5f06` observed on May 16, 2026
 
 ## Roadmap Versus Ledger
 
@@ -23,14 +23,10 @@ This document records the bounded Phase 15 handoff packet for the remaining open
 
 - the shared governance packet is present through the freeze map, review-process note, parity scorecard, indefinite-C policy, docs root, workflow, shared `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
 - this dedicated handoff note, its manifest, and its focused Zig guard stay reviewable as one bounded packet
-- `zigux/tests/phase15_build.zig` now reruns `zigux/tests/phase15_handoff_next_steps.zig` alongside the other Phase 15 governance guards, so the shared replay no longer drops this dedicated handoff packet
-- the docs-root pointer back to this handoff packet is still missing from current `Documentation/zigux/README.md`
+- `zigux/tests/phase15_build.zig` reruns `zigux/tests/phase15_handoff_next_steps.zig` alongside the other Phase 15 governance guards, so the shared replay no longer drops this dedicated handoff packet
+- current `Documentation/zigux/README.md` already points back to this handoff packet, so the docs-root continuity surface now matches the dedicated handoff note again
 
 ## Open Handoff Gaps
-
-### Docs-Root Pointer Gap
-
-- `phase15-docs-root-handoff-pointer-gap`: the current docs root still does not point back to this dedicated handoff packet
 
 ### Deep-Core Status Changes Still Blocked
 
@@ -38,8 +34,7 @@ This document records the bounded Phase 15 handoff packet for the remaining open
 
 ## Pending Next Steps
 
-1. if the docs-root continuity lane reopens, add the missing `Documentation/zigux/phase15-handoff-next-steps-survey.md` pointer to `Documentation/zigux/README.md`
-2. otherwise keep this handoff lane parked unless the packet drifts again or the deep-core blocker posture changes
+1. keep this handoff lane parked unless the packet drifts again or the deep-core blocker posture changes
 
 ## Gates
 
