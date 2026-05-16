@@ -40,13 +40,15 @@ Those segments still keep the bounded fdinfo helper packet explicit while the re
 The deferred `perf-buffer-online-cpu-routing` segment also stays explicitly larger than the helper-local `online_cpu_routing.zig` evidence: the setup-side packet still covers sysfs reads, `perf_event_open()` setup, `mmap()`-backed ring state, per-CPU perf-event-array updates, epoll registration, and timeout-sensitive waits, while the landed helper-local cursor and routing-summary code remains smaller than that broader setup boundary.
 
 ## Current bounded gap
-The real current gap is now survey truthfulness about the already-landed checker packet, helper-local routing evidence, and the landed bridge-plus-build packet itself, not environment-specific contents-route flakiness or a missing checker rule.
+The real current gap is now the shared validator contract for the already-published focused wrapper routes, not the helper-plus-build packet itself.
 
-The older mixed-source caveat is now too weak for this packet.
+Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, the perf-buffer poll shard, and the shared Phase 8 build replay explicit on `master`.
 
-Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.
+This survey and `zigux/Makefile` already publish `make -C zigux phase8-libbpf-segments-test`, `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`, `make -C zigux phase8-perf-buffer-poll-test`, `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`, `make -C zigux phase8-test`, and `zig build test --build-file zigux/tests/phase8_build.zig --summary all`.
 
-That same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.
+But current `scripts/zigux/validate-phase8.py` still does not fail closed on those focused wrapper-route markers inside this dedicated survey note, even though the shared reminder packet already depends on that validator.
+
+That keeps the next honest same-lane step smaller than new helper growth: preserve the helper-plus-build readback here, and tighten the shared validator so those published wrapper routes cannot silently drift out of the survey.
 
 ## Non-goals
 This survey slice does not yet claim:
@@ -59,9 +61,10 @@ This survey slice does not yet claim:
 - any reopen of deferred object-model, descriptor-lifecycle, or bridge-heavy libbpf work
 
 ## Next bounded step
-Keep the libbpf survey packet parked after this survey-and-route sync unless a fresh shared reminder-surface drift reappears against the current helper-plus-build evidence.
+Keep the libbpf survey packet parked after this readback unless a fresh shared reminder-surface drift reappears against the current helper-plus-build evidence.
 
 Preferred order:
-1. re-read `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/verify.zig`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, `zigux/tests/phase8_build.zig`, `zigux/tests/phase8_libbpf_segments.zig`, and `zigux/tests/phase8_libbpf_segments_only_build.zig` together before narrowing the directly readable helper packet again
+1. re-read `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/verify.zig`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, `scripts/zigux/validate-phase8.py`, `zigux/tests/phase8_build.zig`, `zigux/tests/phase8_libbpf_segments.zig`, and `zigux/tests/phase8_libbpf_segments_only_build.zig` together before narrowing the directly readable helper packet again
 2. keep the manifest-backed `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and deferred `file-path-and-handle-bridge` segmentation explicit without widening into procfs reads, token materialization, bpffs reopen flow, or fd ownership claims
 3. keep the helper-local `online_cpu_routing.zig` evidence explicit while staying smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, standalone timer or clockevent helper behavior, or broader timeout-sensitive routing behavior
+4. if this lane reopens, prefer the one-file follow-through in `scripts/zigux/validate-phase8.py`: make the shared Phase 8 validator fail closed on the focused wrapper-route markers already published here for `phase8-libbpf-segments-test`, `phase8-perf-buffer-poll-test`, and the shared `phase8-test` build route before widening any helper-local or bridge-local claims
