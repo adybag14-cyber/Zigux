@@ -518,9 +518,23 @@ def run_self_test() -> None:
         case_count += 1
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["prefix_suffix_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:prefix_suffix_review_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["review_anchors"]["tools/lib/string.zig"]["lookup_review_summary"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_string_manifest:lookup_review_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["sysfs_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:sysfs_review_summary" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
 
@@ -532,9 +546,51 @@ def run_self_test() -> None:
         case_count += 1
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["strnchr_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:strnchr_review_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["review_anchors"]["tools/lib/string.zig"]["basename_review_summary"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_string_manifest:basename_review_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["trim_nul_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:trim_nul_review_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["phase1_trim_cstr_replay_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:phase1_trim_cstr_replay_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["memchr_moving_dirty_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:memchr_moving_dirty_review_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["memparse_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:memparse_review_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["shared_replace_char_cstr_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:shared_replace_char_cstr_review_summary" in collect_missing_markers(root)
         make_fixture_root(root)
         case_count += 1
 
