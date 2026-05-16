@@ -64,10 +64,13 @@ The four Phase 6 slice notes keep the helper-local detail, but they do not keep 
 ## Shared replay reminders
 
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py`
+- `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`
+- `make -C zigux phase6-base64-perf`
 - `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
-- `python3 scripts/zigux/check-phase6-hexdump-packet.py`
 - `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`
+- `make -C zigux phase6-checksum-perf`
+- `python3 scripts/zigux/check-phase6-hexdump-packet.py`
 - `make -C zigux phase6-bsearch-test`
 - `make -C zigux phase6-hexdump-review`
 - `make -C zigux phase6-hexdump-test`
