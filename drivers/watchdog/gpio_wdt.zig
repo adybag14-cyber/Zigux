@@ -158,6 +158,20 @@ pub const TimeoutPropertyCheckpointSummary = struct {
     blocked_on_platform_registration: bool,
 };
 
+pub const DrvdataOwnershipCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    hw_margin_ms: u32,
+    parent_attached: bool,
+    module_owner_attached: bool,
+    drvdata_owner_identity: []const u8,
+    timeout_property_precedes_drvdata_binding: bool,
+    drvdata_binding_precedes_registration_handoff: bool,
+    drvdata_binding_reuses_parent_linkage: bool,
+    blocked_on_live_gpio_lookup: bool,
+    blocked_on_platform_registration: bool,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -368,6 +382,22 @@ pub const GpioWatchdogLab = struct {
             .descriptor_lookup_precedes_timeout_property = true,
             .timeout_property_precedes_always_running_read = true,
             .timeout_property_precedes_registration_handoff = true,
+            .blocked_on_live_gpio_lookup = true,
+            .blocked_on_platform_registration = true,
+        };
+    }
+
+    pub fn drvdataOwnershipCheckpointSummary(self: *const Self) DrvdataOwnershipCheckpointSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .hw_margin_ms = self.hw_margin_ms,
+            .parent_attached = true,
+            .module_owner_attached = true,
+            .drvdata_owner_identity = "gpio_wdt_priv",
+            .timeout_property_precedes_drvdata_binding = true,
+            .drvdata_binding_precedes_registration_handoff = true,
+            .drvdata_binding_reuses_parent_linkage = true,
             .blocked_on_live_gpio_lookup = true,
             .blocked_on_platform_registration = true,
         };
