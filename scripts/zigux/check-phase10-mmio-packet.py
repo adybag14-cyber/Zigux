@@ -311,7 +311,17 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 EXPECTED_SUMMARY = {
     "virtio_mmio_c_lines": 829,
     "preexisting_phase10_test_files": 11,
+    "preexisting_phase10_build_present": True,
+    "preexisting_virtio_core_zig_present": True,
+    "preexisting_virtio_ring_zig_present": True,
+    "preexisting_virtio_mmio_zig_present": True,
     "preexisting_virtio_mmio_verify_present": True,
+    "preexisting_virtio_mmio_survey_note_present": True,
+    "preexisting_virtio_input_probe_preflight_present": True,
+    "preexisting_virtio_input_queue_callback_preflight_present": True,
+    "preexisting_virtio_input_registration_preflight_present": True,
+    "preexisting_virtio_input_teardown_observation_present": True,
+    "preexisting_virtio_input_status_drain_present": True,
 }
 EXPECTED_GAPS = {
     "phase10-build-gate": "starter_landed",
@@ -466,7 +476,17 @@ def build_fixture() -> dict[str, str]:
             "survey_summary": {
                 "virtio_mmio_c_lines": 829,
                 "preexisting_phase10_test_files": 11,
+                "preexisting_phase10_build_present": True,
+                "preexisting_virtio_core_zig_present": True,
+                "preexisting_virtio_ring_zig_present": True,
+                "preexisting_virtio_mmio_zig_present": True,
                 "preexisting_virtio_mmio_verify_present": True,
+                "preexisting_virtio_mmio_survey_note_present": True,
+                "preexisting_virtio_input_probe_preflight_present": True,
+                "preexisting_virtio_input_queue_callback_preflight_present": True,
+                "preexisting_virtio_input_registration_preflight_present": True,
+                "preexisting_virtio_input_teardown_observation_present": True,
+                "preexisting_virtio_input_status_drain_present": True,
             },
             "gaps": [
                 {
@@ -567,6 +587,18 @@ def run_self_test() -> int:
                 raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
             case_count += 1
 
+        def run_summary_field_case(field: str, replacement: object) -> None:
+            nonlocal case_count
+            manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["survey_summary"][field] = replacement
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            _, markers = validate(root)
+            expected = f"manifest:survey_summary:{field}={replacement!r}"
+            if expected not in markers:
+                raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
+            case_count += 1
+
         drift_cases = [
             (
                 "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
@@ -637,6 +669,9 @@ def run_self_test() -> int:
         run_feature_negotiation_manifest_case()
         run_selected_queue_kind_manifest_case()
         run_blocked_transport_destination_manifest_case()
+        run_summary_field_case("preexisting_phase10_build_present", False)
+        run_summary_field_case("preexisting_virtio_ring_zig_present", False)
+        run_summary_field_case("preexisting_virtio_input_status_drain_present", False)
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
     print(f"PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT={case_count}")
