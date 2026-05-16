@@ -20,6 +20,7 @@ RING_DIRECT_FILES = [
     "drivers/virtio/virtio_ring.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "zigux/tests/phase10_virtio_ring.zig",
+    "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
 ]
@@ -115,6 +116,9 @@ MARKERS = {
         "phase10_virtio_ring_module",
         "\"phase10-virtio-ring-tests\"",
         "run_phase10_virtio_ring_tests",
+        "phase10_virtio_ring_prepare_kick_idempotent_module",
+        "\"phase10-virtio-ring-prepare-kick-idempotent-tests\"",
+        "run_phase10_virtio_ring_prepare_kick_idempotent_tests",
         "phase10_virtio_ring_survey_module",
         "\"phase10-virtio-ring-survey-tests\"",
         "run_phase10_virtio_ring_survey_tests",
@@ -177,7 +181,7 @@ EXPECTED_FREEZE_IN_C_ANCHORS = [
 ]
 EXPECTED_SUMMARY = {
     "virtio_ring_c_lines": 3940,
-    "preexisting_phase10_test_files": 11,
+    "preexisting_phase10_test_files": 7,
     "preexisting_phase10_build_present": True,
     "preexisting_phase10_core_doc_present": True,
     "preexisting_virtio_core_zig_present": True,
@@ -268,22 +272,22 @@ EXPECTED_GAPS = {
     },
 }
 EXPECTED_GAP_WHY_NOW = {
-    "phase10-build-gate": "The shared Phase 10 build gate remains landed as part of the broader validation packet beside the directly readable ring helper and replay files.",
-    "phase10-virtio-core-lab-starter": "The adjacent core starter file is now directly readable on current master, so the ring lane no longer needs to frame core footing as a repo-reality gap.",
-    "phase10-virtio-ring-survey-gate": "Current public raw rereads now surface the dedicated ring survey gate on master, so this lane can treat the survey gate as landed direct packet evidence.",
-    "phase10-virtio-ring-survey-note": "The survey note itself remains the directly readable lane surface that keeps the direct ring packet and blocked transport boundary explicit.",
-    "phase10-virtqueue-shape-helper": "Current public raw rereads now surface the direct ring helper file on master, so the queue-shape helper stands as landed queue-local wrapper evidence.",
-    "phase10-used-buffer-polling-helper": "The used-buffer polling helper now lives inside a directly readable ring helper packet on current master.",
-    "phase10-callback-enable-helper": "The callback re-enable helper now lives inside the directly readable ring helper packet on current master.",
-    "phase10-callback-delay-helper": "The delayed-callback helper now lives inside the directly readable ring helper packet on current master.",
-    "phase10-notify-prepare-helper": "The notify-prepare helper now lives inside the directly readable ring helper packet on current master.",
-    "phase10-notification-data-summary-helper": "The notification-data summary helper now lives inside the directly readable ring helper packet on current master.",
-    "phase10-broken-queue-poll-guard": "The broken-queue poll guard now lives inside the directly readable ring helper packet on current master.",
-    "phase10-queue-reset-helper": "The queue-reset helper now lives inside the directly readable ring helper packet on current master.",
-    "phase10-queue-reset-readiness-helper": "The queue-reset-readiness helper now lives inside the directly readable ring helper packet on current master.",
-    "phase10-ring-verify-replay": "Current public raw rereads now surface the focused ring verify replay on master.",
-    "phase10-virtio-ring-slice-note": "The directly readable slice note keeps the landed ring helper, replay, checker, and blocked transport boundary aligned without overstating queue-local wrapper progress.",
-    "phase10-ring-lab-driver-bridge": "Transport-backed queue discovery, IRQ acknowledgement, queue reset execution, and probe or remove lifecycle behavior are still required before this lane can claim a true lab driver.",
+    "phase10-build-gate": "The shared Phase 10 build step is the narrowest honest place to keep the virtio_ring survey reviewable without claiming a transport implementation.",
+    "phase10-virtio-core-lab-starter": "The existing virtio core lab slice already covers status negotiation, descriptor-shape metadata, and notification accounting, so the ring survey should build on that real foothold instead of pretending those core-side capabilities are still missing.",
+    "phase10-virtio-ring-survey-gate": "A dedicated survey gate keeps the live roadmap gap explicit and reviewable now that the repo has both the core slice and the first ring-local helper.",
+    "phase10-virtio-ring-survey-note": "The lane needs a note that records the current queue-local ring foothold against the remaining roadmap lab-driver bridge and prevents the repo from overstating virtio_ring progress.",
+    "phase10-virtqueue-shape-helper": "The first honest virtio_ring step is a tiny in-memory helper for queue index, descriptor count, split or packed layout metadata, and notification bookkeeping that mirrors only the smallest reviewable shape from virtio_ring.c.",
+    "phase10-used-buffer-polling-helper": "The live ring slice adds a tiny in-memory used-buffer polling helper that reports only newly consumed chains since the previous poll.",
+    "phase10-callback-enable-helper": "The live ring slice adds a tiny callback re-enable helper that flips queue-local callback state back on and reports whether already-consumed chains still need a follow-up poll.",
+    "phase10-callback-delay-helper": "The live ring slice also adds a bounded delayed-callback helper that mirrors the virtqueue_enable_cb_delayed() threshold shape while staying queue-local and in memory only.",
+    "phase10-notify-prepare-helper": "The live ring slice carries queue-local notify-prepare bookkeeping that reports avail shadow, num_added, and whether a kick is needed while flushing the staged publish count, which mirrors virtqueue_kick_prepare().",
+    "phase10-notification-data-summary-helper": "The live ring helper packet now exposes queue-local notification-data summary state for split next-avail bookkeeping together with packed wrap-bit transitions, so the bounded queue-wrapper ladder should keep that helper explicit as landed evidence instead of leaving it parked as the next rung.",
+    "phase10-broken-queue-poll-guard": "The live ring slice keeps a queue marked broken from accepting fresh publish, kick-preparation, poll, or callback re-enable work while leaving existing debt reviewable.",
+    "phase10-queue-reset-helper": "The live ring slice carries a queue-local resetQueue() helper that clears avail, used, callback, outstanding-chain, and notify bookkeeping while preserving descriptor-count and layout metadata for reuse.",
+    "phase10-queue-reset-readiness-helper": "The live ring slice adds a queue-local reset-readiness preflight that reports whether resetQueue() would succeed and, if not, whether unpublished chains, outstanding chains, unpolled used chains, or a broken queue still block the reset attempt.",
+    "phase10-ring-verify-replay": "The wrapper-facing verify replay keeps reset-readiness blockers, delayed-callback pacing, clear-broken blocker exposure, and packed-ring event-index review live beside the direct ring-helper replay.",
+    "phase10-virtio-ring-slice-note": "The ring lane now has a packet-local slice note that records the landed queue-local helper ladder, the direct verify and replay packet, and the blocked MMIO-owned transport bridge so shared reminder work no longer has to treat ring note coverage as absent.",
+    "phase10-ring-lab-driver-bridge": "Transport-backed queue discovery, IRQ acknowledgement, queue reset execution, and probe/remove lifecycle behavior are still required to turn the queue-local ring evidence into a true lab driver, and that bridge stays owned by the adjacent MMIO packet.",
 }
 
 EXPECTED_VERIFY_TEST_MARKERS = [
@@ -398,6 +402,7 @@ test \"virtio ring clearBroken exposes the next reset blocker instead of hiding 
         'test "phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work" {}\n'
         'test "phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases" {}\n'
         'test "phase10 virtio ring callback re-enable reports pending used work and settles after poll" {}\n',
+        "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": 'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {}\n',
         "zigux/tests/phase10_virtio_ring_reset_reuse.zig": 'test "phase10 virtio ring drained reset clears the broken flag so the queue can be reused" {}\n',
         "zigux/tests/phase10_virtio_ring_survey.zig": """test \"phase10 virtio ring survey manifest records the live queue-wrapper gap and freeze boundary\" {
  try std.testing.expectEqualStrings(\"P10-L07\", manifest.lane_key);
@@ -516,6 +521,12 @@ def run_self_test() -> int:
         )
         replace_once(
             "zigux/tests/phase10_build.zig",
+            "run_phase10_virtio_ring_prepare_kick_idempotent_tests",
+            "run_phase10_virtio_ring_prepare_kick_idempotent_gate",
+            "phase10_build.zig:run_phase10_virtio_ring_prepare_kick_idempotent_tests",
+        )
+        replace_once(
+            "zigux/tests/phase10_build.zig",
             "run_phase10_virtio_ring_verify_tests",
             "run_phase10_virtio_ring_verify_gate",
             "phase10_build.zig:run_phase10_virtio_ring_verify_tests",
@@ -627,6 +638,7 @@ def run_self_test() -> int:
             "drivers/virtio/virtio_ring.zig",
             "drivers/virtio/virtio_ring_verify.zig",
             "zigux/tests/phase10_virtio_ring.zig",
+            "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
             "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
             "zigux/tests/phase10_virtio_ring_survey.zig",
         ):
