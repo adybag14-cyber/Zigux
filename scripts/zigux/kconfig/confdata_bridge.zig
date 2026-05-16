@@ -68,16 +68,24 @@ fn trimTrailingCarriageReturn(text: []const u8) []const u8 {
     return text;
 }
 
+fn trimLeadingUtf8Bom(text: []const u8, is_first_line: bool) []const u8 {
+    if (is_first_line and std.mem.startsWith(u8, text, "\xef\xbb\xbf")) {
+        return text[3..];
+    }
+    return text;
+}
+
 fn nextConfigLine(input: []const u8, cursor: *usize) ?[]const u8 {
     if (cursor.* >= input.len) return null;
-    const remaining = input[cursor.*..];
+    const line_start = cursor.*;
+    const remaining = input[line_start..];
     if (std.mem.indexOfScalar(u8, remaining, '\n')) |newline_index| {
         cursor.* += newline_index + 1;
-        return trimTrailingCarriageReturn(remaining[0..newline_index]);
+        return trimLeadingUtf8Bom(trimTrailingCarriageReturn(remaining[0..newline_index]), line_start == 0);
     }
 
     cursor.* = input.len;
-    return remaining;
+    return trimLeadingUtf8Bom(remaining, line_start == 0);
 }
 
 fn findClosingQuote(raw_value: []const u8) ?usize {
@@ -294,19 +302,22 @@ pub fn main(init: std.process.Init) !void {
 
 test "confdata bridge parses bounded config states" {
     const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA=y
-        \\CONFIG_BETA=m
-        \\CONFIG_COUNT=7
-        \\CONFIG_NAME="zigux"
-        \\# CONFIG_DEBUG is not set
-        \\
+    var summary = try parseConfig(
+        allocator,
+        "\xef\xbb\xbfCONFIG_ALPHA=y\n" ++
+            "CONFIG_BETA=m\n" ++
+            "CONFIG_COUNT=7\n" ++
+            "CONFIG_NAME=\"zigux\"\n" ++
+            "# CONFIG_DEBUG is not set\n",
     );
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 4), summary.set_count);
     try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
     try std.testing.expectEqual(@as(usize, 5), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("y", summary.entries[0].value);
     try std.testing.expectEqualStrings("CONFIG_NAME", summary.entries[3].name);
     try std.testing.expectEqual(EntryKind.string, summary.entries[3].kind);
     try std.testing.expectEqualStrings("zigux", summary.entries[3].value);
