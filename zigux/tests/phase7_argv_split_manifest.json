@@ -17,7 +17,7 @@
     },
     "shared_phase7_build": {
       "status": "present_on_master",
-      "readback_on_utc": "2026-05-13T12:57:32Z",
+      "readback_on_utc": "2026-05-16T12:24:39Z",
       "build_file": "zigux/tests/phase7_build.zig",
       "reviewable_sibling_paths": [
         "lib/string_helpers.zig",
@@ -83,7 +83,7 @@
       "current_replay_status": "route_present_on_master",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_build.zig",
-      "why_now": "The shared Phase 7 build step remains the intended cross-helper review gate for the argv_split runtime leaf helper, and fresh 2026-05-13 current-master readback now confirms that `zigux/tests/phase7_build.zig` imports directly readable sibling `string_helpers`, `cmdline`, and `rbtree` helper-plus-test files again. Keep this manifest limited to that route-present reminder instead of the older missing-sibling blocker wording unless a new shared replay gap appears."
+      "why_now": "The shared Phase 7 build step remains the intended cross-helper review gate for the argv_split runtime leaf helper, and fresh 2026-05-16 current-master readback now confirms that `zigux/tests/phase7_build.zig` imports directly readable sibling `string_helpers`, `cmdline`, and `rbtree` helper-plus-test files again. Keep this manifest limited to that route-present reminder instead of the older missing-sibling blocker wording unless a new shared replay gap appears."
     },
     {
       "id": "phase7-argv-split-helper",
@@ -111,7 +111,7 @@
       "status": "parked",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase7-argv-split-slice.md",
-      "why_now": "The slice note records the bounded product surface and the explicit non-goals so this Phase 7 lane stays tied to the actual runtime helper instead of expanding into parser churn."
+      "why_now": "The slice note records the bounded product surface, the route-present shared-build reminder, and the recurring scheduled alias rule that keeps `P7-Y07` collapsed back into parked canonical lane `P7-L09` so this helper-local packet does not fork into a second active owner."
     },
     {
       "id": "phase7-argv-split-survey-gate",
