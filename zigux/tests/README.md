@@ -178,6 +178,20 @@ Phase 3 review packet
   * the focused export/UAPI and low-level-wrapper support routes stay explicit here too: `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`, `make -C zigux phase3-export-uapi-layout-test`, `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`, and `make -C zigux phase3-low-level-wrappers-test`
   * `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` stay explicit as the current starter header-family companion packet rather than implying a broader shipped UAPI family
 
+Phase 7 review packet
+  * `Documentation/zigux/phase7-helper-lane-sequencing.md`
+  * `Documentation/zigux/phase7-rbtree-slice.md`
+  * `scripts/zigux/check-phase7-rbtree-parity.py`
+  * `zigux/tests/phase7_rbtree.zig`
+  * the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate
+  * `zigux/tests/phase7_rbtree_manifest.json`
+  * `zigux/tests/fixtures/phase7_rbtree.json`
+  * `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
+  * `zigux/tests/phase7_build.zig`
+  * `make -C zigux phase7-validate`
+  * `make -C zigux phase7`
+  * keep the parked Phase 7 rbtree packet explicit here too: `scripts/zigux/check-phase7-rbtree-parity.py`, the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and the shared `make -C zigux phase7-validate` plus `make -C zigux phase7` replay handles keep the current runtime-safe leaf-helper reminder surface visible without widening into deeper helper-family expansion
+
 Phase 8 review packet
   * `Documentation/zigux/phase8-tooling-lane-sequencing.md`
   * `Documentation/zigux/phase8-help-slice.md`
