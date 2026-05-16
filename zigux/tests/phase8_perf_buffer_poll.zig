@@ -33,7 +33,7 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "ordered `perf_buffer__process_records()` pass");
     try expectContains(note, "cumulative processed-record count");
     try expectContains(note, "first failing ready buffer");
-    try expectContains(note, "final return-path choice between a successful ready count and the first processing failure");
+    try expectContains(note, "final return-path choice between cumulative processed-record count and the first processing failure");
     try expectContains(note, "bounded buffer-fd lookup and errno shaping");
     try expectContains(note, "bounded buffer-window lookup and mapped-size passthrough");
     try expectContains(note, "`perf_buffer__buffer_fd(buf_idx)` slot lookup classification");
@@ -113,7 +113,7 @@ test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping be
         .{ .records_processed = 2 },
     });
     try std.testing.expectEqual(perf_buffer_poll.PollReturnDisposition.ready_count, success.disposition);
-    try std.testing.expectEqual(@as(i32, 3), success.return_value);
+    try std.testing.expectEqual(@as(i32, 6), success.return_value);
     try std.testing.expectEqual(@as(usize, 6), success.execution.processed_record_count);
 
     const processing_failure = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(12, 3, &.{
