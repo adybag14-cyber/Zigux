@@ -2,7 +2,7 @@
 
 This note records the current helper-evidence survey for the bounded Phase 6 leaf-helper packet on `master`.
 
-- surveyed head: `2236c72`
+- surveyed head: `525a32e`
 - lane scope: shared helper-evidence rows only
 - shared packet note: `Documentation/zigux/phase6-helper-parity-catalog.md`
 - shared manifest: `zigux/tests/phase6_helper_parity_manifest.json`
