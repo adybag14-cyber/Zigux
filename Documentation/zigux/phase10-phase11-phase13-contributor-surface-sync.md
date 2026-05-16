@@ -84,6 +84,8 @@ Keep the shared-versus-dedicated simple-driver packet explicit through:
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_build.zig`
+- `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+- `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
 - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - `zigux/Makefile`
 - `make -C zigux phase11-contract`
