@@ -16,7 +16,7 @@
     "positional_passthrough",
     "lone_dash_passthrough",
     "help",
-    "version_then_short_help",
+    "version_then_unexpected_help_argument",
     "version_then_long_help",
     "abbreviated_help",
     "unexpected_help_argument",
@@ -44,7 +44,7 @@
   "process_packet": [
     "ambiguous_long_option_expected.json",
     "help_expected.json",
-    "version_then_help_expected.json",
+    "version_then_unexpected_help_argument_expected.json",
     "version_then_help_expected.json",
     "help_expected.json",
     "unexpected_help_argument_expected.json",
@@ -61,6 +61,7 @@
   ],
   "normalized_stderr_packet": [
     "ambiguous_long_option_expected.json",
+    "version_then_unexpected_help_argument_expected.json",
     "unexpected_help_argument_expected.json",
     "version_then_missing_long_reference_argument_expected.json",
     "invalid_option_expected.json",
@@ -82,6 +83,7 @@
     "genksyms bridge keeps version as a side effect while parsing later options",
     "genksyms bridge preserves version side effects before later parse failures",
     "genksyms bridge accepts unambiguous abbreviated long options",
+    "genksyms bridge keeps version side effect before unexpected long option argument",
     "genksyms bridge canonicalizes unexpected long option argument failures",
     "genksyms bridge treats lone dash as positional passthrough",
     "genksyms bridge accepts explicit option terminator",
