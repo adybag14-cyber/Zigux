@@ -10,6 +10,7 @@
     * `scripts/zigux/check-phase4-remaining-gap-matrix.py`
     * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
     * `scripts/zigux/check-phase4-workflow-route-counts.py`
+    * `scripts/zigux/check-phase4-perf-baseline-packet.py`
     * `Documentation/zigux/artifact-diff.md`
     * `Documentation/zigux/phase4-gate-evidence.md`
     * `Documentation/zigux/phase4-reversible-delivery-evidence.md`
