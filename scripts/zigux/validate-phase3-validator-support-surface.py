@@ -91,8 +91,11 @@ CURRENT_PACKET_MARKERS = {
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md": 1,
     "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md": 1,
     "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 1,
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py": 1,
+    "scripts/zigux/check-phase3-policy-byte-guards.py": 1,
     "include/zigux/dev_t.h": 1,
     "zigux/uapi/version.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
@@ -341,7 +344,10 @@ def run_self_test() -> int:
     checks = [
         ("## Current packet", "## Review boundary", "Documentation/zigux/phase3-bindings-governance.md", "expected current-packet bindings-governance drift was not reported"),
         ("## Current packet", "## Review boundary", "Documentation/zigux/phase3-export-uapi-boundary-survey.md", "expected current-packet export-uapi survey drift was not reported"),
+        ("## Current packet", "## Review boundary", "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md", "expected current-packet policy survey drift was not reported"),
         ("## Current packet", "## Review boundary", "scripts/zigux/validate-phase3-export-uapi-survey.py", "expected current-packet export-uapi validator drift was not reported"),
+        ("## Current packet", "## Review boundary", "scripts/zigux/validate-phase3-policy-unsafe-survey.py", "expected current-packet policy validator drift was not reported"),
+        ("## Current packet", "## Review boundary", "scripts/zigux/check-phase3-policy-byte-guards.py", "expected current-packet policy-byte-guard drift was not reported"),
         ("## Current packet", "## Review boundary", "zigux/tests/phase3_export_uapi_layout.zig", "expected current-packet export-uapi layout replay drift was not reported"),
         ("## Current packet", "## Review boundary", "zigux/tests/phase3_export_uapi_layout_build.zig", "expected current-packet export-uapi build anchor drift was not reported"),
         ("## Current packet", "## Review boundary", "make -C zigux phase3-export-uapi-layout-test", "expected current-packet export-uapi make route drift was not reported"),
@@ -427,7 +433,7 @@ def run_self_test() -> int:
         print("expected boundary-note next-step version companion drift was not reported")
         return 1
     issues = validate_manifest(Path("/dev/null"))
-    expected = f"missing ABI manifest: {Path('/dev/null') / ABI_MANIFEST_PATH}"
+    expected = f"missing ABI manifest: {(Path('/dev/null') / ABI_MANIFEST_PATH).as_posix()}"
     if expected not in issues:
         print("PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=fail")
         print("expected missing ABI manifest was not reported")
