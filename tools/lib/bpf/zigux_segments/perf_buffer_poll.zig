@@ -163,6 +163,10 @@ fn hasConsistentProcessAccounting(summary: PollExecutionSummary) bool {
     };
 }
 
+fn successfulProcessedRecordReturnValue(processed_record_count: usize) i32 {
+    return @intCast(@min(processed_record_count, @as(usize, std.math.maxInt(i32))));
+}
+
 pub fn classifyObservedWaitResult(wait_result: i32) WaitObservation {
     if (wait_result == 0) {
         return .timed_out;
@@ -451,7 +455,7 @@ pub fn resolvePollExecutionResultFromWaitResult(
             return switch (execution.poll.outcome) {
                 .ready => .{
                     .execution = execution,
-                    .return_value = execution.first_process_error orelse wait_result,
+                    .return_value = execution.first_process_error orelse successfulProcessedRecordReturnValue(execution.processed_record_count),
                     .disposition = if (execution.first_process_error == null) .ready_count else .processing_failed,
                 },
                 .failed => .{
@@ -731,7 +735,7 @@ test "summarizePollExecutionFromWaitResult keeps raw wait-result normalization c
     try std.testing.expectEqual(@as(?i32, -11), summary.first_process_error);
 }
 
-test "resolvePollExecutionResultFromWaitResult keeps the final ready-count return and first processing failure explicit" {
+test "resolvePollExecutionResultFromWaitResult keeps the final processed-record return and first processing failure explicit" {
     const success = try resolvePollExecutionResultFromWaitResult(3, try summarizePollExecutionFromWaitResult(
         12,
         3,
@@ -746,7 +750,7 @@ test "resolvePollExecutionResultFromWaitResult keeps the final ready-count retur
         },
     ));
     try std.testing.expectEqual(PollReturnDisposition.ready_count, success.disposition);
-    try std.testing.expectEqual(@as(i32, 3), success.return_value);
+    try std.testing.expectEqual(@as(i32, 6), success.return_value);
 
     const processing_failure = try resolvePollExecutionResultFromWaitResult(3, try summarizePollExecutionFromWaitResult(
         12,
@@ -763,6 +767,17 @@ test "resolvePollExecutionResultFromWaitResult keeps the final ready-count retur
     ));
     try std.testing.expectEqual(PollReturnDisposition.processing_failed, processing_failure.disposition);
     try std.testing.expectEqual(@as(i32, -11), processing_failure.return_value);
+}
+
+test "resolvePollExecutionResultFromWaitResult clamps oversized successful processed-record returns to INT_MAX" {
+    const saturated = try resolvePollExecutionResultFromWaitResult(1, try summarizePollExecutionFromWaitResult(
+        12,
+        1,
+        &.{.{ .ready = true }},
+        &.{.{ .records_processed = std.math.maxInt(usize) }},
+    ));
+    try std.testing.expectEqual(PollReturnDisposition.ready_count, saturated.disposition);
+    try std.testing.expectEqual(@as(i32, std.math.maxInt(i32)), saturated.return_value);
 }
 
 test "resolvePollExecutionResultFromWaitResult rejects inconsistent processing-failure bookkeeping" {
