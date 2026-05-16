@@ -82,9 +82,11 @@ HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS = {
     "zigux/bindings/dev_t.zig": 1,
     "zigux/bindings/abi.zig": 1,
     "zigux/bindings/notifier_abi.zig": 1,
+    "zigux/tests/phase3_abi.zig": 1,
     "zigux/tests/phase3_abi_dump.zig": 1,
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c": 1,
     "zigux/tests/fixtures/phase3_abi/expected.json": 1,
+    "scripts/zigux/check-phase3-abi.py": 1,
     "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py": 1,
     "scripts/zigux/survey-phase3-abi-constant-parity.py": 1,
@@ -189,6 +191,7 @@ TESTS_README_MARKER_COUNTS = {
     "include/zigux/dev_t.h": 1,
     "zigux/uapi/version.zig": 1,
     "zigux/uapi/dev_t.zig": 1,
+    "zigux/tests/fixtures/phase3_abi_manifest.json": 1,
 }
 TESTS_README_REMINDER_ONLY_MARKER_COUNTS = {
     "scripts/zigux/phase3_catalog.py --self-test": 1,
@@ -913,6 +916,21 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected tests README version companion drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        tests_path.write_text(
+            _read(tests_path).replace("zigux/tests/fixtures/phase3_abi_manifest.json", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "tests README Phase 3 reminder marker count drift: "
+            "zigux/tests/fixtures/phase3_abi_manifest.json (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected tests README abi manifest drift was not reported")
             return 1
 
         _populate_repo(root)
