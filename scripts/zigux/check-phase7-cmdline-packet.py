@@ -69,10 +69,12 @@ REQUIRED_MARKERS = {
         "pub fn parseOptionStr",
         "pub fn nextArg",
         'test "getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull consumption"',
+        'test "getOptions expands negative ranges and negative upper bounds like Linux get_range"',
         'test "parseOptionStr only matches full comma-delimited options"',
         'try std.testing.expect(!parseOptionStr("", ""));',
         'test "nextArg returns an empty sentinel token before leading whitespace and trims the following rest"',
         'test "getOption and getOptions preserve oversized wrap semantics"',
+        'test "getOption preserves validator-only numeric acceptance without explicit leading plus"',
         'test "memparse saturates oversized unsigned prefixes before applying suffix handling"',
         'test "memparse keeps saturated prefixes aligned when size suffixes still apply"',
     ],
@@ -81,6 +83,8 @@ REQUIRED_MARKERS = {
         "phase 7 getOption clears caller output on malformed signed and unsigned input",
         "phase 7 getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull consumption",
         "phase 7 getOption and getOptions preserve oversized wrap semantics",
+        "phase 7 getOption preserves validator-only numeric acceptance without explicit leading plus",
+        "phase 7 getOptions expands negative ranges and negative upper bounds like Linux get_range",
         "phase 7 parseOptionStr matches only exact bare options",
         'try std.testing.expect(!cmdline.parseOptionStr("", ""));',
         "phase 7 nextArg matches serialized edge fixtures",
@@ -296,6 +300,12 @@ def run_self_test() -> None:
                 "lib/cmdline.zig: pub fn nextArg",
             ),
             (
+                "helper_negative_range_marker",
+                "lib/cmdline.zig",
+                'test "getOptions expands negative ranges and negative upper bounds like Linux get_range"',
+                'lib/cmdline.zig: test "getOptions expands negative ranges and negative upper bounds like Linux get_range"',
+            ),
+            (
                 "helper_parse_option_test_marker",
                 "lib/cmdline.zig",
                 'test "parseOptionStr only matches full comma-delimited options"',
@@ -314,6 +324,12 @@ def run_self_test() -> None:
                 'lib/cmdline.zig: test "getOption and getOptions preserve oversized wrap semantics"',
             ),
             (
+                "helper_validator_only_acceptance_marker",
+                "lib/cmdline.zig",
+                'test "getOption preserves validator-only numeric acceptance without explicit leading plus"',
+                'lib/cmdline.zig: test "getOption preserves validator-only numeric acceptance without explicit leading plus"',
+            ),
+            (
                 "helper_memparse_saturation_marker",
                 "lib/cmdline.zig",
                 'test "memparse saturates oversized unsigned prefixes before applying suffix handling"',
@@ -330,6 +346,12 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_cmdline.zig",
                 "phase 7 nextArg matches serialized edge fixtures",
                 "zigux/tests/phase7_cmdline.zig: phase 7 nextArg matches serialized edge fixtures",
+            ),
+            (
+                "tests_negative_range_marker",
+                "zigux/tests/phase7_cmdline.zig",
+                "phase 7 getOptions expands negative ranges and negative upper bounds like Linux get_range",
+                "zigux/tests/phase7_cmdline.zig: phase 7 getOptions expands negative ranges and negative upper bounds like Linux get_range",
             ),
             (
                 "tests_parse_option_marker",
@@ -354,6 +376,12 @@ def run_self_test() -> None:
                 "zigux/tests/phase7_cmdline.zig",
                 "phase 7 getOption and getOptions preserve oversized wrap semantics",
                 "zigux/tests/phase7_cmdline.zig: phase 7 getOption and getOptions preserve oversized wrap semantics",
+            ),
+            (
+                "tests_validator_only_acceptance_marker",
+                "zigux/tests/phase7_cmdline.zig",
+                "phase 7 getOption preserves validator-only numeric acceptance without explicit leading plus",
+                "zigux/tests/phase7_cmdline.zig: phase 7 getOption preserves validator-only numeric acceptance without explicit leading plus",
             ),
             (
                 "tests_memparse_saturation_marker",
