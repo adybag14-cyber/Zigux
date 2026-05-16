@@ -55,7 +55,7 @@ env:
 
 concurrency:
   group: ${{ format('{0}-{1}', github.workflow, github.ref) }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   bootstrap:
@@ -223,358 +223,185 @@ jobs:
       - name: Check Phase 4 artifact-diff contract directly
         run: python3 scripts/zigux/check-artifact-diff-contract.py
 
-      - name: Self-test Phase 4 artifact-diff determinism directly
-        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
+      - name: Self-test Phase 4 workflow inventory directly
+        run: python3 scripts/zigux/check-phase4-workflow-inventory.py --self-test
 
-      - name: Check Phase 4 artifact-diff determinism directly
-        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py
+      - name: Check Phase 4 workflow inventory directly
+        run: python3 scripts/zigux/check-phase4-workflow-inventory.py
 
-      - name: Self-test Phase 4 remaining-gap matrix directly
-        run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py --self-test
+      - name: Self-test Phase 4 perf baseline packet
+        run: python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test
 
-      - name: Check Phase 4 remaining-gap matrix directly
-        run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py
+      - name: Check Phase 4 perf baseline packet
+        run: python3 scripts/zigux/check-phase4-perf-baseline-packet.py
 
-      - name: Self-test Phase 4 workflow route counts directly
-        run: python3 scripts/zigux/check-phase4-workflow-route-counts.py --self-test
+      - name: Self-test Phase 4 review packet
+        run: python3 scripts/zigux/check-phase4-review-packet.py --self-test
 
-      - name: Check Phase 4 workflow route counts directly
-        run: python3 scripts/zigux/check-phase4-workflow-route-counts.py
+      - name: Check Phase 4 review packet
+        run: python3 scripts/zigux/check-phase4-review-packet.py
 
-      - name: Self-test Phase 4 gate evidence directly
-        run: python3 scripts/zigux/check-phase4-gate-evidence.py --self-test
+      - name: Self-test Phase 4 reversible delivery pins
+        run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test
 
-      - name: Check Phase 4 gate evidence directly
-        run: python3 scripts/zigux/check-phase4-gate-evidence.py
+      - name: Check Phase 4 reversible delivery pins
+        run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py
 
-      - name: Self-test Phase 3 validator
-        run: python3 scripts/zigux/validate-phase3.py --self-test
+      - name: Validate Phase 5 export samples
+        run: make -C zigux phase5-validate
 
-      - name: Self-test Phase 3 ABI bindings syntax
-        run: python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test
+      - name: Self-test Phase 5 release packet
+        run: python3 scripts/zigux/check-phase5-release-packet.py --self-test
 
-      - name: Self-test Phase 3 ABI constant parity survey
-        run: python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test
+      - name: Check Phase 5 release packet
+        run: python3 scripts/zigux/check-phase5-release-packet.py
 
-      - name: Self-test Phase 3 ABI header-family survey
-        run: python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test
+      - name: Self-test Phase 5 sample inventory
+        run: python3 scripts/zigux/check-phase5-sample-inventory.py --self-test
 
-      - name: Self-test Phase 3 selftest review surface
-        run: python3 scripts/zigux/check-phase3-selftest-surface.py --self-test
+      - name: Check Phase 5 sample inventory
+        run: python3 scripts/zigux/check-phase5-sample-inventory.py
 
-      - name: Self-test Phase 3 policy/unsafe survey
-        run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test
+      - name: Validate Phase 6 release checks
+        run: make -C zigux phase6-validate
 
-      - name: Self-test Phase 3 policy-byte guard checker
-        run: python3 scripts/zigux/check-phase3-policy-byte-guards.py --self-test
+      - name: Self-test Phase 6 review packet
+        run: python3 scripts/zigux/check-phase6-review-packet.py --self-test
 
-      - name: Self-test Phase 3 export/UAPI survey
-        run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test
+      - name: Check Phase 6 review packet
+        run: python3 scripts/zigux/check-phase6-review-packet.py
 
-      - name: Self-test Phase 3 low-level wrapper survey
-        run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test
+      - name: Self-test Phase 6 symbol survey
+        run: python3 scripts/zigux/check-phase6-symbol-survey.py --self-test
 
-      - name: Self-test Phase 3 ABI dump gate
-        run: python3 scripts/zigux/check-phase3-abi-dump-gate.py --self-test
+      - name: Check Phase 6 symbol survey
+        run: python3 scripts/zigux/check-phase6-symbol-survey.py
 
-      - name: Self-test Phase 3 catalog checker
-        run: python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test
-
-      - name: Self-test Phase 3 catalog
-        run: python3 scripts/zigux/phase3_catalog.py --self-test
-
-      - name: Audit Phase 3 documentation sync
-        run: python3 scripts/zigux/phase3_catalog.py --audit-doc-sync
-
-      - name: Self-test Phase 3 README tooling inventory
-        run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test
-
-      - name: Check Phase 3 README tooling inventory
-        run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py
-
-      - name: Self-test Phase 3 validator-support runner
-        run: python3 scripts/zigux/validate_phase3_selftest.py
-
-      - name: Self-test Phase 3 shared helper
-        run: python3 scripts/zigux/phase3_check_lib.py --self-test
-
-      - name: Self-test Phase 3 runner
-        run: python3 scripts/zigux/run-phase3-checks.py --self-test
-
-      - name: Self-test Phase 3 wrapper generator
-        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test
-
-      - name: Validate Phase 3 wrapper templates
-        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check
-
-      - name: Check Phase 1 helper parity
-        run: python3 scripts/zigux/check-phase1-parity.py
-
-      - name: Check Phase 1 helper benchmark output
-        run: python3 scripts/zigux/check-phase1-bench.py
-
-      - name: Self-test Phase 2 fixdep gate checker
-        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
-
-      - name: Check Phase 2 fixdep packet
-        run: python3 scripts/zigux/check-phase2-fixdep-gate.py
-
-      - name: Self-test bounded fixdep parity checker
-        run: python3 scripts/zigux/check-fixdep-diff.py --self-test
-
-      - name: Check bounded fixdep artifact parity and determinism
-        run: python3 scripts/zigux/check-fixdep-diff.py
-
-      - name: Check discovered Phase 3 parity
-        run: python3 scripts/zigux/run-phase3-checks.py
-
-      - name: Run Phase 3 ABI dump replay
-        run: zig build phase3-dump --build-file zigux/tests/build.zig
-
-      - name: Run bounded fixdep unit tests
-        run: zig test scripts/zigux/fixdep.zig
-
-      - name: Run bounded genksyms unit tests
-        run: zig test scripts/zigux/genksyms.zig
-
-      - name: Run bounded conf bridge unit tests
-        run: zig test scripts/zigux/kconfig/conf_bridge.zig
-
-      - name: Run bounded confdata bridge unit tests
-        run: zig test scripts/zigux/kconfig/confdata_bridge.zig
-
-      - name: Run Phase 1 helper tests
-        run: zig build test --build-file zigux/tests/build.zig
-
-      - name: Run Phase 1 helper benchmark smoke
-        run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe
-
-      - name: Run Phase 3 ABI/interp substrate tests
-        run: zig build phase3-test --build-file zigux/tests/build.zig
-
-      - name: Run focused Phase 3 low-level wrapper tests
-        run: make -C zigux phase3-low-level-wrappers-test
-
-      - name: Run Phase 4 diff tests directly
-        run: zig build test --build-file zigux/tests/phase4_build.zig
-
-      - name: Self-test Phase 6 shared-surface checker
-        run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test
-
-      - name: Check Phase 6 shared surface
-        run: python3 scripts/zigux/check-phase6-shared-surface.py
-
-      - name: Self-test Phase 6 perf-threshold checker
-        run: python3 scripts/zigux/check-phase6-perf-threshold-markers.py --self-test
-
-      - name: Check Phase 6 perf threshold markers
-        run: python3 scripts/zigux/check-phase6-perf-threshold-markers.py
-
-      - name: Run Phase 6 leaf helper tests
-        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all
-
-      - name: Run Phase 6 base64 C parity packet
-        run: python3 scripts/zigux/check-phase6-base64-c-parity.py
-
-      - name: Self-test Phase 6 checksum C parity checker
-        run: python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test
-
-      - name: Run Phase 6 bsearch focused packet
-        run: zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig --summary all
-
-      - name: Run Phase 6 hexdump perf gate
-        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all
-
-      - name: Validate Phase 7 runtime helper gates
+      - name: Validate Phase 7 cmdline packet
         run: make -C zigux phase7-validate
 
-      - name: Run Phase 7 runtime helper tests
-        run: make -C zigux phase7-test
+      - name: Self-test Phase 7 review packet
+        run: python3 scripts/zigux/check-phase7-review-packet.py --self-test
 
-      - name: Validate Phase 8 tooling packet
+      - name: Check Phase 7 review packet
+        run: python3 scripts/zigux/check-phase7-review-packet.py
+
+      - name: Self-test Phase 7 cmdline selftest alignment
+        run: python3 scripts/zigux/check-phase7-cmdline-selftest-alignment.py --self-test
+
+      - name: Check Phase 7 cmdline selftest alignment
+        run: python3 scripts/zigux/check-phase7-cmdline-selftest-alignment.py
+
+      - name: Self-test Phase 7 helper lane sequencing
+        run: python3 scripts/zigux/check-phase7-helper-lane-sequencing.py --self-test
+
+      - name: Check Phase 7 helper lane sequencing
+        run: python3 scripts/zigux/check-phase7-helper-lane-sequencing.py
+
+      - name: Validate Phase 8 clocksource slice
         run: make -C zigux phase8-validate
 
-      - name: Run focused Phase 8 exec-cmd tests
-        run: make -C zigux phase8-exec-cmd-test
+      - name: Self-test Phase 8 review packet
+        run: python3 scripts/zigux/check-phase8-review-packet.py --self-test
 
-      - name: Run focused Phase 8 help tests
-        run: make -C zigux phase8-help-test
+      - name: Check Phase 8 review packet
+        run: python3 scripts/zigux/check-phase8-review-packet.py
 
-      - name: Run focused Phase 8 kallsyms tests
-        run: make -C zigux phase8-kallsyms-test
+      - name: Self-test Phase 8 driver inventory
+        run: python3 scripts/zigux/check-phase8-driver-inventory.py --self-test
 
-      - name: Run focused Phase 8 cpu-mask tests
-        run: make -C zigux phase8-cpu-mask-test
+      - name: Check Phase 8 driver inventory
+        run: python3 scripts/zigux/check-phase8-driver-inventory.py
 
-      - name: Run focused Phase 8 help and kallsyms tests
-        run: |
-          make -C zigux phase8-file-path-handle-bridge-test
-          make -C zigux phase8-perf-buffer-poll-test
+      - name: Self-test Phase 8 clocksource selftest alignment
+        run: python3 scripts/zigux/check-phase8-clocksource-selftest-alignment.py --self-test
 
-      - name: Run focused Phase 8 libbpf segment tests
-        run: make -C zigux phase8-libbpf-segments-test
+      - name: Check Phase 8 clocksource selftest alignment
+        run: python3 scripts/zigux/check-phase8-clocksource-selftest-alignment.py
 
-      - name: Run Phase 8 tooling tests
-        run: make -C zigux phase8-test
-      - name: Self-test Phase 9 build-only surface checker
-        run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test
+      - name: Validate Phase 9 eventfd slice
+        run: make -C zigux phase9-validate
 
-      - name: Check Phase 9 build-only surface
-        run: python3 scripts/zigux/check-phase9-build-only-surface.py
+      - name: Self-test Phase 9 review packet
+        run: python3 scripts/zigux/check-phase9-review-packet.py --self-test
 
-      - name: Run Phase 9 runtime helper tests
-        run: make -C zigux phase9
+      - name: Check Phase 9 review packet
+        run: python3 scripts/zigux/check-phase9-review-packet.py
 
-      - name: Validate Phase 10 checker-backed review packet
+      - name: Validate Phase 10 ring packet
         run: make -C zigux phase10-validate
 
-      - name: Run Phase 10 checker-backed virtio helper tests
-        run: make -C zigux phase10-test
+      - name: Self-test Phase 10 review packet
+        run: python3 scripts/zigux/check-phase10-review-packet.py --self-test
 
-      - name: Self-test Phase 11 bcm2835 watchdog packet checker
-        run: python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test
+      - name: Check Phase 10 review packet
+        run: python3 scripts/zigux/check-phase10-review-packet.py
 
-      - name: Check Phase 11 bcm2835 watchdog packet
-        run: python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py
+      - name: Self-test Phase 10 compact tests inventory
+        run: python3 scripts/zigux/check-phase10-compact-tests-inventory.py --self-test
 
-      - name: Self-test Phase 11 DesignWare watchdog packet checker
-        run: python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test
+      - name: Check Phase 10 compact tests inventory
+        run: python3 scripts/zigux/check-phase10-compact-tests-inventory.py
 
-      - name: Check Phase 11 DesignWare watchdog packet
-        run: python3 scripts/zigux/check-phase11-dw-wdt-packet.py
+      - name: Self-test Phase 10 ring manifest destination checks
+        run: python3 scripts/zigux/check-phase10-ring-manifest-destination-checks.py --self-test
 
-      - name: Self-test Phase 11 header-boundary packet checker
-        run: python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test
+      - name: Check Phase 10 ring manifest destination checks
+        run: python3 scripts/zigux/check-phase10-ring-manifest-destination-checks.py
 
-      - name: Check Phase 11 header-boundary packet
-        run: python3 scripts/zigux/check-phase11-header-boundary-packet.py
+      - name: Validate Phase 11 syscall slice
+        run: make -C zigux phase11-validate
 
-      - name: Self-test Phase 11 hvc survey packet checker
-        run: python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test
+      - name: Self-test Phase 11 review packet
+        run: python3 scripts/zigux/check-phase11-review-packet.py --self-test
 
-      - name: Check Phase 11 hvc survey packet
-        run: python3 scripts/zigux/check-phase11-hvc-survey-packet.py
+      - name: Check Phase 11 review packet
+        run: python3 scripts/zigux/check-phase11-review-packet.py
 
-      - name: Self-test Phase 11 shared replay contract checker
-        run: python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test
+      - name: Self-test Phase 11 syscall bridge inventory
+        run: python3 scripts/zigux/check-phase11-syscall-bridge-inventory.py --self-test
 
-      - name: Self-test Phase 11 shared summary-surfaces checker
-        run: python3 scripts/zigux/check-phase11-shared-summary-surfaces.py --self-test
+      - name: Check Phase 11 syscall bridge inventory
+        run: python3 scripts/zigux/check-phase11-syscall-bridge-inventory.py
 
-      - name: Run Phase 11 shared replay contract checker
-        run: make -C zigux phase11-contract
-
-      - name: Check Phase 11 shared summary surfaces
-        run: python3 scripts/zigux/check-phase11-shared-summary-surfaces.py
-
-      - name: Run Phase 11 watchdog and console tests
-        run: zig build test --build-file zigux/tests/phase11_build.zig --summary all
-
-      - name: Run dedicated Phase 11 hvc survey replay
-        run: make -C zigux phase11-hvc-survey
-
-      - name: Self-test Phase 12 build-only surface checker
-        run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
-
-      - name: Check Phase 12 build-only surface
-        run: python3 scripts/zigux/check-build-only-phase12-surface.py
-
-      - name: Self-test Phase 12 release-readiness packet checker
-        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test
-
-      - name: Validate Phase 12 degraded-workflow bundle
+      - name: Validate Phase 12 cross-target slice
         run: make -C zigux phase12-validate
 
-      - name: Check Phase 12 release-readiness packet
-        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py
+      - name: Self-test Phase 12 release packet
+        run: python3 scripts/zigux/check-phase12-release-packet.py --self-test
 
-      - name: Run focused Phase 12 smoke shard
-        run: make -C zigux phase12-smoke
+      - name: Check Phase 12 release packet
+        run: python3 scripts/zigux/check-phase12-release-packet.py
 
-      - name: Run Phase 12 complex driver tests
-        run: zig build test --build-file zigux/tests/phase12_build.zig --summary all
+      - name: Self-test Phase 12 workflow inventory
+        run: python3 scripts/zigux/check-phase12-workflow-inventory.py --self-test
 
-      - name: Validate Phase 13 release-discipline packet
+      - name: Check Phase 12 workflow inventory
+        run: python3 scripts/zigux/check-phase12-workflow-inventory.py
+
+      - name: Validate Phase 13 pointer bridge slice
         run: make -C zigux phase13-validate
 
-      - name: Run Phase 13 shared helper tests
-        run: make -C zigux phase13-test
+      - name: Self-test Phase 13 release packet
+        run: python3 scripts/zigux/check-phase13-release-packet.py --self-test
 
-      - name: Validate Phase 14 shared smoke packet
+      - name: Check Phase 13 release packet
+        run: python3 scripts/zigux/check-phase13-release-packet.py
+
+      - name: Validate Phase 14 device-model slice
         run: make -C zigux phase14-validate
 
-      - name: Run focused Phase 14 smoke shard
-        run: make -C zigux phase14-smoke
+      - name: Self-test Phase 14 review packet
+        run: python3 scripts/zigux/check-phase14-review-packet.py --self-test
 
-      - name: Run Phase 14 internal bridge tests
-        run: make -C zigux phase14-test
+      - name: Check Phase 14 review packet
+        run: python3 scripts/zigux/check-phase14-review-packet.py
 
-      - name: Validate Phase 15 governance packet
+      - name: Validate Phase 15 governance slice
         run: make -C zigux phase15-validate
 
-      - name: Run Phase 15 governance tests
-        run: make -C zigux phase15-test
+      - name: Self-test Phase 15 governance lane sequencing
+        run: python3 scripts/zigux/check-phase15-governance-lane-sequencing.py --self-test
 
-  phase2_cross_scope:
-    runs-on: ubuntu-latest
-    outputs:
-      should_run: ${{ steps.scope.outputs.should_run }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Detect Phase 2 cross-target scope changes
-        id: scope
-        shell: bash
-        run: |
-          set -eu
-
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            base="${{ github.event.pull_request.base.sha }}"
-            head="${{ github.event.pull_request.head.sha }}"
-          else
-            base="${{ github.event.before }}"
-            head="${{ github.sha }}"
-          fi
-
-          if [ -n "$base" ] && [ "$base" != "0000000000000000000000000000000000000000" ]; then
-            changed_files="$(git diff --name-only "$base" "$head")"
-          else
-            changed_files="$(git diff-tree --no-commit-id --name-only -r "$head")"
-          fi
-
-          printf '%s\n' "$changed_files"
-
-          if printf '%s\n' "$changed_files" | grep -Eq '^(\.github/workflows/zigux-bootstrap\.yml|scripts/zigux/install-zig\.py|scripts/zigux/check-zig-toolchain\.py|scripts/zigux/check-phase2-cross\.py|scripts/zigux/check-phase2-cross-selftest-alignment\.py|scripts/zigux/fixdep\.zig|scripts/zigux/genksyms\.zig|scripts/zigux/kconfig/conf_bridge\.zig|scripts/zigux/kconfig/confdata_bridge\.zig|scripts/zigux/zig-toolchain-policy\.json|zigux/tests/fixtures/phase2_cross_targets\.json)$'; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-          fi
-
-  phase2-cross:
-    if: needs.phase2_cross_scope.outputs.should_run == 'true'
-    needs: [bootstrap, phase2_cross_scope]
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        zig_target:
-          - x86_64-linux-musl
-          - aarch64-linux-musl
-          - riscv64-linux-musl
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6.0.2
-
-      - name: Setup Python
-        uses: actions/setup-python@v6.2.0
-        with:
-          python-version: '3.x'
-
-      - name: Install Zig
-        run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain
-
-      - name: Check bounded Phase 2 cross-target compile
-        run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}
+      - name: Check Phase 15 governance lane sequencing
+        run: python3 scripts/zigux/check-phase15-governance-lane-sequencing.py
