@@ -54,6 +54,21 @@ test "phase12 virtio net queue resume keeps mergeable replay and throughput guar
     try std.testing.expect(summary.throughput_guard_active);
 }
 
+test "phase12 virtio net queue resume rejects mergeable refill without replay" {
+    try std.testing.expectError(
+        error.MergeableRefillRequiresReplay,
+        virtio_net_queue_resume.summarizeQueueResume(.{
+            .effective_queue_pairs = 1,
+            .receive_queue_count = 1,
+            .transmit_queue_count = 1,
+            .total_queue_count = 2,
+            .requires_receive_buffer_refill = true,
+            .requires_mergeable_buffer_refill = true,
+            .requires_post_reset_probe_replay = false,
+        }),
+    );
+}
+
 test "phase12 virtio net queue resume keeps control-only rollback markers explicit" {
     const summary = try virtio_net_queue_resume.summarizeQueueResume(.{
         .effective_queue_pairs = 2,
