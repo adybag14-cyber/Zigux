@@ -704,6 +704,39 @@ test "memchrInv short zero-value scans stay byte-accurate" {
     try std.testing.expectEqual(@as(?usize, null), memchrInv(&short_zero_scan, 0));
 }
 
+test "memchrInv keeps the earliest dirty byte across the fast-path cutoff" {
+    const word_bytes = @sizeOf(usize);
+    const cutoff = word_bytes * 2;
+
+    var non_zero_backing = [_]u8{0xaa} ** (word_bytes * 2);
+    for (0..2) |extra| {
+        const len = (cutoff - 1) + extra;
+
+        @memset(non_zero_backing[0..], 0xaa);
+        try std.testing.expectEqual(@as(?usize, null), memchrInv(non_zero_backing[0..len], 0xaa));
+
+        for (0..len) |dirty_idx| {
+            @memset(non_zero_backing[0..], 0xaa);
+            non_zero_backing[dirty_idx] = 0x11;
+            try std.testing.expectEqual(@as(?usize, dirty_idx), memchrInv(non_zero_backing[0..len], 0xaa));
+        }
+    }
+
+    var zero_backing = [_]u8{0} ** (word_bytes * 2);
+    for (0..2) |extra| {
+        const len = (cutoff - 1) + extra;
+
+        @memset(zero_backing[0..], 0);
+        try std.testing.expectEqual(@as(?usize, null), memchrInv(zero_backing[0..len], 0));
+
+        for (0..len) |dirty_idx| {
+            @memset(zero_backing[0..], 0);
+            zero_backing[dirty_idx] = 0x7f;
+            try std.testing.expectEqual(@as(?usize, dirty_idx), memchrInv(zero_backing[0..len], 0));
+        }
+    }
+}
+
 test "memparse handles decimal hexadecimal octal and suffixes" {
     const decimal = memparse("64K rest");
     try std.testing.expectEqual(@as(u64, 64 << 10), decimal.value);
