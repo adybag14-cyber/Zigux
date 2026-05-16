@@ -2,31 +2,6 @@ const std = @import("std");
 const checksum = @import("checksum");
 const fixtures = @import("phase6_checksum_vectors");
 
-const Add16Case = struct {
-    name: []const u8,
-    sum: u16,
-    addend: u16,
-    expected_sum: u16,
-};
-
-const Sub16Case = struct {
-    name: []const u8,
-    sum: u16,
-    addend: u16,
-    expected_sum: u16,
-};
-
-const add16_cases = [_]Add16Case{
-    .{ .name = "saturated plus one wraps with carry", .sum = 0xffff, .addend = 0x0001, .expected_sum = 0x0001 },
-    .{ .name = "saturated plus zero stays saturated", .sum = 0xffff, .addend = 0x0000, .expected_sum = 0xffff },
-    .{ .name = "saturated plus saturated preserves ones complement", .sum = 0xffff, .addend = 0xffff, .expected_sum = 0xffff },
-};
-
-const sub16_cases = [_]Sub16Case{
-    .{ .name = "zero minus one borrows across ones complement", .sum = 0x0000, .addend = 0x0001, .expected_sum = 0xfffe },
-    .{ .name = "subtracting a prior addend recovers the original word", .sum = 0x2345, .addend = 0x1111, .expected_sum = 0x1234 },
-};
-
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     var stdout_buffer: [4096]u8 = undefined;
@@ -69,11 +44,11 @@ pub fn main(init: std.process.Init) !void {
         try writer.print("carry-discipline\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.fold(partial) });
     }
 
-    for (add16_cases) |case| {
+    for (fixtures.add16_cases) |case| {
         try writer.print("add16\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.add16(case.sum, case.addend) });
     }
 
-    for (sub16_cases) |case| {
+    for (fixtures.sub16_cases) |case| {
         try writer.print("sub16\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.sub16(case.sum, case.addend) });
     }
 
