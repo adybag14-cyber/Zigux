@@ -66,17 +66,41 @@ pub fn keepsLoadPlanExplicit(actual: LoadPlan, expected: LoadPlan) bool {
     return contract.keepsLoadPlanExplicit(actual, expected);
 }
 
-pub fn keepsApprovedPilotFamilyContract(plan: LoadPlan) bool {
-    for (approved_pilot_families) |family| {
+fn approvedPilotFamilyIndex(plan: LoadPlan) ?usize {
+    for (approved_pilot_families, 0..) |family, index| {
         if (std.mem.eql(u8, plan.module_name, family.module_name) and
             std.mem.eql(u8, plan.anchor, family.anchor) and
             std.mem.eql(u8, plan.entry_symbol, family.entry_symbol) and
             std.mem.eql(u8, plan.exit_symbol, family.exit_symbol))
         {
-            return true;
+            return index;
         }
     }
-    return false;
+    return null;
+}
+
+pub fn keepsApprovedPilotFamilyContract(plan: LoadPlan) bool {
+    return approvedPilotFamilyIndex(plan) != null;
+}
+
+pub fn keepsApprovedPilotFamilyCatalogExplicit() bool {
+    return approved_pilot_families.len == 4 and
+        std.mem.eql(u8, approved_pilot_families[0].module_name, "runtime_atomic64") and
+        std.mem.eql(u8, approved_pilot_families[0].anchor, "lib/atomic64_test.c") and
+        std.mem.eql(u8, approved_pilot_families[0].entry_symbol, "zigux_runtime_atomic64_init") and
+        std.mem.eql(u8, approved_pilot_families[0].exit_symbol, "zigux_runtime_atomic64_exit") and
+        std.mem.eql(u8, approved_pilot_families[1].module_name, "runtime_bitmap") and
+        std.mem.eql(u8, approved_pilot_families[1].anchor, "lib/test_bitmap.c") and
+        std.mem.eql(u8, approved_pilot_families[1].entry_symbol, "zigux_runtime_bitmap_init") and
+        std.mem.eql(u8, approved_pilot_families[1].exit_symbol, "zigux_runtime_bitmap_exit") and
+        std.mem.eql(u8, approved_pilot_families[2].module_name, "runtime_trace_events") and
+        std.mem.eql(u8, approved_pilot_families[2].anchor, "samples/trace_events/trace-events-sample.c") and
+        std.mem.eql(u8, approved_pilot_families[2].entry_symbol, "zigux_runtime_trace_events_init") and
+        std.mem.eql(u8, approved_pilot_families[2].exit_symbol, "zigux_runtime_trace_events_exit") and
+        std.mem.eql(u8, approved_pilot_families[3].module_name, "runtime_kretprobe") and
+        std.mem.eql(u8, approved_pilot_families[3].anchor, "samples/kprobes/kretprobe_example.c") and
+        std.mem.eql(u8, approved_pilot_families[3].entry_symbol, "zigux_runtime_kretprobe_init") and
+        std.mem.eql(u8, approved_pilot_families[3].exit_symbol, "zigux_runtime_kretprobe_exit");
 }
 
 pub fn keepsInitFlowExplicit(actual: InitFlow, expected: InitFlow) bool {
@@ -178,6 +202,83 @@ test "ensurePreparedRequestReady keeps the prepared snapshot explicit and revali
     invalid_contract.plan.module_name = "runtime_trace_events_drift";
     invalid_contract.prepared_plan.module_name = "runtime_trace_events_drift";
     try std.testing.expectError(error.InvalidPilotFamilyContract, ensurePreparedRequestReady(invalid_contract));
+}
+
+test "shared runtime loader keeps the approved pilot family catalog explicit" {
+    const stable_plans = [_]LoadPlan{
+        .{
+            .module_name = "runtime_atomic64",
+            .anchor = "lib/atomic64_test.c",
+            .entry_symbol = "zigux_runtime_atomic64_init",
+            .exit_symbol = "zigux_runtime_atomic64_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .caller_provided,
+            .init_flow = .{
+                .handoff_stage = .selftest_complete,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+        .{
+            .module_name = "runtime_bitmap",
+            .anchor = "lib/test_bitmap.c",
+            .entry_symbol = "zigux_runtime_bitmap_init",
+            .exit_symbol = "zigux_runtime_bitmap_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .arena,
+            .init_flow = .{
+                .handoff_stage = .initialized,
+                .init_runs = 1,
+                .selftest_runs = 0,
+                .exit_runs = 0,
+            },
+        },
+        .{
+            .module_name = "runtime_trace_events",
+            .anchor = "samples/trace_events/trace-events-sample.c",
+            .entry_symbol = "zigux_runtime_trace_events_init",
+            .exit_symbol = "zigux_runtime_trace_events_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .caller_provided,
+            .init_flow = .{
+                .handoff_stage = .selftest_complete,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+        .{
+            .module_name = "runtime_kretprobe",
+            .anchor = "samples/kprobes/kretprobe_example.c",
+            .entry_symbol = "zigux_runtime_kretprobe_init",
+            .exit_symbol = "zigux_runtime_kretprobe_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .kernel_heap,
+            .init_flow = .{
+                .handoff_stage = .selftest_complete,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+    };
+
+    try std.testing.expect(keepsApprovedPilotFamilyCatalogExplicit());
+
+    for (stable_plans, 0..) |plan, index| {
+        try std.testing.expectEqual(index, approvedPilotFamilyIndex(plan) orelse unreachable);
+        try std.testing.expect(keepsApprovedPilotFamilyContract(plan));
+    }
+
+    var drifted = stable_plans[3];
+    drifted.exit_symbol = "zigux_runtime_kretprobe_exit_drift";
+    try std.testing.expect(approvedPilotFamilyIndex(drifted) == null);
+    try std.testing.expect(!keepsApprovedPilotFamilyContract(drifted));
 }
 
 test "keepsInitFlowExplicit compares every staged runtime-init count" {
