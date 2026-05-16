@@ -75,7 +75,7 @@ That shared lane owns only:
 - the shared contributor packet in `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
 - wording that keeps the roadmap-backed four-anchor packet explicit while also keeping the current direct-readback split explicit
 - wording that keeps bytestream routed through its survey-note-plus-sample-plus-direct-manifest packet, kobject routed through its note-plus-sample-plus-tests packet plus the current public-tree-backed `zigux/tests/phase5_kobject_example_survey.zig` and shared `zigux/tests/phase5_build.zig` companion evidence when the broader packet matters, kretprobe routed through its restored note-plus-sample-plus-tests-plus-manifest-plus-survey packet, and trace-events routed through its directly readable non-runtime packet
-- wording that keeps the current missing shared `zigux/tests/phase5_build.zig` route explicit instead of presenting a live Linux-style shared replay path on current `master`
+- wording that keeps the shared `zigux/tests/phase5_build.zig` route explicit as current public-tree-backed companion evidence instead of presenting a live Linux-style shared replay path or flattening it into direct authenticated-contents proof on current `master`
 - wording that keeps the Phase 5 versus Phase 9 boundary explicit for the later `samples/zigux/runtime_*.zig` and `*_loader.zig` families
 - no-extra-sample reminders for helper families such as `string`, `cmdline`, `argv`, `rbtree`, direct `bitmap`, and standalone formatting samples
 
@@ -116,9 +116,9 @@ The kretprobe lane currently owns the restored directly readable non-runtime pac
 - `zigux/tests/phase5_kretprobe_example_manifest.json`
 - `zigux/tests/phase5_kretprobe_example_survey.zig`
 
-Keep kretprobe-local follow-through inside that restored packet: `runRetargetReplay()`, `runAnchorReplay()`, `runLifecycleGuardReplay()`, `runOwnershipReplay()`, `runRecoveryReplay()`, the explicit `kernel_clone` default symbol, the direct `do_sys_openat2` retarget cue, the bounded `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `nmissed = 1`, and `maxactive = 20` replay contract, and the `cold` through `exited` ownership snapshots.
+Keep kretprobe-local follow-through inside that restored packet: `runRetargetReplay()`, `runAnchorReplay()`, `runMaxactivePressureReplay()`, `runLifecycleGuardReplay()`, `runOwnershipReplay()`, `runRecoveryReplay()`, the explicit `kernel_clone` default symbol, the direct `do_sys_openat2` retarget cue, the bounded `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `nmissed = 1`, and `maxactive = 20` replay contract, the bounded overflow cues `nmissed_after_overflow = 1`, inner return duration `30`, and outer return duration `140`, and the `cold` through `exited` ownership snapshots.
 
-Do not restate the missing shared `zigux/tests/phase5_build.zig` route as directly readable evidence from this lane until a fresh reread proves that exact path returned.
+Do not restate the shared `zigux/tests/phase5_build.zig` route as direct authenticated-contents evidence from this lane; keep it framed as current public-tree-backed companion evidence unless a fresh reread proves the connector path returned.
 
 ### Trace-events packet
 
@@ -132,7 +132,7 @@ The trace-events lane currently owns the directly readable non-runtime packet fo
 
 Keep trace-events-local follow-through inside that directly readable packet: `formattedMessage()`, `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, the exact `checked_focus` order, the selected-string plus `iter=%d` formatting cue, the public lifecycle summary, the callback-balance cues, and the post-`exit()` replay rejection boundary.
 
-Do not restate the missing shared `zigux/tests/phase5_build.zig` route as directly readable evidence from this lane until a fresh reread proves that exact path returned.
+Do not restate the shared `zigux/tests/phase5_build.zig` route as direct authenticated-contents evidence from this lane; keep it framed as current public-tree-backed companion evidence unless a fresh reread proves the connector path returned.
 
 ## Anti-overlap rules
 
