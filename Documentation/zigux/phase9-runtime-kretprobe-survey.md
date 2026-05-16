@@ -12,9 +12,9 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
   - `samples/zigux/runtime_kretprobe.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
   - `zigux/tests/runtime_kretprobe_diff.zig`
-  - `zigux/tests/runtime_kretprobe_manifest.json`
-  - `zigux/tests/runtime_kretprobe_survey.zig`
   - `zigux/tests/runtime_kretprobe_module.zig`
+  - `zigux/tests/runtime_kretprobe_survey.zig`
+  - `zigux/tests/runtime_kretprobe_manifest.json`
   - `zigux/kernel/runtime_loader.zig`
   - `zigux/kernel/runtime_loader_contract.zig`
   - `zigux/tests/runtime_loader_allocator_init_flow.zig`
@@ -38,7 +38,7 @@ The live repo now keeps a bounded `runtime_kretprobe` review packet explicit thr
 - `samples/kprobes/kretprobe_example.c` remains the Phase 9 runtime pilot anchor for this lane.
 - the live repo now keeps `samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `zigux/tests/runtime_kretprobe_diff.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, `zigux/tests/runtime_kretprobe_manifest.json`, the focused `zig build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig` replay, the matching `make -C zigux phase9-runtime-kretprobe-test` convenience route, and the shared `zigux/tests/phase9_build.zig` coverage explicit for this lane.
 - the same bounded family also remains visible through the broader workflow-backed `make -C zigux phase9` route, so the survey note keeps the family-local replay and the shared bundle route explicit together.
-- the dedicated tracing-proof portion of this lane is now kept explicit through that sample-plus-diff packet, so maxactive pressure, missed-instance accounting, overlapping-entry timestamps, duration expectations, and failed-exit retention do not have to be described as missing direct-read debt while the shared runtime substrate is still blocked.
+- the dedicated tracing-proof portion of this lane is now kept explicit through that sample-plus-diff packet, so maxactive pressure, missed-instance accounting, the explicit `error.OutstandingProbeInstance` failed-exit guard, and the overlapping-entry 30 ns inner plus 140 ns outer duration replay do not have to be described as missing direct-read debt while the shared runtime substrate is still blocked.
 - the currently readable packet still keeps selftest-hook behavior, skipped-kernel-thread accounting, missed-instance accounting, duration tracking, and lifecycle transitions reviewable through the dedicated sample, diff, module test, loader scaffold, and shared allocator/init-flow replay without claiming a real loadable runtime module.
 - the same sample-plus-module packet now also keeps retargeted probe-symbol ownership explicit from `cold` through `initialized`, `selftest_complete`, and `exited`, and it rejects late `retargetSymbol()` attempts after arming so symbol selection cannot drift during lifecycle review.
 - the landed module packet keeps failed-exit state explicit until the active probe drains, and it keeps maxactive-overflow state explicit until the active probe drains, so the current directly readable module packet does not overstate exit or pressure recovery behavior.
