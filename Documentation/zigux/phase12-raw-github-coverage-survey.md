@@ -20,10 +20,10 @@ It is a compact fallback overview, not a new replay surface and not a commit-pin
   * shared-tree-only anchors:
     * `Documentation/zigux/phase12-virtio-net-survey.md`
     * `Documentation/zigux/phase12-libbpf-segment-survey.md`
-  * shared raw-read anchors during degraded contents reads:
+  * intended shared raw-read anchors during degraded contents reads:
     * `scripts/zigux/check-build-only-phase12-surface.py`
     * `zigux/tests/phase12_build.zig`
-  * rule: keep this one-catalog plus one-gap-note plus two-anchor split explicit in shared PMO wording, keep the shared raw-read anchors visible during degraded contents reads too, and do not promote the gap note, shared-tree anchors, or shared raw-read anchors into extra commit-pinned fallback artifacts unless dedicated files actually land
+  * rule: keep this one-catalog plus one-gap-note plus two-anchor split explicit in shared PMO wording, keep the intended shared raw-read anchors visible during degraded contents reads too, and do not promote the gap note, shared-tree anchors, or shared raw-read anchors into extra commit-pinned fallback artifacts unless dedicated files actually land
 ## Exact Coverage Evidence
   * exact coverage evidence checked on `2026-05-16`: the commit-pinned direct replay catalog is currently present on `master` as `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
   * exact coverage evidence checked on `2026-05-16`: the current-master NVMe gap-inventory companion is currently present on `master` as `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
