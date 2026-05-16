@@ -103,6 +103,7 @@ def collect_string_review_packet_failures(root: Path) -> list[str]:
     list_fields = (
         "memparse_review_anchors",
         "strscpy_review_anchors",
+        "prefix_suffix_review_anchors",
         "sysfs_review_anchors",
         "lookup_review_anchors",
         "counted_search_review_anchors",
@@ -115,6 +116,7 @@ def collect_string_review_packet_failures(root: Path) -> list[str]:
             missing.extend(require_markers(closure_text, f"phase1_closure:{field}", markers))
 
     scalar_fields = (
+        "basename_review_anchor",
         "trim_nul_review_anchor",
         "memchr_moving_dirty_anchor",
         "phase1_helper_replay_anchor",
@@ -146,6 +148,11 @@ def sample_manifest() -> dict[str, Any]:
                     'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
                     'test "strscpyPad zero-pads the tail after a short source"',
                 ],
+                "prefix_suffix_review_anchors": [
+                    'test "strHasPrefix returns the matched prefix length with C-string semantics"',
+                    'test "strstarts mirrors the header-level prefix helper"',
+                    'test "strEndsWith honors C-string boundaries"',
+                ],
                 "sysfs_review_anchors": [
                     'test "sysfsStreq treats trailing newline and NUL as equivalent"',
                     'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
@@ -163,6 +170,7 @@ def sample_manifest() -> dict[str, Any]:
                     "replace_char_cstr_bytes",
                     "memchr_inv_none",
                 ],
+                "basename_review_anchor": 'test "kbasename returns the final path component with C-string semantics"',
                 "trim_nul_review_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
                 "memchr_moving_dirty_anchor": 'test "memchrInv follows the earliest dirty byte as long buffers change"',
                 "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
@@ -180,7 +188,7 @@ def sample_closure_text() -> str:
 - `python3 scripts/zigux/check-phase1-string-review-packet.py`
 
 ## String Review Rule
-That means `test "memparse handles decimal hexadecimal octal and suffixes"`, `test "memparse keeps original rest when sign is not followed by digits"`, `test "strscpy keeps NUL termination and reports truncation with -E2BIG"`, `test "strscpyPad zero-pads the tail after a short source"`, `test "sysfsStreq treats trailing newline and NUL as equivalent"`, `test "sysfsMatchString finds newline-aware matches and preserves first-match order"`, `test "matchString finds C-string matches and preserves first-match order"`, `test "match_string mirrors matchString for empty and matched lists"`, `test "strnchr honors count and C-string boundaries"`, `test "strnchrNul returns the first match, NUL, or count boundary"`, and `test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"` stay present and review-visible whenever the helper changes.
+That means `test "memparse handles decimal hexadecimal octal and suffixes"`, `test "memparse keeps original rest when sign is not followed by digits"`, `test "strscpy keeps NUL termination and reports truncation with -E2BIG"`, `test "strscpyPad zero-pads the tail after a short source"`, `test "strHasPrefix returns the matched prefix length with C-string semantics"`, `test "strstarts mirrors the header-level prefix helper"`, `test "strEndsWith honors C-string boundaries"`, `test "sysfsStreq treats trailing newline and NUL as equivalent"`, `test "sysfsMatchString finds newline-aware matches and preserves first-match order"`, `test "matchString finds C-string matches and preserves first-match order"`, `test "match_string mirrors matchString for empty and matched lists"`, `test "strnchr honors count and C-string boundaries"`, `test "strnchrNul returns the first match, NUL, or count boundary"`, `test "kbasename returns the final path component with C-string semantics"`, and `test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"` stay present and review-visible whenever the helper changes.
 The shared replay must also keep `test "phase 1 string replaceChar stops at embedded NUL"` plus the `strtobool_y`, `replace_char_cstr_bytes`, and `memchr_inv_none` fixture fields explicit, while `test "memchrInv follows the earliest dirty byte as long buffers change"` remains a helper-local review anchor.
 """
 
@@ -218,6 +226,16 @@ def run_self_test() -> int:
             "missing_makefile_route",
             MAKEFILE_REL.as_posix(),
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-string-review-packet.py --self-test\n",
+        ),
+        (
+            "missing_prefix_suffix_anchor",
+            CLOSURE_REL.as_posix(),
+            'test "strEndsWith honors C-string boundaries"',
+        ),
+        (
+            "missing_basename_anchor",
+            CLOSURE_REL.as_posix(),
+            'test "kbasename returns the final path component with C-string semantics"',
         ),
         (
             "missing_sysfs_anchor",
