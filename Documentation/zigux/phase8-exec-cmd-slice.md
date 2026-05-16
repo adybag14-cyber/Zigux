@@ -12,7 +12,6 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - `tools/lib/subcmd/exec-cmd.zig`
 - `zigux/tests/phase8_exec_cmd.zig`
 - `zigux/tests/phase8_exec_cmd_only_build.zig`
-- `zigux/tests/phase8_build.zig`
 
 ## Why This Slice Exists
 The Phase 8 roadmap explicitly calls for `tools/lib/subcmd/*.zig` as the first product foothold in repo-hosted userspace-adjacent tooling and says the goal is to prove Zigux inside serious repo-hosted tooling, not just tiny helpers.
@@ -29,7 +28,6 @@ Within that parked packet, helper-local unit tests in `tools/lib/subcmd/exec-cmd
 3. Run the shared validator route: `make -C zigux phase8-validate`
 4. Run the focused exec-cmd replay: `zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all`
 5. Run the focused convenience target: `make -C zigux phase8-exec-cmd-test`
-6. Run the bundled Phase 8 tooling gate: `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Current Parity Surface
 The current parked deferred-exec packet covers:
