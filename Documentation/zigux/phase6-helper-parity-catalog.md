@@ -11,6 +11,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - shared helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`
 - shared manifest: `zigux/tests/phase6_helper_parity_manifest.json`
 - shared checker: `scripts/zigux/check-phase6-shared-surface.py`
+- shared present-entrypoints checker: `scripts/zigux/check-phase6-present-entrypoints.py`
 
 ## Packet Rows
 
@@ -78,6 +79,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 
 ### Reviewable on current `master`
 - `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
+- `python3 scripts/zigux/check-phase6-present-entrypoints.py`
 - `make -C zigux phase6-base64-perf`
 - `make -C zigux phase6-bsearch-test`
 - `make -C zigux phase6-checksum-perf`
