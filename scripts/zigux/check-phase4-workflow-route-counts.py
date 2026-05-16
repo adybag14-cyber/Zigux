@@ -89,51 +89,15 @@ REQUIRED_PHASE4_ARTIFACT_DIFF_CONTRACT_COMMANDS = [
 ]
 
 REQUIRED_WORKFLOW_MARKERS = [
-    "- name: Validate Phase 4 diff gates",
+    "- name: Validate Phase 4 rollback routes",
     "run: make -C zigux phase4-validate",
-    "- name: Self-test Phase 4 validator directly",
-    "run: python3 scripts/zigux/validate-phase4.py --self-test",
-    "- name: Validate Phase 4 diff packet directly",
-    "run: python3 scripts/zigux/validate-phase4.py",
-    "- name: Self-test Phase 4 artifact-diff helper directly",
-    "run: python3 scripts/zigux/artifact_diff.py --self-test",
-    "- name: Self-test Phase 4 artifact-diff contract directly",
-    "run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test",
-    "- name: Check Phase 4 artifact-diff contract directly",
-    "run: python3 scripts/zigux/check-artifact-diff-contract.py",
-    "- name: Self-test Phase 4 artifact-diff determinism directly",
-    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
-    "- name: Check Phase 4 artifact-diff determinism directly",
-    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
-    "- name: Self-test Phase 4 remaining-gap matrix directly",
-    "run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py --self-test",
-    "- name: Check Phase 4 remaining-gap matrix directly",
-    "run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py",
-    "- name: Self-test Phase 4 workflow route counts directly",
-    "run: python3 scripts/zigux/check-phase4-workflow-route-counts.py --self-test",
-    "- name: Check Phase 4 workflow route counts directly",
-    "run: python3 scripts/zigux/check-phase4-workflow-route-counts.py",
-    "- name: Check Phase 4 gate evidence directly",
-    "run: python3 scripts/zigux/check-phase4-gate-evidence.py",
-    "- name: Run Phase 4 diff tests directly",
-    "run: zig build test --build-file zigux/tests/phase4_build.zig",
+    "- name: Run Phase 4 rollback tests",
+    "run: make -C zigux phase4-test",
 ]
 
 REQUIRED_WORKFLOW_ORDER_MARKERS = [
     "run: make -C zigux phase4-validate",
-    "run: python3 scripts/zigux/validate-phase4.py --self-test",
-    "run: python3 scripts/zigux/validate-phase4.py",
-    "run: python3 scripts/zigux/artifact_diff.py --self-test",
-    "run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test",
-    "run: python3 scripts/zigux/check-artifact-diff-contract.py",
-    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
-    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
-    "run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py --self-test",
-    "run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py",
-    "run: python3 scripts/zigux/check-phase4-workflow-route-counts.py --self-test",
-    "run: python3 scripts/zigux/check-phase4-workflow-route-counts.py",
-    "run: python3 scripts/zigux/check-phase4-gate-evidence.py",
-    "run: zig build test --build-file zigux/tests/phase4_build.zig",
+    "run: make -C zigux phase4-test",
 ]
 
 REQUIRED_BUILD_MARKERS = [
@@ -211,16 +175,7 @@ SELFTEST_CASES = [
     "missing_make_route_counts_command",
     "missing_make_remaining_gap_command",
     "missing_workflow_validate_route",
-    "missing_workflow_artifact_diff_helper_self_test_route",
-    "missing_workflow_artifact_diff_contract_self_test_route",
-    "missing_workflow_artifact_diff_contract_route",
-    "missing_workflow_artifact_diff_determinism_self_test_route",
-    "missing_workflow_artifact_diff_determinism_route",
-    "missing_workflow_remaining_gap_self_test_route",
-    "missing_workflow_remaining_gap_route",
-    "missing_workflow_route_counts_self_test_route",
-    "missing_workflow_route_counts_route",
-    "missing_workflow_gate_evidence_route",
+    "missing_workflow_test_route",
     "missing_matrix_remaining_gap_marker",
     "missing_gate_evidence_bitmap_build_route",
     "missing_gate_evidence_bitmap_wrapper",
@@ -283,34 +238,10 @@ phase4: phase4-validate phase4-test
 SELFTEST_WORKFLOW = """jobs:
   bootstrap:
     steps:
-      - name: Validate Phase 4 diff gates
+      - name: Validate Phase 4 rollback routes
         run: make -C zigux phase4-validate
-      - name: Self-test Phase 4 validator directly
-        run: python3 scripts/zigux/validate-phase4.py --self-test
-      - name: Validate Phase 4 diff packet directly
-        run: python3 scripts/zigux/validate-phase4.py
-      - name: Self-test Phase 4 artifact-diff helper directly
-        run: python3 scripts/zigux/artifact_diff.py --self-test
-      - name: Self-test Phase 4 artifact-diff contract directly
-        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test
-      - name: Check Phase 4 artifact-diff contract directly
-        run: python3 scripts/zigux/check-artifact-diff-contract.py
-      - name: Self-test Phase 4 artifact-diff determinism directly
-        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
-      - name: Check Phase 4 artifact-diff determinism directly
-        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py
-      - name: Self-test Phase 4 remaining-gap matrix directly
-        run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py --self-test
-      - name: Check Phase 4 remaining-gap matrix directly
-        run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py
-      - name: Self-test Phase 4 workflow route counts directly
-        run: python3 scripts/zigux/check-phase4-workflow-route-counts.py --self-test
-      - name: Check Phase 4 workflow route counts directly
-        run: python3 scripts/zigux/check-phase4-workflow-route-counts.py
-      - name: Check Phase 4 gate evidence directly
-        run: python3 scripts/zigux/check-phase4-gate-evidence.py
-      - name: Run Phase 4 diff tests directly
-        run: zig build test --build-file zigux/tests/phase4_build.zig
+      - name: Run Phase 4 rollback tests
+        run: make -C zigux phase4-test
 """
 
 SELFTEST_BUILD = """const std = @import("std");
@@ -626,13 +557,13 @@ def run_selftest() -> None:
         write_baseline()
         workflow.write_text(
             workflow.read_text(encoding="utf-8").replace(
-                "      - name: Validate Phase 4 diff gates\n"
+                "      - name: Validate Phase 4 rollback routes\n"
                 "        run: make -C zigux phase4-validate\n"
-                "      - name: Self-test Phase 4 validator directly\n"
-                "        run: python3 scripts/zigux/validate-phase4.py --self-test\n",
-                "      - name: Self-test Phase 4 validator directly\n"
-                "        run: python3 scripts/zigux/validate-phase4.py --self-test\n"
-                "      - name: Validate Phase 4 diff gates\n"
+                "      - name: Run Phase 4 rollback tests\n"
+                "        run: make -C zigux phase4-test\n",
+                "      - name: Run Phase 4 rollback tests\n"
+                "        run: make -C zigux phase4-test\n"
+                "      - name: Validate Phase 4 rollback routes\n"
                 "        run: make -C zigux phase4-validate\n",
                 1,
             ),
@@ -757,14 +688,14 @@ def run_selftest() -> None:
         write_baseline()
         workflow.write_text(
             workflow.read_text(encoding="utf-8").replace(
-                "        run: python3 scripts/zigux/artifact_diff.py --self-test\n",
+                "        run: make -C zigux phase4-test\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
         expect_failure(
-            "missing workflow artifact-diff helper self-test route",
+            "missing workflow test route",
             lambda: check(
                 makefile,
                 workflow,
@@ -776,223 +707,7 @@ def run_selftest() -> None:
                 perf_survey,
             ),
         )
-        covered_cases.append("missing_workflow_artifact_diff_helper_self_test_route")
-
-        write_baseline()
-        workflow.write_text(
-            workflow.read_text(encoding="utf-8").replace(
-                "        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "missing workflow artifact-diff contract self-test route",
-            lambda: check(
-                makefile,
-                workflow,
-                build,
-                validation_matrix,
-                gate_evidence,
-                tests_readme,
-                perf_manifest,
-                perf_survey,
-            ),
-        )
-        covered_cases.append("missing_workflow_artifact_diff_contract_self_test_route")
-
-        write_baseline()
-        workflow.write_text(
-            workflow.read_text(encoding="utf-8").replace(
-                "        run: python3 scripts/zigux/check-artifact-diff-contract.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "missing workflow artifact-diff contract route",
-            lambda: check(
-                makefile,
-                workflow,
-                build,
-                validation_matrix,
-                gate_evidence,
-                tests_readme,
-                perf_manifest,
-                perf_survey,
-            ),
-        )
-        covered_cases.append("missing_workflow_artifact_diff_contract_route")
-
-        write_baseline()
-        workflow.write_text(
-            workflow.read_text(encoding="utf-8").replace(
-                "        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "missing workflow artifact-diff determinism self-test route",
-            lambda: check(
-                makefile,
-                workflow,
-                build,
-                validation_matrix,
-                gate_evidence,
-                tests_readme,
-                perf_manifest,
-                perf_survey,
-            ),
-        )
-        covered_cases.append("missing_workflow_artifact_diff_determinism_self_test_route")
-
-        write_baseline()
-        workflow.write_text(
-            workflow.read_text(encoding="utf-8").replace(
-                "        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "missing workflow artifact-diff determinism route",
-            lambda: check(
-                makefile,
-                workflow,
-                build,
-                validation_matrix,
-                gate_evidence,
-                tests_readme,
-                perf_manifest,
-                perf_survey,
-            ),
-        )
-        covered_cases.append("missing_workflow_artifact_diff_determinism_route")
-
-        write_baseline()
-        workflow.write_text(
-            workflow.read_text(encoding="utf-8").replace(
-                "        run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py --self-test\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "missing workflow remaining-gap self-test route",
-            lambda: check(
-                makefile,
-                workflow,
-                build,
-                validation_matrix,
-                gate_evidence,
-                tests_readme,
-                perf_manifest,
-                perf_survey,
-            ),
-        )
-        covered_cases.append("missing_workflow_remaining_gap_self_test_route")
-
-        write_baseline()
-        workflow.write_text(
-            workflow.read_text(encoding="utf-8").replace(
-                "        run: python3 scripts/zigux/check-phase4-remaining-gap-matrix.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "missing workflow remaining-gap route",
-            lambda: check(
-                makefile,
-                workflow,
-                build,
-                validation_matrix,
-                gate_evidence,
-                tests_readme,
-                perf_manifest,
-                perf_survey,
-            ),
-        )
-        covered_cases.append("missing_workflow_remaining_gap_route")
-
-        write_baseline()
-        workflow.write_text(
-            workflow.read_text(encoding="utf-8").replace(
-                "        run: python3 scripts/zigux/check-phase4-workflow-route-counts.py --self-test\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "missing workflow route-counts self-test route",
-            lambda: check(
-                makefile,
-                workflow,
-                build,
-                validation_matrix,
-                gate_evidence,
-                tests_readme,
-                perf_manifest,
-                perf_survey,
-            ),
-        )
-        covered_cases.append("missing_workflow_route_counts_self_test_route")
-
-        write_baseline()
-        workflow.write_text(
-            workflow.read_text(encoding="utf-8").replace(
-                "        run: python3 scripts/zigux/check-phase4-workflow-route-counts.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "missing workflow route-counts route",
-            lambda: check(
-                makefile,
-                workflow,
-                build,
-                validation_matrix,
-                gate_evidence,
-                tests_readme,
-                perf_manifest,
-                perf_survey,
-            ),
-        )
-        covered_cases.append("missing_workflow_route_counts_route")
-
-        write_baseline()
-        workflow.write_text(
-            workflow.read_text(encoding="utf-8").replace(
-                "        run: python3 scripts/zigux/check-phase4-gate-evidence.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "missing workflow gate-evidence route",
-            lambda: check(
-                makefile,
-                workflow,
-                build,
-                validation_matrix,
-                gate_evidence,
-                tests_readme,
-                perf_manifest,
-                perf_survey,
-            ),
-        )
-        covered_cases.append("missing_workflow_gate_evidence_route")
+        covered_cases.append("missing_workflow_test_route")
 
         write_baseline()
         validation_matrix.write_text(
