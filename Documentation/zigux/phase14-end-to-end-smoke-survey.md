@@ -20,7 +20,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - `PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5`
 - `PHASE14_STAY_IN_C_BOUNDARY=explicit`
 - `PHASE14_STATUS_CHANGE_CLAIM=no`
-- survey provenance captured against verified `master` head `40f2a065b1c06d7ea621c1c0c388e6202b0b22b7`
+- survey provenance captured against verified `master` head `c6410923a31e8dc415a70f1620738b5cbc2887a2`
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
   - `scripts/zigux/check-phase14-docs-root-smoke-summary.py`
@@ -54,7 +54,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 
 ## Exact evidence captured
 
-- verified `master` head: `40f2a065b1c06d7ea621c1c0c388e6202b0b22b7`
+- verified `master` head: `c6410923a31e8dc415a70f1620738b5cbc2887a2`
 - validator-backed smoke commands:
   - `make -C zigux phase14-validate`
   - `make -C zigux phase14-test`
