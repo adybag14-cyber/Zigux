@@ -132,6 +132,7 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig": [
         '.name = "leading quoted token with equals splits like Linux",',
+        '.name = "leading quoted token with equals and no trailing token leaves empty rest",',
         '.name = "leading equals sign stays in the parameter token",',
         '.name = "unterminated quoted value consumes the token tail",',
         '.name = "trailing spaces after key=value trim to empty rest",',
@@ -443,6 +444,12 @@ def run_self_test() -> None:
                 "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
                 '.name = "leading quoted token with equals splits like Linux",',
                 'zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig: .name = "leading quoted token with equals splits like Linux",',
+            ),
+            (
+                "fixture_quoted_equals_empty_rest_marker",
+                "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+                '.name = "leading quoted token with equals and no trailing token leaves empty rest",',
+                'zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig: .name = "leading quoted token with equals and no trailing token leaves empty rest",',
             ),
             (
                 "fixture_case_marker",
