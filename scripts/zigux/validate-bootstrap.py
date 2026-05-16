@@ -468,7 +468,16 @@ else:
     required_workflow_markers.extend(LEGACY_REQUIRED_WORKFLOW_MARKERS)
     required_workflow_marker_aliases.extend(LEGACY_REQUIRED_WORKFLOW_MARKER_ALIASES)
 
-missing_workflow_markers = [marker for marker in required_workflow_markers if marker not in workflow]
+workflow_alias_members = {
+    marker
+    for alias_group in required_workflow_marker_aliases
+    for marker in alias_group
+}
+missing_workflow_markers = [
+    marker
+    for marker in required_workflow_markers
+    if marker not in workflow and marker not in workflow_alias_members
+]
 for alias_group in required_workflow_marker_aliases:
     if not any(marker in workflow for marker in alias_group):
         missing_workflow_markers.append(
