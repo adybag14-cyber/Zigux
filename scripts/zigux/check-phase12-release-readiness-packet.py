@@ -544,7 +544,8 @@ def run_self_test() -> int:
             tmp_root / RELEASE_READINESS_PATH,
             good_release_readiness_text().replace(
                 RELEASE_READINESS_MARKERS[9],
-                "",                1,
+                "",
+                1,
             ),
         )
         case_count += 1
@@ -600,6 +601,18 @@ def run_self_test() -> int:
         write_text(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
         write_text(
             tmp_root / SCRIPTS_README_PATH,
+            good_scripts_readme_text() + f"{SCRIPTS_README_MARKERS[0]}\n",
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            f"marker count drift in {SCRIPTS_README_PATH}: {SCRIPTS_README_MARKERS[0]} (expected 1, found 2)",
+            "duplicate scripts-readme phase12-flow marker not detected",
+        )
+
+        write_text(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
+        write_text(
+            tmp_root / SCRIPTS_README_PATH,
             good_scripts_readme_text().replace(
                 SCRIPTS_README_MARKERS[1],
                 "",
@@ -611,6 +624,18 @@ def run_self_test() -> int:
             check(tmp_root, source_text=MARKER),
             SCRIPTS_README_MARKERS[1],
             "missing scripts-readme degraded-workflow marker",
+        )
+
+        write_text(tmp_root / SCRIPTS_README_PATH, good_scripts_readme_text())
+        write_text(
+            tmp_root / SCRIPTS_README_PATH,
+            good_scripts_readme_text() + f"{SCRIPTS_README_MARKERS[1]}\n",
+        )
+        case_count += 1
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            f"marker count drift in {SCRIPTS_README_PATH}: {SCRIPTS_README_MARKERS[1]} (expected 1, found 2)",
+            "duplicate scripts-readme degraded-workflow marker not detected",
         )
 
         write_text(tmp_root / REVIEW_CHECKLIST_PATH, good_review_checklist_text())
