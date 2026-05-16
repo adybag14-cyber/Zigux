@@ -208,7 +208,7 @@ EXPECTED_CASES = {
     },
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 FILE_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": WORKFLOW_MARKERS,
@@ -298,6 +298,10 @@ def validate_cases(root: Path) -> list[str]:
                 continue
             if not (fixture_root / value).is_file():
                 issues.append(f"{label}:{field_name}:missing_fixture:{value}")
+
+        expected_exit_code = case.get("expected_exit_code")
+        if isinstance(expected_exit_code, int) and expected_exit_code != 0 and "expected_stderr" not in case:
+            issues.append(f"{label}:expected_stderr")
 
     if seen != EXPECTED_CASE_NAMES:
         issues.append(
@@ -474,12 +478,14 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / ".github/workflows/zigux-bootstrap.yml"
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[4], "", 1),
-            encoding="utf-8",
-        )
+        workflow_lines = path.read_text(encoding="utf-8").splitlines()
+        workflow_lines.remove(WORKFLOW_MARKERS[4])
+        path.write_text("\n".join(workflow_lines) + "\n", encoding="utf-8")
         issues = validate_root(root)
-        assert f".github/workflows/zigux-bootstrap.yml:{WORKFLOW_MARKERS[4]}" in issues
+        assert (
+            ".github/workflows/zigux-bootstrap.yml:count:"
+            f"{WORKFLOW_MARKERS[4]}:expected=1:got=0"
+        ) in issues
         case_count += 1
 
         build_self_test_root(root)
@@ -565,6 +571,17 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             "zigux/tests/fixtures/fixdep/cases.json:cases[8]:stdout_mode:expected='dev_full':got='pipe_full'"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        cases = json.loads((root / "zigux/tests/fixtures/fixdep/cases.json").read_text(encoding="utf-8"))
+        cases[9]["expected_stderr"] = "missing_expected.stderr.txt"
+        write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
+        issues = validate_root(root)
+        assert (
+            "zigux/tests/fixtures/fixdep/cases.json:cases[9]:expected_stderr:missing_fixture:missing_expected.stderr.txt"
             in issues
         )
         case_count += 1
