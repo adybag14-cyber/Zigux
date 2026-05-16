@@ -91,6 +91,15 @@ PHASE9_LANE_SEQUENCING_TRACE_EVENTS_SHARED_ROUTE_MARKER = (
 PHASE9_LANE_SEQUENCING_DEPMOD_ALIASES_BOUNDARY_MARKER = (
     "direct readback now also shows `zigux/kernel/runtime_loader_contract.zig` keeps `depmod_aliases` outside the shared `LoadPlan` beside `depmod_script` and `depmod_manifest`, so the shared owner-map note should keep depmod alias publication state parked with that same blocked module-metadata boundary instead of implying alias publication has moved into the shipped loader packet"
 )
+PHASE9_LANE_SEQUENCING_SHARED_OWNER_MAP_SOURCE_MARKER = (
+    "The family-local manifests under `zigux/tests/runtime_*_manifest.json` are the source of truth for these lane labels, and their shared-owner-map references should point back to `P9-L11` when the broader loader-facing packet stays healthy."
+)
+PHASE9_LANE_SEQUENCING_ATOMIC64_OWNER_SPLIT_MARKER = (
+    "the current atomic64 follow-through is the manifest-backed survey-versus-module-slice packet tracked in `P9-L04`, with the shared loader-facing owner map staying adjacent through `P9-L11`"
+)
+PHASE9_LANE_SEQUENCING_BITMAP_OWNER_SPLIT_MARKER = (
+    "Keep bitmap-local proof there while `P9-L11` owns the shared loader-facing reminder packet."
+)
 LANE_NOTE_BITMAP_TOP_BIT_SPLIT_MARKER = (
     "`Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, while the bitmap-local `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig` replay stays with the family packet instead of being flattened into shared loader evidence, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet"
 )
@@ -195,6 +204,9 @@ REQUIRED_MARKERS = {
         PHASE9_LANE_SEQUENCING_PHASE8_BOUNDARY_MARKER,
         PHASE9_LANE_SEQUENCING_LIFECYCLE_BOUNDARY_MARKER,
         PHASE9_LANE_SEQUENCING_TRACE_EVENTS_SHARED_ROUTE_MARKER,
+        PHASE9_LANE_SEQUENCING_SHARED_OWNER_MAP_SOURCE_MARKER,
+        PHASE9_LANE_SEQUENCING_ATOMIC64_OWNER_SPLIT_MARKER,
+        PHASE9_LANE_SEQUENCING_BITMAP_OWNER_SPLIT_MARKER,
         LANE_NOTE_BITMAP_TOP_BIT_SPLIT_MARKER,
         *OWNER_MAP_MARKERS,
         "the shipped `scripts/zigux/check-phase9-build-only-surface.py` guard should still fail closed if this note regresses around either the shared owner split or the blocked module-metadata and depmod-publication boundary markers",
@@ -369,6 +381,9 @@ SELF_TEST_REMOVALS = [
     (PHASE9_LANE_SEQUENCING_PATH, PHASE9_LANE_SEQUENCING_PHASE8_BOUNDARY_MARKER, 1),
     (PHASE9_LANE_SEQUENCING_PATH, PHASE9_LANE_SEQUENCING_LIFECYCLE_BOUNDARY_MARKER, 1),
     (PHASE9_LANE_SEQUENCING_PATH, PHASE9_LANE_SEQUENCING_TRACE_EVENTS_SHARED_ROUTE_MARKER, 1),
+    (PHASE9_LANE_SEQUENCING_PATH, PHASE9_LANE_SEQUENCING_SHARED_OWNER_MAP_SOURCE_MARKER, 1),
+    (PHASE9_LANE_SEQUENCING_PATH, PHASE9_LANE_SEQUENCING_ATOMIC64_OWNER_SPLIT_MARKER, 1),
+    (PHASE9_LANE_SEQUENCING_PATH, PHASE9_LANE_SEQUENCING_BITMAP_OWNER_SPLIT_MARKER, 1),
     (PHASE9_LANE_SEQUENCING_PATH, GAP_SURVEY_DRIFT_MARKER, 1),
     (PHASE9_LANE_SEQUENCING_PATH, GAP_SURVEY_NEXT_STEP_MARKER, 1),
     (PHASE9_LANE_SEQUENCING_PATH, LANE_NOTE_BITMAP_TOP_BIT_SPLIT_MARKER, 1),
