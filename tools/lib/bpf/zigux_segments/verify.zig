@@ -33,8 +33,15 @@ test "helper-first tools/lib/bpf Zigux segments keep the landed bounded entrypoi
     try expectHasDecl(type_names, "libbpfBpfAttachTypeStr");
     try expectHasDecl(type_names, "libbpfBpfMapTypeStr");
     try expectHasDecl(file_path_handle_bridge, "buildProcFdinfoPath");
+    try expectHasDecl(file_path_handle_bridge, "parseFdinfoLine");
+    try expectHasDecl(file_path_handle_bridge, "applyFdinfoMapInfoLine");
     try expectHasDecl(file_path_handle_bridge, "parseFdinfoMapInfo");
+    try expectHasDecl(file_path_handle_bridge, "summarizeFdinfoMapInfo");
+    try expectHasDecl(file_path_handle_bridge, "mapReuseObservationFromFdinfo");
+    try expectHasDecl(file_path_handle_bridge, "resolveReusedMapName");
+    try expectHasDecl(file_path_handle_bridge, "normalizeObservedReuseMapFlags");
     try expectHasDecl(file_path_handle_bridge, "summarizeMapReuseCompatibility");
+    try expectHasDecl(file_path_handle_bridge, "isMapReuseCompatible");
     try expectHasDecl(file_path_handle_bridge, "resolveReusePinnedMapAttempt");
     try expectHasDecl(file_path_handle_bridge, "planTokenPreparation");
     try expectHasDecl(perf_buffer_poll, "summarizePollExecution");
