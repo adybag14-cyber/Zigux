@@ -323,6 +323,7 @@ Phase 13 review packet
   * `scripts/zigux/check-phase13-devres-packet-alignment.py`
   * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
   * `scripts/zigux/check-phase13-notifier-priority-signal.py`
+  * `scripts/zigux/check-phase13-shared-summary-surfaces.py`
   * `scripts/zigux/validate-phase13-release.py`
   * `zigux/bindings/notifier_abi.zig`
   * `zigux/helpers/notifier_chain_view.zig`
@@ -332,4 +333,4 @@ Phase 13 review packet
   * blocked convenience route `make -C zigux phase13`
   * current `master` now materializes the bounded `libfs`, `devres`, and Landlock helper packets plus the adjacent notifier evidence above, so this tests-root reminder should keep those shipped surfaces explicit instead of collapsing the active Phase 13 packet into a generic future-work summary
   * current `master` still does not materialize `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, older `scripts/zigux/check-phase13-devres-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, or `zigux/helpers/hlist_view.zig`, so keep those paths framed as repo-reality gaps instead of shipped evidence
-  * keep `make -C zigux phase13-validate` as the stable contributor-facing handle; `zigux/Makefile` still exposes `make -C zigux phase13`, but that broader convenience route fans out to `phase13-test`, which still calls `zig build test --build-file zigux/tests/phase13_build.zig --summary all` while `zigux/tests/phase13_build.zig` remains absent on current `master`
+  * keep `scripts/zigux/check-phase13-shared-summary-surfaces.py` and `make -C zigux phase13-validate` explicit as the stable contributor-facing shared-summary guard plus replay handle; `zigux/Makefile` still exposes `make -C zigux phase13`, but that broader convenience route fans out to `phase13-test`, which still calls `zig build test --build-file zigux/tests/phase13_build.zig --summary all` while `zigux/tests/phase13_build.zig` remains absent on current `master`
