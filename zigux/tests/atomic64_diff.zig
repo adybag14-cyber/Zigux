@@ -460,6 +460,97 @@ test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing ex
     );
 }
 
+test "atomic64 diff wrapper keeps the current bounded runtime inventory explicit" {
+    try expectRuntimeCaseGroupCardinality(
+        "const arithmetic_cases = [_]ArithmeticCase{",
+        "const cases = [_]DiffCase{",
+        2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const cases = [_]DiffCase{",
+        "const compare_swap_cases = [_]CompareSwapCase{",
+        3,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const compare_swap_cases = [_]CompareSwapCase{",
+        "const add_unless_cases = [_]AddUnlessCase{",
+        2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const add_unless_cases = [_]AddUnlessCase{",
+        "const bitwise_cases = [_]BitwiseCase{",
+        2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const bitwise_cases = [_]BitwiseCase{",
+        "test \"runtime atomic64 diff gate keeps inc_not_zero and dec_if_positive guard paths explicit\" {",
+        3,
+    );
+    try expectMarker(runtime_atomic64_diff_source, "if (iterations == 0) return error.EmptyThresholdReplayBatch;");
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(i64, 130322557735600377), single.final_counter);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(i64, 130322557735600376), repeated.final_counter);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(u64, 3626254113632800175), single.checksum);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(u64, 9210681150676220922), repeated.checksum);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(sample.ModuleStage.exited, single.final_stage);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(sample.ModuleStage.exited, repeated.final_stage);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(usize, 1), single.final_selftest_runs);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(usize, 1), repeated.final_selftest_runs);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(usize, 1), single.final_exit_runs);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(usize, 1), repeated.final_exit_runs);",
+    );
+    try expectAtomic64MatrixMarkerCount("`lib/atomic64_test.c`", 1);
+    try expectAtomic64MatrixMarkerCount(
+        "`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig`",
+        1,
+    );
+    try expectAtomic64MatrixMarkerCount("`threshold_pending_until_runtime_atomic64_scope_widens`", 1);
+    try expectAtomic64GateEvidenceMarkerCount("two arithmetic checks", 1);
+    try expectAtomic64GateEvidenceMarkerCount("three exchange checks", 1);
+    try expectAtomic64GateEvidenceMarkerCount("two `cmpxchg` checks", 1);
+    try expectAtomic64GateEvidenceMarkerCount("two `add_unless` checks", 1);
+    try expectAtomic64GateEvidenceMarkerCount(
+        "two `inc_not_zero` checks and three `dec_if_positive` checks",
+        1,
+    );
+    try expectAtomic64GateEvidenceMarkerCount("three bitwise checks", 1);
+    try expectAtomic64GateEvidenceMarkerCount("runThresholdReplay(0)", 1);
+    try expectAtomic64GateEvidenceMarkerCount("final_selftest_runs=1", 1);
+    try expectAtomic64GateEvidenceMarkerCount("final_exit_runs=1", 1);
+}
+
 const Atomic64Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
