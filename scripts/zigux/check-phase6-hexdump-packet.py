@@ -26,12 +26,22 @@ REQUIRED_FILES = {
 
 HELPER_SOURCE_MARKERS = [
     'pub const hex_asc = "0123456789abcdef";',
+    "pub fn hexAscHi(byte: u8) u8 {",
+    "pub fn hexAscLo(byte: u8) u8 {",
+    "pub fn hexAscUpperHi(byte: u8) u8 {",
+    "pub fn hexAscUpperLo(byte: u8) u8 {",
     "pub fn hex_to_bin(ch: u8) isize {",
     "pub const Hex2BinError = error{",
     "pub fn hex2Bin(dst: []u8, src: []const u8) Hex2BinError!void {",
     "pub fn bin2Hex(dst: []u8, src: []const u8) []u8 {",
+    "pub fn hexBytePack(dst: []u8, byte: u8) HexError![]u8 {",
+    "pub fn hexBytePackUpper(dst: []u8, byte: u8) HexError![]u8 {",
     "pub fn requiredLineLength(len: usize, rowsize: usize, groupsize: usize, ascii: bool) usize {",
+    "pub fn hexDumpLineLength(len: usize, rowsize: usize, groupsize: usize, ascii: bool) usize {",
     "pub fn hexDumpToBuffer(buf: []const u8, rowsize: usize, groupsize: usize, linebuf: []u8, ascii: bool) usize {",
+    'test "hex byte helpers and packers stay aligned" {',
+    'test "hex dump line length aliases the required length helper" {',
+    'test "g8 grouped ascii output follows native-endian order and the 16-byte ascii column" {',
 ]
 
 SLICE_NOTE_MARKERS = [
@@ -46,6 +56,7 @@ SLICE_NOTE_MARKERS = [
     "`make -C zigux phase6-hexdump-perf`",
     "`make -C zigux phase6-hexdump-review`",
     "lib/hexdump.zig` now also carries direct same-file coverage for the landed `hexToBin`/`hex_to_bin`, `hex2Bin`/`hex2bin`, and `bin2Hex`/`bin2hex` helper parity surface",
+    "lib/hexdump.zig` now also carries direct same-file coverage for the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface, including lowercase and uppercase nibble helpers, destination-too-small rejection, required-length aliasing, and grouped `g8` ASCII formatting coverage",
     "the directly coupled serialized `length_cases` packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` now keeps both the empty plain and empty ASCII zero-length rows aligned with the focused replay and the helper's landed empty-input contract",
     "focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable",
     "exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet, `16B-plain-g1`, `32B-ascii-g2`, `16B-ascii-g4`, and `16B-ascii-g8`, with helper-local caps of `175`, `550`, `550`, and `600`",
@@ -86,7 +97,7 @@ CATALOG_MARKERS = [
 ]
 
 PERF_SURVEY_MARKERS = [
-    "* hexdump shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
+    "* hexdump shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and the committed `phase6-hexdump-perf` plus `phase6-hexdump-review` target bodies in `zigux/Makefile`",
     "* hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
 ]
 
@@ -122,11 +133,11 @@ BUILD_FILE_MARKERS = [
 MAKEFILE_MARKERS = [
     "PHONY += phase6-validate phase6-test phase6-bsearch-test phase6-base64-c-parity phase6-checksum-c-parity phase6-hexdump-test phase6-hexdump-review phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6-perf phase6",
     "phase6-hexdump-test:",
-    "	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
     "phase6-hexdump-perf:",
-    "	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "phase6-hexdump-review:",
-    "	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-hexdump-packet.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-hexdump-packet.py",
 ]
 
 FOCUSED_TEST_MARKERS = [
@@ -169,7 +180,7 @@ FIXTURE_MARKERS = [
     '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
 ]
 
-SELF_TEST_CASE_COUNT = 30
+SELF_TEST_CASE_COUNT = 32
 
 
 class CheckError(RuntimeError):
@@ -265,6 +276,18 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "pub fn hex2Bin")
+
+        build_self_test_fixture(tmpdir)
+        helper_source = tmpdir / REQUIRED_FILES["helper_source"]
+        helper_source.write_text(
+            helper_source.read_text(encoding="utf-8").replace(
+                "pub fn hexBytePackUpper(dst: []u8, byte: u8) HexError![]u8 {\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "pub fn hexBytePackUpper")
 
         build_self_test_fixture(tmpdir)
         perf_survey = tmpdir / REQUIRED_FILES["perf_survey"]
@@ -382,6 +405,18 @@ def run_self_test() -> None:
         slice_note = tmpdir / REQUIRED_FILES["slice_note"]
         slice_note.write_text(
             slice_note.read_text(encoding="utf-8").replace(
+                "lib/hexdump.zig` now also carries direct same-file coverage for the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface, including lowercase and uppercase nibble helpers, destination-too-small rejection, required-length aliasing, and grouped `g8` ASCII formatting coverage",
+                "lib/hexdump.zig nibble-helper packet drifted",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "hexAsc*")
+
+        build_self_test_fixture(tmpdir)
+        slice_note = tmpdir / REQUIRED_FILES["slice_note"]
+        slice_note.write_text(
+            slice_note.read_text(encoding="utf-8").replace(
                 "exact manifest-backed evidence: `zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet, `16B-plain-g1`, `32B-ascii-g2`, `16B-ascii-g4`, and `16B-ascii-g8`, with helper-local caps of `175`, `550`, `550`, and `600`",
                 "exact manifest-backed evidence: drifted slowdown packet summary",
                 1,
@@ -412,6 +447,7 @@ def run_self_test() -> None:
 
         build_self_test_fixture(tmpdir)
         catalog = tmpdir / REQUIRED_FILES["catalog"]
+        catalog.writeText = None
         catalog.write_text(
             catalog.read_text(encoding="utf-8").replace("scripts/zigux/check-phase6-hexdump-packet.py", "scripts/zigux/check-phase6-hexdump-review.py", 1),
             encoding="utf-8",
@@ -538,8 +574,8 @@ def run_self_test() -> None:
         makefile = tmpdir / REQUIRED_FILES["makefile"]
         makefile.write_text(
             makefile.read_text(encoding="utf-8").replace(
-                "	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
-                "	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf-missing --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf-missing --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
                 1,
             ),
             encoding="utf-8",
