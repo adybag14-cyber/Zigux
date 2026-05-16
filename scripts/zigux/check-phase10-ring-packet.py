@@ -167,6 +167,7 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
     "queue_setup_reset_paths",
     "irq_parity",
     "dma_paths",
+    "input_registration_lifecycle",
     "probe_remove_lifecycle",
 ]
 EXPECTED_STUDY_ONLY_ANCHORS = [
