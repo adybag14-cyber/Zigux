@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -195,12 +196,6 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-test`",
         "`zig build test --build-file zigux/tests/phase8_build.zig --summary all`",
     ),
-    LIBBPF_MANIFEST_PATH: (
-        '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
-        '"slug": "map-reuse-compatibility", "status": "starter_landed"',
-        '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk"',
-        '"slug": "perf-buffer-poll-bookkeeping", "status": "starter_landed"',
-    ),
     EXEC_CMD_SLICE_PATH: (
         "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
         "`tools/lib/subcmd/exec-cmd.zig`",
@@ -260,7 +255,35 @@ REQUIRED_MARKERS = {
     ),
 }
 
+LIBBPF_REQUIRED_SEGMENTS = (
+    ("fdinfo-map-info-helpers", "starter_landed"),
+    ("map-reuse-compatibility", "starter_landed"),
+    ("file-path-and-handle-bridge", "deferred_high_risk"),
+    ("perf-buffer-poll-bookkeeping", "starter_landed"),
+)
+
 FIXTURE_OVERRIDES = {
+    LIBBPF_MANIFEST_PATH: """{
+  \"segments\": [
+    {
+      \"slug\": \"fdinfo-map-info-helpers\",
+      \"status\": \"starter_landed\"
+    },
+    {
+      \"slug\": \"map-reuse-compatibility\",
+      \"status\": \"starter_landed\"
+    },
+    {
+      \"slug\": \"file-path-and-handle-bridge\",
+      \"status\": \"deferred_high_risk\"
+    },
+    {
+      \"slug\": \"perf-buffer-poll-bookkeeping\",
+      \"status\": \"starter_landed\"
+    }
+  ]
+}
+""",
     VALIDATOR_PATH: "# fixture\n",
     TESTS_README_ALIGNMENT_CHECKER_PATH: "# fixture\n",
     EXEC_CMD_PACKET_CHECKER_PATH: "# fixture\n",
@@ -275,10 +298,35 @@ def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
+def collect_missing_libbpf_manifest_markers(text: str) -> list[str]:
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError as exc:
+        return [f"{LIBBPF_MANIFEST_PATH}: invalid json ({exc.msg})"]
+
+    segments: dict[str, str] = {}
+    for segment in parsed.get("segments", []):
+        if not isinstance(segment, dict):
+            continue
+        slug = segment.get("slug")
+        status = segment.get("status")
+        if isinstance(slug, str) and isinstance(status, str):
+            segments[slug] = status
+
+    missing: list[str] = []
+    for slug, status in LIBBPF_REQUIRED_SEGMENTS:
+        if segments.get(slug) != status:
+            missing.append(f"{LIBBPF_MANIFEST_PATH}: segment `{slug}` expected status `{status}`")
+    return missing
+
+
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
     for rel, markers in REQUIRED_MARKERS.items():
         text = (root / rel).read_text(encoding="utf-8")
+        if rel == LIBBPF_MANIFEST_PATH:
+            missing.extend(collect_missing_libbpf_manifest_markers(text))
+            continue
         for marker in markers:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
@@ -753,9 +801,9 @@ def run_self_test() -> None:
         (
             "libbpf_manifest_map_reuse_status_marker",
             LIBBPF_MANIFEST_PATH,
-            '"slug": "map-reuse-compatibility", "status": "starter_landed"',
-            '"slug": "map-reuse-compatibility", "status": "ready_next"',
-            f'{LIBBPF_MANIFEST_PATH}: "slug": "map-reuse-compatibility", "status": "starter_landed"',
+            '"slug": "map-reuse-compatibility",\n      "status": "starter_landed"',
+            '"slug": "map-reuse-compatibility",\n      "status": "ready_next"',
+            f"{LIBBPF_MANIFEST_PATH}: segment `map-reuse-compatibility` expected status `starter_landed`",
         ),
         (
             "exec_cmd_slice_phase8_slice_marker",
@@ -877,7 +925,7 @@ def main() -> int:
 
     print("PHASE8_VALIDATION=pass")
     print(f"PHASE8_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE8_REQUIRED_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    print(f"PHASE8_REQUIRED_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values()) + len(LIBBPF_REQUIRED_SEGMENTS)}")
     return 0
 
 
