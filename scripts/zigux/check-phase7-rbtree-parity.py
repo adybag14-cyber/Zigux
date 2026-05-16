@@ -659,20 +659,23 @@ def main() -> int:
 
     missing_files, missing_markers = validate(ROOT)
     if missing_files:
-        for rel in missing_files:
-            print(f"MISSING FILE: {rel}")
+        print("PHASE7_RBTREE_PARITY=fail")
+        print("MISSING_PHASE7_RBTREE_PARITY_FILES_START")
+        for item in missing_files:
+            print(item)
+        print("MISSING_PHASE7_RBTREE_PARITY_FILES_END")
         return 1
     if missing_markers:
-        for marker in missing_markers:
-            print(f"MISSING MARKER: {marker}")
+        print("PHASE7_RBTREE_PARITY=fail")
+        print("MISSING_PHASE7_RBTREE_PARITY_MARKERS_START")
+        for item in missing_markers:
+            print(item)
+        print("MISSING_PHASE7_RBTREE_PARITY_MARKERS_END")
         return 1
 
     print("PHASE7_RBTREE_PARITY=pass")
-    print(f"PHASE7_RBTREE_PARITY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE7_RBTREE_PARITY_REQUIRED_MARKER_COUNT="
-        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
-    )
+    print(f"PHASE7_RBTREE_PARITY_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(f"PHASE7_RBTREE_PARITY_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
     return 0
 
 
