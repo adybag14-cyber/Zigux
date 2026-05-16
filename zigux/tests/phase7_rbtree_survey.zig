@@ -254,9 +254,11 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     var parked_count: usize = 0;
     var saw_build_gate = false;
     var saw_helper = false;
+    var saw_dedicated_tests = false;
+    var saw_parity_fixture = false;
+    var saw_slice_note = false;
     var saw_survey_gate = false;
     var saw_parity_checker = false;
-    var saw_parity_fixture = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -274,30 +276,70 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
             try std.testing.expect(gap.current_replay_status != null);
             try std.testing.expectEqualStrings("route_present_on_master", gap.current_replay_status.?);
             try std.testing.expectEqualStrings("zigux/tests/phase7_build.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings(
+                "The shared Phase 7 build step remains the intended cross-helper review gate for the rbtree runtime leaf helper, and fresh current-master readback now confirms that `zigux/tests/phase7_build.zig` is directly readable again together with the sibling `string_helpers`, `cmdline`, and `argv_split` helper-plus-test pairs. Keep this manifest limited to that route-present reminder instead of the older missing-sibling blocker wording unless a new shared replay gap appears.",
+                gap.why_now,
+            );
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-helper")) {
             saw_helper = true;
             try std.testing.expectEqualStrings("parked", gap.status);
             try std.testing.expectEqualStrings("lib/rbtree.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings(
+                "The roadmap names lib/rbtree.zig directly, and the live helper already carries the bounded duplicate-range search, linked-node ownership, cached-leftmost erase and replacement, clearNode and eraseInit reset, and postorder leaf-library surface.",
+                gap.why_now,
+            );
         }
 
-        if (std.mem.eql(u8, gap.id, "phase7-rbtree-survey-gate")) {
-            saw_survey_gate = true;
+        if (std.mem.eql(u8, gap.id, "phase7-rbtree-dedicated-tests")) {
+            saw_dedicated_tests = true;
             try std.testing.expectEqualStrings("parked", gap.status);
-            try std.testing.expectEqualStrings("zigux/tests/phase7_rbtree_survey.zig", gap.zigux_destination);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase7-rbtree-parity-checker")) {
-            saw_parity_checker = true;
-            try std.testing.expectEqualStrings("parked", gap.status);
-            try std.testing.expectEqualStrings("scripts/zigux/check-phase7-rbtree-parity.py", gap.zigux_destination);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_rbtree.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings(
+                "A dedicated Phase 7 gate keeps the shared rbtree starter surface reviewable around duplicate-key range traversal, detached-node ownership, clearNode handoff, cached-leftmost erase state, eraseInit reset, and traversal stability without widening into subsystem policy.",
+                gap.why_now,
+            );
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-parity-fixture-layer")) {
             saw_parity_fixture = true;
             try std.testing.expectEqualStrings("parked", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/fixtures/phase7_rbtree.json", gap.zigux_destination);
+            try std.testing.expectEqualStrings(
+                "The committed parity fixture layer keeps the bounded ordered and duplicate-key rbtree comparisons reviewable from one source instead of leaving the parity checker entirely inline.",
+                gap.why_now,
+            );
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-rbtree-slice-note")) {
+            saw_slice_note = true;
+            try std.testing.expectEqualStrings("parked", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase7-rbtree-slice.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings(
+                "The slice note records the bounded product surface, parity packet, and non-goals so this Phase 7 lane stays tied to reusable leaf-library reviewability instead of drifting into broader tree variants.",
+                gap.why_now,
+            );
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-rbtree-survey-gate")) {
+            saw_survey_gate = true;
+            try std.testing.expectEqualStrings("parked", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_rbtree_survey.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings(
+                "A machine-checked survey gate keeps the roadmap anchor, committed parity packet, manifest record, and shared ownership-review surfaces explicit without reopening rbtree behavior growth.",
+                gap.why_now,
+            );
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-rbtree-parity-checker")) {
+            saw_parity_checker = true;
+            try std.testing.expectEqualStrings("parked", gap.status);
+            try std.testing.expectEqualStrings("scripts/zigux/check-phase7-rbtree-parity.py", gap.zigux_destination);
+            try std.testing.expectEqualStrings(
+                "The dedicated parity checker is already part of the parked Phase 7 review surface, so the manifest should record that fail-closed validation hook instead of leaving it implicit in surrounding docs and scripts indexes.",
+                gap.why_now,
+            );
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -418,7 +460,9 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     try std.testing.expectEqual(manifest.gaps.len, parked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_helper);
+    try std.testing.expect(saw_dedicated_tests);
+    try std.testing.expect(saw_parity_fixture);
+    try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_parity_checker);
-    try std.testing.expect(saw_parity_fixture);
 }
