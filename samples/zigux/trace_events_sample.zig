@@ -142,6 +142,14 @@ pub const LifecycleBoundarySummary = struct {
     unregister_after_exit_rejected: bool,
 };
 
+pub const OwnershipReplaySummary = struct {
+    cold: LifecycleSummary,
+    initialized: LifecycleSummary,
+    replay_complete: LifecycleSummary,
+    exited: LifecycleSummary,
+    checked_focus: []const SampleFocus,
+};
+
 pub const TraceEventsReferenceSample = struct {
     const Self = @This();
 
@@ -488,6 +496,26 @@ pub const TraceEventsReferenceSample = struct {
         };
     }
 
+    pub fn runOwnershipReplay(self: *Self) !OwnershipReplaySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        const cold = self.lifecycleSummary();
+        try self.init();
+        const initialized = self.lifecycleSummary();
+        _ = try self.runAnchorReplay();
+        const replay_complete = self.lifecycleSummary();
+        try self.exit();
+        const exited = self.lifecycleSummary();
+
+        return .{
+            .cold = cold,
+            .initialized = initialized,
+            .replay_complete = replay_complete,
+            .exited = exited,
+            .checked_focus = reviewContract().focus,
+        };
+    }
+
     pub fn runAnchorReplay(self: *Self) !ReplaySummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
 
@@ -726,6 +754,59 @@ test "trace-events sample replays lifecycle boundaries through one bounded helpe
     try std.testing.expect(replay.register_after_exit_rejected);
     try std.testing.expect(replay.callback_after_exit_rejected);
     try std.testing.expect(replay.unregister_after_exit_rejected);
+}
+
+test "trace-events sample keeps ownership replay snapshots explicit" {
+    var sample = TraceEventsReferenceSample{};
+    const expected_focus = [_]SampleFocus{
+        .payload_shape,
+        .string_selection,
+        .formatted_message,
+        .conditional_event_families,
+        .function_callback_registration,
+        .ownership_and_lifetime,
+    };
+
+    const replay = try sample.runOwnershipReplay();
+
+    try std.testing.expectEqual(SampleStage.cold, replay.cold.stage);
+    try std.testing.expectEqual(@as(usize, 0), replay.cold.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.cold.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.cold.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.cold.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), replay.cold.total_event_calls);
+
+    try std.testing.expectEqual(SampleStage.initialized, replay.initialized.stage);
+    try std.testing.expectEqual(@as(usize, 1), replay.initialized.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.initialized.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.initialized.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.initialized.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), replay.initialized.total_event_calls);
+
+    try std.testing.expectEqual(SampleStage.replay_complete, replay.replay_complete.stage);
+    try std.testing.expectEqual(@as(usize, 1), replay.replay_complete.init_run_count);
+    try std.testing.expectEqual(@as(usize, 1), replay.replay_complete.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.replay_complete.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.replay_complete.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), replay.replay_complete.total_event_calls);
+
+    try std.testing.expectEqual(SampleStage.exited, replay.exited.stage);
+    try std.testing.expectEqual(@as(usize, 1), replay.exited.init_run_count);
+    try std.testing.expectEqual(@as(usize, 1), replay.exited.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 1), replay.exited.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.exited.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), replay.exited.total_event_calls);
+
+    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
+
+    const lifecycle = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.exited, lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), lifecycle.total_event_calls);
 }
 
 test "trace-events sample keeps callback registration single-live" {
