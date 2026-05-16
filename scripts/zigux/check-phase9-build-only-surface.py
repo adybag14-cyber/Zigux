@@ -290,7 +290,7 @@ REQUIRED_MARKERS = {
         "test_step.dependOn(&run_runtime_trace_events_loader_substrate_drift_tests.step);",
         "test_step.dependOn(&run_runtime_loader_gap_survey_tests.step);",
         "test_step.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);",
-        "test_step.dependOn(&run_runtime_loader_lifecycle_boundary_guardTests.step);",
+        "test_step.dependOn(&run_runtime_loader_lifecycle_boundary_guard_tests.step);",
         "\"phase9-runtime-bitmap-top-bit-tests\"",
         "runtime_bitmap_top_bit_contract.zig",
     ],
