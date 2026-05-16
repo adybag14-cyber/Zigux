@@ -153,6 +153,18 @@ SCRIPTS_README_MARKERS = [
     "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
 ]
 
+CLOSURE_EVIDENCE_MARKERS = [
+    "`Documentation/zigux/review-checklist.md`",
+    "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+    "`scripts/zigux/check-phase10-harness-coverage.py`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`zigux/tests/phase10_closure_manifest.json`",
+    "`Documentation/zigux/phase10-virtio-ring-slice.md`",
+    "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
+    "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
+    "`make -C zigux phase10-validate`",
+]
+
 TESTS_ROOT_COMPANION_MARKERS = [
     "`Documentation/zigux/phase10-closure-evidence.md`",
     "`scripts/zigux/check-phase10-harness-coverage.py`",
@@ -201,6 +213,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     missing: list[str] = []
     checks = [
         ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
+        (
+            "closure_evidence",
+            "Documentation/zigux/phase10-closure-evidence.md",
+            CLOSURE_EVIDENCE_MARKERS,
+        ),
         (
             "tests_root_companion",
             "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
@@ -310,7 +327,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 def write_fixture(root: Path) -> None:
     text_files = {
-        "Documentation/zigux/phase10-closure-evidence.md": "fixture\n",
+        "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_EVIDENCE_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-mmio-slice.md": "fixture\n",
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "fixture\n",
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(
@@ -630,6 +647,52 @@ def run_self_test() -> int:
         )
         tests_root_companion_path.write_text(original_tests_root_companion, encoding="utf-8")
 
+        original_closure_evidence = closure_evidence_path.read_text(encoding="utf-8")
+        closure_evidence_path.write_text(
+            original_closure_evidence.replace(
+                "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+                "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_evidence_tests_root_companion",
+            root,
+            "closure_evidence:`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+        )
+        closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
+
+        closure_evidence_path.write_text(
+            original_closure_evidence.replace(
+                "`Documentation/zigux/phase10-virtio-ring-slice.md`",
+                "`Documentation/zigux/phase10-virtio-ring-slice-missing.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_evidence_ring_slice",
+            root,
+            "closure_evidence:`Documentation/zigux/phase10-virtio-ring-slice.md`",
+        )
+        closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
+
+        closure_evidence_path.write_text(
+            original_closure_evidence.replace(
+                "`make -C zigux phase10-validate`",
+                "`make -C zigux phase10-validate-missing`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_evidence_make_route",
+            root,
+            "closure_evidence:`make -C zigux phase10-validate`",
+        )
+        closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
+
         original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
             original_review_checklist.replace(
@@ -832,7 +895,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=39")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=42")
     return 0
 
 
@@ -859,5 +922,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(SCRIPTS_README_MARKERS) + len(TESTS_ROOT_COMPANION_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
+    f"{len(SCRIPTS_README_MARKERS) + len(CLOSURE_EVIDENCE_MARKERS) + len(TESTS_ROOT_COMPANION_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(MANIFEST_TEXT_MARKERS) + len(EXACT_CHECK_MARKERS) + len(TESTS_README_MARKERS)}"
 )
