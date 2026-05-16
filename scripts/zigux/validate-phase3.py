@@ -23,10 +23,12 @@ LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 TEST_BUILD_PATH = Path("zigux/tests/build.zig")
 HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+([A-Z0-9_]+)\b")
 HEADER_STRUCT_RE = re.compile(r"^\s*struct\s+([A-Za-z_][A-Za-z0-9_]*)\b")
+HEADER_TYPEDEF_ALIAS_RE = re.compile(r"^\s*}\s*([A-Za-z_][A-Za-z0-9_]*)\s*;")
 ZIG_CONST_RE = re.compile(r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*:")
 ZIG_EXTERN_STRUCT_RE = re.compile(
     r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*extern struct\b"
 )
+ZIG_PUB_FN_RE = re.compile(r"^\s*pub fn\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 
 REQUIRED_MANIFEST_FILES = (
     Path("zigux/uapi/dev_t.zig"),
@@ -211,14 +213,14 @@ LOW_LEVEL_WRAPPER_SOURCE_MARKERS = {
 
 PHASE3_CHECK_LIB_POLICY_MARKERS = {
     Path("scripts/zigux/phase3_check_lib.py"): (
-        '(sys.executable, "scripts/zigux/validate-phase3-policy-unsafe-survey.py"),',
-        '(sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"),',
-        '(sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),',
-        '(sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),',
-        '((sys.executable, "scripts/zigux/validate-phase3-policy-unsafe-survey.py"), ROOT, False),',
-        '((sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"), ROOT, False),',
-        '((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"), ROOT, False),',
-        '((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),',
+        '    (sys.executable, "scripts/zigux/validate-phase3-policy-unsafe-survey.py"),',
+        '    (sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"),',
+        '    (sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"),',
+        '    (sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"),',
+        '    ((sys.executable, "scripts/zigux/validate-phase3-policy-unsafe-survey.py"), ROOT, False),',
+        '    ((sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"), ROOT, False),',
+        '    ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"), ROOT, False),',
+        '    ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),',
     ),
 }
 
@@ -264,6 +266,7 @@ def validate_abi_surface_sanity(repo_root: Path) -> list[str]:
                 (
                     ("ABI header #define", HEADER_DEFINE_RE),
                     ("ABI header struct", HEADER_STRUCT_RE),
+                    ("ABI header typedef alias", HEADER_TYPEDEF_ALIAS_RE),
                 ),
             )
         )
@@ -276,6 +279,7 @@ def validate_abi_surface_sanity(repo_root: Path) -> list[str]:
                 (
                     ("ABI binding const", ZIG_CONST_RE),
                     ("ABI binding extern struct", ZIG_EXTERN_STRUCT_RE),
+                    ("ABI binding pub fn", ZIG_PUB_FN_RE),
                 ),
             )
         )
@@ -436,16 +440,19 @@ def _populate_repo(root: Path) -> None:
         root / ABI_HEADER_PATH,
         "#define ZIGUX_ABI_VERSION 1\n"
         "#define ZIGUX_ABI_MINOR 2\n"
-        "struct zigux_layout {\n"
+        "typedef struct zigux_layout {\n"
         "    int value;\n"
-        "};\n",
+        "} zigux_layout;\n",
     )
     _write(
         root / ABI_BINDINGS_PATH,
         "pub const ZIGUX_ABI_VERSION: u32 = 1;\n"
         "pub const ZiguxLayout = extern struct {\n"
         "    value: i32,\n"
-        "};\n",
+        "};\n"
+        "pub fn ziguxLayoutValue() i32 {\n"
+        "    return 0;\n"
+        "}\n",
     )
     _write(
         root / ABI_MANIFEST_PATH,
@@ -863,7 +870,7 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         expected_phase3_check_lib_command_marker = (
             "missing source marker: scripts/zigux/phase3_check_lib.py :: "
-            '(sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"),'
+            '    (sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"),'
         )
         if expected_phase3_check_lib_command_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
@@ -882,7 +889,7 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         expected_phase3_check_lib_selftest_marker = (
             "missing source marker: scripts/zigux/phase3_check_lib.py :: "
-            '((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),'
+            '    ((sys.executable, "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ROOT, False),'
         )
         if expected_phase3_check_lib_selftest_marker not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
@@ -1313,6 +1320,25 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         _write(
+            root / ABI_HEADER_PATH,
+            _read(root / ABI_HEADER_PATH)
+            + "typedef struct zigux_layout_alias {\n"
+            + "    int value;\n"
+            + "} zigux_layout;\n",
+        )
+        issues = validate_repo(root)
+        expected_duplicate_typedef_alias = (
+            "duplicate ABI header typedef alias: zigux_layout "
+            "(first line 5, duplicate line 8)"
+        )
+        if expected_duplicate_typedef_alias not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected duplicate typedef alias was not reported")
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        _write(
             root / ABI_BINDINGS_PATH,
             _read(root / ABI_BINDINGS_PATH)
             + "pub const ZIGUX_ABI_VERSION: u32 = 2;\n",
@@ -1320,7 +1346,7 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         expected_duplicate_const = (
             "duplicate ABI binding const: ZIGUX_ABI_VERSION "
-            "(first line 1, duplicate line 5)"
+            "(first line 1, duplicate line 8)"
         )
         if expected_duplicate_const not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
@@ -1339,11 +1365,30 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         expected_duplicate_extern_struct = (
             "duplicate ABI binding extern struct: ZiguxLayout "
-            "(first line 2, duplicate line 5)"
+            "(first line 2, duplicate line 8)"
         )
         if expected_duplicate_extern_struct not in issues:
             print("PHASE3_VALIDATE_SELF_TEST=fail")
             print("expected duplicate extern struct was not reported")
+            return 1
+        case_count += 1
+
+        _populate_repo(root)
+        _write(
+            root / ABI_BINDINGS_PATH,
+            _read(root / ABI_BINDINGS_PATH)
+            + "pub fn ziguxLayoutValue() i32 {\n"
+            + "    return 1;\n"
+            + "}\n",
+        )
+        issues = validate_repo(root)
+        expected_duplicate_pub_fn = (
+            "duplicate ABI binding pub fn: ziguxLayoutValue "
+            "(first line 5, duplicate line 8)"
+        )
+        if expected_duplicate_pub_fn not in issues:
+            print("PHASE3_VALIDATE_SELF_TEST=fail")
+            print("expected duplicate binding pub fn was not reported")
             return 1
         case_count += 1
 
