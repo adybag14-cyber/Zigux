@@ -355,6 +355,14 @@ test "phase 9 runtime bitmap survey gate keeps the manifest and review packet al
     try expectContains(runtime_bitmap_module, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());");
     try expectContains(runtime_bitmap_module, "try std.testing.expectError(error.InvalidLifecycleTransition, module.clearRange(1, 1));");
     try expectContains(runtime_bitmap_module, "try std.testing.expectError(error.InvalidLifecycleTransition, module.copyFrom(&source));");
+    try expectContains(runtime_bitmap_module, "runtime bitmap module gate keeps repeat-init rejection state-preserving across lifecycle stages");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(initialized_summary.weight, after_initialized_retry.weight);");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(selftested_summary.weight, after_selftest_retry.weight);");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(exited_summary.weight, after_exit_retry.weight);");
+    try expectContains(runtime_bitmap_module, "runtime bitmap module gate keeps a post-selftest mirror proof explicit");
+    try expectContains(runtime_bitmap_module, "const summary_after_post_selftest_replay = module.summary();");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(summary_after_post_selftest_replay.weight, mirrored_post_selftest_summary.weight);");
+    try expectContains(runtime_bitmap_module, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.initialized, mirrored_post_selftest_state.stage);");
 
     try expectContains(runtime_bitmap_diff, "runtime bitmap diff gate replays bounded lib/test_bitmap.c expectations");
     try expectContains(runtime_bitmap_diff, "runtime bitmap diff gate keeps zero-length mutation windows explicit");
