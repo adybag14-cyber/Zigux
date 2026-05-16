@@ -51,6 +51,8 @@ REQUIRED_SURVEY_SNIPPETS = (
     "helper-local MMIO range-boundary, odd-offset volatile-access, and volatile-MMIO policy-gate coverage in `zigux/helpers/mmio.zig`",
     "helper-local MMIO stride-boundary and typed-index coverage in `zigux/helpers/mmio.zig` through `containsOffset`, `containsAccess`, `offsetForIndex`, and `typedOffsetForIndex`",
     "The same helper-local MMIO packet now also keeps stride-indexed access replays through `readIndex()` and `writeIndex()` plus width-specific indexed relays through `read8Index()`, `read16Index()`, `read32Index()`, `read64Index()`, `write8Index()`, `write16Index()`, `write32Index()`, and `write64Index()` explicit in `zigux/helpers/mmio.zig` instead of leaving that direct-access slice visible only through the focused route.",
+    "the same atomic helper now also makes compare-exchange failure-order rules explicit in helper code instead of leaving them implicit in the Zig builtin, and helper-local replay now covers the valid `.monotonic`, `.acquire`, and `.seq_cst` failure-order combinations that the current contract allows.",
+    "the same atomic helper also keeps shared-word bit handoff proof helper-local through direct `bitSet`, `bitReset`, and `bitToggle` transitions on a preserved word, so review can see multi-bit handoff behavior without widening the focused replay.",
 )
 
 REQUIRED_BUILD_SNIPPETS = (
@@ -117,6 +119,17 @@ REQUIRED_ATOMIC_SNIPPETS = (
     'bitReset(u8, &flags, 4, .acquire)',
     'bitToggle(u64, &high_bit_flags, high_bit_index, .seq_cst)',
     'bitTest(u64, &high_bit_flags, high_bit_index, .acquire)',
+    'fn isCompareExchangeSuccessOrderAllowed(comptime order: std.builtin.AtomicOrder) bool {',
+    'fn isCompareExchangeFailureOrderAllowed(',
+    'fn ensureCompareExchangeSuccessOrder(comptime order: std.builtin.AtomicOrder) void {',
+    'fn ensureCompareExchangeFailureOrder(',
+    'test "phase3 atomic wrappers keep compare-exchange failure orderings reviewable"',
+    'compareExchange(u32, &release_success_value, 23, 29, .release, .monotonic)',
+    'test "phase3 atomic wrappers keep invalid compare-exchange order pairs reviewable"',
+    'try std.testing.expect(!isCompareExchangeFailureOrderAllowed(.release, .release));',
+    'test "phase3 atomic wrappers keep shared-word bit handoffs reviewable"',
+    'bitSet(u32, &word, handoff_bit, .release)',
+    'bitToggle(u32, &word, handoff_bit, .acq_rel)',
 )
 
 REQUIRED_BARRIER_SNIPPETS = (
