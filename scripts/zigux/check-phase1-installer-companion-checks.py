@@ -304,7 +304,6 @@ def run_self_test() -> None:
         case_count += 1
         make_fixture_root(root)
 
-        (root / "Documentation/zigux/README.md").writeText = None
         (root / "Documentation/zigux/README.md").write_text("", encoding="utf-8")
         missing = collect_missing_markers(root)
         assert (
