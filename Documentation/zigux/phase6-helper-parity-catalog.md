@@ -21,7 +21,7 @@ This catalog records the current bounded Phase 6 leaf-helper packet on `master`.
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
 - focused helper replay: `zigux/tests/phase6_base64.zig`
 - focused slowdown-fixture companion: `zigux/tests/fixtures/phase6_base64_vectors.zig`
-- still-present direct C parity scaffolding: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- still-present direct C parity scaffolding: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 - dedicated helper-local perf replay on current `master`: `zigux/tests/phase6_base64_perf.zig`
 - direct local perf rerun route: `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`
 - direct Linux-style perf rerun route: `make -C zigux phase6-base64-perf`
