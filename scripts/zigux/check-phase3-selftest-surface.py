@@ -126,6 +126,7 @@ VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX = "## Shared reminder"
 VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS = {
     "scripts/zigux/README.md": 2,
     "zigux/tests/README.md": 2,
+    "scripts/zigux/validate_phase3_selftest.py": 1,
     "scripts/zigux/check-phase3-abi.py": 2,
     "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
     "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
@@ -936,6 +937,26 @@ def run_self_test() -> int:
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
             print("expected validator-support review-checklist drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        validator_support_path.write_text(
+            _replace_in_section(
+                _read(validator_support_path),
+                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
+                None,
+                "scripts/zigux/validate_phase3_selftest.py",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support shared reminder marker count drift: "
+            "scripts/zigux/validate_phase3_selftest.py (expected 1, found 0)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected validator-support shared-reminder selftest-driver drift was not reported")
             return 1
 
         _populate_repo(root)
