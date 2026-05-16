@@ -88,6 +88,9 @@ MARKERS = {
         "dw_wdt.TeardownOutcome.reset_control_stop",
         "remove_summary.remove_leaves_hardware_running",
         "remove_summary.reset_assert_requested",
+        "var idle_remove_without_reset = try dw_wdt.DwWdtLab.initFixedTops(9, false);",
+        "try testing.expect(!idle_remove_without_reset_summary.reset_control_available);",
+        "try testing.expect(!idle_remove_without_reset_summary.reset_assert_requested);",
     ],
     "registration_scaffold": [
         'test "platform handoff stays blocked when drvdata publication is missing"',
