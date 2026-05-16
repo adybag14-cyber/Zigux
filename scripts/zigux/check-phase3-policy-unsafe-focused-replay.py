@@ -16,14 +16,14 @@ LAYOUT_ASSERT_REL = Path("zigux/helpers/layout_assert.zig")
 
 SURVEY_REQUIRED = (
     "PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig",
-    "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
+    "PHASE3_BOUNDARY_GAP=dedicated-focused-policy-unsafe-replay-pair-ships-while-the-shared-abi-packet-still-owns-the-broader-policy-and-unsafe-review-surface",
     "PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py",
-    "The current tree still does not ship a dedicated `phase3_policy_unsafe` replay pair",
+    "The current tree now ships a dedicated `phase3_policy_unsafe` replay pair through `zigux/tests/phase3_policy_unsafe.zig` and `zigux/tests/phase3_policy_unsafe_build.zig`, but the live validator packet still keeps the broader policy-and-unsafe boundary inside the shared `abi` slice rather than turning that focused replay pair into a new standalone tranche.",
 )
 
 SURVEY_NEXT_STEP_REQUIRED = (
-    "keep the next same-lane change to one shared-ABI marker, one directly coupled focused-replay note refresh, or one validator-wording refresh tied only to this packet",
-    "if the directly coupled focused low-level replay, one of the dedicated policy packet checks, or a broader policy-and-unsafe helper family changes later, resurvey this note against the exact live files before claiming that surface here",
+    "keep the next same-lane change to one shared-ABI marker, one dedicated `phase3_policy_unsafe` replay note refresh, or one validator-wording refresh tied only to this packet",
+    "if the dedicated `phase3_policy_unsafe` replay pair, the directly coupled focused low-level replay, one of the dedicated policy packet checks, or a broader policy-and-unsafe helper family changes later, resurvey this note against the exact live files before claiming that surface here",
 )
 
 ABI_SLICE_REQUIRED = (
