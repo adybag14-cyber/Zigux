@@ -104,6 +104,7 @@ EXPECTED_COUNTED_SEARCH_REVIEW_ANCHORS = [
 
 EXPECTED_STRNCHR_REVIEW_ANCHOR = 'test "strnchr honors count and C-string boundaries"'
 EXPECTED_STRNCHRNUL_REVIEW_ANCHOR = 'test "strnchrNul returns the first match, NUL, or count boundary"'
+EXPECTED_BASENAME_REVIEW_ANCHOR = 'test "kbasename returns the final path component with C-string semantics"'
 EXPECTED_TRIM_NUL_REVIEW_ANCHOR = 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"'
 EXPECTED_MEMCHR_MOVING_DIRTY_ANCHOR = 'test "memchrInv follows the earliest dirty byte as long buffers change"'
 EXPECTED_PHASE1_HELPER_REPLAY_ANCHOR = 'test "phase 1 string replaceChar stops at embedded NUL"'
@@ -152,6 +153,11 @@ EXPECTED_STRNCHR_REVIEW_SUMMARY = (
     "the direct counted-search follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated "
     "counted-search fixture keys, so strnchr() count-limited scanning and strnchrNul() or strnchrnul() match-or-NUL "
     "boundary behavior remain owned by the helper-local anchors"
+)
+EXPECTED_BASENAME_REVIEW_SUMMARY = (
+    "helper-local basename path-tail anchor stays explicit through the direct string tests because the shared Phase 1 "
+    "replay still does not carry dedicated kbasename fixture keys, so final path-component extraction at the first "
+    "C-string terminator remains review-visible at the helper surface"
 )
 EXPECTED_TRIM_NUL_REVIEW_SUMMARY = (
     "the direct trim follow-up stays explicit because the shared Phase 1 string fixture records the trimmed bytes but not "
@@ -268,6 +274,7 @@ def collect_manifest_issues(manifest: object) -> list[str]:
     expected_scalars = {
         "strnchr_review_anchor": EXPECTED_STRNCHR_REVIEW_ANCHOR,
         "strnchrnul_review_anchor": EXPECTED_STRNCHRNUL_REVIEW_ANCHOR,
+        "basename_review_anchor": EXPECTED_BASENAME_REVIEW_ANCHOR,
         "trim_nul_review_anchor": EXPECTED_TRIM_NUL_REVIEW_ANCHOR,
         "memchr_moving_dirty_anchor": EXPECTED_MEMCHR_MOVING_DIRTY_ANCHOR,
         "phase1_helper_replay_anchor": EXPECTED_PHASE1_HELPER_REPLAY_ANCHOR,
@@ -277,6 +284,7 @@ def collect_manifest_issues(manifest: object) -> list[str]:
         "sysfs_review_summary": EXPECTED_SYSFS_REVIEW_SUMMARY,
         "strscpy_review_summary": EXPECTED_STRSCPY_REVIEW_SUMMARY,
         "strnchr_review_summary": EXPECTED_STRNCHR_REVIEW_SUMMARY,
+        "basename_review_summary": EXPECTED_BASENAME_REVIEW_SUMMARY,
         "trim_nul_review_summary": EXPECTED_TRIM_NUL_REVIEW_SUMMARY,
         "phase1_trim_cstr_replay_summary": EXPECTED_PHASE1_TRIM_CSTR_REPLAY_SUMMARY,
         "memchr_moving_dirty_review_summary": EXPECTED_MEMCHR_MOVING_DIRTY_REVIEW_SUMMARY,
@@ -408,6 +416,7 @@ def make_fixture_root(root: Path) -> None:
                 "counted_search_review_anchors": EXPECTED_COUNTED_SEARCH_REVIEW_ANCHORS,
                 "strnchr_review_anchor": EXPECTED_STRNCHR_REVIEW_ANCHOR,
                 "strnchrnul_review_anchor": EXPECTED_STRNCHRNUL_REVIEW_ANCHOR,
+                "basename_review_anchor": EXPECTED_BASENAME_REVIEW_ANCHOR,
                 "trim_nul_review_anchor": EXPECTED_TRIM_NUL_REVIEW_ANCHOR,
                 "memchr_moving_dirty_anchor": EXPECTED_MEMCHR_MOVING_DIRTY_ANCHOR,
                 "phase1_helper_replay_anchor": EXPECTED_PHASE1_HELPER_REPLAY_ANCHOR,
@@ -418,6 +427,7 @@ def make_fixture_root(root: Path) -> None:
                 "sysfs_review_summary": EXPECTED_SYSFS_REVIEW_SUMMARY,
                 "strscpy_review_summary": EXPECTED_STRSCPY_REVIEW_SUMMARY,
                 "strnchr_review_summary": EXPECTED_STRNCHR_REVIEW_SUMMARY,
+                "basename_review_summary": EXPECTED_BASENAME_REVIEW_SUMMARY,
                 "trim_nul_review_summary": EXPECTED_TRIM_NUL_REVIEW_SUMMARY,
                 "phase1_trim_cstr_replay_summary": EXPECTED_PHASE1_TRIM_CSTR_REPLAY_SUMMARY,
                 "memchr_moving_dirty_review_summary": EXPECTED_MEMCHR_MOVING_DIRTY_REVIEW_SUMMARY,
@@ -500,6 +510,20 @@ def run_self_test() -> None:
         case_count += 1
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["basename_review_anchor"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:basename_review_anchor" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["basename_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "phase1_string_manifest:basename_review_summary" in collect_missing_markers(root)
+        make_fixture_root(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "phase1_string_manifest:next_safe_step_note" in collect_missing_markers(root)
@@ -566,7 +590,7 @@ def main() -> int:
 
     print("PHASE1_STRING_REVIEW_PACKET=pass")
     print(f"PHASE1_STRING_REVIEW_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print("PHASE1_STRING_REVIEW_PACKET_REQUIRED_MARKER_COUNT=29")
+    print("PHASE1_STRING_REVIEW_PACKET_REQUIRED_MARKER_COUNT=31")
     return 0
 
 
