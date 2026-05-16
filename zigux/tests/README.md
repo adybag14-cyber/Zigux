@@ -197,7 +197,7 @@ Phase 8 review packet
   * `make -C zigux phase8-cpu-mask-test`
   * `make -C zigux phase8-file-path-handle-bridge-test`
   * `make -C zigux phase8-libbpf-segments-test`
-  * `make -C zigux phase8-perf-buffer_poll-test`
+  * `make -C zigux phase8-perf-buffer-poll-test`
   * `make -C zigux phase8-test`
   * `make -C zigux phase8`
   * keep the shared Phase 8 tooling packet explicit here too: the focused exec-cmd, help, symbol, cpu-mask, file-path bridge, segmented libbpf, and perf-buffer poll replay surfaces stay reviewable from the tests root without widening into deferred process-launch, handle-ownership, or online-CPU routing work
