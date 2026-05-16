@@ -27,6 +27,7 @@ ROLLBACK_CHECKER_PATH = "scripts/zigux/check-phase14-rollback-threshold-sequenci
 RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
 CORE_TRACEABILITY_NONE_READY_NEXT_LINE = "  * ready-next gap: none currently recorded"
 CORE_TRACEABILITY_NONE_READY_NEXT_COUNT = 4
+SELF_TEST_SURVEYED_COMMIT = "40f2a065b1c06d7ea621c1c0c388e6202b0b22b7"
 ATTACHED_TOOLCHAIN_FALLBACK_INTRO = (
     "- attached-toolchain fallback examples for this note's shared replay routes only:"
 )
@@ -233,6 +234,10 @@ def require_exact_line_occurrence(
         )
 
 
+def survey_head_line(surveyed_commit: str) -> str:
+    return f"- verified `master` head: `{surveyed_commit}`"
+
+
 def check_manifest(errors: list[str], root: Path) -> None:
     path = root / MANIFEST_PATH
     if not path.exists():
@@ -254,6 +259,20 @@ def check_manifest(errors: list[str], root: Path) -> None:
                 "phase14 shared_smoke_surfaces drift for "
                 f"{surface} (expected 1, found {count})"
             )
+    surveyed_commit = manifest.get("surveyed_commit")
+    if not isinstance(surveyed_commit, str) or not surveyed_commit:
+        errors.append("phase14 surveyed_commit missing from shared smoke manifest")
+        return
+    smoke_survey_path = root / SMOKE_SURVEY_PATH
+    if not smoke_survey_path.exists():
+        return
+    require_exact_line_occurrence(
+        errors,
+        SMOKE_SURVEY_PATH.as_posix(),
+        read_text(smoke_survey_path),
+        survey_head_line(surveyed_commit),
+        1,
+    )
 
 
 def check_text_file(
@@ -345,6 +364,7 @@ def good_docs_root_text() -> str:
 def good_smoke_survey_text() -> str:
     return "\n".join(
         [
+            survey_head_line(SELF_TEST_SURVEYED_COMMIT),
             f"- `{CHECKER_PATH}`",
             f"- `{TESTS_README_CHECKER_PATH}`",
             f"- `{ROLLBACK_CHECKER_PATH}`",
@@ -421,6 +441,7 @@ def good_manifest_text() -> str:
     return (
         json.dumps(
             {
+                "surveyed_commit": SELF_TEST_SURVEYED_COMMIT,
                 "shared_smoke_surfaces": MANIFEST_REQUIRED_SURFACES,
             },
             indent=2,
@@ -794,6 +815,49 @@ def run_self_test() -> int:
         write_text(
             root / SMOKE_SURVEY_PATH,
             good_smoke_survey_text().replace(
+                survey_head_line(SELF_TEST_SURVEYED_COMMIT) + "\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            f"marker count drift in {SMOKE_SURVEY_PATH.as_posix()}: {survey_head_line(SELF_TEST_SURVEYED_COMMIT)} (expected 1, found 0)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected missing verified-master-head survey line failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_survey_text())
+
+        write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "surveyed_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "shared_smoke_surfaces": MANIFEST_REQUIRED_SURFACES,
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - verified `master` head: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` (expected 1, found 0)"
+            in error
+            for error in check(root)
+        ):
+            print(
+                "self-test expected manifest-to-survey head mismatch failure",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / MANIFEST_PATH, good_manifest_text())
+
+        write_text(
+            root / SMOKE_SURVEY_PATH,
+            good_smoke_survey_text().replace(
                 BRIDGE_BINDING_SURVEY_MARKER + "\n",
                 "",
                 1,
@@ -959,7 +1023,7 @@ def run_self_test() -> int:
 
         write_text(
             root / MANIFEST_PATH,
-            json.dumps({"shared_smoke_surfaces": []}, indent=2) + "\n",
+            json.dumps({"surveyed_commit": SELF_TEST_SURVEYED_COMMIT, "shared_smoke_surfaces": []}, indent=2) + "\n",
         )
         if not any(
             f"phase14 shared_smoke_surfaces drift for {CHECKER_PATH} (expected 1, found 0)"
@@ -974,12 +1038,13 @@ def run_self_test() -> int:
             root / MANIFEST_PATH,
             json.dumps(
                 {
+                    "surveyed_commit": SELF_TEST_SURVEYED_COMMIT,
                     "shared_smoke_surfaces": [
                         CHECKER_PATH,
                         ROLLBACK_CHECKER_PATH,
                         RELEASE_BOUNDARY_CHECKER_PATH,
                         "scripts/zigux/validate-phase14.py",
-                    ]
+                    ],
                 },
                 indent=2,
             )
@@ -1001,12 +1066,13 @@ def run_self_test() -> int:
             root / MANIFEST_PATH,
             json.dumps(
                 {
+                    "surveyed_commit": SELF_TEST_SURVEYED_COMMIT,
                     "shared_smoke_surfaces": [
                         CHECKER_PATH,
                         TESTS_README_CHECKER_PATH,
                         ROLLBACK_CHECKER_PATH,
                         "scripts/zigux/validate-phase14.py",
-                    ]
+                    ],
                 },
                 indent=2,
             )
@@ -1071,7 +1137,7 @@ def run_self_test() -> int:
         write_text(current_checker_path, original_source)
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=31")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
