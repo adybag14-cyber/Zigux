@@ -80,6 +80,23 @@ Key entrypoints
   * `Documentation/zigux/phase6-perf-gate-survey.md`
   * `Documentation/zigux/README.md`
 
+Phase 11 review packet
+  * `Documentation/zigux/phase11-shared-replay-contract.md`
+  * `Documentation/zigux/phase11-closure-note.md`
+  * `Documentation/zigux/phase11-driver-lane-sequencing.md`
+  * `scripts/zigux/check-phase11-shared-replay-contract.py`
+  * `scripts/zigux/check-phase11-shared-summary-surfaces.py`
+  * `scripts/zigux/check-phase11-build-inventory.py`
+  * `zigux/tests/fixtures/phase11_build_inventory.json`
+  * `zigux/tests/phase11_build.zig`
+  * `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+  * `make -C zigux phase11-contract`
+  * `make -C zigux phase11`
+  * `make -C zigux phase11-hvc-survey`
+  * surviving DesignWare continuity stays explicit through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+  * dedicated HVC archival packet stays explicit through `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, and `scripts/zigux/check-phase11-hvc-survey-packet.py`
+  * there is no shared `validate-phase11.py` or `make -C zigux phase11-validate` route on current `master`
+
 Phase 12 review packet
   * `scripts/zigux/check-build-only-phase12-surface.py`
   * `Documentation/zigux/phase12-release-sequencing.md`
