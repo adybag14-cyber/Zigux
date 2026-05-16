@@ -13,6 +13,13 @@ const PerfResult = struct {
     compute_sum: u16,
 };
 
+const IpFastPerfResult = struct {
+    helper_ipfast_ns_per_op: u64,
+    helper_compute_ns_per_op: u64,
+    compute_slowdown_pct: u64,
+    checksum_sum: u16,
+};
+
 const BenchResult = struct {
     elapsed: u64,
     sink: u32,
@@ -92,6 +99,16 @@ fn benchHelperCompute(payload: []const u8, reps: usize) BenchResult {
     return .{ .elapsed = monotonicNs() - started_at, .sink = sink };
 }
 
+fn benchHelperIpFast(header: []const u8, reps: usize) BenchResult {
+    var sink: u32 = 0;
+    const started_at = monotonicNs();
+    for (0..reps) |_| {
+        const sum = checksum.ipFastCsum(header);
+        sink +%= sum;
+    }
+    return .{ .elapsed = monotonicNs() - started_at, .sink = sink };
+}
+
 fn benchReferenceCompute(payload: []const u8, reps: usize) BenchResult {
     var sink: u32 = 0;
     const started_at = monotonicNs();
@@ -164,6 +181,43 @@ fn runPerfCase(case: fixtures.PerfCase) !PerfResult {
     };
 }
 
+fn runIpFastPerfCase(case: fixtures.IpFastCsumCase) !IpFastPerfResult {
+    const expected = referenceCompute(case.header);
+    const actual_compute = checksum.compute(case.header);
+    const actual_ipfast = checksum.ipFastCsum(case.header);
+    try std.testing.expectEqual(expected, actual_compute);
+    try std.testing.expectEqual(expected, actual_ipfast);
+
+    const warmup_reps = @max(case.reps / 10, 1);
+    _ = benchHelperCompute(case.header, warmup_reps);
+    _ = benchHelperIpFast(case.header, warmup_reps);
+
+    var samples: [3]u64 = undefined;
+    var best_helper_compute: u64 = std.math.maxInt(u64);
+    var best_helper_ipfast: u64 = std.math.maxInt(u64);
+
+    for (0..3) |sample_index| {
+        const helper_compute = benchHelperCompute(case.header, case.reps);
+        const helper_ipfast = benchHelperIpFast(case.header, case.reps);
+
+        try std.testing.expectEqual(helper_compute.sink, helper_ipfast.sink);
+
+        best_helper_compute = @min(best_helper_compute, helper_compute.elapsed);
+        best_helper_ipfast = @min(best_helper_ipfast, helper_ipfast.elapsed);
+        samples[sample_index] = slowdownPct(helper_ipfast.elapsed, helper_compute.elapsed);
+    }
+
+    const compute_slowdown_pct = median3(samples[0], samples[1], samples[2]);
+    try std.testing.expect(compute_slowdown_pct <= case.max_compute_slowdown_pct);
+
+    return .{
+        .helper_ipfast_ns_per_op = nsPerOp(best_helper_ipfast, case.reps),
+        .helper_compute_ns_per_op = nsPerOp(best_helper_compute, case.reps),
+        .compute_slowdown_pct = compute_slowdown_pct,
+        .checksum_sum = actual_ipfast,
+    };
+}
+
 pub fn main() !void {
     for (fixtures.perf_cases) |case| {
         const result = try runPerfCase(case);
@@ -184,6 +238,22 @@ pub fn main() !void {
             },
         );
     }
+
+    for (fixtures.ip_fast_csum_cases) |case| {
+        const result = try runIpFastPerfCase(case);
+        std.debug.print(
+            "phase6-checksum-ipfast-perf {s} len={} reps={} helper_ipfast_ns_per_op={} helper_compute_ns_per_op={} compute_slowdown_pct={} checksum_sum=0x{x:0>4}\n",
+            .{
+                case.name,
+                case.header.len,
+                case.reps,
+                result.helper_ipfast_ns_per_op,
+                result.helper_compute_ns_per_op,
+                result.compute_slowdown_pct,
+                result.checksum_sum,
+            },
+        );
+    }
 }
 
 test "phase 6 checksum perf matrix keeps the shipped slowdown gates aligned" {
@@ -195,5 +265,14 @@ test "phase 6 checksum perf cases keep helper and reference math aligned before 
         const result = try runPerfCase(case);
         try std.testing.expect(result.partial_sum != 0);
         try std.testing.expect(result.compute_sum != 0);
+    }
+}
+
+test "phase 6 checksum ipFastCsum perf gate stays ahead of compute on aligned ipv4 headers" {
+    try std.testing.expectEqual(@as(usize, 3), fixtures.ip_fast_csum_cases.len);
+
+    for (fixtures.ip_fast_csum_cases) |case| {
+        const result = try runIpFastPerfCase(case);
+        try std.testing.expect(result.checksum_sum != 0);
     }
 }
