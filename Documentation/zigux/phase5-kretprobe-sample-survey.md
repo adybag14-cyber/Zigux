@@ -5,7 +5,7 @@ This note tracks the bounded Phase 5 survey for the roadmap's `samples/kprobes/k
 ## Status
 
 - `PHASE5_STATUS=restored-direct-sample-packet`
-- `PHASE5_LANE_KEY=P5-L18`
+- `PHASE5_LANE_KEY=P5-L13`
 - `PHASE5_SLICE=kretprobe-reference-sample-readback`
 - `PHASE5_SURVEYED_COMMIT=fcf670977ef02f9fa7e5d1950d67ba0589baa230`
 - scope: restore one directly readable non-runtime kretprobe packet without widening into Phase 9 runtime work
