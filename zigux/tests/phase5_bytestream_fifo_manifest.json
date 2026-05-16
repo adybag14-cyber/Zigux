@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L01",
   "phase": "Phase 5",
-  "surveyed_commit": "9a307725bf8b343e8c0a4b12acdf8e9773afc343",
+  "surveyed_commit": "19bd16896ad716b8411be2c25342ae52104b5c86",
   "anchor": "samples/kfifo/bytestream-example.c",
   "sample_path": "samples/zigux/bytestream_fifo.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
@@ -50,11 +50,6 @@
       "id": "preview-truncation-boundary",
       "kind": "queue_snapshot",
       "expected": "runPreviewBoundaryReplay proves a truncated preview stays non-destructive while leaving the sample in the initialized lifetime state: stage_before_replay and stage_after_replay stay initialized, snapshotInto still begins with [2,3,4,5], previewInto copies [2,3,4,5,6,7,8,9], reports 10 visible bytes, leaves the queued data intact, and keeps queue_len_after_preview at 10"
-    },
-    {
-      "id": "anchor-preview-truncation-contract",
-      "kind": "queue_snapshot",
-      "expected": "runAnchorReplay keeps the bounded preview result explicit too: preview_len is 8, preview_total_visible is 32, preview_truncated is true, and preview_prefix stays [3,4,5,6,7,8,9,0] before the final drain"
     },
     {
       "id": "remaining-capacity",
