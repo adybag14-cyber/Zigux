@@ -213,7 +213,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 93
+EXPECTED_SELF_TEST_CASE_COUNT = 102
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
@@ -261,12 +261,26 @@ def validate_forbidden_markers(text: str, *, label: str, markers: list[str]) -> 
     return issues
 
 
+def normalize_workflow_scope_line(line: str) -> str:
+    normalized = line.strip()
+    if normalized.startswith("- "):
+        normalized = normalized[2:].strip()
+    if normalized.startswith("'") and normalized.endswith("'"):
+        normalized = normalized[1:-1]
+    return normalized
+
+
 def validate_workflow_scope_fragments(text: str) -> list[str]:
-    return validate_required_markers(
-        text,
-        label="workflow_scope",
-        markers=WORKFLOW_SCOPE_REQUIRED_FRAGMENTS,
-    )
+    normalized_lines = {
+        normalize_workflow_scope_line(line)
+        for line in text.splitlines()
+        if normalize_workflow_scope_line(line)
+    }
+    issues: list[str] = []
+    for marker in WORKFLOW_SCOPE_REQUIRED_FRAGMENTS:
+        if marker not in normalized_lines:
+            issues.append(f"workflow_scope:missing_marker:{marker}")
+    return issues
 
 
 def extract_workflow_scope_pattern(text: str) -> str | None:
@@ -566,88 +580,40 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:workflow_job_forbidden_failure")
         checks_run += 1
 
-    scope_text = "\n".join(WORKFLOW_SCOPE_REQUIRED_FRAGMENTS)
+    scope_text = "\n".join(
+        f"      - '{marker}'" for marker in WORKFLOW_SCOPE_REQUIRED_FRAGMENTS
+    )
     if validate_workflow_scope_fragments(scope_text):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope")
     checks_run += 1
 
-    scope_issues = validate_workflow_scope_fragments("scripts/zigux/**")
-    if "workflow_scope:missing_marker:Documentation/zigux/**" not in scope_issues:
-        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_failure")
-    if "workflow_scope:missing_marker:.github/workflows/zigux-bootstrap.yml" not in scope_issues:
-        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_workflow_failure")
-    checks_run += 1
+    for marker in WORKFLOW_SCOPE_REQUIRED_FRAGMENTS:
+        scope_missing = validate_workflow_scope_fragments(
+            "\n".join(
+                f"      - '{item}'"
+                for item in WORKFLOW_SCOPE_REQUIRED_FRAGMENTS
+                if item != marker
+            )
+        )
+        expected_scope_issue = f"workflow_scope:missing_marker:{marker}"
+        if scope_missing != [expected_scope_issue]:
+            raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_failure")
+        checks_run += 1
 
     scope_pattern_text = """if printf '%s\\n' \\\"$changed_files\\\" | grep -Eq '^(\\.github/workflows/zigux-bootstrap\\.yml|scripts/zigux/install-zig\\.py|scripts/zigux/check-phase2-cross\\.py|scripts/zigux/check-phase2-cross-selftest-alignment\\.py|scripts/zigux/fixdep\\.zig|scripts/zigux/genksyms\\.zig|scripts/zigux/kconfig/conf_bridge\\.zig|scripts/zigux/kconfig/confdata_bridge\\.zig|scripts/zigux/zig-toolchain-policy\\.json|zigux/Makefile|zigux/tests/fixtures/phase2_cross_targets\\.json)$'; then"""
     if validate_workflow_scope_pattern(scope_pattern_text):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern")
     checks_run += 1
 
-    missing_scope_pattern = scope_pattern_text.replace("scripts/zigux/genksyms\\.zig|", "", 1)
-    missing_scope_pattern_issues = validate_workflow_scope_pattern(missing_scope_pattern)
-    expected_scope_pattern_issue = "workflow_scope_pattern:missing_marker:scripts/zigux/genksyms\\.zig"
-    if missing_scope_pattern_issues != [expected_scope_pattern_issue]:
-        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_failure")
-    checks_run += 1
-
-    missing_confdata_scope_pattern = scope_pattern_text.replace(
-        "scripts/zigux/kconfig/confdata_bridge\\.zig|", "", 1
-    )
-    missing_confdata_scope_pattern_issues = validate_workflow_scope_pattern(
-        missing_confdata_scope_pattern
-    )
-    expected_confdata_scope_pattern_issue = (
-        "workflow_scope_pattern:missing_marker:scripts/zigux/kconfig/confdata_bridge\\.zig"
-    )
-    if missing_confdata_scope_pattern_issues != [expected_confdata_scope_pattern_issue]:
-        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_confdata_failure")
-    checks_run += 1
-
-    missing_install_scope_pattern = scope_pattern_text.replace(
-        "scripts/zigux/install-zig\\.py|", "", 1
-    )
-    missing_install_scope_pattern_issues = validate_workflow_scope_pattern(
-        missing_install_scope_pattern
-    )
-    expected_install_scope_pattern_issue = (
-        "workflow_scope_pattern:missing_marker:scripts/zigux/install-zig\\.py"
-    )
-    if missing_install_scope_pattern_issues != [expected_install_scope_pattern_issue]:
-        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_install_failure")
-    checks_run += 1
-
-    missing_toolchain_policy_scope_pattern = scope_pattern_text.replace(
-        "scripts/zigux/zig-toolchain-policy\\.json|", "", 1
-    )
-    missing_toolchain_policy_scope_pattern_issues = validate_workflow_scope_pattern(
-        missing_toolchain_policy_scope_pattern
-    )
-    expected_toolchain_policy_scope_pattern_issue = (
-        "workflow_scope_pattern:missing_marker:scripts/zigux/zig-toolchain-policy\\.json"
-    )
-    if (
-        missing_toolchain_policy_scope_pattern_issues
-        != [expected_toolchain_policy_scope_pattern_issue]
-    ):
-        raise SystemExit(
-            "phase2-cross-alignment:self-test:workflow_scope_pattern_toolchain_policy_failure"
-        )
-    checks_run += 1
-
-    missing_makefile_scope_pattern = scope_pattern_text.replace(
-        "zigux/Makefile|", "", 1
-    )
-    missing_makefile_scope_pattern_issues = validate_workflow_scope_pattern(
-        missing_makefile_scope_pattern
-    )
-    expected_makefile_scope_pattern_issue = (
-        "workflow_scope_pattern:missing_marker:zigux/Makefile"
-    )
-    if missing_makefile_scope_pattern_issues != [expected_makefile_scope_pattern_issue]:
-        raise SystemExit(
-            "phase2-cross-alignment:self-test:workflow_scope_pattern_makefile_failure"
-        )
-    checks_run += 1
+    for marker in WORKFLOW_SCOPE_PATTERN_MARKERS:
+        missing_scope_pattern = scope_pattern_text.replace(f"{marker}|", "", 1)
+        if missing_scope_pattern == scope_pattern_text:
+            missing_scope_pattern = scope_pattern_text.replace(f"|{marker}", "", 1)
+        missing_scope_pattern_issues = validate_workflow_scope_pattern(missing_scope_pattern)
+        expected_scope_pattern_issue = f"workflow_scope_pattern:missing_marker:{marker}"
+        if missing_scope_pattern_issues != [expected_scope_pattern_issue]:
+            raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_failure")
+        checks_run += 1
 
     makefile_text = "\n".join(
         [
