@@ -48,12 +48,14 @@ Current `master` still carries the four-anchor Phase 5 reminder packet together 
   - `zigux/tests/phase5_trace_events_sample_manifest.json`
   - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-Fresh shared-surface readback also keeps these current gaps explicit:
+Fresh shared-surface readback still keeps the connector-local gap split explicit:
 
-- `zigux/tests/phase5_build.zig`
-- `zigux/tests/phase5_bytestream_fifo.zig`
-- `zigux/tests/phase5_bytestream_fifo_survey.zig`
-- `zigux/tests/phase5_kobject_example_survey.zig`
+- authenticated-contents readback still flakes on:
+  - `zigux/tests/phase5_build.zig`
+  - `zigux/tests/phase5_bytestream_fifo.zig`
+  - `zigux/tests/phase5_bytestream_fifo_survey.zig`
+  - `zigux/tests/phase5_kobject_example_survey.zig`
+- newer public-tree rereads already show `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` present on current `master` again, so kobject reminder work should treat them as current public-tree-backed companion evidence rather than as repo-absence gaps
 
 Some shared reminder surfaces still narrate the older kretprobe-gap posture. Do not route shared sequencing work as though kretprobe still sits inside a survey-note-only gap, and do not route bytestream or kobject work as though the older tests-root or shared-build companions are directly readable again just because those narrower packets are still reviewable.
 
@@ -72,7 +74,7 @@ That shared lane owns only:
 
 - the shared contributor packet in `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
 - wording that keeps the roadmap-backed four-anchor packet explicit while also keeping the current direct-readback split explicit
-- wording that keeps bytestream routed through its survey-note-plus-sample-plus-direct-manifest packet, kobject routed through its note-plus-sample-plus-tests packet, kretprobe routed through its restored note-plus-sample-plus-tests-plus-manifest-plus-survey packet, and trace-events routed through its directly readable non-runtime packet
+- wording that keeps bytestream routed through its survey-note-plus-sample-plus-direct-manifest packet, kobject routed through its note-plus-sample-plus-tests packet plus the current public-tree-backed `zigux/tests/phase5_kobject_example_survey.zig` and shared `zigux/tests/phase5_build.zig` companion evidence when the broader packet matters, kretprobe routed through its restored note-plus-sample-plus-tests-plus-manifest-plus-survey packet, and trace-events routed through its directly readable non-runtime packet
 - wording that keeps the current missing shared `zigux/tests/phase5_build.zig` route explicit instead of presenting a live Linux-style shared replay path on current `master`
 - wording that keeps the Phase 5 versus Phase 9 boundary explicit for the later `samples/zigux/runtime_*.zig` and `*_loader.zig` families
 - no-extra-sample reminders for helper families such as `string`, `cmdline`, `argv`, `rbtree`, direct `bitmap`, and standalone formatting samples
@@ -102,7 +104,7 @@ The kobject lane currently owns the directly readable landed packet for:
 
 Keep kobject-local follow-through inside the approved ownership-and-lifetime packet: `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, `runTeardownReplay()`, `ownershipSummary()`, and the `abandoned_before_registration` versus `tore_down_registered_attributes` split.
 
-Do not reopen `zigux/tests/phase5_kobject_example_survey.zig` or the older shared-build path from this lane until a fresh reread proves those exact paths returned.
+Keep `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` visible as current public-tree-backed companion evidence when shared reminder work needs the broader packet, but do not restate either path as direct authenticated-contents evidence from this lane until a fresh reread proves the connector path returned.
 
 ### Kretprobe packet
 
