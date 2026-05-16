@@ -39,6 +39,7 @@ STUDY_ONLY_ANCHORS = [
     "`kernel/trace/ring_buffer.c`",
 ]
 SCRIPTS_README_EXACT_LINE_MARKERS = [
+    f"- `{CHECKER_PATH}`",
     "- `Documentation/zigux/phase14-release-boundary-survey.md`",
     "- `zigux/tests/phase14_workqueue_reviewability.zig`",
     "- `make -C zigux phase14-test`",
@@ -384,6 +385,7 @@ def good_scripts_readme_text() -> str:
         [
             "# scripts/zigux",
             "Phase 14 notes",
+            f"- `{CHECKER_PATH}`",
             "- `Documentation/zigux/phase14-release-boundary-survey.md`",
             "- `zigux/tests/phase14_workqueue_reviewability.zig`",
             "- `make -C zigux phase14-test`",
@@ -490,6 +492,38 @@ def run_self_test() -> int:
             for error in errors:
                 print(f"- {error}", file=sys.stderr)
             return 1
+
+        write(
+            root,
+            SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                f"- `{CHECKER_PATH}`\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            CHECKER_PATH,
+            "self-test expected missing scripts-readme checker marker failure",
+        )
+        write(root, SCRIPTS_README_PATH, good_scripts_readme_text())
+
+        write(
+            root,
+            SCRIPTS_README_PATH,
+            good_scripts_readme_text().replace(
+                f"- `{CHECKER_PATH}`\n",
+                f"- `{CHECKER_PATH}`\n- `{CHECKER_PATH}`\n",
+                1,
+            ),
+        )
+        expect_contains(
+            check(root, source_text=MARKER),
+            CHECKER_PATH,
+            "self-test expected duplicate scripts-readme checker marker failure",
+        )
+        write(root, SCRIPTS_README_PATH, good_scripts_readme_text())
 
         write(
             root,
@@ -988,7 +1022,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=33")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
