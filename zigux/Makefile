@@ -18,7 +18,7 @@ PYTHON ?= python3
 ZIGUX_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 ZIG_PINNED_CHANNEL := 0.17.0-dev.87+9b177a7d2
 ZIG_PINNED_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/zig-x86_64-linux-$(ZIG_PINNED_CHANNEL)/zig $(ZIGUX_ROOT)/.zig-toolchain/zig-x86_64-linux-$(ZIG_PINNED_CHANNEL)/bin/zig))
-ZIG_LOCAL_TOOLCHAIN := $(ZIG_PINNED_TOOLCHAIN)
+ZIG_LOCAL_TOOLCHAIN := $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),$(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig)))
 ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)
 
 phase1-validate:
