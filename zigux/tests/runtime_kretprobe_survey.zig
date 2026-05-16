@@ -269,7 +269,7 @@ test "phase 9 runtime kretprobe survey gate restores the shipped loader review p
     );
     try expectContains(
         survey_note,
-        "prepared selftest-hook drift rejection, prepared shared-plan drift rejection, and release-without-substrate behavior",
+        "prepared selftest-hook drift rejection, prepared shared-plan drift rejection, prepared shared allocator and init-flow drift rejection, and release-without-substrate behavior",
     );
     try expectContains(
         survey_note,
