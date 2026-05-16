@@ -81,6 +81,12 @@ pub const RuntimeBitmapLoader = struct {
         return self.stage_state;
     }
 
+    fn cachePreparedPlan(self: *Self, plan: RuntimeBitmapLoadPlan) RuntimeBitmapLoadPlan {
+        self.cached_plan = plan;
+        self.stage_state = .prepared;
+        return plan;
+    }
+
     pub fn planFor(module: *const runtime_bitmap_sample.RuntimeBitmapSample) !RuntimeBitmapLoadPlan {
         const descriptor = runtime_bitmap_sample.RuntimeBitmapSample.descriptor();
         const module_stage = module.stage();
@@ -107,14 +113,24 @@ pub const RuntimeBitmapLoader = struct {
         if (self.stage_state != .idle) return error.LoaderAlreadyPrepared;
 
         const plan = try planFor(module);
-        self.cached_plan = plan;
-        self.stage_state = .prepared;
-        return plan;
+        return self.cachePreparedPlan(plan);
+    }
+
+    fn prepareSharedRequestForPlan(
+        self: *Self,
+        plan: RuntimeBitmapLoadPlan,
+    ) !runtime_loader.PreparedRequest {
+        _ = self.cachePreparedPlan(plan);
+        errdefer {
+            self.cached_plan = null;
+            self.stage_state = .idle;
+        }
+        return runtime_loader.prepareRequest(toSharedLoadPlan(plan));
     }
 
     pub fn prepareSharedRequest(self: *Self, module: *const runtime_bitmap_sample.RuntimeBitmapSample) !runtime_loader.PreparedRequest {
-        const plan = try self.prepare(module);
-        return runtime_loader.prepareRequest(toSharedLoadPlan(plan));
+        if (self.stage_state != .idle) return error.LoaderAlreadyPrepared;
+        return self.prepareSharedRequestForPlan(try planFor(module));
     }
 
     pub fn requestRuntimeLoad(self: *Self) !RuntimeBitmapLoadPlan {
@@ -276,6 +292,33 @@ test "runtime bitmap loader emits the shared runtime-loader contract plan" {
         shared_request,
         .released_without_substrate,
         pending_plan,
+    ));
+}
+
+test "runtime bitmap loader rolls back failed shared-request preparation" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    const plan = try RuntimeBitmapLoader.planFor(&module);
+    var invalid_plan = plan;
+    invalid_plan.provides_selftest_hook = false;
+
+    var loader = RuntimeBitmapLoader{};
+    try std.testing.expectError(
+        error.InvalidSelftestHookEvidence,
+        loader.prepareSharedRequestForPlan(invalid_plan),
+    );
+    try std.testing.expectEqual(LoaderStage.idle, loader.stage());
+    try std.testing.expect(loader.cached_plan == null);
+
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
     ));
 }
 
