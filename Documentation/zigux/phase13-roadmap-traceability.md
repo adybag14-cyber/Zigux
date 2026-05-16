@@ -23,11 +23,13 @@ When shared Phase 13 wording changes, keep these current shared surfaces aligned
 
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+- `zigux/tests/phase13_build.zig`
 - `scripts/zigux/validate-phase13-release.py`
 - `zigux/Makefile`
 - stable `make -C zigux phase13-validate`
@@ -63,11 +65,11 @@ Keep that adjacent packet explicit through:
 
 ## Repo-Reality Gaps
 
-Keep these Phase 13 shared-summary gaps explicit until current `master` materializes them again:
+Keep this remaining older shared-summary gap explicit until current `master` materializes it again:
 
-- `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
-- `zigux/tests/phase13_build.zig`
+
+Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md` and `zigux/tests/phase13_build.zig`, so keep them aligned as shipped shared surfaces instead of presenting them here as missing packet members.
 
 Keep older or missing direct helper companions recorded as repo-reality gaps when current `master` cannot materialize them instead of presenting them here as shipped evidence.
 
