@@ -109,6 +109,7 @@ phase3-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-linux-zigux-header-governance.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-header-family-survey.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-validator-support-surface.py --self-test
