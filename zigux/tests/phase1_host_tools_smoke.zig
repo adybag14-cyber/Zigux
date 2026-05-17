@@ -12,3 +12,30 @@ test "phase1 host-tools smoke imports the live helper modules" {
     try std.testing.expect(@hasDecl(bitmap, "setRange"));
     try std.testing.expect(@hasDecl(string, "strtobool"));
 }
+
+test "phase1 host-tools smoke exercises live helper behavior" {
+    const parsed = cmdline.memparse("64K tail");
+    try std.testing.expectEqual(@as(u64, 64 << 10), parsed.value);
+    try std.testing.expectEqualStrings(" tail", parsed.rest);
+
+    const word_bits = find_bit.bits_per_long;
+    const nbits = word_bits + 5;
+    var map = [_]find_bit.Word{ 0, 0 };
+    bitmap.setRange(&map, word_bits - 1, 3);
+    try std.testing.expectEqual(word_bits - 1, find_bit.findFirstBit(&map, nbits));
+    try std.testing.expectEqual(word_bits - 1, find_bit.findNextBit(&map, nbits, word_bits - 1));
+    try std.testing.expectEqual(word_bits, find_bit.findNextBit(&map, nbits, word_bits));
+
+    var rendered: [32]u8 = undefined;
+    const rendered_len = bitmap.scnprintf(&map, nbits, &rendered);
+    var expected: [32]u8 = undefined;
+    const expected_text = try std.fmt.bufPrint(&expected, "{d}-{d}", .{ word_bits - 1, word_bits + 1 });
+    try std.testing.expectEqualStrings(expected_text, rendered[0..rendered_len]);
+
+    var padded = [_]u8{0xaa} ** 6;
+    try std.testing.expectEqual(@as(isize, 2), string.strscpyPad(&padded, "hi"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 0, 0, 0, 0 }, &padded);
+
+    const sysfs = [_][]const u8{ "disabled", "auto\n", "manual" };
+    try std.testing.expectEqual(@as(?usize, 1), string.sysfsMatchString(&sysfs, "auto"));
+}
