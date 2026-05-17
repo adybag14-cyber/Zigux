@@ -64,7 +64,7 @@ REQUIRED_MARKERS = {
     TESTS_README_PATH: [
         "scripts/zigux/check-phase12-release-readiness-packet.py",
         "make -C zigux phase12-validate",
-        "phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
+        "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
         "Documentation/zigux/phase12-nvme-pci-slice.md",
     ],
     RELEASE_READINESS_SURVEY_PATH: [
@@ -100,6 +100,21 @@ REQUIRED_MARKERS = {
     ],
 }
 
+REQUIRED_EXACT_COUNT_MARKERS = {
+    RELEASE_READINESS_SURVEY_PATH: {
+        "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`": 1,
+    },
+    RELEASE_SEQUENCING_PATH: {
+        "readiness-note support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`": 1,
+    },
+    SCRIPTS_README_PATH: {
+        "scripts/zigux/check-phase12-release-readiness-packet.py --self-test": 1,
+    },
+    TESTS_README_PATH: {
+        "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`": 1,
+    },
+}
+
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
@@ -115,6 +130,12 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 failures.append(f"{rel_path}:{marker}")
+        for marker, expected in REQUIRED_EXACT_COUNT_MARKERS.get(rel_path, {}).items():
+            actual = text.count(marker)
+            if actual not in (0, expected):
+                failures.append(
+                    f"{rel_path}:count:{marker}:expected={expected}:actual={actual}"
+                )
 
     return failures
 
@@ -150,8 +171,17 @@ def build_self_test_cases() -> list[tuple[str, int]]:
     return cases
 
 
+def build_exact_count_self_test_cases() -> list[tuple[str, str]]:
+    cases: list[tuple[str, str]] = []
+    for rel_path, markers in REQUIRED_EXACT_COUNT_MARKERS.items():
+        for marker in markers:
+            cases.append((rel_path, marker))
+    return cases
+
+
 SELF_TEST_CASES = build_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 46
+EXACT_COUNT_SELF_TEST_CASES = build_exact_count_self_test_cases()
+EXPECTED_SELF_TEST_CASE_COUNT = 50
 
 
 def write_fixture_tree(root: Path) -> None:
@@ -174,6 +204,13 @@ def remove_marker(path: Path, marker: str) -> None:
     )
 
 
+def duplicate_marker(path: Path, marker: str) -> None:
+    path.write_text(
+        path.read_text(encoding="utf-8") + f"- {marker}\n",
+        encoding="utf-8",
+    )
+
+
 def expect_marker_failure(root: Path, rel_path: str, marker_index: int) -> None:
     marker = REQUIRED_MARKERS[rel_path][marker_index]
     write_fixture_tree(root)
@@ -181,10 +218,18 @@ def expect_marker_failure(root: Path, rel_path: str, marker_index: int) -> None:
     expect_failure(root, f"{rel_path}:{marker}")
 
 
+def expect_exact_count_failure(root: Path, rel_path: str, marker: str) -> None:
+    write_fixture_tree(root)
+    duplicate_marker(root / rel_path, marker)
+    expect_failure(root, f"{rel_path}:count:{marker}:expected=1:actual=2")
+
+
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase12-release-readiness-packet-"))
     try:
-        actual_case_count = len(REQUIRED_FILES) + len(SELF_TEST_CASES)
+        actual_case_count = (
+            len(REQUIRED_FILES) + len(SELF_TEST_CASES) + len(EXACT_COUNT_SELF_TEST_CASES)
+        )
         if actual_case_count != EXPECTED_SELF_TEST_CASE_COUNT:
             raise SystemExit(
                 "unexpected self-test case count: "
@@ -203,6 +248,9 @@ def run_self_test() -> int:
 
         for rel_path, marker_index in SELF_TEST_CASES:
             expect_marker_failure(base, rel_path, marker_index)
+
+        for rel_path, marker in EXACT_COUNT_SELF_TEST_CASES:
+            expect_exact_count_failure(base, rel_path, marker)
 
         print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
         print(
