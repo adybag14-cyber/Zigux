@@ -21,9 +21,9 @@ It only records the current bounded evidence posture and the explicit reasons th
 
 ## Current direct readback
 
-- current direct reads in this slot still recover this note, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `scripts/zigux/validate-phase14.py`, `zigux/Makefile`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_build.zig`
-- those shared packet surfaces still keep the validator-first route, focused smoke shard, and full replay entrypoints explicit, but direct readback of current `zigux/Makefile` now shows that `make -C zigux phase14-validate` reruns only `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
-- because that shared smoke packet is still directly readable on current `master`, this note should treat it as live shared evidence while keeping the anchor-local bridges, surveys, and retained-in-C decisions explicitly bounded
+- current direct reads in this slot now recover this note, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md`
+- those readable documentation surfaces now keep the narrower repo-reality split explicit: the shared smoke note, the cross-anchor traceability note, the release-and-gap notes, and the freeze-map plus study-only-accounting companions are readable again, while validator, build, manifest, survey, and bridge packet members still need separate successful readback before they can be reused here as direct current-`master` evidence
+- because that shared documentation packet is directly readable on current `master`, this note should treat that documentation layer as live shared evidence while keeping the anchor-local executable packet and retained-in-C decisions explicitly bounded
 
 ## Retained-in-C boundaries
 
@@ -35,7 +35,7 @@ The honest current statement is boundary-study only, not a live bridge or replay
 ### Ring buffer
 
 Reserve or commit publication, the `cmpxchg()`-guarded `reader_page` handoff, `ring_buffer_alloc_read_page()` import and guarded remote-reader metadata setup, `ring_buffer_read_page()` consume or extract serialization, exported-page forced-copy decisions, wakeup or watermark publication, tracefs reader competition, mapped-reader limitations, tracefs splice or resize lockouts, and `rb_remove_pages()` mapped-reader lifetime teardown still stay with the shipped C implementation.
-The honest current statement is still boundary-study only: the dedicated `P14-L08` survey note, manifest, and focused survey replay are live study evidence, but they do not amount to a bridge, parity, or ownership claim.
+The honest current statement is still boundary-study only: the recovered documentation packet now carries the cross-anchor traceability note, the shared smoke note, the current productization-gap split, and the Phase 15 study-only accounting companion, while the dedicated `P14-L08` survey, manifest, and focused replay remain outside the directly recovered executable layer in this lane.
 
 ### Skbuff
 
@@ -67,5 +67,5 @@ The honest current statement is freeze-in-C boundary evidence only, not a live b
 
 ## Next bounded step
 
-Keep this cross-anchor note aligned when the shared smoke packet moves.
-On the next same-lane reread, compare this note with `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/Makefile`, and `zigux/tests/phase14_end_to_end_smoke_manifest.json` to confirm that the shared smoke survey still treats the tests-readme smoke checker as shared packet evidence instead of a live `make -C zigux phase14-validate` rerun, and only reopen anchor-local bridge or freeze-governance work if that shared packet drifts again.
+Keep this ring-buffer traceability note aligned with the recovered Phase 14 documentation packet.
+On the next same-lane reread, compare this note with `Documentation/zigux/phase14-productization-gap-survey.md`, `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `Documentation/zigux/phase15-study-only-anchor-accounting.md` to confirm that the ring-buffer entry still treats the reader-page import, consume-or-extract serialization, `reader_page` handoff, and mapped-reader teardown as study-only boundaries while the executable survey companions remain a separate readback gap.
