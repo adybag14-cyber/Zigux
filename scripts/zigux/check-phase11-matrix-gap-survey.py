@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -26,14 +27,6 @@ REQUIRED_MARKERS = [
     "inventory-backed rather than direct-readback current-head evidence",
     "`scripts/zigux/check-phase11-matrix-gap-survey.py`",
     "`python3 scripts/zigux/check-phase11-matrix-gap-survey.py`",
-]
-
-SELF_TEST_CASES = [
-    (
-        "`PHASE11_MATRIX_GAP_STATUS=direct_readback_matrix_drift_recorded`",
-        "`PHASE11_MATRIX_GAP_STATUS=direct_readback_matrix_drift_recorded`",
-    ),
-    ("lane: `P11-L05`", "lane: `P11-L05`"),
 ]
 
 FIXTURE_TEXT = """# Phase 11 Validation Matrix Gap Survey
@@ -160,6 +153,14 @@ def expect_failure(root: Path, fragment: str) -> None:
     raise AssertionError(f"expected failure containing {fragment!r}")
 
 
+def remove_marker(text: str, marker: str) -> str:
+    pattern = r"\s+".join(re.escape(part) for part in marker.split())
+    updated_text, count = re.subn(pattern, "", text, flags=re.MULTILINE)
+    if count < 1:
+        raise AssertionError(f"expected to remove marker from fixture: {marker!r}")
+    return updated_text
+
+
 def run_self_test() -> None:
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_matrix_gap_"))
     try:
@@ -167,13 +168,13 @@ def run_self_test() -> None:
         build_fixture(fixture)
         run_check(fixture)
 
-        for index, (needle, fragment) in enumerate(SELF_TEST_CASES, start=1):
+        for index, marker in enumerate(REQUIRED_MARKERS, start=1):
             case_root = tmpdir / f"missing_marker_{index}"
             shutil.copytree(fixture, case_root, dirs_exist_ok=True)
             survey_path = case_root / SURVEY_PATH
             survey_text = survey_path.read_text(encoding="utf-8")
-            survey_path.write_text(survey_text.replace(needle, "", 1), encoding="utf-8")
-            expect_failure(case_root, fragment)
+            survey_path.write_text(remove_marker(survey_text, marker), encoding="utf-8")
+            expect_failure(case_root, marker)
 
         missing_file_root = tmpdir / "missing_file"
         shutil.copytree(fixture, missing_file_root, dirs_exist_ok=True)
@@ -181,7 +182,7 @@ def run_self_test() -> None:
         expect_failure(missing_file_root, SURVEY_PATH)
 
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST=pass")
-        print(f"PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 1}")
+        print(f"PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT={len(REQUIRED_MARKERS) + 1}")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
