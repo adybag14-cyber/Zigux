@@ -83,6 +83,26 @@ def require(text: str, parts: tuple[str, ...], label: str) -> None:
         raise RuntimeError(f"{label} is missing required fragments: {missing}")
 
 
+def _require_current_repo_reality(root: Path) -> None:
+    missing_direct = [
+        rel for rel in DIRECT_READBACK_PACKET if not (root / Path(rel)).exists()
+    ]
+    if missing_direct:
+        raise RuntimeError(
+            "direct-readback packet no longer matches the current tree: "
+            + ", ".join(missing_direct)
+        )
+
+    present_broader = [
+        rel for rel in MISSING_BROADER_PACKET if (root / Path(rel)).exists()
+    ]
+    if present_broader:
+        raise RuntimeError(
+            "broader packet entries are now present and the repo-reality warning must be narrowed: "
+            + ", ".join(present_broader)
+        )
+
+
 def check(root: Path) -> None:
     note = read(root, NOTE)
     checklist = read(root, CHECKLIST)
@@ -90,6 +110,7 @@ def check(root: Path) -> None:
     require(note, NOTE_REQ + DIRECT_READBACK_PACKET + MISSING_BROADER_PACKET, "phase4 note")
     require(readme, README_PENDING_REQ + MISSING_BROADER_PACKET, "tests README")
     require(checklist, CHECKLIST_PENDING_REQ, "review checklist")
+    _require_current_repo_reality(root)
 
 
 def write(path: Path, text: str) -> None:
@@ -121,6 +142,8 @@ def fixture_root(root: Path) -> None:
         "# Zigux Review Checklist\n\n"
         "  * if the change touches the shared Phase 4 rollback-ownership and lab-matrix packet, do `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` still agree on the current direct-readback packet, keep the repo-reality warning explicit for the missing broader Phase 4 validator, lab-matrix, and local-only perf companions, keep the host-side artifact-diff contract plus remaining-gap wording truthful, keep the parked kprobe and parked `test_fsmount` reminder packet framed as last-known packet members rather than current direct evidence, keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion, keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call, and keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval?\n",
     )
+    write(root / Path(DIRECT_READBACK_PACKET[3]), "# current checker under test\n")
+    write(root / Path(DIRECT_READBACK_PACKET[4]), "# sibling pin checker\n")
 
 
 def self_test() -> None:
@@ -157,6 +180,24 @@ def self_test() -> None:
         else:
             raise AssertionError("expected checklist owner drift to fail")
 
+        fixture_root(root)
+        (root / Path(DIRECT_READBACK_PACKET[4])).unlink()
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected missing direct-readback file to fail")
+
+        fixture_root(root)
+        write(root / Path(MISSING_BROADER_PACKET[0]), "# returned broader packet member\n")
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected present broader packet file to fail")
+
     print("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass")
     print(f"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES={cases}")
 
@@ -172,8 +213,8 @@ def main() -> int:
         print(f"PHASE4_REPO_REALITY_WARNING=fail: {exc}", file=sys.stderr)
         return 1
     print("PHASE4_REPO_REALITY_WARNING=pass")
-    print("PHASE4_REPO_REALITY_WARNING_DIRECT_READBACK_FILES=5")
-    print("PHASE4_REPO_REALITY_WARNING_MISSING_BROADER_COMPANIONS=8")
+    print(f"PHASE4_REPO_REALITY_WARNING_DIRECT_READBACK_FILES={len(DIRECT_READBACK_PACKET)}")
+    print(f"PHASE4_REPO_REALITY_WARNING_MISSING_BROADER_COMPANIONS={len(MISSING_BROADER_PACKET)}")
     return 0
 
 
