@@ -128,9 +128,8 @@ EXPECTED_STRING_ANCHORS = {
     "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
     "next_safe_step_note": (
         "If this helper lane reopens, keep the helper-local sysfs review anchors aligned "
-        "across the string review packet and closure note unless current master later adds "
-        "dedicated shared sysfs fixture keys; until then, newline-aware equality and lookup "
-        "order remain owned by the direct string tests."
+        "across the string review packet and this lane note unless dedicated shared sysfs "
+        "fixture keys land; do not reopen missing closure-side validator names by default."
     ),
 }
 
