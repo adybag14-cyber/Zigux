@@ -297,6 +297,23 @@ def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
         )
 
 
+def expect_missing_file(label: str, root: Path, expected_file: str) -> None:
+    missing_files, missing_markers, commit_sync_errors = validate(root)
+    if missing_markers:
+        raise SystemExit(
+            f"phase8-libbpf-segment-gate-self-test:{label}:unexpected_missing_markers:{','.join(missing_markers)}"
+        )
+    if commit_sync_errors:
+        raise SystemExit(
+            f"phase8-libbpf-segment-gate-self-test:{label}:unexpected_commit_sync:{','.join(commit_sync_errors)}"
+        )
+    if expected_file not in missing_files:
+        actual = ",".join(missing_files) if missing_files else "none"
+        raise SystemExit(
+            f"phase8-libbpf-segment-gate-self-test:{label}:expected_missing_file:{expected_file}:actual:{actual}"
+        )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase8_libbpf_segment_gate_") as tmp_dir:
         tmp_root = Path(tmp_dir)
@@ -313,6 +330,7 @@ def run_self_test() -> int:
 
         docs_readme_path = tmp_root / "Documentation/zigux/README.md"
         original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.writeText = None
         docs_readme_path.write_text(
             original_docs_readme.replace(
                 "make -C zigux phase8-libbpf-segments-test",
@@ -494,6 +512,22 @@ def run_self_test() -> int:
         )
         segments_test_path.write_text(original_segments_test, encoding="utf-8")
 
+        survey_path.unlink()
+        expect_missing_file("survey_file_presence", tmp_root, SURVEY_PATH)
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        focused_build_path.unlink()
+        expect_missing_file(
+            "focused_build_file_presence",
+            tmp_root,
+            "zigux/tests/phase8_libbpf_segments_only_build.zig",
+        )
+        focused_build_path.write_text(original_focused_build, encoding="utf-8")
+
+        manifest_path.unlink()
+        expect_missing_file("manifest_file_presence", tmp_root, MANIFEST_PATH)
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         segments_test_path.write_text(
             original_segments_test.replace(
                 FIXTURE_SURVEYED_COMMIT,
@@ -517,7 +551,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
