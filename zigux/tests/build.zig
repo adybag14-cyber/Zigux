@@ -299,6 +299,50 @@ fn addPhase3LowLevelWrappers(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3ListHListDump(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const uapi_list_hlist = b.createModule(.{
+        .root_source_file = b.path("../uapi/list_hlist.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const list_hlist_bindings = b.createModule(.{
+        .root_source_file = b.path("../bindings/list_hlist.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    list_hlist_bindings.addImport("uapi_list_hlist", uapi_list_hlist);
+
+    const list_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/list_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const hlist_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/hlist_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_list_hlist_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("list_hlist_bindings", list_hlist_bindings);
+    root_module.addImport("list_view", list_view);
+    root_module.addImport("hlist_view", hlist_view);
+
+    const exe = b.addExecutable(.{
+        .name = "phase3-list-hlist-dump",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(exe);
+}
+
 fn addPhase3AbiDump(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -333,6 +377,7 @@ pub fn build(b: *std.Build) void {
     const phase3_errptr_xarray_dump = addPhase3ErrPtrXarrayDump(b, target, optimize);
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
     const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
+    const phase3_list_hlist_dump = addPhase3ListHListDump(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
 
     const phase12_virtio_net_survey = addSurveyTest(
@@ -378,6 +423,12 @@ pub fn build(b: *std.Build) void {
         "Run the shared Phase 3 low-level wrapper packet from zigux/tests",
     );
     phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);
+
+    const phase3_list_hlist_step = b.step(
+        "phase3-list-hlist",
+        "Run the shared Phase 3 list/hlist dump from zigux/tests",
+    );
+    phase3_list_hlist_step.dependOn(&phase3_list_hlist_dump.step);
 
     const phase3_test_step = b.step(
         "phase3-test",
