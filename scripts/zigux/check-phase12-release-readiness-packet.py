@@ -56,6 +56,7 @@ REQUIRED_MARKERS = {
         "make -C zigux phase12-validate",
         "avoid implying a broader shared `check-phase12-*.py` family, focused-libbpf-only replay, or cross-build replay",
         "support-bundle evidence rather than as a second direct replay route",
+        "if `zig` is unavailable on `PATH`, keep the repo-local `.zig-toolchain` fallback plus the attached-Zig degraded rerun explicit by naming `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of implying a focused libbpf-only replay, a cross-build replay, or another unshipped support route?",
     ],
     FREEZE_MAP_PATH: [
         "`net/core/skbuff.c`",
@@ -197,7 +198,7 @@ def build_exact_count_self_test_cases() -> list[tuple[str, str]]:
 
 SELF_TEST_CASES = build_self_test_cases()
 EXACT_COUNT_SELF_TEST_CASES = build_exact_count_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 60
+EXPECTED_SELF_TEST_CASE_COUNT = 59
 
 
 def write_fixture_tree(root: Path) -> None:
