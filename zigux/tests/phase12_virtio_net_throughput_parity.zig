@@ -1,0 +1,59 @@
+const std = @import("std");
+const throughput_parity = @import("virtio_net_throughput_parity");
+
+test "phase12 throughput parity gate passes once queue restore refill recycle and replay align" {
+    const summary = try throughput_parity.summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 4,
+        .queue_pairs_after_restore = 4,
+        .receive_buffers_before_reset = 512,
+        .receive_buffers_after_restore = 512,
+        .recycled_transmit_descriptors = 4,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = true,
+        .replay_checkpoint = .after_transmit_queue_restore,
+        .expected_min_ratio_pct = 90,
+    });
+
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", summary.anchor);
+    try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.parity_gate_ready, summary.status);
+    try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
+    try std.testing.expect(summary.recycle_budget_ready);
+    try std.testing.expect(summary.meets_expected_min_ratio);
+    try std.testing.expect(!summary.requires_post_reset_probe_replay);
+}
+
+test "phase12 throughput parity gate blocks stopped transmit queues below the wake threshold" {
+    const summary = try throughput_parity.summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 2,
+        .queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 256,
+        .receive_buffers_after_restore = 256,
+        .recycled_transmit_descriptors = 1,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = true,
+        .replay_checkpoint = .after_control_queue_restore,
+    });
+
+    try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.needs_transmit_recycle, summary.status);
+    try std.testing.expectEqual(@as(u8, 50), summary.recycle_ratio_pct);
+    try std.testing.expectEqual(@as(u8, 50), summary.throughput_ratio_pct);
+    try std.testing.expect(!summary.recycle_budget_ready);
+    try std.testing.expect(!summary.meets_expected_min_ratio);
+}
+
+test "phase12 throughput parity gate keeps post reset replay explicit when restore stops after refill" {
+    const summary = try throughput_parity.summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 1,
+        .queue_pairs_after_restore = 1,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .recycled_transmit_descriptors = 2,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = true,
+        .replay_checkpoint = .after_receive_refill,
+    });
+
+    try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.needs_post_reset_probe_replay, summary.status);
+    try std.testing.expect(summary.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
+}
