@@ -96,6 +96,12 @@ fn addPhase3DevTStarterPacket(
         .optimize = optimize,
     });
     dev_t_binding.addImport("uapi_dev_t", uapi_dev_t);
+    const version_binding = b.createModule(.{
+        .root_source_file = b.path("../bindings/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    version_binding.addImport("uapi_version", uapi_version);
 
     const abi_bindings = b.createModule(.{
         .root_source_file = b.path("../bindings/abi.zig"),
@@ -109,7 +115,7 @@ fn addPhase3DevTStarterPacket(
     });
     export_shim.addImport("abi_bindings", abi_bindings);
     export_shim.addImport("dev_t_binding", dev_t_binding);
-    export_shim.addImport("version_binding", uapi_version);
+    export_shim.addImport("version_binding", version_binding);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_dev_t_starter_packet.zig"),
@@ -118,7 +124,7 @@ fn addPhase3DevTStarterPacket(
     });
     root_module.addImport("uapi_dev_t", uapi_dev_t);
     root_module.addImport("dev_t_binding", dev_t_binding);
-    root_module.addImport("version_binding", uapi_version);
+    root_module.addImport("version_binding", version_binding);
     root_module.addImport("export_shim", export_shim);
 
     const tests = b.addTest(.{
