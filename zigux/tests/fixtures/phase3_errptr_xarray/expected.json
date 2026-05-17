@@ -24,6 +24,16 @@
       "decoded_value": null
     },
     {
+      "name": "inline_zero",
+      "kind": "xa_value",
+      "raw_hex": "0x1",
+      "raw_decimal": "1",
+      "is_err": false,
+      "is_value": true,
+      "decoded_error": null,
+      "decoded_value": 0
+    },
+    {
       "name": "inline_small",
       "kind": "xa_value",
       "raw_hex": "0x3b",
@@ -51,6 +61,16 @@
       "is_err": false,
       "is_value": false,
       "decoded_error": null,
+      "decoded_value": null
+    },
+    {
+      "name": "err_top",
+      "kind": "err_ptr",
+      "raw_hex": "0xffffffffffffffff",
+      "raw_decimal": "18446744073709551615",
+      "is_err": true,
+      "is_value": false,
+      "decoded_error": -1,
       "decoded_value": null
     },
     {
