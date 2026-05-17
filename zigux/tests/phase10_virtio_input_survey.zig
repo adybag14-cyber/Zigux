@@ -37,8 +37,9 @@ test "phase10 virtio input survey note keeps the restored verifier and queue cal
     defer allocator.free(manifest);
 
     try expectContains(survey_note, "PHASE10_STATUS=parked");
-    try expectContains(survey_note, "PHASE10_LANE_KEY=P10-L13");
+    try expectContains(survey_note, "PHASE10_LANE_KEY=P10-L22");
     try expectContains(survey_note, "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport");
+    try expectContains(survey_note, "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`");
     try expectContains(survey_note, "lab-only driver validation");
     try expectSurveyedCommitAlignment(allocator, survey_note, manifest);
     try expectContains(survey_note, "drivers/virtio/virtio_input_verify.zig");
@@ -104,6 +105,6 @@ test "phase10 virtio input slice companions keep the replay inventory and blocke
     try expectContains(module_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig");
     try expectContains(module_note, "zigux/tests/phase10_virtio_input_status_drain.zig");
     try expectContains(module_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig");
-    try expectContains(module_note, "the bounded status-drain helper plus replay");
+    try expectContains(module_note, "the dedicated status-drain helper plus replay");
     try expectContains(module_note, "registration lifecycle closure, freeze, restore, remove, and broader transport-backed lifecycle work remain outside this module slice");
 }
