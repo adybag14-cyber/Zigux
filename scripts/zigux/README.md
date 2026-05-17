@@ -116,7 +116,7 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet and the parked verify-shard-backed libbpf survey packet reviewable from the scripts root
 - keep the bounded driver-local NVMe foothold explicit too: `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` remain the bounded driver-local packet outside the shared smoke-first route
-- If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, so the shipped validator-first support bundle stays ahead of the smoke-first reruns.
+- If `zig` is unavailable on `PATH`, keep the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile` as the first rerun path for the shipped Make routes. If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, so the shipped validator-first support bundle stays ahead of the smoke-first reruns.
 
 ## Phase 13
 
