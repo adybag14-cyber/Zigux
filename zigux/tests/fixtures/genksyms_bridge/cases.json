@@ -38,6 +38,29 @@
     "expected": "long_options_expected.json"
   },
   {
+    "name": "abbreviated_long_options",
+    "argv": [
+      "--deb",
+      "--warn",
+      "--qui",
+      "--ref=foo.symref",
+      "--dump-t",
+      "types.symtypes",
+      "--pres"
+    ],
+    "mode": "stdout_json",
+    "expected": "abbreviated_long_options_expected.json"
+  },
+  {
+    "name": "ambiguous_long_option",
+    "argv": [
+      "--d"
+    ],
+    "mode": "process_json",
+    "expected": "ambiguous_long_option_expected.json",
+    "normalize_stderr": true
+  },
+  {
     "name": "quiet_overrides_warning",
     "argv": [
       "-w",
