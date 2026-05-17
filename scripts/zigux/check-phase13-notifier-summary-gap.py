@@ -10,25 +10,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 GAP_NOTE = Path("Documentation/zigux/phase13-notifier-summary-gap.md")
-SURVEY = Path("Documentation/zigux/phase13-notifier-list-survey.md")
 SCRIPTS_README = Path("scripts/zigux/README.md")
-MANIFEST = Path("zigux/tests/phase13_notifier_list_manifest.json")
-REVIEWABILITY = Path("zigux/tests/phase13_notifier_list_reviewability.zig")
-PHASE13_BUILD = Path("zigux/tests/phase13_build.zig")
 
-LIVE_MARKERS = (
+MISSING_NOTE_MARKERS = (
+    "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`zigux/tests/phase13_notifier_list_manifest.json`",
     "`zigux/tests/phase13_notifier_list_reviewability.zig`",
     "`zigux/tests/phase13_build.zig`",
 )
 
-BROAD_SURFACE_STALE_MARKERS = (
+SCRIPTS_README_GAP_MARKERS = (
     "`zigux/tests/phase13_notifier_list_manifest.json`",
     "`zigux/tests/phase13_notifier_list_reviewability.zig`",
     "`zigux/tests/phase13_build.zig`",
 )
 
-STILL_MISSING_MARKERS = (
+STILL_MISSING_DIRECT_MARKERS = (
     "`scripts/zigux/check-phase13-notifier-packet.py`",
     "`include/zigux/notifier_abi.h`",
     "`zigux/helpers/list_view.zig`",
@@ -47,35 +44,30 @@ def write_text(path: Path, content: str) -> None:
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
-    for rel_path in (GAP_NOTE, SURVEY, SCRIPTS_README, MANIFEST, REVIEWABILITY, PHASE13_BUILD):
+    for rel_path in (GAP_NOTE, SCRIPTS_README):
         if not (root / rel_path).exists():
             issues.append(f"missing_file:{rel_path}")
     if issues:
         return issues
 
     gap_note = read_text(root / GAP_NOTE)
-    survey = read_text(root / SURVEY)
     scripts_readme = read_text(root / SCRIPTS_README)
 
-    for marker in LIVE_MARKERS:
+    for marker in MISSING_NOTE_MARKERS:
         if marker not in gap_note:
-            issues.append(f"missing_gap_note_live_marker:{marker}")
+            issues.append(f"missing_gap_note_missing_packet_marker:{marker}")
 
-    for marker in STILL_MISSING_MARKERS:
+    for marker in STILL_MISSING_DIRECT_MARKERS:
         if marker not in gap_note:
-            issues.append(f"missing_gap_note_still_missing_marker:{marker}")
+            issues.append(f"missing_gap_note_direct_gap_marker:{marker}")
 
-    for marker in BROAD_SURFACE_STALE_MARKERS:
-        if marker not in survey:
-            issues.append(f"missing_survey_stale_marker:{marker}")
-        if marker not in scripts_readme:
-            issues.append(f"missing_scripts_readme_stale_marker:{marker}")
-
-    for marker in STILL_MISSING_MARKERS:
-        if marker not in survey:
-            issues.append(f"missing_survey_gap_marker:{marker}")
+    for marker in SCRIPTS_README_GAP_MARKERS:
         if marker not in scripts_readme:
             issues.append(f"missing_scripts_readme_gap_marker:{marker}")
+
+    for marker in STILL_MISSING_DIRECT_MARKERS:
+        if marker not in scripts_readme:
+            issues.append(f"missing_scripts_readme_direct_gap_marker:{marker}")
 
     return issues
 
@@ -90,35 +82,33 @@ def seed_tree(root: Path) -> None:
         [
             "# Phase 13 Notifier Summary Gap",
             "",
-            "Current `master` still materializes these notifier-facing packet files:",
+            "Fresh current-`master` reads still return missing for these notifier-facing packet files:",
             "",
-            *LIVE_MARKERS,
+            *MISSING_NOTE_MARKERS,
             "",
             "These direct companions should remain treated as gaps unless a future same-lane reread proves otherwise:",
             "",
-            *STILL_MISSING_MARKERS,
+            *STILL_MISSING_DIRECT_MARKERS,
             "",
         ]
     )
-    broad_surface = "\n".join(
+    scripts_readme = "\n".join(
         [
-            "The broad reminder still lists these as repo-reality gaps:",
+            "# scripts/zigux",
             "",
-            *BROAD_SURFACE_STALE_MARKERS,
+            "Phase 13 still returns missing for these notifier-facing packet files:",
             "",
-            "The real same-lane direct companions that still stay missing are:",
+            *SCRIPTS_README_GAP_MARKERS,
             "",
-            *STILL_MISSING_MARKERS,
+            "Direct companions that should stay in the gap bucket include:",
+            "",
+            *STILL_MISSING_DIRECT_MARKERS,
             "",
         ]
     )
 
     write_text(root / GAP_NOTE, gap_note)
-    write_text(root / SURVEY, broad_surface)
-    write_text(root / SCRIPTS_README, broad_surface)
-    write_text(root / MANIFEST, "{\n  \"lane_key\": \"P13-L19\"\n}\n")
-    write_text(root / REVIEWABILITY, 'test "phase13 notifier reviewability" {}\n')
-    write_text(root / PHASE13_BUILD, 'const std = @import("std");\n')
+    write_text(root / SCRIPTS_README, scripts_readme)
 
 
 def run_self_test() -> int:
@@ -132,29 +122,30 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "missing_gap_note_live_marker:`zigux/tests/phase13_notifier_list_manifest.json`",
-                "missing_gap_note_live_marker:`zigux/tests/phase13_notifier_list_reviewability.zig`",
-                "missing_gap_note_live_marker:`zigux/tests/phase13_build.zig`",
-                "missing_gap_note_still_missing_marker:`scripts/zigux/check-phase13-notifier-packet.py`",
-                "missing_gap_note_still_missing_marker:`include/zigux/notifier_abi.h`",
-                "missing_gap_note_still_missing_marker:`zigux/helpers/list_view.zig`",
-                "missing_gap_note_still_missing_marker:`zigux/helpers/hlist_view.zig`",
+                "missing_gap_note_missing_packet_marker:`Documentation/zigux/phase13-notifier-list-survey.md`",
+                "missing_gap_note_missing_packet_marker:`zigux/tests/phase13_notifier_list_manifest.json`",
+                "missing_gap_note_missing_packet_marker:`zigux/tests/phase13_notifier_list_reviewability.zig`",
+                "missing_gap_note_missing_packet_marker:`zigux/tests/phase13_build.zig`",
+                "missing_gap_note_direct_gap_marker:`scripts/zigux/check-phase13-notifier-packet.py`",
+                "missing_gap_note_direct_gap_marker:`include/zigux/notifier_abi.h`",
+                "missing_gap_note_direct_gap_marker:`zigux/helpers/list_view.zig`",
+                "missing_gap_note_direct_gap_marker:`zigux/helpers/hlist_view.zig`",
             ],
             "gap_note_marker_failure",
         )
 
         seed_tree(root)
-        write_text(root / SCRIPTS_README, "Phase 13 flow\n")
+        write_text(root / SCRIPTS_README, "# scripts/zigux\n")
         assert_only(
             validate(root),
             [
-                "missing_scripts_readme_stale_marker:`zigux/tests/phase13_notifier_list_manifest.json`",
-                "missing_scripts_readme_stale_marker:`zigux/tests/phase13_notifier_list_reviewability.zig`",
-                "missing_scripts_readme_stale_marker:`zigux/tests/phase13_build.zig`",
-                "missing_scripts_readme_gap_marker:`scripts/zigux/check-phase13-notifier-packet.py`",
-                "missing_scripts_readme_gap_marker:`include/zigux/notifier_abi.h`",
-                "missing_scripts_readme_gap_marker:`zigux/helpers/list_view.zig`",
-                "missing_scripts_readme_gap_marker:`zigux/helpers/hlist_view.zig`",
+                "missing_scripts_readme_gap_marker:`zigux/tests/phase13_notifier_list_manifest.json`",
+                "missing_scripts_readme_gap_marker:`zigux/tests/phase13_notifier_list_reviewability.zig`",
+                "missing_scripts_readme_gap_marker:`zigux/tests/phase13_build.zig`",
+                "missing_scripts_readme_direct_gap_marker:`scripts/zigux/check-phase13-notifier-packet.py`",
+                "missing_scripts_readme_direct_gap_marker:`include/zigux/notifier_abi.h`",
+                "missing_scripts_readme_direct_gap_marker:`zigux/helpers/list_view.zig`",
+                "missing_scripts_readme_direct_gap_marker:`zigux/helpers/hlist_view.zig`",
             ],
             "scripts_readme_marker_failure",
         )
