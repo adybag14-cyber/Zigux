@@ -45,7 +45,7 @@ NOTE_REQ = (
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-artifact-diff-contract.py",
-    "The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run",
+    "The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run",
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
