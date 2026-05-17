@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 SURFACE_PATHS = (
+    ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
@@ -19,6 +20,8 @@ SURFACE_PATHS = (
 )
 
 WORKFLOW_LINES = (
+    "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
 )
@@ -37,9 +40,9 @@ README_WARNING_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-zig-toolchain.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
     "historical packet members",
@@ -51,7 +54,7 @@ README_FORBIDDEN_MARKERS = (
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 28
+EXPECTED_SELF_TEST_CASE_COUNT = 33
 
 
 def read_text(path: Path) -> str:
