@@ -143,6 +143,20 @@ test "cpumask starter helpers fail closed on malformed views" {
     try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "cpumask starter helpers keep empty sentinel behavior explicit" {
+    const view = cpumask_view.viewFromWords(&.{}, 0);
+    const summary = cpumask_view.summarize(view);
+
+    try testing.expect(cpumask_view.isValid(view));
+    try testing.expect(!cpumask_view.cpuIsSet(view, 0));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(view));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(view));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.weight(view));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "starter packet stays aligned with the live Linux-facing header family version" {
     const current = version.current();
 
