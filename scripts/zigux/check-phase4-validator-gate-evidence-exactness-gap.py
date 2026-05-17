@@ -22,11 +22,14 @@ NOTE_MARKERS = (
     "`PHASE4_VALIDATOR_LAST_KNOWN_BLOB_SHA=694ad85743612aa0a595cd1752dd03c1013603ab`",
     "`PHASE4_GATE_EVIDENCE_LAST_KNOWN_NOTE=Documentation/zigux/phase4-gate-evidence.md`",
     "`PHASE4_GATE_EVIDENCE_LAST_KNOWN_BLOB_SHA=8f604959c5250433c5fca14b20d7ff75341c8d33`",
+    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9`",
+    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`",
     "Current `master` no longer exposes direct authenticated readback for",
     "`Documentation/zigux/phase4-reversible-delivery-evidence.md`",
     "`scripts/zigux/check-phase4-repo-reality-warning.py`",
     "`scripts/zigux/check-phase4-reversible-delivery-pins.py`",
-    "historical parked follow-through",
+    "The live direct checker pair currently publishes",
+    "parked validator-local follow-through",
     "not current-head proof today",
     "Reopen this validator-local exactness follow-through only after a same-family",
 )
@@ -42,6 +45,9 @@ REPO_WARNING_MARKERS = (
     '"Documentation/zigux/phase4-gate-evidence.md"',
     '"scripts/zigux/validate-phase4.py"',
     "repo-reality gaps in this run",
+    'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
+    "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 9",
+    "EXPECTED_PIN_SELF_TEST_CASES = 7",
 )
 
 STALE_NOTE_MARKERS = (
@@ -108,12 +114,17 @@ def fixture_root(root: Path) -> None:
 - `PHASE4_VALIDATOR_LAST_KNOWN_BLOB_SHA=694ad85743612aa0a595cd1752dd03c1013603ab`
 - `PHASE4_GATE_EVIDENCE_LAST_KNOWN_NOTE=Documentation/zigux/phase4-gate-evidence.md`
 - `PHASE4_GATE_EVIDENCE_LAST_KNOWN_BLOB_SHA=8f604959c5250433c5fca14b20d7ff75341c8d33`
+- `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9`
+- `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`
 
-This note now records a historical parked follow-through, not a current-head exactness claim.
+This note now records a parked validator-local follow-through, not a current-head exactness claim.
 Current `master` no longer exposes direct authenticated readback for the validator pair.
 The live repo-reality packet is `Documentation/zigux/phase4-reversible-delivery-evidence.md`,
 `scripts/zigux/check-phase4-repo-reality-warning.py`, and
 `scripts/zigux/check-phase4-reversible-delivery-pins.py`.
+The live direct checker pair currently publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9`
+and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`, so this parked validator-local note
+stays pinned to the exact current repo-reality packet instead of only the broader missing-file story.
 That keeps the last-known validator and gate-evidence blob SHAs reviewable while this work is
 not current-head proof today.
 
@@ -137,6 +148,9 @@ MISSING_BROADER_PACKET = (
     "Documentation/zigux/phase4-gate-evidence.md",
     "scripts/zigux/validate-phase4.py",
 )
+REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 9
+EXPECTED_PIN_SELF_TEST_CASES = 7
 NOTE_REQ = (
     "repo-reality gaps in this run",
 )
@@ -170,7 +184,37 @@ def self_test() -> None:
         write(
             root / NOTE,
             read(root, NOTE).replace(
-                "historical parked follow-through",
+                "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9`",
+                "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=8`",
+            ),
+        )
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected repo-reality warning self-test drift to fail")
+
+        fixture_root(root)
+        write(
+            root / NOTE,
+            read(root, NOTE).replace(
+                "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`",
+                "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=6`",
+            ),
+        )
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected pin self-test drift to fail")
+
+        fixture_root(root)
+        write(
+            root / NOTE,
+            read(root, NOTE).replace(
+                "parked validator-local follow-through",
                 "current-head exactness claim",
             ),
         )
@@ -198,8 +242,8 @@ def self_test() -> None:
         write(
             root / REPO_WARNING,
             read(root, REPO_WARNING).replace(
-                '"scripts/zigux/validate-phase4.py"',
-                '"scripts/zigux/not-the-right-file.py"',
+                "EXPECTED_PIN_SELF_TEST_CASES = 7",
+                "EXPECTED_PIN_SELF_TEST_CASES = 6",
             ),
         )
         try:
@@ -207,7 +251,7 @@ def self_test() -> None:
         except RuntimeError:
             cases += 1
         else:
-            raise AssertionError("expected repo-warning drift to fail")
+            raise AssertionError("expected repo-warning constant drift to fail")
 
         fixture_root(root)
         write(
