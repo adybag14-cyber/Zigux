@@ -63,9 +63,10 @@ MODULE_MARKERS = [
 SURVEY_NOTE_MARKERS = [
     "# Phase 10 Virtio Input Survey",
     "PHASE10_STATUS=parked",
-    "PHASE10_LANE_KEY=P10-L13",
+    "PHASE10_LANE_KEY=P10-L22",
     "PHASE10_SURVEYED_COMMIT=",
     "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport",
+    "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
     "drivers/virtio/virtio_input_verify.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
@@ -77,8 +78,12 @@ SURVEY_NOTE_MARKERS = [
 ]
 
 MANIFEST_MARKERS = [
-    '"lane_key": "P10-L13"',
+    '"lane_key": "P10-L22"',
     '"surveyed_commit": "',
+    '"roadmap_destinations": [',
+    '"drivers/virtio/*.zig"',
+    '"zigux/kernel/"',
+    '"zigux/helpers/"',
     '"risky_transport_posture": "blocked_on_risky_transport"',
     '"id": "phase10-virtio-input-survey-gate"',
     '"zigux_destination": "zigux/tests/phase10_virtio_input_survey.zig"',
@@ -156,12 +161,13 @@ SURVEY_GATE_MARKERS = [
     'test "phase10 virtio input manifest keeps the restored replay ids and blocked lifecycle posture explicit" {',
     'test "phase10 virtio input slice companions keep the replay inventory and blocked lifecycle boundary explicit" {',
     "PHASE10_STATUS=parked",
-    "PHASE10_LANE_KEY=P10-L13",
+    "PHASE10_LANE_KEY=P10-L22",
+    "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     '"id": "phase10-virtio-input-survey-gate"',
     '"status": "blocked_on_risky_transport"',
-    "the bounded status-drain helper plus replay",
+    "the dedicated status-drain helper plus replay",
 ]
 
 TEST_MARKERS = {
@@ -407,6 +413,22 @@ def run_self_test() -> int:
         case_count += 1
 
         survey_note_path.write_text(
+            original_survey_note.replace(
+                "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
+                "roadmap destinations: `drivers/virtio/*.zig` and `zigux/kernel/`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "survey_note:roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
+            "phase10-input-live-packet-self-test:survey_note_roadmap_destinations",
+        )
+        survey_note_path.write_text(original_survey_note, encoding="utf-8")
+        case_count += 1
+
+        survey_note_path.write_text(
             original_survey_note.replace("PHASE10_SURVEYED_COMMIT=", "PHASE10_SURVEYED_HEAD=", 1),
             encoding="utf-8",
         )
@@ -432,6 +454,20 @@ def run_self_test() -> int:
             "phase10-input-live-packet-self-test:survey_note_commit_alignment",
         )
         survey_note_path.write_text(original_survey_note, encoding="utf-8")
+        case_count += 1
+
+        manifest_path = root / "zigux/tests/phase10_virtio_input_manifest.json"
+        original_manifest = manifest_path.read_text(encoding="utf-8")
+        manifest_path.write_text(
+            original_manifest.replace('"zigux/helpers/"', '"zigux/runtime/"', 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            'manifest:"zigux/helpers/"',
+            "phase10-input-live-packet-self-test:manifest_roadmap_destinations",
+        )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
         case_count += 1
 
         build_path = root / "zigux/tests/phase10_build.zig"
