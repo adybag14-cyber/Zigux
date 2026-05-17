@@ -57,6 +57,20 @@ SAMPLE_DUPLICATE_REGISTRATION_TEST_MARKER = (
     'test "trace-events sample rejects duplicate function-thread registration" {'
 )
 SAMPLE_DUPLICATE_REGISTRATION_ERROR_MARKER = "error.FunctionThreadAlreadyRegistered"
+SAMPLE_DUPLICATE_REGISTRATION_BEFORE_SUMMARY_MARKER = "const before_duplicate = module.summary();"
+SAMPLE_DUPLICATE_REGISTRATION_BEFORE_DEPTH_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 1), before_duplicate.registration_depth);"
+)
+SAMPLE_DUPLICATE_REGISTRATION_AFTER_SUMMARY_MARKER = "const after_duplicate = module.summary();"
+SAMPLE_DUPLICATE_REGISTRATION_STAGE_STABLE_MARKER = (
+    "try std.testing.expectEqual(before_duplicate.stage, after_duplicate.stage);"
+)
+SAMPLE_DUPLICATE_REGISTRATION_TOTAL_EVENTS_STABLE_MARKER = (
+    "try std.testing.expectEqual(before_duplicate.total_events, after_duplicate.total_events);"
+)
+SAMPLE_DUPLICATE_REGISTRATION_REGISTER_LABEL_STABLE_MARKER = (
+    "try std.testing.expectEqualStrings(before_duplicate.last_register_label orelse return error.ExpectedFunctionPayload, after_duplicate.last_register_label orelse return error.ExpectedFunctionPayload);"
+)
 SAMPLE_CONTINUITY_TEST_MARKER = (
     'test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {'
 )
@@ -221,6 +235,12 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_EXIT_MARKER,
     SAMPLE_DUPLICATE_REGISTRATION_TEST_MARKER,
     SAMPLE_DUPLICATE_REGISTRATION_ERROR_MARKER,
+    SAMPLE_DUPLICATE_REGISTRATION_BEFORE_SUMMARY_MARKER,
+    SAMPLE_DUPLICATE_REGISTRATION_BEFORE_DEPTH_MARKER,
+    SAMPLE_DUPLICATE_REGISTRATION_AFTER_SUMMARY_MARKER,
+    SAMPLE_DUPLICATE_REGISTRATION_STAGE_STABLE_MARKER,
+    SAMPLE_DUPLICATE_REGISTRATION_TOTAL_EVENTS_STABLE_MARKER,
+    SAMPLE_DUPLICATE_REGISTRATION_REGISTER_LABEL_STABLE_MARKER,
     SAMPLE_CONTINUITY_TEST_MARKER,
     SAMPLE_COLD_STAGE_MARKER,
     SAMPLE_COLD_SELFTEST_REJECTION_MARKER,
@@ -373,11 +393,16 @@ pub fn exit(self: *Self) !void {{
 }}
 
 test \"trace-events sample rejects duplicate function-thread registration\" {{
+    const before_duplicate = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), before_duplicate.registration_depth);
     try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
+    const after_duplicate = module.summary();
+    try std.testing.expectEqual(before_duplicate.stage, after_duplicate.stage);
+    try std.testing.expectEqual(before_duplicate.total_events, after_duplicate.total_events);
+    try std.testing.expectEqualStrings(before_duplicate.last_register_label orelse return error.ExpectedFunctionPayload, after_duplicate.last_register_label orelse return error.ExpectedFunctionPayload);
 }}
 
 test \"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\" {{
-    try std.testing.expectEqual(ModuleStage.cold, module.stage());
     try std.testing.expectEqual(ModuleStage.cold, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
