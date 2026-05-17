@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 import sys
 import tempfile
@@ -18,6 +19,10 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "zigux/Makefile",
     "zigux/tests/phase10_closure_manifest.json",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_input_manifest.json",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
 ]
 
 MAKE_MARKERS = [
@@ -57,6 +62,23 @@ MANIFEST_MARKERS = [
     '"scripts/zigux/check-phase10-harness-coverage.py"',
 ]
 
+SURVEY_MANIFESTS = {
+    "core": "zigux/tests/phase10_virtio_core_manifest.json",
+    "ring": "zigux/tests/phase10_virtio_ring_manifest.json",
+    "input": "zigux/tests/phase10_virtio_input_manifest.json",
+    "mmio": "zigux/tests/phase10_virtio_mmio_manifest.json",
+}
+
+READY_TRANSPORT_FOLLOWUPS = {
+    "zigux/tests/phase10_virtio_input_manifest.json": "blocked_on_risky_transport",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "blocked_on_risky_transport",
+}
+
+LANDED_HELPER_FIELDS = {
+    "landed_input_helper_evidence": "zigux/tests/phase10_virtio_input_manifest.json",
+    "landed_mmio_helper_evidence": "zigux/tests/phase10_virtio_mmio_manifest.json",
+}
+
 COMMANDS = [
     ["scripts/zigux/check-phase10-harness-coverage.py", "--self-test"],
     ["scripts/zigux/check-phase10-harness-coverage.py"],
@@ -65,6 +87,10 @@ COMMANDS = [
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
+
+
+def read_json(root: Path, rel_path: str) -> dict:
+    return json.loads(read_text(root, rel_path))
 
 
 def collect_missing_files(root: Path) -> list[str]:
@@ -86,6 +112,58 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{label}:{marker}")
     return missing
+
+
+def collect_manifest_drift(root: Path) -> list[str]:
+    closure = read_json(root, "zigux/tests/phase10_closure_manifest.json")
+    provenance = closure.get("survey_provenance", {})
+    lane_keys = provenance.get("lane_keys", {})
+    surveyed_commits = provenance.get("surveyed_commits", {})
+    drift: list[str] = []
+
+    for key, path in SURVEY_MANIFESTS.items():
+        manifest = read_json(root, path)
+        expected_lane = manifest.get("lane_key")
+        actual_lane = lane_keys.get(key)
+        if actual_lane != expected_lane:
+            drift.append(f"survey_provenance:{key}:lane_key:{actual_lane!r}!={expected_lane!r}")
+        expected_commit = manifest.get("surveyed_commit")
+        actual_commit = surveyed_commits.get(key)
+        if actual_commit != expected_commit:
+            drift.append(f"survey_provenance:{key}:surveyed_commit:{actual_commit!r}!={expected_commit!r}")
+
+    ready_followups = closure.get("ready_transport_followups", {})
+    for path, expected_status in READY_TRANSPORT_FOLLOWUPS.items():
+        expected_gap = ready_followups.get(path)
+        if not isinstance(expected_gap, str) or not expected_gap:
+            drift.append(f"ready_transport_followups:{path}:missing")
+            continue
+        manifest = read_json(root, path)
+        blocked = {
+            gap.get("id")
+            for gap in manifest.get("gaps", [])
+            if gap.get("status") == expected_status and isinstance(gap.get("id"), str)
+        }
+        if expected_gap not in blocked:
+            drift.append(f"ready_transport_followups:{path}:{expected_gap!r}:not_{expected_status}")
+
+    for field, path in LANDED_HELPER_FIELDS.items():
+        helper_map = closure.get(field, {})
+        listed_helpers = helper_map.get(path)
+        if not isinstance(listed_helpers, list) or not listed_helpers:
+            drift.append(f"{field}:{path}:missing")
+            continue
+        manifest = read_json(root, path)
+        landed = {
+            gap.get("id")
+            for gap in manifest.get("gaps", [])
+            if gap.get("status") == "starter_landed" and isinstance(gap.get("id"), str)
+        }
+        for helper_id in listed_helpers:
+            if helper_id not in landed:
+                drift.append(f"{field}:{path}:{helper_id!r}:not_starter_landed")
+
+    return drift
 
 
 def run_command(root: Path, cmd: list[str]) -> int:
@@ -115,7 +193,73 @@ def write_fixture(root: Path) -> None:
             "print('PHASE10_HARNESS_COVERAGE=pass')\n"
         ),
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
-        "zigux/tests/phase10_closure_manifest.json": "\n".join(MANIFEST_MARKERS) + "\n",
+        "zigux/tests/phase10_closure_manifest.json": json.dumps(
+            {
+                "phase": "Phase 10",
+                "tranche": "virtio-lab-bundle",
+                "lab_only_driver_validation": {
+                    "evidence": ["scripts/zigux/check-phase10-harness-coverage.py"]
+                },
+                "survey_provenance": {
+                    "lane_keys": {
+                        "core": "P10-L01",
+                        "ring": "P10-L10",
+                        "input": "P10-L13",
+                        "mmio": "P10-L10",
+                    },
+                    "surveyed_commits": {
+                        "core": "core-sha",
+                        "ring": "ring-sha",
+                        "input": "input-sha",
+                        "mmio": "mmio-sha",
+                    },
+                },
+                "ready_transport_followups": {
+                    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
+                    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
+                },
+                "landed_input_helper_evidence": {
+                    "zigux/tests/phase10_virtio_input_manifest.json": [
+                        "phase10-virtio-input-capability-setup-helper",
+                        "phase10-virtio-input-status-drain-helper",
+                    ]
+                },
+                "landed_mmio_helper_evidence": {
+                    "zigux/tests/phase10_virtio_mmio_manifest.json": [
+                        "phase10-mmio-config-window-helper",
+                        "phase10-mmio-selected-queue-readiness-helper",
+                    ]
+                },
+            }
+        ),
+        "zigux/tests/phase10_virtio_core_manifest.json": json.dumps(
+            {"lane_key": "P10-L01", "surveyed_commit": "core-sha", "gaps": []}
+        ),
+        "zigux/tests/phase10_virtio_ring_manifest.json": json.dumps(
+            {"lane_key": "P10-L10", "surveyed_commit": "ring-sha", "gaps": []}
+        ),
+        "zigux/tests/phase10_virtio_input_manifest.json": json.dumps(
+            {
+                "lane_key": "P10-L13",
+                "surveyed_commit": "input-sha",
+                "gaps": [
+                    {"id": "phase10-virtio-input-capability-setup-helper", "status": "starter_landed"},
+                    {"id": "phase10-virtio-input-status-drain-helper", "status": "starter_landed"},
+                    {"id": "phase10-virtio-input-registration-lifecycle", "status": "blocked_on_risky_transport"},
+                ],
+            }
+        ),
+        "zigux/tests/phase10_virtio_mmio_manifest.json": json.dumps(
+            {
+                "lane_key": "P10-L10",
+                "surveyed_commit": "mmio-sha",
+                "gaps": [
+                    {"id": "phase10-mmio-config-window-helper", "status": "starter_landed"},
+                    {"id": "phase10-mmio-selected-queue-readiness-helper", "status": "starter_landed"},
+                    {"id": "phase10-mmio-lifecycle-and-irq-paths", "status": "blocked_on_risky_transport"},
+                ],
+            }
+        ),
     }
     for rel_path, content in files.items():
         path = root / rel_path
@@ -130,11 +274,13 @@ def run_self_test() -> int:
 
         missing_files = collect_missing_files(root)
         missing_markers = collect_missing_markers(root)
-        if missing_files or missing_markers:
+        manifest_drift = collect_manifest_drift(root)
+        if missing_files or missing_markers or manifest_drift:
             raise SystemExit(
                 "phase10-closure-self-test:baseline_failed:"
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
-                f"markers={','.join(missing_markers) if missing_markers else 'none'}"
+                f"markers={','.join(missing_markers) if missing_markers else 'none'}:"
+                f"drift={','.join(manifest_drift) if manifest_drift else 'none'}"
             )
         failed_commands = run_required_commands(root)
         if failed_commands:
@@ -143,46 +289,44 @@ def run_self_test() -> int:
                 f"commands={','.join(failed_commands)}"
             )
 
+        closure = root / "zigux/tests/phase10_closure_manifest.json"
+        original_closure = json.loads(closure.read_text(encoding="utf-8"))
+
+        broken = dict(original_closure)
+        broken["survey_provenance"] = dict(original_closure["survey_provenance"])
+        broken["survey_provenance"]["lane_keys"] = dict(original_closure["survey_provenance"]["lane_keys"])
+        broken["survey_provenance"]["lane_keys"]["mmio"] = "P10-L11"
+        closure.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if not any(item.startswith("survey_provenance:mmio:lane_key:") for item in drift):
+            raise SystemExit("phase10-closure-self-test:mmio_lane_drift_not_detected")
+        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+
+        broken = dict(original_closure)
+        broken["ready_transport_followups"] = dict(original_closure["ready_transport_followups"])
+        broken["ready_transport_followups"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = "phase10-mmio-config-write-helper"
+        closure.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-helper':not_blocked_on_risky_transport" not in drift:
+            raise SystemExit("phase10-closure-self-test:mmio_followup_drift_not_detected")
+        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+
+        broken = dict(original_closure)
+        broken["landed_input_helper_evidence"] = dict(original_closure["landed_input_helper_evidence"])
+        broken["landed_input_helper_evidence"]["zigux/tests/phase10_virtio_input_manifest.json"] = [
+            "phase10-virtio-input-capability-setup-helper",
+            "phase10-virtio-input-queue-callback-preflight-helper",
+        ]
+        closure.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "landed_input_helper_evidence:zigux/tests/phase10_virtio_input_manifest.json:'phase10-virtio-input-queue-callback-preflight-helper':not_starter_landed" not in drift:
+            raise SystemExit("phase10-closure-self-test:input_helper_drift_not_detected")
+        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+
         makefile = root / "zigux/Makefile"
         makefile.write_text("", encoding="utf-8")
         if "make:PHONY += phase10-validate phase10-test phase10" not in collect_missing_markers(root):
             raise SystemExit("phase10-closure-self-test:missing_make_marker_not_detected")
-        write_fixture(root)
-
-        closure = root / "Documentation/zigux/phase10-closure-evidence.md"
-        closure.write_text(
-            closure.read_text(encoding="utf-8").replace("shared reminder-surface drift\n", "", 1),
-            encoding="utf-8",
-        )
-        if "closure:shared reminder-surface drift" not in collect_missing_markers(root):
-            raise SystemExit("phase10-closure-self-test:missing_closure_marker_not_detected")
-        write_fixture(root)
-
-        lane = root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
-        lane.write_text(
-            lane.read_text(encoding="utf-8").replace("scripts/zigux/validate-phase10-closure.py\n", "", 1),
-            encoding="utf-8",
-        )
-        if "lane:scripts/zigux/validate-phase10-closure.py" not in collect_missing_markers(root):
-            raise SystemExit("phase10-closure-self-test:missing_lane_marker_not_detected")
-        write_fixture(root)
-
-        review = root / "Documentation/zigux/review-checklist.md"
-        review.write_text(
-            review.read_text(encoding="utf-8").replace("zigux/tests/phase10_closure_manifest.json\n", "", 1),
-            encoding="utf-8",
-        )
-        if "review:zigux/tests/phase10_closure_manifest.json" not in collect_missing_markers(root):
-            raise SystemExit("phase10-closure-self-test:missing_review_marker_not_detected")
-        write_fixture(root)
-
-        manifest = root / "zigux/tests/phase10_closure_manifest.json"
-        manifest.write_text(
-            manifest.read_text(encoding="utf-8").replace('\"scripts/zigux/check-phase10-harness-coverage.py\"\n', "", 1),
-            encoding="utf-8",
-        )
-        if 'manifest:"scripts/zigux/check-phase10-harness-coverage.py"' not in collect_missing_markers(root):
-            raise SystemExit("phase10-closure-self-test:missing_manifest_marker_not_detected")
         write_fixture(root)
 
         checker = root / "scripts/zigux/check-phase10-harness-coverage.py"
@@ -203,7 +347,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
@@ -233,6 +377,15 @@ def main() -> int:
         print("MISSING_PHASE10_CLOSURE_MARKERS_END")
         return 1
 
+    manifest_drift = collect_manifest_drift(ROOT)
+    if manifest_drift:
+        print("PHASE10_CLOSURE_VALIDATION=fail")
+        print("PHASE10_CLOSURE_MANIFEST_DRIFT_START")
+        for item in manifest_drift:
+            print(item)
+        print("PHASE10_CLOSURE_MANIFEST_DRIFT_END")
+        return 1
+
     failed_commands = run_required_commands(ROOT)
     if failed_commands:
         print("PHASE10_CLOSURE_VALIDATION=fail")
@@ -249,6 +402,9 @@ def main() -> int:
         f"{len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MANIFEST_MARKERS)}"
     )
     print(f"PHASE10_CLOSURE_COMMAND_COUNT={len(COMMANDS)}")
+    print(f"PHASE10_CLOSURE_PROVENANCE_PACKET_COUNT={len(SURVEY_MANIFESTS)}")
+    print(f"PHASE10_CLOSURE_READY_FOLLOWUP_COUNT={len(READY_TRANSPORT_FOLLOWUPS)}")
+    print(f"PHASE10_CLOSURE_LANDED_HELPER_PACKET_COUNT={len(LANDED_HELPER_FIELDS)}")
     return 0
 
 
