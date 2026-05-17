@@ -38,61 +38,52 @@ test "phase 7 string helper sample boundary keeps the Phase 5 anchor set closed"
     );
     defer std.testing.allocator.free(slice_note);
 
-    const phase5_anchors = [_][]const u8{
-        "`samples/zigux/bytestream_fifo.zig`",
-        "`samples/zigux/kobject_example.zig`",
-        "`samples/zigux/kretprobe_example.zig`",
-        "`samples/zigux/trace_events_sample.zig`",
+    try expectContains(sample_root_readme, "`samples/zigux/README.md`");
+    try expectExactCount(sample_root_readme, "`samples/zigux/README.md`", 1);
+    try expectContains(sample_root_readme, "`samples/zigux/runtime_trace_events.zig`");
+    try expectExactCount(sample_root_readme, "`samples/zigux/runtime_trace_events.zig`", 2);
+    try expectContains(sample_root_readme, "`samples/zigux/runtime_trace_events_unregistered_gate.zig`");
+    try expectExactCount(sample_root_readme, "`samples/zigux/runtime_trace_events_unregistered_gate.zig`", 2);
+    try expectContains(sample_root_readme, "`samples/zigux/trace_events_string_formatting_sample.zig`");
+    try expectExactCount(sample_root_readme, "`samples/zigux/trace_events_string_formatting_sample.zig`", 2);
+
+    const phase5_linux_anchors = [_][]const u8{
+        "`samples/kfifo/bytestream-example.c`",
+        "`samples/kobject/kobject-example.c`",
+        "`samples/kprobes/kretprobe_example.c`",
+        "`samples/trace_events/trace-events-sample.c`",
     };
-    for (phase5_anchors) |anchor| {
+    for (phase5_linux_anchors) |anchor| {
         try expectContains(sample_root_readme, anchor);
         try expectExactCount(sample_root_readme, anchor, 1);
     }
 
-    const runtime_family = [_][]const u8{
-        "`samples/zigux/runtime_atomic64.zig`",
-        "`samples/zigux/runtime_atomic64_loader.zig`",
-        "`samples/zigux/runtime_bitmap.zig`",
-        "`samples/zigux/runtime_bitmap_loader.zig`",
-        "`samples/zigux/runtime_bitmap_top_bit_contract.zig`",
-        "`samples/zigux/runtime_kretprobe.zig`",
-        "`samples/zigux/runtime_kretprobe_loader.zig`",
-        "`samples/zigux/runtime_trace_events.zig`",
-        "`samples/zigux/runtime_trace_events_loader.zig`",
-    };
-    for (runtime_family) |sample| {
-        try expectContains(sample_root_readme, sample);
-        try expectExactCount(sample_root_readme, sample, 1);
-    }
-
     const sample_root_markers = [_][]const u8{
-        "Current Phase 5 reference anchors",
+        "Current repo reality on `master`",
+        "The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux anchors:",
+        "Those four roadmap-backed anchors are not currently directly readable as sample-root files on current `master` through this route.",
         "Separate helper-backed sample packet",
-        "`samples/zigux/string_helpers_sample.zig` is a bounded Phase 7 string-helper replay, not a fifth Phase 5 reference anchor",
-        "review that packet through `Documentation/zigux/phase7-string-helpers-slice.md`, `zigux/tests/phase7_string_helpers_sample_manifest.json`, `zigux/tests/phase7_string_helpers_sample_survey.zig`, and `zigux/tests/phase7_build.zig`",
-        "keep the sample tied to the shared Phase 7 helper lane instead of treating it as a new standalone sample family",
-        "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under the shared Phase 7 helper packet instead of counting it as a fifth Phase 5 sample",
-        "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under the shared Phase 7 helper packet instead of counting it as a fifth Phase 5 sample",
-        "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample; keep `rbtree` reviewability under the shared Phase 7 helper packet instead of counting it as a fifth Phase 5 sample",
-        "later runtime follow-ons stay under the separate Phase 9 `samples/zigux/runtime_*` family and should not be counted as extra Phase 5 reference anchors",
-        "Separate runtime pilot family",
-        "the current readable `runtime_*` packet above stays in the separate Phase 9 runtime pilot family and is not extra Phase 5 anchor evidence",
+        "`samples/zigux/string_helpers_sample.zig`",
+        "Treat it as a bounded Phase 7 string-helper replay, not a fifth Phase 5 reference anchor.",
+        "Review that packet through `Documentation/zigux/phase7-string-helpers-slice.md`, `zigux/tests/phase7_string_helpers_sample_manifest.json`, `zigux/tests/phase7_string_helpers_sample_survey.zig`, and `zigux/tests/phase7_build.zig`.",
+        "Keep the sample tied to the shared Phase 7 helper lane instead of treating it as a new standalone sample family.",
+        "Current `master` does carry one bounded `*string*` and `*format*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`, but keep it tied to the non-runtime `trace-events` anchor and its selected-string plus `iter=%d` formatting cue instead of treating it as standalone string-helper delivery.",
+        "Phase 9 runtime pilot family",
+        "Keep those files in the separate Phase 9 runtime packet instead of counting them as extra Phase 5 samples.",
     };
     for (sample_root_markers) |marker| {
         try expectContains(sample_root_readme, marker);
     }
     try expectExactCount(sample_root_readme, "Separate helper-backed sample packet", 1);
-    try expectExactCount(sample_root_readme, "`samples/zigux/string_helpers_sample.zig` is a bounded Phase 7 string-helper replay, not a fifth Phase 5 reference anchor", 1);
-    try expectExactCount(sample_root_readme, "keep the sample tied to the shared Phase 7 helper lane instead of treating it as a new standalone sample family", 1);
     try expectExactCount(sample_root_readme, "`samples/zigux/string_helpers_sample.zig`", 1);
-    try expectExactCount(sample_root_readme, "`samples/zigux/runtime_bitmap_top_bit_contract.zig`", 1);
+    try expectExactCount(sample_root_readme, "`samples/zigux/trace_events_string_formatting_sample.zig`", 2);
 
     const slice_markers = [_][]const u8{
         "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
         "The four approved Phase 5 anchors remain the bounded bytestream FIFO, kobject, kretprobe, and trace-events sample packets.",
-        "the bounded `samples/zigux/string_helpers_sample.zig` replay for descriptor ownership, lifecycle transitions, newline-tolerant matching, binary size rendering, compact no-space-no-bytes formatting, one exact-fit unescape destination proof, deterministic only-selected newline escaping, and append-selected newline hex escaping through the shared Phase 7 build",
-        "the manifest-backed `zigux/tests/phase7_string_helpers_sample_survey.zig` gate so the helper, shared fixtures, sample replay, and slice note stay aligned in one reviewable packet after the added compact-format, exact-fit unescape boundary, only-selected newline escaping, and append-selected escape proofs",
-        "the sample-facing note packet keeps the review route explicit for the draft branch while preserving the current `master` rule that string helpers still are not part of the frozen Phase 5 reference-sample set",
+        "The bounded `samples/zigux/string_helpers_sample.zig` replay stays review-only evidence for the Phase 7 helper lane.",
+        "The manifest-backed `zigux/tests/phase7_string_helpers_sample_survey.zig` gate keeps the helper, shared fixtures, sample replay, and slice note aligned in one reviewable packet.",
+        "The sample-facing note packet keeps the review route explicit for the draft branch while preserving the current `master` rule that string helpers still are not part of the frozen Phase 5 reference-sample set.",
     };
     for (slice_markers) |marker| {
         try expectContains(slice_note, marker);
