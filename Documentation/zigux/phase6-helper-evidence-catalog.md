@@ -25,7 +25,6 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 
 - `Documentation/zigux/phase6-helper-parity-catalog.md`
 - `Documentation/zigux/phase6-perf-gate-survey.md`
-- `zigux/tests/phase6_build.zig`
 - `zigux/tests/phase6_helper_parity_manifest.json`
 - `zigux/tests/phase6_base64.zig`
 - `zigux/tests/phase6_bsearch.zig`
@@ -63,7 +62,7 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - compact shared seed fixture companion: `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
 - direct corpus evidence checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
-- slice-note warning: the dedicated bsearch slice note still describes the helper-local replay, C ABI companions, and wrapper routes as if they were directly current-master proof, so treat that note as stale historical wording until fresh direct reads recover `lib/bsearch.zig`, the focused replays, `zigux/tests/phase6_build.zig`, and the corpus checker again
+- slice-note warning: the dedicated bsearch slice note still describes the helper-local replay, C ABI companions, and wrapper routes as if they were directly current-master proof, so treat that note as stale historical wording until fresh direct reads recover `lib/bsearch.zig`, the focused replays, and the corpus checker again; the restored `zigux/tests/phase6_build.zig` is base64-only and does not currently rematerialize a bsearch rerun route
 - current review posture: the roadmap-backed bsearch packet still names the right parity and comparison-budget surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replays and corpus checker again
 
 ### checksum
