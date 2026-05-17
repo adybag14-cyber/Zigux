@@ -72,13 +72,13 @@ That fixture-backed parity packet keeps one tiny bitmap-and-cpumask C-vs-Zig com
 
 This is still not the broader Phase 3 ABI, export/UAPI, catalog, or low-level-wrapper packet that older reminder surfaces still name. It is one helper-local interop proof layered beside the current `dev_t`, `err_ptr` / `xarray`, and policy slices.
 
-Shared reminder follow-up still belongs in the separate broader Phase 3 truthfulness lane:
+The remaining same-lane shared-reminder drift on this branch is now exact and small:
 
 - `Documentation/zigux/README.md`
 - `zigux/tests/README.md`
 - `Documentation/zigux/review-checklist.md`
 
-Those surfaces should stay separate from this helper-local packet instead of being treated as proof that the wider validator or export-boundary routes already ship.
+Those three branch-local reminder surfaces still need the four-slice wording refresh before this branch can claim a fully aligned shared reminder packet. Keep that wording cleanup separate from this helper-local packet itself instead of treating the slice note as proof that the wider validator or export-boundary routes already ship.
 
 ## Scope
 
