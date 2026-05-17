@@ -1,6 +1,6 @@
 {
-  "lane_key": "P7-L04",
-  "lane_key_note": "P7-L04 remains the packet-local helper-slice marker for the expanded string-helpers starter packet. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with the separate Phase 7 shared-control lanes.",
+  "lane_key": "helper-local",
+  "lane_key_note": "helper-local keeps the expanded string-helpers starter packet separate from the Phase 7 shared-control lanes. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those shared-control lanes.",
   "phase": "Phase 7",
   "anchor": "lib/string_helpers.c",
   "current_master_state": "expanded_starter_packet",
