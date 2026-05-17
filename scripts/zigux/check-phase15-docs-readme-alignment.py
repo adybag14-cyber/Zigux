@@ -13,6 +13,7 @@ REQUIRED_MARKERS = (
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+    "`Documentation/zigux/phase15-shared-summary-gap.md`",
     "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
     "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
@@ -20,7 +21,10 @@ REQUIRED_MARKERS = (
     "`scripts/zigux/validate-phase15.py`",
     "`zigux/tests/phase15_readiness_gate_manifest.json`",
     "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
-    "without implying any Architecture Council approval for a freeze-map status change",
+    "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` remain reminder surfaces",
+    "`Documentation/zigux/phase15-shared-summary-gap.md` before they are treated as fully aligned current-`master` evidence",
+    "do not by themselves imply a freeze-map status change or Architecture Council approval",
+    "`Documentation/zigux/phase15-shared-summary-gap.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "the shared Phase 15 docs-root handoff should also keep",
     "the named reopen trigger",
     "deep-core blocker-posture change",
@@ -48,6 +52,7 @@ Phase 15 notes
 `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 `Documentation/zigux/phase15-governance-lane-sequencing.md`
 `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+`Documentation/zigux/phase15-shared-summary-gap.md`
 `scripts/zigux/check-phase15-docs-readme-alignment.py`
 `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 `scripts/zigux/check-phase15-shared-summary-gap.py`
@@ -55,7 +60,10 @@ Phase 15 notes
 `scripts/zigux/validate-phase15.py`
 `zigux/tests/phase15_readiness_gate_manifest.json`
 `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-without implying any Architecture Council approval for a freeze-map status change
+`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` remain reminder surfaces
+`Documentation/zigux/phase15-shared-summary-gap.md` before they are treated as fully aligned current-`master` evidence
+do not by themselves imply a freeze-map status change or Architecture Council approval
+`Documentation/zigux/phase15-shared-summary-gap.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 the shared Phase 15 docs-root handoff should also keep
 the named reopen trigger
 deep-core blocker-posture change
@@ -97,17 +105,33 @@ def run_self_test() -> int:
         _write(
             root / DOCS_README_PATH,
             _sample_docs_readme().replace(
-                "without implying any Architecture Council approval for a freeze-map status change\n",
+                "do not by themselves imply a freeze-map status change or Architecture Council approval\n",
                 "",
                 1,
             ),
         )
         missing = collect_missing_markers(root)
         expected = [
-            "docs_readme:without implying any Architecture Council approval for a freeze-map status change"
+            "docs_readme:do not by themselves imply a freeze-map status change or Architecture Council approval"
         ]
         if missing != expected:
             raise AssertionError(f"unexpected missing markers for approval-posture case: {missing}")
+        case_count += 1
+
+        _write(
+            root / DOCS_README_PATH,
+            _sample_docs_readme().replace(
+                "`Documentation/zigux/phase15-shared-summary-gap.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md`\n",
+                "",
+                1,
+            ),
+        )
+        missing = collect_missing_markers(root)
+        expected = [
+            "docs_readme:`Documentation/zigux/phase15-shared-summary-gap.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md`"
+        ]
+        if missing != expected:
+            raise AssertionError(f"unexpected missing markers for watchpoint-links case: {missing}")
         case_count += 1
 
         _write(
