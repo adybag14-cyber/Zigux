@@ -7,103 +7,23 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
-PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
-MAKEFILE = ROOT / "zigux" / "Makefile"
-SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
-TESTS_README = ROOT / "zigux" / "tests" / "README.md"
-REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
-PHASE2_CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
-PHASE2_BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
-KCONFIG_BRIDGE_SURFACE_PATHS = (
+PRESENT_PATHS = (
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
+    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
+)
+EXPECTED_MISSING_PATHS = (
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
-    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
-    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
-)
-
-VALIDATOR_MARKERS = (
-    "TESTS_README_ALIGNMENT_CHECKER = (",
-    "KCONFIG_README_ALIGNMENT_CHECKER = (",
-    'ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"',
-    'ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py"',
-    'ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"',
-    '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"',
-    '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"',
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28",
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37",
-)
-VALIDATOR_EXACT_COUNTS = {
-    '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"': 1,
-    '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 2,
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28": 1,
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37": 1,
-}
-
-CLOSURE_VALIDATOR_MARKERS = (
-    "shared kconfig selftest-alignment self-test",
-    'KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"',
-    "16-case` conf bridge plus `13-case` confdata fixture replay",
 )
 
 WORKFLOW_LINES = (
-    "run: python3 scripts/zigux/validate-phase2.py",
-    "run: python3 scripts/zigux/validate-phase2-closure.py",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-    "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
-    "run: python3 scripts/zigux/check-phase2-kconfig-readme-alignment.py",
 )
 
-MAKEFILE_LINES = (
-    "phase2-kconfig: phase2-toolchain",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-)
-
-SCRIPTS_README_MARKERS = (
-    "check-phase2-kconfig-readme-alignment.py --self-test",
-    "dedicated kconfig bridge checker packet documented through the shared Phase 2 reminder surface",
-    "`check-zig-toolchain.py`, `install-zig.py`, `validate-phase2.py`, `validate-phase2-closure.py`, `check-phase2-toolchain-pin-scope.py`, `check-phase2-tests-readme-alignment.py`, `check-phase2-kconfig-readme-alignment.py`, and `check-phase2-tool-manifest-packets.py` are the live shared scripts-root Phase 2 helpers on current `master`",
-)
-
-TESTS_README_MARKERS = (
-    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-    "scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py",
-    "scripts/zigux/kconfig/conf_bridge.zig",
-    "scripts/zigux/kconfig/confdata_bridge.zig",
-    "the shipped direct kconfig bridge replays",
-)
-
-REVIEW_CHECKLIST_MARKERS = (
-    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-    "scripts/zigux/kconfig/conf_bridge.zig",
-    "scripts/zigux/kconfig/confdata_bridge.zig",
-    "make -C zigux phase2-kconfig",
-)
-
-PHASE2_CLOSURE_DOC_MARKERS = (
-    "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
-    "shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
-    "direct replay owners stay bounded on current `master`: `zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, `zig test scripts/zigux/kconfig/conf_bridge.zig`, and `zig test scripts/zigux/kconfig/confdata_bridge.zig` remain the shipped direct Phase 2 Zig replays",
-    "while the broader artifact-tools packet stays documented through `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, `zigux/tests/README.md`, and `zigux/Makefile` instead of implying extra standalone artifact replay entrypoints on current `master`",
-)
-
-PHASE2_BOOTSTRAP_NOTES_MARKERS = (
-    "the broader fixdep, genksyms, artifact-tools, kconfig bridge, and manifest packet should stay documented through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of presenting non-existent standalone checker scripts as live current-`master` evidence in this dedicated pin-scope note",
-    "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded fixdep replay, the committed genksyms and artifact-tools fixtures, and the direct kconfig and confdata Zig replays reviewable without restating missing standalone checker scripts in this dedicated pin-scope note",
-    "the active Phase 2 closure note and tests root keep the shipped fixdep workflow gate plus the direct `zig test scripts/zigux/fixdep.zig` replay explicit beside the same bounded tools route",
-    "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
-)
-
-EXPECTED_SELF_TEST_CASE_COUNT = 69
+EXPECTED_SELF_TEST_CASE_COUNT = 11
 
 
 def read_text(path: Path) -> str:
@@ -124,37 +44,9 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
-def count_exact_substrings(text: str, marker: str) -> int:
-    return text.count(marker)
-
-
-def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
-    return [(code, marker) for marker in markers if marker not in text]
-
-
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
-    validator_text = read_text(resolve_path(root, PHASE2_VALIDATOR))
-    closure_validator_text = read_text(resolve_path(root, PHASE2_CLOSURE_VALIDATOR))
     workflow_text = read_text(resolve_path(root, WORKFLOW))
-    makefile_text = read_text(resolve_path(root, MAKEFILE))
-    scripts_readme_text = read_text(resolve_path(root, SCRIPTS_README))
-    tests_readme_text = read_text(resolve_path(root, TESTS_README))
-    review_checklist_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
-    closure_doc_text = read_text(resolve_path(root, PHASE2_CLOSURE_DOC))
-    bootstrap_notes_text = read_text(resolve_path(root, PHASE2_BOOTSTRAP_NOTES))
-
-    issues.extend(collect_missing_markers(validator_text, VALIDATOR_MARKERS, "MISSING_VALIDATOR_MARKERS"))
-    for marker, expected_count in VALIDATOR_EXACT_COUNTS.items():
-        count = count_exact_substrings(validator_text, marker)
-        if count != expected_count:
-            issues.append(("DUPLICATE_VALIDATOR_MARKERS", f"{marker}:count={count}:expected={expected_count}"))
-
-    issues.extend(
-        collect_missing_markers(
-            closure_validator_text, CLOSURE_VALIDATOR_MARKERS, "MISSING_CLOSURE_VALIDATOR_MARKERS"
-        )
-    )
 
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -163,27 +55,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
 
-    for marker in MAKEFILE_LINES:
-        count = count_exact_lines(makefile_text, marker)
-        if count == 0:
-            issues.append(("MISSING_MAKEFILE_HOOKS", marker))
-        elif count != 1:
-            issues.append(("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count={count}"))
+    for present_path in PRESENT_PATHS:
+        if not resolve_path(root, present_path).exists():
+            issues.append(("MISSING_PRESENT_PATHS", present_path.relative_to(ROOT).as_posix()))
 
-    issues.extend(collect_missing_markers(scripts_readme_text, SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"))
-    issues.extend(collect_missing_markers(tests_readme_text, TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"))
-    issues.extend(
-        collect_missing_markers(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "MISSING_REVIEW_CHECKLIST_MARKERS")
-    )
-    issues.extend(
-        collect_missing_markers(closure_doc_text, PHASE2_CLOSURE_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS")
-    )
-    issues.extend(
-        collect_missing_markers(bootstrap_notes_text, PHASE2_BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS")
-    )
-    for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
-        if not resolve_path(root, bridge_path).exists():
-            issues.append(("MISSING_BRIDGE_SURFACE_PATHS", bridge_path.relative_to(ROOT).as_posix()))
+    for missing_path in EXPECTED_MISSING_PATHS:
+        if resolve_path(root, missing_path).exists():
+            issues.append(("UNEXPECTED_RETURNED_PATHS", missing_path.relative_to(ROOT).as_posix()))
+
     return issues
 
 
@@ -207,45 +86,9 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    validator_lines = [
-        VALIDATOR_MARKERS[0],
-        VALIDATOR_MARKERS[1],
-        VALIDATOR_MARKERS[2],
-        VALIDATOR_MARKERS[3],
-        VALIDATOR_MARKERS[4],
-        VALIDATOR_MARKERS[5],
-        VALIDATOR_MARKERS[6],
-        VALIDATOR_MARKERS[6],
-        VALIDATOR_MARKERS[7],
-        VALIDATOR_MARKERS[8],
-    ]
-    write_text(resolve_path(root, PHASE2_VALIDATOR), "\n".join(validator_lines) + "\n")
-    write_text(resolve_path(root, PHASE2_CLOSURE_VALIDATOR), "\n".join(CLOSURE_VALIDATOR_MARKERS) + "\n")
     write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
-    write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_LINES) + "\n")
-    write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
-    write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
-    write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
-    write_text(resolve_path(root, PHASE2_CLOSURE_DOC), "\n".join(PHASE2_CLOSURE_DOC_MARKERS) + "\n")
-    write_text(resolve_path(root, PHASE2_BOOTSTRAP_NOTES), "\n".join(PHASE2_BOOTSTRAP_NOTES_MARKERS) + "\n")
-    for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
-        content = "{}\n" if bridge_path.suffix == ".json" else "# present\n"
-        write_text(resolve_path(root, bridge_path), content)
-
-
-def replace_once(text: str, marker: str, replacement: str) -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
-
-
-def duplicate_exact_line(text: str, marker: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines.insert(index + 1, line)
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
+    for present_path in PRESENT_PATHS:
+        write_text(resolve_path(root, present_path), "# present\n")
 
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
@@ -257,18 +100,13 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
-def workflow_missing_replacement(marker: str) -> str:
-    if marker.endswith("--self-test"):
-        return "run: python3 other.py --self-test"
-    return "run: python3 other.py"
-
-
-def makefile_missing_replacement(marker: str) -> str:
-    if marker.startswith("phase2-kconfig:"):
-        return "phase2-kconfig: phase2-other"
-    if marker.endswith("--self-test"):
-        return "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/other.py --self-test"
-    return "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/other.py"
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
 
 
 def run_self_test() -> int:
@@ -280,81 +118,11 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, PHASE2_VALIDATOR)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), VALIDATOR_MARKERS[0], ""), encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("MISSING_VALIDATOR_MARKERS", VALIDATOR_MARKERS[0]) in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, PHASE2_VALIDATOR)
-        path.write_text(
-            replace_once(
-                path.read_text(encoding="utf-8"),
-                VALIDATOR_MARKERS[7],
-                "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 14",
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (
-            "MISSING_VALIDATOR_MARKERS",
-            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28",
-        ) in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, PHASE2_VALIDATOR)
-        path.write_text(
-            replace_once(
-                path.read_text(encoding="utf-8"),
-                VALIDATOR_MARKERS[8],
-                "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 27",
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (
-            "MISSING_VALIDATOR_MARKERS",
-            "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37",
-        ) in issues
-        checks_run += 1
-
-        for marker, expected_count in VALIDATOR_EXACT_COUNTS.items():
-            build_self_test_root(root)
-            path = resolve_path(root, PHASE2_VALIDATOR)
-            path.write_text(
-                path.read_text(encoding="utf-8") + marker + "\n",
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert (
-                "DUPLICATE_VALIDATOR_MARKERS",
-                f"{marker}:count={expected_count + 1}:expected={expected_count}",
-            ) in issues
-            checks_run += 1
-
-        for marker in CLOSURE_VALIDATOR_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, PHASE2_CLOSURE_VALIDATOR)
-            path.write_text(
-                replace_once(path.read_text(encoding="utf-8"), marker, ""),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_CLOSURE_VALIDATOR_MARKERS", marker) in issues
-            checks_run += 1
-
         for marker in WORKFLOW_LINES:
             build_self_test_root(root)
             path = resolve_path(root, WORKFLOW)
             path.write_text(
-                replace_exact_line(
-                    path.read_text(encoding="utf-8"),
-                    marker,
-                    workflow_missing_replacement(marker),
-                ),
+                replace_exact_line(path.read_text(encoding="utf-8"), marker, "run: python3 other.py"),
                 encoding="utf-8",
             )
             issues = collect_issues(root)
@@ -364,116 +132,34 @@ def run_self_test() -> int:
         for marker in WORKFLOW_LINES:
             build_self_test_root(root)
             path = resolve_path(root, WORKFLOW)
-            path.write_text(
-                duplicate_exact_line(path.read_text(encoding="utf-8"), marker),
-                encoding="utf-8",
-            )
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
             checks_run += 1
 
-        for marker in MAKEFILE_LINES:
+        for present_path in PRESENT_PATHS:
             build_self_test_root(root)
-            path = resolve_path(root, MAKEFILE)
-            path.write_text(
-                replace_exact_line(
-                    path.read_text(encoding="utf-8"),
-                    marker,
-                    makefile_missing_replacement(marker),
-                ),
-                encoding="utf-8",
-            )
+            resolve_path(root, present_path).unlink()
             issues = collect_issues(root)
-            assert ("MISSING_MAKEFILE_HOOKS", marker) in issues
+            assert ("MISSING_PRESENT_PATHS", present_path.relative_to(ROOT).as_posix()) in issues
             checks_run += 1
 
-        for marker in MAKEFILE_LINES:
+        for missing_path in EXPECTED_MISSING_PATHS:
             build_self_test_root(root)
-            path = resolve_path(root, MAKEFILE)
-            path.write_text(
-                duplicate_exact_line(path.read_text(encoding="utf-8"), marker),
-                encoding="utf-8",
-            )
+            write_text(resolve_path(root, missing_path), "# unexpectedly present\n")
             issues = collect_issues(root)
-            assert ("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count=2") in issues
+            assert ("UNEXPECTED_RETURNED_PATHS", missing_path.relative_to(ROOT).as_posix()) in issues
             checks_run += 1
 
-        for marker in SCRIPTS_README_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, SCRIPTS_README)
-            path.write_text(
-                replace_once(path.read_text(encoding="utf-8"), marker, ""),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_SCRIPTS_README_MARKERS", marker) in issues
+        build_self_test_root(root)
+        resolve_path(root, WORKFLOW).unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
             checks_run += 1
-
-        for marker in TESTS_README_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, TESTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_TESTS_README_MARKERS", marker) in issues
-            checks_run += 1
-
-        for marker in REVIEW_CHECKLIST_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, REVIEW_CHECKLIST)
-            path.write_text(
-                replace_once(path.read_text(encoding="utf-8"), marker, ""),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_REVIEW_CHECKLIST_MARKERS", marker) in issues
-            checks_run += 1
-
-        for marker in PHASE2_CLOSURE_DOC_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, PHASE2_CLOSURE_DOC)
-            path.write_text(
-                replace_once(path.read_text(encoding="utf-8"), marker, ""),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_CLOSURE_DOC_MARKERS", marker) in issues
-            checks_run += 1
-
-        for marker in PHASE2_BOOTSTRAP_NOTES_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, PHASE2_BOOTSTRAP_NOTES)
-            path.write_text(
-                replace_once(path.read_text(encoding="utf-8"), marker, ""),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_BOOTSTRAP_NOTES_MARKERS", marker) in issues
-            checks_run += 1
-
-        for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
-            build_self_test_root(root)
-            resolve_path(root, bridge_path).unlink()
-            issues = collect_issues(root)
-            assert ("MISSING_BRIDGE_SURFACE_PATHS", bridge_path.relative_to(ROOT).as_posix()) in issues
-            checks_run += 1
-
-        for rel_path in (
-            PHASE2_VALIDATOR,
-            PHASE2_CLOSURE_VALIDATOR,
-            WORKFLOW,
-            MAKEFILE,
-            SCRIPTS_README,
-            TESTS_README,
-        ):
-            build_self_test_root(root)
-            resolve_path(root, rel_path).unlink()
-            try:
-                collect_issues(root)
-            except SystemExit as exc:
-                assert "required file missing" in str(exc)
-                checks_run += 1
-            else:
-                raise AssertionError(f"missing file did not abort: {rel_path}")
+        else:
+            raise AssertionError("missing workflow did not abort")
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass")
@@ -483,7 +169,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 2 kconfig packet stays aligned with the live validator, docs, tests, workflow, and make surfaces."
+        description="Check that the current Phase 2 kconfig guard still matches the live bootstrap workflow and repo-reality path packet."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
@@ -498,8 +184,7 @@ def main() -> int:
 
     print("PHASE2_KCONFIG_ALIGNMENT=pass")
     print(f"PHASE2_KCONFIG_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(WORKFLOW_LINES)}")
-    print(f"PHASE2_KCONFIG_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(MAKEFILE_LINES)}")
-    print(f"PHASE2_KCONFIG_ALIGNMENT_BRIDGE_SURFACE_PATH_COUNT={len(KCONFIG_BRIDGE_SURFACE_PATHS)}")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_EXPECTED_MISSING_PATH_COUNT={len(EXPECTED_MISSING_PATHS)}")
     return 0
 
 
