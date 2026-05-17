@@ -144,6 +144,6 @@ Phase 15 notes
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-now keep the current Phase 15 docs-root handoff explicit from the documentation root without implying any Architecture Council approval for a freeze-map status change.
-  * the shared Phase 15 docs-root handoff should also keep the landed readiness, handoff, governance-lane-sequencing, study-only-accounting, docs-readme-alignment, scripts-readme-alignment, review-process-handoff, and shared-summary-gap companions explicit while the broader validator-first and lane-owner-alignment packet stays framed as a repo-reality gap on current `master`.
-  * the named reopen trigger for this docs-root reminder is shared-summary drift on the broad reminder surfaces or a deep-core blocker-posture change; until then, keep the parked validator-first route vocabulary explicit instead of treating it as shipped direct evidence.
+now keep the current docs-root Phase 15 handoff packet explicit from the documentation root without implying any Architecture Council approval for a freeze-map status change.
+  * the shared Phase 15 docs-root handoff should also keep the named reopen trigger, any deep-core blocker-posture change, and the current governance reminder split explicit through the readiness survey, handoff survey, governance sequencing note, study-only anchor accounting note, the docs-root and scripts-root alignment checkers, the shared-summary gap checker, and the focused review-process handoff checker.
+  * treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence, and keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim.
