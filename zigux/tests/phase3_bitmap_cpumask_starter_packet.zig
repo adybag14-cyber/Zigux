@@ -37,7 +37,9 @@ test "bitmap starter helpers keep first set first zero and weight aligned" {
 
     try testing.expect(bitmap_view.isValid(view));
     try testing.expect(bitmap_view.testBit(view, 3));
+    try testing.expect(bitmap_view.testBit(view, bitmap_view.bits_per_word + 2));
     try testing.expect(!bitmap_view.testBit(view, 4));
+    try testing.expect(!bitmap_view.testBit(view, bitmap_view.bits_per_word + 5));
     try testing.expectEqual(@as(u32, 1), summary.first_set);
     try testing.expectEqual(@as(u32, 0), summary.first_zero);
     try testing.expectEqual(@as(u32, 4), summary.weight);
