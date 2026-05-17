@@ -39,8 +39,6 @@ For the shared tracing and probe lane, keep reviewer guidance grounded in the re
 
 * `Documentation/zigux/phase5-sample-lane-sequencing.md`
 * `Documentation/zigux/phase5-sample-review-guide.md`
-* `Documentation/zigux/phase5-kretprobe-sample-survey.md`
-* `Documentation/zigux/phase5-trace-events-sample-survey.md`
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
@@ -54,8 +52,8 @@ For `kretprobe` and `trace_events`, treat the Phase 5 anchors as approved refere
 
 Use the shared docs to preserve these bounded cues:
 
-* `Documentation/zigux/phase5-kretprobe-sample-survey.md` keeps the probe-side ownership and review prompts visible without claiming direct sample-root proof from `samples/zigux/kretprobe_example.zig`
-* `Documentation/zigux/phase5-trace-events-sample-survey.md` and `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` keep the tracing-side formatting and replay cues visible without claiming direct sample-root proof from `samples/zigux/trace_events_sample.zig`
+* `zigux/tests/README.md` keeps the kretprobe reminder visible by recording that current authenticated readback still returns missing for `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`
+* `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` keeps the tracing-side formatting cue visible without claiming direct sample-root proof from `samples/zigux/trace_events_sample.zig`
 * `samples/zigux/README.md` remains the source of truth for whether those non-runtime sample-root files are directly present on current `master`
 
 ## Approved idiom gap
@@ -65,7 +63,6 @@ Current `master` still ships no standalone `samples/zigux/*printf*` or `*vsprint
 Keep the approved formatting idiom bounded to the selected-string plus `iter=%d` reminder carried by the trace-events review packet:
 
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
-* `Documentation/zigux/phase5-trace-events-sample-survey.md`
 
 Do not describe that formatting cue as a fifth Phase 5 sample, a standalone formatting-helper port, or proof that the trace-events sample-root file is currently present.
 
