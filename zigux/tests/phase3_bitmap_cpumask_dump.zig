@@ -29,7 +29,7 @@ fn writeCase(
     trailing_comma: bool,
 ) !void {
     try writer.print(
-        "    {\n" ++
+        "    {{\n" ++
             "      \"name\": \"{s}\",\n" ++
             "      \"kind\": \"{s}\",\n" ++
             "      \"nbits\": {},\n" ++
@@ -81,8 +81,15 @@ pub fn main(init: std.process.Init) !void {
     const cpumask = cpumask_view.viewFromWords(cpumask_words[0..], 16);
     const cpumask_summary = cpumask_view.summarize(cpumask);
 
+    var cpumask_cross_words = [_]usize{
+        (@as(usize, 1) << 5) | (@as(usize, 1) << 63),
+        (@as(usize, 1) << 1) | (@as(usize, 1) << 6) | (@as(usize, 1) << 10),
+    };
+    const cpumask_cross = cpumask_view.viewFromWords(cpumask_cross_words[0..], bitmap_view.bits_per_word + 11);
+    const cpumask_cross_summary = cpumask_view.summarize(cpumask_cross);
+
     try writer.print(
-        "{\n" ++
+        "{{\n" ++
             "  \"word_bits\": {},\n" ++
             "  \"bitmap_view_abi_version\": {},\n" ++
             "  \"cpumask_view_abi_version\": {},\n" ++
@@ -124,6 +131,22 @@ pub fn main(init: std.process.Init) !void {
         cpumask_view.cpuIsSet(cpumask, 7),
         1,
         cpumask_view.cpuIsSet(cpumask, 1),
+        true,
+    );
+    try writeCase(
+        writer,
+        "cpumask_cross_word_window",
+        "cpumask",
+        cpumask_cross.nbits,
+        cpumask_cross.nr_cpu_ids,
+        cpumask_cross.word_count,
+        cpumask_cross_summary.first_set,
+        cpumask_cross_summary.first_zero,
+        cpumask_cross_summary.weight,
+        bitmap_view.bits_per_word + 10,
+        cpumask_view.cpuIsSet(cpumask_cross, bitmap_view.bits_per_word + 10),
+        bitmap_view.bits_per_word + 11,
+        cpumask_view.cpuIsSet(cpumask_cross, bitmap_view.bits_per_word + 11),
         false,
     );
 
