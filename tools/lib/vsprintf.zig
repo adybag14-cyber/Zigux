@@ -59,3 +59,11 @@ test "scnprintfPad handles zero logical size" {
     try std.testing.expectEqual(@as(usize, 0), written);
     try std.testing.expectEqual(@as(u8, 0), buffer[0]);
 }
+
+test "scnprintfPad clamps oversized logical sizes to the buffer" {
+    var buffer: [6]u8 = .{ 'x', 'x', 'x', 'x', 'x', 'x' };
+    const written = scnprintfPad(&buffer, 99, "{s}", .{"ab"});
+    try std.testing.expectEqual(@as(usize, buffer.len - 1), written);
+    try std.testing.expectEqualStrings("ab   ", buffer[0 .. buffer.len - 1]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
+}
