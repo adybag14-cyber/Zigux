@@ -3,8 +3,9 @@
 
 Fail-closed checker for the current Phase 14 rollback-threshold automation gap
 note. This stays intentionally narrow: it keeps the shared-smoke packet honest
-about one current checker-local drift without reopening anchor-local Phase 14
-ownership.
+about the current direct-readback split between the readable rollback packet
+and the still-missing executable packet members without reopening anchor-local
+Phase 14 ownership.
 """
 
 from __future__ import annotations
@@ -16,31 +17,59 @@ from pathlib import Path
 
 MARKER = "PHASE14_CHECK_PACKET=rollback_threshold_gap"
 SMOKE_NOTE_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
-RELEASE_NOTE_PATH = Path("Documentation/zigux/phase14-release-boundary-survey.md")
+PRODUCTIZATION_GAP_PATH = Path("Documentation/zigux/phase14-productization-gap-survey.md")
+SHARED_SMOKE_GAP_PATH = Path("Documentation/zigux/phase14-shared-smoke-current-master-gap.md")
 ROLLBACK_CHECKER_PATH = Path(
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
 )
 GAP_NOTE_PATH = Path("Documentation/zigux/phase14-rollback-threshold-automation-gap.md")
 
-SHARED_PACKET_MARKERS = [
-    "`scripts/zigux/check-phase14-tests-readme-smoke-summary.py`",
-    "`scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test`",
-    "`scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`",
+ROLLBACK_NOTE_MARKERS = [
+    "- rollback owner: `Repo Tooling Pod`",
+    "- rollback threshold: `0` tolerated same-packet drifts across anchor-local manifests, anchor-local survey notes, the compile shard matrix, and shared replay wiring",
+    "- fallback path: keep this shared smoke lane parked and rerun `make -C zigux phase14-validate` before reopening any anchor-local or shared follow-up",
+    "- automatic return-to-blocked triggers:",
+    "anchor-local manifest drift",
+    "anchor-local survey note drift",
+    "compile shard matrix drift",
+    "shared replay wiring drift",
+]
+
+MISSING_EXECUTABLE_MARKERS = [
+    "`scripts/zigux/validate-phase14.py`",
+    "`scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
+    "`zigux/tests/phase14_build.zig`",
+    "`zigux/tests/phase14_end_to_end_smoke_manifest.json`",
+    "`zigux/tests/phase14_end_to_end_smoke_survey.zig`",
 ]
 
 GAP_NOTE_MARKERS = [
     "- `PHASE14_ROLLBACK_THRESHOLD_GAP=present`",
-    "- `PHASE14_ROLLBACK_THRESHOLD_GAP_KIND=makefile_selftest_coverage_drift`",
+    "- `PHASE14_ROLLBACK_THRESHOLD_GAP_KIND=executable_packet_readback_gap`",
     "- `PHASE14_ROLLBACK_THRESHOLD_GAP_SCOPE=shared_smoke_packet_only`",
     "- `PHASE14_ROLLBACK_THRESHOLD_GAP_STATUS_BUCKET=study_only`",
     "- `PHASE14_ROLLBACK_THRESHOLD_GAP_OWNER=Repo Tooling Pod`",
-    "Refresh `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`",
+    "The directly readable rollback-threshold packet is stronger than an older docs-absence claim.",
+    "But the executable rollback-threshold packet members still return missing-path results on the same exact contents path:",
+    "The remaining same-lane gap is no longer a smaller Makefile-self-test inventory mismatch inside `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`.",
+    "tighten broader Phase 14 reminder surfaces so they name the rollback-threshold note/checker layer as directly readable while keeping the executable layer explicit as the remaining gap.",
 ]
 
-MISSING_FROM_ROLLBACK_CHECKER = [
-    '"\\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test"',
-    '"\\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py"',
-    '"\\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test"',
+PROHIBITED_GAP_NOTE_MARKERS = [
+    "makefile_selftest_coverage_drift",
+    "Refresh `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`",
+    "`scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test`",
+]
+
+ROLLBACK_CHECKER_MARKERS = [
+    'ROLLBACK_OWNER = "Repo Tooling Pod"',
+    "ROLLBACK_THRESHOLD_MARKER =",
+    "ROLLBACK_FALLBACK_PATH_MARKER =",
+    "ROLLBACK_TRIGGER_MARKERS = [",
+    '"  - anchor-local manifest drift"',
+    '"  - anchor-local survey note drift"',
+    '"  - compile shard matrix drift"',
+    '"  - shared replay wiring drift"',
 ]
 
 
@@ -57,36 +86,59 @@ def check(root: Path) -> list[str]:
     if MARKER not in source_text():
         errors.append("checker marker missing from checker source")
 
-    for rel in [SMOKE_NOTE_PATH, RELEASE_NOTE_PATH, ROLLBACK_CHECKER_PATH, GAP_NOTE_PATH]:
+    for rel in [
+        SMOKE_NOTE_PATH,
+        PRODUCTIZATION_GAP_PATH,
+        SHARED_SMOKE_GAP_PATH,
+        ROLLBACK_CHECKER_PATH,
+        GAP_NOTE_PATH,
+    ]:
         if not (root / rel).exists():
             errors.append(f"missing file: {rel.as_posix()}")
     if errors:
         return errors
 
     smoke_note = read_text(root, SMOKE_NOTE_PATH)
-    release_note = read_text(root, RELEASE_NOTE_PATH)
+    productization_gap = read_text(root, PRODUCTIZATION_GAP_PATH)
+    shared_smoke_gap = read_text(root, SHARED_SMOKE_GAP_PATH)
     rollback_checker = read_text(root, ROLLBACK_CHECKER_PATH)
     gap_note = read_text(root, GAP_NOTE_PATH)
 
-    for marker in SHARED_PACKET_MARKERS:
+    for marker in ROLLBACK_NOTE_MARKERS:
         if marker not in smoke_note:
-            errors.append(f"missing shared-smoke marker in {SMOKE_NOTE_PATH.as_posix()}: {marker}")
+            errors.append(
+                f"missing rollback-note marker in {SMOKE_NOTE_PATH.as_posix()}: {marker}"
+            )
 
-    if "`scripts/zigux/check-phase14-tests-readme-smoke-summary.py`" not in release_note:
-        errors.append(
-            f"missing release-boundary marker in {RELEASE_NOTE_PATH.as_posix()}: "
-            "`scripts/zigux/check-phase14-tests-readme-smoke-summary.py`"
-        )
+    for marker in MISSING_EXECUTABLE_MARKERS:
+        if marker not in productization_gap:
+            errors.append(
+                f"missing productization-gap marker in {PRODUCTIZATION_GAP_PATH.as_posix()}: {marker}"
+            )
+        if marker not in shared_smoke_gap:
+            errors.append(
+                f"missing shared-smoke-gap marker in {SHARED_SMOKE_GAP_PATH.as_posix()}: {marker}"
+            )
+        if marker not in gap_note:
+            errors.append(
+                f"missing rollback-gap note marker in {GAP_NOTE_PATH.as_posix()}: {marker}"
+            )
 
     for marker in GAP_NOTE_MARKERS:
         if marker not in gap_note:
             errors.append(f"missing gap-note marker in {GAP_NOTE_PATH.as_posix()}: {marker}")
 
-    for marker in MISSING_FROM_ROLLBACK_CHECKER:
-        if marker in rollback_checker:
+    for marker in PROHIBITED_GAP_NOTE_MARKERS:
+        if marker in gap_note:
             errors.append(
-                "rollback-threshold checker no longer shows the documented gap for "
-                f"{marker}"
+                f"stale gap-note marker still present in {GAP_NOTE_PATH.as_posix()}: {marker}"
+            )
+
+    for marker in ROLLBACK_CHECKER_MARKERS:
+        if marker not in rollback_checker:
+            errors.append(
+                "missing rollback-checker marker in "
+                f"{ROLLBACK_CHECKER_PATH.as_posix()}: {marker}"
             )
 
     return errors
@@ -101,27 +153,49 @@ def write(root: Path, rel: Path, text: str) -> None:
 def fixture_smoke_note() -> str:
     return """# Phase 14 End-to-End Smoke Survey
 
-- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`
-- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test`
-- `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`
+- rollback owner: `Repo Tooling Pod`
+- rollback threshold: `0` tolerated same-packet drifts across anchor-local manifests, anchor-local survey notes, the compile shard matrix, and shared replay wiring
+- fallback path: keep this shared smoke lane parked and rerun `make -C zigux phase14-validate` before reopening any anchor-local or shared follow-up
+- automatic return-to-blocked triggers:
+  - anchor-local manifest drift
+  - anchor-local survey note drift
+  - compile shard matrix drift
+  - shared replay wiring drift
 """
 
 
-def fixture_release_note() -> str:
-    return """## Status
+def fixture_productization_gap() -> str:
+    return """# Phase 14 Productization Gap Survey
 
-- shared smoke packet: `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`
+- `scripts/zigux/validate-phase14.py`
+- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+- `zigux/tests/phase14_build.zig`
+- `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+- `zigux/tests/phase14_end_to_end_smoke_survey.zig`
+"""
+
+
+def fixture_shared_smoke_gap() -> str:
+    return """# Phase 14 Shared Smoke Current-Master Gap
+
+- `scripts/zigux/validate-phase14.py`
+- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+- `zigux/tests/phase14_build.zig`
+- `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+- `zigux/tests/phase14_end_to_end_smoke_survey.zig`
 """
 
 
 def fixture_rollback_checker() -> str:
     return """#!/usr/bin/env python3
-MAKEFILE_EXACT_LINES = [
-    "\\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
-    "\\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
-    "\\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
-    "\\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
-    "\\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+ROLLBACK_OWNER = \"Repo Tooling Pod\"
+ROLLBACK_THRESHOLD_MARKER = \"threshold\"
+ROLLBACK_FALLBACK_PATH_MARKER = \"fallback\"
+ROLLBACK_TRIGGER_MARKERS = [
+    \"  - anchor-local manifest drift\",
+    \"  - anchor-local survey note drift\",
+    \"  - compile shard matrix drift\",
+    \"  - shared replay wiring drift\",
 ]
 """
 
@@ -129,22 +203,42 @@ MAKEFILE_EXACT_LINES = [
 def fixture_gap_note() -> str:
     return """# Phase 14 Rollback-Threshold Automation Gap
 
+## Status
+
 - `PHASE14_ROLLBACK_THRESHOLD_GAP=present`
-- `PHASE14_ROLLBACK_THRESHOLD_GAP_KIND=makefile_selftest_coverage_drift`
+- `PHASE14_ROLLBACK_THRESHOLD_GAP_KIND=executable_packet_readback_gap`
 - `PHASE14_ROLLBACK_THRESHOLD_GAP_SCOPE=shared_smoke_packet_only`
 - `PHASE14_ROLLBACK_THRESHOLD_GAP_STATUS_BUCKET=study_only`
 - `PHASE14_ROLLBACK_THRESHOLD_GAP_OWNER=Repo Tooling Pod`
 
-Refresh `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`
+## Why this gap note exists
+
+The directly readable rollback-threshold packet is stronger than an older docs-absence claim.
+But the executable rollback-threshold packet members still return missing-path results on the same exact contents path:
+
+- `scripts/zigux/validate-phase14.py`
+- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+- `zigux/tests/phase14_build.zig`
+- `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+- `zigux/tests/phase14_end_to_end_smoke_survey.zig`
+
+## Current bounded gap
+
+The remaining same-lane gap is no longer a smaller Makefile-self-test inventory mismatch inside `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`.
+
+## Next bounded fix
+
+Either re-materialize the missing executable packet members above on current `master`, or tighten broader Phase 14 reminder surfaces so they name the rollback-threshold note/checker layer as directly readable while keeping the executable layer explicit as the remaining gap.
 """
 
 
 def run_self_test() -> int:
-    cases = 4
+    cases = 5
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
-        write(root, RELEASE_NOTE_PATH, fixture_release_note())
+        write(root, PRODUCTIZATION_GAP_PATH, fixture_productization_gap())
+        write(root, SHARED_SMOKE_GAP_PATH, fixture_shared_smoke_gap())
         write(root, ROLLBACK_CHECKER_PATH, fixture_rollback_checker())
         write(root, GAP_NOTE_PATH, fixture_gap_note())
         errors = check(root)
@@ -154,31 +248,53 @@ def run_self_test() -> int:
                 print(error)
             return 1
 
-        write(root, GAP_NOTE_PATH, fixture_gap_note().replace(
-            "- `PHASE14_ROLLBACK_THRESHOLD_GAP_OWNER=Repo Tooling Pod`\n", ""
-        ))
+        write(
+            root,
+            PRODUCTIZATION_GAP_PATH,
+            fixture_productization_gap().replace(
+                "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`\n", "", 1
+            ),
+        )
         if not check(root):
             print("PHASE14_ROLLBACK_THRESHOLD_GAP_SELF_TEST=fail")
-            print("expected missing owner marker to fail")
+            print("expected missing executable-marker failure")
+            return 1
+
+        write(root, PRODUCTIZATION_GAP_PATH, fixture_productization_gap())
+        write(
+            root,
+            GAP_NOTE_PATH,
+            fixture_gap_note() + "\nRefresh `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`\n",
+        )
+        if not check(root):
+            print("PHASE14_ROLLBACK_THRESHOLD_GAP_SELF_TEST=fail")
+            print("expected stale gap-note guidance failure")
             return 1
 
         write(root, GAP_NOTE_PATH, fixture_gap_note())
-        write(root, SMOKE_NOTE_PATH, fixture_smoke_note().replace(
-            "- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test`\n", ""
-        ))
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
+                "- automatic return-to-blocked triggers:\n", "", 1
+            ),
+        )
         if not check(root):
             print("PHASE14_ROLLBACK_THRESHOLD_GAP_SELF_TEST=fail")
-            print("expected missing smoke-note self-test marker to fail")
+            print("expected missing rollback-trigger heading failure")
             return 1
 
         write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
-        write(root, ROLLBACK_CHECKER_PATH, fixture_rollback_checker().replace(
-            "\\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
-            "\\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
-        ))
+        write(
+            root,
+            ROLLBACK_CHECKER_PATH,
+            fixture_rollback_checker().replace(
+                '    \"  - shared replay wiring drift\",\n', "", 1
+            ),
+        )
         if not check(root):
             print("PHASE14_ROLLBACK_THRESHOLD_GAP_SELF_TEST=fail")
-            print("expected rollback-checker gap closure to fail this gap note")
+            print("expected missing rollback-checker trigger failure")
             return 1
 
     print("PHASE14_ROLLBACK_THRESHOLD_GAP_SELF_TEST=pass")
