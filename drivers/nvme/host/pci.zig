@@ -73,6 +73,8 @@ pub const RecoveryReservationReplayPlanSummary = struct {
     queue_planning_blocked: bool,
     queues_frozen: bool,
     cached_queue_reservation_stale: bool,
+    cached_prp_metadata_stale: bool,
+    descriptor_rebuild_required: bool,
     admin_queue_must_be_replanned: bool,
 };
 
@@ -301,6 +303,9 @@ pub const NvmePciQueueLab = struct {
             return error.AdminQueueReplayRequired;
         }
 
+        const cached_prp_metadata_stale = request.had_prp_metadata_plan and
+            request.cached_prp_metadata_generation != self.reset_generation;
+
         const plan = try self.planIoQueueCount(request.cached_reserved_io_queues, controller_io_queue_limit);
         return .{
             .anchor = plan.anchor,
@@ -320,6 +325,8 @@ pub const NvmePciQueueLab = struct {
             .queue_planning_blocked = false,
             .queues_frozen = plan.queues_frozen,
             .cached_queue_reservation_stale = true,
+            .cached_prp_metadata_stale = cached_prp_metadata_stale,
+            .descriptor_rebuild_required = cached_prp_metadata_stale,
             .admin_queue_must_be_replanned = false,
         };
     }
@@ -651,6 +658,41 @@ pub const NvmePciQueueLab = struct {
         return std.math.add(usize, lhs, rhs) catch error.QueueCountOverflow;
     }
 };
+
+test "nvme pci recovery reservation replay marks stale PRP metadata as descriptor rebuild debt" {
+    var lab = try NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(6, 6);
+    _ = try lab.planPrpBufferShape(4096 * 3, 128);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    _ = try lab.planAdminQueue(32, 64, false);
+
+    const stale = try lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = reservation.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try std.testing.expect(stale.cached_queue_reservation_stale);
+    try std.testing.expect(stale.cached_prp_metadata_stale);
+    try std.testing.expect(stale.descriptor_rebuild_required);
+
+    const current = try lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = stale.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try std.testing.expect(current.cached_queue_reservation_stale);
+    try std.testing.expect(!current.cached_prp_metadata_stale);
+    try std.testing.expect(!current.descriptor_rebuild_required);
+}
 
 test "nvme pci recovery rollback gate waits for queue count and DMA parity after reset replay" {
     var lab = try NvmePciQueueLab.init(4096, 8);
