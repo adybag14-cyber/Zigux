@@ -908,6 +908,39 @@ test "rbtree eraseInit detaches erased node" {
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 20 }, order[0..count]);
 }
 
+test "rbtree eraseInit clears singleton roots before reseed" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var first_entry = Entry{ .key = 10 };
+    var second_entry = Entry{ .key = 6 };
+    var root = Root.init();
+
+    add(&first_entry.node, &root, less);
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), root.node);
+    try std.testing.expect(!emptyRoot(&root));
+
+    eraseInit(&first_entry.node, &root);
+    try std.testing.expect(emptyNode(&first_entry.node));
+    try std.testing.expect(emptyRoot(&root));
+    try std.testing.expectEqual(@as(?*Node, null), root.node);
+
+    add(&second_entry.node, &root, less);
+    try std.testing.expectEqual(@as(?*Node, &second_entry.node), root.node);
+    try std.testing.expectEqual(@as(?*Node, &second_entry.node), first(&root));
+    try std.testing.expectEqual(@as(?*Node, &second_entry.node), last(&root));
+}
+
 test "rbtree postorder and empty node helpers behave" {
     const Entry = struct {
         key: i32,
