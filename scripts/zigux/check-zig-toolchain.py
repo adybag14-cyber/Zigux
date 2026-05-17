@@ -215,6 +215,15 @@ def iter_zig_search_roots(root: Path = ROOT) -> list[Path]:
     return search_roots
 
 
+def normalize_explicit_zig_path(explicit_zig: str) -> str:
+    normalized = Path(explicit_zig).expanduser()
+    if not normalized.exists():
+        raise ValueError(f"explicit zig path does not exist: {normalized}")
+    if normalized.is_dir():
+        raise ValueError(f"explicit zig path is a directory, expected an executable file: {normalized}")
+    return str(normalized)
+
+
 def iter_repo_local_zig_candidates(
     *,
     root: Path = ROOT,
@@ -259,7 +268,7 @@ def resolve_zig_executable(
     which=shutil.which,
 ) -> str | None:
     if explicit_zig is not None:
-        return explicit_zig
+        return normalize_explicit_zig_path(explicit_zig)
 
     pinned_channel = load_pinned_channel(policy_path)
     for candidate in iter_repo_local_zig_candidates(root=root, pinned_channel=pinned_channel):
@@ -516,6 +525,7 @@ def run_self_test() -> int:
     expect_true(parse_zig_version("0.17.1-dev.1") > parse_zig_version("0.17.0"))
     expect_true(parse_zig_version("0.16.0") > parse_zig_version("0.15.2"))
     expect_equal(policy_archive_filename("x86_64-linux", "0.17.0-dev.87+9b177a7d2"), "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz")
+    expect_raises(lambda: normalize_explicit_zig_path("/tmp/zigux-toolchain-self-test-missing-zig"), "explicit zig path does not exist")
 
     expect_equal(
         evaluate_toolchain_version("0.17.0-dev.87+9b177a7d2", "0.17.0-dev.87+9b177a7d2"),
@@ -591,7 +601,15 @@ def run_self_test() -> int:
         alt_zig.write_text("#!/bin/sh\n", encoding="utf-8")
         pinned_zig.unlink()
         expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(alt_zig))
-        expect_equal(resolve_zig_executable("/custom/zig", root=root, policy_path=policy_path, which=lambda _: None), "/custom/zig")
+        explicit_zig = root / "custom-zig"
+        explicit_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        expect_equal(
+            resolve_zig_executable(str(explicit_zig), root=root, policy_path=policy_path, which=lambda _: None),
+            str(explicit_zig),
+        )
+        explicit_dir = root / "explicit-zig-dir"
+        explicit_dir.mkdir()
+        expect_raises(lambda: resolve_zig_executable(str(explicit_dir), root=root, policy_path=policy_path, which=lambda _: None), "expected an executable file")
         pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
         expect_equal(
             iter_repo_local_zig_candidates(root=root, pinned_channel="0.17.0-dev.87+9b177a7d2")[:2],
@@ -945,7 +963,7 @@ def main() -> int:
             parse_zig_version(expected_channel_raw)
     except ValueError as exc:
         print("ZIG_TOOLCHAIN_STATUS=invalid")
-        print(f"ZIG_TOOLCHAIN_PATH={zig or 'unresolved'}")
+        print(f"ZIG_TOOLCHAIN_PATH={zig or args.zig or 'unresolved'}")
         print(f"ZIG_TOOLCHAIN_MIN_SUPPORTED={min_version_raw or 'unresolved'}")
         if expected_channel_raw is not None:
             print(f"ZIG_TOOLCHAIN_PINNED_CHANNEL={expected_channel_raw}")
