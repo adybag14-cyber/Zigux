@@ -116,9 +116,9 @@ Phase 3 review packet
 
 Phase 7 review packet
   * current direct-readback Phase 7 anchor: `zigux/tests/phase7_rbtree_survey.zig`
-  * repo-reality warning for the broader Phase 7 rbtree packet: repeated authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `zigux/tests/phase7_build.zig`
-  * treat those paths plus the older `make -C zigux phase7-validate` and `make -C zigux phase7` route names as last-known packet members that need fresh reread or re-materialization before they are presented here as shipped direct evidence again
-  * keep the narrower current Phase 7 reminder surface tied to the directly readable `zigux/tests/phase7_rbtree_survey.zig` anchor instead of reconstructing the broader helper packet from older route names alone
+  * current broader Phase 7 rbtree packet reminder: `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `zigux/tests/phase7_build.zig` are directly readable on current `master`
+  * keep the broader Phase 7 reminder aligned with the shipped rbtree helper, checker, fixture, manifest, dedicated test, and shared build surfaces instead of presenting those current packet members as missing
+  * keep the narrower current Phase 7 reminder surface tied to the directly readable `zigux/tests/phase7_rbtree_survey.zig` anchor while leaving `string_helpers`, `cmdline`, and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond rbtree
 
 Phase 8 review packet
   * `Documentation/zigux/phase8-tooling-lane-sequencing.md`
