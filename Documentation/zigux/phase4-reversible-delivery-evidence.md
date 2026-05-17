@@ -29,11 +29,20 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
 
 Treat this note as the current shared handoff for the Phase 4 rollback-readiness packet, not as proof that every older companion pin in the status block has already been refreshed from live exact blob capture.
 
-Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`. The live repo-reality gap in this note is therefore stale provenance, not path absence: the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines still record the older blob-pin packet and should stay framed as historical provenance until a separate exact-pin refresh rereads every companion blob value together.
+Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` on current `master`.
 
-The tests-root guide should mirror this same current-head posture. The stale Phase 4 repo-reality warning in `zigux/tests/README.md` is now closed, so the next same-family follow-through is the dedicated exact-pin pass itself rather than another tests-root wording refresh.
+Current direct-readback packet members:
+  * `Documentation/zigux/phase4-reversible-delivery-evidence.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `zigux/tests/README.md`
+  * `scripts/zigux/check-phase4-repo-reality-warning.py`
+  * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
 
-Last-known shared exact-readback and owner-map packet members:
+The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run: authenticated contents reads returned missing for `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`. The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.
+
+The tests-root guide should mirror this same current-head posture. The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, and local-only perf packet is directly readable again, so the next same-family follow-through is the smallest truthful reminder-surface or checker repair inside this live warning packet rather than a fresh exact-pin pass against missing companions.
+
+Historical broader validator and owner-map packet members:
   * `Documentation/zigux/artifact-diff.md`
   * `Documentation/zigux/phase4-gate-evidence.md`
   * `Documentation/zigux/phase4-validation-matrix.md`
@@ -49,7 +58,7 @@ Last-known shared exact-readback and owner-map packet members:
   * `.github/workflows/zigux-bootstrap.yml`
   * `Documentation/zigux/review-checklist.md`
 
-Last-known dedicated local-only perf packet members:
+Historical dedicated local-only perf packet members:
   * `scripts/zigux/check-phase4-perf-baseline-packet.py`
   * `zigux/tests/phase4_perf_baseline_manifest.json`
   * `zigux/tests/phase4_perf_baseline_survey.zig`
@@ -57,13 +66,13 @@ Last-known dedicated local-only perf packet members:
 Last-known anti-overlap boundary:
   * `Documentation/zigux/phase4-validation-lane-sequencing.md`
 
-Use this note as the bounded rollback-ownership handoff until the broader packet's blob provenance is refreshed again. The current direct readback now keeps the rollback-owner reminder, the review-checklist handoff, the tests-root route inventory, the new dedicated exact-pin checker, and the directly readable validator, lab-matrix, and local-only perf companions explicit without pretending those paths are absent on current `master`.
+Use this note as the bounded rollback-ownership handoff until the broader packet returns or is republished. The current direct readback now keeps the rollback-owner reminder, the review-checklist handoff, the tests-root route inventory, the repo-reality warning checker, and the dedicated pin checker explicit without pretending that the broader validator, lab-matrix, or local-only perf companions are presently readable on current `master`.
 
-The shared packet is still supposed to keep the host-side artifact-diff tooling contract, the rollback-owner map, the lab-matrix rows for the parked starter gaps and the local-only perf-threshold posture, and the validator-first replay routes explicit. The dedicated local-only perf checker, manifest, and survey still define the approved local benchmark commands, the approved local-only acceptable limits, and the still-pending shared-CI promotion posture, but this note should not claim refreshed exact blob pins for those packet members until a same-family lane rereads and republishes them together.
+The shared packet is still supposed to keep the host-side artifact-diff tooling contract, the rollback-owner map, the lab-matrix rows for the parked starter gaps and the local-only perf-threshold posture, and the validator-first replay routes explicit. The dedicated local-only perf checker, manifest, and survey still define the approved local benchmark commands, the approved local-only acceptable limits, and the still-pending shared-CI promotion posture, but this note should not claim current-head readability for those packet members until a same-family lane rereads or republishes them.
 ## Owner Split
 
 Use the current owner split exactly as shipped:
-  * `Tooling and Validation Team` owns the shared exact-readback wording, the host-side artifact-diff tooling packet, the lab-matrix note, the remaining-gap checker packet, the tests-root route-inventory truthfulness, the dedicated exact-pin checker, and the validator-first route inventory for the Phase 4 packet.
+  * `Tooling and Validation Team` owns the shared exact-readback wording, the host-side artifact-diff tooling packet, the lab-matrix note, the remaining-gap checker packet, the tests-root route-inventory truthfulness, the repo-reality warning checker, the dedicated exact-pin checker, and the validator-first route inventory for the Phase 4 packet.
   * `Validation and Perf Team` owns the dedicated local-only perf packet and any future broader perf-promotion decision.
   * `ABI and Runtime Team` plus `Shared Subsystems Pod` remain the coordination owners for any wider shared-CI perf promotion because the current landed rollback gates still belong to those families.
 
@@ -71,12 +80,12 @@ Keep the parked starter-gap packets for `samples/zigux/kprobe_example.zig` and `
 ## Review Rules
 
 When Phase 4 follow-through reopens, repair the smallest packet that drifted first.
-  * If the rollback-owner map, the host-side artifact-diff wording, exact-readback wording, lab-matrix wording, tests-root route inventory, remaining-gap checker wording, dedicated exact-pin checker wording, or validator-first route inventory drifts, repair the directly readable packet member first and then refresh this note.
-  * If this handoff note records a stale directly readable companion, refresh the exact pin after re-reading the current `master` copy. This run refreshed `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_DATE` while leaving the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance fields intact because a separate exact-pin refresh should reread and republish every companion blob value together instead of mixing fresh direct-readback prose with partially updated pin inventory.
+  * If the directly readable repo-reality warning packet drifts, repair the directly readable packet member first and then refresh this note.
+  * If the broader validator, lab-matrix, or local-only perf packet returns, refresh the exact pin after re-reading the current `master` copy. Until then, keep the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance fields historical rather than mixing them into current-head proof.
   * If the local benchmark commands, acceptable limits, or shared-CI-pending posture drifts, repair the dedicated local-only perf packet first and then return here only after those packet members are directly readable again.
   * If a later lane needs both, land the packet-local repair first, then refresh this note only after the packet-local state is directly readable on current `master`.
   * Do not treat the dedicated local-only perf packet as shared CI perf approval until a later bounded Phase 4 lane intentionally widens that policy and names the decision directly.
   * Do not treat either parked starter-gap packet as shipped starter work while `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` remain absent on current `master`.
 ## Next Bounded Step
 
-Use this note only as a current-head handoff for already landed work. The next honest same-family follow-through is to run the dedicated exact-pin pass across `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, and the dedicated local-only perf companions so this handoff can stop leaning on `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance for present current-head paths.
+Use this note only as a truthful current-head handoff for the directly readable reminder surfaces. The next honest same-family follow-through is to repair the smallest repo-reality-warning packet drift first or to republish one missing broader companion, so this handoff can eventually replace the current `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance with fresh current-head evidence.
