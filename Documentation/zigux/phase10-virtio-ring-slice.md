@@ -6,7 +6,7 @@ This note records the current shared Phase 10 ring packet around `drivers/virtio
 
 Fresh direct readback on current `master` keeps the packet-local reminder surfaces explicit, but current `master` does not materialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, or `zigux/tests/phase10_virtio_ring_survey.zig` through direct contents readback.
 
-The shared ring packet therefore keeps those helper and replay paths as manifest-backed review vocabulary while `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `scripts/zigux/check-phase10-ring-packet.py`, and `zigux/tests/phase10_build.zig` stay directly re-readable on `master`.
+The shared ring packet therefore keeps those helper and replay paths as manifest-backed review vocabulary while `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `scripts/zigux/check-phase10-ring-packet.py`, and `zigux/tests/phase10_build.zig` stay directly re-readable on `master`.
 
 The same packet keeps the queue-local helper ladder explicit without widening into transport-backed lifecycle claims: `phase10-virtqueue-shape-helper`, `phase10-used-buffer-polling-helper`, `phase10-callback-enable-helper`, `phase10-callback-delay-helper`, `phase10-notify-prepare-helper`, `phase10-notification-data-summary-helper`, `phase10-broken-queue-poll-guard`, `phase10-queue-reset-helper`, and `phase10-queue-reset-readiness-helper` remain the bounded virtqueue-wrapper destinations that future direct helper restoration should cover.
 
@@ -20,6 +20,6 @@ The same packet keeps the queue-local helper ladder explicit without widening in
 
 ## Review Reminder
 
-When this packet is reread, keep `scripts/zigux/check-phase10-ring-packet.py`, `zigux/tests/phase10_virtio_ring_manifest.json`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, the shared closure packet, and the shared tests-root review companion explicit in the same bounded Phase 10 story.
+When this packet is reread, keep `scripts/zigux/check-phase10-ring-packet.py`, `zigux/tests/phase10_virtio_ring_manifest.json`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_build.zig`, the shared closure packet, and the shared tests-root review companion explicit in the same bounded Phase 10 story.
 
 Do not restate the missing helper and replay paths as directly materialized evidence until a fresh reread proves they have returned on current `master`.
