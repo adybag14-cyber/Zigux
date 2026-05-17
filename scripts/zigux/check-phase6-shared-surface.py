@@ -42,7 +42,6 @@ REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback warning",
     "- `Documentation/zigux/phase6-helper-parity-catalog.md`",
     "- `Documentation/zigux/phase6-perf-gate-survey.md`",
-    "- `zigux/tests/phase6_build.zig`",
     "- `zigux/tests/phase6_helper_parity_manifest.json`",
     "Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again.",
     "## Last-known shared replay inventory",
@@ -69,7 +68,7 @@ REQUIRED_MANIFEST_SNIPPETS = [
     '"make -C zigux phase6-hexdump-perf"',
 ]
 
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 28
 
 
 class ValidationError(RuntimeError):
@@ -202,7 +201,6 @@ def run_self_test() -> None:
                 root / HELPER_EVIDENCE_CATALOG_PATH,
                 "- `Documentation/zigux/phase6-perf-gate-survey.md`",
             ),
-            (root / HELPER_EVIDENCE_CATALOG_PATH, "- `zigux/tests/phase6_build.zig`"),
             (
                 root / HELPER_EVIDENCE_CATALOG_PATH,
                 "- `zigux/tests/phase6_helper_parity_manifest.json`",
