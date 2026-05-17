@@ -515,6 +515,22 @@ test "conf bridge emits alldefconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
 }
 
+test "conf bridge explicit allconfig override wins over alldefconfig sentinel" {
+    var capture = try TestCapture.init(std.testing.allocator, 192);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .alldefconfig,
+        .kconfig = "Kconfig",
+        .config = "build/.config",
+        .arch = "arm64",
+        .allconfig = "mini.config",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"mini.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
+}
+
 test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     var capture = try TestCapture.init(std.testing.allocator, 160);
     defer capture.deinit();
@@ -563,6 +579,24 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
     });
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"allrandom.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
+}
+
+test "conf bridge emits explicit empty randconfig allconfig override" {
+    var capture = try TestCapture.init(std.testing.allocator, 224);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .randconfig,
+        .kconfig = "Kconfig",
+        .config = "rand/.config",
+        .arch = "x86_64",
+        .allconfig = "",
+        .seed = "0xC0FFEE",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"randconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
 }
 
@@ -661,6 +695,16 @@ test "bridge options parser accepts explicit allconfig override for allmodconfig
     try std.testing.expect(options.allconfig != null);
     try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
     try std.testing.expect(options.seed == null);
+    try std.testing.expect(options.probability == null);
+    try std.testing.expect(options.nosilentupdate == null);
+}
+
+test "bridge options parser accepts explicit empty allconfig override for randconfig" {
+    const options = try parseBridgeOptions(.randconfig, &.{ "allconfig=", "seed=0xC0FFEE" });
+    try std.testing.expect(options.silent == false);
+    try std.testing.expect(options.allconfig != null);
+    try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
+    try std.testing.expectEqualStrings("0xC0FFEE", options.seed.?);
     try std.testing.expect(options.probability == null);
     try std.testing.expect(options.nosilentupdate == null);
 }
