@@ -81,6 +81,7 @@ VALIDATOR_SUPPORT_MARKERS = (
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/kernel/export_shim.zig",
     "Documentation/zigux/phase3-shared-reminder-gap.md",
+    "scripts/zigux/validate-phase3-validator-support-surface.py",
 )
 
 SCRIPTS_README_MARKERS = (
