@@ -15,6 +15,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
@@ -24,7 +25,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
-    "the current directly readable Phase 2 packet is the scripts-root kbuild and toolchain reminder set",
+    "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, and toolchain reminder set",
     "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
     "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
@@ -35,8 +36,6 @@ REQUIRED_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
-    "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2-tools`",
@@ -47,6 +46,8 @@ REQUIRED_TESTS_README_MARKERS = (
     "keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
 FORBIDDEN_TESTS_README_MARKERS = (
+    "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
 )
