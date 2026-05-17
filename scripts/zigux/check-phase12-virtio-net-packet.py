@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import tempfile
+from pathlib import Path
+
+
+REQUIRED_FILES = [
+    "Documentation/zigux/phase12-virtio-net-survey.md",
+    "drivers/net/virtio_net.zig",
+    "drivers/net/virtio_net_transmit_recycle.zig",
+    "zigux/tests/phase12_virtio_net.zig",
+    "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
+    "zigux/tests/phase12_virtio_net_syntax_lab.zig",
+    "zigux/tests/phase12_virtio_net_survey.zig",
+    "zigux/tests/phase12_virtio_net_manifest.json",
+    "zigux/tests/phase12_build.zig",
+    "zigux/Makefile",
+]
+
+MANIFEST_MARKERS = [
+    '"lane_key": "P12-L04"',
+    '"phase": "Phase 12"',
+    '"anchor": "drivers/net/virtio_net.c"',
+    '"id": "phase12-build-gate"',
+    '"status": "shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay"',
+    '"id": "phase12-virtio-net-transmit-recycle-followup"',
+    '"id": "phase12-virtio-net-runtime-data-path"',
+    '"status": "blocked_on_dma_transport_runtime"',
+]
+
+SURVEY_NOTE_MARKERS = [
+    "`PHASE12_STATUS=starter-present-transmit-recycle-followup`",
+    "current `master` now also carries `drivers/net/virtio_net_transmit_recycle.zig`",
+    "summarizeTransmitRecycle()",
+    "current `master` now carries `zigux/tests/phase12_virtio_net_transmit_recycle.zig`",
+    "still does not claim live DMA-safe receive ownership",
+]
+
+SURVEY_GATE_MARKERS = [
+    "phase12 virtio net survey manifest keeps the bounded transmit-recycle packet truthful",
+    "phase12 virtio net survey note stays aligned with the bounded transmit-recycle follow-up",
+    "phase12 virtio net survey gate keeps present lane files explicit",
+    "Documentation/zigux/phase12-virtio-net-survey.md",
+    "drivers/net/virtio_net_transmit_recycle.zig",
+    "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
+]
+
+BUILD_MARKERS = [
+    "../../drivers/net/virtio_net.zig",
+    '"phase12_virtio_net.zig"',
+    '"phase12_virtio_net_syntax_lab.zig"',
+    "phase12-virtio-net-tests",
+    "phase12-virtio-net-syntax-lab-tests",
+    'run_virtio_net_contract_tests.setCwd(b.path("../.."));',
+    'run_virtio_net_syntax_tests.setCwd(b.path("../.."));',
+    "../../drivers/net/virtio_net_transmit_recycle.zig",
+    '"phase12_virtio_net_transmit_recycle.zig"',
+    "phase12-virtio-net-transmit-recycle-tests",
+    'run_virtio_net_transmit_recycle_tests.setCwd(b.path("../.."));',
+    "smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
+    "test_step.dependOn(&run_virtio_net_contract_tests.step);",
+]
+
+MAKEFILE_MARKERS = [
+    "phase12-smoke",
+    "phase12-test",
+    "phase12-validate",
+]
+
+
+class CheckError(RuntimeError):
+    pass
+
+
+def read_text(root: Path, relpath: str) -> str:
+    path = root / relpath
+    if not path.is_file():
+        raise CheckError(f"missing required file: {relpath}")
+    return path.read_text(encoding="utf-8")
+
+
+def require_markers(text: str, relpath: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker not in text:
+            raise CheckError(f"{relpath}: missing marker {marker!r}")
+
+
+def run_check(root: Path) -> None:
+    for relpath in REQUIRED_FILES:
+        if not (root / relpath).is_file():
+            raise CheckError(f"missing required file: {relpath}")
+
+    manifest_text = read_text(root, "zigux/tests/phase12_virtio_net_manifest.json")
+    require_markers(manifest_text, "zigux/tests/phase12_virtio_net_manifest.json", MANIFEST_MARKERS)
+
+    manifest = json.loads(manifest_text)
+    if manifest.get("lane_key") != "P12-L04":
+        raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: lane_key drifted from P12-L04")
+    if manifest.get("phase") != "Phase 12":
+        raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: phase drifted from Phase 12")
+
+    survey_note = read_text(root, "Documentation/zigux/phase12-virtio-net-survey.md")
+    require_markers(survey_note, "Documentation/zigux/phase12-virtio-net-survey.md", SURVEY_NOTE_MARKERS)
+
+    survey_gate = read_text(root, "zigux/tests/phase12_virtio_net_survey.zig")
+    require_markers(survey_gate, "zigux/tests/phase12_virtio_net_survey.zig", SURVEY_GATE_MARKERS)
+
+    build_text = read_text(root, "zigux/tests/phase12_build.zig")
+    require_markers(build_text, "zigux/tests/phase12_build.zig", BUILD_MARKERS)
+
+    makefile_text = read_text(root, "zigux/Makefile")
+    require_markers(makefile_text, "zigux/Makefile", MAKEFILE_MARKERS)
+
+
+def make_fixture_tree(root: Path) -> None:
+    file_payloads = {
+        "Documentation/zigux/phase12-virtio-net-survey.md": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
+        "drivers/net/virtio_net.zig": "// fixture\n",
+        "drivers/net/virtio_net_transmit_recycle.zig": "// fixture\n",
+        "zigux/tests/phase12_virtio_net.zig": "// fixture\n",
+        "zigux/tests/phase12_virtio_net_transmit_recycle.zig": "// fixture\n",
+        "zigux/tests/phase12_virtio_net_syntax_lab.zig": "// fixture\n",
+        "zigux/tests/phase12_virtio_net_survey.zig": "\n".join(f"// {marker}" for marker in SURVEY_GATE_MARKERS) + "\n",
+        "zigux/tests/phase12_build.zig": "\n".join(BUILD_MARKERS) + "\n",
+        "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
+        "zigux/tests/phase12_virtio_net_manifest.json": json.dumps(
+            {
+                "lane_key": "P12-L04",
+                "phase": "Phase 12",
+                "anchor": "drivers/net/virtio_net.c",
+                "gaps": [
+                    {
+                        "id": "phase12-build-gate",
+                        "status": "shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay",
+                    },
+                    {
+                        "id": "phase12-virtio-net-transmit-recycle-followup",
+                        "status": "landed_on_master",
+                    },
+                    {
+                        "id": "phase12-virtio-net-runtime-data-path",
+                        "status": "blocked_on_dma_transport_runtime",
+                    },
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+    }
+
+    for relpath, payload in file_payloads.items():
+        path = root / relpath
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(payload, encoding="utf-8")
+
+
+def run_self_test() -> None:
+    case_count = 0
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        make_fixture_tree(root)
+
+        run_check(root)
+        case_count += 1
+
+        broken_note = root / "Documentation/zigux/phase12-virtio-net-survey.md"
+        broken_note.write_text("broken\n", encoding="utf-8")
+        try:
+            run_check(root)
+        except CheckError as err:
+            if "phase12-virtio-net-survey.md" not in str(err):
+                raise
+        else:
+            raise AssertionError("expected survey-note marker failure")
+        case_count += 1
+
+        make_fixture_tree(root)
+        broken_manifest = root / "zigux/tests/phase12_virtio_net_manifest.json"
+        broken_manifest.write_text(
+            broken_manifest.read_text(encoding="utf-8").replace("blocked_on_dma_transport_runtime", "missing"),
+            encoding="utf-8",
+        )
+        try:
+            run_check(root)
+        except CheckError as err:
+            if "phase12_virtio_net_manifest.json" not in str(err):
+                raise
+        else:
+            raise AssertionError("expected manifest marker failure")
+        case_count += 1
+
+    print("PHASE12_VIRTIO_NET_PACKET_SELF_TEST=pass")
+    print(f"PHASE12_VIRTIO_NET_PACKET_SELF_TEST_CASES={case_count}")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=Path.cwd())
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
+
+    if args.self_test:
+        run_self_test()
+        return 0
+
+    try:
+        run_check(args.root.resolve())
+    except CheckError as err:
+        print(f"PHASE12_VIRTIO_NET_PACKET=fail")
+        print(str(err))
+        return 1
+
+    print("PHASE12_VIRTIO_NET_PACKET=pass")
+    print("PHASE12_VIRTIO_NET_PACKET_SCOPE=virtio_net_packet_truth")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
