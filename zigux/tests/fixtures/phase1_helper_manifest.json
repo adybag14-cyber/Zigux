@@ -91,7 +91,7 @@
       "zero_bit_noop_anchor": "",
       "zero_bit_binary_identity_anchor": "",
       "linux_alias_anchor": "",
-      "next_safe_step_note": "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift inside the current helper-local packet or committed shared replay drift in the bitmap parity fields; do not restate bitmap alias, fill-tail, cross-word scnprintf, or zero-bit helper anchors that current master no longer ships directly."
+      "next_safe_step_note": "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift inside the current helper-local packet or committed shared replay drift in the bitmap parity fields; do not restate bitmap alias, fill-tail, cross-word scnprintf, or zero-bit helper anchors that current master no longer ships directly, and if the separate bitmap closure-validator anchor-sync repair is still outstanding, treat that as the only other bitmap follow-through."
     },
     "tools/lib/find_bit.zig": {
       "helper_test_anchors": [
