@@ -17,12 +17,12 @@ REQUIRED_MARKERS = (
     "## Close condition",
     "`Documentation/zigux/README.md`",
     "`Documentation/zigux/review-checklist.md`",
-    "`scripts/zigux/README.md`",
     "`zigux/tests/README.md`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
-    "Those five shared reminder surfaces still need the same narrowing pass before Lane 25 can close.",
+    "Those four shared reminder surfaces still need the same narrowing pass before Lane 25 can close.",
     "`Documentation/zigux/phase2-scripts-surface-reconciliation.md`",
     "`Documentation/zigux/phase2-shared-reminder-gap.md`",
+    "`scripts/zigux/README.md`",
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -53,8 +53,8 @@ REQUIRED_MARKERS = (
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2`",
     "Treat those closure-side, validator-first, cross-route, toolchain-helper, make-wrapper, and missing-fixture names as historical packet members until current `master` rematerializes them.",
-    "Those shared reminder surfaces still overstate the older Phase 2 closure stack or broader pre-narrowing packet. Any final close-out pass needs to narrow all five together if Lane 25 is going to stay checker-backed.",
-    "Lane 25 closes when `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` describe and guard the same current direct packet and the same historical packet members captured here without overstating the older Phase 2 closure stack.",
+    "`scripts/zigux/README.md` is already narrowed on this branch, but those four shared reminder surfaces still overstate the older Phase 2 closure stack or broader pre-narrowing packet. Any final close-out pass needs to narrow all four together if Lane 25 is going to stay checker-backed.",
+    "Lane 25 closes when `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` describe and guard the same current direct packet and the same historical packet members captured here while staying aligned with the already-narrowed scripts-root reminder in `scripts/zigux/README.md` and `Documentation/zigux/phase2-scripts-surface-reconciliation.md`.",
 )
 
 
@@ -84,16 +84,16 @@ This note records the remaining shared-surface Phase 2 drift after the current s
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `scripts/zigux/check-phase2-tests-readme-alignment.py`
 
-Those five shared reminder surfaces still need the same narrowing pass before Lane 25 can close.
+Those four shared reminder surfaces still need the same narrowing pass before Lane 25 can close.
 
 ## Current direct packet
 
 - `Documentation/zigux/phase2-scripts-surface-reconciliation.md`
 - `Documentation/zigux/phase2-shared-reminder-gap.md`
+- `scripts/zigux/README.md`
 - `scripts/zigux/check-zig-toolchain.py`
 - `scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
@@ -134,15 +134,14 @@ Treat those closure-side, validator-first, cross-route, toolchain-helper, make-w
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `scripts/zigux/check-phase2-tests-readme-alignment.py`
 
-Those shared reminder surfaces still overstate the older Phase 2 closure stack or broader pre-narrowing packet. Any final close-out pass needs to narrow all five together if Lane 25 is going to stay checker-backed.
+`scripts/zigux/README.md` is already narrowed on this branch, but those four shared reminder surfaces still overstate the older Phase 2 closure stack or broader pre-narrowing packet. Any final close-out pass needs to narrow all four together if Lane 25 is going to stay checker-backed.
 
 ## Close condition
 
-Lane 25 closes when `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` describe and guard the same current direct packet and the same historical packet members captured here without overstating the older Phase 2 closure stack.
+Lane 25 closes when `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` describe and guard the same current direct packet and the same historical packet members captured here while staying aligned with the already-narrowed scripts-root reminder in `scripts/zigux/README.md` and `Documentation/zigux/phase2-scripts-surface-reconciliation.md`.
 """
 
 
