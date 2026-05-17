@@ -117,6 +117,12 @@ EXPECTED_CASES = [
         "expected": "version_before_missing_short_option_argument_expected.json",
     },
     {
+        "name": "version_before_short_help",
+        "argv": ["-Vh"],
+        "mode": "process_json",
+        "expected": "version_before_short_help_expected.json",
+    },
+    {
         "name": "unsupported_long_option",
         "argv": ["--unknown"],
         "mode": "process_json",
@@ -296,6 +302,11 @@ EXPECTED_OUTPUTS = {
         "stderr": "genksyms version 2.5.60\noption requires an argument -- 'r'\n",
         "exit_code": 1,
     },
+    "version_before_short_help_expected.json": {
+        "stdout": "",
+        "stderr": "genksyms version 2.5.60\nUsage:\ngenksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver\n\n -d, --debug Increment the debug level (repeatable)\n -D, --dump Dump expanded symbol defs (for debugging only)\n -r, --reference file Read reference symbols from a file\n -T, --dump-types file Dump expanded types into file\n -p, --preserve Preserve reference modversions or fail\n -w, --warnings Enable warnings\n -q, --quiet Disable warnings (default)\n -h, --help Print this message\n -V, --version Print the release version\n",
+        "exit_code": 0,
+    },
     "unsupported_long_option_expected.json": {
         "stdout": "",
         "stderr": "unrecognized option '--unknown'\n",
@@ -330,8 +341,8 @@ EXPECTED_TOOL_TESTS = [
     'test "parseArgs reports ambiguous abbreviated long options"',
     'test "genksyms bridge canonicalizes unexpected long option argument failures"',
     'test "genksyms bridge renders version side effect before invalid short option"',
-    'test "genksyms bridge renders version side effect before missing short option argument"',
     'test "genksyms bridge renders canonical unexpected long option argument via parsed failure"',
+    'test "genksyms bridge keeps version side effect before short help"',
     'test "genksyms bridge rejects more than sixteen reference files like the C harness"',
     'test "genksyms bridge renders normalized invocation plan"',
     'test "genksyms bridge ignores positional args while still parsing later options"',
@@ -473,7 +484,7 @@ def run_self_test() -> int:
             "\n".join(EXPECTED_TOOL_TESTS + [""]),
             encoding="utf-8",
         )
-        (root / GENKSYMS_HARNESS_REL).write_text(
+        (root / GENKSYMS_HARNESS_REL).writeText(
             "\n".join(EXPECTED_HARNESS_MARKERS + [""]),
             encoding="utf-8",
         )
