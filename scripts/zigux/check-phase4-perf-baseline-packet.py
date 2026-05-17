@@ -55,7 +55,7 @@ SURVEY_MARKERS = (
 )
 
 EXPECTED_FINAL_FIRST_ZERO_COUNT = 2
-EXPECTED_SELF_TEST_CASES = 12
+EXPECTED_SELF_TEST_CASES = 16
 
 
 def parse_args() -> argparse.Namespace:
@@ -224,6 +224,65 @@ def run_self_test() -> int:
         if not expect_failure(root, 'manifest_marker:"decision_owner": "Validation and Perf Team"'):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("manifest decision-owner drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
+                '"rollback_owner": "Validation and Perf Team"',
+                '"rollback_owner": "ABI and Runtime Team"',
+            ),
+        )
+        if not expect_failure(root, 'manifest_marker:"rollback_owner": "Validation and Perf Team"'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest rollback-owner drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            read_text(manifest).replace(
+                '"ABI and Runtime Team"',
+                '"ABI and Replay Team"',
+            ),
+        )
+        if not expect_failure(root, 'manifest_marker:"ABI and Runtime Team"'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest coordination-owner drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
+                '"acceptable_limit_status": "approved_local_only"',
+                '"acceptable_limit_status": "pending_review"',
+            ),
+        )
+        if not expect_failure(root, 'manifest_marker:"acceptable_limit_status": "approved_local_only"'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest acceptable-limit status drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
+                '"acceptable_limit_metric": "median_elapsed_ns"',
+                '"acceptable_limit_metric": "mean_elapsed_ns"',
+            ),
+        )
+        if not expect_failure(root, 'manifest_marker:"acceptable_limit_metric": "median_elapsed_ns"'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest acceptable-limit metric drift case did not fail closed")
             return 1
         cases += 1
 
