@@ -28,6 +28,7 @@ SURFACE_PATHS = (
 WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
+    "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
 )
@@ -99,7 +100,7 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 71
+EXPECTED_SELF_TEST_CASE_COUNT = 73
 
 
 def read_text(path: Path) -> str:
