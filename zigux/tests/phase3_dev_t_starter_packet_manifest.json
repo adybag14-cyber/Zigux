@@ -25,7 +25,9 @@
   ],
   "repo_reality_gaps": [
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
-    "zigux/tests/phase3_export_uapi_layout.zig"
+    "zigux/kernel/export_shim.zig",
+    "zigux/tests/phase3_export_uapi_layout.zig",
+    "zigux/tests/phase3_export_uapi_layout_build.zig"
   ],
   "next_safe_step": "keep the live starter packet honest with bounded manifest-backed checker and compile replay work before widening the broader Phase 3 ABI substrate"
 }
