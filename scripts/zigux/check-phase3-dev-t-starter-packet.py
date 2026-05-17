@@ -28,7 +28,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase3_dev_t_starter_packet_build.zig",
         "scripts/zigux/check-phase3-dev-t-starter-packet.py",
         "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
-        "`zigux/tests/README.md` still carries a broader Phase 3 packet summary",
+        "`zigux/tests/README.md` now mirrors the bounded starter packet and should stay aligned with this note and `Documentation/zigux/phase3-validator-support-surface.md`",
         "scripts/zigux/validate-phase3-export-uapi-survey.py",
         "zigux/kernel/export_shim.zig",
     ),
@@ -99,7 +99,7 @@ SAMPLE_FILES = {path: "\n".join(markers) + "\n" for path, markers in REQUIRED_MA
 SELF_TEST_CASES = (
     (
         ABI_SLICE_PATH,
-        "`zigux/tests/README.md` still carries a broader Phase 3 packet summary",
+        "`zigux/tests/README.md` now mirrors the bounded starter packet and should stay aligned with this note and `Documentation/zigux/phase3-validator-support-surface.md`",
     ),
     (LINUX_HEADER_PATH, "#define ZIGUX_UAPI_DEV_T_PACKET_PRESENT 1u"),
     (DEV_T_HEADER_PATH, "#define ZIGUX_DEV_T_FIELDS_ALIGN 4u"),
