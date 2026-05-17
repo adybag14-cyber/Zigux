@@ -1,0 +1,35 @@
+{
+  "word_bits": 64,
+  "bitmap_view_abi_version": 1,
+  "cpumask_view_abi_version": 1,
+  "cases": [
+    {
+      "name": "bitmap_tail_masked",
+      "kind": "bitmap",
+      "nbits": 70,
+      "nr_cpu_ids": null,
+      "word_count": 2,
+      "first_set": 1,
+      "first_zero": 0,
+      "weight": 5,
+      "probe_present_index": 69,
+      "probe_present": true,
+      "probe_absent_index": 66,
+      "probe_absent": false
+    },
+    {
+      "name": "cpumask_window",
+      "kind": "cpumask",
+      "nbits": 16,
+      "nr_cpu_ids": 16,
+      "word_count": 1,
+      "first_set": 0,
+      "first_zero": 1,
+      "weight": 3,
+      "probe_present_index": 7,
+      "probe_present": true,
+      "probe_absent_index": 1,
+      "probe_absent": false
+    }
+  ]
+}
