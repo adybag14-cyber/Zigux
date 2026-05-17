@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 
 NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
+DOCS_README = Path("Documentation/zigux/README.md")
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 README = Path("zigux/tests/README.md")
 
@@ -49,6 +50,23 @@ NOTE_REQ = (
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
     "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
+)
+
+DOCS_README_PENDING_REQ = (
+    "Phase 4 notes - `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` now keep the current direct-readback rollback packet reviewable from the docs root while the broader validator, lab-matrix, local-only perf, and bitmap-diff companions remain repo-reality gaps on current `master`.",
+    "`Documentation/zigux/phase4-gate-evidence.md`",
+    "`Documentation/zigux/phase4-validation-matrix.md`",
+    "`scripts/zigux/check-phase4-gate-evidence.py`",
+    "`scripts/zigux/check-phase4-perf-baseline-packet.py`",
+    "`scripts/zigux/validate-phase4.py`",
+    "`zigux/tests/phase4_build.zig`",
+    "`zigux/tests/phase4_perf_baseline_manifest.json`",
+    "`zigux/tests/phase4_perf_baseline_survey.zig`",
+    "`zigux/tests/atomic64_diff.zig`",
+    "`zigux/tests/runtime_atomic64_diff.zig`",
+    "`zigux/tests/bitmap_diff.zig`",
+    "`zigux/tests/phase4_bitmap_live_helper_replay.zig`",
+    "keep the pending shared-CI perf-promotion posture explicit instead of implying those broader Phase 4 routes are live current-head evidence.",
 )
 
 README_OWNER_MARKERS = (
@@ -135,9 +153,11 @@ def _require_current_repo_reality(root: Path) -> None:
 
 def check(root: Path) -> None:
     note = read(root, NOTE)
+    docs_readme = read(root, DOCS_README)
     checklist = read(root, CHECKLIST)
     readme = read(root, README)
     require(note, NOTE_REQ + DIRECT_READBACK_PACKET + MISSING_BROADER_PACKET, "phase4 note")
+    require(docs_readme, DOCS_README_PENDING_REQ, "docs README")
     require(readme, README_PENDING_REQ + MISSING_BROADER_PACKET, "tests README")
     require(checklist, CHECKLIST_PENDING_REQ, "review checklist")
     require_exact_self_test_count(
@@ -163,6 +183,7 @@ def main() -> int:
             root = Path(tmp)
             for rel in (
                 NOTE,
+                DOCS_README,
                 README,
                 CHECKLIST,
                 Path("scripts/zigux/check-phase4-repo-reality-warning.py"),
@@ -176,6 +197,7 @@ def main() -> int:
             cases += 1
 
             drifted = root / NOTE
+            drifted.writeText = None
             drifted.write_text(
                 drifted.read_text(encoding="utf-8").replace(
                     "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`",
@@ -208,12 +230,12 @@ def main() -> int:
                     "expected stale repo-reality warning self-test count to fail"
                 )
 
-            readme_text = (args.root.resolve() / README).read_text(encoding="utf-8")
+            docs_readme_text = (args.root.resolve() / DOCS_README).read_text(encoding="utf-8")
             drifted.write_text(note_text, encoding="utf-8")
-            (root / README).write_text(
-                readme_text.replace(
-                    README_OWNER_MARKERS[0],
-                    "current shared ownership reminder drifted",
+            (root / DOCS_README).write_text(
+                docs_readme_text.replace(
+                    DOCS_README_PENDING_REQ[-1],
+                    "pending perf posture drifted",
                 ),
                 encoding="utf-8",
             )
@@ -222,9 +244,9 @@ def main() -> int:
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected README ownership reminder drift to fail")
+                raise AssertionError("expected docs README repo-reality drift to fail")
 
-            (root / README).write_text(readme_text, encoding="utf-8")
+            (root / DOCS_README).write_text(docs_readme_text, encoding="utf-8")
             direct_packet_checker_source = (
                 args.root.resolve() / "scripts/zigux/check-phase4-reversible-delivery-pins.py"
             ).read_text(encoding="utf-8")
