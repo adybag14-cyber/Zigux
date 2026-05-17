@@ -77,9 +77,9 @@ LIBBPF_VERIFY_NOTE_MARKERS = [
 ]
 
 LIBBPF_SURVEY_MARKERS = [
-    "That matters because current `master` still exposes a bounded direct `zigux_segments` footing through `logging.zig`, `pin_path.zig`, `cpu_mask.zig`, `type_names.zig`, `online_cpu_routing.zig`, `perf_buffer_poll.zig`, and `manifest.json`, while the direct `phase12_libbpf_*` replay files plus `verify.zig` and `file_path_handle_bridge.zig` remain parked note-owned boundaries.",
+    "That matters because current `master` still exposes a bounded directly readable `zigux_segments` footing through `logging.zig`, `cpu_mask.zig`, `type_names.zig`, `online_cpu_routing.zig`, `perf_buffer_poll.zig`, and the legacy `manifest.json` catalog, while the older `pin_path.zig` helper now survives only as historical catalog evidence and the direct `phase12_libbpf_*` replay files plus `verify.zig` and `file_path_handle_bridge.zig` remain parked note-owned boundaries.",
     "the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` still stay recorded only through the survey, verify-shard, and anti-overlap notes until they land again on current `master`",
-    "The same boundary applies to the current checked-in `tools/lib/bpf/zigux_segments/manifest.json` story: current Phase 12 wording should keep treating the helper-first segment set plus that legacy catalog as present on current `master`, while the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` still remain outside the shipped smoke-first route.",
+    "The same boundary applies to the current checked-in `tools/lib/bpf/zigux_segments/manifest.json` story: current Phase 12 wording should keep treating the directly readable helper subset plus that legacy catalog as present on current `master`, while `pin_path.zig`, the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` still remain outside the shipped smoke-first route.",
 ]
 
 LIBBPF_SURVEY_FORBIDDEN_MARKERS = [
@@ -266,10 +266,10 @@ def good_survey_text() -> str:
         [
             "# Phase 12 Libbpf Segment Survey",
             "",
-            "That matters because current `master` still exposes a bounded direct `zigux_segments` footing through `logging.zig`, `pin_path.zig`, `cpu_mask.zig`, `type_names.zig`, `online_cpu_routing.zig`, `perf_buffer_poll.zig`, and `manifest.json`, while the direct `phase12_libbpf_*` replay files plus `verify.zig` and `file_path_handle_bridge.zig` remain parked note-owned boundaries.",
+            "That matters because current `master` still exposes a bounded directly readable `zigux_segments` footing through `logging.zig`, `cpu_mask.zig`, `type_names.zig`, `online_cpu_routing.zig`, `perf_buffer_poll.zig`, and the legacy `manifest.json` catalog, while the older `pin_path.zig` helper now survives only as historical catalog evidence and the direct `phase12_libbpf_*` replay files plus `verify.zig` and `file_path_handle_bridge.zig` remain parked note-owned boundaries.",
             "",
             "- the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` still stay recorded only through the survey, verify-shard, and anti-overlap notes until they land again on current `master`",
-            "- The same boundary applies to the current checked-in `tools/lib/bpf/zigux_segments/manifest.json` story: current Phase 12 wording should keep treating the helper-first segment set plus that legacy catalog as present on current `master`, while the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` still remain outside the shipped smoke-first route.",
+            "- The same boundary applies to the current checked-in `tools/lib/bpf/zigux_segments/manifest.json` story: current Phase 12 wording should keep treating the directly readable helper subset plus that legacy catalog as present on current `master`, while `pin_path.zig`, the direct `phase12_libbpf_*` replay files, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` still remain outside the shipped smoke-first route.",
             "",
         ]
     )
