@@ -18,8 +18,8 @@ pub fn strtobool(s: ?[]const u8) ParseBoolError!bool {
     }
 
     switch (text[0]) {
-        'y', 'Y', '1' => return true,
-        'n', 'N', '0' => return false,
+        'e', 'E', 'y', 'Y', 't', 'T', '1' => return true,
+        'd', 'D', 'n', 'N', 'f', 'F', '0' => return false,
         'o', 'O' => {
             if (text.len < 2) {
                 return error.Invalid;
@@ -351,8 +351,12 @@ pub fn kbasename(path: []const u8) []const u8 {
 test "strtobool accepts common Linux forms" {
     try std.testing.expect(try strtobool("y"));
     try std.testing.expect(try strtobool("On"));
+    try std.testing.expect(try strtobool("true"));
+    try std.testing.expect(try strtobool("Enable"));
     try std.testing.expect(!(try strtobool("0")));
     try std.testing.expect(!(try strtobool("of")));
+    try std.testing.expect(!(try strtobool("false")));
+    try std.testing.expect(!(try strtobool("Disable")));
     try std.testing.expectError(error.Invalid, strtobool("maybe"));
 }
 
