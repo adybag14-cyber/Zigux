@@ -103,7 +103,7 @@ ALLCONFIG_SENTINEL_MODES = {
     "alldefconfig",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -220,6 +220,7 @@ def collect_conf_manifest_issues(
         "syncconfig_env_packet": expected_syncconfig_env_packet,
         "allconfig_sentinel_packet": expected_allconfig_sentinel_packet,
         "allconfig_override_packet": expected_allconfig_override_packet,
+        "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
     }
     for field_name, expected_values in sequence_fields.items():
         actual_values = manifest.get(field_name)
@@ -457,7 +458,7 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
                     {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
                     {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
-                    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"}
+                    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"},
                 ],
                 "confdata_cases": [
                     {"name": "sample", "input": "sample.config", "expected": "sample_expected.json"},
@@ -473,12 +474,12 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "empty_config_symbol_names", "input": "empty_config_symbol_names.config", "expected": "empty_config_symbol_names_expected.json"},
                     {"name": "malformed_unset_comment_tokens", "input": "malformed_unset_comment_tokens.config", "expected": "malformed_unset_comment_tokens_expected.json"},
                     {"name": "last_state_transitions", "input": "last_state_transitions.config", "expected": "last_state_transitions_expected.json"},
-                    {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"}
-                ]
+                    {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
+                ],
             },
-            indent=2
+            indent=2,
         )
-        + "\n"
+        + "\n",
     )
     write_text(
         root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
@@ -507,24 +508,32 @@ def build_self_test_root(root: Path) -> None:
                     "olddefconfig_expected.json",
                     "yes2modconfig_expected.json",
                     "mod2yesconfig_expected.json",
-                    "mod2noconfig_expected.json"
+                    "mod2noconfig_expected.json",
                 ],
-                "mode_arg_cases": ["defconfig", "savedefconfig"],
+                "mode_arg_cases": [
+                    "defconfig",
+                    "savedefconfig",
+                ],
                 "silent_request_packet": [
                     "listnewconfig_expected.json",
-                    "helpnewconfig_expected.json"
+                    "helpnewconfig_expected.json",
                 ],
-                "syncconfig_env_packet": ["syncconfig_expected.json"],
+                "syncconfig_env_packet": [
+                    "syncconfig_expected.json",
+                ],
                 "allconfig_sentinel_packet": [
                     "allnoconfig_expected.json",
                     "allyesconfig_expected.json",
-                    "alldefconfig_expected.json"
+                    "alldefconfig_expected.json",
                 ],
-                "allconfig_override_packet": ["randconfig_expected.json"]
+                "allconfig_override_packet": [
+                    "randconfig_expected.json",
+                ],
+                "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
             },
-            indent=2
+            indent=2,
         )
-        + "\n"
+        + "\n",
     )
     write_text(
         root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
@@ -551,7 +560,7 @@ def build_self_test_root(root: Path) -> None:
                     "empty_config_symbol_names.config",
                     "malformed_unset_comment_tokens.config",
                     "last_state_transitions.config",
-                    "duplicate_malformed_quoted_assignment.config"
+                    "duplicate_malformed_quoted_assignment.config",
                 ],
                 "expected_packet": [
                     "sample_expected.json",
@@ -567,13 +576,13 @@ def build_self_test_root(root: Path) -> None:
                     "empty_config_symbol_names_expected.json",
                     "malformed_unset_comment_tokens_expected.json",
                     "last_state_transitions_expected.json",
-                    "duplicate_malformed_quoted_assignment_expected.json"
+                    "duplicate_malformed_quoted_assignment_expected.json",
                 ],
-                "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS
+                "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS,
             },
-            indent=2
+            indent=2,
         )
-        + "\n"
+        + "\n",
     )
     for rel_path in (
         "oldaskconfig_expected.json",
@@ -619,7 +628,7 @@ def build_self_test_root(root: Path) -> None:
         "empty_config_symbol_names.config",
         "malformed_unset_comment_tokens.config",
         "last_state_transitions.config",
-        "duplicate_malformed_quoted_assignment.config"
+        "duplicate_malformed_quoted_assignment.config",
     ):
         write_text(root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / rel_path, "{}\n")
 
@@ -742,7 +751,7 @@ def run_self_test() -> int:
         issues = collect_manifest_issues(root)
         assert (
             "CONFDATA_CASE_ORDER_ACTUAL",
-            "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names,malformed_unset_comment_tokens,last_state_transitions,duplicate_malformed_quoted_assignment"
+            "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names,malformed_unset_comment_tokens,last_state_transitions,duplicate_malformed_quoted_assignment",
         ) in issues
         assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues
         checks_run += 1
@@ -768,6 +777,14 @@ def run_self_test() -> int:
         write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONF_MANIFEST_MODE_ARG_CASES_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
+        manifest["helper_local_anchors"] = REQUIRED_CONF_HELPER_ANCHORS[:-1]
+        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
