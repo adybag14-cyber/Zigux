@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -19,6 +20,9 @@ UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 TEST_PATH = Path("zigux/tests/phase3_policy_starter_packet.zig")
 BUILD_PATH = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
+
+HEADER_TYPEDEF_ALIAS_RE = re.compile(r"^\s*}\s*([A-Za-z_][A-Za-z0-9_]*)\s*;")
+ZIG_PUB_FN_RE = re.compile(r"^\s*pub fn\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 
 REQUIRED_MARKERS = {
     POLICY_NOTE_PATH: (
@@ -121,6 +125,11 @@ REQUIRED_MARKERS = {
     ),
 }
 
+DUPLICATE_DECLARATION_PATTERNS = {
+    ABI_HEADER_PATH: (("ABI typedef alias", HEADER_TYPEDEF_ALIAS_RE),),
+    ABI_BINDING_PATH: (("ABI binding pub fn", ZIG_PUB_FN_RE),),
+}
+
 SELF_TEST_CASES = (
     (POLICY_NOTE_PATH, "PHASE3_POLICY_SLICE_FILE_COUNT="),
     (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
@@ -144,6 +153,29 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def _append_duplicate_declaration_issues(
+    relative_path: Path,
+    text: str,
+    label: str,
+    pattern: re.Pattern[str],
+    issues: list[str],
+) -> None:
+    seen: dict[str, int] = {}
+    for line_no, line in enumerate(text.splitlines(), start=1):
+        match = pattern.match(line)
+        if match is None:
+            continue
+        name = match.group(1)
+        first_line = seen.get(name)
+        if first_line is None:
+            seen[name] = line_no
+            continue
+        issues.append(
+            f"duplicate {label}: {name} "
+            f"(first line {first_line}, duplicate line {line_no})"
+        )
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     for relative_path, markers in REQUIRED_MARKERS.items():
@@ -156,6 +188,8 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
+        for label, pattern in DUPLICATE_DECLARATION_PATTERNS.get(relative_path, ()): 
+            _append_duplicate_declaration_issues(relative_path, text, label, pattern, issues)
 
     manifest_path = repo_root / MANIFEST_PATH
     if manifest_path.exists():
@@ -242,8 +276,40 @@ def run_self_test() -> int:
                 print(f"expected missing marker was not reported: {expected}")
                 return 1
 
+        _populate_repo(root)
+        header_path = root / ABI_HEADER_PATH
+        header_path.write_text(
+            _read(header_path)
+            + "\ntypedef struct zigux_alias_probe {\n"
+            + "    int value;\n"
+            + "} zigux_boundary_header;\n",
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected_duplicate_typedef = "duplicate ABI typedef alias: zigux_boundary_header "
+        if not any(issue.startswith(expected_duplicate_typedef) for issue in issues):
+            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
+            print(f"expected duplicate typedef guard was not reported: {expected_duplicate_typedef}")
+            return 1
+
+        _populate_repo(root)
+        binding_path = root / ABI_BINDING_PATH
+        binding_path.write_text(
+            _read(binding_path)
+            + "\npub fn defaultHeader(flags: u16) BoundaryHeader {\n"
+            + "    return .{ .size = flags, .abi_version = ABI_VERSION, .flags = flags };\n"
+            + "}\n",
+            encoding="utf-8",
+        )
+        issues = validate_repo(root)
+        expected_duplicate_pub_fn = "duplicate ABI binding pub fn: defaultHeader "
+        if not any(issue.startswith(expected_duplicate_pub_fn) for issue in issues):
+            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
+            print(f"expected duplicate pub-fn guard was not reported: {expected_duplicate_pub_fn}")
+            return 1
+
     print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=pass")
-    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES)}")
+    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 2}")
     return 0
 
 
