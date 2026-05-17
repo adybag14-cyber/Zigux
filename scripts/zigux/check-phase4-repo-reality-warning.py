@@ -28,6 +28,7 @@ MISSING_BROADER_PACKET = (
     "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-validation-matrix.md",
     "scripts/zigux/check-phase4-gate-evidence.py",
+    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "scripts/zigux/validate-phase4.py",
     "zigux/tests/phase4_build.zig",
@@ -356,11 +357,22 @@ def main() -> int:
                 raise AssertionError("expected missing direct packet member to fail")
 
             build_baseline_tree(root)
-            broader_packet_member = root / "zigux/tests/bitmap_diff.zig"
-            broader_packet_member.parent.mkdir(parents=True, exist_ok=True)
-            broader_packet_member.write_text("// broader packet member returned\n", encoding="utf-8")
-            check(root)
-            cases += 1
+            note_path = root / NOTE
+            note_path.write_text(
+                note_path.read_text(encoding="utf-8").replace(
+                    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+                    "scripts/zigux/check-phase4-matrix-gap-drift.py",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError(
+                    "expected missing remaining-gap matrix marker to fail"
+                )
 
         print("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass")
         print(f"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES={cases}")
