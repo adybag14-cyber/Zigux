@@ -11,7 +11,8 @@ NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
 
 REQUIRED_MARKERS = (
     "This note records the current validator-facing Phase 3 surface on live `master`.",
-    "does not currently ship the broader validator, export/UAPI layout, low-level-wrapper, catalog, or shared Phase 3 replay packet",
+    "one bounded `dev_t` starter packet plus one focused helper-local `err_ptr` / `xarray` interop slice",
+    "does not currently ship the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
     "Documentation/zigux/phase3-abi-slice.md",
     "include/linux/zigux.h",
     "include/zigux/dev_t.h",
@@ -20,7 +21,13 @@ REQUIRED_MARKERS = (
     "zigux/bindings/dev_t.zig",
     "zigux/tests/phase3_dev_t_starter_packet.zig",
     "zigux/tests/phase3_dev_t_starter_packet_build.zig",
-    "Do not treat the current starter packet as evidence that the broader Phase 3 ABI substrate",
+    "Documentation/zigux/phase3-errptr-xarray-slice.md",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
+    "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+    "Do not treat the current starter packet plus helper slice as evidence that the broader Phase 3 ABI substrate",
     "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
@@ -35,7 +42,7 @@ REQUIRED_MARKERS = (
     "zigux/kernel/export_shim.zig",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-    "`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md`",
+    "`Documentation/zigux/README.md` and `zigux/tests/README.md`",
     "This note is limited to the current validator-support posture for Phase 3.",
 )
 
