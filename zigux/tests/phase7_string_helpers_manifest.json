@@ -66,7 +66,7 @@
     "quoted-log-safe helper duplication for special characters and double quotes",
     "bounded memcpy-and-pad copy semantics",
     "in-place replacement inside the exported C-string prefix",
-    "shared no-sample boundary and validator-backed reviewability"
+    "shared no-sample boundary and helper-local reviewability"
   ],
   "ownership_focus": [
     "first-NUL-bounded helpers keep caller-provided slices explicit so whitespace trimming and prefix skipping stop at the exported C-string boundary",
