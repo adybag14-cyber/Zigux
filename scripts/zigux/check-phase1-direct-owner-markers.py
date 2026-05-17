@@ -18,11 +18,13 @@ REQUIRED_EXACT_LINES = {
     "rbtree_direct_owner": "- `PHASE1_RBTREE_DIRECT_OWNER=rbtree keeps cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors helper-local while the committed shared replay already owns duplicate-search parity through find(), findFirst(), nextMatch(), and matchIterator() plus the parked cached_leftmost_return_serials witness`",
     "string_direct_owner": "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
     "find_bit_or_packet_note": '- current `master` also carries the newer direct `test "find or bit returns the next set bit from either bitmap"` proof inside `tools/lib/find_bit.zig`, so notes-only rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it',
+    "find_bit_clump_packet_note": "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
     "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; treat the older `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` names as historical packet members until current `master` exposes them again",
     "shared_reminder_next_step": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=leave the shared reminder packet parked now that Documentation/zigux/review-checklist.md carries the same self-test-versus-live route-role wording as Documentation/zigux/README.md; if a future host-tools-alpha run reopens Phase 1, start from the helper-specific next-safe-step markers below instead of another shared reminder pass`",
     "bitmap_next_safe_step": "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen older closure-side or validator-route cue names by default`",
     "find_bit_next_safe_step": "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or for committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families`",
     "find_bit_or_next_step_note": '- the already-landed OR-path proof in `test "find or bit returns the next set bit from either bitmap"` belongs to that same `find_bit` direct-anchor packet, so if it drifts, refresh the existing helper-family notes instead of widening shared replay ownership',
+    "find_bit_clump_next_step_note": "- the existing byte-clump and `findLastBit()` proofs belong to that same `find_bit` direct-anchor packet too, so if one of those helper-local anchors drifts, refresh the current helper-family note before widening shared replay ownership",
     "rbtree_next_safe_step": "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only to keep the already-landed cached_leftmost_return_serials shared replay aligned across the manifest, direct-owner note, and any shared parity gates, or for drift inside the still-helper-local cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors; do not batch a second widening into the same run`",
     "string_next_safe_step": "- `PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() C-string list lookup, counted-search strnchr, embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture drift; keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default`",
 }
@@ -65,6 +67,7 @@ def sample_lane_note_text() -> str:
     ordered_lines = [
         REQUIRED_EXACT_LINES["missing_phase1_packet_note"],
         REQUIRED_EXACT_LINES["find_bit_or_packet_note"],
+        REQUIRED_EXACT_LINES["find_bit_clump_packet_note"],
         REQUIRED_EXACT_LINES["bitmap_direct_owner"],
         REQUIRED_EXACT_LINES["find_bit_direct_owner"],
         REQUIRED_EXACT_LINES["rbtree_direct_owner"],
@@ -74,17 +77,18 @@ def sample_lane_note_text() -> str:
         REQUIRED_EXACT_LINES["bitmap_next_safe_step"],
         REQUIRED_EXACT_LINES["find_bit_next_safe_step"],
         REQUIRED_EXACT_LINES["find_bit_or_next_step_note"],
+        REQUIRED_EXACT_LINES["find_bit_clump_next_step_note"],
         REQUIRED_EXACT_LINES["rbtree_next_safe_step"],
         REQUIRED_EXACT_LINES["string_next_safe_step"],
     ]
     return (
         "# Phase 1 Host-Helper Lane Sequencing\n\n"
         "## Current Repo Reality\n\n"
-        + "\n".join(ordered_lines[:2])
+        + "\n".join(ordered_lines[:3])
         + "\n\n## Direct-Anchor Owner Map\n\n"
-        + "\n".join(ordered_lines[2:7])
+        + "\n".join(ordered_lines[3:8])
         + "\n\n## Next Bounded Step\n\n"
-        + "\n".join(ordered_lines[7:])
+        + "\n".join(ordered_lines[8:])
         + "\n"
     )
 
