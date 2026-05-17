@@ -147,8 +147,14 @@ test "cpumask view empty sentinel behavior stays explicit" {
 
 test "cpumask validity requires nr_cpu_ids to match the bounded bit count" {
     const invalid = binding.initCpumaskView(0, 4, 0, 3);
+    const summary = summarize(invalid);
 
     try std.testing.expect(!isValid(invalid));
+    try std.testing.expect(!cpuIsSet(invalid, 0));
     try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(invalid));
     try std.testing.expectEqual(@as(u32, 0), weight(invalid));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
 }
