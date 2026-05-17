@@ -14,6 +14,9 @@ ROOT = (
     else Path(__file__).resolve().parent
 )
 SURVEYED_COMMIT = "e42103fc02f544e1bd23a5ec2e5b584734f5af7d"
+FREEZE_BOUNDARY_SURVEYED_HEAD = "- surveyed head: `0aa2db32bcb1c7065850ee3f66ec119b071fbf5c`"
+FREEZE_BOUNDARY_PRIOR_SURVEY = f"- prior ring survey provenance: `{SURVEYED_COMMIT}`"
+FREEZE_BOUNDARY_SCHEDULE_PROMPT = "- schedule lane prompt: `P10-L07`"
 RING_MISSING_DIRECT_READBACK = (
     "repeated authenticated contents reads still return missing for "
     "`drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, "
@@ -69,8 +72,11 @@ MARKERS = {
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
         "`PHASE10_STATUS=parked`",
         "`PHASE10_SLICE=virtio-ring-freeze-boundary-survey`",
+        FREEZE_BOUNDARY_SCHEDULE_PROMPT,
         "current packet lane on master: `P10-L10`",
         "adjacent freeze-boundary owner: `P10-L11`",
+        FREEZE_BOUNDARY_SURVEYED_HEAD,
+        FREEZE_BOUNDARY_PRIOR_SURVEY,
         "Repeated direct contents reads still return missing for `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig` on current `master`, so keep the queue-local ring helper ladder framed as manifest-backed review vocabulary rather than direct current-head evidence.",
         "shared closure evidence and the current ring survey agree that `virtqueue_wrappers=repo_reality_gap` while risky transport stays blocked on the MMIO-owned bridge",
         "scripts/zigux/check-phase10-ring-packet.py",
@@ -361,9 +367,27 @@ def run_self_test() -> int:
         )
         replace_once(
             "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            FREEZE_BOUNDARY_SCHEDULE_PROMPT,
+            "- schedule lane prompt: `P10-L10`",
+            f"phase10-virtio-ring-freeze-boundary-survey.md:{FREEZE_BOUNDARY_SCHEDULE_PROMPT}",
+        )
+        replace_once(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
             "current packet lane on master: `P10-L10`",
             "current packet lane on master: `P10-L07`",
             "phase10-virtio-ring-freeze-boundary-survey.md:current packet lane on master: `P10-L10`",
+        )
+        replace_once(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            FREEZE_BOUNDARY_SURVEYED_HEAD,
+            "- surveyed head: `deadbeefdeadbeefdeadbeefdeadbeefdeadbeef`",
+            f"phase10-virtio-ring-freeze-boundary-survey.md:{FREEZE_BOUNDARY_SURVEYED_HEAD}",
+        )
+        replace_once(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            FREEZE_BOUNDARY_PRIOR_SURVEY,
+            "- prior ring survey provenance: `1111111111111111111111111111111111111111`",
+            f"phase10-virtio-ring-freeze-boundary-survey.md:{FREEZE_BOUNDARY_PRIOR_SURVEY}",
         )
         replace_once(
             "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
