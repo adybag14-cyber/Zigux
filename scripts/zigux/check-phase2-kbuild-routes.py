@@ -18,9 +18,9 @@ from pathlib import Path
 
 REQUIRED_FILES = {
     "makefile": Path("zigux/Makefile"),
-    "workflow": Path(".github/workflows/zigux-bootstrap.yml"),
-    "readme": Path("scripts/zigux/README.md"),
-    "closure": Path("Documentation/zigux/phase2-closure.md"),
+    "workflow": Path(".github" / "workflows" / "zigux-bootstrap.yml"),
+    "readme": Path("scripts" / "zigux" / "README.md"),
+    "closure": Path("Documentation" / "zigux" / "phase2-closure.md"),
 }
 
 REQUIRED_MARKERS = {
@@ -171,6 +171,50 @@ def run_self_test() -> int:
         if expected not in failures:
             print("PHASE2_KBUILD_ROUTES_SELF_TEST=fail")
             print("case=makefile-marker")
+            return 1
+
+        cases += 1
+        write_fixture(root)
+        broken_workflow = root / REQUIRED_FILES["workflow"]
+        broken_workflow.write_text(
+            broken_workflow.read_text(encoding="utf-8").replace(
+                "make -C zigux phase2-cross", "make -C zigux phase2-other"
+            ),
+            encoding="utf-8",
+        )
+        failures = collect_failures(root, fake_zig)
+        expected = "missing-marker:.github/workflows/zigux-bootstrap.yml:make -C zigux phase2-cross"
+        if expected not in failures:
+            print("PHASE2_KBUILD_ROUTES_SELF_TEST=fail")
+            print("case=workflow-marker")
+            return 1
+
+        cases += 1
+        write_fixture(root)
+        broken_readme = root / REQUIRED_FILES["readme"]
+        broken_readme.write_text(
+            broken_readme.read_text(encoding="utf-8").replace("phase2-cross", "phase2-other", 1),
+            encoding="utf-8",
+        )
+        failures = collect_failures(root, fake_zig)
+        expected = "missing-marker:scripts/zigux/README.md:phase2-cross"
+        if expected not in failures:
+            print("PHASE2_KBUILD_ROUTES_SELF_TEST=fail")
+            print("case=readme-marker")
+            return 1
+
+        cases += 1
+        write_fixture(root)
+        broken_closure = root / REQUIRED_FILES["closure"]
+        broken_closure.write_text(
+            broken_closure.read_text(encoding="utf-8").replace("genksyms", "symbols", 1),
+            encoding="utf-8",
+        )
+        failures = collect_failures(root, fake_zig)
+        expected = "missing-marker:Documentation/zigux/phase2-closure.md:genksyms"
+        if expected not in failures:
+            print("PHASE2_KBUILD_ROUTES_SELF_TEST=fail")
+            print("case=closure-marker")
             return 1
 
         cases += 1
