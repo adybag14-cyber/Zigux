@@ -28,6 +28,8 @@ Current `master` keeps the bounded HVC continuity packet reviewable through thes
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+- `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
+- `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
 
