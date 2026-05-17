@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -14,6 +15,7 @@ DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
+MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 
 REQUIRED_FILES = (
     LANE_NOTE_REL,
@@ -21,6 +23,53 @@ REQUIRED_FILES = (
     REVIEW_CHECKLIST_REL,
     TESTS_README_REL,
     SCRIPTS_README_REL,
+    MANIFEST_REL,
+)
+
+EXPECTED_PHASE = "Phase 1"
+EXPECTED_STATUS = "closed"
+EXPECTED_HELPERS = [
+    "tools/lib/argv_split.zig",
+    "tools/lib/bitmap.zig",
+    "tools/lib/cmdline.zig",
+    "tools/lib/ctype.zig",
+    "tools/lib/find_bit.zig",
+    "tools/lib/hweight.zig",
+    "tools/lib/list_sort.zig",
+    "tools/lib/rbtree.zig",
+    "tools/lib/slab.zig",
+    "tools/lib/str_error_r.zig",
+    "tools/lib/string.zig",
+    "tools/lib/vsprintf.zig",
+    "tools/lib/zalloc.zig",
+]
+EXPECTED_SHARED_REPLAY_PARKED_HELPERS = [
+    "tools/lib/argv_split.zig",
+    "tools/lib/cmdline.zig",
+    "tools/lib/ctype.zig",
+    "tools/lib/hweight.zig",
+    "tools/lib/list_sort.zig",
+    "tools/lib/slab.zig",
+    "tools/lib/str_error_r.zig",
+    "tools/lib/vsprintf.zig",
+    "tools/lib/zalloc.zig",
+]
+EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [
+    "tools/lib/bitmap.zig",
+    "tools/lib/find_bit.zig",
+    "tools/lib/rbtree.zig",
+    "tools/lib/string.zig",
+]
+EXPECTED_RULE_SUMMARY = (
+    "Phase 1 helper follow-up stays parked on shared replay for the nine helpers "
+    "above, while bitmap, find_bit, rbtree, and string keep the only bounded direct "
+    "helper-local follow-up anchors on current master."
+)
+EXPECTED_ANTI_OVERLAP_RULE = (
+    "Do not reopen Phase 1 by batching helpers across those two sets in one lane; "
+    "shared-replay parked helpers reopen only for packet drift, while direct-anchor "
+    "helpers reopen only for their existing helper-local anchors or already-committed "
+    "shared fixture keys."
 )
 
 REQUIRED_EXACT_LINES = {
@@ -30,10 +79,10 @@ REQUIRED_EXACT_LINES = {
         "find_bit_direct_owner": "- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, and tail-word skip anchors plus the committed tail-clamped find_bit replay fields already emitted by the shared C harness and consumed by the shared fixture`",
         "rbtree_direct_owner": "- `PHASE1_RBTREE_DIRECT_OWNER=rbtree keeps ordered Linux-style alias, low-level Linux-style alias, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors helper-local while the committed shared replay already owns duplicate-search parity through find(), findFirst(), nextMatch(), and matchIterator() plus the parked cached_leftmost_return_serials witness`",
         "string_direct_owner": "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
-        "find_bit_or_packet_note": "- current `master` also carries the newer direct `test \"find or bit returns the next set bit from either bitmap\"` proof inside `tools/lib/find_bit.zig`, so notes-only rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it",
+        "find_bit_or_packet_note": "- current `master` also carries the newer direct `test \\\"find or bit returns the next set bit from either bitmap\\\"` proof inside `tools/lib/find_bit.zig`, so notes-only rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it",
         "find_bit_clump_packet_note": "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
         "string_counted_search_alias_note": "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`.",
-        "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; treat the older `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` names as historical packet members until current `master` exposes them again",
+        "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; treat the older `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` names as historical packet members until current `master` exposes them again`",
         "shared_reminder_gap_note": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=all four shared reminder surfaces now treat scripts/zigux/check-phase1-installer-companion-checks.py as historical until direct reads recover it, so the docs-root sync step is closed and the shared reminder packet can stay parked unless one of those surfaces drifts`",
         "shared_reminder_active_packet": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py`",
         "shared_reminder_route_split": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ROUTE_SPLIT=Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, and scripts/zigux/README.md all keep the repo-reality warning explicit for the missing installer companion, while scripts/zigux/check-phase1-string-review-packet.py and scripts/zigux/check-phase1-direct-owner-markers.py carry the live self-test-versus-guard split for the shipped Phase 1 reminder packet, so the shared reminder packet stays parked unless one of those surfaces drifts`",
@@ -41,10 +90,10 @@ REQUIRED_EXACT_LINES = {
         "shared_reminder_next_step": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=leave the already-aligned shared reminder packet parked and reopen helper-local follow-through only from the helper-specific next-safe-step markers below unless Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, scripts/zigux/README.md, scripts/zigux/check-phase1-string-review-packet.py, or scripts/zigux/check-phase1-direct-owner-markers.py drifts`",
         "bitmap_next_safe_step": "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen older closure-side or validator-route cue names by default`",
         "find_bit_next_safe_step": "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or for committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families`",
-        "find_bit_or_next_step_note": "- the already-landed OR-path proof in `test \"find or bit returns the next set bit from either bitmap\"` belongs to that same `find_bit` direct-anchor packet, so if it drifts, refresh the existing helper-family notes instead of widening shared replay ownership",
+        "find_bit_or_next_step_note": "- the already-landed OR-path proof in `test \\\"find or bit returns the next set bit from either bitmap\\\"` belongs to that same `find_bit` direct-anchor packet, so if it drifts, refresh the existing helper-family notes instead of widening shared replay ownership",
         "find_bit_clump_next_step_note": "- the existing byte-clump and `findLastBit()` proofs belong to that same `find_bit` direct-anchor packet too, so if one of those helper-local anchors drifts, refresh the current helper-family note before widening shared replay ownership",
         "rbtree_next_safe_step": "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only to keep the already-landed cached_leftmost_return_serials shared replay aligned across the manifest, direct-owner note, and any shared parity gates, or for drift inside the still-helper-local cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors; do not batch a second widening into the same run`",
-        "manifest_tie_breaker_note": "- `zigux/tests/fixtures/phase1_helper_manifest.json` now records helper-local `next_safe_step_note` entries for `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`; treat those helper-specific manifest notes plus the `PHASE1_*_NEXT_SAFE_STEP` lines below as the authoritative tie-breakers instead of reopening a helper family from older saved cues or missing shared-validator paths.",
+        "manifest_tie_breaker_note": "- `zigux/tests/fixtures/phase1_helper_manifest.json` now records helper-local `next_safe_step_note` entries for `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`; treat those helper-specific manifest notes plus the `PHASE1_*_NEXT_SAFE_STEP` lines below as the authoritative tie-breakers instead of reopening a helper family from older saved cues or missing shared-validator paths.`",
         "string_next_safe_step": "- `PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() C-string list lookup, counted-search strnchr, embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture drift; keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default`",
     },
     DOCS_ROOT_REL: {
@@ -76,11 +125,21 @@ def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
+def load_json(root: Path, relative_path: Path) -> object:
+    return json.loads(load_text(root, relative_path))
+
+
 def require_exact_line(text: str, label: str, line: str) -> list[str]:
     expected = line.strip()
     count = sum(1 for current_line in text.splitlines() if current_line.strip() == expected)
     if count != 1:
         return [f"{label}:expected=1:actual={count}"]
+    return []
+
+
+def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
+    if actual != expected:
+        return [f"{label}:expected={expected!r}:actual={actual!r}"]
     return []
 
 
@@ -103,6 +162,76 @@ def collect_direct_owner_failures(root: Path) -> list[str]:
                     line,
                 )
             )
+
+    manifest = load_json(root, MANIFEST_REL)
+    if not isinstance(manifest, dict):
+        return [f"{MANIFEST_REL.as_posix()}:expected=dict:actual={type(manifest).__name__}"]
+
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:phase",
+            manifest.get("phase"),
+            EXPECTED_PHASE,
+        )
+    )
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:status",
+            manifest.get("status"),
+            EXPECTED_STATUS,
+        )
+    )
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:helper_count",
+            manifest.get("helper_count"),
+            len(EXPECTED_HELPERS),
+        )
+    )
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:helpers",
+            manifest.get("helpers"),
+            EXPECTED_HELPERS,
+        )
+    )
+
+    lane_sequencing = manifest.get("lane_sequencing")
+    if not isinstance(lane_sequencing, dict):
+        failures.append(
+            f"{MANIFEST_REL.as_posix()}:lane_sequencing:expected=dict:actual={type(lane_sequencing).__name__}"
+        )
+        return failures
+
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:lane_sequencing.shared_replay_parked_helpers",
+            lane_sequencing.get("shared_replay_parked_helpers"),
+            EXPECTED_SHARED_REPLAY_PARKED_HELPERS,
+        )
+    )
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:lane_sequencing.direct_anchor_followup_helpers",
+            lane_sequencing.get("direct_anchor_followup_helpers"),
+            EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS,
+        )
+    )
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:lane_sequencing.rule_summary",
+            lane_sequencing.get("rule_summary"),
+            EXPECTED_RULE_SUMMARY,
+        )
+    )
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:lane_sequencing.anti_overlap_rule",
+            lane_sequencing.get("anti_overlap_rule"),
+            EXPECTED_ANTI_OVERLAP_RULE,
+        )
+    )
+
     return failures
 
 
@@ -117,17 +246,75 @@ def sample_text(relative_path: Path) -> str:
     return "# sample\n\n" + "\n".join(labels.values()) + "\n"
 
 
+def sample_manifest() -> str:
+    return (
+        json.dumps(
+            {
+                "phase": EXPECTED_PHASE,
+                "status": EXPECTED_STATUS,
+                "helper_count": len(EXPECTED_HELPERS),
+                "helpers": EXPECTED_HELPERS,
+                "lane_sequencing": {
+                    "shared_replay_parked_helpers": EXPECTED_SHARED_REPLAY_PARKED_HELPERS,
+                    "direct_anchor_followup_helpers": EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS,
+                    "rule_summary": EXPECTED_RULE_SUMMARY,
+                    "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
+                },
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+
+
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
-        write_file(root, relative_path, sample_text(relative_path))
+        if relative_path == MANIFEST_REL:
+            write_file(root, relative_path, sample_manifest())
+        else:
+            write_file(root, relative_path, sample_text(relative_path))
 
 
 def run_self_test() -> int:
-    cases: list[tuple[str, Path | None, str | None, str]] = [("success", None, None, "none")]
+    cases: list[tuple[str, Path | None, str | tuple[str, ...] | None, str]] = [
+        ("success", None, None, "none")
+    ]
     for relative_path, labels in REQUIRED_EXACT_LINES.items():
         for label, line in labels.items():
             cases.append((f"missing_{relative_path.name}_{label}", relative_path, line, "remove"))
             cases.append((f"duplicate_{relative_path.name}_{label}", relative_path, line, "duplicate"))
+    cases.extend(
+        [
+            ("manifest_phase", MANIFEST_REL, ("phase",), "manifest"),
+            ("manifest_status", MANIFEST_REL, ("status",), "manifest"),
+            ("manifest_helper_count", MANIFEST_REL, ("helper_count",), "manifest"),
+            ("manifest_helpers", MANIFEST_REL, ("helpers",), "manifest"),
+            (
+                "manifest_shared_replay_helpers",
+                MANIFEST_REL,
+                ("lane_sequencing", "shared_replay_parked_helpers"),
+                "manifest",
+            ),
+            (
+                "manifest_direct_anchor_helpers",
+                MANIFEST_REL,
+                ("lane_sequencing", "direct_anchor_followup_helpers"),
+                "manifest",
+            ),
+            (
+                "manifest_rule_summary",
+                MANIFEST_REL,
+                ("lane_sequencing", "rule_summary"),
+                "manifest",
+            ),
+            (
+                "manifest_anti_overlap_rule",
+                MANIFEST_REL,
+                ("lane_sequencing", "anti_overlap_rule"),
+                "manifest",
+            ),
+        ]
+    )
 
     for name, relative_path, needle, operation in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-direct-owner-{name}-") as tmpdir:
@@ -135,11 +322,28 @@ def run_self_test() -> int:
             build_sample_repo(root)
             if relative_path and needle:
                 target = root / relative_path
-                text = target.read_text(encoding="utf-8")
-                if operation == "remove":
-                    target.write_text(text.replace(needle + "\n", "", 1), encoding="utf-8")
-                elif operation == "duplicate":
-                    target.write_text(text.replace(needle, needle + "\n" + needle, 1), encoding="utf-8")
+                if operation in {"remove", "duplicate"}:
+                    assert isinstance(needle, str)
+                    text = target.read_text(encoding="utf-8")
+                    if operation == "remove":
+                        target.write_text(text.replace(needle + "\n", "", 1), encoding="utf-8")
+                    elif operation == "duplicate":
+                        target.write_text(text.replace(needle, needle + "\n" + needle, 1), encoding="utf-8")
+                elif operation == "manifest":
+                    assert isinstance(needle, tuple)
+                    manifest = json.loads(target.read_text(encoding="utf-8"))
+                    current = manifest
+                    for key in needle[:-1]:
+                        current = current[key]
+                    last_key = needle[-1]
+                    value = current[last_key]
+                    if isinstance(value, list):
+                        current[last_key] = value[1:]
+                    elif isinstance(value, int):
+                        current[last_key] = value + 1
+                    else:
+                        current[last_key] = f"{value} drift"
+                    target.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
             failures = collect_direct_owner_failures(root)
             if name == "success":
