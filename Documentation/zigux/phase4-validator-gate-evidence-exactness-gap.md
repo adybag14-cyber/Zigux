@@ -11,6 +11,8 @@
 - `PHASE4_VALIDATOR_LAST_KNOWN_BLOB_SHA=694ad85743612aa0a595cd1752dd03c1013603ab`
 - `PHASE4_GATE_EVIDENCE_LAST_KNOWN_NOTE=Documentation/zigux/phase4-gate-evidence.md`
 - `PHASE4_GATE_EVIDENCE_LAST_KNOWN_BLOB_SHA=8f604959c5250433c5fca14b20d7ff75341c8d33`
+- `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9`
+- `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`
 
 ## Why this gap note still exists
 
@@ -25,6 +27,12 @@ instead the repo-reality warning anchored by:
 - `Documentation/zigux/phase4-reversible-delivery-evidence.md`
 - `scripts/zigux/check-phase4-repo-reality-warning.py`
 - `scripts/zigux/check-phase4-reversible-delivery-pins.py`
+
+The live direct checker pair currently publishes
+`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9` and
+`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`, so this parked
+validator-local note stays pinned to the exact current repo-reality packet
+instead of only the broader missing-file story.
 
 Those directly readable reminder surfaces currently say the broader Phase 4
 validator, lab-matrix, and local-only perf companions remain missing on current
@@ -48,7 +56,7 @@ missing broader Phase 4 packet is republished or becomes directly readable again
 ## Guardrail
 
 `scripts/zigux/check-phase4-validator-gate-evidence-exactness-gap.py` keeps this
-note honest against current repo reality. It fail-closes on three narrow rules:
+note honest against current repo reality. It fail-closes on four narrow rules:
 
 - this note must describe the validator exactness work as a historical parked
   follow-through rather than claiming live current-head validator evidence
@@ -56,6 +64,8 @@ note honest against current repo reality. It fail-closes on three narrow rules:
   `Documentation/zigux/phase4-reversible-delivery-evidence.md`,
   `scripts/zigux/check-phase4-repo-reality-warning.py`, and
   `scripts/zigux/check-phase4-reversible-delivery-pins.py`
+- this note must keep the published repo-reality checker self-test counts exact
+  so it stays pinned to the current live reminder packet
 - the note must keep the last-known validator and gate-evidence blob SHAs explicit
   so the follow-through can resume exactly once those broader companions return
 
