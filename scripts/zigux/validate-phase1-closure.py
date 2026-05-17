@@ -32,12 +32,12 @@ REQUIRED_NOTE_MARKERS = [
     "`PHASE1_CLOSURE_RESTORE_STATE=partial`",
     "`PHASE1_HELPER_COUNT=13`",
     "manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`",
-    "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`",
-    "`PHASE1_SHARED_REMINDER_SYNC_STATE=tests_root_and_checklist_pending`",
-    "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,scripts/zigux/check-phase1-bench.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`",
+    "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`",
+    "`PHASE1_SHARED_REMINDER_SYNC_STATE=checklist_pending`",
+    "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`",
     "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
-    "`PHASE1_NEXT_SAFE_STEP=sync zigux/tests/README.md and Documentation/zigux/review-checklist.md to this restored closure anchor before widening into zigux/tests/phase1_helpers.zig or bench claims`",
+    "`PHASE1_NEXT_SAFE_STEP=sync Documentation/zigux/review-checklist.md to this restored closure anchor before widening into zigux/tests/phase1_helpers.zig or bench claims`",
 ]
 
 REQUIRED_DOCS_README_MARKERS = [
@@ -52,6 +52,18 @@ FORBIDDEN_DOCS_README_MARKERS = [
     "`scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`",
     "the current docs-root Phase 1 reminder packet should stay parked on the live owner-map and string-review guards",
     "`python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the bounded current reminder checks",
+]
+
+REQUIRED_TESTS_README_MARKERS = [
+    "current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/validate-phase1-closure.py`",
+    "repo-reality warning for the broader Phase 1 closure-and-replay packet: repeated authenticated contents reads on current `master` now return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, and `zigux/Makefile`",
+    "current `master` does ship `scripts/zigux/check-phase1-bench.py`, so keep the remaining shared reminder follow-through focused on the broader tests-root, checklist, and docs-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
+    "keep current Phase 1 follow-through tied to the restored closure anchor, the narrow closure validator, and the live owner-map plus string-review reminder packet instead of reconstructing the older validator-first tranche from those broader missing replay-side files and routes alone",
+]
+
+FORBIDDEN_TESTS_README_MARKERS = [
+    "repo-reality warning for the broader Phase 1 closure-and-replay packet: repeated authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`",
+    "keep current Phase 1 follow-through tied to the live owner-map plus string-review reminder packet instead of reconstructing the broader validator-first tranche from those older missing closure-side files and routes alone",
 ]
 
 REQUIRED_README_MARKERS = [
@@ -100,6 +112,7 @@ def require_once(text: str, marker: str, label: str, failures: list[str]) -> Non
 def collect_failures(root: Path) -> list[str]:
     note_path = root / "Documentation/zigux/phase1-closure.md"
     docs_readme_path = root / "Documentation/zigux/README.md"
+    tests_readme_path = root / "zigux/tests/README.md"
     readme_path = root / "scripts/zigux/README.md"
     manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
     build_path = root / "zigux/tests/build.zig"
@@ -109,6 +122,7 @@ def collect_failures(root: Path) -> list[str]:
     for path in (
         note_path,
         docs_readme_path,
+        tests_readme_path,
         readme_path,
         manifest_path,
         build_path,
@@ -121,6 +135,7 @@ def collect_failures(root: Path) -> list[str]:
 
     note_text = read_text(note_path)
     docs_readme_text = read_text(docs_readme_path)
+    tests_readme_text = read_text(tests_readme_path)
     readme_text = read_text(readme_path)
     build_text = read_text(build_path)
     smoke_text = read_text(smoke_path)
@@ -137,6 +152,11 @@ def collect_failures(root: Path) -> list[str]:
     for marker in FORBIDDEN_DOCS_README_MARKERS:
         if marker in docs_readme_text:
             failures.append(f"docs_readme:forbidden={marker}")
+    for marker in REQUIRED_TESTS_README_MARKERS:
+        require_once(tests_readme_text, marker, "tests_readme", failures)
+    for marker in FORBIDDEN_TESTS_README_MARKERS:
+        if marker in tests_readme_text:
+            failures.append(f"tests_readme:forbidden={marker}")
     for marker in REQUIRED_README_MARKERS:
         require_once(readme_text, marker, "scripts_readme", failures)
     for marker in FORBIDDEN_README_MARKERS:
@@ -162,6 +182,7 @@ def collect_failures(root: Path) -> list[str]:
 def make_fixture_tree(root: Path) -> None:
     write_text(root / "Documentation/zigux/phase1-closure.md", read_text(Path(__file__).resolve().parents[2] / "Documentation/zigux/phase1-closure.md"))
     write_text(root / "Documentation/zigux/README.md", read_text(Path(__file__).resolve().parents[2] / "Documentation/zigux/README.md"))
+    write_text(root / "zigux/tests/README.md", read_text(Path(__file__).resolve().parents[2] / "zigux/tests/README.md"))
     write_text(root / "scripts/zigux/README.md", read_text(Path(__file__).resolve().parents[2] / "scripts/zigux/README.md"))
     write_text(
         root / "zigux/tests/fixtures/phase1_helper_manifest.json",
@@ -218,7 +239,7 @@ def run_self_test() -> int:
                 root / "Documentation/zigux/phase1-closure.md",
                 replace_once(
                     read_text(root / "Documentation/zigux/phase1-closure.md"),
-                    "`PHASE1_SHARED_REMINDER_SYNC_STATE=tests_root_and_checklist_pending`",
+                    "`PHASE1_SHARED_REMINDER_SYNC_STATE=checklist_pending`",
                     "`PHASE1_SHARED_REMINDER_SYNC_STATE=drifted`",
                 ),
             ),
@@ -232,6 +253,18 @@ def run_self_test() -> int:
                     read_text(root / "Documentation/zigux/README.md"),
                     "the current docs-root Phase 1 reminder packet should stay parked on the restored closure anchor, narrow closure validator, live owner-map, and string-review guards",
                     "the current docs-root Phase 1 reminder packet should stay parked on the live owner-map and string-review guards",
+                ),
+            ),
+            False,
+        ),
+        (
+            "tests_readme_missing_marker",
+            lambda root: write_text(
+                root / "zigux/tests/README.md",
+                replace_once(
+                    read_text(root / "zigux/tests/README.md"),
+                    "keep current Phase 1 follow-through tied to the restored closure anchor, the narrow closure validator, and the live owner-map plus string-review reminder packet instead of reconstructing the older validator-first tranche from those broader missing replay-side files and routes alone",
+                    "keep current Phase 1 follow-through tied to the live owner-map plus string-review reminder packet instead of reconstructing the older validator-first tranche from those broader missing replay-side files and routes alone",
                 ),
             ),
             False,
