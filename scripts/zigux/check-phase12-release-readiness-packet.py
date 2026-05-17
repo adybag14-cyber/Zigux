@@ -149,6 +149,7 @@ def build_self_test_cases() -> list[tuple[str, int]]:
 
 
 SELF_TEST_CASES = build_self_test_cases()
+EXPECTED_SELF_TEST_CASE_COUNT = 44
 
 
 def write_fixture_tree(root: Path) -> None:
@@ -181,6 +182,13 @@ def expect_marker_failure(root: Path, rel_path: str, marker_index: int) -> None:
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase12-release-readiness-packet-"))
     try:
+        actual_case_count = len(REQUIRED_FILES) + len(SELF_TEST_CASES)
+        if actual_case_count != EXPECTED_SELF_TEST_CASE_COUNT:
+            raise SystemExit(
+                "unexpected self-test case count: "
+                f"{actual_case_count} != {EXPECTED_SELF_TEST_CASE_COUNT}"
+            )
+
         write_fixture_tree(base)
         failures = validate(base)
         if failures:
@@ -197,7 +205,7 @@ def run_self_test() -> int:
         print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
         print(
             "PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT="
-            f"{len(REQUIRED_FILES) + len(SELF_TEST_CASES)}"
+            f"{actual_case_count}"
         )
         return 0
     finally:
