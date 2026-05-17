@@ -35,6 +35,22 @@ test "policy starter packet decodes shared interop policy records" {
     try testing.expectEqual(@as(?abi.PanicMode, null), panic_policy.modeFromInteropPolicy(reserved));
     try testing.expectEqual(@as(?abi.AllocatorMode, null), allocator_policy.modeFromInteropPolicy(reserved));
     try testing.expectEqual(@as(?abi.UnsafeScope, null), unsafe_policy.modeFromInteropPolicy(reserved));
+
+    try testing.expectEqual(@as(?abi.UnsafeScope, .none), unsafe_policy.scopeFromInteropPolicy(bug_heap));
+    try testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), unsafe_policy.scopeFromInteropPolicy(warn_arena));
+    try testing.expectEqual(@as(?abi.UnsafeScope, null), unsafe_policy.scopeFromInteropPolicy(reserved));
+
+    try testing.expect(unsafe_policy.permitsNoUnsafeInteropPolicy(bug_heap));
+    try testing.expect(!unsafe_policy.permitsVolatileMmioInteropPolicy(bug_heap));
+    try testing.expect(!unsafe_policy.permitsRawPointerBridgeInteropPolicy(bug_heap));
+
+    try testing.expect(!unsafe_policy.permitsNoUnsafeInteropPolicy(warn_arena));
+    try testing.expect(!unsafe_policy.permitsVolatileMmioInteropPolicy(warn_arena));
+    try testing.expect(unsafe_policy.permitsRawPointerBridgeInteropPolicy(warn_arena));
+
+    try testing.expect(!unsafe_policy.permitsNoUnsafeInteropPolicy(reserved));
+    try testing.expect(!unsafe_policy.permitsVolatileMmioInteropPolicy(reserved));
+    try testing.expect(!unsafe_policy.permitsRawPointerBridgeInteropPolicy(reserved));
 }
 
 test "panic policy starter packet keeps escalation semantics explicit" {
@@ -73,12 +89,21 @@ test "unsafe policy starter packet keeps access semantics explicit" {
     try testing.expectEqual(unsafe_policy.AccessBoundary.raw_pointer_bridge, unsafe_policy.accessBoundaryFor(.raw_pointer_bridge));
 
     try testing.expect(unsafe_policy.allowsTypedOnlyAccess(.none));
+    try testing.expect(unsafe_policy.permitsNoUnsafe(.none));
     try testing.expect(!unsafe_policy.allowsTypedOnlyAccess(.volatile_mmio));
+    try testing.expect(!unsafe_policy.permitsNoUnsafe(.volatile_mmio));
     try testing.expect(!unsafe_policy.allowsTypedOnlyAccess(.raw_pointer_bridge));
+    try testing.expect(!unsafe_policy.permitsNoUnsafe(.raw_pointer_bridge));
     try testing.expect(!unsafe_policy.requiresVolatileMmioAccess(.none));
+    try testing.expect(!unsafe_policy.permitsVolatileMmio(.none));
     try testing.expect(unsafe_policy.requiresVolatileMmioAccess(.volatile_mmio));
+    try testing.expect(unsafe_policy.permitsVolatileMmio(.volatile_mmio));
     try testing.expect(!unsafe_policy.requiresVolatileMmioAccess(.raw_pointer_bridge));
+    try testing.expect(!unsafe_policy.permitsVolatileMmio(.raw_pointer_bridge));
     try testing.expect(!unsafe_policy.requiresRawPointerBridge(.none));
+    try testing.expect(!unsafe_policy.permitsRawPointerBridge(.none));
     try testing.expect(!unsafe_policy.requiresRawPointerBridge(.volatile_mmio));
+    try testing.expect(!unsafe_policy.permitsRawPointerBridge(.volatile_mmio));
     try testing.expect(unsafe_policy.requiresRawPointerBridge(.raw_pointer_bridge));
+    try testing.expect(unsafe_policy.permitsRawPointerBridge(.raw_pointer_bridge));
 }
