@@ -107,6 +107,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(policy_note, "current-master-readback-2026-05-16");
     try expectContains(policy_note, "roadmap-required Phase 15 stay-in-C policy surface");
     try expectContains(policy_note, "the C implementation remains the source of truth");
+    try expectContains(policy_note, "evidence archive path");
     try expectContains(policy_note, "automatic return-to-blocked trigger");
     try expectContains(policy_note, "trigger-specific evidence refresh");
     try expectContains(policy_note, "There is no silent exception path around the indefinite-C policy.");
@@ -126,6 +127,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqualStrings("lane owner", recordkeeping.required_terms[5]);
     try std.testing.expectEqualStrings("required approver set", recordkeeping.required_terms[6]);
     try std.testing.expectEqualStrings("rollback owner", recordkeeping.required_terms[7]);
+    try std.testing.expectEqualStrings("evidence archive path", recordkeeping.required_terms[12]);
     try std.testing.expectEqualStrings("automatic return-to-blocked trigger", recordkeeping.required_terms[13]);
     try std.testing.expectEqualStrings("retained discussion state", recordkeeping.required_terms[14]);
     try std.testing.expectEqualStrings("reopen triggers", recordkeeping.required_terms[15]);
