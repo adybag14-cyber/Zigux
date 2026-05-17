@@ -11,6 +11,7 @@ pub const ModuleDescriptor = struct {
     provides_create_ruleset_planning: bool,
     provides_abi_version_query_planning: bool,
     provides_ruleset_fd_install_planning: bool,
+    provides_ruleset_fd_stub_planning: bool,
     validates_handled_access: bool,
     validates_attr_size: bool,
     validates_flags: bool,
@@ -81,6 +82,20 @@ pub const RulesetFdInstallPlan = struct {
     install_flags: u32,
 };
 
+pub const RulesetFdStubOperation = enum {
+    read,
+    write,
+};
+
+pub const RulesetFdStubPlan = struct {
+    anchor: []const u8,
+    operation: RulesetFdStubOperation,
+    enables_read_mode: bool,
+    enables_write_mode: bool,
+    returns_einval: bool,
+    mutates_ruleset_state: bool,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -89,6 +104,7 @@ pub const SyscallsHelperLab = struct {
             .provides_create_ruleset_planning = true,
             .provides_abi_version_query_planning = true,
             .provides_ruleset_fd_install_planning = true,
+            .provides_ruleset_fd_stub_planning = true,
             .validates_handled_access = true,
             .validates_attr_size = true,
             .validates_flags = true,
@@ -192,6 +208,27 @@ pub const SyscallsHelperLab = struct {
             .install_flags = request.flags,
         };
     }
+
+    pub fn planRulesetFdStub(operation: RulesetFdStubOperation) RulesetFdStubPlan {
+        return switch (operation) {
+            .read => .{
+                .anchor = descriptor().anchor,
+                .operation = .read,
+                .enables_read_mode = true,
+                .enables_write_mode = false,
+                .returns_einval = true,
+                .mutates_ruleset_state = false,
+            },
+            .write => .{
+                .anchor = descriptor().anchor,
+                .operation = .write,
+                .enables_read_mode = false,
+                .enables_write_mode = true,
+                .returns_einval = true,
+                .mutates_ruleset_state = false,
+            },
+        };
+    }
 };
 
 test "landlock syscalls descriptor stays within create-ruleset planning boundaries" {
@@ -202,6 +239,7 @@ test "landlock syscalls descriptor stays within create-ruleset planning boundari
     try std.testing.expect(descriptor.provides_create_ruleset_planning);
     try std.testing.expect(descriptor.provides_abi_version_query_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_install_planning);
+    try std.testing.expect(descriptor.provides_ruleset_fd_stub_planning);
     try std.testing.expect(descriptor.validates_handled_access);
     try std.testing.expect(descriptor.validates_attr_size);
     try std.testing.expect(descriptor.validates_flags);
@@ -328,4 +366,22 @@ test "landlock syscalls ruleset fd install rejects missing rulesets labels and f
     try std.testing.expectError(error.UnsupportedAnonInodeFlags, SyscallsHelperLab.planInstallRulesetFd(.{
         .flags = O_RDWR,
     }));
+}
+
+test "landlock syscalls ruleset fd stubs keep dummy operation discipline explicit" {
+    const read_plan = SyscallsHelperLab.planRulesetFdStub(.read);
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, read_plan.anchor);
+    try std.testing.expectEqual(RulesetFdStubOperation.read, read_plan.operation);
+    try std.testing.expect(read_plan.enables_read_mode);
+    try std.testing.expect(!read_plan.enables_write_mode);
+    try std.testing.expect(read_plan.returns_einval);
+    try std.testing.expect(!read_plan.mutates_ruleset_state);
+
+    const write_plan = SyscallsHelperLab.planRulesetFdStub(.write);
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, write_plan.anchor);
+    try std.testing.expectEqual(RulesetFdStubOperation.write, write_plan.operation);
+    try std.testing.expect(!write_plan.enables_read_mode);
+    try std.testing.expect(write_plan.enables_write_mode);
+    try std.testing.expect(write_plan.returns_einval);
+    try std.testing.expect(!write_plan.mutates_ruleset_state);
 }
