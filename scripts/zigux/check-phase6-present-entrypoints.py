@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import tempfile
 from pathlib import Path
@@ -24,6 +25,32 @@ REQUIRED_HELPER_PATHS = [
     CHECKSUM_HELPER_PATH,
     HEXDUMP_HELPER_PATH,
 ]
+REQUIRED_DIRECT_READBACK_COMPANIONS = [
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "Documentation/zigux/README.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "scripts/zigux/check-phase6-shared-surface.py",
+    "scripts/zigux/check-phase6-present-entrypoints.py",
+]
+EXPECTED_HELPERS = {
+    "base64": {
+        "zig_helper": "lib/base64.zig",
+        "slice_note": "Documentation/zigux/phase6-base64-slice.md",
+    },
+    "bsearch": {
+        "zig_helper": "lib/bsearch.zig",
+        "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
+    },
+    "checksum": {
+        "zig_helper": "lib/checksum.zig",
+        "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
+    },
+    "hexdump": {
+        "zig_helper": "lib/hexdump.zig",
+        "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
+    },
+}
 
 CATALOG_SURVEYED_HEAD_PATTERN = re.compile(r"^- surveyed head: `([^`]+)`$", re.M)
 MANIFEST_SURVEYED_HEAD_PATTERN = re.compile(r'"surveyed_head": "([^"]+)"')
@@ -93,7 +120,7 @@ REQUIRED_MANIFEST_SNIPPETS = [
     '"make -C zigux phase6-hexdump-perf"',
 ]
 
-SELF_TEST_CASE_COUNT = 66
+SELF_TEST_CASE_COUNT = len(REQUIRED_CATALOG_SNIPPETS) + 7 + len(REQUIRED_HELPER_PATHS)
 
 
 class ValidationError(RuntimeError):
@@ -109,6 +136,10 @@ def read_text(path: Path) -> str:
 
 def require_snippets(path: Path, snippets: list[str]) -> str:
     content = read_text(path)
+    return require_snippets_in_content(path, content, snippets)
+
+
+def require_snippets_in_content(path: Path, content: str, snippets: list[str]) -> str:
     for snippet in snippets:
         if snippet not in content:
             raise ValidationError(
@@ -132,17 +163,90 @@ def extract_manifest_surveyed_head(content: str) -> str:
     if match is None:
         raise ValidationError(
             "missing expected Phase 6 marker in "
-            f"{HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: \"surveyed_head\": \"<sha>\""
+            f'{HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: "surveyed_head": "<sha>"'
         )
     return match.group(1)
 
 
+def load_manifest_data(path: Path) -> dict:
+    try:
+        return json.loads(read_text(path))
+    except json.JSONDecodeError as exc:
+        raise ValidationError(
+            f"invalid JSON in {path.as_posix()}: {exc.msg}"
+        ) from exc
+
+
+def validate_direct_readback_companions(manifest: dict) -> None:
+    companions = manifest.get("current_direct_readback_companions")
+    if companions != REQUIRED_DIRECT_READBACK_COMPANIONS:
+        raise ValidationError(
+            "Phase 6 direct-readback companions mismatch in "
+            f"{HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: expected "
+            f"{REQUIRED_DIRECT_READBACK_COMPANIONS}, got {companions}"
+        )
+
+
+def validate_helper_entries(manifest: dict) -> None:
+    helpers = manifest.get("helpers")
+    if not isinstance(helpers, list):
+        raise ValidationError(
+            "Phase 6 helper manifest must expose a helpers list in "
+            f"{HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}"
+        )
+
+    helpers_by_key = {}
+    for entry in helpers:
+        if not isinstance(entry, dict):
+            raise ValidationError(
+                "Phase 6 helper manifest contains a non-object helper entry in "
+                f"{HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}"
+            )
+        key = entry.get("key")
+        if not isinstance(key, str):
+            raise ValidationError(
+                "Phase 6 helper manifest contains a helper entry without a string key in "
+                f"{HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}"
+            )
+        helpers_by_key[key] = entry
+
+    if set(helpers_by_key) != set(EXPECTED_HELPERS):
+        raise ValidationError(
+            "Phase 6 helper manifest helper keys mismatch in "
+            f"{HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: expected "
+            f"{sorted(EXPECTED_HELPERS)}, got {sorted(helpers_by_key)}"
+        )
+
+    for key, expected in EXPECTED_HELPERS.items():
+        entry = helpers_by_key[key]
+        if entry.get("zig_helper") != expected["zig_helper"]:
+            raise ValidationError(
+                "Phase 6 helper manifest zig_helper mismatch for "
+                f"{key} in {HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: expected "
+                f'{expected["zig_helper"]}, got {entry.get("zig_helper")}'
+            )
+        if entry.get("slice_note") != expected["slice_note"]:
+            raise ValidationError(
+                "Phase 6 helper manifest slice_note mismatch for "
+                f"{key} in {HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: expected "
+                f'{expected["slice_note"]}, got {entry.get("slice_note")}'
+            )
+        if entry.get("current_review_posture") != "direct-readback-limited":
+            raise ValidationError(
+                "Phase 6 helper manifest review posture mismatch for "
+                f"{key} in {HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: expected "
+                "direct-readback-limited"
+            )
+
+
 def validate(repo_root: Path) -> None:
-    catalog_content = require_snippets(
-        repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS
-    )
-    manifest_content = require_snippets(
-        repo_root / HELPER_EVIDENCE_MANIFEST_PATH, REQUIRED_MANIFEST_SNIPPETS
+    catalog_path = repo_root / HELPER_EVIDENCE_CATALOG_PATH
+    manifest_path = repo_root / HELPER_EVIDENCE_MANIFEST_PATH
+    catalog_content = require_snippets(catalog_path, REQUIRED_CATALOG_SNIPPETS)
+    manifest_content = read_text(manifest_path)
+    manifest_data = load_manifest_data(manifest_path)
+    require_snippets_in_content(
+        manifest_path, manifest_content, REQUIRED_MANIFEST_SNIPPETS
     )
 
     catalog_head = extract_catalog_surveyed_head(catalog_content)
@@ -154,16 +258,57 @@ def validate(repo_root: Path) -> None:
             f"{HELPER_EVIDENCE_MANIFEST_PATH.as_posix()} ({manifest_head})"
         )
 
+    validate_direct_readback_companions(manifest_data)
+    validate_helper_entries(manifest_data)
+
     for helper_path in REQUIRED_HELPER_PATHS:
         if not (repo_root / helper_path).is_file():
-            raise ValidationError(
-                f"missing required file: {helper_path.as_posix()}"
-            )
+            raise ValidationError(f"missing required file: {helper_path.as_posix()}")
 
 
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def scaffold_manifest_json() -> str:
+    manifest = {
+        "packet": "phase6-helper-evidence",
+        "phase": "Phase 6",
+        "surveyed_head": "840f388",
+        "current_direct_readback_companions": REQUIRED_DIRECT_READBACK_COMPANIONS,
+        "roadmap_anchors": [
+            "lib/base64.c",
+            "lib/bsearch.c",
+            "lib/checksum.c",
+            "lib/hexdump.c",
+        ],
+        "helpers": [
+            {
+                "key": key,
+                "roadmap_anchor": anchor,
+                "zig_helper": expected["zig_helper"],
+                "slice_note": expected["slice_note"],
+                "current_review_posture": "direct-readback-limited",
+            }
+            for key, expected, anchor in [
+                ("base64", EXPECTED_HELPERS["base64"], "lib/base64.c"),
+                ("bsearch", EXPECTED_HELPERS["bsearch"], "lib/bsearch.c"),
+                ("checksum", EXPECTED_HELPERS["checksum"], "lib/checksum.c"),
+                ("hexdump", EXPECTED_HELPERS["hexdump"], "lib/hexdump.c"),
+            ]
+        ],
+        "current_repo_reality_gaps": [
+            "Documentation/zigux/phase6-helper-parity-catalog.md",
+            "Documentation/zigux/phase6-perf-gate-survey.md",
+            "zigux/tests/phase6_helper_parity_manifest.json",
+        ],
+        "last_known_shared_replay_inventory": [
+            "make -C zigux phase6-base64-perf",
+            "make -C zigux phase6-hexdump-perf",
+        ],
+    }
+    return json.dumps(manifest, indent=2) + "\n"
 
 
 def scaffold_repo(root: Path) -> None:
@@ -176,32 +321,8 @@ def scaffold_repo(root: Path) -> None:
             "",
         ]
     )
-    manifest_content = "\n".join(
-        [
-            "{",
-            '  "packet": "phase6-helper-evidence",',
-            '  "phase": "Phase 6",',
-            '  "surveyed_head": "840f388",',
-            '  "current_direct_readback_companions": [',
-            '    "Documentation/zigux/phase6-helper-evidence-catalog.md"',
-            "  ],",
-            '  "roadmap_anchors": ["lib/base64.c"],',
-            '  "helpers": ["lib/base64.zig", "lib/bsearch.zig", "lib/checksum.zig", "lib/hexdump.zig"],',
-            '  "current_repo_reality_gaps": [',
-            '    "Documentation/zigux/phase6-helper-parity-catalog.md",',
-            '    "Documentation/zigux/phase6-perf-gate-survey.md",',
-            '    "zigux/tests/phase6_helper_parity_manifest.json"',
-            "  ],",
-            '  "last_known_shared_replay_inventory": [',
-            '    "make -C zigux phase6-base64-perf",',
-            '    "make -C zigux phase6-hexdump-perf"',
-            "  ]",
-            "}",
-            "",
-        ]
-    )
     write(root / HELPER_EVIDENCE_CATALOG_PATH, catalog_content)
-    write(root / HELPER_EVIDENCE_MANIFEST_PATH, manifest_content)
+    write(root / HELPER_EVIDENCE_MANIFEST_PATH, scaffold_manifest_json())
     for helper_path in REQUIRED_HELPER_PATHS:
         write(root / helper_path, "// stub\n")
 
@@ -243,17 +364,39 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
 
-        for snippet in REQUIRED_MANIFEST_SNIPPETS:
-            write(manifest_path, read_text(manifest_path).replace(snippet, "", 1))
-            expect_failure(root, snippet)
-            cases_run += 1
-            scaffold_repo(root)
+        manifest = load_manifest_data(manifest_path)
+        manifest["current_direct_readback_companions"] = manifest[
+            "current_direct_readback_companions"
+        ][:-1]
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "Phase 6 direct-readback companions mismatch")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest = load_manifest_data(manifest_path)
+        manifest["helpers"][0]["current_review_posture"] = "fully-readable"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "Phase 6 helper manifest review posture mismatch for base64")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest = load_manifest_data(manifest_path)
+        manifest["helpers"][0]["slice_note"] = "Documentation/zigux/wrong.md"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "Phase 6 helper manifest slice_note mismatch for base64")
+        cases_run += 1
+        scaffold_repo(root)
 
         write(
             manifest_path,
             read_text(manifest_path).replace('"surveyed_head": "840f388"', '"surveyed_head": "deadbee"'),
         )
         expect_failure(root, "Phase 6 surveyed-head mismatch")
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(manifest_path, "{\n")
+        expect_failure(root, "invalid JSON")
         cases_run += 1
         scaffold_repo(root)
 
