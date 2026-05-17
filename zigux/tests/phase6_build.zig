@@ -87,6 +87,13 @@ pub fn build(b: *std.Build) void {
     hexdump_perf_root_module.addImport("hexdump", hexdump_module);
     hexdump_perf_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);
 
+    const hexdump_perf_matrix_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_hexdump_perf_matrix.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    hexdump_perf_matrix_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);
+
     const base64_tests = b.addTest(.{
         .name = "phase6-base64-tests",
         .root_module = base64_root_module,
@@ -129,6 +136,13 @@ pub fn build(b: *std.Build) void {
     const run_hexdump_tests = b.addRunArtifact(hexdump_tests);
     run_hexdump_tests.skip_foreign_checks = true;
 
+    const hexdump_perf_matrix_tests = b.addTest(.{
+        .name = "phase6-hexdump-perf-matrix-tests",
+        .root_module = hexdump_perf_matrix_root_module,
+    });
+    const run_hexdump_perf_matrix_tests = b.addRunArtifact(hexdump_perf_matrix_tests);
+    run_hexdump_perf_matrix_tests.skip_foreign_checks = true;
+
     const checksum_perf = b.addExecutable(.{
         .name = "phase6-checksum-perf",
         .root_module = checksum_perf_root_module,
@@ -153,6 +167,13 @@ pub fn build(b: *std.Build) void {
 
     const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");
     hexdump_test_step.dependOn(&run_hexdump_tests.step);
+    hexdump_test_step.dependOn(&run_hexdump_perf_matrix_tests.step);
+
+    const hexdump_perf_matrix_test_step = b.step(
+        "phase6-hexdump-perf-matrix-test",
+        "Run Phase 6 hexdump perf matrix preflight",
+    );
+    hexdump_perf_matrix_test_step.dependOn(&run_hexdump_perf_matrix_tests.step);
 
     const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");
     checksum_perf_step.dependOn(&run_checksum_perf.step);
@@ -167,4 +188,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);
     test_step.dependOn(&run_checksum_tests.step);
     test_step.dependOn(&run_hexdump_tests.step);
+    test_step.dependOn(&run_hexdump_perf_matrix_tests.step);
 }
