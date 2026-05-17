@@ -45,11 +45,11 @@ TOOLCHAIN_PINNING_MARKERS = (
 )
 
 TESTS_ALIGNMENT_MARKERS = (
-    "'`python3 scripts/zigux/check-phase2-cross.py --self-test`'",
-    "'`python3 scripts/zigux/check-phase2-cross.py`'",
-    "'`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`'",
-    "'`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`'",
-    "'`make -C zigux phase2-cross`'",
+    '"`python3 scripts/zigux/check-phase2-cross.py --self-test`",',
+    '"`python3 scripts/zigux/check-phase2-cross.py`",',
+    '"`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",',
+    '"`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",',
+    '"`make -C zigux phase2-cross`",',
 )
 
 EXPECTED_SELF_TEST_CASE_COUNT = 30
