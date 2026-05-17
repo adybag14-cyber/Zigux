@@ -56,12 +56,16 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 6), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.handoff_required_markers.len);
-    try std.testing.expectEqual(@as(usize, 14), manifest.shared_gap_expected_present_paths.len);
-    try std.testing.expectEqual(@as(usize, 0), manifest.shared_gap_expected_missing_paths.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.shared_gap_expected_present_paths.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.shared_gap_expected_missing_paths.len);
 
     try expectSliceContains(
         manifest.shared_gap_expected_present_paths,
         "`zigux/tests/phase15_architecture_council_review_process.zig`",
+    );
+    try expectSliceContains(
+        manifest.shared_gap_expected_missing_paths,
+        "`zigux/tests/phase15_build.zig`",
     );
 }
 
@@ -109,6 +113,9 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     for (manifest.shared_gap_expected_present_paths) |marker| {
         try expectContains(gap_note, marker);
     }
+    for (manifest.shared_gap_expected_missing_paths) |marker| {
+        try expectContains(gap_note, marker);
+    }
 }
 
 test "phase 15 review-process handoff checker fails closed on missing present paths" {
@@ -129,4 +136,5 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(checker, "current-master-readback-2026-05-17");
     try expectContains(review_process, "current-master-readback-2026-05-17");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process.zig`");
+    try expectContains(gap_note, "`zigux/tests/phase15_build.zig`");
 }
