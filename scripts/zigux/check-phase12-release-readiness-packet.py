@@ -167,6 +167,13 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        remove_marker(base / RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][4])
+        expect_failure(
+            base,
+            f"{RAW_GITHUB_COVERAGE_SURVEY_PATH}:{REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][4]}",
+        )
+
+        write_fixture_tree(base)
         remove_marker(base / SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][0])
         expect_failure(base, f"{SCRIPTS_README_PATH}:{REQUIRED_MARKERS[SCRIPTS_README_PATH][0]}")
 
@@ -186,7 +193,7 @@ def run_self_test() -> int:
         expect_failure(base, f"{DOCS_README_PATH}:{REQUIRED_MARKERS[DOCS_README_PATH][4]}")
 
         print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-        print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=8")
+        print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=9")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
