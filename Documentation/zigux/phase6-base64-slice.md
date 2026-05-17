@@ -51,8 +51,8 @@ The current tests check:
 - destination-bounds failures before partial writes
 - exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
+- fixture-backed variant decode parity for URL-safe and IMAP sample payloads, including one-byte and two-byte tails with and without padding
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
-- exhaustive reverse-map classification across all 256 byte values for the standard, URL-safe, and IMAP decode variants
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
 
 ## Non-goals
