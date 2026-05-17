@@ -33,6 +33,7 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 
 - Phase 5 flow - current `master` still ships no dedicated `validate-phase5.py`, no `check-phase5-*.py` checker packet, and no `phase5-validate` or `phase5` scripts-root route, so keep the four-anchor non-runtime sample packet reviewable through the shared docs-root, sample-root, and tests-root surfaces instead of inventing scripts-root proof text
 - `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/phase5-kobject-sample-survey.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` remain the current shared reminder companions for that four-sample packet
+- keep the Phase 5 trace-events formatting boundary explicit in that shared reminder packet too: `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` should keep the selected-string plus `iter=%d` replay as the approved bounded formatting reminder while current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample
 - keep `zigux/tests/phase5_build.zig` framed only as current public-tree-backed companion evidence when the sample-backed survey notes or shared reminders name it, not as direct authenticated-contents proof from this scripts root
 - keep the separate Phase 9 `runtime_*` sample families out of Phase 5, and keep the no-extra-sample boundary explicit for `string`, `cmdline`, `argv`, `rbtree`, `bitmap`, and standalone formatting helpers rather than inventing a scripts-root validator packet
 
@@ -82,7 +83,7 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 ## Phase 12
 
 - Phase 12 flow - `validate-phase12.py` checks that the current complex-driver packet stays aligned
-- `scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit
+- `check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit
 - `check-build-only-phase12-surface.py` validates the segmented Phase 12 release packet for the release coordination matrix, readiness survey, sequencing note, raw-GitHub survey, complex-driver lane note, libbpf-heavy lane note, tests guide, review checklist, and both libbpf snapshot fixtures
 - keeps the Phase 12 packet limited to build-only helper evidence for complex drivers and other heavy helper consumers without reopening queue ownership, DMA routing, recovery, or throughput semantics
 - `check-build-only-phase12-surface.py`
