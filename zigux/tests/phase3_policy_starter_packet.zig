@@ -53,6 +53,36 @@ test "policy starter packet decodes shared interop policy records" {
     try testing.expect(!unsafe_policy.permitsRawPointerBridgeInteropPolicy(reserved));
 }
 
+test "policy starter packet keeps unsafe alias symmetry explicit on shared records" {
+    const cases = [_]struct {
+        policy: abi.InteropPolicy,
+        expected: ?abi.UnsafeScope,
+    }{
+        .{ .policy = .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 0, .reserved = 0 }, .expected = .none },
+        .{ .policy = .{ .panic_mode = 1, .allocator_mode = 1, .unsafe_scope = 1, .reserved = 0 }, .expected = .volatile_mmio },
+        .{ .policy = .{ .panic_mode = 2, .allocator_mode = 2, .unsafe_scope = 2, .reserved = 0 }, .expected = .raw_pointer_bridge },
+        .{ .policy = .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 9, .reserved = 0 }, .expected = null },
+        .{ .policy = .{ .panic_mode = 2, .allocator_mode = 2, .unsafe_scope = 2, .reserved = 1 }, .expected = null },
+    };
+
+    for (cases) |case| {
+        try testing.expectEqual(case.expected, unsafe_policy.modeFromInteropPolicy(case.policy));
+        try testing.expectEqual(case.expected, unsafe_policy.scopeFromInteropPolicy(case.policy));
+        try testing.expectEqual(
+            unsafe_policy.permitsNoUnsafeInteropPolicy(case.policy),
+            unsafe_policy.allowsTypedOnlyAccessInteropPolicy(case.policy),
+        );
+        try testing.expectEqual(
+            unsafe_policy.permitsVolatileMmioInteropPolicy(case.policy),
+            unsafe_policy.requiresVolatileMmioAccessInteropPolicy(case.policy),
+        );
+        try testing.expectEqual(
+            unsafe_policy.permitsRawPointerBridgeInteropPolicy(case.policy),
+            unsafe_policy.requiresRawPointerBridgeInteropPolicy(case.policy),
+        );
+    }
+}
+
 test "panic policy starter packet keeps escalation semantics explicit" {
     try testing.expectEqual(panic_policy.Escalation.immediate_abort, panic_policy.escalationFor(.abort));
     try testing.expectEqual(panic_policy.Escalation.kernel_bug, panic_policy.escalationFor(.bug));
