@@ -130,6 +130,7 @@ pub const PollError = error{
     ReadyBufferProcessingExceedsReadyCount,
     ReadyBufferProcessingExceedsObservedEvents,
     NonReadyWaitHasProcessedRecords,
+    InconsistentPollSummary,
     InconsistentProcessingFailureSummary,
     InconsistentProcessingAccountingSummary,
     WaitResultDisagreesWithExecutionOutcome,
@@ -139,6 +140,22 @@ pub const PollError = error{
 
 fn hasAnyBufferState(summary: ReadyBufferSummary) bool {
     return summary.ready_count != 0 or summary.first_error != null;
+}
+
+fn hasConsistentPollSummary(summary: PollSummary) bool {
+    return switch (summary.outcome) {
+        .timeout, .interrupted => summary.observed_ready_events == 0 and
+            summary.ready_count == 0 and
+            summary.first_ready_index == null and
+            summary.first_error == null,
+        .failed => summary.ready_count == 0 and
+            summary.first_ready_index == null and
+            summary.first_error != null,
+        .ready => summary.observed_ready_events != 0 and
+            summary.ready_count != 0 and
+            summary.first_ready_index != null and
+            summary.ready_count <= summary.observed_ready_events,
+    };
 }
 
 fn hasConsistentProcessFailure(summary: PollExecutionSummary) bool {
@@ -437,6 +454,9 @@ pub fn resolvePollExecutionResultFromWaitResult(
     wait_result: i32,
     execution: PollExecutionSummary,
 ) PollError!PollExecutionResult {
+    if (!hasConsistentPollSummary(execution.poll)) {
+        return PollError.InconsistentPollSummary;
+    }
     if (!hasConsistentProcessFailure(execution)) {
         return PollError.InconsistentProcessingFailureSummary;
     }
@@ -665,6 +685,54 @@ test "phase8 perf-buffer poll turns error-only ready-event observations into buf
     try std.testing.expectEqual(@as(usize, 2), failure.execution.poll.observed_ready_events);
     try std.testing.expectEqual(@as(?i32, -105), failure.execution.poll.first_error);
     try std.testing.expectEqual(@as(usize, 0), failure.execution.attempted_ready_buffer_count);
+}
+
+test "phase8 perf-buffer poll rejects impossible hand-built timeout summaries" {
+    const impossible_timeout = PollExecutionSummary{
+        .poll = .{
+            .wait_class = .nonblocking,
+            .outcome = .timeout,
+            .observed_ready_events = 1,
+            .ready_count = 0,
+            .first_ready_index = null,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 0,
+        .completed_ready_buffer_count = 0,
+        .processed_record_count = 0,
+        .first_process_error_index = null,
+        .first_process_error_ready_index = null,
+        .first_process_error = null,
+    };
+
+    try std.testing.expectError(
+        PollError.InconsistentPollSummary,
+        resolvePollExecutionResultFromWaitResult(0, impossible_timeout),
+    );
+}
+
+test "phase8 perf-buffer poll rejects impossible hand-built failed summaries" {
+    const impossible_failed = PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .failed,
+            .observed_ready_events = 0,
+            .ready_count = 1,
+            .first_ready_index = 0,
+            .first_error = -5,
+        },
+        .attempted_ready_buffer_count = 0,
+        .completed_ready_buffer_count = 0,
+        .processed_record_count = 0,
+        .first_process_error_index = null,
+        .first_process_error_ready_index = null,
+        .first_process_error = null,
+    };
+
+    try std.testing.expectError(
+        PollError.InconsistentPollSummary,
+        resolvePollExecutionResultFromWaitResult(-5, impossible_failed),
+    );
 }
 
 test "phase8 perf-buffer poll rejects ready waits without processing attempts" {
