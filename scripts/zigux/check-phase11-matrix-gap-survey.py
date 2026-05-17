@@ -15,10 +15,20 @@ SURVEY_PATH = "Documentation/zigux/phase11-validation-matrix-gap-survey.md"
 REQUIRED_MARKERS = [
     "`PHASE11_MATRIX_GAP_STATUS=driver_local_matrix_docs_absent_shared_header_matrix_only`",
     "lane: `P11-L03`",
+    "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
+    "`Documentation/zigux/phase11-hvc-console-survey.md`",
+    "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
     "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
     "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+    "`Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`",
+    "`Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`",
+    "`scripts/zigux/check-phase11-matrix-gap-survey.py`",
+    "`python3 scripts/zigux/check-phase11-matrix-gap-survey.py`",
+    "`scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
+    "`python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
+    "`scripts/zigux/check-phase11-build-inventory.py`",
     "shared matrix packet is no longer an honest four-matrix direct-readback claim",
     "The only directly readable Phase 11 matrix note on current `master` is",
     "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`",
@@ -28,9 +38,6 @@ REQUIRED_MARKERS = [
     "`phase11-gpio-wdt-tests`",
     "`phase11-hvc-console-tests`",
     "`phase11-dw-wdt-tests`",
-    "`scripts/zigux/check-phase11-matrix-gap-survey.py`",
-    "`python3 scripts/zigux/check-phase11-matrix-gap-survey.py`",
-    "`scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
 ]
 
 FORBIDDEN_MARKERS = [
@@ -55,13 +62,19 @@ Phase 11 simple-driver packet on `master`.
 
 ## Current Repo Reality
 
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
+- `Documentation/zigux/phase11-hvc-console-survey.md`
+- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`
+- `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
+- `scripts/zigux/check-phase11-build-inventory.py`
 
 Current direct contents reads in this run did not rematerialize the four
 driver-local matrix notes, so the shared matrix packet is no longer an honest
@@ -85,6 +98,8 @@ names, 13 shared depend steps, and one dedicated survey replay.
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
+- `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
+- `scripts/zigux/check-phase11-build-inventory.py`
 """
 
 
