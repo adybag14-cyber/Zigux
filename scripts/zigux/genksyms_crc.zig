@@ -157,7 +157,7 @@ test "runGenksymsCrc trims carriage returns and escapes json-sensitive bytes" {
 
         fn init(allocator: std.mem.Allocator) !@This() {
             return .{
-                .list = try std.ArrayList(u8).initCapacity(allocator, 96),
+                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
                 .allocator = allocator,
             };
         }
@@ -183,8 +183,8 @@ test "runGenksymsCrc trims carriage returns and escapes json-sensitive bytes" {
 
     var capture = try Capture.init(std.testing.allocator);
     defer capture.deinit();
-    try runGenksymsCrc("quoted \"symbol\"\r\npath\\\\name\r\n\r\n", &capture);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"quoted \\\"symbol\\\"\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"path\\\\\\\\name\"") != null);
+    try runGenksymsCrc("quoted \"symbol\"\tpath\\name\r\n\r\n", &capture);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"quoted \\\"symbol\\\"\\tpath\\\\name\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"crc_hex\":\"0x3527e580\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r") == null);
 }
