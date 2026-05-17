@@ -286,6 +286,7 @@ RELEASE_CLOSURE_CHECKLIST_MARKERS = [
     "The current driver-local doc split must stay explicit too: `virtio_scsi` still ships the dedicated `Documentation/zigux/phase12-virtio-scsi-slice.md` plus `Documentation/zigux/phase12-virtio-scsi-survey.md` pair",
     "The shipped validator-first support bundle is `make -C zigux phase12-validate`",
     "`Documentation/zigux/phase12-raw-github-coverage-survey.md` should keep the mixed fallback overview explicit as one commit-pinned direct replay catalog plus one current-master gap-inventory companion plus two shared-tree-only anchors.",
+    "the bounded `virtio_net_transmit_recycle` and `virtio_net_queue_resume` reviewability follow-ups",
 ]
 
 COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS = [
@@ -884,6 +885,14 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        release_closure_path = base / RELEASE_CLOSURE_CHECKLIST_PATH
+        remove_marker_line(release_closure_path, RELEASE_CLOSURE_CHECKLIST_MARKERS[8])
+        expect_failure(
+            base,
+            f"release_closure_checklist:{RELEASE_CLOSURE_CHECKLIST_MARKERS[8]}",
+        )
+
+        write_fixture_tree(base)
         complex_driver_lane_path = base / COMPLEX_DRIVER_LANE_SEQUENCING_PATH
         remove_marker_line(complex_driver_lane_path, COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS[1])
         expect_failure(
@@ -998,7 +1007,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=9:actual=8")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=55")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=56")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
