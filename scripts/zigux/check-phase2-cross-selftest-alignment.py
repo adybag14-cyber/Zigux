@@ -14,6 +14,13 @@ TOOLCHAIN_PINNING = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning
 TESTS_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 
 SCRIPTS_README_MARKERS = (
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py`",
+    "historical packet members",
+)
+
+SCRIPTS_README_FORBIDDEN_MARKERS = (
     "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
     "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
@@ -50,7 +57,7 @@ TESTS_ALIGNMENT_MARKERS = (
     "'`make -C zigux phase2-cross`'",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 28
+EXPECTED_SELF_TEST_CASE_COUNT = 32
 
 
 def read_text(path: Path) -> str:
@@ -71,6 +78,10 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
+def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker in text]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     issues.extend(
@@ -78,6 +89,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             read_text(resolve_path(root, SCRIPTS_README)),
             SCRIPTS_README_MARKERS,
             "MISSING_SCRIPTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            read_text(resolve_path(root, SCRIPTS_README)),
+            SCRIPTS_README_FORBIDDEN_MARKERS,
+            "FORBIDDEN_SCRIPTS_README_MARKERS",
         )
     )
     issues.extend(
@@ -173,6 +191,17 @@ def run_self_test() -> int:
                 assert (code, marker) in issues
                 checks_run += 1
 
+        for marker in SCRIPTS_README_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            resolved = resolve_path(root, SCRIPTS_README)
+            resolved.write_text(
+                resolved.read_text(encoding="utf-8") + marker + "\n",
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_SCRIPTS_README_MARKERS", marker) in issues
+            checks_run += 1
+
         for path, _, _ in file_cases:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
@@ -208,7 +237,7 @@ def main() -> int:
     print("PHASE2_CROSS_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_ALIGNMENT_MARKER_COUNT="
-        f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS)}"
+        f"{len(SCRIPTS_README_MARKERS) + len(SCRIPTS_README_FORBIDDEN_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS)}"
     )
     return 0
 
