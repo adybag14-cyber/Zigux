@@ -16,6 +16,9 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
+    Path("include/linux/zigux.h"),
+    Path("include/zigux/dev_t.h"),
+    Path("include/zigux/abi.h"),
     Path("scripts/zigux/check-phase3-selftest-surface.py"),
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
@@ -24,11 +27,25 @@ REQUIRED_FILES = (
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+    Path("zigux/bindings/dev_t.zig"),
+    Path("zigux/bindings/version.zig"),
+    Path("zigux/bindings/abi.zig"),
+    Path("zigux/helpers/err_ptr.zig"),
+    Path("zigux/helpers/xa_value.zig"),
+    Path("zigux/helpers/panic_policy.zig"),
+    Path("zigux/helpers/allocator_policy.zig"),
     Path("zigux/helpers/unsafe_policy.zig"),
     Path("zigux/helpers/atomic.zig"),
     Path("zigux/helpers/barrier.zig"),
     Path("zigux/helpers/mmio.zig"),
+    Path("zigux/unsafe/narrow.zig"),
+    Path("zigux/kernel/export_shim.zig"),
+    Path("zigux/tests/phase3_dev_t_starter_packet.zig"),
+    Path("zigux/tests/phase3_dev_t_starter_packet_build.zig"),
+    Path("zigux/tests/phase3_errptr_xarray_starter_packet.zig"),
+    Path("zigux/tests/phase3_errptr_xarray_starter_packet_build.zig"),
     Path("zigux/tests/phase3_policy_starter_packet.zig"),
+    Path("zigux/tests/phase3_policy_starter_packet_build.zig"),
 )
 
 REQUIRED_MARKERS = (
@@ -48,14 +65,28 @@ REQUIRED_MARKERS = (
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "include/linux/zigux.h",
+    "include/zigux/dev_t.h",
+    "include/zigux/abi.h",
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/unsafe_policy.zig",
     "zigux/helpers/atomic.zig",
     "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
     "zigux/kernel/export_shim.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/bindings/version.zig",
+    "zigux/bindings/abi.zig",
+    "zigux/unsafe/narrow.zig",
+    "zigux/tests/phase3_dev_t_starter_packet.zig",
+    "zigux/tests/phase3_dev_t_starter_packet_build.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
     "zigux/tests/phase3_policy_starter_packet.zig",
+    "zigux/tests/phase3_policy_starter_packet_build.zig",
 )
 
 
@@ -113,7 +144,16 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_file = REQUIRED_FILES[9]
+        readme.write_text(_read(readme).replace(REQUIRED_MARKERS[16], "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        expected = f"missing scripts README marker: {REQUIRED_MARKERS[16]}"
+        if expected not in issues:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing header README marker was not reported")
+            return 1
+
+        _populate_repo(root)
+        missing_file = REQUIRED_FILES[12]
         (root / missing_file).unlink()
         issues = validate_repo(root)
         expected = f"missing repo file: {missing_file.as_posix()}"
@@ -123,17 +163,37 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_file = REQUIRED_FILES[-2]
+        missing_file = REQUIRED_FILES[17]
         (root / missing_file).unlink()
         issues = validate_repo(root)
         expected = f"missing repo file: {missing_file.as_posix()}"
         if expected not in issues:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
-            print("expected missing low-level wrapper helper file was not reported")
+            print("expected missing binding file was not reported")
+            return 1
+
+        _populate_repo(root)
+        missing_file = REQUIRED_FILES[28]
+        (root / missing_file).unlink()
+        issues = validate_repo(root)
+        expected = f"missing repo file: {missing_file.as_posix()}"
+        if expected not in issues:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing narrow-unsafe file was not reported")
+            return 1
+
+        _populate_repo(root)
+        missing_file = REQUIRED_FILES[-1]
+        (root / missing_file).unlink()
+        issues = validate_repo(root)
+        expected = f"missing repo file: {missing_file.as_posix()}"
+        if expected not in issues:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing starter build file was not reported")
             return 1
 
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=4")
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=6")
         return 0
 
 
