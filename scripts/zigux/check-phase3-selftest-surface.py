@@ -221,15 +221,29 @@ def _expect_issue(issues: list[str], expected: str) -> bool:
     return expected in issues
 
 
+def _remove_exact_line(path: Path, marker: str) -> None:
+    lines = _read(path).splitlines()
+    try:
+        lines.remove(marker)
+    except ValueError:
+        path.write_text(_read(path).replace(marker, "", 1), encoding="utf-8")
+        return
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def run_self_test() -> int:
     cases = (
         (README_PATH, README_MARKERS[2], "docs README"),
         (TESTS_README_PATH, TESTS_README_MARKERS[-1], "tests README"),
         (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS[-1], "review checklist"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[7], "validator-support note"),
+        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[11], "validator-support note"),
+        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[12], "validator-support note"),
+        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[13], "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[-1], "validator-support note"),
-        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[3], "scripts README"),
+        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[25], "scripts README"),
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[20], "scripts README"),
+        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[34], "scripts README"),
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[-1], "scripts README"),
         (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[4], "selftest driver"),
         (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[-1], "selftest driver"),
@@ -248,7 +262,7 @@ def run_self_test() -> int:
         for path, marker, label in cases:
             _populate_repo(root)
             file_path = root / path
-            file_path.write_text(_read(file_path).replace(marker, "", 1), encoding="utf-8")
+            _remove_exact_line(file_path, marker)
             issues = validate_repo(root)
             expected = f"missing {label} marker: {marker}"
             if not _expect_issue(issues, expected):
@@ -257,7 +271,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=10")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
