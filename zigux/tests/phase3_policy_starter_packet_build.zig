@@ -21,6 +21,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     allocator_policy.addImport("abi_bindings", abi_bindings);
+    const unsafe_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unsafe_policy.addImport("abi_bindings", abi_bindings);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_policy_starter_packet.zig"),
@@ -30,6 +36,7 @@ pub fn build(b: *std.Build) void {
     root_module.addImport("abi_bindings", abi_bindings);
     root_module.addImport("panic_policy", panic_policy);
     root_module.addImport("allocator_policy", allocator_policy);
+    root_module.addImport("unsafe_policy", unsafe_policy);
 
     const unit_tests = b.addTest(.{
         .root_module = root_module,
