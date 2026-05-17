@@ -54,11 +54,11 @@ EXPECTED_PRESENT_FILES = [
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
 ]
 
 EXPECTED_MISSING_FILES = [
     "scripts/zigux/check-phase2-cross.py",
-    "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-kconfig-bridge.py",
