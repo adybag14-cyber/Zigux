@@ -38,7 +38,7 @@ EXPECTED_DOC_MARKERS = (
     "`scripts/zigux/check-kconfig-bridge.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-zig-toolchain.py`",
-    "`PHASE2_NEXT_STEP=restore one remaining toolchain helper or reviewer-surface checker packet at a time now that the shared validator, the dedicated kconfig README alignment checker, and Linux-style Makefile routes are back on the lane branch, instead of replaying the older full closure matrix in one jump`",
+    "`PHASE2_NEXT_STEP=restore one remaining direct-cross, bridge, or Zig-version helper packet at a time now that the shared validator, the dedicated kconfig README alignment checker, the dedicated toolchain pin-scope checker, and Linux-style Makefile routes are back on the lane branch, instead of replaying the older full closure matrix in one jump`",
 )
 
 EXPECTED_BOOTSTRAP_NOTES_MARKERS = (
@@ -52,10 +52,10 @@ EXPECTED_BOOTSTRAP_NOTES_MARKERS = (
     "`PHASE2_SHARED_MAKEFILE=zigux/Makefile`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-zig-toolchain.py`",
-    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "`PHASE2_TOOLCHAIN_NEXT_STEP=restore one remaining toolchain helper at a time from the dedicated pin-scope or Zig-version side now that the shared validator and Linux-style Makefile routes are back on the lane branch`",
+    "`PHASE2_TOOLCHAIN_NEXT_STEP=restore one remaining Zig-version helper at a time now that the dedicated pin-scope checker, the shared validator, and Linux-style Makefile routes are back on the lane branch`",
 )
 
 EXPECTED_PRESENT_FILES = [
@@ -64,6 +64,7 @@ EXPECTED_PRESENT_FILES = [
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/check-phase2-tool-manifest-packets.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "zigux/Makefile",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "Documentation/zigux/README.md",
@@ -78,7 +79,6 @@ EXPECTED_PRESENT_FILES = [
 
 EXPECTED_MISSING_FILES = [
     "scripts/zigux/check-phase2-cross.py",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/install-zig.py",
@@ -100,7 +100,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 27
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -322,10 +322,21 @@ def run_self_test() -> int:
         try:
             collect_issues(root)
         except SystemExit as exc:
-            assert "manifest is not an object" in str(exc)
+            assert "not an object" in str(exc)
             checks_run += 1
         else:
             raise AssertionError("non-object manifest did not abort")
+
+        for rel_path in (CLOSURE_DOC, BOOTSTRAP_NOTES, DOCS_ROOT_README, TESTS_README, REVIEW_CHECKLIST, SCRIPTS_README, MANIFEST):
+            build_self_test_root(root)
+            resolve_path(root, rel_path).unlink()
+            try:
+                collect_issues(root)
+            except SystemExit as exc:
+                assert "required file missing" in str(exc)
+                checks_run += 1
+            else:
+                raise AssertionError(f"missing file did not abort: {rel_path}")
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
