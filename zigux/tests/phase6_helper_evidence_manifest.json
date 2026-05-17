@@ -1,0 +1,140 @@
+{
+  "packet": "phase6-helper-evidence",
+  "phase": "Phase 6",
+  "surveyed_head": "840f388",
+  "lane_scope": "shared helper-evidence rows and machine-readable manifest only",
+  "current_direct_readback_companions": [
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "Documentation/zigux/README.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "scripts/zigux/check-phase6-shared-surface.py",
+    "scripts/zigux/check-phase6-present-entrypoints.py"
+  ],
+  "roadmap_anchors": [
+    "lib/base64.c",
+    "lib/bsearch.c",
+    "lib/checksum.c",
+    "lib/hexdump.c"
+  ],
+  "helpers": [
+    {
+      "key": "base64",
+      "roadmap_anchor": "lib/base64.c",
+      "zig_helper": "lib/base64.zig",
+      "focused_helper_replay": "zigux/tests/phase6_base64.zig",
+      "dedicated_slowdown_replay": "zigux/tests/phase6_base64_perf.zig",
+      "fixture_surfaces": [
+        "zigux/tests/fixtures/phase6_base64_vectors.zig",
+        "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig"
+      ],
+      "checker_surfaces": [
+        "zigux/tests/phase6_base64_c_parity.zig",
+        "zigux/tests/fixtures/phase6_base64_c_harness.c",
+        "scripts/zigux/check-phase6-base64-c-parity.py"
+      ],
+      "slice_note": "Documentation/zigux/phase6-base64-slice.md",
+      "current_review_posture": "direct-readback-limited",
+      "current_repo_reality_gaps": [
+        "lib/base64.zig",
+        "Documentation/zigux/phase6-base64-slice.md",
+        "zigux/tests/phase6_base64.zig",
+        "zigux/tests/phase6_base64_perf.zig",
+        "zigux/tests/phase6_base64_c_parity.zig",
+        "zigux/tests/fixtures/phase6_base64_vectors.zig",
+        "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
+        "zigux/tests/fixtures/phase6_base64_c_harness.c",
+        "scripts/zigux/check-phase6-base64-c-parity.py"
+      ]
+    },
+    {
+      "key": "bsearch",
+      "roadmap_anchor": "lib/bsearch.c",
+      "zig_helper": "lib/bsearch.zig",
+      "focused_helper_replay": "zigux/tests/phase6_bsearch.zig",
+      "focused_c_abi_replays": [
+        "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+        "zigux/tests/phase6_bsearch_c_abi_budget.zig"
+      ],
+      "fixture_surfaces": [
+        "zigux/tests/fixtures/phase6_bsearch_vectors.zig"
+      ],
+      "checker_surfaces": [
+        "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
+      ],
+      "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
+      "current_review_posture": "direct-readback-limited"
+    },
+    {
+      "key": "checksum",
+      "roadmap_anchor": "lib/checksum.c",
+      "zig_helper": "lib/checksum.zig",
+      "focused_helper_replay": "zigux/tests/phase6_checksum.zig",
+      "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig",
+      "fixture_surfaces": [
+        "zigux/tests/fixtures/phase6_checksum_vectors.zig"
+      ],
+      "checker_surfaces": [
+        "zigux/tests/phase6_checksum_c_parity.zig",
+        "zigux/tests/fixtures/phase6_checksum_c_harness.c",
+        "scripts/zigux/check-phase6-checksum-c-parity.py"
+      ],
+      "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
+      "current_review_posture": "direct-readback-limited"
+    },
+    {
+      "key": "hexdump",
+      "roadmap_anchor": "lib/hexdump.c",
+      "zig_helper": "lib/hexdump.zig",
+      "focused_helper_replay": "zigux/tests/phase6_hexdump.zig",
+      "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig",
+      "perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf_matrix.zig",
+      "fixture_surfaces": [
+        "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
+      ],
+      "checker_surfaces": [
+        "scripts/zigux/check-phase6-hexdump-packet.py"
+      ],
+      "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
+      "perf_refresh_note": "Documentation/zigux/phase6-hexdump-perf-refresh.md",
+      "current_review_posture": "direct-readback-limited"
+    }
+  ],
+  "current_repo_reality_gaps": [
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
+    "zigux/tests/phase6_build.zig",
+    "zigux/tests/phase6_helper_parity_manifest.json",
+    "lib/base64.zig",
+    "Documentation/zigux/phase6-base64-slice.md",
+    "zigux/tests/phase6_base64.zig",
+    "zigux/tests/phase6_base64_c_parity.zig",
+    "zigux/tests/phase6_base64_perf.zig",
+    "zigux/tests/fixtures/phase6_base64_vectors.zig",
+    "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
+    "zigux/tests/fixtures/phase6_base64_c_harness.c",
+    "zigux/tests/phase6_bsearch.zig",
+    "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+    "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+    "zigux/tests/phase6_checksum.zig",
+    "zigux/tests/phase6_hexdump.zig",
+    "scripts/zigux/check-phase6-base64-c-parity.py",
+    "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+    "scripts/zigux/check-phase6-checksum-c-parity.py",
+    "scripts/zigux/check-phase6-hexdump-packet.py"
+  ],
+  "last_known_shared_replay_inventory": [
+    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+    "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-base64-perf",
+    "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
+    "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf",
+    "python3 scripts/zigux/check-phase6-hexdump-packet.py",
+    "make -C zigux phase6-bsearch-test",
+    "make -C zigux phase6-hexdump-review",
+    "make -C zigux phase6-hexdump-test",
+    "make -C zigux phase6-hexdump-perf"
+  ]
+}
