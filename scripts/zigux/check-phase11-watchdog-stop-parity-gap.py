@@ -49,20 +49,39 @@ def run_check(repo_root: pathlib.Path) -> list[str]:
     return errors
 
 
+def expect_missing_marker(
+    repo_root: pathlib.Path,
+    path: pathlib.Path,
+    label: str,
+    baseline_text: str,
+    marker: str,
+) -> None:
+    path.write_text(baseline_text.replace(marker, "", 1), encoding="utf-8")
+    errors = run_check(repo_root)
+    assert len(errors) == 1
+    assert errors[0] == f"{label}: missing {marker}"
+    path.write_text(baseline_text, encoding="utf-8")
+
+
+def expect_missing_file(repo_root: pathlib.Path, path: pathlib.Path) -> None:
+    original_text = path.read_text(encoding="utf-8")
+    path.unlink()
+    try:
+        run_check(repo_root)
+    except SystemExit as exc:
+        assert str(exc) == f"missing required file: {path}"
+    else:
+        raise AssertionError(f"expected missing-file failure for {path}")
+    finally:
+        path.write_text(original_text, encoding="utf-8")
+
+
 def run_self_test() -> int:
     bcm2835_text = "\n".join(BCM2835_STOP_MARKERS)
     dw_wdt_text = "\n".join(DW_WDT_TEARDOWN_MARKERS)
 
     assert not require_markers("bcm2835_stop_surface", bcm2835_text, BCM2835_STOP_MARKERS)
     assert not require_markers("dw_wdt_teardown_surface", dw_wdt_text, DW_WDT_TEARDOWN_MARKERS)
-
-    missing = require_markers(
-        "dw_wdt_teardown_surface",
-        dw_wdt_text.replace(DW_WDT_TEARDOWN_MARKERS[1], ""),
-        DW_WDT_TEARDOWN_MARKERS,
-    )
-    assert len(missing) == 1
-    assert "pub fn teardownSummary(self: *DwWdtLab) !TeardownSummary {" in missing[0]
 
     with tempfile.TemporaryDirectory() as tmpdir:
         repo_root = pathlib.Path(tmpdir)
@@ -74,12 +93,30 @@ def run_self_test() -> int:
         dw_wdt_path.write_text(dw_wdt_text, encoding="utf-8")
         assert not run_check(repo_root)
 
-        dw_wdt_path.write_text("\n".join(DW_WDT_TEARDOWN_MARKERS[:-1]), encoding="utf-8")
-        errors = run_check(repo_root)
-        assert len(errors) == 1
-        assert DW_WDT_TEARDOWN_MARKERS[-1] in errors[0]
+        for marker in BCM2835_STOP_MARKERS:
+            expect_missing_marker(
+                repo_root,
+                bcm2835_path,
+                "bcm2835_stop_surface",
+                bcm2835_text,
+                marker,
+            )
 
-    print("self-test passed")
+        for marker in DW_WDT_TEARDOWN_MARKERS:
+            expect_missing_marker(
+                repo_root,
+                dw_wdt_path,
+                "dw_wdt_teardown_surface",
+                dw_wdt_text,
+                marker,
+            )
+
+        expect_missing_file(repo_root, bcm2835_path)
+        expect_missing_file(repo_root, dw_wdt_path)
+
+    self_test_case_count = len(BCM2835_STOP_MARKERS) + len(DW_WDT_TEARDOWN_MARKERS) + 2
+    print("PHASE11_WATCHDOG_STOP_PARITY_SELF_TEST=pass")
+    print(f"PHASE11_WATCHDOG_STOP_PARITY_SELF_TEST_CASE_COUNT={self_test_case_count}")
     return 0
 
 
