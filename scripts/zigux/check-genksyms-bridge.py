@@ -123,6 +123,12 @@ EXPECTED_CASES = [
         "expected": "version_before_short_help_expected.json",
     },
     {
+        "name": "repeated_version",
+        "argv": ["-VV"],
+        "mode": "process_json",
+        "expected": "repeated_version_expected.json",
+    },
+    {
         "name": "unsupported_long_option",
         "argv": ["--unknown"],
         "mode": "process_json",
@@ -305,6 +311,11 @@ EXPECTED_OUTPUTS = {
     "version_before_short_help_expected.json": {
         "stdout": "",
         "stderr": "genksyms version 2.5.60\nUsage:\ngenksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver\n\n -d, --debug Increment the debug level (repeatable)\n -D, --dump Dump expanded symbol defs (for debugging only)\n -r, --reference file Read reference symbols from a file\n -T, --dump-types file Dump expanded types into file\n -p, --preserve Preserve reference modversions or fail\n -w, --warnings Enable warnings\n -q, --quiet Disable warnings (default)\n -h, --help Print this message\n -V, --version Print the release version\n",
+        "exit_code": 0,
+    },
+    "repeated_version_expected.json": {
+        "stdout": "",
+        "stderr": "genksyms version 2.5.60\ngenksyms version 2.5.60\n",
         "exit_code": 0,
     },
     "unsupported_long_option_expected.json": {
