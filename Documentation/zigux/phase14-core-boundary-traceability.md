@@ -35,7 +35,7 @@ The honest current statement is boundary-study only, not a live bridge or replay
 ### Ring buffer
 
 Reserve or commit publication, the `cmpxchg()`-guarded `reader_page` handoff, `ring_buffer_alloc_read_page()` import and guarded remote-reader metadata setup, `ring_buffer_read_page()` consume or extract serialization, exported-page forced-copy decisions, wakeup or watermark publication, tracefs reader competition, mapped-reader limitations, tracefs splice or resize lockouts, and `rb_remove_pages()` mapped-reader lifetime teardown still stay with the shipped C implementation.
-The honest current statement is boundary-study only, not a live survey or replay claim.
+The honest current statement is still boundary-study only: the dedicated `P14-L08` survey note, manifest, and focused survey replay are live study evidence, but they do not amount to a bridge, parity, or ownership claim.
 
 ### Skbuff
 
