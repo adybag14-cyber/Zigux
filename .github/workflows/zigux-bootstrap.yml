@@ -82,6 +82,15 @@ jobs:
           fi
           python3 -m py_compile "${scripts[@]}"
 
+      - name: Self-test current Zig toolchain checker
+        run: python3 scripts/zigux/check-zig-toolchain.py --self-test
+
+      - name: Check current Zig toolchain policy surface
+        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only
+
+      - name: Self-test current Phase 2 kconfig bridge checker
+        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
+
       - name: Self-test current Phase 1 direct-owner checker
         run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
 
@@ -93,6 +102,9 @@ jobs:
 
       - name: Check current Phase 1 string review packet
         run: python3 scripts/zigux/check-phase1-string-review-packet.py
+
+      - name: Self-test current Phase 1 bench checker
+        run: python3 scripts/zigux/check-phase1-bench.py --self-test
 
       - name: Self-test current Phase 12 build-only checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
