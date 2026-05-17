@@ -88,6 +88,12 @@ jobs:
       - name: Check current Phase 2 kconfig bridge packet
         run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py
 
+      - name: Self-test current Phase 2 kbuild routes checker
+        run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test
+
+      - name: Check current Phase 2 kbuild packet
+        run: python3 scripts/zigux/check-phase2-kbuild-routes.py
+
       - name: Self-test current Phase 1 direct-owner checker
         run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
 
@@ -108,7 +114,7 @@ jobs:
 
       - name: Check current docs-root sanity markers
         run: |
-          python3 - <<'PY'
+          python3 - <<'PY2'
           from pathlib import Path
 
           required_files = [
@@ -136,4 +142,4 @@ jobs:
           print('ZIGUX_BOOTSTRAP_SANITY=pass')
           print(f'ZIGUX_BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
           print(f'ZIGUX_BOOTSTRAP_MARKER_COUNT={len(markers)}')
-          PY
+          PY2
