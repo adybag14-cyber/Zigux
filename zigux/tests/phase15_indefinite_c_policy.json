@@ -43,7 +43,7 @@
         "benchmark-notes status",
         "replay command",
         "latest blocker disposition",
-        "linked evidence path",
+        "evidence archive path",
         "automatic return-to-blocked trigger",
         "retained discussion state",
         "reopen triggers",
