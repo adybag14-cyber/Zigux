@@ -150,6 +150,7 @@ SCRIPTS_README_MARKERS = (
     "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
+    "zigux/tests/phase3_low_level_wrappers_build.zig",
     ".github/workflows/zigux-bootstrap.yml",
     "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
     "python3 scripts/zigux/validate_phase3_selftest.py --self-test",
@@ -241,25 +242,50 @@ def _remove_exact_line(path: Path, marker: str) -> None:
 
 def run_self_test() -> int:
     cases = (
-        (README_PATH, README_MARKERS[2], "docs README"),
-        (README_PATH, README_MARKERS[5], "docs README"),
-        (README_PATH, README_MARKERS[31], "docs README"),
-        (README_PATH, README_MARKERS[-1], "docs README"),
-        (TESTS_README_PATH, TESTS_README_MARKERS[-1], "tests README"),
-        (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS[-1], "review checklist"),
-        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[7], "validator-support note"),
-        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[11], "validator-support note"),
-        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[12], "validator-support note"),
-        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[13], "validator-support note"),
-        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[15], "validator-support note"),
-        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[-1], "validator-support note"),
-        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[24], "scripts README"),
-        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[19], "scripts README"),
-        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[34], "scripts README"),
-        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[-1], "scripts README"),
-        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[4], "selftest driver"),
-        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[6], "selftest driver"),
-        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[-1], "selftest driver"),
+        (README_PATH, "Documentation/zigux/phase3-policy-slice.md", "docs README"),
+        (README_PATH, "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md", "docs README"),
+        (README_PATH, "zigux/tests/phase3_low_level_wrappers.zig", "docs README"),
+        (
+            README_PATH,
+            "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+            "docs README",
+        ),
+        (
+            TESTS_README_PATH,
+            "instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence",
+            "tests README",
+        ),
+        (
+            REVIEW_CHECKLIST_PATH,
+            "wider validator, export/UAPI layout, low-level-wrapper, catalog, IDR, and IDA routes stay explicit as repo-reality gaps",
+            "review checklist",
+        ),
+        (VALIDATOR_SUPPORT_PATH, "zigux/kernel/export_shim.zig", "validator-support note"),
+        (VALIDATOR_SUPPORT_PATH, "scripts/zigux/validate-phase3-export-uapi-survey.py", "validator-support note"),
+        (VALIDATOR_SUPPORT_PATH, "zigux/tests/phase3_export_uapi_layout.zig", "validator-support note"),
+        (VALIDATOR_SUPPORT_PATH, "zigux/tests/phase3_export_uapi_layout_build.zig", "validator-support note"),
+        (VALIDATOR_SUPPORT_PATH, "scripts/zigux/validate-phase3-validator-support-surface.py", "validator-support note"),
+        (
+            VALIDATOR_SUPPORT_PATH,
+            "broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
+            "validator-support note",
+        ),
+        (
+            SCRIPTS_README_PATH,
+            "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
+            "scripts README",
+        ),
+        (SCRIPTS_README_PATH, "zigux/helpers/atomic.zig", "scripts README"),
+        (SCRIPTS_README_PATH, "zigux/tests/phase3_low_level_wrappers_build.zig", "scripts README"),
+        (SCRIPTS_README_PATH, "scripts/zigux/validate-phase3-export-uapi-survey.py", "scripts README"),
+        (SCRIPTS_README_PATH, "still return missing on current `master`", "scripts README"),
+        (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/run-phase3-checks.py")', "selftest driver"),
+        (
+            SELFTEST_DRIVER_PATH,
+            'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
+            "selftest driver",
+        ),
+        (SELFTEST_DRIVER_PATH, "PHASE3_VALIDATE_SELFTEST=pass", "selftest driver"),
     )
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_selftest_surface_") as temp_dir:
@@ -284,7 +310,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=19")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
