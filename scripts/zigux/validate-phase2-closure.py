@@ -23,6 +23,7 @@ EXPECTED_DOC_MARKERS = (
     "`PHASE2_TOOL_MANIFEST_CHECKER=scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "PR `#990`",
     "`PHASE2_NEXT_STEP=restore one remaining broader helper packet at a time now that the closure note, bootstrap companion, shared validator, direct cross checker, dedicated kconfig README checker, dedicated toolchain pin-scope helper, manifest checker, and Linux-style Makefile routes are replayed together on the lane branch`",
 )
 
