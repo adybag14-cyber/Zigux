@@ -5,6 +5,11 @@
     "expected": "elf32_expected.json"
   },
   {
+    "name": "elf32_trailing",
+    "input": "elf32_trailing.hex",
+    "expected": "elf32_trailing_expected.json"
+  },
+  {
     "name": "elf64",
     "input": "elf64.hex",
     "expected": "elf64_expected.json"
