@@ -14,6 +14,10 @@ Current `master` now carries one bounded `dev_t` starter packet plus one focused
 - `zigux/bindings/dev_t.zig`
 - `zigux/tests/phase3_dev_t_starter_packet.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_build.zig`
+- `zigux/tests/phase3_dev_t_starter_packet_manifest.json`
+- `scripts/zigux/check-phase3-dev-t-starter-packet.py`
+- `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test`
+- `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py`
 
 ## Focused helper slice present on `master`
 
@@ -28,7 +32,7 @@ Current `master` now carries one bounded `dev_t` starter packet plus one focused
 
 Keep the shared Phase 3 reminder packet anchored to those two current-tree-backed slices until additional validator, export-boundary, or shared replay proof lands.
 
-Do not treat the current starter packet plus helper slice as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
+Do not treat the current starter packet, its manifest-backed replay guard, plus helper slice as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
 
 ## Sampled broader gaps still absent on `master`
 
@@ -51,10 +55,10 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 ## Shared reminder follow-up
 
-`Documentation/zigux/README.md` and `zigux/tests/README.md` still carry broader shared Phase 3 reminder language than the directly readable slices on current `master`.
+`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still carry broader shared Phase 3 reminder language than the directly readable slices on current `master`.
 
-Keep the remaining shared reminder follow-up focused on narrowing those two surfaces so they stay anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, this note, and the dedicated starter replay routes until additional current-tree-backed validator or export-boundary proof lands.
+Keep the remaining shared reminder follow-up focused on narrowing those surfaces so they stay anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, this note, the new manifest-backed starter packet, and the dedicated replay routes until additional current-tree-backed validator or export-boundary proof lands.
 
 ## Scope
 
-This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet and helper slice explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
+This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, its machine-readable manifest, and helper slice explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
