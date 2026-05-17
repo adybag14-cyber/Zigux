@@ -235,6 +235,42 @@ test "runGenksymsCrc mirrors C fgets chunking for oversized lines" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") != null);
 }
 
+test "runGenksymsCrc keeps an exact-buffer EOF record unsplit" {
+    var exact_line = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len);
+    defer exact_line.deinit(std.testing.allocator);
+    try exact_line.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+
+    var capture = try Capture(12288).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(exact_line.items, &capture);
+
+    const exact_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(exact_line.items)});
+    defer std.testing.allocator.free(exact_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"aa") != null);
+    try std.testing.expectEqualStrings("{\"cases\":[{\"input\":\"", capture.list.items[0..20]);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 1);
+}
+
+test "runGenksymsCrc skips the blank newline-only continuation after an exact-buffer line" {
+    var exact_line = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 1);
+    defer exact_line.deinit(std.testing.allocator);
+    try exact_line.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try exact_line.append(std.testing.allocator, '\n');
+
+    var capture = try Capture(12288).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(exact_line.items, &capture);
+
+    const exact_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(exact_line.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(exact_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 1);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\n\"") == null);
+}
+
 test "runGenksymsCrc splits an oversized final record at EOF like fgets" {
     var long_line = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 1);
     defer long_line.deinit(std.testing.allocator);
@@ -352,7 +388,7 @@ test "runGenksymsCrc trims carriage returns and escapes json-sensitive bytes" {
     try runGenksymsCrc("quoted \"symbol\"\tpath\\name\r\n\r\n", &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"quoted \\\"symbol\\\"\\tpath\\\\name\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"crc_hex\":\"0x3527e580\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\r") == null);
 }
 
 test "runGenksymsCrc escapes remaining control bytes as valid JSON" {
