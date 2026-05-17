@@ -186,9 +186,10 @@ def run_self_test() -> int:
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
-        write_fixture_tree(base)
-        (base / RELEASE_READINESS_SURVEY_PATH).unlink()
-        expect_failure(base, f"missing_file:{RELEASE_READINESS_SURVEY_PATH}")
+        for rel_path in REQUIRED_FILES:
+            write_fixture_tree(base)
+            (base / rel_path).unlink()
+            expect_failure(base, f"missing_file:{rel_path}")
 
         for rel_path, marker_index in SELF_TEST_CASES:
             expect_marker_failure(base, rel_path, marker_index)
@@ -196,7 +197,7 @@ def run_self_test() -> int:
         print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
         print(
             "PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT="
-            f"{1 + len(SELF_TEST_CASES)}"
+            f"{len(REQUIRED_FILES) + len(SELF_TEST_CASES)}"
         )
         return 0
     finally:
