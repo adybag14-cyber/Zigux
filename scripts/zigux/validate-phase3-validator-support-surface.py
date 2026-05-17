@@ -58,10 +58,11 @@ REQUIRED_MARKERS = (
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-    "`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
-    "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for the earlier docs-root cleanup",
-    "`scripts/zigux/README.md` is still parked on the older absent-route wording for `zigux/kernel/export_shim.zig`",
-    "Keep any remaining follow-up focused on shared reminder or scripts-root inventory truthfulness if one of those broader surfaces drifts again.",
+    "`Documentation/zigux/README.md` and `zigux/tests/README.md` now reflect that bounded three-slice posture",
+    "`Documentation/zigux/review-checklist.md` is the remaining shared reminder surface that still needs the same three-slice wording refresh",
+    "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for that checklist-only follow-through.",
+    "`scripts/zigux/README.md` remains parked on the older scripts-root absent-route wording around the broader inventory",
+    "Keep any remaining follow-up focused on either the review-checklist wording repair or the separate scripts-root inventory truthfulness packet if one of those broader surfaces drifts again.",
     "This note is limited to the current validator-support posture for Phase 3.",
 )
 
@@ -75,16 +76,20 @@ SELF_TEST_CASES = (
         "scripts/zigux/validate-phase3.py",
     ),
     (
-        "`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
-        "`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
+        "`Documentation/zigux/README.md` and `zigux/tests/README.md` now reflect that bounded three-slice posture",
+        "`Documentation/zigux/README.md` and `zigux/tests/README.md` now reflect that bounded three-slice posture",
     ),
     (
-        "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for the earlier docs-root cleanup",
-        "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for the earlier docs-root cleanup",
+        "`Documentation/zigux/review-checklist.md` is the remaining shared reminder surface that still needs the same three-slice wording refresh",
+        "`Documentation/zigux/review-checklist.md` is the remaining shared reminder surface that still needs the same three-slice wording refresh",
     ),
     (
-        "Keep any remaining follow-up focused on shared reminder or scripts-root inventory truthfulness if one of those broader surfaces drifts again.",
-        "Keep any remaining follow-up focused on shared reminder or scripts-root inventory truthfulness if one of those broader surfaces drifts again.",
+        "`scripts/zigux/README.md` remains parked on the older scripts-root absent-route wording around the broader inventory",
+        "`scripts/zigux/README.md` remains parked on the older scripts-root absent-route wording around the broader inventory",
+    ),
+    (
+        "Keep any remaining follow-up focused on either the review-checklist wording repair or the separate scripts-root inventory truthfulness packet if one of those broader surfaces drifts again.",
+        "Keep any remaining follow-up focused on either the review-checklist wording repair or the separate scripts-root inventory truthfulness packet if one of those broader surfaces drifts again.",
     ),
 )
 EXPECTED_SELF_TEST_CASE_COUNT = len(SELF_TEST_CASES) + 1
