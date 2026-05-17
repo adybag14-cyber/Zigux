@@ -82,6 +82,29 @@ jobs:
           fi
           python3 -m py_compile "${scripts[@]}"
 
+      - name: Self-test current Lane 19 genksyms CRC checker
+        run: python3 scripts/zigux/check-genksyms-crc-diff.py --self-test
+
+      - name: Check current Lane 19 genksyms CRC packet presence
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          required_files = [
+              Path('scripts/zigux/genksyms_crc.zig'),
+              Path('scripts/zigux/check-genksyms-crc-diff.py'),
+              Path('zigux/tests/fixtures/genksyms_crc/genksyms_crc_c_harness.c'),
+              Path('zigux/tests/fixtures/genksyms_crc/inputs.txt'),
+              Path('zigux/tests/fixtures/genksyms_crc/expected.json'),
+          ]
+          missing = [str(path) for path in required_files if not path.exists()]
+          if missing:
+              raise SystemExit('missing Lane 19 CRC files: ' + ', '.join(missing))
+
+          print('GENKSYMS_CRC_PACKET=present')
+          print(f'GENKSYMS_CRC_REQUIRED_FILE_COUNT={len(required_files)}')
+          PY
+
       - name: Self-test current Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
 
