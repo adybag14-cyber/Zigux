@@ -306,15 +306,31 @@ pub fn strstarts(str: []const u8, prefix: []const u8) bool {
     return strHasPrefix(str, prefix) == cStringLen(prefix);
 }
 
-pub fn strEndsWith(str: []const u8, suffix: []const u8) bool {
+pub fn strHasSuffix(str: []const u8, suffix: []const u8) usize {
     const suffix_len = cStringLen(suffix);
+    if (suffix_len == 0) {
+        return 0;
+    }
+
     const str_len = cStringLen(str);
     if (suffix_len > str_len) {
-        return false;
+        return 0;
     }
 
     const start = str_len - suffix_len;
-    return std.mem.eql(u8, str[start..str_len], suffix[0..suffix_len]);
+    if (!std.mem.eql(u8, str[start..str_len], suffix[0..suffix_len])) {
+        return 0;
+    }
+
+    return suffix_len;
+}
+
+pub fn str_has_suffix(str: []const u8, suffix: []const u8) usize {
+    return strHasSuffix(str, suffix);
+}
+
+pub fn strEndsWith(str: []const u8, suffix: []const u8) bool {
+    return strHasSuffix(str, suffix) == cStringLen(suffix);
 }
 
 pub fn str_ends_with(str: []const u8, suffix: []const u8) bool {
@@ -492,6 +508,19 @@ test "strHasPrefix returns the matched prefix length with C-string semantics" {
     const cstr = [_]u8{ 'a', 'b', 0, 'x' };
     const embedded_prefix = [_]u8{ 'a', 'b', 0, 'y' };
     try std.testing.expectEqual(@as(usize, 2), strHasPrefix(&cstr, &embedded_prefix));
+}
+
+test "strHasSuffix returns the matched suffix length with C-string semantics" {
+    try std.testing.expectEqual(@as(usize, 3), strHasSuffix("prefix", "fix"));
+    try std.testing.expectEqual(@as(usize, 6), strHasSuffix("prefix", "prefix"));
+    try std.testing.expectEqual(@as(usize, 0), strHasSuffix("prefix", "suffix"));
+    try std.testing.expectEqual(@as(usize, 0), strHasSuffix("pre", "prefix"));
+    try std.testing.expectEqual(@as(usize, 0), strHasSuffix("prefix", ""));
+    try std.testing.expectEqual(@as(usize, 3), str_has_suffix("prefix", "fix"));
+
+    const cstr = [_]u8{ 'a', 'b', 0, 'x' };
+    const embedded_suffix = [_]u8{ 'a', 'b', 0, 'y' };
+    try std.testing.expectEqual(@as(usize, 2), strHasSuffix(&cstr, &embedded_suffix));
 }
 
 test "strstarts mirrors the header-level prefix helper" {
