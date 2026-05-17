@@ -267,6 +267,17 @@ fn addPhase3LowLevelWrappers(
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
 ) *std.Build.Step.Run {
+    const abi_bindings = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const unsafe_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unsafe_policy.addImport("abi_bindings", abi_bindings);
     const atomic = b.createModule(.{
         .root_source_file = b.path("../helpers/atomic.zig"),
         .target = target,
@@ -282,6 +293,8 @@ fn addPhase3LowLevelWrappers(
         .target = target,
         .optimize = optimize,
     });
+    mmio.addImport("abi_bindings", abi_bindings);
+    mmio.addImport("unsafe_policy", unsafe_policy);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_low_level_wrappers.zig"),
