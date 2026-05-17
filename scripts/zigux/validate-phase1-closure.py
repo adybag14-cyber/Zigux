@@ -32,11 +32,12 @@ REQUIRED_NOTE_MARKERS = [
     "`PHASE1_CLOSURE_RESTORE_STATE=partial`",
     "`PHASE1_HELPER_COUNT=13`",
     "manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`",
-    "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`",
-    "`PHASE1_SHARED_REMINDER_SYNC_STATE=pending`",
+    "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`",
+    "`PHASE1_SHARED_REMINDER_SYNC_STATE=tests_root_and_checklist_pending`",
     "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,scripts/zigux/check-phase1-bench.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`",
     "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
+    "`PHASE1_NEXT_SAFE_STEP=sync zigux/tests/README.md and Documentation/zigux/review-checklist.md to this restored closure anchor before widening into zigux/tests/phase1_helpers.zig or bench claims`",
 ]
 
 REQUIRED_DOCS_README_MARKERS = [
@@ -217,7 +218,7 @@ def run_self_test() -> int:
                 root / "Documentation/zigux/phase1-closure.md",
                 replace_once(
                     read_text(root / "Documentation/zigux/phase1-closure.md"),
-                    "`PHASE1_SHARED_REMINDER_SYNC_STATE=pending`",
+                    "`PHASE1_SHARED_REMINDER_SYNC_STATE=tests_root_and_checklist_pending`",
                     "`PHASE1_SHARED_REMINDER_SYNC_STATE=drifted`",
                 ),
             ),
