@@ -60,6 +60,15 @@ FIND_BIT_REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
     "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
 }
+STRING_REQUIRED_EXACT_CHECKSUMS = {
+    "PHASE1_BENCH_STRING_CHECKSUM",
+}
+HWEIGHT_REQUIRED_EXACT_CHECKSUMS = {
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM",
+}
+LIST_SORT_REQUIRED_EXACT_CHECKSUMS = {
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM",
+}
 RBTREE_REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_RBTREE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
@@ -175,6 +184,22 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
         if key in checksum_keys and key not in exact_checksums:
             return ("expectations_checksums_bitmap_exact_required", key)
 
+    for key in sorted(FIND_BIT_REQUIRED_EXACT_CHECKSUMS):
+        if key in checksum_keys and key not in exact_checksums:
+            return ("expectations_checksums_find_bit_exact_required", key)
+
+    for key in sorted(STRING_REQUIRED_EXACT_CHECKSUMS):
+        if key in checksum_keys and key not in exact_checksums:
+            return ("expectations_checksums_string_exact_required", key)
+
+    for key in sorted(HWEIGHT_REQUIRED_EXACT_CHECKSUMS):
+        if key in checksum_keys and key not in exact_checksums:
+            return ("expectations_checksums_hweight_exact_required", key)
+
+    for key in sorted(LIST_SORT_REQUIRED_EXACT_CHECKSUMS):
+        if key in checksum_keys and key not in exact_checksums:
+            return ("expectations_checksums_list_sort_exact_required", key)
+
     for key in sorted(RBTREE_REQUIRED_EXACT_CHECKSUMS):
         if key in checksum_keys and key not in exact_checksums:
             return ("expectations_checksums_rbtree_exact_required", key)
@@ -251,6 +276,24 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
     )
     if missing_find_bit_exact:
         return ("missing_find_bit_exact_checksums", missing_find_bit_exact)
+
+    missing_string_exact = sorted(
+        key for key in STRING_REQUIRED_EXACT_CHECKSUMS if parsed.get(key) is None
+    )
+    if missing_string_exact:
+        return ("missing_string_exact_checksums", missing_string_exact)
+
+    missing_hweight_exact = sorted(
+        key for key in HWEIGHT_REQUIRED_EXACT_CHECKSUMS if parsed.get(key) is None
+    )
+    if missing_hweight_exact:
+        return ("missing_hweight_exact_checksums", missing_hweight_exact)
+
+    missing_list_sort_exact = sorted(
+        key for key in LIST_SORT_REQUIRED_EXACT_CHECKSUMS if parsed.get(key) is None
+    )
+    if missing_list_sort_exact:
+        return ("missing_list_sort_exact_checksums", missing_list_sort_exact)
 
     for key in expectations["checksums"]:
         actual = parsed.get(key)
@@ -379,6 +422,17 @@ def run_self_test() -> None:
         missing_output = ok_output.replace(f"\n{key}={value}", "")
         kind, payload = validate_output(expectations, missing_output)
         assert kind == "missing_find_bit_exact_checksums"
+        assert payload == [key]
+        case_count += 1
+
+    for key, value, expected_kind in (
+        ("PHASE1_BENCH_STRING_CHECKSUM", "5", "missing_string_exact_checksums"),
+        ("PHASE1_BENCH_HWEIGHT_CHECKSUM", "6", "missing_hweight_exact_checksums"),
+        ("PHASE1_BENCH_LIST_SORT_CHECKSUM", "7", "missing_list_sort_exact_checksums"),
+    ):
+        missing_output = ok_output.replace(f"\n{key}={value}", "")
+        kind, payload = validate_output(expectations, missing_output)
+        assert kind == expected_kind
         assert payload == [key]
         case_count += 1
 
@@ -517,8 +571,54 @@ def run_self_test() -> None:
         },
     }
     kind, payload = validate_expectations(missing_string_exact)
-    assert kind == "expectations_missing_exact_checksums"
-    assert payload == ["PHASE1_BENCH_STRING_CHECKSUM"]
+    assert kind == "expectations_checksums_string_exact_required"
+    assert payload == "PHASE1_BENCH_STRING_CHECKSUM"
+    case_count += 1
+
+    missing_hweight_exact = {
+        "status": "pass",
+        "iterations": dict(EXPECTED_ITERATIONS),
+        "checksums": list(EXPECTED_CHECKSUMS),
+        "exact_checksums": {
+            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+            "PHASE1_BENCH_STRING_CHECKSUM": 5,
+            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
+            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
+            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
+            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
+            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
+        },
+    }
+    kind, payload = validate_expectations(missing_hweight_exact)
+    assert kind == "expectations_checksums_hweight_exact_required"
+    assert payload == "PHASE1_BENCH_HWEIGHT_CHECKSUM"
+    case_count += 1
+
+    missing_list_sort_exact = {
+        "status": "pass",
+        "iterations": dict(EXPECTED_ITERATIONS),
+        "checksums": list(EXPECTED_CHECKSUMS),
+        "exact_checksums": {
+            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+            "PHASE1_BENCH_STRING_CHECKSUM": 5,
+            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
+            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
+            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
+            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
+            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
+        },
+    }
+    kind, payload = validate_expectations(missing_list_sort_exact)
+    assert kind == "expectations_checksums_list_sort_exact_required"
+    assert payload == "PHASE1_BENCH_LIST_SORT_CHECKSUM"
     case_count += 1
 
     missing_find_next_exact = {
@@ -540,8 +640,8 @@ def run_self_test() -> None:
         },
     }
     kind, payload = validate_expectations(missing_find_next_exact)
-    assert kind == "expectations_missing_exact_checksums"
-    assert payload == ["PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM"]
+    assert kind == "expectations_checksums_find_bit_exact_required"
+    assert payload == "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM"
     case_count += 1
 
     missing_find_bit_edge_exact = {
@@ -563,8 +663,8 @@ def run_self_test() -> None:
         },
     }
     kind, payload = validate_expectations(missing_find_bit_edge_exact)
-    assert kind == "expectations_missing_exact_checksums"
-    assert payload == ["PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM"]
+    assert kind == "expectations_checksums_find_bit_exact_required"
+    assert payload == "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM"
     case_count += 1
 
     missing_rbtree_iterations = {
