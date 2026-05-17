@@ -22,6 +22,9 @@ Shared surfaces to keep aligned:
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `Documentation/zigux/phase13-notifier-summary-gap.md`
+- `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
@@ -102,6 +105,8 @@ Keep the shared-helper packet explicit through the verified docs-root and contri
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `fs/libfs.zig`
 - `zigux/tests/phase13_libfs.zig`
@@ -130,6 +135,7 @@ Keep the shared-helper packet explicit through the verified docs-root and contri
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/helpers/notifier_chain_view.zig`
@@ -139,7 +145,7 @@ Keep the shared-helper packet explicit through the verified docs-root and contri
 
 Contributor reminder:
 - keep the shared contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, while treating `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13` as repo-reality-gap route vocabulary until a fresh reread rematerializes the shared build handle on current `master`
-- keep the shipped broader Phase 13 tests-root guide in `zigux/tests/README.md` explicit as shared packet evidence and keep it aligned with the workflow guide, shared-helper sequencing note, release-coordination matrix, review checklist, shared contributor-sync note, and tests-root companion
+- keep the shipped broader Phase 13 tests-root guide in `zigux/tests/README.md` explicit as shared packet evidence and keep it aligned with the workflow guide, shared-helper sequencing note, release-coordination matrix, review checklist, shared contributor-sync note, tests-root companion, shared-summary gap note, notifier gap note, and `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - keep `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, and `scripts/zigux/check-phase13-shared-summary-surfaces.py` framed as repo-reality gaps until current `master` materializes them again
 - keep `libfs`, `devres` helper parity, `devres` packet truthfulness, `landlock`, and adjacent notifier evidence as separate owners
 - keep direct helper-local tests-root and adjacent focused checker paths framed as repo-reality gaps rather than shipped evidence when current `master` still cannot materialize `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, older `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `scripts/zigux/validate-phase13-release.py`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig`, while the shipped `Documentation/zigux/phase13-libfs-survey.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_libfs_manifest.json`, `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, the shipped `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `security/landlock/ruleset.zig`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h` stay explicit
