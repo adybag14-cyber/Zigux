@@ -105,6 +105,13 @@ EXPECTED_CASES = [
         "expected": "version_before_invalid_short_option_expected.json",
     },
     {
+        "name": "unsupported_long_option",
+        "argv": ["--unknown"],
+        "mode": "process_json",
+        "expected": "unsupported_long_option_expected.json",
+        "normalize_stderr": True,
+    },
+    {
         "name": "too_many_reference_files",
         "argv": [
             "-r",
@@ -265,6 +272,11 @@ EXPECTED_OUTPUTS = {
     "version_before_invalid_short_option_expected.json": {
         "stdout": "",
         "stderr": "genksyms version 2.5.60\ninvalid option -- 'x'\n",
+        "exit_code": 1,
+    },
+    "unsupported_long_option_expected.json": {
+        "stdout": "",
+        "stderr": "unrecognized option '--unknown'\n",
         "exit_code": 1,
     },
     "too_many_reference_files_expected.json": {
