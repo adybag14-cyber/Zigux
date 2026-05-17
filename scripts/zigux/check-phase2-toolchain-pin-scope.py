@@ -64,7 +64,7 @@ EXPECTED_PHASE = "Phase 2"
 EXPECTED_TARGETS = ["x86_64-linux"]
 EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate"]
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-EXPECTED_SELF_TEST_CASE_COUNT = 36
+EXPECTED_SELF_TEST_CASE_COUNT = 40
 
 
 def read_text(path: Path) -> str:
@@ -281,15 +281,22 @@ def run_self_test() -> int:
         assert any(code == "INVALID_POLICY_JSON" for code, _ in issues)
         checks_run += 1
 
-        build_self_test_root(root)
-        resolve_path(root, DOCS_ROOT_README).unlink()
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "required file missing" in str(exc)
-        else:
-            raise AssertionError("missing docs root readme did not abort")
-        checks_run += 1
+        for path in (
+            DOCS_ROOT_README,
+            REVIEW_CHECKLIST,
+            TESTS_README,
+            TOOLCHAIN_CHECKER,
+            TOOLCHAIN_POLICY,
+        ):
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            try:
+                collect_issues(root)
+            except SystemExit as exc:
+                assert "required file missing" in str(exc)
+                checks_run += 1
+            else:
+                raise AssertionError(f"missing file did not abort: {path}")
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
