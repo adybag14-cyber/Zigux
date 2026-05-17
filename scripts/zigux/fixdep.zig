@@ -144,11 +144,6 @@ const Processor = struct {
         const visible_text = bytesBeforeFirstNull(text);
         var index: usize = 0;
         while (std.mem.indexOfPos(u8, visible_text, index, "CONFIG_")) |start| {
-            if (start > 0 and isIdentByte(visible_text[start - 1])) {
-                index = start + 7;
-                continue;
-            }
-
             var end: usize = start + 7;
             while (end < visible_text.len and isIdentByte(visible_text[end])) : (end += 1) {}
 
@@ -413,6 +408,46 @@ test "config parsing trims _MODULE and deduplicates symbols" {
     try processor.parseConfigFile(
         &capture,
         "CONFIG_ZIGUX_CORE CONFIG_ZIGUX_DEBUG_MODULE CONFIG_ZIGUX_CORE",
+    );
+
+    try std.testing.expectEqualStrings(
+        "    $(wildcard include/config/ZIGUX_CORE) \\\n    $(wildcard include/config/ZIGUX_DEBUG) \\\n",
+        capture.list.items,
+    );
+}
+
+test "config parsing keeps prefixed CONFIG tokens for fixdep parity" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 64),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseConfigFile(
+        &capture,
+        "UML_CONFIG_ZIGUX_CORE HELLO_CONFIG_ZIGUX_DEBUG_MODULE",
     );
 
     try std.testing.expectEqualStrings(
