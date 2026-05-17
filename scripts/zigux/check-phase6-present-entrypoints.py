@@ -297,6 +297,31 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
 
+        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[5] + "\n", "", 1))
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[5])
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[6] + "\n", "", 1))
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[6])
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[7] + "\n", "", 1))
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[7])
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[19] + "\n", "", 1))
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[19])
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[20] + "\n", "", 1))
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[20])
+        cases_run += 1
+        scaffold_repo(root)
+
         write(catalog_path, read_text(catalog_path).replace("- surveyed head: `840f388`\n", "", 1))
         expect_failure(root, "- surveyed head: `<sha>`")
         cases_run += 1
@@ -359,7 +384,28 @@ def run_self_test() -> None:
         scaffold_repo(root)
 
         manifest = json.loads(read_text(manifest_path))
+        manifest["helpers"][2]["slice_note"] = "Documentation/zigux/phase6-checksum-survey.md"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "helper packet mismatch")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest = json.loads(read_text(manifest_path))
         manifest["helpers"][2]["current_review_posture"] = "direct-helper-readback-restored"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "helper packet mismatch")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["helpers"][3]["perf_refresh_note"] = "Documentation/zigux/phase6-hexdump-perf-note.md"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "helper packet mismatch")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["helpers"][3]["current_review_posture"] = "direct-helper-readback-restored"
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "helper packet mismatch")
         cases_run += 1
