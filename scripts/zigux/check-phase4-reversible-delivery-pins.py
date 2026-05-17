@@ -14,7 +14,7 @@ REPO_REALITY_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py"
 
 STATUS_MARKERS = (
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=4`",
+    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=",
 )
 
 DIRECT_MARKERS = (
@@ -50,11 +50,14 @@ README_MARKERS = (
 )
 
 WARNING_MARKERS = (
+    "DIRECT_READBACK_PACKET = (",
+    "MISSING_BROADER_PACKET = (",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     "PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true",
-    "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=4",
+    "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=",
 )
 
 
@@ -100,7 +103,7 @@ def fixture_root(root: Path) -> None:
         "Current direct readback in this run confirmed `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` on current `master`. The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run. The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.\n\n"
         "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader packet is directly readable again.\n\n"
         "* `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`\n"
-        "* `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=4`\n\n"
+        "* `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5`\n\n"
         f"{missing}\n",
     )
     write(
@@ -116,11 +119,14 @@ def fixture_root(root: Path) -> None:
         "DIRECT_READBACK_PACKET = (\n"
         "    \"scripts/zigux/check-phase4-reversible-delivery-pins.py\",\n"
         ")\n"
+        "MISSING_BROADER_PACKET = (\n"
+        "    \"scripts/zigux/check-phase4-perf-baseline-packet.py\",\n"
+        ")\n"
         "NOTE_REQ = (\n"
         "    \"The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run\",\n"
         "    \"The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open\",\n"
         "    \"PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true\",\n"
-        "    \"PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=4\",\n"
+        "    \"PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=\",\n"
         ")\n",
     )
 
@@ -158,6 +164,21 @@ def self_test() -> None:
             cases += 1
         else:
             raise AssertionError("expected README drift to fail")
+
+        fixture_root(root)
+        write(
+            root / REPO_REALITY_WARNING,
+            read(root, REPO_REALITY_WARNING).replace(
+                "scripts/zigux/check-phase4-perf-baseline-packet.py",
+                "scripts/zigux/not-the-right-phase4-checker.py",
+            ),
+        )
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected repo-reality warning drift to fail")
 
     print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass")
     print(f"PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES={cases}")
