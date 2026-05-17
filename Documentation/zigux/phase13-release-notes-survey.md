@@ -54,6 +54,7 @@ Shared release wording should stay anchored to that validator-first handle while
 Keep the remaining shared-summary gap explicit:
 
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `zigux/tests/phase13_build.zig`
 
 Keep older or still-missing direct companions explicit too instead of promoting them into shipped current-`master` evidence:
@@ -92,10 +93,11 @@ When this survey changes, reread these shared reminder surfaces together first:
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+
+If `Documentation/zigux/phase13-notifier-list-survey.md` still does not materialize on current `master`, keep it in the repo-reality-gap set instead of treating it as a coupled reread surface.
 
 Only widen beyond this survey if a fresh current-`master` reread shows that one of those coupled reminder surfaces cannot stay truthful without the adjacent same-lane follow-through.
 
