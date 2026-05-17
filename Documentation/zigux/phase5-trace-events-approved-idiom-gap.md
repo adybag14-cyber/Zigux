@@ -13,6 +13,7 @@ The directly reviewable trace-events packet remains:
 
 Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample.
 Keep the approved formatting idiom bounded to the selected-string plus `iter=%d` reminder carried by `samples/zigux/trace_events_sample.zig` together with the existing `runAnchorReplay()`, `formattedMessage()`, `runStringFormattingCycleReplay()`, and exact `checked_focus` packet already surfaced by the paired survey note and survey gate.
+Keep the shared `zigux/tests/phase5_build.zig` route explicit only as current public-tree-backed companion evidence rather than direct authenticated-contents proof while the authenticated GitHub-app reread still does not return that path.
 
 ## Review boundary
 
