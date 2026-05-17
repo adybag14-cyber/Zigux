@@ -45,19 +45,22 @@ Current `master` also keeps the returned direct HVC starter-depth packet explici
 - `Documentation/zigux/phase11-hvc-console-slice.md`
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-- `scripts/zigux/check-phase11-hvc-survey-packet.py`
 
-An earlier narrower rerun in this family had recorded those direct file paths as temporarily absent from one readback path. The coupled HVC survey packet and checker-backed continuity surfaces now reread those paths directly again, so that older missing-readback wording is superseded run history rather than current repo truth.
+Current authenticated contents reads in this run did not rematerialize `scripts/zigux/check-phase11-hvc-survey-packet.py`, so keep that dedicated survey-checker name framed as a same-lane repo-reality gap until a future reread proves it returned.
+
+An earlier narrower rerun in this family had recorded those direct file paths as temporarily absent from one readback path. The coupled HVC survey packet and the smaller proof-backed continuity surfaces now reread the direct driver, helper, replay, split, teardown, and validation-matrix paths above again, but the dedicated survey-checker path itself still did not rematerialize on this reread.
 
 ## Drift Kept Explicit
 
-Current `master` keeps both the smaller proof-backed HVC continuity packet and the returned direct HVC driver, helper, replay, teardown, validation-matrix, and survey-checker packet reviewable together.
+Current `master` keeps both the smaller proof-backed HVC continuity packet and the returned direct HVC driver, helper, replay, split, teardown, and validation-matrix packet reviewable together while `scripts/zigux/check-phase11-hvc-survey-packet.py` remains absent from direct readback.
 
-This companion therefore exists to keep that combined current-head packet explicit so nearby shared reminders do not understate the direct HVC starter-depth surfaces after they have returned to current readback.
+This companion therefore exists to keep that combined current-head packet explicit so nearby shared reminders do not understate the returned direct HVC starter-depth surfaces or overstate the missing survey-checker path.
 
 ## Safe Reading
 
 Use the current HVC survey note, this companion, the verify-helper-boundary note, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, the shared build inventory anchor, the surviving HVC proof shards, and the returned direct HVC starter-depth packet as the truthful readback for this lane on current `master`.
+
+Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap until a future reread proves that dedicated checker has returned.
 
 Treat any older missing-readback wording in this companion as superseded run history rather than as the current boundary of the HVC packet.
 
@@ -71,10 +74,10 @@ This companion does not claim:
 - live sysrq dispatch
 - host-backed teardown or transport parity
 
-It only records that current `master` again keeps both the smaller proof-backed continuity packet and the direct HVC starter-depth packet reviewable together.
+It only records that current `master` keeps both the smaller proof-backed continuity packet and the returned direct HVC starter-depth packet reviewable together while the dedicated survey-checker path itself still remains absent from direct readback in this run.
 
 ## Next bounded step
 
-If a future reread drops any direct HVC starter, replay, teardown, validation-matrix, or survey-checker path again, refresh this companion, the HVC survey note, and any coupled checker in one pass.
+If a future reread drops any direct HVC starter, replay, teardown, or validation-matrix path again, or rematerializes `scripts/zigux/check-phase11-hvc-survey-packet.py`, refresh this companion, the HVC survey note, and any coupled checker in one pass.
 
-Until then, keep both the smaller inventory-backed continuity packet and the returned direct HVC starter-depth packet explicit across the broad Phase 11 reminder surfaces.
+Until then, keep both the smaller inventory-backed continuity packet and the returned direct HVC starter-depth packet explicit across the broad Phase 11 reminder surfaces without promoting the missing survey checker as live current-head evidence.
