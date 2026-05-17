@@ -95,57 +95,26 @@ Phase 2 review packet
 
 Phase 3 review packet
   * `Documentation/zigux/phase3-abi-slice.md`
-  * `Documentation/zigux/phase3-abi-bindings-survey.md`
-  * `Documentation/zigux/phase3-bindings-governance.md`
-  * `Documentation/zigux/phase3-boundary-lane-sequencing.md`
-  * `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
-  * `Documentation/zigux/phase3-kernel-export-shim-governance.md`
-  * `Documentation/zigux/phase3-linux-zigux-header-governance.md`
-  * `Documentation/zigux/phase3-abi-header-family-survey.md`
-  * `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
+  * `Documentation/zigux/phase3-errptr-xarray-slice.md`
   * `Documentation/zigux/phase3-validator-support-surface.md`
-  * `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`
-  * `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
-  * `include/zigux/abi.h`
-  * `include/zigux/dev_t.h`
   * `include/linux/zigux.h`
-  * `zigux/bindings/abi.zig`
-  * `zigux/bindings/dev_t.zig`
-  * `zigux/bindings/notifier_abi.zig`
-  * `zigux/helpers/layout_assert.zig`
-  * `zigux/kernel/export_shim.zig`
+  * `include/zigux/dev_t.h`
   * `zigux/uapi/version.zig`
   * `zigux/uapi/dev_t.zig`
-  * `zigux/tests/phase3_abi.zig`
-  * `zigux/tests/phase3_abi_dump.zig`
-  * `zigux/tests/phase3_export_uapi_layout.zig`
-  * `zigux/tests/phase3_export_uapi_layout_build.zig`
-  * `zigux/tests/phase3_low_level_wrappers.zig`
-  * `zigux/tests/phase3_low_level_wrappers_build.zig`
-  * `zigux/tests/fixtures/phase3_abi_manifest.json`
-  * `scripts/zigux/validate-phase3.py`
-  * `scripts/zigux/validate_phase3_selftest.py`
-  * `scripts/zigux/check-phase3-selftest-surface.py`
-  * `scripts/zigux/check-phase3-readme-tooling-inventory.py`
-  * `scripts/zigux/check-phase3-abi-dump-gate.py`
-  * `scripts/zigux/check-phase3-catalog-selftest.py`
-  * `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
-  * `scripts/zigux/validate-phase3-export-uapi-survey.py`
-  * `scripts/zigux/validate-phase3-abi-header-family-survey.py`
-  * `scripts/zigux/validate-phase3-validator-support-surface.py`
-  * `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
-  * `scripts/zigux/survey-phase3-abi-constant-parity.py`
-  * `python3 scripts/zigux/validate-phase3.py`
-  * `python3 scripts/zigux/validate-phase3.py --slug abi`
-  * `python3 scripts/zigux/run-phase3-checks.py --slug abi`
-  * `zig build phase3-test --build-file zigux/tests/build.zig`
-  * `zig build phase3-dump --build-file zigux/tests/build.zig`
-  * `make -C zigux phase3-validate`
-  * `make -C zigux phase3-selftest`
-  * `make -C zigux phase3`
-  * the shared ABI substrate now stays explicit in this tests-root guide through the dedicated ABI-and-bindings survey, the dedicated bindings-governance note, the broader ABI slice note, the adjacent export/UAPI and Linux-facing header-governance notes, the validator-support packet, and the direct `phase3_abi` plus `phase3_abi_dump` replay routes instead of forcing reviewers to reconstruct that packet from the docs root and scripts root alone
-  * the focused export/UAPI and low-level-wrapper support routes stay explicit here too: `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`, `make -C zigux phase3-export-uapi-layout-test`, `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`, and `make -C zigux phase3-low-level-wrappers-test`
-  * `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` stay explicit as the current starter header-family companion packet rather than implying a broader shipped UAPI family
+  * `zigux/bindings/dev_t.zig`
+  * `zigux/helpers/err_ptr.zig`
+  * `zigux/helpers/xa_value.zig`
+  * `zigux/tests/phase3_dev_t_starter_packet.zig`
+  * `zigux/tests/phase3_dev_t_starter_packet_build.zig`
+  * `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
+  * `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
+  * `scripts/zigux/check-phase3-dev-t-starter-packet.py`
+  * `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+  * `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test`
+  * `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
+  * keep the current shared Phase 3 reminder anchored to the bounded `dev_t` starter packet plus the helper-local `err_ptr` / `xarray` slice already described in `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, and `Documentation/zigux/phase3-validator-support-surface.md` instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence
+  * treat broader routes such as `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-abi-h-boundary-next-step.md`, `include/zigux/abi.h`, `zigux/bindings/abi.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, `scripts/zigux/validate-phase3.py`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and `scripts/zigux/phase3_catalog.py` as repo-reality gaps until fresh current-tree proof lands
+  * keep the broader docs-root follow-up in `Documentation/zigux/README.md` separate, because that shared summary still needs the same narrowing pass after this tests-root packet is truthful again
 
 Phase 7 review packet
   * current direct-readback Phase 7 anchor: `zigux/tests/phase7_rbtree_survey.zig`
@@ -218,63 +187,3 @@ Phase 12 review packet
   * `phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`
   * `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json`
   * `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
-  * `make -C zigux phase12-smoke`
-  * `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-  * `make -C zigux phase12`
-
-Phase 13 review packet
-  * `Documentation/zigux/phase13-contributor-workflow-guide.md`
-  * `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
-  * `Documentation/zigux/phase13-release-coordination-matrix.md`
-  * `Documentation/zigux/phase13-release-notes-survey.md`
-  * `Documentation/zigux/phase13-roadmap-traceability.md`
-  * `Documentation/zigux/phase13-libfs-survey.md`
-  * `Documentation/zigux/phase13-devres-slice.md`
-  * `Documentation/zigux/phase13-devres-survey.md`
-  * `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
-  * `Documentation/zigux/phase13-landlock-ruleset-slice.md`
-  * `Documentation/zigux/phase13-landlock-ruleset-survey.md`
-  * `Documentation/zigux/phase13-landlock-syscalls-governance.md`
-  * `Documentation/zigux/phase13-landlock-syscalls-slice.md`
-  * `Documentation/zigux/phase13-landlock-syscalls-survey.md`
-  * `Documentation/zigux/phase13-notifier-list-survey.md`
-  * `fs/libfs.zig`
-  * `zigux/tests/phase13_libfs.zig`
-  * `zigux/tests/phase13_libfs_reviewability.zig`
-  * `zigux/tests/phase13_libfs_manifest.json`
-  * `lib/devres.zig`
-  * `zigux/tests/phase13_devres.zig`
-  * `zigux/tests/phase13_devres_reviewability.zig`
-  * `zigux/tests/phase13_devres_dma_coherent.zig`
-  * `zigux/tests/phase13_devres_boundary_evidence.zig`
-  * `zigux/tests/phase13_devres_manifest.json`
-  * `security/landlock/ruleset.zig`
-  * `security/landlock/syscalls.zig`
-  * `zigux/tests/phase13_landlock_ruleset.zig`
-  * `zigux/tests/phase13_landlock_ruleset_manifest.json`
-  * `zigux/tests/phase13_landlock_syscalls.zig`
-  * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
-  * `zigux/tests/phase13_landlock_syscalls_manifest.json`
-  * `scripts/zigux/check-phase13-devres-packet-alignment.py`
-  * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
-  * `scripts/zigux/check-phase13-notifier-priority-signal.py`
-  * `scripts/zigux/validate-phase13-release.py`
-  * `Documentation/zigux/review-checklist.md`
-  * `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
-  * `zigux/tests/README.md`
-  * `zigux/helpers/notifier_chain_view.zig`
-  * `zigux/bindings/notifier_abi.zig`
-  * `include/zigux/abi.h`
-  * `drivers/tty/hvc/hvc_console.h`
-  * `zigux/Makefile`
-  * stable `make -C zigux phase13-validate`
-  * blocked convenience route `make -C zigux phase13`
-
-  * keep the shared validator-first release handle anchored to current repo reality: current `master` materializes the bounded `fs/libfs.zig` foothold together with `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`
-  * keep the direct devres boundary-evidence replay explicit beside the shared devres packet through `lib/devres.zig`, `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, and `scripts/zigux/check-phase13-devres-packet-alignment.py`
-  * keep the helper-owned Landlock evidence explicit through the ownership and syscall-governance notes, the ruleset and syscall slice plus survey notes, `security/landlock/ruleset.zig`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
-  * keep the adjacent notifier shards `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h` explicit as shipped adjacent evidence without counting them as extra shared replay steps
-  * current `master` still does not materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep that checker framed as a remaining shared-summary repo-reality gap rather than as shipped tests-root evidence
-  * current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`, but that broader convenience route still fans out to `phase13-test`, which calls `zig build test --build-file zigux/tests/phase13_build.zig --summary all` while `zigux/tests/phase13_build.zig` remains a repo-reality gap
-  * keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands, and treat the broader `phase13` route as blocked convenience wiring rather than direct shipped current-`master` evidence
-  * if direct companions such as `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, or the older `scripts/zigux/check-phase13-devres-packet.py` cannot be materialized on current `master`, record them as repo-reality gaps instead of presenting them here as independently shipped review evidence
