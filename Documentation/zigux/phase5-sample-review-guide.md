@@ -1,6 +1,6 @@
 # Phase 5 Sample Review Guide
 
-This guide keeps the roadmap-backed Phase 5 sample lane reviewable without treating older sample-root packets as current proof when the repo no longer exposes those files directly.
+This guide keeps the roadmap-backed Phase 5 sample lane reviewable without letting a stale shared reminder surface override newer direct packet proof.
 
 ## Purpose
 
@@ -26,64 +26,65 @@ Treat those four anchors as the approved Phase 5 destination set unless the road
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-17 found that `samples/zigux/README.md` now says the current sample root directly exposes these files:
+Fresh repo-first inspection on 2026-05-17 confirmed that the current trace-events packet is directly readable on `master` through these packet-local surfaces:
 
-* `samples/zigux/README.md`
-* `samples/zigux/runtime_trace_events.zig`
-* `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+* `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
+* `Documentation/zigux/phase5-trace-events-sample-survey.md`
+* `samples/zigux/trace_events_sample.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
+* `zigux/tests/phase5_trace_events_sample.zig`
+* `zigux/tests/phase5_trace_events_sample_manifest.json`
+* `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-That means the four non-runtime Phase 5 sample-root ports are not current direct sample-root proof on `master`, even though the roadmap-backed anchors remain approved.
+That direct packet proof is stronger than the current shared sample-root reminder wording in `samples/zigux/README.md`, which still lags the landed non-runtime trace-events packet.
 
-For the shared tracing and probe lane, keep reviewer guidance grounded in the reminder surfaces that are still present:
+For the shared tracing and probe lane, ground reviewer guidance in the packet-local proof above plus these shared reminder surfaces:
 
 * `Documentation/zigux/phase5-sample-lane-sequencing.md`
 * `Documentation/zigux/phase5-sample-review-guide.md`
-* `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
 * `zigux/tests/README.md`
 
-The same reread also confirmed that authenticated contents reads now return missing for these older dedicated survey notes:
-
-* `Documentation/zigux/phase5-kretprobe-sample-survey.md`
-* `Documentation/zigux/phase5-trace-events-sample-survey.md`
-
-Keep those shared surfaces honest about the gap between the roadmap-approved anchors and the files that current `master` directly exposes.
+Keep those shared surfaces honest about direct packet proof that is already readable today, and treat stale README or authenticated-readback gaps as reminder drift rather than as evidence that the trace-events packet disappeared.
 
 ## Tracing and probe posture
 
-For `kretprobe` and `trace_events`, treat the Phase 5 anchors as approved reference targets and reviewer reminders unless a fresh reread proves the sample-root ports have returned.
+For `kretprobe`, keep the Phase 5 anchor in the reminder-only posture unless a fresh reread proves the direct sample packet is back.
+
+For `trace_events`, follow the landed direct packet instead of the stale README posture.
 
 Use the shared docs to preserve these bounded cues:
 
-* `zigux/tests/README.md` keeps the direct-readback gap visible by recording that current authenticated readback still returns missing for `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig`
-* `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` keeps the tracing-side formatting cue visible without claiming direct sample-root proof from `samples/zigux/trace_events_sample.zig`
-* `samples/zigux/README.md` remains the source of truth for whether those non-runtime sample-root files are directly present on current `master`
+* `Documentation/zigux/phase5-trace-events-sample-survey.md` keeps the direct packet inventory explicit and records when `zigux/tests/phase5_build.zig` is only public-tree-backed companion evidence instead of authenticated direct proof
+* `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` keeps the selected-string plus `iter=%d` formatting cue bounded to the trace-events packet instead of turning it into a fifth Phase 5 sample
+* `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, and `zigux/tests/phase5_trace_events_sample_survey.zig` keep the current helper names and lifecycle cues explicit: `runAnchorReplay()`, `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, the exact `checked_focus` order, and the callback-boundary rejection path through `OutstandingRegistration`
+* `zigux/tests/phase5_trace_events_sample_manifest.json` keeps the same callback-boundary and armed-exit expectations reviewable in machine-readable form
 
 ## Approved idiom gap
 
-Current `master` still ships no standalone `samples/zigux/*printf*` or `*vsprintf*` Phase 5 reference sample, and it still ships no standalone `*format*` reference sample beyond the bounded trace-events formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig`.
+Current `master` still ships no standalone `samples/zigux/*printf*` or `*vsprintf*` Phase 5 reference sample, and it still ships no standalone broad `*format*` Phase 5 reference sample outside the bounded trace-events formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig`.
 
 Keep the approved formatting idiom bounded to the selected-string plus `iter=%d` reminder carried by the trace-events review packet:
 
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 
-Do not describe that formatting cue as a fifth Phase 5 sample, a standalone formatting-helper port, or proof that the trace-events sample-root file is currently present.
+Do not describe that formatting cue as a fifth Phase 5 sample, a standalone formatting-helper port, or the whole proof of the trace-events packet.
 
 ## Review posture
 
-Because current `master` does not directly expose the non-runtime Phase 5 sample-root files, same-lane follow-through should stay inside these bounded categories:
+Because current `master` now directly exposes the trace-events packet, same-lane follow-through should stay inside these bounded categories:
 
-* one shared reminder-surface truthfulness repair at a time
-* one survey-note or approved-idiom-gap repair at a time
-* one tests-root reminder alignment repair at a time
+* one trace-events reminder-surface truthfulness repair at a time
+* one trace-events survey-note or approved-idiom-gap repair at a time
+* one trace-events tests-root reminder alignment repair at a time
 
 Avoid:
 
-* inventing direct sample-root proof that `samples/zigux/README.md` does not confirm
+* letting stale `samples/zigux/README.md` wording overrule the direct trace-events packet
 * broadening the lane into runtime-loader, module-registration, procfs, sysfs, workqueue, or ring-buffer claims
 * treating Phase 9 runtime samples as extra Phase 5 evidence
+* treating the trace-events packet as permission to reopen unrelated bytestream, kobject, or kretprobe reminder work here
 
 ## Boundary reminders
 
