@@ -42,6 +42,51 @@ pub fn build(b: *std.Build) void {
     });
     bsearch_c_abi_budget_root_module.addImport("bsearch", bsearch_module);
 
+    const checksum_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/checksum.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const checksum_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_checksum.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    checksum_root_module.addImport("checksum", checksum_module);
+
+    const checksum_perf_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_checksum_perf.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    checksum_perf_root_module.addImport("checksum", checksum_module);
+
+    const hexdump_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/hexdump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const hexdump_vectors_module = b.createModule(.{
+        .root_source_file = b.path("fixtures/phase6_hexdump_vectors.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const hexdump_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_hexdump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    hexdump_root_module.addImport("hexdump", hexdump_module);
+    hexdump_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);
+
+    const hexdump_perf_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_hexdump_perf.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    hexdump_perf_root_module.addImport("hexdump", hexdump_module);
+    hexdump_perf_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);
+
     const base64_tests = b.addTest(.{
         .name = "phase6-base64-tests",
         .root_module = base64_root_module,
@@ -70,14 +115,56 @@ pub fn build(b: *std.Build) void {
     const run_bsearch_c_abi_budget_tests = b.addRunArtifact(bsearch_c_abi_budget_tests);
     run_bsearch_c_abi_budget_tests.skip_foreign_checks = true;
 
+    const checksum_tests = b.addTest(.{
+        .name = "phase6-checksum-tests",
+        .root_module = checksum_root_module,
+    });
+    const run_checksum_tests = b.addRunArtifact(checksum_tests);
+    run_checksum_tests.skip_foreign_checks = true;
+
+    const hexdump_tests = b.addTest(.{
+        .name = "phase6-hexdump-tests",
+        .root_module = hexdump_root_module,
+    });
+    const run_hexdump_tests = b.addRunArtifact(hexdump_tests);
+    run_hexdump_tests.skip_foreign_checks = true;
+
+    const checksum_perf = b.addExecutable(.{
+        .name = "phase6-checksum-perf",
+        .root_module = checksum_perf_root_module,
+    });
+    const run_checksum_perf = b.addRunArtifact(checksum_perf);
+    run_checksum_perf.skip_foreign_checks = true;
+
+    const hexdump_perf = b.addExecutable(.{
+        .name = "phase6-hexdump-perf",
+        .root_module = hexdump_perf_root_module,
+    });
+    const run_hexdump_perf = b.addRunArtifact(hexdump_perf);
+    run_hexdump_perf.skip_foreign_checks = true;
+
     const bsearch_test_step = b.step("phase6-bsearch-test", "Run Phase 6 bsearch helper tests");
     bsearch_test_step.dependOn(&run_bsearch_tests.step);
     bsearch_test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);
     bsearch_test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);
+
+    const checksum_test_step = b.step("phase6-checksum-test", "Run Phase 6 checksum helper tests");
+    checksum_test_step.dependOn(&run_checksum_tests.step);
+
+    const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");
+    hexdump_test_step.dependOn(&run_hexdump_tests.step);
+
+    const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");
+    checksum_perf_step.dependOn(&run_checksum_perf.step);
+
+    const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");
+    hexdump_perf_step.dependOn(&run_hexdump_perf.step);
 
     const test_step = b.step("test", "Run Phase 6 helper tests");
     test_step.dependOn(&run_base64_tests.step);
     test_step.dependOn(&run_bsearch_tests.step);
     test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);
     test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);
+    test_step.dependOn(&run_checksum_tests.step);
+    test_step.dependOn(&run_hexdump_tests.step);
 }
