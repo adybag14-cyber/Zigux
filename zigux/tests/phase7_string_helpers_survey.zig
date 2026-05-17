@@ -149,6 +149,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
     try expectContains(helper_tests, "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix");
     try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectContains(helper_tests, "const zero_written = string_helpers.string_get_size(42, 0, string_helpers.STRING_UNITS_10, &zero_buf, 0);");
@@ -166,11 +167,10 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
     try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-string-sample policy lane-local");
-    try expectContains(sample_boundary, "phase 7 string helper boundary keeps the lane-local helper packet aligned without claiming shared control surfaces");
-    try expectNotContains(sample_boundary, "current shared reminders aligned");
+    try expectContains(sample_boundary, "phase 7 string helper boundary stays on sample-boundary surfaces only");
 }
 
-test "phase 7 string helper boundary keeps the lane-local helper packet aligned without claiming shared control surfaces" {
+test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     const allocator = std.testing.allocator;
 
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-string-helpers-slice.md");
