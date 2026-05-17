@@ -36,17 +36,22 @@ TESTS_README_REQUIRED_MARKERS = [
 ]
 
 PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
-    'test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit" {',
-    'test "phase 8 perf-buffer poll bridge survey keeps the bounded helper packet explicit" {',
-    'test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity" {',
-    'test "phase 8 perf-buffer poll helper rejects ready waits without processing attempts" {',
-    'test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {',
-    'test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {',
-    'test "phase 8 perf-buffer poll rejects impossible post-wait buffer states" {',
-    'test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {',
-    '"Documentation/zigux/phase8-perf-buffer-poll-slice.md"',
-    '"Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"',
-    '"python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py"',
+    'test "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit" {',
+    'test "phase 8 perf-buffer poll scripts README keeps the surviving bridge packet explicit" {',
+    '"zigux/tests/README.md"',
+    '"scripts/zigux/README.md"',
+    '"current direct-readback Phase 8 anchors:"',
+    '"`scripts/zigux/check-phase8-tests-readme-alignment.py`"',
+    '"repo-reality warning for the broader Phase 8 tooling packet:"',
+    '"`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`"',
+    '"`scripts/zigux/validate-phase8.py`"',
+    '"`zigux/tests/phase8_perf_buffer_poll_only_build.zig`"',
+    '"`zigux/Makefile`"',
+    '"keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet instead of reconstructing the broader shared tooling packet from older route names alone"',
+    '"Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll bridge packet instead of reconstructing the older shared bridge bundle from paths that current `master` no longer serves"',
+    '"`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"',
+    '"`zigux/tests/phase8_perf_buffer_poll.zig` remains the surviving direct Phase 8 replay surface"',
+    '"keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the helper implementation, and the focused replay instead of widening back into exec-cmd, help, kallsyms, file-path-handle, or broader libbpf segment wording from older route names alone"',
     "summarizePollExecutionResultFromWaitResult",
     "summarizeBufferFdLookup",
     "summarizeBufferWindowLookup",
@@ -126,47 +131,58 @@ Phase 8 review packet
 
 
 def build_perf_buffer_poll_test_fixture() -> str:
-    return """const std = @import("std");
+    return """const std = @import(\"std\");
 
-test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit" {
-    _ = "Documentation/zigux/phase8-perf-buffer-poll-slice.md";
+test \"phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit\" {
+    _ = \"zigux/tests/README.md\";
+    _ = \"current direct-readback Phase 8 anchors:\";
+    _ = \"`scripts/zigux/check-phase8-tests-readme-alignment.py`\";
+    _ = \"repo-reality warning for the broader Phase 8 tooling packet:\";
+    _ = \"`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`\";
+    _ = \"`scripts/zigux/validate-phase8.py`\";
+    _ = \"`zigux/tests/phase8_perf_buffer_poll_only_build.zig`\";
+    _ = \"`zigux/Makefile`\";
+    _ = \"keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet instead of reconstructing the broader shared tooling packet from older route names alone\";
 }
 
-test "phase 8 perf-buffer poll bridge survey keeps the bounded helper packet explicit" {
-    _ = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md";
-    _ = "python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py";
+test \"phase 8 perf-buffer poll scripts README keeps the surviving bridge packet explicit\" {
+    _ = \"scripts/zigux/README.md\";
+    _ = \"Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll bridge packet instead of reconstructing the older shared bridge bundle from paths that current `master` no longer serves\";
+    _ = \"`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`\";
+    _ = \"`zigux/tests/phase8_perf_buffer_poll.zig` remains the surviving direct Phase 8 replay surface\";
+    _ = \"keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the helper implementation, and the focused replay instead of widening back into exec-cmd, help, kallsyms, file-path-handle, or broader libbpf segment wording from older route names alone\";
 }
 
-test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity" {
+test \"phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity\" {
     _ = summarizePollExecutionResultFromWaitResult;
     _ = PollReturnDisposition.ready_count;
     _ = PollReturnDisposition.processing_failed;
     _ = first_process_error_index;
 }
 
-test "phase 8 perf-buffer poll helper rejects ready waits without processing attempts" {
+test \"phase 8 perf-buffer poll helper rejects ready waits without processing attempts\" {
     _ = PollError.InconsistentProcessingAccountingSummary;
 }
 
-test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {
+test \"phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped\" {
     _ = summarizeBufferFdLookup;
     _ = resolveBufferFdLookupReturn;
     _ = BufferFdLookupDisposition.missing_fd;
 }
 
-test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {
+test \"phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped\" {
     _ = summarizeBufferWindowLookup;
     _ = resolveBufferWindowLookupReturn;
     _ = BufferWindowLookupDisposition.missing_window;
 }
 
-test "phase 8 perf-buffer poll rejects impossible post-wait buffer states" {
+test \"phase 8 perf-buffer poll rejects impossible post-wait buffer states\" {
     _ = PollError.TimeoutObservationHasReadyBuffer;
     _ = PollError.InterruptedObservationHasReadyBuffer;
     _ = PollError.FailedObservationHasBufferState;
 }
 
-test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {
+test \"resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries\" {
     _ = resolvePollExecutionResultFromWaitResult;
     _ = PollError.WaitResultDisagreesWithExecutionOutcome;
     _ = PollError.WaitResultDisagreesWithReadyEventCount;
