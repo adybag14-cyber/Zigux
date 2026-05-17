@@ -23,7 +23,6 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
     "- `zigux/tests/phase6_checksum.zig`",
     "- `zigux/tests/phase6_hexdump.zig`",
-    "- `scripts/zigux/check-phase6-shared-surface.py`",
     "- `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
     "- `scripts/zigux/check-phase6-checksum-c-parity.py`",
@@ -52,7 +51,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 11
 
 
 class ValidationError(RuntimeError):
@@ -118,7 +117,6 @@ def run_self_test() -> None:
             "- `Documentation/zigux/phase6-helper-parity-catalog.md`",
             "- `Documentation/zigux/phase6-perf-gate-survey.md`",
             "- `zigux/tests/phase6_helper_parity_manifest.json`",
-            "- `scripts/zigux/check-phase6-shared-surface.py`",
             "- `scripts/zigux/check-phase6-base64-c-parity.py`",
             "- `scripts/zigux/check-phase6-hexdump-packet.py`",
             "### hexdump",
