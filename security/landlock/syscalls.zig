@@ -2,12 +2,15 @@ const std = @import("std");
 const landlock_ruleset = @import("ruleset.zig");
 
 pub const LANDLOCK_CREATE_RULESET_VERSION: u32 = 1 << 0;
+pub const O_RDWR: u32 = 0x2;
+pub const O_CLOEXEC: u32 = 0x80000;
 
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_create_ruleset_planning: bool,
     provides_abi_version_query_planning: bool,
+    provides_ruleset_fd_install_planning: bool,
     validates_handled_access: bool,
     validates_attr_size: bool,
     validates_flags: bool,
@@ -61,6 +64,23 @@ pub const CreateRulesetSyscallPlan = struct {
     create_ruleset_plan: CreateRulesetPlan,
 };
 
+pub const RulesetFdInstallRequest = struct {
+    label: []const u8 = "[landlock-ruleset]",
+    flags: u32 = O_RDWR | O_CLOEXEC,
+    ruleset_present: bool = true,
+};
+
+pub const RulesetFdInstallPlan = struct {
+    anchor: []const u8,
+    label: []const u8,
+    validates_label: bool,
+    validates_install_flags: bool,
+    performs_anon_inode_getfd: bool,
+    returns_new_fd: bool,
+    releases_ruleset_on_fd_failure: bool,
+    install_flags: u32,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -68,6 +88,7 @@ pub const SyscallsHelperLab = struct {
             .anchor = "security/landlock/syscalls.c",
             .provides_create_ruleset_planning = true,
             .provides_abi_version_query_planning = true,
+            .provides_ruleset_fd_install_planning = true,
             .validates_handled_access = true,
             .validates_attr_size = true,
             .validates_flags = true,
@@ -148,6 +169,29 @@ pub const SyscallsHelperLab = struct {
             .create_ruleset_plan = create_ruleset_plan,
         };
     }
+
+    pub fn planInstallRulesetFd(request: RulesetFdInstallRequest) !RulesetFdInstallPlan {
+        if (!request.ruleset_present) {
+            return error.MissingRuleset;
+        }
+        if (!std.mem.eql(u8, request.label, "[landlock-ruleset]")) {
+            return error.InvalidAnonInodeLabel;
+        }
+        if (request.flags != (O_RDWR | O_CLOEXEC)) {
+            return error.UnsupportedAnonInodeFlags;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .label = request.label,
+            .validates_label = true,
+            .validates_install_flags = true,
+            .performs_anon_inode_getfd = true,
+            .returns_new_fd = true,
+            .releases_ruleset_on_fd_failure = true,
+            .install_flags = request.flags,
+        };
+    }
 };
 
 test "landlock syscalls descriptor stays within create-ruleset planning boundaries" {
@@ -157,6 +201,7 @@ test "landlock syscalls descriptor stays within create-ruleset planning boundari
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_create_ruleset_planning);
     try std.testing.expect(descriptor.provides_abi_version_query_planning);
+    try std.testing.expect(descriptor.provides_ruleset_fd_install_planning);
     try std.testing.expect(descriptor.validates_handled_access);
     try std.testing.expect(descriptor.validates_attr_size);
     try std.testing.expect(descriptor.validates_flags);
@@ -257,5 +302,30 @@ test "landlock syscalls top-level wrapper rejects disabled boot before planning"
         .input = .{
             .attr = .{ .handled_access_fs = 0x4 },
         },
+    }));
+}
+
+test "landlock syscalls ruleset fd install keeps anon inode label and failure release explicit" {
+    const plan = try SyscallsHelperLab.planInstallRulesetFd(.{});
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
+    try std.testing.expectEqualStrings("[landlock-ruleset]", plan.label);
+    try std.testing.expect(plan.validates_label);
+    try std.testing.expect(plan.validates_install_flags);
+    try std.testing.expect(plan.performs_anon_inode_getfd);
+    try std.testing.expect(plan.returns_new_fd);
+    try std.testing.expect(plan.releases_ruleset_on_fd_failure);
+    try std.testing.expectEqual(@as(u32, O_RDWR | O_CLOEXEC), plan.install_flags);
+}
+
+test "landlock syscalls ruleset fd install rejects missing rulesets labels and flags" {
+    try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planInstallRulesetFd(.{
+        .ruleset_present = false,
+    }));
+    try std.testing.expectError(error.InvalidAnonInodeLabel, SyscallsHelperLab.planInstallRulesetFd(.{
+        .label = "[wrong-label]",
+    }));
+    try std.testing.expectError(error.UnsupportedAnonInodeFlags, SyscallsHelperLab.planInstallRulesetFd(.{
+        .flags = O_RDWR,
     }));
 }
