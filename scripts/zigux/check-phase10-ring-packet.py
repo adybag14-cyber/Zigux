@@ -104,7 +104,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 def write_fixture(root: Path) -> None:
     fixture = {
         rel_path: "\n".join(markers) + "\n"
-        for rel_path, markers in MARKERS.items()
+        for rel_path, content in MARKERS.items()
+        for markers in [content]
     }
     for rel_path, content in fixture.items():
         target = root / rel_path
@@ -156,6 +157,10 @@ def run_self_test() -> int:
             "pub fn clearBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
         )
         expect_missing_marker(
+            "drivers/virtio/virtio_ring.zig",
+            "pub fn prepareKick(self: *Self, queue_index: u16) !QueueNotificationSummary {",
+        )
+        expect_missing_marker(
             "drivers/virtio/virtio_ring_verify.zig",
             'test "virtio ring delayed callback summary reports poll pressure when used work outruns delay budget" {',
         )
@@ -179,8 +184,10 @@ def run_self_test() -> int:
             "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
             "try std.testing.expectError(error.QueueResetWhileBroken, ring.resetQueue(3));",
         )
+        expect_missing_file("drivers/virtio/virtio_ring.zig")
         expect_missing_file("drivers/virtio/virtio_ring_verify.zig")
         expect_missing_file("zigux/tests/phase10_build.zig")
+        expect_missing_file("zigux/tests/phase10_virtio_ring_reset_reuse.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
     print(f"PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT={case_count}")
