@@ -11,6 +11,10 @@ MANIFEST_PATH = Path("zigux/tests/phase15_readiness_gate_manifest.json")
 SELF_PATH = Path("scripts/zigux/check-phase15-readiness-gate-packet.py")
 DOCS_CHECKER_PATH = Path("scripts/zigux/check-phase15-docs-readme-alignment.py")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase15.py")
+HANDOFF_MANIFEST_PATH = Path("zigux/tests/phase15_handoff_next_steps_manifest.json")
+BUILD_ZIG_PATH = Path("zigux/tests/phase15_build.zig")
+INDEFINITE_C_LANE_OWNER_ALIGNMENT_PATH = Path("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 REQUIRED_NOTE_MARKERS = (
     "PHASE15_STATUS=readiness_gate_survey_landed",
@@ -69,6 +73,16 @@ def collect_failures(root: Path) -> list[str]:
         failures.append("readiness manifest docs-checker bool disagrees with repo reality")
     if repo_evidence["phase15_validator_script_present"] != (root / VALIDATOR_PATH).exists():
         failures.append("readiness manifest validator-script bool disagrees with repo reality")
+    if repo_evidence["phase15_handoff_manifest_present"] != (root / HANDOFF_MANIFEST_PATH).exists():
+        failures.append("readiness manifest handoff-manifest bool disagrees with repo reality")
+    if repo_evidence["phase15_build_zig_present"] != (root / BUILD_ZIG_PATH).exists():
+        failures.append("readiness manifest build-zig bool disagrees with repo reality")
+    if repo_evidence["phase15_indefinite_c_lane_owner_alignment_present"] != (
+        root / INDEFINITE_C_LANE_OWNER_ALIGNMENT_PATH
+    ).exists():
+        failures.append("readiness manifest indefinite-c-lane-owner bool disagrees with repo reality")
+    if repo_evidence["phase15_makefile_present"] != (root / MAKEFILE_PATH).exists():
+        failures.append("readiness manifest makefile bool disagrees with repo reality")
 
     expected_validate_checkers = [
         "scripts/zigux/check-phase15-docs-readme-alignment.py",
@@ -156,6 +170,10 @@ def _sample_manifest() -> str:
                 "phase15_readiness_packet_checker_present": True,
                 "phase15_validator_script_present": False,
                 "phase15_docs_readme_checker_present": True,
+                "phase15_handoff_manifest_present": False,
+                "phase15_build_zig_present": False,
+                "phase15_indefinite_c_lane_owner_alignment_present": False,
+                "phase15_makefile_present": False,
                 "phase15_validate_target_present": False,
                 "phase15_test_target_present": False,
                 "shared_ci_phase15_present": False,
