@@ -10,6 +10,7 @@ from pathlib import Path
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 
 RUNNER_FILE = Path("scripts/zigux/run-phase3-checks.py")
+SHARED_TESTS_ROUTES_FILE = Path("scripts/zigux/check-phase3-shared-tests-routes.py")
 BINDING_FILE = Path("zigux/bindings/dev_t.zig")
 NARROW_UNSAFE_FILE = Path("zigux/unsafe/narrow.zig")
 UAPI_FILE = Path("zigux/uapi/dev_t.zig")
@@ -22,6 +23,7 @@ WORKFLOW_FILE = Path(".github/workflows/zigux-bootstrap.yml")
 POLICY_STARTER_BUILD_FILE = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 
 RUNNER_MARKER = "scripts/zigux/run-phase3-checks.py"
+SHARED_TESTS_ROUTES_MARKER = "scripts/zigux/check-phase3-shared-tests-routes.py"
 HEADER_MARKER = "include/linux/zigux.h"
 UAPI_MARKER = "zigux/uapi/dev_t.zig"
 LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER = (
@@ -55,6 +57,7 @@ REQUIRED_FILES = (
     Path("include/zigux/dev_t.h"),
     Path("include/zigux/abi.h"),
     Path("scripts/zigux/check-phase3-selftest-surface.py"),
+    SHARED_TESTS_ROUTES_FILE,
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
     RUNNER_FILE,
@@ -96,6 +99,7 @@ REQUIRED_MARKERS = (
     "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
     "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-selftest-surface.py",
+    "scripts/zigux/check-phase3-shared-tests-routes.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/run-phase3-checks.py",
@@ -211,6 +215,10 @@ def run_self_test() -> int:
 
         for marker, message in (
             (RUNNER_MARKER, "expected missing runner README marker was not reported"),
+            (
+                SHARED_TESTS_ROUTES_MARKER,
+                "expected missing shared-tests-routes README marker was not reported",
+            ),
             (HEADER_MARKER, "expected missing header README marker was not reported"),
             (UAPI_MARKER, "expected missing UAPI README marker was not reported"),
             (
@@ -261,6 +269,10 @@ def run_self_test() -> int:
 
         for rel_path, message in (
             (RUNNER_FILE, "expected missing runner file was not reported"),
+            (
+                SHARED_TESTS_ROUTES_FILE,
+                "expected missing shared-tests-routes file was not reported",
+            ),
             (BINDING_FILE, "expected missing binding file was not reported"),
             (NARROW_UNSAFE_FILE, "expected missing narrow-unsafe file was not reported"),
             (UAPI_FILE, "expected missing UAPI file was not reported"),
@@ -287,7 +299,7 @@ def run_self_test() -> int:
                 return 1
 
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=23")
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=25")
         return 0
 
 
