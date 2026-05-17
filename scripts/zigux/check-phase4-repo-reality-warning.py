@@ -35,7 +35,7 @@ MISSING_BROADER_PACKET = (
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 4
-EXPECTED_PIN_SELF_TEST_CASES = 5
+EXPECTED_PIN_SELF_TEST_CASES = 7
 
 NOTE_REQ = (
     "Documentation/zigux/review-checklist.md",
@@ -48,7 +48,7 @@ NOTE_REQ = (
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
 )
 
 README_OWNER_MARKERS = (
@@ -178,7 +178,7 @@ def main() -> int:
             drifted = root / NOTE
             drifted.write_text(
                 drifted.read_text(encoding="utf-8").replace(
-                    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5`",
+                    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`",
                     "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=zero`",
                 ),
                 encoding="utf-8",
