@@ -87,10 +87,18 @@ fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
         '\\' => try writer.writeAll("\\\\"),
         '"' => try writer.writeAll("\\\""),
+        '\x08' => try writer.writeAll("\\b"),
+        '\x0c' => try writer.writeAll("\\f"),
         '\n' => try writer.writeAll("\\n"),
         '\r' => try writer.writeAll("\\r"),
         '\t' => try writer.writeAll("\\t"),
-        else => try writer.writeByte(c),
+        else => {
+            if (c < 0x20) {
+                try writer.print("\\u00{x:0>2}", .{c});
+            } else {
+                try writer.writeByte(c);
+            }
+        },
     };
 }
 
@@ -345,6 +353,19 @@ test "runGenksymsCrc trims carriage returns and escapes json-sensitive bytes" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"quoted \\\"symbol\\\"\\tpath\\\\name\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"crc_hex\":\"0x3527e580\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r") == null);
+}
+
+test "runGenksymsCrc escapes remaining control bytes as valid JSON" {
+    const control_bytes = [_]u8{ 'c', 't', 'r', 'l', ' ', '\x08', '\x0c', '\x01', 'e', 'n', 'd', '\n' };
+
+    var capture = try Capture(160).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(&control_bytes, &capture);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"ctrl \\b\\f\\u0001end\"") != null);
+    const expected_crc = try std.fmt.allocPrint(std.testing.allocator, "\"crc_hex\":\"0x{x:0>8}\"", .{crc32(control_bytes[0 .. control_bytes.len - 1])});
+    defer std.testing.allocator.free(expected_crc);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, expected_crc) != null);
 }
 
 test "runGenksymsCrc emits empty cases array for blank-only input" {
