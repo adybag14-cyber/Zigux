@@ -11,49 +11,111 @@ from pathlib import Path
 SURVEY_PATH = "Documentation/zigux/phase11-validation-matrix-gap-survey.md"
 
 REQUIRED_MARKERS = [
-    "`PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`",
+    "`PHASE11_MATRIX_GAP_STATUS=direct_readback_matrix_drift_recorded`",
     "lane: `P11-L05`",
+    "`Documentation/zigux/phase11-hvc-console-survey.md`",
+    "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
+    "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
+    "`Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`",
+    "`Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`",
     "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
     "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-    "shared matrix count is four rather than three",
+    "shared matrix packet is no longer an honest four-matrix direct-readback claim",
+    "inventory-backed rather than direct-readback current-head evidence",
     "`scripts/zigux/check-phase11-matrix-gap-survey.py`",
     "`python3 scripts/zigux/check-phase11-matrix-gap-survey.py`",
 ]
 
 SELF_TEST_CASES = [
     (
-        "`PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`",
-        "`PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`",
+        "`PHASE11_MATRIX_GAP_STATUS=direct_readback_matrix_drift_recorded`",
+        "`PHASE11_MATRIX_GAP_STATUS=direct_readback_matrix_drift_recorded`",
     ),
     ("lane: `P11-L05`", "lane: `P11-L05`"),
-    (
-        "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
-        "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
-    ),
-    (
-        "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
-        "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
-    ),
-    (
-        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-        "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-    ),
-    (
-        "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
-        "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-    ),
-    ("four rather\nthan three", "shared matrix count is four rather than three"),
-    (
-        "- `scripts/zigux/check-phase11-matrix-gap-survey.py`\n",
-        "`scripts/zigux/check-phase11-matrix-gap-survey.py`",
-    ),
-    (
-        "- `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`\n",
-        "`python3 scripts/zigux/check-phase11-matrix-gap-survey.py`",
-    ),
 ]
+
+FIXTURE_TEXT = """# Phase 11 Validation Matrix Gap Survey
+
+This note records the roadmap-facing validation-matrix coverage for the current
+Phase 11 simple-driver packet on `master`.
+
+## Status
+
+- `PHASE11_MATRIX_GAP_STATUS=direct_readback_matrix_drift_recorded`
+- lane: `P11-L05`
+- reviewed against live `master`
+- scope: compare the Phase 11 roadmap anchors against the current validation-matrix
+  packet without reopening driver-local implementation, DesignWare
+  platform-registration follow-through, or HVC cleanup-alignment checker repair
+
+## Roadmap Anchor
+
+- Phase 11 still names `drivers/watchdog/gpio_wdt.c`,
+  `drivers/watchdog/bcm2835_wdt.c`, `drivers/watchdog/dw_wdt.c`, and
+  `drivers/tty/hvc/hvc_console.c` as the simple-production-driver anchors.
+- Phase 11 still requires a hardware validation matrix together with teardown or
+  failure-mode parity.
+
+## Current Repo Reality
+
+- `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
+- `Documentation/zigux/phase11-hvc-console-survey.md`
+- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
+- `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+- `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`
+- `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`
+- `scripts/zigux/check-phase11-matrix-gap-survey.py`
+
+Current direct contents reads in this run did not rematerialize
+`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`,
+`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`,
+`Documentation/zigux/phase11-hvc-console-validation-matrix.md`, or
+`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so the shared matrix
+packet is no longer an honest four-matrix direct-readback claim.
+
+The current HVC survey note already keeps the HVC archival packet inventory-backed
+when those direct matrix and companion surfaces do not rematerialize in the same
+readback pass.
+
+## Validation Gate
+
+- `scripts/zigux/check-phase11-matrix-gap-survey.py`
+- `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`
+
+## Gap Survey
+
+- `bcm2835_wdt`: the validation matrix did not rematerialize by current direct
+  contents readback in this run, so keep older bcm2835 matrix claims archival
+  rather than presenting them as live direct-readback evidence.
+- `gpio_wdt`: the validation matrix did not rematerialize by current direct
+  contents readback in this run, so keep the gpio matrix packet inventory-backed
+  until a future reread confirms the file again.
+- `hvc_console`: `Documentation/zigux/phase11-hvc-console-survey.md` already
+  records that direct contents reads did not rematerialize
+  `Documentation/zigux/phase11-hvc-console-validation-matrix.md` or the direct
+  companion packet, so HVC matrix continuity is inventory-backed rather than
+  direct-readback current-head evidence.
+- `dw_wdt`: current continuity notes still keep DesignWare follow-through explicit
+  through `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md` and
+  `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, but the
+  validation matrix itself did not rematerialize by direct contents readback in
+  this run and should not be counted as a live direct-readback matrix until a
+  future reread confirms it again.
+
+## Review Rules
+
+- Treat this survey as current-head matrix truthfulness only, not as proof that
+  the missing matrix files are gone forever or that any driver-local packet has
+  been reopened.
+- Do not claim four live driver-local validation matrices on current `master`
+  while current direct readback still fails to rematerialize those matrix files.
+- If future direct contents reads confirm any Phase 11 matrix again, update this
+  survey and `scripts/zigux/check-phase11-matrix-gap-survey.py` in the same patch
+  so the direct-readback count stays honest.
+"""
 
 
 class CheckError(RuntimeError):
@@ -85,85 +147,7 @@ def write(path: Path, text: str) -> None:
 
 
 def build_fixture(root: Path) -> None:
-    write(
-        root / SURVEY_PATH,
-        """# Phase 11 Validation Matrix Gap Survey
-
-This note records the roadmap-facing validation-matrix coverage for the current
-Phase 11 simple-driver packet on `master`.
-
-## Status
-
-- `PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`
-- lane: `P11-L05`
-- reviewed against live `master`
-- scope: compare the Phase 11 roadmap anchors against the current validation-matrix
-  packet without reopening driver-local implementation, DesignWare
-  platform-registration follow-through, or driver-local provenance cleanup
-
-## Roadmap Anchor
-
-- Phase 11 still names `drivers/watchdog/gpio_wdt.c`,
-  `drivers/watchdog/bcm2835_wdt.c`, `drivers/watchdog/dw_wdt.c`, and
-  `drivers/tty/hvc/hvc_console.c` as the simple-production-driver anchors.
-- Phase 11 still requires a hardware validation matrix together with teardown or
-  failure-mode parity.
-
-## Current Repo Reality
-
-- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
-- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
-- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
-- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
-- `Documentation/zigux/phase11-dw-wdt-survey.md`
-- `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
-- `zigux/tests/phase11_dw_wdt_manifest.json`
-- `zigux/tests/phase11_dw_wdt_survey.zig`
-- `zigux/tests/phase11_build.zig`
-
-Current `master` ships the bounded DesignWare validation-matrix packet beside the
-surviving owner-plan continuity note, so the shared matrix count is four rather
-than three.
-
-## Validation Gate
-
-- `scripts/zigux/check-phase11-matrix-gap-survey.py`
-- `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`
-
-## Gap Survey
-
-- `bcm2835_wdt`: validation matrix present through
-  `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, and the bounded
-  bcm2835 packet still keeps teardown, ownership, lifecycle, and register-model
-  evidence reviewable.
-- `gpio_wdt`: validation matrix present through
-  `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, and the bounded
-  gpio packet still keeps descriptor, drvdata, registration-handoff, and teardown
-  checkpoints reviewable without overclaiming live platform behavior.
-- `hvc_console`: validation matrix present through
-  `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and the bounded
-  archival packet still keeps teardown, sysrq-helper, notifier-edge, and direct
-  companion evidence reviewable without widening into tty or hypervisor
-  execution.
-- `dw_wdt`: validation matrix present through
-  `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and the bounded
-  DesignWare packet now keeps the survey note, teardown note, manifest-backed
-  survey evidence, and shared `phase11_build.zig` replay route reviewable beside
-  the surviving owner-plan continuity packet without overclaiming live
-  platform-registration or MMIO behavior.
-
-## Review Rules
-
-- Treat this survey as shared matrix truthfulness only, not as proof that the
-  DesignWare starter or its next platform-registration step is complete.
-- Claim four live driver-local validation matrices on current `master`, with
-  DesignWare now represented by the landed validation matrix plus the
-  still-separate owner-plan continuity packet.
-- If a future simple-driver matrix is removed or materially reframed, update this
-  survey in the same patch so the roadmap-facing matrix count stays honest.
-""",
-    )
+    write(root / SURVEY_PATH, FIXTURE_TEXT)
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -188,7 +172,7 @@ def run_self_test() -> None:
             shutil.copytree(fixture, case_root, dirs_exist_ok=True)
             survey_path = case_root / SURVEY_PATH
             survey_text = survey_path.read_text(encoding="utf-8")
-            survey_path.write_text(survey_text.replace(needle, ""), encoding="utf-8")
+            survey_path.write_text(survey_text.replace(needle, "", 1), encoding="utf-8")
             expect_failure(case_root, fragment)
 
         missing_file_root = tmpdir / "missing_file"
