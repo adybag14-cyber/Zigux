@@ -29,6 +29,7 @@ UNREGISTERED_GATE_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_unregiste
 TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
 SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
+FAIL_CLOSED_COMPANION_MARKER = "unregistered function-thread failures fail-closed"
 ABSENT_SHARED_LOADER_MARKER = "does not currently expose the broader shared runtime-loader packet"
 ABSENT_PHASE9_BUILD_MARKER = "`zigux/tests/phase9_build.zig`"
 ABSENT_RUNTIME_LOADER_KERNEL_MARKER = "`zigux/kernel/runtime_loader.zig`"
@@ -43,6 +44,11 @@ TESTS_README_BACKLOG_MARKER = (
     "there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, "
     "`make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`"
 )
+
+SEQUENCING_UNREGISTERED_GATE_MARKER = (
+    "surviving fail-closed runtime companion: `samples/zigux/runtime_trace_events_unregistered_gate.zig`"
+)
+TESTS_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
 
 SAMPLE_DESCRIPTOR_MARKER = ".provides_selftest_hook = true"
 SAMPLE_RUN_SELFTEST_MARKER = "pub fn runSelftest(self: *Self) !EmissionSummary {"
@@ -136,14 +142,17 @@ SAMPLE_OUTSTANDING_REGISTRATION_MARKER = "error.OutstandingRegistration"
 UNREGISTERED_GATE_TEST_MARKER = (
     'test "phase9 trace-events sample keeps unregistered function-thread failures fail-closed" {'
 )
-UNREGISTERED_GATE_SUMMARY_STABLE_HELPER_MARKER = (
-    "fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {"
-)
 UNREGISTERED_GATE_INITIALIZED_STAGE_MARKER = (
     "try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);"
 )
 UNREGISTERED_GATE_INITIAL_FN_REJECTION_MARKER = (
     "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));"
+)
+UNREGISTERED_GATE_SUMMARY_STABLE_HELPER_MARKER = (
+    "fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {"
+)
+UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER = (
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);"
 )
 UNREGISTERED_GATE_INITIAL_FAIL_CLOSED_PAIR_MARKER = (
     "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));\n"
@@ -151,9 +160,6 @@ UNREGISTERED_GATE_INITIAL_FAIL_CLOSED_PAIR_MARKER = (
 )
 UNREGISTERED_GATE_INITIAL_SUMMARY_STABLE_MARKER = (
     "try expectSummaryStable(initialized_before, initialized_after);"
-)
-UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);"
 )
 UNREGISTERED_GATE_SELFTEST_RUNS_MARKER = (
     "try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.selftest_runs);"
@@ -176,6 +182,7 @@ SEQUENCING_REQUIRED_MARKERS = [
     TRACE_EVENTS_SAMPLE_MARKER,
     SELFTEST_HOOK_MARKER,
     LIFECYCLE_MARKER,
+    SEQUENCING_UNREGISTERED_GATE_MARKER,
     ABSENT_SHARED_LOADER_MARKER,
     ABSENT_PHASE9_BUILD_MARKER,
     ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
@@ -184,8 +191,10 @@ SEQUENCING_REQUIRED_MARKERS = [
 
 TESTS_README_REQUIRED_MARKERS = [
     TRACE_EVENTS_SAMPLE_MARKER,
+    TESTS_README_UNREGISTERED_GATE_MARKER,
     SELFTEST_HOOK_MARKER,
     LIFECYCLE_MARKER,
+    FAIL_CLOSED_COMPANION_MARKER,
     TESTS_README_BACKLOG_MARKER,
 ]
 
@@ -307,6 +316,7 @@ Current `master` keeps a narrow surviving runtime-pilot packet.
 
 - surviving direct runtime-module sample: {TRACE_EVENTS_SAMPLE_MARKER}
 - surviving runtime-module evidence inside that sample: {SELFTEST_HOOK_MARKER} together with {LIFECYCLE_MARKER}
+- {SEQUENCING_UNREGISTERED_GATE_MARKER}
 
 Current `master` {ABSENT_SHARED_LOADER_MARKER}.
 Fresh repo-first rereads did not find {ABSENT_PHASE9_BUILD_MARKER}, the shared `zigux/tests/runtime_*` replay family, {ABSENT_RUNTIME_LOADER_KERNEL_MARKER}, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, or the older {ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER} on `master`.
@@ -317,7 +327,7 @@ def build_tests_readme_fixture_text() -> str:
     return f"""# zigux/tests
 
 Phase 9 review packet
-  * the surviving trace-events sample still keeps the roadmap-backed runtime pilot shape concrete by exposing {SELFTEST_HOOK_MARKER} together with {LIFECYCLE_MARKER} inside {TRACE_EVENTS_SAMPLE_MARKER}, so reviewers can still inspect one real runtime-module and selftest-hook surface while the broader shared loader packet remains backlog
+  * the surviving trace-events sample still keeps the roadmap-backed runtime pilot shape concrete by exposing {SELFTEST_HOOK_MARKER} together with {LIFECYCLE_MARKER} inside {TRACE_EVENTS_SAMPLE_MARKER}, while {TESTS_README_UNREGISTERED_GATE_MARKER} keeps the same narrow packet's {FAIL_CLOSED_COMPANION_MARKER}, so reviewers can still inspect one real runtime-module and its companion boundary while the broader shared loader packet remains backlog
   * {TESTS_README_BACKLOG_MARKER}
 """
 
@@ -368,6 +378,7 @@ test \"trace-events sample rejects duplicate function-thread registration\" {{
 
 test \"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\" {{
     try std.testing.expectEqual(ModuleStage.cold, module.stage());
+    try std.testing.expectEqual(ModuleStage.cold, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
@@ -381,12 +392,12 @@ test \"trace-events sample keeps selftest replay-summary continuity explicit aft
     try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
     const selftest_complete_summary = module.summary();
     const exited_summary = module.summary();
-    try std.testing.expectEqual(selftest_complete_summary.total_events, exited_summary.total_events);
-    try std.testing.expectEqual(selftest_complete_summary.registration_depth, exited_summary.registration_depth);
     try std.testing.expectEqual(ModuleStage.exited, exited_summary.stage);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+    try std.testing.expectEqual(selftest_complete_summary.total_events, exited_summary.total_events);
+    try std.testing.expectEqual(selftest_complete_summary.registration_depth, exited_summary.registration_depth);
 }}
 
 test \"trace-events sample keeps failed-exit rollback explicit after selftest-ready replay\" {{
