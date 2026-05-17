@@ -154,20 +154,11 @@ SCRIPTS_README_MARKERS = (
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     ".github/workflows/zigux-bootstrap.yml",
     "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
-    "scripts/zigux/check-phase3-selftest-surface.py --self-test",
-    "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
-    "python3 scripts/zigux/validate_phase3_selftest.py --self-test",
-    "python3 scripts/zigux/run-phase3-checks.py --self-test",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/phase3_catalog.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
-    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
-    "scripts/zigux/check-phase3-abi-dump-gate.py",
-    "scripts/zigux/check-phase3-policy-byte-guards.py",
-    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
-    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3.py",
     "still return missing on current `master`",
 )
 
@@ -282,16 +273,6 @@ def run_self_test() -> int:
         ),
         (
             SCRIPTS_README_PATH,
-            "scripts/zigux/check-phase3-selftest-surface.py --self-test",
-            "scripts README",
-        ),
-        (
-            SCRIPTS_README_PATH,
-            "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
-            "scripts README",
-        ),
-        (
-            SCRIPTS_README_PATH,
             "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`",
             "scripts README",
         ),
@@ -300,14 +281,12 @@ def run_self_test() -> int:
             "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
             "scripts README",
         ),
-        (
-            SCRIPTS_README_PATH,
-            "python3 scripts/zigux/run-phase3-checks.py --self-test",
-            "scripts README",
-        ),
         (SCRIPTS_README_PATH, "zigux/helpers/atomic.zig", "scripts README"),
         (SCRIPTS_README_PATH, "zigux/tests/phase3_low_level_wrappers_build.zig", "scripts README"),
-        (SCRIPTS_README_PATH, "scripts/zigux/validate-phase3-export-uapi-survey.py", "scripts README"),
+        (SCRIPTS_README_PATH, "scripts/zigux/check-phase3-catalog-selftest.py", "scripts README"),
+        (SCRIPTS_README_PATH, "scripts/zigux/phase3_catalog.py", "scripts README"),
+        (SCRIPTS_README_PATH, "scripts/zigux/generate-phase3-check-wrappers.py", "scripts README"),
+        (SCRIPTS_README_PATH, "scripts/zigux/validate-phase3.py", "scripts README"),
         (SCRIPTS_README_PATH, "still return missing on current `master`", "scripts README"),
         (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/run-phase3-checks.py")', "selftest driver"),
         (
@@ -340,7 +319,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=25")
+    print(f"PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
 
 
