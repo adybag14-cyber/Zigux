@@ -20,7 +20,7 @@ fn render(buffer: []u8, logical_size: usize, pad: bool, comptime fmt: []const u8
     if (pad and copied < limit) {
         @memset(buffer[copied..limit], ' ');
         buffer[limit] = 0;
-        return limit -| 1;
+        return limit;
     }
 
     buffer[copied] = 0;
@@ -46,9 +46,33 @@ test "scnprintf truncates to buffer minus terminator" {
     try std.testing.expectEqualStrings("zigux:7", buffer[0..written]);
 }
 
-test "scnprintfPad pads the remaining bytes with spaces" {
+test "scnprintfPad reports the visible padded width" {
     var buffer: [9]u8 = undefined;
     const written = scnprintfPad(&buffer, buffer.len - 1, "id={d}", .{7});
-    try std.testing.expectEqual(@as(usize, 7), written);
+    try std.testing.expectEqual(@as(usize, 8), written);
     try std.testing.expectEqualStrings("id=7    ", buffer[0 .. buffer.len - 1]);
+}
+
+test "scnprintfPad handles zero logical size" {
+    var buffer: [4]u8 = .{ 'x', 'x', 'x', 'x' };
+    const written = scnprintfPad(&buffer, 0, "{s}", .{"zigux"});
+    try std.testing.expectEqual(@as(usize, 0), written);
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+}
+
+test "scnprintfPad clamps oversized logical sizes to the buffer" {
+    var buffer: [6]u8 = .{ 'x', 'x', 'x', 'x', 'x', 'x' };
+    const written = scnprintfPad(&buffer, 99, "{s}", .{"ab"});
+    try std.testing.expectEqual(@as(usize, buffer.len - 1), written);
+    try std.testing.expectEqualStrings("ab   ", buffer[0 .. buffer.len - 1]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
+}
+
+test "scnprintfPad truncates long rendered text without padding" {
+    var buffer: [6]u8 = .{ 'x', 'x', 'x', 'x', 'x', 'x' };
+    const written = scnprintfPad(&buffer, 4, "{s}", .{"zigux"});
+    try std.testing.expectEqual(@as(usize, 4), written);
+    try std.testing.expectEqualStrings("zigu", buffer[0..4]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[4]);
+    try std.testing.expectEqual(@as(u8, 'x'), buffer[5]);
 }
