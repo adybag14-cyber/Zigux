@@ -81,3 +81,12 @@ test "kmallocArray returns zeroed memory and updates counters" {
     }
     try std.testing.expect(slabIsAvailable());
 }
+
+test "kmallocArray fail paths keep allocation counters unchanged" {
+    kmalloc_nr_allocated = 0;
+    try std.testing.expect(kmallocArray(4, 2, 0) == null);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    try std.testing.expect(kmallocArray(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
