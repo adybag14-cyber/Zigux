@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import tempfile
 from pathlib import Path
 
@@ -23,6 +24,9 @@ REQUIRED_HELPER_PATHS = [
     CHECKSUM_HELPER_PATH,
     HEXDUMP_HELPER_PATH,
 ]
+
+CATALOG_SURVEYED_HEAD_PATTERN = re.compile(r"^- surveyed head: `([^`]+)`$", re.M)
+MANIFEST_SURVEYED_HEAD_PATTERN = re.compile(r'"surveyed_head": "([^"]+)"')
 
 REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback warning",
@@ -76,7 +80,7 @@ REQUIRED_CATALOG_SNIPPETS = [
 REQUIRED_MANIFEST_SNIPPETS = [
     '"packet": "phase6-helper-evidence"',
     '"phase": "Phase 6"',
-    '"surveyed_head": "840f388"',
+    '"surveyed_head": "',
     '"Documentation/zigux/phase6-helper-evidence-catalog.md"',
     '"lib/base64.zig"',
     '"lib/bsearch.zig"',
@@ -89,7 +93,7 @@ REQUIRED_MANIFEST_SNIPPETS = [
     '"make -C zigux phase6-hexdump-perf"',
 ]
 
-SELF_TEST_CASE_COUNT = 63
+SELF_TEST_CASE_COUNT = 66
 
 
 class ValidationError(RuntimeError):
@@ -103,18 +107,53 @@ def read_text(path: Path) -> str:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
 
-def require_snippets(path: Path, snippets: list[str]) -> None:
+def require_snippets(path: Path, snippets: list[str]) -> str:
     content = read_text(path)
     for snippet in snippets:
         if snippet not in content:
             raise ValidationError(
                 f"missing expected Phase 6 marker in {path.as_posix()}: {snippet}"
             )
+    return content
+
+
+def extract_catalog_surveyed_head(content: str) -> str:
+    match = CATALOG_SURVEYED_HEAD_PATTERN.search(content)
+    if match is None:
+        raise ValidationError(
+            "missing expected Phase 6 marker in "
+            f"{HELPER_EVIDENCE_CATALOG_PATH.as_posix()}: - surveyed head: `<sha>`"
+        )
+    return match.group(1)
+
+
+def extract_manifest_surveyed_head(content: str) -> str:
+    match = MANIFEST_SURVEYED_HEAD_PATTERN.search(content)
+    if match is None:
+        raise ValidationError(
+            "missing expected Phase 6 marker in "
+            f"{HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: \"surveyed_head\": \"<sha>\""
+        )
+    return match.group(1)
 
 
 def validate(repo_root: Path) -> None:
-    require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
-    require_snippets(repo_root / HELPER_EVIDENCE_MANIFEST_PATH, REQUIRED_MANIFEST_SNIPPETS)
+    catalog_content = require_snippets(
+        repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS
+    )
+    manifest_content = require_snippets(
+        repo_root / HELPER_EVIDENCE_MANIFEST_PATH, REQUIRED_MANIFEST_SNIPPETS
+    )
+
+    catalog_head = extract_catalog_surveyed_head(catalog_content)
+    manifest_head = extract_manifest_surveyed_head(manifest_content)
+    if manifest_head != catalog_head:
+        raise ValidationError(
+            "Phase 6 surveyed-head mismatch between "
+            f"{HELPER_EVIDENCE_CATALOG_PATH.as_posix()} ({catalog_head}) and "
+            f"{HELPER_EVIDENCE_MANIFEST_PATH.as_posix()} ({manifest_head})"
+        )
+
     for helper_path in REQUIRED_HELPER_PATHS:
         if not (repo_root / helper_path).is_file():
             raise ValidationError(
@@ -128,14 +167,41 @@ def write(path: Path, content: str) -> None:
 
 
 def scaffold_repo(root: Path) -> None:
-    write(
-        root / HELPER_EVIDENCE_CATALOG_PATH,
-        "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n",
+    catalog_content = "\n".join(
+        [
+            "# Phase 6 Helper Evidence Catalog",
+            "",
+            "- surveyed head: `840f388`",
+            *REQUIRED_CATALOG_SNIPPETS,
+            "",
+        ]
     )
-    write(
-        root / HELPER_EVIDENCE_MANIFEST_PATH,
-        "\n".join(REQUIRED_MANIFEST_SNIPPETS) + "\n",
+    manifest_content = "\n".join(
+        [
+            "{",
+            '  "packet": "phase6-helper-evidence",',
+            '  "phase": "Phase 6",',
+            '  "surveyed_head": "840f388",',
+            '  "current_direct_readback_companions": [',
+            '    "Documentation/zigux/phase6-helper-evidence-catalog.md"',
+            "  ],",
+            '  "roadmap_anchors": ["lib/base64.c"],',
+            '  "helpers": ["lib/base64.zig", "lib/bsearch.zig", "lib/checksum.zig", "lib/hexdump.zig"],',
+            '  "current_repo_reality_gaps": [',
+            '    "Documentation/zigux/phase6-helper-parity-catalog.md",',
+            '    "Documentation/zigux/phase6-perf-gate-survey.md",',
+            '    "zigux/tests/phase6_helper_parity_manifest.json"',
+            "  ],",
+            '  "last_known_shared_replay_inventory": [',
+            '    "make -C zigux phase6-base64-perf",',
+            '    "make -C zigux phase6-hexdump-perf"',
+            "  ]",
+            "}",
+            "",
+        ]
     )
+    write(root / HELPER_EVIDENCE_CATALOG_PATH, catalog_content)
+    write(root / HELPER_EVIDENCE_MANIFEST_PATH, manifest_content)
     for helper_path in REQUIRED_HELPER_PATHS:
         write(root / helper_path, "// stub\n")
 
@@ -163,64 +229,33 @@ def run_self_test() -> None:
         catalog_path = root / HELPER_EVIDENCE_CATALOG_PATH
         manifest_path = root / HELPER_EVIDENCE_MANIFEST_PATH
 
-        for snippet in [
-            "## Current direct-readback warning",
-            "- `Documentation/zigux/phase6-helper-parity-catalog.md`",
-            "- `Documentation/zigux/phase6-perf-gate-survey.md`",
-            "- `zigux/tests/phase6_build.zig`",
-            "- `zigux/tests/phase6_helper_parity_manifest.json`",
-            "- `zigux/tests/phase6_base64.zig`",
-            "- `zigux/tests/phase6_bsearch.zig`",
-            "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
-            "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
-            "- `zigux/tests/phase6_checksum.zig`",
-            "- `zigux/tests/phase6_hexdump.zig`",
-            "- `scripts/zigux/check-phase6-base64-c-parity.py`",
-            "- `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
-            "- `scripts/zigux/check-phase6-checksum-c-parity.py`",
-            "- `scripts/zigux/check-phase6-hexdump-packet.py`",
-            "Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again.",
-            "### base64",
-            "### bsearch",
-            "### checksum",
-            "### hexdump",
-            "- Zig helper: `lib/base64.zig`",
-            "- Zig helper: `lib/bsearch.zig`",
-            "- Zig helper: `lib/checksum.zig`",
-            "- Zig helper: `lib/hexdump.zig`",
-            "- shared machine-readable manifest: `zigux/tests/phase6_helper_evidence_manifest.json`",
-            "- direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
-            "- direct corpus evidence checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
-            "- direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
-            "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`",
-            "- current review posture: the roadmap-backed base64 packet remains the intended bounded helper surface, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
-            "- current review posture: the roadmap-backed bsearch packet still names the right parity and comparison-budget surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replays and corpus checker again",
-            "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
-            "- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, checker, and perf companions again",
-            "## Last-known shared replay inventory",
-            "- `python3 scripts/zigux/check-phase6-base64-c-parity.py`",
-            "- `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
-            "- `make -C zigux phase6-base64-perf`",
-            "- `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
-            "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
-            "- `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`",
-            "- `make -C zigux phase6-checksum-perf`",
-            "- `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
-            "- `make -C zigux phase6-bsearch-test`",
-            "- `make -C zigux phase6-hexdump-review`",
-            "- `make -C zigux phase6-hexdump-test`",
-            "- `make -C zigux phase6-hexdump-perf`",
-        ]:
+        for snippet in REQUIRED_CATALOG_SNIPPETS:
             write(catalog_path, read_text(catalog_path).replace(snippet + "\n", "", 1))
             expect_failure(root, snippet)
             cases_run += 1
             scaffold_repo(root)
 
+        write(
+            catalog_path,
+            read_text(catalog_path).replace('- surveyed head: `840f388`\n', "", 1),
+        )
+        expect_failure(root, "- surveyed head: `<sha>`")
+        cases_run += 1
+        scaffold_repo(root)
+
         for snippet in REQUIRED_MANIFEST_SNIPPETS:
-            write(manifest_path, read_text(manifest_path).replace(snippet + "\n", "", 1))
+            write(manifest_path, read_text(manifest_path).replace(snippet, "", 1))
             expect_failure(root, snippet)
             cases_run += 1
             scaffold_repo(root)
+
+        write(
+            manifest_path,
+            read_text(manifest_path).replace('"surveyed_head": "840f388"', '"surveyed_head": "deadbee"'),
+        )
+        expect_failure(root, "Phase 6 surveyed-head mismatch")
+        cases_run += 1
+        scaffold_repo(root)
 
         (root / HELPER_EVIDENCE_MANIFEST_PATH).unlink()
         expect_failure(root, HELPER_EVIDENCE_MANIFEST_PATH.as_posix())
