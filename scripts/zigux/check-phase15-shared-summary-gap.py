@@ -5,24 +5,14 @@ import argparse
 import tempfile
 from pathlib import Path
 
-DOCS_README_PATH = Path("Documentation/zigux/README.md")
-TESTS_README_PATH = Path("zigux/tests/README.md")
 GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 
-DOCS_README_OVERCLAIM_MARKERS = (
-    "`Documentation/zigux/phase15-architecture-council-review-process.md`",
-    "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
-    "`scripts/zigux/validate-phase15.py`",
-    "`zigux/tests/phase15_build.zig`",
-)
-
-MISSING_PATHS = (
+MATERIALIZED_PATHS = (
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
@@ -33,31 +23,29 @@ MISSING_PATHS = (
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
 )
 
-REQUIRED_PRESENT_PATHS = (
-    "scripts/zigux/check-phase15-docs-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
-    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-    "zigux/tests/phase15_readiness_gate_manifest.json",
-)
-
 REQUIRED_NOTE_MARKERS = (
     "`Documentation/zigux/README.md`",
+    "`Documentation/zigux/review-checklist.md`",
+    "`scripts/zigux/README.md`",
     "`zigux/tests/README.md`",
     "`Documentation/zigux/phase15-freeze-map-governance.md`",
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
-    "`zigux/tests/phase15_readiness_gate_manifest.json`",
-    "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
+    "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+    "`zigux/tests/phase15_readiness_gate_manifest.json`",
     "`scripts/zigux/validate-phase15.py`",
-    "`zigux/tests/phase15_build.zig`",
 )
 
-TESTS_README_PHASE15_MARKER = "Phase 15 review packet"
-HANDOFF_NOTE_MARKER = "PHASE15_STATUS=handoff_next_steps_survey_landed"
+STALE_TEXT_MARKERS = (
+    "The current shared-summary drift is anchored to these still-missing paths:",
+    "previously treated as missing",
+)
+
+HANDOFF_STATUS_MARKER = "PHASE15_STATUS=handoff_next_steps_survey_landed"
 
 
 def _read_text(path: Path) -> str:
@@ -67,47 +55,27 @@ def _read_text(path: Path) -> str:
         raise RuntimeError(f"missing file: {path}") from exc
 
 
-def collect_gap_failures(root: Path) -> list[str]:
-    docs_readme = _read_text(root / DOCS_README_PATH)
-    tests_readme = _read_text(root / TESTS_README_PATH)
+def collect_failures(root: Path) -> list[str]:
     gap_note = _read_text(root / GAP_NOTE_PATH)
     handoff_note = _read_text(root / HANDOFF_NOTE_PATH)
-
     failures: list[str] = []
 
-    for marker in DOCS_README_OVERCLAIM_MARKERS:
-        if marker not in docs_readme:
-            failures.append(
-                "docs-root Phase 15 overclaim marker disappeared and the gap note needs refresh: "
-                + marker
-            )
-
-    if TESTS_README_PHASE15_MARKER in tests_readme:
-        failures.append(
-            "tests-root Phase 15 packet marker now exists, so the shared-summary gap note must be narrowed: "
-            + TESTS_README_PHASE15_MARKER
-        )
-
-    for relative_path in MISSING_PATHS:
-        if (root / relative_path).exists():
-            failures.append(
-                f"previously missing Phase 15 path now exists and the gap note must be refreshed: {relative_path}"
-            )
-
-    for relative_path in REQUIRED_PRESENT_PATHS:
-        if not (root / relative_path).exists():
-            failures.append(
-                f"expected landed Phase 15 path is missing and the gap note is overstating current master: {relative_path}"
-            )
+    for rel in MATERIALIZED_PATHS:
+        if not (root / rel).exists():
+            failures.append(f"expected materialized Phase 15 path missing: {rel}")
+        if f"`{rel}`" not in gap_note:
+            failures.append(f"gap note missing materialized path marker: `{rel}`")
 
     for marker in REQUIRED_NOTE_MARKERS:
         if marker not in gap_note:
-            failures.append(f"gap note is missing required marker: {marker}")
+            failures.append(f"gap note missing required marker: {marker}")
 
-    if HANDOFF_NOTE_MARKER not in handoff_note:
-        failures.append(
-            "handoff note is missing the landed status marker: " + HANDOFF_NOTE_MARKER
-        )
+    for marker in STALE_TEXT_MARKERS:
+        if marker in gap_note:
+            failures.append(f"gap note still carries stale missing-path wording: {marker}")
+
+    if HANDOFF_STATUS_MARKER not in handoff_note:
+        failures.append(f"handoff note missing landed status marker: {HANDOFF_STATUS_MARKER}")
 
     return failures
 
@@ -117,115 +85,83 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def _sample_docs_readme() -> str:
-    return """# Zigux Documentation
-
-Phase 15 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-freeze-map-governance.md` - `Documentation/zigux/phase15-architecture-council-review-process.md` - `Documentation/zigux/phase15-parity-scorecard-survey.md` - `Documentation/zigux/phase15-parity-scorecard.md` - `Documentation/zigux/phase15-indefinite-c-policy.md` - `Documentation/zigux/phase15-readiness-gate-survey.md` - `Documentation/zigux/phase15-handoff-next-steps-survey.md` - `Documentation/zigux/phase15-governance-lane-sequencing.md` - `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`
-"""
-
-
-def _sample_tests_readme() -> str:
-    return """# zigux/tests
-
-Phase 13 review packet
-  * `Documentation/zigux/phase13-contributor-workflow-guide.md`
-"""
-
-
 def _sample_gap_note() -> str:
-    return """# Phase 15 Shared Summary Gap
+    materialized = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_PATHS)
+    required = "\n".join(f"- {marker}" for marker in REQUIRED_NOTE_MARKERS)
+    return f"""# Phase 15 Shared Summary Gap
 
-`Documentation/zigux/README.md`
-`zigux/tests/README.md`
-`Documentation/zigux/phase15-freeze-map-governance.md`
-`Documentation/zigux/phase15-parity-scorecard.md`
-`Documentation/zigux/phase15-study-only-anchor-accounting.md`
-`Documentation/zigux/phase15-handoff-next-steps-survey.md`
-`scripts/zigux/check-phase15-docs-readme-alignment.py`
-`zigux/tests/phase15_readiness_gate_manifest.json`
-`zigux/tests/phase15_architecture_council_review_process_manifest.json`
-`scripts/zigux/check-phase15-review-process-handoff.py`
-`scripts/zigux/check-phase15-shared-summary-gap.py`
-`scripts/zigux/validate-phase15.py`
-`zigux/tests/phase15_build.zig`
+## Materialized Phase 15 governance assets
+
+{materialized}
+
+## Current shared-summary watchpoints
+
+{required}
 """
 
 
 def _sample_handoff_note() -> str:
-    return """# Phase 15 Handoff Next Steps Survey
-
-PHASE15_STATUS=handoff_next_steps_survey_landed
-"""
+    return "# Phase 15 Handoff Next Steps Survey\n\nPHASE15_STATUS=handoff_next_steps_survey_landed\n"
 
 
-def _seed_missing_layout(root: Path) -> None:
-    _write(root / DOCS_README_PATH, _sample_docs_readme())
-    _write(root / TESTS_README_PATH, _sample_tests_readme())
+def _seed_repo(root: Path) -> None:
     _write(root / GAP_NOTE_PATH, _sample_gap_note())
     _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-    _write(root / "Documentation/zigux/phase15-freeze-map-governance.md", "freeze-map packet\n")
-    _write(root / "Documentation/zigux/phase15-parity-scorecard.md", "scorecard packet\n")
-    _write(root / "Documentation/zigux/phase15-study-only-anchor-accounting.md", "study-only packet\n")
-    _write(root / "scripts/zigux/check-phase15-docs-readme-alignment.py", "#!/usr/bin/env python3\n")
-    _write(root / "scripts/zigux/check-phase15-review-process-handoff.py", "#!/usr/bin/env python3\n")
-    _write(root / "zigux/tests/phase15_architecture_council_review_process_manifest.json", "{}\n")
-    _write(root / "zigux/tests/phase15_readiness_gate_manifest.json", "{}\n")
+    for rel in MATERIALIZED_PATHS:
+        _write(root / rel, "present\n")
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        _seed_missing_layout(root)
-        if collect_gap_failures(root):
-            raise AssertionError("baseline missing-layout fixture should pass")
+    with tempfile.TemporaryDirectory(prefix="zigux_phase15_shared_gap_") as tmp_dir:
+        root = Path(tmp_dir)
+        _seed_repo(root)
+        failures = collect_failures(root)
+        if failures:
+            raise AssertionError(f"baseline fixture should pass: {failures}")
 
-        materialized_root = root / "materialized"
-        _seed_missing_layout(materialized_root)
-        _write(materialized_root / "zigux/tests/phase15_build.zig", "test {}\n")
-        failures = collect_gap_failures(materialized_root)
-        if len(failures) != 1 or "zigux/tests/phase15_build.zig" not in failures[0]:
-            raise AssertionError(f"materialized-path failure missing expected marker: {failures}")
-
-        tests_root = root / "tests-root"
-        _seed_missing_layout(tests_root)
-        _write(tests_root / TESTS_README_PATH, "# zigux/tests\n\nPhase 15 review packet\n")
-        failures = collect_gap_failures(tests_root)
-        if len(failures) != 1 or TESTS_README_PHASE15_MARKER not in failures[0]:
-            raise AssertionError(f"tests-root failure missing expected marker: {failures}")
+        missing_root = root / "missing"
+        _seed_repo(missing_root)
+        (missing_root / MATERIALIZED_PATHS[0]).unlink()
+        failures = collect_failures(missing_root)
+        if failures != [f"expected materialized Phase 15 path missing: {MATERIALIZED_PATHS[0]}"]:
+            raise AssertionError(f"unexpected missing-path failure: {failures}")
 
         note_root = root / "note"
-        _seed_missing_layout(note_root)
+        _seed_repo(note_root)
         _write(
             note_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace("`zigux/tests/phase15_build.zig`\n", ""),
+            _sample_gap_note().replace(f"- `{MATERIALIZED_PATHS[1]}`\n", "", 1),
         )
-        failures = collect_gap_failures(note_root)
-        if len(failures) != 1 or "`zigux/tests/phase15_build.zig`" not in failures[0]:
-            raise AssertionError(f"gap-note marker failure missing expected marker: {failures}")
+        failures = collect_failures(note_root)
+        expected = [f"gap note missing materialized path marker: `{MATERIALIZED_PATHS[1]}`"]
+        if failures != expected:
+            raise AssertionError(f"unexpected note-marker failure: {failures}")
 
-        present_root = root / "present"
-        _seed_missing_layout(present_root)
-        (present_root / "scripts/zigux/check-phase15-review-process-handoff.py").unlink()
-        failures = collect_gap_failures(present_root)
-        if len(failures) != 1 or "expected landed Phase 15 path is missing" not in failures[0]:
-            raise AssertionError(f"present-path failure missing expected marker: {failures}")
+        stale_root = root / "stale"
+        _seed_repo(stale_root)
+        _write(stale_root / GAP_NOTE_PATH, _sample_gap_note() + "\nThe current shared-summary drift is anchored to these still-missing paths:\n")
+        failures = collect_failures(stale_root)
+        expected = [
+            "gap note still carries stale missing-path wording: The current shared-summary drift is anchored to these still-missing paths:"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected stale-wording failure: {failures}")
 
         handoff_root = root / "handoff"
-        _seed_missing_layout(handoff_root)
+        _seed_repo(handoff_root)
         _write(handoff_root / HANDOFF_NOTE_PATH, "# Phase 15 Handoff Next Steps Survey\n")
-        failures = collect_gap_failures(handoff_root)
-        if len(failures) != 1 or HANDOFF_NOTE_MARKER not in failures[0]:
-            raise AssertionError(f"handoff-note marker failure missing expected marker: {failures}")
+        failures = collect_failures(handoff_root)
+        expected = [f"handoff note missing landed status marker: {HANDOFF_STATUS_MARKER}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected handoff failure: {failures}")
 
+    print("PHASE15_SHARED_SUMMARY_GAP_SELF_TEST=pass")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description=(
-            "Verify that the Phase 15 shared-summary gap note still matches the current docs-root, "
-            "tests-root, handoff-note, and repo-reality drift."
-        )
+        description="Verify that the Phase 15 shared-summary gap note matches the materialized governance packet."
     )
     parser.add_argument(
         "--root",
@@ -233,18 +169,14 @@ def main() -> int:
         default=Path.cwd(),
         help="repository root containing Documentation/zigux, scripts/zigux, and zigux/tests",
     )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="exercise the checker against synthetic repo layouts",
-    )
+    parser.add_argument("--self-test", action="store_true", help="run the built-in synthetic self-test")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
     try:
-        failures = collect_gap_failures(args.root)
+        failures = collect_failures(args.root)
     except RuntimeError as exc:
         print(f"ERROR: {exc}")
         return 1
