@@ -2,48 +2,42 @@
 
 ## Scope
 
-This note records the current Phase 13 notifier or `list_head` summary drift that still shows up in broad reminder surfaces on `master`.
+This note records the current Phase 13 notifier or `list_head` summary drift that still shows up in adjacent notifier-facing survey material on `master`.
 
 It stays inside the adjacent read-only notifier packet. It does not reopen callback execution, registration, SRCU, blocking-notifier semantics, or a broader shared-helper replay claim.
 
 ## Current Drift
 
-Fresh current-`master` reads still return missing for these notifier-facing packet files:
+Public current-`master` readback now materializes these adjacent notifier or list surfaces:
 
 - `Documentation/zigux/phase13-notifier-list-survey.md`
-- `zigux/tests/phase13_notifier_list_manifest.json`
-- `zigux/tests/phase13_notifier_list_reviewability.zig`
-- `zigux/tests/phase13_build.zig`
+- `zigux/bindings/notifier_abi.zig`
+- `zigux/helpers/notifier_chain_view.zig`
+- `zigux/helpers/list_view.zig`
+- `zigux/helpers/hlist_view.zig`
+- `include/zigux/abi.h`
+- `drivers/tty/hvc/hvc_console.h`
 
-The shipped broad reminder surfaces in:
+That means the stale drift is no longer the broad reminder packet. The remaining same-lane truthfulness gap is narrower: `Documentation/zigux/phase13-notifier-list-survey.md` still treats `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` as repo-reality gaps even though current `master` now materializes both helper-local list surfaces.
 
-- `Documentation/zigux/phase13-contributor-workflow-guide.md`
-- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
-- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
-- `scripts/zigux/README.md`
-- `zigux/tests/README.md`
-
-already keep those missing notifier companions framed as repo-reality gaps.
-
-That means there is no remaining broad-summary undercount for the notifier survey note, manifest, reviewability, or shared-build footholds on current `master`. The stale claim was this note itself: it still named the missing `Documentation/zigux/phase13-notifier-list-survey.md` file as if it were one of the broad reminder surfaces already carrying the gap wording.
+Broad Phase 13 reminder work should keep those list-facing helpers framed as adjacent notifier or list evidence instead of repeating the older missing-helper wording.
 
 ## Still-Missing Surfaces
 
-This note does not claim a broader list bridge has landed. These direct companions should remain treated as gaps unless a future same-lane reread proves otherwise:
+This note still does not claim a broader list bridge or a closed notifier packet. These direct companions should remain treated as gaps unless a future same-lane reread proves otherwise:
 
-- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
-- `zigux/tests/phase13_build.zig`
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `include/zigux/notifier_abi.h`
-- `zigux/helpers/list_view.zig`
-- `zigux/helpers/hlist_view.zig`
+- `zigux/tests/phase13_build.zig`
 
 ## Why It Matters
 
-Phase 13 in the roadmap is still the shared-helper tranche around bounded helper layers. The notifier packet remains adjacent evidence only, so broad reminder surfaces should stay honest about what is still absent instead of being pushed to count missing notifier files as landed evidence.
+Phase 13 in the roadmap is still the shared-helper tranche around the `libfs`, `devres`, and Landlock anchors. The notifier or list packet remains adjacent evidence only, so the adjacent gap note should stay truthful about which list-facing helper surfaces now exist and which direct companions are still missing.
 
 ## Next Bounded Step
 
-Leave the current broad reminder wording parked unless a fresh same-lane reread finds a different shared-surface drift or current `master` rematerializes one of the missing notifier companions above.
+Leave the broader shared reminder packet parked unless a fresh same-lane reread finds another notifier-facing drift.
+
+If the same notifier or list family needs follow-through again, refresh `Documentation/zigux/phase13-notifier-list-survey.md` so it stops treating `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` as repo-reality gaps, then let the broader shared-summary lanes decide whether any contributor-facing reminder wording needs to move with it.
