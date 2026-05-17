@@ -38,9 +38,10 @@ Treat those paths as active repo-reality gaps on current `master`, not as shippe
 
 ## Shared reminder contract
 
-- `scripts/zigux/README.md` should match the same present-versus-gap inventory tracked here, including `scripts/zigux/kconfig/confdata_bridge.zig` as a present anchor and the still-missing closure-side, cross-matrix, toolchain-helper, genksyms, and make-route surfaces as repo-reality gaps.
+- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` should match the same present-versus-gap inventory tracked here, including `scripts/zigux/kconfig/confdata_bridge.zig` as a present anchor and the still-missing closure-side, cross-matrix, toolchain-helper, genksyms, and make-route surfaces as repo-reality gaps.
 - Keep the scripts-root reminder aligned with the live kconfig bridge packet and the surviving alignment guards instead of reintroducing the older closure-side validator stack before those direct paths return on `master`.
+- `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` still need that same narrowing pass before Lane 25 is fully closed, so treat those two shared reminder surfaces as remaining same-lane drift instead of proof that the older closure-side, cross-matrix, or make-route packet has returned on `master`.
 
 ## Lane 25 boundary
 
-Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth until the separate closure, cross-target, tool-restoration, and scripts-root README follow-ups land.
+Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth, including the still-pending docs-root and review-checklist narrowing pass, until the separate closure, cross-target, and tool-restoration lanes land.
