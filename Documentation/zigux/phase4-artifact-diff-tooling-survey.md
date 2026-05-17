@@ -11,6 +11,7 @@
     * `scripts/zigux/check-phase4-repo-reality-warning.py`
     * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
     * `scripts/zigux/check-phase4-artifact-diff-determinism.py`
+    * `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`
   * authenticated contents reads on current `master` still return missing for these historical artifact-diff companions:
     * `Documentation/zigux/artifact-diff.md`
     * `scripts/zigux/artifact_diff.py`
@@ -25,6 +26,7 @@ Current `master` no longer offers direct current-head readback for the older art
   * `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` now keep the same repo-reality-warning posture explicit, including the host-side artifact-diff references that still matter for Phase 4 review.
   * `scripts/zigux/check-phase4-repo-reality-warning.py` fail-closes on that shared warning packet so future reruns must narrow the warning if the broader Phase 4 packet returns.
   * `scripts/zigux/check-phase4-artifact-diff-determinism.py` remains directly readable, but it now guards the historical-provenance handoff instead of proving that the old helper, contract, review-note, and validator files are all currently present on `master`.
+  * `scripts/zigux/check-phase4-artifact-diff-validator-replays.py` is also directly readable and now fails closed with an explicit missing-target error while `scripts/zigux/validate-phase4.py` remains absent, so the last-known validator replay markers stay reviewable without pretending that the historical validator packet has already returned on current `master`.
 ## Historical Catalog Provenance
 
 The last directly readable artifact-diff catalog packet recorded these counts and catalogs:
@@ -41,12 +43,12 @@ Treat those counts as last-known catalog provenance only. They are useful for la
 
 The real same-lane drift was in this survey itself.
 
-The previous version still claimed `PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=roadmap_gap_closed_on_current_master` and described `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/validate-phase4.py`, and `Documentation/zigux/artifact-diff.md` as present current-repo surfaces. Current direct readback no longer supports that claim. The truthful current-head posture is narrower: Phase 4 still remembers the artifact-diff packet through directly readable repo-reality-warning surfaces, but the broader helper-plus-contract packet is historical provenance until a same-family lane republishes it.
+The previous version still claimed `PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=roadmap_gap_closed_on_current_master` and described `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/validate-phase4.py`, and `Documentation/zigux/artifact-diff.md` as present current-repo surfaces. Current direct readback no longer supports that claim. The truthful current-head posture is narrower: Phase 4 still remembers the artifact-diff packet through directly readable repo-reality-warning surfaces, and the validator-replay checker now reports the missing historical validator target clearly, but the broader helper-plus-contract packet is historical provenance until a same-family lane republishes it.
 ## Next Safe Step
-  * if a future same-family lane republishes `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `Documentation/zigux/artifact-diff.md`, or `scripts/zigux/validate-phase4.py`, re-read the exact current packet first and then promote the last-known catalog counts back to current-head evidence in the same change
+  * if a future same-family lane republishes `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `Documentation/zigux/artifact-diff.md`, or `scripts/zigux/validate-phase4.py`, re-read the exact current packet first, rerun `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py`, and then promote the last-known catalog counts back to current-head evidence in the same change
   * until then, keep follow-up scoped to one reminder-surface or checker repair at a time and do not widen this lane into broader Phase 4 validator, matrix, local-only perf, bitmap, atomic64, kprobe, or `test_fsmount` work
 ## Owner And Rollback Reminder
-  * `Tooling and Validation Team` still owns the shared Phase 4 reminder packet, including the host-side artifact-diff references, repo-reality warning, and historical-provenance wording
+  * `Tooling and Validation Team` still owns the shared Phase 4 reminder packet, including the host-side artifact-diff references, repo-reality warning, historical-provenance wording, and the directly readable validator-replay checker
   * this survey is now a catalog-truthfulness reminder only; it does not claim that the broader helper, validator, or workflow-backed artifact-diff packet is directly readable on current `master`
 ## Direct Replay Surface
 
@@ -54,6 +56,10 @@ Current directly readable replay and warning surfaces in this run were:
   * `python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test`
   * `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`
   * `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py`
+  * `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test`
+
+The direct validator replay command should fail closed until `scripts/zigux/validate-phase4.py` returns on current `master`:
+  * `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py`
 
 Historical artifact-diff replay names remain part of the last-known packet only until those files return on current `master`:
   * `python3 scripts/zigux/artifact_diff.py --self-test`
