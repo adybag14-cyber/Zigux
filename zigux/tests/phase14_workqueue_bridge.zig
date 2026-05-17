@@ -9,7 +9,7 @@ fn expectContains(haystack: []const []const u8, needle: []const u8) !void {
 }
 
 test "phase14 workqueue bridge keeps lane metadata anchored to the bounded study surface" {
-    try std.testing.expectEqualStrings("P14-L03", bridge.lane_key);
+    try std.testing.expectEqualStrings("P14-L04", bridge.lane_key);
     try std.testing.expectEqualStrings("Phase 14", bridge.phase);
     try std.testing.expectEqualStrings("kernel/workqueue.c", bridge.anchor);
     try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", bridge.recommended_destination);
