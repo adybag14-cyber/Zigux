@@ -39,13 +39,14 @@ Fresh repo-first inspection in this run confirmed that current `master` still ke
 
 ## Current sample-root reality
 
-Current `samples/zigux/README.md` says the sample root directly exposes only:
+Current `samples/zigux/README.md` says the sample root directly exposes:
 
 - `samples/zigux/README.md`
 - `samples/zigux/runtime_trace_events.zig`
 - `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+- `samples/zigux/trace_events_string_formatting_sample.zig`
 
-So the non-runtime Phase 5 sample-root ports are not current direct sample-root evidence on `master`.
+So the four roadmap-backed non-runtime Phase 5 sample-root ports are still not current direct sample-root evidence on `master`, even though the bounded trace-events formatting companion is now directly readable there.
 Treat the four roadmap-backed anchors as approved targets and reminder surfaces until a fresh reread proves those sample-root files have returned.
 
 ## Tracing and probe packet
@@ -92,7 +93,7 @@ Keep the no-extra-sample helper-family boundaries explicit too:
 - there is no standalone `samples/zigux/*argv*` Phase 5 reference sample on current `master`
 - there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`
 - there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample on current `master`
-- there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample on current `master`; keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
+- there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample on current `master`; keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion
 
 ## Next-step posture
 
