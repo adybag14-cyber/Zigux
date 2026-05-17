@@ -68,7 +68,7 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 46
+EXPECTED_SELF_TEST_CASE_COUNT = 47
 
 
 def read_text(path: Path) -> str:
@@ -345,6 +345,15 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert any(issue[0] == expected_code for issue in issues)
             checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, POLICY_PATH)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"] = "broken"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_UPGRADE_POLICY", "str") in issues
+        checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, POLICY_PATH)
