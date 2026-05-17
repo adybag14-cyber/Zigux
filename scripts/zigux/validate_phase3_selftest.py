@@ -15,6 +15,7 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-policy-starter-packet.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"), ("--self-test",)),
+    (Path("scripts/zigux/run-phase3-checks.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-validator-support-surface.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-selftest-surface.py"), ("--self-test",)),
 )
@@ -61,7 +62,7 @@ def run_self_test() -> int:
             path = root / rel_path
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(
-                "#!/usr/bin/env python3\n" "raise SystemExit(0)\n",
+                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
                 encoding="utf-8",
             )
         if validate_script_list(root):
@@ -82,7 +83,24 @@ def run_self_test() -> int:
             path = root / rel_path
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(
-                "#!/usr/bin/env python3\n" "raise SystemExit(0)\n",
+                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
+                encoding="utf-8",
+            )
+
+        runner_path = SELFTEST_COMMANDS[4][0]
+        (root / runner_path).unlink()
+        missing = validate_script_list(root)
+        expected = f"missing selftest script: {runner_path.as_posix()}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected runner omission was not reported")
+            return 1
+
+        for rel_path, _args in SELFTEST_COMMANDS:
+            path = root / rel_path
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
                 encoding="utf-8",
             )
 
@@ -99,7 +117,7 @@ def run_self_test() -> int:
             path = root / rel_path
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(
-                "#!/usr/bin/env python3\n" "raise SystemExit(0)\n",
+                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
                 encoding="utf-8",
             )
 
@@ -115,7 +133,7 @@ def run_self_test() -> int:
         path = root / last_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
-            "#!/usr/bin/env python3\n" "raise SystemExit(0)\n",
+            "#!/usr/bin/env python3\nraise SystemExit(0)\n",
             encoding="utf-8",
         )
 
@@ -135,7 +153,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
-        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=5")
+        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=6")
         return 0
 
 
