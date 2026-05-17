@@ -28,33 +28,30 @@ REQUIRED_MARKERS = [
     "`scripts/zigux/check-phase11-build-inventory.py`",
     "shared matrix packet is once again an honest four-matrix direct-readback claim",
     "is not one of the four driver-local Phase 11 matrices restored by current direct readback",
-    "`zigux/tests/fixtures/phase11_build_inventory.json` still records 14 build test",
-    "13 shared depend steps, and one dedicated survey replay",
-    "`phase11-bcm2835-wdt-tests`",
-    "`phase11-gpio-wdt-tests`",
+    "`zigux/tests/fixtures/phase11_build_inventory.json` now records the narrower current-head HVC continuity packet",
+    "4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays",
+    "shared build inventory no longer stands in for a whole-Phase-11 replay roster",
+    "the shared build inventory has narrowed away from the older bcm2835 replay roster",
+    "the shared build inventory has narrowed away from the older gpio replay roster",
     "`phase11-hvc-console-tests`",
-    "`phase11-dw-wdt-tests`",
+    "`phase11-hvc-console-verify-tests`",
+    "`phase11-hvc-cleanup-tests`",
+    "`phase11-hvc-console-survey-tests`",
+    "the shared build inventory has narrowed away from the older DesignWare replay roster",
 ]
 
 FORBIDDEN_MARKERS = [
     "`PHASE11_MATRIX_GAP_STATUS=driver_local_matrix_docs_absent_shared_header_matrix_only`",
     "shared matrix packet is no longer an honest four-matrix direct-readback claim",
     "The only directly readable Phase 11 matrix note on current `master` is",
+    "`zigux/tests/fixtures/phase11_build_inventory.json` still records 14 build test",
+    "13 shared depend steps, and one dedicated survey replay",
 ]
 
 FIXTURE_TEXT = """# Phase 11 Validation Matrix Gap Survey
 
-This note records the roadmap-facing validation-matrix coverage for the current
-Phase 11 simple-driver packet on `master`.
-
-## Status
-
 - `PHASE11_MATRIX_GAP_STATUS=four_matrix_direct_readback_restored`
 - lane: `P11-L03`
-- reviewed against live `master`
-
-## Current Repo Reality
-
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
@@ -62,34 +59,22 @@ Phase 11 simple-driver packet on `master`.
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
-- `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
-- `scripts/zigux/check-phase11-build-inventory.py`
-
-Current direct contents reads in this run do rematerialize the four
-driver-local matrix notes, so the shared matrix packet is once again an honest
-four-matrix direct-readback claim.
-
-`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` is not
-one of the four driver-local Phase 11 matrices restored by current direct
-readback.
-
-`zigux/tests/fixtures/phase11_build_inventory.json` still records 14 build test
-names, 13 shared depend steps, and one dedicated survey replay.
-
-## Matrix Survey
-
-- `bcm2835_wdt`: `phase11-bcm2835-wdt-tests`
-- `gpio_wdt`: `phase11-gpio-wdt-tests`
-- `hvc_console`: `phase11-hvc-console-tests`
-- `dw_wdt`: `phase11-dw-wdt-tests`
-
-## Validation Gate
-
-- `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- shared matrix packet is once again an honest four-matrix direct-readback claim
+- `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` is not one of the four driver-local Phase 11 matrices restored by current direct readback
+- `zigux/tests/fixtures/phase11_build_inventory.json` now records the narrower current-head HVC continuity packet
+- 4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays
+- the shared build inventory no longer stands in for a whole-Phase-11 replay roster
+- the shared build inventory has narrowed away from the older bcm2835 replay roster
+- the shared build inventory has narrowed away from the older gpio replay roster
+- `phase11-hvc-console-tests`
+- `phase11-hvc-console-verify-tests`
+- `phase11-hvc-cleanup-tests`
+- `phase11-hvc-console-survey-tests`
+- the shared build inventory has narrowed away from the older DesignWare replay roster
 """
 
 
