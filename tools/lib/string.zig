@@ -418,6 +418,28 @@ test "strscpy_pad mirrors strscpyPad padding semantics" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 0, 0, 0 }, &padded);
 }
 
+test "strscpy and strscpyPad keep one-byte destinations terminated" {
+    var strscpy_empty = [_]u8{0xaa};
+    try std.testing.expectEqual(@as(isize, 0), strscpy(&strscpy_empty, ""));
+    try std.testing.expectEqualSlices(u8, &[_]u8{0}, &strscpy_empty);
+
+    var strscpy_truncated = [_]u8{0xaa};
+    try std.testing.expectEqual(strscpy_e2big, strscpy(&strscpy_truncated, "x"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{0}, &strscpy_truncated);
+
+    var strscpy_pad_empty = [_]u8{0xaa};
+    try std.testing.expectEqual(@as(isize, 0), strscpyPad(&strscpy_pad_empty, ""));
+    try std.testing.expectEqualSlices(u8, &[_]u8{0}, &strscpy_pad_empty);
+
+    var strscpy_pad_truncated = [_]u8{0xaa};
+    try std.testing.expectEqual(strscpy_e2big, strscpyPad(&strscpy_pad_truncated, "x"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{0}, &strscpy_pad_truncated);
+
+    var alias_truncated = [_]u8{0xaa};
+    try std.testing.expectEqual(strscpy_e2big, strscpy_pad(&alias_truncated, "x"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{0}, &alias_truncated);
+}
+
 test "streq matches C-string equality semantics" {
     try std.testing.expect(strEq("zigux", "zigux"));
     try std.testing.expect(streq("zigux", "zigux"));
