@@ -73,6 +73,24 @@ SAMPLE_SELFTEST_REGISTRATION_PATHS_MARKER = (
 SAMPLE_FAILED_EXIT_TEST_MARKER = (
     'test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {'
 )
+SAMPLE_FAILED_EXIT_STAGE_MARKER = (
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);"
+)
+SAMPLE_FAILED_EXIT_SELFTEST_RUNS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);"
+)
+SAMPLE_FAILED_EXIT_EXIT_RUNS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);"
+)
+SAMPLE_FAILED_EXIT_PRESERVED_STAGE_MARKER = (
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, after_failed_exit.stage);"
+)
+SAMPLE_FAILED_EXIT_FINAL_STAGE_MARKER = (
+    "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);"
+)
+SAMPLE_FAILED_EXIT_FINAL_EXIT_RUNS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);"
+)
 SAMPLE_REJECTED_SELFTEST_TEST_MARKER = (
     'test "trace-events sample keeps rejected re-selftest rollback explicit" {'
 )
@@ -184,6 +202,12 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_SELFTEST_CONDITIONAL_PATHS_MARKER,
     SAMPLE_SELFTEST_REGISTRATION_PATHS_MARKER,
     SAMPLE_FAILED_EXIT_TEST_MARKER,
+    SAMPLE_FAILED_EXIT_STAGE_MARKER,
+    SAMPLE_FAILED_EXIT_SELFTEST_RUNS_MARKER,
+    SAMPLE_FAILED_EXIT_EXIT_RUNS_MARKER,
+    SAMPLE_FAILED_EXIT_PRESERVED_STAGE_MARKER,
+    SAMPLE_FAILED_EXIT_FINAL_STAGE_MARKER,
+    SAMPLE_FAILED_EXIT_FINAL_EXIT_RUNS_MARKER,
     SAMPLE_REJECTED_SELFTEST_TEST_MARKER,
     SAMPLE_EXITED_MAIN_REPLAY_REJECTION_MARKER,
     SAMPLE_EXITED_REGISTRATION_REJECTION_MARKER,
@@ -345,7 +369,16 @@ test \"trace-events sample keeps selftest replay-summary continuity explicit aft
 }}
 
 test \"trace-events sample keeps failed-exit rollback explicit after selftest-ready replay\" {{
+    const before_failed_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
     try std.testing.expectError(error.OutstandingRegistration, module.exit());
+    const after_failed_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, after_failed_exit.stage);
+    const after_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
 }}
 
 test \"trace-events sample keeps rejected re-selftest rollback explicit\" {{
