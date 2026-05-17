@@ -34,14 +34,36 @@ test "phase 8 perf-buffer poll tests README keeps the current direct-readback pa
     try expectContains(note, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`");
     try expectContains(note, "`zigux/tests/phase8_perf_buffer_poll.zig`");
     try expectContains(note, "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`");
-    try expectContains(note, "repo-reality warning for the broader Phase 8 tooling packet:");
+    try expectContains(
+        note,
+        "current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:",
+    );
+    try expectContains(
+        note,
+        "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
+    );
     try expectContains(note, "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`");
     try expectContains(note, "`scripts/zigux/validate-phase8.py`");
+    try expectContains(note, "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`");
+    try expectContains(note, "`zigux/tests/phase8_file_path_handle_bridge.zig`");
+    try expectContains(note, "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`");
+    try expectContains(note, "`zigux/tests/phase8_build.zig`");
+    try expectContains(note, "`make -C zigux phase8-file-path-handle-bridge-test`");
+    try expectContains(
+        note,
+        "repo-reality warning for the broader remaining Phase 8 tooling packet:",
+    );
+    try expectContains(note, "`Documentation/zigux/phase8-tooling-lane-sequencing.md`");
+    try expectContains(note, "`Documentation/zigux/phase8-help-slice.md`");
+    try expectContains(note, "`Documentation/zigux/phase8-kallsyms-slice.md`");
+    try expectContains(note, "`Documentation/zigux/phase8-libbpf-segment-survey.md`");
     try expectContains(note, "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`");
+    try expectContains(note, "`zigux/tests/phase8_libbpf_segments.zig`");
+    try expectContains(note, "`zigux/tests/phase8_libbpf_segments_only_build.zig`");
     try expectContains(note, "`zigux/Makefile`");
     try expectContains(
         note,
-        "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet instead of reconstructing the broader shared tooling packet from older route names alone",
+        "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence",
     );
 }
 
@@ -55,7 +77,7 @@ test "phase 8 perf-buffer poll scripts README keeps the surviving bridge packet 
 
     try expectContains(
         note,
-        "Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll bridge packet instead of reconstructing the older shared bridge bundle from paths that current `master` no longer serves",
+        "Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll packet together with the mixed-source file-path-handle bridge packet and its shipped validator and make routes, instead of reconstructing older help, kallsyms, or broader shared-bridge claims from paths that current `master` still does not serve directly",
     );
     try expectContains(note, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`");
     try expectContains(
@@ -64,7 +86,7 @@ test "phase 8 perf-buffer poll scripts README keeps the surviving bridge packet 
     );
     try expectContains(
         note,
-        "keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the helper implementation, and the focused replay instead of widening back into exec-cmd, help, kallsyms, file-path-handle, or broader libbpf segment wording from older route names alone",
+        "keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the shipped file-path-handle bridge validator and helper packet, and the live shared build and make routes instead of widening back into exec-cmd, help, kallsyms, or broader libbpf segment wording from older route names alone",
     );
 }
 
