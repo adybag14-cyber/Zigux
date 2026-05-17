@@ -126,6 +126,30 @@ const FdReader = struct {
     }
 };
 
+const SplitReader = struct {
+    bytes: []const u8,
+    chunk_sizes: []const usize,
+    offset: usize = 0,
+    read_index: usize = 0,
+    call_count: usize = 0,
+
+    fn read(self: *@This(), buffer: []u8) !usize {
+        self.call_count += 1;
+        if (self.offset >= self.bytes.len or self.read_index >= self.chunk_sizes.len) {
+            return 0;
+        }
+
+        const planned = self.chunk_sizes[self.read_index];
+        self.read_index += 1;
+
+        const remaining = self.bytes.len - self.offset;
+        const count = @min(planned, @min(buffer.len, remaining));
+        @memcpy(buffer[0..count], self.bytes[self.offset .. self.offset + count]);
+        self.offset += count;
+        return count;
+    }
+};
+
 test "classifies 32-bit ELF header" {
     const header = [_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     try std.testing.expectEqual(Outcome.elf32, classify(&header));
@@ -162,6 +186,36 @@ test "readHeader returns zero bytes on immediate EOF" {
     try std.testing.expectEqual(@as(usize, 0), header.len);
 }
 
+test "readHeader stops after filling the first ELF header across split reads" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{
+            0x7f, 'E',  'L',  'F',  elfclass64, 1, 1, 0,
+            0,    0,    0,    0,    0,          0, 0, 0,
+            0xaa, 0xbb, 0xcc, 0xdd,
+        },
+        .chunk_sizes = &[_]usize{ 5, 3, 8, 4 },
+    };
+
+    const header = try readHeaderFromReader(&reader);
+    try std.testing.expectEqual(@as(usize, ei_nident), header.len);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualSlices(u8, &[_]u8{
+        0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    }, header.bytes[0..header.len]);
+}
+
+test "readHeader preserves truncated byte count across split reads" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 },
+        .chunk_sizes = &[_]usize{ 3, 2, 3 },
+    };
+
+    const header = try readHeaderFromReader(&reader);
+    try std.testing.expectEqual(@as(usize, 8), header.len);
+    try std.testing.expectEqual(@as(usize, 4), reader.call_count);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 }, header.bytes[0..header.len]);
+}
+
 test "readHeader stops at the first ELF header" {
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
@@ -178,50 +232,6 @@ test "readHeader stops at the first ELF header" {
     try std.testing.expectEqualSlices(u8, &[_]u8{
         0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     }, header.bytes[0..header.len]);
-}
-
-test "readHeader assembles a full header across split reads" {
-    const expected = [_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    const SplitReader = struct {
-        bytes: []const u8,
-        offset: usize = 0,
-
-        fn read(self: *@This(), buffer: []u8) !usize {
-            if (self.offset >= self.bytes.len) return 0;
-            const remaining = self.bytes.len - self.offset;
-            const chunk_len = @min(@min(buffer.len, remaining), 5);
-            @memcpy(buffer[0..chunk_len], self.bytes[self.offset .. self.offset + chunk_len]);
-            self.offset += chunk_len;
-            return chunk_len;
-        }
-    };
-
-    var reader = SplitReader{ .bytes = &expected };
-    const header = try readHeaderFromReader(&reader);
-    try std.testing.expectEqual(@as(usize, ei_nident), header.len);
-    try std.testing.expectEqualSlices(u8, &expected, header.bytes[0..header.len]);
-}
-
-test "readHeader reports split-read truncation length exactly" {
-    const expected = [_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0, 0 };
-    const SplitReader = struct {
-        bytes: []const u8,
-        offset: usize = 0,
-
-        fn read(self: *@This(), buffer: []u8) !usize {
-            if (self.offset >= self.bytes.len) return 0;
-            const remaining = self.bytes.len - self.offset;
-            const chunk_len = @min(@min(buffer.len, remaining), 3);
-            @memcpy(buffer[0..chunk_len], self.bytes[self.offset .. self.offset + chunk_len]);
-            self.offset += chunk_len;
-            return chunk_len;
-        }
-    };
-
-    var reader = SplitReader{ .bytes = &expected };
-    const header = try readHeaderFromReader(&reader);
-    try std.testing.expectEqual(@as(usize, expected.len), header.len);
-    try std.testing.expectEqualSlices(u8, &expected, header.bytes[0..header.len]);
 }
 
 test "readHeader reports the exact truncated byte count" {
