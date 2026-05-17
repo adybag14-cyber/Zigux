@@ -55,6 +55,7 @@ REQUIRED_NOTE_LINES = (
     "- current `master` workflow viability stays bounded to the shipped Phase 1 reminder packet, so treat `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` as broader closure-side or make-route packet members until fresh rereads recover them on current `master`.",
     "- the active bootstrap Phase 1 workflow now keeps the direct-owner, string-review, shared-reminder, and workflow-viability live checks together with the direct-owner, string-review, bench, shared-reminder, and workflow-viability self-tests, and should stay narrower than the older installer-backed or live-bench closure stack until those routes materially return.",
     "- keep the newer `scripts/zigux/check-phase1-shared-reminder-packet.py` pair explicit beside direct-owner, string-review, bench, and workflow viability so this lane does not silently regress the already-shipped Phase 1 reminder packet while hardening the workflow shape.",
+    "- keep the bench checker self-test-only in the bootstrap workflow until `zigux/tests/fixtures/phase1_bench_expectations.json` returns on current `master`; a live `python3 scripts/zigux/check-phase1-bench.py` workflow step is still a workflow-viability regression in this narrower packet.",
     "- replay this packet on top of the current bootstrap workflow instead of reviving older Phase 2 neighbor names or dropping the newer current ones; the live non-Phase-1 neighbor packet now keeps the current `scripts/zigux/check-zig-toolchain.py` self-test plus policy-surface pair ahead of the current `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, and `scripts/zigux/check-phase2-toolchain-pinning.py` self-test plus live-check packet.",
     "- keep the current post-Phase-1 bootstrap tail explicit too: the same workflow now carries the shipped `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase7-shared-control-gap.py`, and `scripts/zigux/check-build-only-phase12-surface.py` packet, then runs `make -C zigux phase8-validate` plus `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all` before the docs-root sanity marker check, so this lane must not silently regress those later current-master steps while refreshing the Phase 1 packet.",
     "- if this lane reopens, harden the same current workflow packet first instead of reconstructing the broader missing closure-side Phase 1 validator family from historical route names alone.",
@@ -174,8 +175,12 @@ FORBIDDEN_WORKFLOW_SNIPPETS = (
     "Run Phase 9 runtime helper tests",
 )
 
+FORBIDDEN_WORKFLOW_LINES = (
+    "        run: python3 scripts/zigux/check-phase1-bench.py",
+)
 
-def load_text(root: Path, relative_path: Path) -> str:
+
+def load_text(root: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
@@ -220,6 +225,9 @@ def collect_failures(root: Path) -> list[str]:
     for needle in FORBIDDEN_WORKFLOW_SNIPPETS:
         if needle in workflow_text:
             failures.append(f"workflow_forbidden:{needle}:unexpected_present")
+    for line in FORBIDDEN_WORKFLOW_LINES:
+        if count_exact_line(workflow_text, line):
+            failures.append(f"workflow_forbidden_line:{line}:unexpected_present")
     return failures
 
 
@@ -394,6 +402,20 @@ def run_self_test() -> int:
             not in collect_failures(root)
         ):
             print("self-test:stale_phase2_neighbor_case_failed")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8")
+            + "      - name: Check current Phase 1 bench packet\n        run: python3 scripts/zigux/check-phase1-bench.py\n",
+            encoding="utf-8",
+        )
+        if (
+            "workflow_forbidden_line:        run: python3 scripts/zigux/check-phase1-bench.py:unexpected_present"
+            not in collect_failures(root)
+        ):
+            print("self-test:forbidden_live_bench_case_failed")
             return 1
         case_count += 1
 
