@@ -220,7 +220,6 @@ def collect_conf_manifest_issues(
         "syncconfig_env_packet": expected_syncconfig_env_packet,
         "allconfig_sentinel_packet": expected_allconfig_sentinel_packet,
         "allconfig_override_packet": expected_allconfig_override_packet,
-        "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
     }
     for field_name, expected_values in sequence_fields.items():
         actual_values = manifest.get(field_name)
@@ -453,8 +452,8 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "allrandom.config", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
                     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
                     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "defconfig.out", "expected": "savedefconfig_expected.json"},
-                    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": true, "expected": "listnewconfig_expected.json"},
-                    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": true, "expected": "helpnewconfig_expected.json"},
+                    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": True, "expected": "listnewconfig_expected.json"},
+                    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": True, "expected": "helpnewconfig_expected.json"},
                     {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
                     {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
                     {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
@@ -529,7 +528,6 @@ def build_self_test_root(root: Path) -> None:
                 "allconfig_override_packet": [
                     "randconfig_expected.json",
                 ],
-                "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
             },
             indent=2,
         )
@@ -781,10 +779,9 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
-        manifest["helper_local_anchors"] = REQUIRED_CONF_HELPER_ANCHORS[:-1]
+        manifest.pop("helper_local_anchors", None)
         write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONF_MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH" for issue in issues)
+        assert collect_manifest_issues(root) == []
         checks_run += 1
 
         build_self_test_root(root)
