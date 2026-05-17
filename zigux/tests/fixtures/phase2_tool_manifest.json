@@ -13,8 +13,10 @@
       "scripts/zigux/check-zig-toolchain.py",
       "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
       "scripts/zigux/check-phase2-kbuild-routes.py",
+      "scripts/zigux/check-phase2-cross-selftest-alignment.py",
       "scripts/zigux/check-phase2-toolchain-pinning.py",
-      "scripts/zigux/check-phase2-tests-readme-alignment.py"
+      "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+      "scripts/zigux/check-phase2-required-make-routes.py"
     ],
     "bridge_helpers": [
       "scripts/zigux/kconfig/conf_bridge.zig",
@@ -23,6 +25,9 @@
     "policy": [
       "scripts/zigux/zig-toolchain-policy.json"
     ],
+    "artifact_support": [
+      "zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
+    ],
     "fixture_roster": [
       "zigux/tests/fixtures/kconfig_bridge/cases.json",
       "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
@@ -30,12 +35,17 @@
     ]
   },
   "repo_reality_gaps": [
-    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
-    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    "Documentation/zigux/phase2-closure.md",
+    "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/validate-phase2-closure.py",
+    "zigux/Makefile",
+    "scripts/zigux/install-zig.py",
+    "scripts/zigux/check-phase2-cross.py",
     "zigux/tests/fixtures/phase2_cross_targets.json"
   ],
   "notes": [
-    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, kbuild routes checker, and kconfig bridge fixture roster.",
-    "Do not treat missing closure-side, cross-route, or artifact-tools packet members as directly readable current-master evidence until they are republished."
+    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, required make-route guard, kbuild routes checker, cross-selftest checker, and kconfig bridge fixture roster.",
+    "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
+    "Do not treat missing validator-first, cross-route, installer, and Linux-style make replay names as directly readable current-master evidence until they are republished."
   ]
 }
