@@ -32,6 +32,14 @@ REQUIRED_CATALOG_SNIPPETS = [
     "### bsearch",
     "### checksum",
     "### hexdump",
+    "- Zig helper: `lib/base64.zig`",
+    "- Zig helper: `lib/bsearch.zig`",
+    "- Zig helper: `lib/checksum.zig`",
+    "- Zig helper: `lib/hexdump.zig`",
+    "- direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+    "- direct corpus evidence checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
+    "- direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
+    "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`",
     "- current review posture: the roadmap-backed base64 packet remains the intended bounded helper surface, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
     "- current review posture: the roadmap-backed bsearch packet still names the right parity and comparison-budget surfaces, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replays and corpus checker again",
     "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
@@ -51,7 +59,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 15
 
 
 class ValidationError(RuntimeError):
@@ -120,6 +128,10 @@ def run_self_test() -> None:
             "- `scripts/zigux/check-phase6-base64-c-parity.py`",
             "- `scripts/zigux/check-phase6-hexdump-packet.py`",
             "### hexdump",
+            "- Zig helper: `lib/base64.zig`",
+            "- Zig helper: `lib/checksum.zig`",
+            "- direct corpus evidence checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
+            "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`",
             "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
             "## Last-known shared replay inventory",
             "- `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
