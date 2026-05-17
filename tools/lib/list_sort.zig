@@ -576,6 +576,56 @@ test "list sort preserves stable modulo bucket order across a longer merge path"
     try std.testing.expect(head.prev == &entries[11].node);
 }
 
+test "list sort accepts non-unit comparator magnitudes" {
+    const Entry = struct {
+        key: i32,
+        ordinal: usize,
+        node: ListHead = .{},
+    };
+
+    const cmp = struct {
+        fn less(_: ?*anyopaque, a: *const ListHead, b: *const ListHead) i32 {
+            const lhs: *const Entry = @fieldParentPtr("node", a);
+            const rhs: *const Entry = @fieldParentPtr("node", b);
+            if (lhs.key < rhs.key) return -7;
+            if (lhs.key > rhs.key) return 9;
+            return 0;
+        }
+    }.less;
+
+    var head: ListHead = .{};
+    head.init();
+    var entries = [_]Entry{
+        .{ .key = 3, .ordinal = 0 },
+        .{ .key = 1, .ordinal = 1 },
+        .{ .key = 2, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 4, .ordinal = 4 },
+        .{ .key = 2, .ordinal = 5 },
+    };
+    for (&entries) |*entry| listAddTail(&entry.node, &head);
+
+    listSort(null, &head, cmp);
+
+    var keys: [6]i32 = undefined;
+    var ordinals: [6]usize = undefined;
+    var idx: usize = 0;
+    var current = head.next;
+    while (current != &head) : (current = current.?.next) {
+        const entry: *const Entry = @fieldParentPtr("node", current.?);
+        keys[idx] = entry.key;
+        ordinals[idx] = entry.ordinal;
+        try std.testing.expect(current.?.next.?.prev == current.?);
+        try std.testing.expect(current.?.prev.?.next == current.?);
+        idx += 1;
+    }
+
+    try std.testing.expectEqualSlices(i32, &.{ 1, 1, 2, 2, 3, 4 }, keys[0..idx]);
+    try std.testing.expectEqualSlices(usize, &.{ 1, 3, 2, 5, 0, 4 }, ordinals[0..idx]);
+    try std.testing.expect(head.next == &entries[1].node);
+    try std.testing.expect(head.prev == &entries[4].node);
+}
+
 test "list sort preserves input order when every comparison ties" {
     const Entry = struct {
         key: i32,
