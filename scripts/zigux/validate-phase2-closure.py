@@ -17,6 +17,14 @@ SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 
+EXPECTED_TOOLCHAIN_BOOTSTRAP_DOC = "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+EXPECTED_CLOSURE_VALIDATOR = "scripts/zigux/validate-phase2-closure.py"
+EXPECTED_CLOSURE_DOC = "Documentation/zigux/phase2-closure.md"
+EXPECTED_SHARED_VALIDATOR = "scripts/zigux/validate-phase2.py"
+EXPECTED_TOOL_MANIFEST_CHECKER = "scripts/zigux/check-phase2-tool-manifest-packets.py"
+EXPECTED_MAKEFILE = "zigux/Makefile"
+EXPECTED_WORKFLOW_SURFACE = ".github/workflows/zigux-bootstrap.yml"
+
 EXPECTED_DOC_MARKERS = (
     "`PHASE2_STATUS=lane22-branch-restacked`",
     "`PHASE2_CLOSURE_VALIDATOR_GATE=python3 scripts/zigux/validate-phase2-closure.py`",
@@ -74,7 +82,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`validate-phase2-closure.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 10
+EXPECTED_SELF_TEST_CASE_COUNT = 16
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -152,14 +160,26 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_MANIFEST_FIELD", "phase"))
     if manifest.get("status") != "lane22_branch_closure_packet_restacked":
         issues.append(("INVALID_MANIFEST_FIELD", "status"))
-    if manifest.get("tool_manifest_checker") != "scripts/zigux/check-phase2-tool-manifest-packets.py":
+    if manifest.get("toolchain_bootstrap_doc") != EXPECTED_TOOLCHAIN_BOOTSTRAP_DOC:
+        issues.append(("INVALID_MANIFEST_FIELD", "toolchain_bootstrap_doc"))
+    if manifest.get("closure_validator") != EXPECTED_CLOSURE_VALIDATOR:
+        issues.append(("INVALID_MANIFEST_FIELD", "closure_validator"))
+    if manifest.get("closure_doc") != EXPECTED_CLOSURE_DOC:
+        issues.append(("INVALID_MANIFEST_FIELD", "closure_doc"))
+    if manifest.get("shared_validator") != EXPECTED_SHARED_VALIDATOR:
+        issues.append(("INVALID_MANIFEST_FIELD", "shared_validator"))
+    if manifest.get("tool_manifest_checker") != EXPECTED_TOOL_MANIFEST_CHECKER:
         issues.append(("INVALID_MANIFEST_FIELD", "tool_manifest_checker"))
+    if manifest.get("makefile") != EXPECTED_MAKEFILE:
+        issues.append(("INVALID_MANIFEST_FIELD", "makefile"))
     if manifest.get("present_files") != EXPECTED_PRESENT_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "present_files"))
     if manifest.get("missing_files") != EXPECTED_MISSING_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "missing_files"))
     if manifest.get("master_present_branch_missing_files") != []:
         issues.append(("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files"))
+    if manifest.get("workflow_surface") != EXPECTED_WORKFLOW_SURFACE:
+        issues.append(("INVALID_MANIFEST_FIELD", "workflow_surface"))
 
     return issues
 
@@ -189,10 +209,16 @@ def manifest_json(*, present_files: list[str] | None = None, missing_files: list
         "packet": "phase2_tool_manifest",
         "phase": "phase2",
         "status": "lane22_branch_closure_packet_restacked",
-        "tool_manifest_checker": "scripts/zigux/check-phase2-tool-manifest-packets.py",
+        "toolchain_bootstrap_doc": EXPECTED_TOOLCHAIN_BOOTSTRAP_DOC,
+        "closure_validator": EXPECTED_CLOSURE_VALIDATOR,
+        "closure_doc": EXPECTED_CLOSURE_DOC,
+        "shared_validator": EXPECTED_SHARED_VALIDATOR,
+        "tool_manifest_checker": EXPECTED_TOOL_MANIFEST_CHECKER,
+        "makefile": EXPECTED_MAKEFILE,
         "present_files": EXPECTED_PRESENT_FILES if present_files is None else present_files,
         "missing_files": EXPECTED_MISSING_FILES if missing_files is None else missing_files,
         "master_present_branch_missing_files": [],
+        "workflow_surface": EXPECTED_WORKFLOW_SURFACE,
     }
     return json.dumps(payload, indent=2) + "\n"
 
@@ -250,6 +276,21 @@ def run_self_test() -> int:
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
         assert ("INVALID_MANIFEST_FIELD", "packet") in collect_issues(root)
         checks_run += 1
+
+        for field in (
+            "toolchain_bootstrap_doc",
+            "closure_validator",
+            "closure_doc",
+            "shared_validator",
+            "makefile",
+            "workflow_surface",
+        ):
+            build_self_test_root(root)
+            bad = json.loads(manifest_json())
+            bad[field] = "wrong"
+            write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+            assert ("INVALID_MANIFEST_FIELD", field) in collect_issues(root)
+            checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
