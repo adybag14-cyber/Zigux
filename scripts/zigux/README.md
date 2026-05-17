@@ -68,6 +68,7 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 
 - Phase 11 flow - the shared replay contract, summary-surface guard, build-inventory guard, and dedicated packet checks keep the current simple-driver packet aligned
 - `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, `scripts/zigux/check-phase11-build-inventory.py`, `make -C zigux phase11-contract`, and `make -C zigux phase11` keep the shared-versus-dedicated packet explicit
+- `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `zigux/tests/README.md` remain the current broad reminder companions for that shared packet
 - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 - `scripts/zigux/check-phase11-dw-wdt-packet.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
