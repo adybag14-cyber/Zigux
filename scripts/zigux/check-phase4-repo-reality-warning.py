@@ -385,7 +385,7 @@ def main() -> int:
             else:
                 raise AssertionError("expected review checklist drift to fail")
 
-            build_baselineTree(root)
+            build_baseline_tree(root)
             direct_packet_checker = root / PINS
             direct_packet_checker.unlink()
             try:
