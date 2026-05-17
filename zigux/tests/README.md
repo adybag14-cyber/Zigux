@@ -168,3 +168,21 @@ Phase 9 review packet
   * `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
   * the surviving trace-events packet still keeps the roadmap-backed runtime pilot shape concrete by exposing `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking inside `samples/zigux/runtime_trace_events.zig`, while `samples/zigux/runtime_trace_events_unregistered_gate.zig` keeps the same narrow packet's unregistered function-thread failures fail-closed and `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` keeps balanced function-thread registration reusable before and after selftest, so reviewers can still inspect one real runtime-module plus its companion registration and lifecycle boundaries while the broader shared loader packet remains backlog
   * there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, `make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`
+
+Phase 15 review packet
+  * current direct-readback Phase 15 governance packet:
+    `Documentation/zigux/freeze-map.md`
+    `Documentation/zigux/review-checklist.md`
+    `Documentation/zigux/phase15-freeze-map-governance.md`
+    `Documentation/zigux/phase15-readiness-gate-survey.md`
+    `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+    `Documentation/zigux/phase15-shared-summary-gap.md`
+    `scripts/zigux/check-phase15-review-process-handoff.py`
+    `scripts/zigux/check-phase15-tests-readme-alignment.py`
+    `zigux/tests/phase15_architecture_council_review_process.zig`
+    `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+    `zigux/tests/phase15_readiness_gate_manifest.json`
+  * `python3 scripts/zigux/check-phase15-tests-readme-alignment.py --self-test` and `python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test` replay the focused tests-root governance checks, while `scripts/zigux/check-phase15-tests-readme-alignment.py` and `scripts/zigux/check-phase15-review-process-handoff.py` guard the shipped reminder packet without rebuilding the missing broader validator-first or build stack
+  * repeated authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and `zigux/Makefile`, so keep those broader validator-first, handoff-manifest, build, lane-owner, and make-wrapper paths framed as repo-reality gaps instead of direct tests-root evidence
+  * keep the current Phase 15 tests-root reminder aligned with the directly materialized governance packet and the focused tests-readme plus review-process checkers instead of implying that the broader validator-first or make-wrapper routes are already shipped on current `master`
+  * no Architecture Council approval is currently recorded for a freeze-map status change; keep the four freeze-in-C anchors parked, keep the two roadmap study-only anchors parked, and keep any future follow-through narrowed to the smallest reminder-surface repair first
