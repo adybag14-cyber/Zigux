@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the current-head Phase 4 repo-reality warning packet."""
+"""Guard the current-head Phase 4 reversible-delivery note packet."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 README = Path("zigux/tests/README.md")
 
-MISSING = (
+DIRECT_READBACK_PACKET = (
     "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-validation-matrix.md",
     "scripts/zigux/check-phase4-gate-evidence.py",
@@ -28,20 +28,23 @@ NOTE_REQ = (
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
     "The tests-root guide should mirror this same current-head posture.",
-    "The next honest same-family follow-through is one shared-packet truthfulness repair for `Documentation/zigux/review-checklist.md`",
+    "The next honest same-family follow-through is to refresh the stale repo-reality warning in `zigux/tests/README.md`",
+    "The live repo-reality gap in this note is therefore stale provenance, not path absence",
+    "leaving the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance fields intact",
 )
-README_REQ = (
+
+README_PENDING_REQ = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
     "repo-reality warning for the broader Phase 4 packet",
     "last-known packet members",
 )
-CHECKLIST_REQ = (
+
+CHECKLIST_PENDING_REQ = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
-    "missing broader Phase 4 validator, lab-matrix, and local-only perf companions",
     "Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
     "ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
     "pending shared-CI perf-promotion posture explicit",
@@ -50,7 +53,7 @@ CHECKLIST_REQ = (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
+    parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
 
@@ -72,9 +75,9 @@ def check(root: Path) -> None:
     note = read(root, NOTE)
     checklist = read(root, CHECKLIST)
     readme = read(root, README)
-    require(note, NOTE_REQ + MISSING, "phase4 note")
-    require(readme, README_REQ + MISSING, "tests README")
-    require(checklist, CHECKLIST_REQ, "review checklist")
+    require(note, NOTE_REQ + DIRECT_READBACK_PACKET, "phase4 note")
+    require(readme, README_PENDING_REQ, "tests README")
+    require(checklist, CHECKLIST_PENDING_REQ, "review checklist")
 
 
 def write(path: Path, text: str) -> None:
@@ -83,14 +86,16 @@ def write(path: Path, text: str) -> None:
 
 
 def fixture_root(root: Path) -> None:
-    missing = ", ".join(f"`{item}`" for item in MISSING)
+    direct = ", ".join(f"`{item}`" for item in DIRECT_READBACK_PACKET)
     write(
         root / NOTE,
         "# Phase 4 Reversible Delivery Evidence\n\n"
-        "Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md`.\n\n"
-        f"Several older companion paths named by earlier Phase 4 packet history currently returned missing contents reads on `master`, including {missing}. Keep those paths as last-known packet members that require a fresh reread or re-materialization before they are treated as shipped evidence again.\n\n"
+        "Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, "
+        f"and {direct} on current `master`. The live repo-reality gap in this note is therefore stale provenance, not path absence: "
+        "the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines still record the older blob-pin packet and should stay framed as historical provenance until a separate exact-pin refresh rereads every companion blob value together.\n\n"
         "The tests-root guide should mirror this same current-head posture.\n\n"
-        "The next honest same-family follow-through is one shared-packet truthfulness repair for `Documentation/zigux/review-checklist.md`, then either re-materialize the missing `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, and dedicated local-only perf companions on `master`, or narrow the remaining shared reminders so they stop claiming those missing paths are current direct evidence.\n",
+        "The next honest same-family follow-through is to refresh the stale repo-reality warning in `zigux/tests/README.md`, "
+        "then run the dedicated exact-pin pass across the directly readable validator, lab-matrix, and local-only perf companions while leaving the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance fields intact until that broader blob refresh lands.\n",
     )
     write(
         root / README,
@@ -99,7 +104,7 @@ def fixture_root(root: Path) -> None:
         "    `Documentation/zigux/phase4-reversible-delivery-evidence.md`\n"
         "    `Documentation/zigux/review-checklist.md`\n"
         "    `zigux/tests/README.md`\n"
-        f"  * repo-reality warning for the broader Phase 4 packet: {missing}\n"
+        "  * repo-reality warning for the broader Phase 4 packet: keep the older validator, lab-matrix, and dedicated local-only perf inventory framed as last-known packet members until the tests-root wording is refreshed from the current-head note\n"
         "  * Phase 4 follow-through should treat those paths as last-known packet members that require fresh reread or re-materialization before they are presented as shipped direct evidence again\n",
     )
     write(
@@ -117,22 +122,31 @@ def self_test() -> None:
         check(root)
         cases += 1
 
-        write(root / README, read(root, README).replace(MISSING[0], "Documentation/zigux/not-the-right-file.md"))
+        write(root / NOTE, read(root, NOTE).replace(DIRECT_READBACK_PACKET[0], "Documentation/zigux/not-the-right-file.md"))
         try:
             check(root)
         except RuntimeError:
             cases += 1
         else:
-            raise AssertionError("expected README mismatch to fail")
+            raise AssertionError("expected note direct-readback drift to fail")
 
         fixture_root(root)
-        write(root / NOTE, read(root, NOTE).replace(NOTE_REQ[2], "The tests-root guide drifted away from this packet."))
+        write(root / README, read(root, README).replace(README_PENDING_REQ[3], "broader packet wording drifted"))
         try:
             check(root)
         except RuntimeError:
             cases += 1
         else:
-            raise AssertionError("expected note marker mismatch to fail")
+            raise AssertionError("expected README marker drift to fail")
+
+        fixture_root(root)
+        write(root / CHECKLIST, read(root, CHECKLIST).replace(CHECKLIST_PENDING_REQ[3], "different owner wording"))
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected checklist owner drift to fail")
 
     print("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass")
     print(f"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES={cases}")
@@ -149,8 +163,8 @@ def main() -> int:
         print(f"PHASE4_REPO_REALITY_WARNING=fail: {exc}", file=sys.stderr)
         return 1
     print("PHASE4_REPO_REALITY_WARNING=pass")
-    print("PHASE4_REPO_REALITY_WARNING_DIRECT_READBACK_FILES=3")
-    print(f"PHASE4_REPO_REALITY_WARNING_MISSING_PACKET_FILES={len(MISSING)}")
+    print("PHASE4_REPO_REALITY_WARNING_DIRECT_READBACK_FILES=12")
+    print("PHASE4_REPO_REALITY_WARNING_PENDING_SURFACES=2")
     return 0
 
 
