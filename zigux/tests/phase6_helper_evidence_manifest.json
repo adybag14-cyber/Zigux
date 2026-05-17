@@ -53,7 +53,7 @@
         "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
       ],
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
-      "current_review_posture": "direct-readback-limited"
+      "current_review_posture": "direct-helper-readback-restored"
     },
     {
       "key": "checksum",
@@ -94,7 +94,6 @@
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
     "zigux/tests/phase6_helper_parity_manifest.json",
-    "zigux/tests/phase6_bsearch.zig",
     "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
     "zigux/tests/phase6_bsearch_c_abi_budget.zig",
     "zigux/tests/phase6_checksum.zig",
