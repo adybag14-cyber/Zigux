@@ -22,6 +22,7 @@ CHECKERS = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
@@ -46,7 +47,7 @@ EXPECTED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 15
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -178,7 +179,7 @@ def run_self_test() -> int:
             assert ("MISSING_REQUIRED_FILE", path.relative_to(ROOT).as_posix()) in collect_issues(root)
             checks_run += 1
 
-        for path in CHECKERS[:4]:
+        for path in CHECKERS[:5]:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
             assert ("MISSING_CHECKER", path.relative_to(ROOT).as_posix()) in collect_issues(root)
