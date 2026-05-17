@@ -27,7 +27,8 @@ Current `master` keeps only a narrow direct trace-events runtime packet in this 
   * `zigux/tests/README.md`
 
 The direct sample keeps the roadmap-facing pilot contract concrete through `RuntimeTraceEventsSample.descriptor()` and `.provides_selftest_hook = true`, together with initialized, selftest_complete, and exited lifecycle tracking.
-The fail-closed companion keeps the unregistered function-thread boundary explicit both immediately after `init()` and after the direct selftest replay, so the surviving packet still carries one real runtime selftest and rollback-facing proof on current `master`.
+The same direct sample also keeps rejected re-selftest and failed-exit rollback cues explicit inside the shipped file, so the surviving packet still carries one real runtime selftest plus bounded lifecycle-rollback proof on current `master`.
+The fail-closed companion keeps the unregistered function-thread boundary explicit both immediately after `init()` and after the direct selftest replay, so the surviving packet still carries one real runtime selftest and companion-boundary proof on current `master`.
 
 Current `master` does not currently expose the broader shared runtime-loader packet that older Phase 9 reminder surfaces described. Fresh repo-first rereads did not find `zigux/tests/phase9_build.zig`, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds on `master`.
 
@@ -36,19 +37,21 @@ No current family-local trace-events packet should therefore describe `samples/z
 ## What this slice owns
 
 1. Keep the Phase 9 trace-events family tied to `samples/trace_events/trace-events-sample.c` and the runtime-pilot roadmap only.
-2. Keep the surviving direct sample plus unregistered-gate companion explicit as the real current packet.
-3. Keep the real blocker explicit: the broader shared runtime-loader, build, kernel, and multi-file runtime replay packet is absent on current `master`, so this note must not borrow evidence from older missing paths.
-4. Do not invent `validate-phase9.py`, a trace-events-only validator, or a returned loader family.
-5. Keep earlier-phase references in their own lanes: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references.
+2. Keep the surviving direct sample plus its rejected re-selftest and failed-exit rollback cues explicit as real current-packet lifecycle proof.
+3. Keep the surviving fail-closed companion explicit as the same packet's function-thread boundary proof.
+4. Keep the real blocker explicit: the broader shared runtime-loader, build, kernel, and multi-file runtime replay packet is absent on current `master`, so this note must not borrow evidence from older missing paths.
+5. Do not invent `validate-phase9.py`, a trace-events-only validator, or a returned loader family.
+6. Keep earlier-phase references in their own lanes: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references.
 
 ## Review posture
 
 - the current direct runtime proof is the narrow sample pair made of `samples/zigux/runtime_trace_events.zig` and `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 - the direct sample still exposes `.provides_selftest_hook = true` plus initialized, selftest_complete, and exited lifecycle tracking
+- the direct sample also keeps rejected re-selftest and failed-exit rollback cues explicit inside the shipped file
 - the fail-closed companion keeps unregistered function-thread rejection explicit after `init()` and after the direct selftest replay
 - the shared reminder packet is checker-backed through `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase9-trace-events-runtime-packet.py`
 - broader loader, build, kernel, and `zigux/tests/runtime_*` replay surfaces remain backlog references until a fresh reread proves they have returned
 
 ## Next bounded step
 
-Keep this module-slice note aligned with the surviving direct sample pair and the shipped checker-backed reminder packet. If the broader shared runtime-loader family returns later, reread the exact file family before widening this note back out.
+Keep this module-slice note aligned with the surviving direct sample pair, including the rejected re-selftest and failed-exit rollback cues already shipped in `samples/zigux/runtime_trace_events.zig`. If the broader shared runtime-loader family returns later, reread the exact file family before widening this note back out.
