@@ -8,6 +8,8 @@ This note records the current scripts-root Phase 2 packet that is directly reada
 - `scripts/zigux/check-phase2-tests-readme-alignment.py`
 - `scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
+- `scripts/zigux/check-phase2-kbuild-routes.py`
+- `scripts/zigux/check-phase2-toolchain-pinning.py`
 - `scripts/zigux/fixdep.zig`
 - `scripts/zigux/kconfig/conf_bridge.zig`
 
@@ -27,6 +29,7 @@ These are the current directly readable Phase 2 scripts-root anchors on `master`
 - `scripts/zigux/mk_elfconfig.zig`
 - `scripts/zigux/kconfig/confdata_bridge.zig`
 - `zigux/Makefile`
+- `zigux/tests/fixtures/phase2_cross_targets.json`
 - `zigux/tests/fixtures/phase2_tool_manifest.json`
 - `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
 
@@ -34,4 +37,4 @@ Treat those paths as active repo-reality gaps on current `master`, not as shippe
 
 ## Lane 25 boundary
 
-Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth until the separate closure and tool-restoration lanes land.
+Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth until the separate closure, cross-target, and tool-restoration lanes land.
