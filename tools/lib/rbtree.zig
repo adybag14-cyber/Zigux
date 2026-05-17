@@ -983,6 +983,88 @@ test "rbtree postorder and empty node helpers behave" {
     try std.testing.expect(emptyNode(&detached));
 }
 
+test "rbtree postorder walks left-deep and right-sibling branches in order" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    var primary_entries = [_]Entry{
+        .{ .key = 8 },
+        .{ .key = 4 },
+        .{ .key = 2 },
+        .{ .key = 6 },
+        .{ .key = 12 },
+        .{ .key = 10 },
+    };
+    var alias_entries = [_]Entry{
+        .{ .key = 8 },
+        .{ .key = 4 },
+        .{ .key = 2 },
+        .{ .key = 6 },
+        .{ .key = 12 },
+        .{ .key = 10 },
+    };
+    var primary_root = Root.init();
+    var alias_root = Root.init();
+
+    const wireShape = struct {
+        fn apply(root: *Root, entries: []Entry) void {
+            root.node = &entries[0].node;
+            entries[0].node.parent = null;
+            entries[0].node.left = &entries[1].node;
+            entries[0].node.right = &entries[4].node;
+
+            entries[1].node.parent = &entries[0].node;
+            entries[1].node.left = &entries[2].node;
+            entries[1].node.right = &entries[3].node;
+
+            entries[2].node.parent = &entries[1].node;
+            entries[2].node.left = null;
+            entries[2].node.right = null;
+
+            entries[3].node.parent = &entries[1].node;
+            entries[3].node.left = null;
+            entries[3].node.right = null;
+
+            entries[4].node.parent = &entries[0].node;
+            entries[4].node.left = &entries[5].node;
+            entries[4].node.right = null;
+
+            entries[5].node.parent = &entries[4].node;
+            entries[5].node.left = null;
+            entries[5].node.right = null;
+        }
+    }.apply;
+
+    wireShape(&primary_root, &primary_entries);
+    wireShape(&alias_root, &alias_entries);
+
+    var primary_order: [6]i32 = undefined;
+    var alias_order: [6]i32 = undefined;
+
+    var primary_count: usize = 0;
+    var current = firstPostorder(&primary_root);
+    while (current) |node| : (current = nextPostorder(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        primary_order[primary_count] = entry.key;
+        primary_count += 1;
+    }
+
+    var alias_count: usize = 0;
+    current = rb_first_postorder(&alias_root);
+    while (current) |node| : (current = rb_next_postorder(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        alias_order[alias_count] = entry.key;
+        alias_count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 6), primary_count);
+    try std.testing.expectEqual(primary_count, alias_count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 6, 4, 10, 12, 8 }, primary_order[0..primary_count]);
+    try std.testing.expectEqualSlices(i32, primary_order[0..primary_count], alias_order[0..alias_count]);
+}
+
 test "rbtree findAdd keeps the first duplicate and inserts new keys" {
     const Entry = struct {
         key: i32,
