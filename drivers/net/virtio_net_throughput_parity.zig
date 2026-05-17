@@ -187,3 +187,55 @@ test "summarizeThroughputParity keeps post reset replay explicit when restore st
     try std.testing.expect(summary.requires_post_reset_probe_replay);
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
 }
+
+test "summarizeThroughputParity keeps control-queue replay clear when the transmit queue never stopped" {
+    const summary = try summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 2,
+        .queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 256,
+        .receive_buffers_after_restore = 256,
+        .recycled_transmit_descriptors = 0,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = false,
+        .replay_checkpoint = .after_control_queue_restore,
+        .expected_min_ratio_pct = 100,
+    });
+
+    try std.testing.expectEqual(ThroughputParityStatus.parity_gate_ready, summary.status);
+    try std.testing.expectEqual(@as(u8, 100), summary.recycle_ratio_pct);
+    try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
+    try std.testing.expect(summary.recycle_budget_ready);
+    try std.testing.expect(summary.meets_expected_min_ratio);
+    try std.testing.expect(!summary.requires_post_reset_probe_replay);
+}
+
+test "summarizeThroughputParity rejects missing queue restore baselines" {
+    try std.testing.expectError(error.QueuePairsBeforeResetMissing, summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 0,
+        .queue_pairs_after_restore = 0,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .recycled_transmit_descriptors = 0,
+    }));
+}
+
+test "summarizeThroughputParity rejects missing refill baselines" {
+    try std.testing.expectError(error.ReceiveBuffersBeforeResetMissing, summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 1,
+        .queue_pairs_after_restore = 1,
+        .receive_buffers_before_reset = 0,
+        .receive_buffers_after_restore = 0,
+        .recycled_transmit_descriptors = 0,
+    }));
+}
+
+test "summarizeThroughputParity rejects out-of-range target ratios" {
+    try std.testing.expectError(error.ExpectedRatioOutOfRange, summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 1,
+        .queue_pairs_after_restore = 1,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .recycled_transmit_descriptors = 0,
+        .expected_min_ratio_pct = 101,
+    }));
+}
