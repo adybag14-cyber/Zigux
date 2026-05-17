@@ -21,6 +21,16 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const barrier_helper = b.createModule(.{
+        .root_source_file = b.path("../helpers/barrier.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const mmio_helper = b.createModule(.{
+        .root_source_file = b.path("../helpers/mmio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const narrow_unsafe = b.createModule(.{
         .root_source_file = b.path("../unsafe/narrow.zig"),
         .target = target,
@@ -35,16 +45,19 @@ pub fn build(b: *std.Build) void {
     });
     root_module.addImport("abi_bindings", abi_bindings);
     root_module.addImport("atomic_helper", atomic_helper);
+    root_module.addImport("barrier_helper", barrier_helper);
+    root_module.addImport("mmio_helper", mmio_helper);
     root_module.addImport("narrow_unsafe", narrow_unsafe);
 
-    const unit_tests = b.addTest(.{
+    const tests = b.addTest(.{
+        .name = "phase3-low-level-wrappers-test",
         .root_module = root_module,
     });
-    const run_unit_tests = b.addRunArtifact(unit_tests);
+    const run_tests = b.addRunArtifact(tests);
 
     const test_step = b.step(
         "phase3-low-level-wrappers-test",
         "Run the focused Phase 3 low-level wrapper replay",
     );
-    test_step.dependOn(&run_unit_tests.step);
+    test_step.dependOn(&run_tests.step);
 }
