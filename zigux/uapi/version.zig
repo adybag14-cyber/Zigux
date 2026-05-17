@@ -30,10 +30,84 @@ pub fn eql(left: Version, right: Version) bool {
         left.header_family_revision == right.header_family_revision;
 }
 
+pub fn hasCurrentAbiMajor(candidate: u32) bool {
+    return candidate == abi_major;
+}
+
+pub fn hasCurrentAbiMinor(candidate: u32) bool {
+    return candidate == abi_minor;
+}
+
+pub fn hasCurrentHeaderFamilyRevision(candidate: u32) bool {
+    return candidate == header_family_revision;
+}
+
+pub fn matchesCurrent(version: Version) bool {
+    return hasCurrentAbiMajor(version.abi_major) and
+        hasCurrentAbiMinor(version.abi_minor) and
+        hasCurrentHeaderFamilyRevision(version.header_family_revision);
+}
+
 comptime {
     std.debug.assert(version_size == 12);
     std.debug.assert(version_align == 4);
     std.debug.assert(abi_major_offset == 0);
     std.debug.assert(abi_minor_offset == 4);
     std.debug.assert(header_family_revision_offset == 8);
+}
+
+test "phase3 version binding keeps the published layout" {
+    try std.testing.expectEqual(@as(usize, 12), version_size);
+    try std.testing.expectEqual(@as(usize, 4), version_align);
+    try std.testing.expectEqual(@as(usize, 0), abi_major_offset);
+    try std.testing.expectEqual(@as(usize, 4), abi_minor_offset);
+    try std.testing.expectEqual(@as(usize, 8), header_family_revision_offset);
+}
+
+test "phase3 version binding keeps current snapshots and equality explicit" {
+    const snapshot = current();
+    const same = Version{
+        .abi_major = abi_major,
+        .abi_minor = abi_minor,
+        .header_family_revision = header_family_revision,
+    };
+    const different = Version{
+        .abi_major = abi_major,
+        .abi_minor = abi_minor + 1,
+        .header_family_revision = header_family_revision,
+    };
+
+    try std.testing.expect(eql(snapshot, same));
+    try std.testing.expect(!eql(snapshot, different));
+}
+
+test "phase3 version binding mirrors linux zigux header compatibility helpers" {
+    const snapshot = current();
+    const stale_major = Version{
+        .abi_major = abi_major + 1,
+        .abi_minor = abi_minor,
+        .header_family_revision = header_family_revision,
+    };
+    const stale_minor = Version{
+        .abi_major = abi_major,
+        .abi_minor = abi_minor + 1,
+        .header_family_revision = header_family_revision,
+    };
+    const stale_revision = Version{
+        .abi_major = abi_major,
+        .abi_minor = abi_minor,
+        .header_family_revision = header_family_revision + 1,
+    };
+
+    try std.testing.expect(hasCurrentAbiMajor(snapshot.abi_major));
+    try std.testing.expect(hasCurrentAbiMinor(snapshot.abi_minor));
+    try std.testing.expect(hasCurrentHeaderFamilyRevision(snapshot.header_family_revision));
+    try std.testing.expect(matchesCurrent(snapshot));
+
+    try std.testing.expect(!hasCurrentAbiMajor(stale_major.abi_major));
+    try std.testing.expect(!hasCurrentAbiMinor(stale_minor.abi_minor));
+    try std.testing.expect(!hasCurrentHeaderFamilyRevision(stale_revision.header_family_revision));
+    try std.testing.expect(!matchesCurrent(stale_major));
+    try std.testing.expect(!matchesCurrent(stale_minor));
+    try std.testing.expect(!matchesCurrent(stale_revision));
 }
