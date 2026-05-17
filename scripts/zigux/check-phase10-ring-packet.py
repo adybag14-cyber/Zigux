@@ -15,8 +15,10 @@ ROOT = (
 
 DIRECT_PACKET_FILES = [
     "drivers/virtio/virtio_ring.zig",
+    "drivers/virtio/virtio_ring_verify.zig",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
 ]
 
@@ -35,20 +37,38 @@ MARKERS = {
         "if (slot.broken) return error.QueueBroken;",
         "if (slot.broken) return error.QueueResetWhileBroken;",
     ],
+    "drivers/virtio/virtio_ring_verify.zig": [
+        'test "virtio ring reset readiness tracks unpublished, outstanding, and unpolled work" {',
+        'test "virtio ring delayed callback summary reports poll pressure when used work outruns delay budget" {',
+        "readiness = try lab.queueResetReadinessSummary(0);",
+        "const delayed = try lab.enableCallbackDelayed(2);",
+    ],
     "zigux/tests/phase10_build.zig": [
         '.root_source_file = b.path("../../drivers/virtio/virtio_ring.zig"),',
+        '.root_source_file = b.path("../../drivers/virtio/virtio_ring_verify.zig"),',
         '.root_source_file = b.path("phase10_virtio_ring_prepare_kick_idempotent.zig"),',
+        '.root_source_file = b.path("phase10_virtio_ring_reset_reuse.zig"),',
         '.root_source_file = b.path("phase10_virtio_ring_broken_queue_queue_discipline.zig"),',
         '.name = "phase10-virtio-ring-prepare-kick-idempotent-tests",',
+        '.name = "phase10-virtio-ring-reset-reuse-tests",',
         '.name = "phase10-virtio-ring-broken-queue-queue-discipline-tests",',
+        '.name = "phase10-virtio-ring-verify-tests",',
         "test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_verify_tests.step);",
     ],
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
         'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
-        "const virtio_ring = @import(\"virtio_ring\");",
+        'const virtio_ring = @import("virtio_ring");',
         "kick_summary = try ring.prepareKick(1);",
         "try std.testing.expect(!kick_summary.needs_kick);",
+    ],
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
+        'test "phase10 virtio ring explicit clear plus drained reset keeps queue reuse honest" {',
+        'const virtio_ring = @import("virtio_ring");',
+        "const reset_summary = try ring.resetQueue(2);",
+        "const final_broken_summary = try ring.brokenQueueSummary(2);",
     ],
     "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig": [
         'test "phase10 virtio ring broken-queue coverage kicks published work before used accounting and keeps notification history visible" {',
@@ -83,16 +103,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 def write_fixture(root: Path) -> None:
     fixture = {
-        "drivers/virtio/virtio_ring.zig": "\n".join(MARKERS["drivers/virtio/virtio_ring.zig"]) + "\n",
-        "zigux/tests/phase10_build.zig": "\n".join(MARKERS["zigux/tests/phase10_build.zig"]) + "\n",
-        "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": "\n".join(
-            MARKERS["zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig"]
-        )
-        + "\n",
-        "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig": "\n".join(
-            MARKERS["zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig"]
-        )
-        + "\n",
+        rel_path: "\n".join(markers) + "\n"
+        for rel_path, markers in MARKERS.items()
     }
     for rel_path, content in fixture.items():
         target = root / rel_path
@@ -144,17 +156,30 @@ def run_self_test() -> int:
             "pub fn clearBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
         )
         expect_missing_marker(
+            "drivers/virtio/virtio_ring_verify.zig",
+            'test "virtio ring delayed callback summary reports poll pressure when used work outruns delay budget" {',
+        )
+        expect_missing_marker(
             "zigux/tests/phase10_build.zig",
-            '.name = "phase10-virtio-ring-broken-queue-queue-discipline-tests",',
+            '.name = "phase10-virtio-ring-verify-tests",',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_build.zig",
+            "test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);",
         )
         expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
             'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
         )
         expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+            'test "phase10 virtio ring explicit clear plus drained reset keeps queue reuse honest" {',
+        )
+        expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
             "try std.testing.expectError(error.QueueResetWhileBroken, ring.resetQueue(3));",
         )
+        expect_missing_file("drivers/virtio/virtio_ring_verify.zig")
         expect_missing_file("zigux/tests/phase10_build.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
