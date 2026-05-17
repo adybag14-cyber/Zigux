@@ -47,9 +47,7 @@ Current `master` also keeps the returned direct HVC starter-depth packet explici
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 
-An earlier narrower rerun in this family had recorded those direct file paths as temporarily absent from one readback path. Keep those paths framed as archival packet vocabulary rather than current-head direct-readback evidence until a future reread proves they returned.
-
-That reread has now happened again in the coupled HVC survey packet and checker-backed continuity surfaces, so the older missing-readback wording should be treated as stale tool-path evidence rather than current repo truth.
+An earlier narrower rerun in this family had recorded those direct file paths as temporarily absent from one readback path. The coupled HVC survey packet and checker-backed continuity surfaces now reread those paths directly again, so that older missing-readback wording is superseded run history rather than current repo truth.
 
 ## Drift Kept Explicit
 
@@ -61,7 +59,7 @@ This companion therefore exists to keep that combined current-head packet explic
 
 Use the current HVC survey note, this companion, the verify-helper-boundary note, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, the shared build inventory anchor, the surviving HVC proof shards, and the returned direct HVC starter-depth packet as the truthful readback for this lane on current `master`.
 
-Read the older missing-readback wording in this companion as superseded run history rather than as the current boundary of the HVC packet.
+Treat any older missing-readback wording in this companion as superseded run history rather than as the current boundary of the HVC packet.
 
 ## Boundary Kept Honest
 
