@@ -48,7 +48,7 @@ Keep the checklist in the open state while these Phase 12 closure blockers remai
 
 ## Degraded Validation Path
 
-If `zig` is unavailable on `PATH`, keep the same validator-first then smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>`:
+If `zig` is unavailable on `PATH`, keep the same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`:
 
 1. `make -C zigux phase12-validate`
 2. `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
