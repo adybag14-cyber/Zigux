@@ -10,23 +10,20 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
 
-test "phase 7 rbtree survey keeps the helper packet aligned with repo reality" {
+test "phase 7 rbtree survey keeps the direct anchor packet aligned with repo reality" {
     const allocator = std.testing.allocator;
 
     const tests_readme = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_readme);
 
-    const rbtree_slice = try readRepoFile(allocator, "Documentation/zigux/phase7-rbtree-slice.md");
-    defer allocator.free(rbtree_slice);
+    const direct_anchor_note = try readRepoFile(allocator, "Documentation/zigux/phase7-rbtree-direct-anchor-note.md");
+    defer allocator.free(direct_anchor_note);
 
-    const rbtree_test = try readRepoFile(allocator, "zigux/tests/phase7_rbtree.zig");
-    defer allocator.free(rbtree_test);
+    const string_helpers_slice = try readRepoFile(allocator, "Documentation/zigux/phase7-string-helpers-slice.md");
+    defer allocator.free(string_helpers_slice);
 
-    const rbtree_survey = try readRepoFile(allocator, "zigux/tests/phase7_rbtree_survey.zig");
-    defer allocator.free(rbtree_survey);
-
-    const rbtree_manifest = try readRepoFile(allocator, "zigux/tests/phase7_rbtree_manifest.json");
-    defer allocator.free(rbtree_manifest);
+    const string_helpers_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
+    defer allocator.free(string_helpers_tests);
 
     try std.testing.expectEqualStrings("P7-L13", active_lane_key);
 
@@ -38,7 +35,6 @@ test "phase 7 rbtree survey keeps the helper packet aligned with repo reality" {
         tests_readme,
         "repo-reality warning for the broader Phase 7 rbtree packet:",
     );
-
     for ([_][]const u8{
         "`Documentation/zigux/phase7-rbtree-slice.md`",
         "`scripts/zigux/check-phase7-rbtree-parity.py`",
@@ -50,64 +46,48 @@ test "phase 7 rbtree survey keeps the helper packet aligned with repo reality" {
     }) |needle| {
         try expectContains(tests_readme, needle);
     }
-
     try expectContains(
         tests_readme,
-        "keep the narrower current Phase 7 reminder surface tied to the directly readable `zigux/tests/phase7_rbtree_survey.zig` anchor",
+        "keep the narrower current Phase 7 reminder surface tied to the directly readable `zigux/tests/phase7_rbtree_survey.zig` anchor instead of reconstructing the broader helper packet from older route names alone",
     );
     try expectContains(
         tests_readme,
         "leave `string_helpers`, `cmdline`, and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond rbtree",
     );
 
-    try expectContains(rbtree_slice, "`PHASE7_STATUS=parked`");
-    try expectContains(rbtree_slice, "`PHASE7_SLICE=rbtree-runtime-leaf`");
-    try expectContains(rbtree_slice, "`PHASE7_LANE_KEY=P7-L13`");
-    try expectContains(rbtree_slice, "`lib/rbtree.zig`");
-    try expectContains(rbtree_slice, "`zigux/tests/phase7_rbtree.zig`");
-    try expectContains(rbtree_slice, "`zigux/tests/phase7_rbtree_survey.zig`");
-    try expectContains(rbtree_slice, "`zigux/tests/phase7_rbtree_manifest.json`");
-    try expectContains(rbtree_slice, "`scripts/zigux/check-phase7-rbtree-parity.py`");
-    try expectContains(rbtree_slice, "`zig build test --build-file zigux/tests/phase7_build.zig --summary all`");
     try expectContains(
-        rbtree_slice,
-        "keep rbtree-local follow-through under `P7-L13` instead of reusing the shared sequencing lane",
+        direct_anchor_note,
+        "Current direct-readback Phase 7 rbtree anchor: `zigux/tests/phase7_rbtree_survey.zig`",
+    );
+    try expectContains(
+        direct_anchor_note,
+        "Repo-reality warning for the broader Phase 7 rbtree packet:",
+    );
+    try expectContains(
+        direct_anchor_note,
+        "`string_helpers` stays the only directly readable helper implementation packet in this lane today",
+    );
+    try expectContains(
+        direct_anchor_note,
+        "`cmdline` stays reviewable through the parked Phase 1 helper packet",
+    );
+    try expectContains(
+        direct_anchor_note,
+        "do not present `argv_split` or the broader `rbtree` helper-local slice, checker, manifest, fixture, or shared build-route files as directly readable again until a fresh same-lane reread or republish materializes them on current `master`",
     );
 
-    try expectContains(
-        rbtree_test,
-        "phase 7 rbtree replaceNodeCached rewires cached leftmost ownership over dirty replacement nodes",
-    );
-    try expectContains(
-        rbtree_test,
-        "phase 7 rbtree replaceNodeCached keeps non-leftmost cached ownership stable over dirty replacement nodes",
-    );
-    try expectContains(
-        rbtree_test,
-        "phase 7 rbtree cleared detached nodes stop postorder traversal",
-    );
-    try expectContains(
-        rbtree_test,
-        "phase 7 rbtree find helpers walk duplicate-key ranges",
-    );
+    try expectContains(string_helpers_slice, "PHASE7_STATUS=starter_landed");
+    try expectContains(string_helpers_slice, "`lib/string_helpers.zig`");
+    try expectContains(string_helpers_slice, "`zigux/tests/phase7_string_helpers.zig`");
+    try expectContains(string_helpers_slice, "expanded starter packet");
+    try expectContains(string_helpers_slice, "quoted cmdline duplication that collapses trailing NULs, replaces inter-argument NULs with spaces");
 
     try expectContains(
-        rbtree_survey,
-        "phase 7 rbtree survey keeps the helper packet aligned with repo reality",
-    );
-
-    try expectContains(rbtree_manifest, "\"lane_key\": \"P7-L13\"");
-    try expectContains(rbtree_manifest, "\"current_master_state\": \"route_present_shared_packet\"");
-    try expectContains(
-        rbtree_manifest,
-        "\"why_now\": \"The roadmap names lib/rbtree.zig directly, and the live helper already carries the bounded duplicate-range search, linked-node ownership, cached-leftmost erase and replacement, clearNode and eraseInit reset, and postorder leaf-library surface.\"",
+        string_helpers_tests,
+        "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly",
     );
     try expectContains(
-        rbtree_manifest,
-        "\"why_now\": \"A dedicated Phase 7 gate keeps the shared rbtree starter surface reviewable around duplicate-key range traversal, detached-node ownership, clearNode handoff, cached-leftmost erase state, eraseInit reset, and traversal stability without widening into subsystem policy.\"",
-    );
-    try expectContains(
-        rbtree_manifest,
-        "\"why_now\": \"A machine-checked survey gate keeps the roadmap anchor, committed parity packet, manifest record, and shared ownership-review surfaces explicit without reopening rbtree behavior growth.\"",
+        string_helpers_tests,
+        "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators",
     );
 }
