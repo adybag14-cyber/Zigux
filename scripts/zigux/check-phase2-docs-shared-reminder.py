@@ -10,7 +10,8 @@ DOCS_README = ROOT / "Documentation" / "zigux" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 
 DOCS_README_MARKERS = (
-    "Phase 2 notes - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
+    "Phase 2 notes",
+    "- `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`Documentation/zigux/review-checklist.md`",
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
