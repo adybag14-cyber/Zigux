@@ -105,6 +105,12 @@ EXPECTED_CASES = [
         "expected": "version_before_invalid_short_option_expected.json",
     },
     {
+        "name": "version_before_missing_short_option_argument",
+        "argv": ["-Vr"],
+        "mode": "process_json",
+        "expected": "version_before_missing_short_option_argument_expected.json",
+    },
+    {
         "name": "unsupported_long_option",
         "argv": ["--unknown"],
         "mode": "process_json",
@@ -272,6 +278,11 @@ EXPECTED_OUTPUTS = {
     "version_before_invalid_short_option_expected.json": {
         "stdout": "",
         "stderr": "genksyms version 2.5.60\ninvalid option -- 'x'\n",
+        "exit_code": 1,
+    },
+    "version_before_missing_short_option_argument_expected.json": {
+        "stdout": "",
+        "stderr": "genksyms version 2.5.60\noption requires an argument -- 'r'\n",
         "exit_code": 1,
     },
     "unsupported_long_option_expected.json": {
