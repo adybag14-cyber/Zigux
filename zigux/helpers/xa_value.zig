@@ -34,3 +34,19 @@ comptime {
     std.debug.assert(canRepresent(safe_inline_limit));
     std.debug.assert(!canRepresent(safe_inline_limit + 1));
 }
+
+test "inline zero is representable and round-trips as an xa_value" {
+    const raw = try makeValue(0);
+
+    try std.testing.expectEqual(value_tag_mask, raw);
+    try std.testing.expect(isValue(raw));
+    try std.testing.expectEqual(@as(usize, 0), toValue(raw));
+}
+
+test "err_ptr encodings with the low tag bit set never classify as xa_values" {
+    const raw = err_ptr.fromErrorCode(-1);
+
+    try std.testing.expect((raw & value_tag_mask) == value_tag_mask);
+    try std.testing.expect(err_ptr.isErrValue(raw));
+    try std.testing.expect(!isValue(raw));
+}
