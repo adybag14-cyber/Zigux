@@ -218,6 +218,7 @@ Phase 13 review packet
   * `zigux/tests/phase13_devres_boundary_evidence.zig`
   * `zigux/tests/phase13_devres_manifest.json`
   * `security/landlock/ruleset.zig`
+  * `security/landlock/syscalls.zig`
   * `zigux/tests/phase13_landlock_ruleset.zig`
   * `zigux/tests/phase13_landlock_ruleset_manifest.json`
   * `zigux/tests/phase13_landlock_syscalls.zig`
