@@ -39,11 +39,11 @@
   ],
   "survey_summary": {
     "virtio_ring_c_lines": 3940,
-    "preexisting_phase10_test_files": 1,
-    "preexisting_virtio_core_zig_present": false,
+    "preexisting_phase10_test_files": 3,
+    "preexisting_virtio_core_zig_present": true,
     "preexisting_phase10_build_present": true,
     "preexisting_phase10_core_doc_present": false,
-    "preexisting_virtio_ring_zig_present": false,
+    "preexisting_virtio_ring_zig_present": true,
     "preexisting_virtio_ring_doc_present": true,
     "preexisting_ring_verify_present": false
   },
@@ -53,21 +53,21 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_build.zig",
-      "why_now": "Current direct readback still materializes the shared Phase 10 build gate even while the direct ring helper and replay packet has dropped out of current master."
+      "why_now": "Current direct readback still materializes the shared Phase 10 build gate alongside the restored ring helper and focused queue-local replays."
     },
     {
       "id": "phase10-virtio-core-lab-starter",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "Fresh direct contents reads now return missing for the broader core foothold, so the ring packet must treat that path as absent repo reality rather than as current direct evidence."
+      "why_now": "Fresh direct contents readback rematerializes the broader core foothold on current master, even though that neighboring packet stays outside this ring-owned queue-wrapper lane."
     },
     {
       "id": "phase10-virtio-ring-survey-gate",
       "status": "repo_reality_gap",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
-      "why_now": "The dedicated ring survey replay no longer materializes through current master contents reads, so the ring packet should keep that gate explicit as a missing direct surface instead of a landed replay."
+      "why_now": "The dedicated ring survey replay still does not materialize through current master contents reads, so the ring packet should keep that gate explicit as a missing direct surface instead of a landed replay."
     },
     {
       "id": "phase10-virtio-ring-survey-note",
@@ -78,80 +78,80 @@
     },
     {
       "id": "phase10-virtqueue-shape-helper",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The queue-shape helper path is currently missing on master, so the ring packet must treat it as a repo-reality gap until a fresh reread materializes the file again."
+      "why_now": "The queue-shape helper path is directly readable again on master through the restored queue-local ring helper."
     },
     {
       "id": "phase10-used-buffer-polling-helper",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The used-buffer polling helper remains part of the bounded ring vocabulary, but its direct helper file is currently absent on master."
+      "why_now": "The used-buffer polling helper is directly readable again through the restored queue-local ring helper."
     },
     {
       "id": "phase10-callback-enable-helper",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The callback re-enable helper is still a ring-lane destination, yet current direct readback does not materialize the owning helper file."
+      "why_now": "The callback re-enable helper is directly readable again through the restored queue-local ring helper."
     },
     {
       "id": "phase10-callback-delay-helper",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The delayed-callback helper should stay explicit as a ring packet destination, but it is not currently backed by a readable direct helper file on master."
+      "why_now": "The delayed-callback helper is directly readable again through the restored queue-local ring helper."
     },
     {
       "id": "phase10-notify-prepare-helper",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The notify-prepare helper remains part of the ring packet vocabulary while its direct helper file is currently missing from contents reads."
+      "why_now": "The notify-prepare helper remains part of the ring packet vocabulary and is directly readable again through the restored queue-local ring helper."
     },
     {
       "id": "phase10-notification-data-summary-helper",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The notification-data summary helper should stay explicit as a ring packet destination, but current master no longer materializes the helper file itself."
+      "why_now": "The notification-data summary helper is directly readable again through the restored queue-local ring helper."
     },
     {
       "id": "phase10-broken-queue-poll-guard",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The broken-queue polling guard remains bounded ring vocabulary even though the direct ring helper file is absent on current master."
+      "why_now": "The broken-queue polling guard is directly readable again through the restored queue-local ring helper."
     },
     {
       "id": "phase10-queue-reset-helper",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The reset helper should stay listed as a ring-lane destination, but a fresh direct reread still returns missing for the helper file that would carry it."
+      "why_now": "The reset helper is directly readable again through the restored queue-local ring helper."
     },
     {
       "id": "phase10-queue-reset-readiness-helper",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The reset-readiness helper remains a bounded ring packet target, but it is currently absent as direct contents evidence on master."
+      "why_now": "The reset-readiness helper is directly readable again through the restored queue-local ring helper."
     },
     {
       "id": "phase10-ring-verify-replay",
       "status": "repo_reality_gap",
       "kind": "validation",
       "zigux_destination": "drivers/virtio/virtio_ring_verify.zig",
-      "why_now": "The wrapper-facing verify replay path no longer materializes through current master contents reads, so the ring packet must mark it as a direct repo-reality gap."
+      "why_now": "The wrapper-facing verify replay path still does not materialize through current master contents reads, so the ring packet must keep it in the direct gap bucket."
     },
     {
       "id": "phase10-virtio-ring-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
-      "why_now": "The packet-local slice note is still directly readable and can carry the narrowed ring packet vocabulary without overstating missing helper and replay files as present evidence."
+      "why_now": "The packet-local slice note is still directly readable and can carry the narrowed ring packet vocabulary without overstating the remaining verify and survey replay gaps."
     },
     {
       "id": "phase10-ring-lab-driver-bridge",
