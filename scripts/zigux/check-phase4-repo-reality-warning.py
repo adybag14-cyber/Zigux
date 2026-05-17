@@ -197,7 +197,6 @@ def main() -> int:
             cases += 1
 
             drifted = root / NOTE
-            drifted.writeText = None
             drifted.write_text(
                 drifted.read_text(encoding="utf-8").replace(
                     "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`",
