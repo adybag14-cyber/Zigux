@@ -8,23 +8,23 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- scope: the live freeze map, the existing dedicated Phase 15 manifest and freeze-map gate, the checker-backed shared reminder packet that still materializes on current `master`, and one bounded maintenance follow-up that keeps the current freeze anchor set, blocker evidence, required approver sets, shared governance provenance, and maintenance-mode handoff aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, per-anchor evidence-archive reporting posture, and an anchor-by-anchor deep-core blocker survey that compares roadmap posture against current repo reality while the broader validator-first, dedicated build, and make-wrapper routes remain shared-summary repo-reality gaps
-- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-17` on 2026-05-17 after a fresh live reread confirmed the freeze anchor set and blocker posture still match current repo reality while the broader Phase 15 validator-first and wrapper routes no longer materialize on current `master`
+- scope: the live freeze map, the existing dedicated Phase 15 manifest and freeze-map gate, the checker-backed shared reminder packet, the broader validator-first, dedicated build, and make-wrapper routes that still materialize on current `master`, and one bounded maintenance follow-up that keeps the current freeze anchor set, blocker evidence, required approver sets, shared governance provenance, and maintenance-mode handoff aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, per-anchor evidence-archive reporting posture, and an anchor-by-anchor deep-core blocker survey that compares roadmap posture against current repo reality
+- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-17` on 2026-05-17 after a fresh live reread confirmed the freeze anchor set, blocker posture, and broader Phase 15 validator-first, dedicated build, and make-wrapper routes still match current repo reality
 - exact branch-head parity is not recorded for this packet; the parked freeze-map governance note now uses an explicit dated readback marker instead of stale exact-head provenance while keeping the same freeze anchor set and blocker posture
 - direct lane-owned boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
   - `zigux/tests/phase15_freeze_map_manifest.json`
   - `zigux/tests/phase15_freeze_map_governance.zig`
-- adjacent Phase 15 parity-scorecard, review-process, indefinite-C-policy, readiness, handoff, and shared-summary surfaces still inform this lane's truthfulness checks, but they remain neighboring packet inputs rather than lane-owned boundary files here
+- adjacent Phase 15 parity-scorecard, review-process, indefinite-C-policy, readiness, handoff, shared-summary, validator, dedicated-build, and make-wrapper surfaces still inform this lane's truthfulness checks, but they remain neighboring packet inputs rather than lane-owned boundary files here
 
 ## Why this slice exists
 
 The roadmap's Phase 15 work is about governance, not another burst of deep-core implementation.
 
-The live repo now carries much more than the original freeze-map starter: the parity scorecard, Architecture Council review-process note, retained stay-in-C closeout rule, reopen-trigger catalog, indefinite-C policy note, the shared-summary gap note, and the checker-backed governance reminder packet are all already landed. At the same time, current `master` no longer materializes the broader `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, or `make -C zigux phase15*` wrapper routes that older maintenance wording still treated as shipped evidence.
+The live repo now carries much more than the original freeze-map starter: the parity scorecard, Architecture Council review-process note, retained stay-in-C closeout rule, reopen-trigger catalog, indefinite-C policy note, the shared-summary gap note, the checker-backed governance reminder packet, `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and the `make -C zigux phase15*` wrapper routes are all already landed.
 
-The honest bounded step is therefore truthfulness maintenance, not expansion: keep the same freeze-map-specific lane record, preserve the current freeze anchor set and blocker posture, keep the compact roadmap-versus-repo blocker crosswalk, refresh the dated readback marker, and keep the lane boundary consistent with the newer sequencing and shared-summary notes instead of re-owning adjacent parity-scorecard, policy, or shared-summary packet surfaces or implying that the broader validator-first packet is already rematerialized.
+The honest bounded step is therefore truthfulness maintenance, not expansion: keep the same freeze-map-specific lane record, preserve the current freeze anchor set and blocker posture, keep the compact roadmap-versus-repo blocker crosswalk, refresh the dated readback marker, and keep the lane boundary consistent with the broader validator-first, dedicated-build, and wrapper routes that still ship on current `master` without re-owning adjacent parity-scorecard, policy, or shared-summary packet surfaces.
 
 ## Landed governance rules
 
@@ -52,10 +52,10 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
 
 ## Deep-core blockers versus roadmap and repo reality
 
-- `kernel/sched/core.c`: roadmap basis `Phase 15 freeze-in-C anchor that cannot leave the deep-core freeze set until a narrower scheduler seam earns Architecture Council review.` Current repo reality: `Current master still carries the freeze map, the dedicated freeze-map governance packet, and the parity scorecard baseline for scheduler core, but no carried-forward Phase 14 blocker survey and no bounded scheduler seam.` Current blocker: `blocked_no_bounded_scheduler_seam`
-- `mm/page_alloc.c`: roadmap basis `Phase 15 freeze-in-C anchor that cannot leave the deep-core freeze set until a narrower allocator seam earns Architecture Council review.` Current repo reality: `Current master still carries the freeze map, the dedicated freeze-map governance packet, and the parity scorecard baseline for page allocator core, but no carried-forward Phase 14 blocker survey and no bounded allocator seam.` Current blocker: `blocked_no_bounded_allocator_seam`
-- `kernel/rcu/tree.c`: roadmap basis `Phase 15 keeps Tree RCU frozen unless a narrower-than-freeze follow-up answers the current blocker with Architecture Council reviewable evidence.` Current repo reality: `Current master already carries Documentation/zigux/phase14-rcu-tree-survey.md, where lane P14-L16 still records blocked phase14-rcu-tree-bridge-blocker and keeps Tree RCU parked in a freeze-in-C posture.` Current blocker: `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
-- `net/core/skbuff.c`: roadmap basis `Phase 15 keeps skbuff frozen unless a narrower-than-lifetime follow-up answers the current blocker with Architecture Council reviewable evidence.` Current repo reality: `Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-L11 still records blocked phase14-skbuff-live-ownership-blocker and keeps the surviving skbuff packet review-first and boundary_map_only, while Documentation/zigux/phase14-core-boundary-traceability.md still keeps skbuff in retained-in-C posture and warns against treating the packet as a live bridge or status-change claim.` Current blocker: `blocked_packet_lifetime_boundary_still_too_wide`
+- `kernel/sched/core.c`: roadmap basis `Phase 15 freeze-in-C anchor that cannot leave the deep-core freeze set until a narrower scheduler seam earns Architecture Council review.` Current repo reality: `Current master still carries the freeze map, the dedicated freeze-map governance packet, the parity scorecard baseline for scheduler core, the shared Phase 15 validator replay, the dedicated Phase 15 build route, and the make-wrapper routes, but no carried-forward Phase 14 blocker survey and no bounded scheduler seam.` Current blocker: `blocked_no_bounded_scheduler_seam`
+- `mm/page_alloc.c`: roadmap basis `Phase 15 freeze-in-C anchor that cannot leave the deep-core freeze set until a narrower allocator seam earns Architecture Council review.` Current repo reality: `Current master still carries the freeze map, the dedicated freeze-map governance packet, the parity scorecard baseline for page allocator core, the shared Phase 15 validator replay, the dedicated Phase 15 build route, and the make-wrapper routes, but no carried-forward Phase 14 blocker survey and no bounded allocator seam.` Current blocker: `blocked_no_bounded_allocator_seam`
+- `kernel/rcu/tree.c`: roadmap basis `Phase 15 keeps Tree RCU frozen unless a narrower-than-freeze follow-up answers the current blocker with Architecture Council reviewable evidence.` Current repo reality: `Current master already carries Documentation/zigux/phase14-rcu-tree-survey.md, where lane P14-L16 still records blocked phase14-rcu-tree-bridge-blocker and keeps Tree RCU parked in a freeze-in-C posture, while the shared Phase 15 validator replay, dedicated build route, and make-wrapper routes also remain visible on current master.` Current blocker: `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
+- `net/core/skbuff.c`: roadmap basis `Phase 15 keeps skbuff frozen unless a narrower-than-lifetime follow-up answers the current blocker with Architecture Council reviewable evidence.` Current repo reality: `Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-L11 still records blocked phase14-skbuff-live-ownership-blocker and keeps the surviving skbuff packet review-first and boundary_map_only, while Documentation/zigux/phase14-core-boundary-traceability.md still keeps skbuff in retained-in-C posture and warns against treating the packet as a live bridge or status-change claim; the shared Phase 15 validator replay, dedicated build route, and make-wrapper routes also remain visible on current master.` Current blocker: `blocked_packet_lifetime_boundary_still_too_wide`
 
 ## Maintenance-Mode Handoff
 
@@ -66,7 +66,7 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
   - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
   - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
   - `zig test zigux/tests/phase15_freeze_map_governance.zig`
-- current shared-summary repo-reality gaps that must stay explicit beside this packet:
+- adjacent shared validator, dedicated-build, and make-wrapper routes that must stay explicit beside this packet:
   - `scripts/zigux/validate-phase15.py`
   - `zigux/tests/phase15_build.zig`
   - `make -C zigux phase15-validate`
@@ -76,7 +76,7 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
   - a freeze-map anchor changes status bucket, blocker disposition, or required approver set
   - the freeze-in-C or study-only anchor set changes in `Documentation/zigux/freeze-map.md`
   - the checker-backed shared reminder packet or an adjacent Phase 15 governance packet drifts enough to change the per-anchor evidence-archive, replay-command, stay-in-C, or no-silent-exception posture recorded here
-- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `zigux/tests/phase15_freeze_map_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `scripts/zigux/check-phase15-shared-summary-gap.py` together, then keep the repair inside the freeze-map packet and its direct machine-checkable guard instead of reopening broader validator-first route wording by implication
+- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `zigux/tests/phase15_freeze_map_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and `zigux/Makefile` together, then keep the repair inside the freeze-map packet and its direct machine-checkable guard while leaving those broader shared routes as adjacent evidence instead of freeze-map-local ownership
 
 ## Recorded gaps
 
@@ -96,14 +96,14 @@ The current lane state is:
 - landed `phase15-deep-core-blocker-roadmap-reality-survey`
 - landed `phase15-dated-readback-provenance-refresh`
 - landed `phase15-freeze-map-maintenance-handoff`
-- blocked `phase15-shared-validator-route-gap`
-- blocked `phase15-shared-build-route-gap`
-- blocked `phase15-shared-wrapper-route-gap`
+- landed `phase15-shared-validator-route-readback`
+- landed `phase15-shared-build-route-readback`
+- landed `phase15-shared-wrapper-route-readback`
 - blocked `phase15-deep-core-status-change-blocker`
 
 This keeps the lane tight: Zigux keeps the same reviewable governance rule for the freeze map, the same current stay-in-C policy family, the same adjacent parity-scorecard lane-owner and rollback-owner records, the same checker-backed shared reminder packet, the same per-anchor required-approver-set inventory and evidence-archive reporting posture already expected by the broader Phase 15 packet, the same compact crosswalk that says which blocker comes straight from the roadmap freeze and which current repo evidence still keeps each deep-core anchor parked, and an explicit maintenance-mode handoff that says when the packet may reopen and which direct checker and dedicated freeze-map gate should be rerun before trusting it again.
 
-The only new maintenance claim is truthfulness: the parked note now records the current 2026-05-17 dated readback, keeps the direct checker-backed governance packet explicit, and names the broader validator-first, dedicated build, and Linux-style wrapper routes as current repo-reality gaps instead of implying they still ship on `master`.
+The only new maintenance claim is truthfulness: the parked note now records the current 2026-05-17 dated readback, keeps the direct checker-backed governance packet explicit, and keeps the broader validator-first, dedicated build, and Linux-style wrapper routes visible as adjacent shared evidence instead of repeating older repo-gap wording.
 
 ## Non-goals
 
@@ -125,4 +125,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode until one of the packet-local reopen conditions fires, one of the shared-summary repo-reality gaps rematerializes, or a real change in one anchor's blocker evidence lands.
+Keep the Phase 15 governance lane in maintenance mode until one of the packet-local reopen conditions fires, one of the adjacent shared validator, dedicated-build, or wrapper routes drifts away from the packet's recorded posture, or a real change in one anchor's blocker evidence lands.
