@@ -64,7 +64,7 @@ REQUIRED_MARKERS = {
         "`PHASE12_STATUS=active`",
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "scripts/zigux/check-build-only-phase12-surface.py` now matches that shipped support-checker-plus-validate-route reminder too",
-        "broader reviewer-facing reminder family still needs to stop overstating the absent standalone `scripts/zigux/check-phase12-cross.py` file",
+        "the broader reviewer-facing reminder family now keeps the absent standalone `scripts/zigux/check-phase12-cross.py` file explicit instead of overstating a cross-checker surface that current `master` does not ship",
         "make -C zigux phase12-validate",
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
