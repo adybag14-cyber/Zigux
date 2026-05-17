@@ -13,6 +13,7 @@ It does not exist to become a permanent parallel subsystem tree.
 
 Rules
 - Keep product planning and bootstrap artifacts here first.
+- Use the roadmap and bootstrap commit ledger together when choosing the next bootstrap lane.
 - Move actual product code into the native Linux locations or the small `zigux/` support root once a slice is approved.
 - Do not create `zigux-alpha/ports/` or any mirror-tree equivalent.
 - Treat ZAR as the research and proving repo and Zigux as the product repo.
@@ -26,6 +27,7 @@ Active product surfaces
 
 Start here
 - [ZAR to Zigux Product Roadmap](./ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md)
+- [Bootstrap Commit Ledger](./BOOTSTRAP_COMMIT_LEDGER.md)
 - [Live Product Docs](../Documentation/zigux/README.md)
 - [Review Checklist](../Documentation/zigux/review-checklist.md)
 - [Freeze Map](../Documentation/zigux/freeze-map.md)
