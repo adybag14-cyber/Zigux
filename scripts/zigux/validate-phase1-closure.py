@@ -221,6 +221,18 @@ def run_self_test() -> int:
     cases = [
         ("baseline", None, True),
         (
+            "missing_status",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                replace_once(
+                    load_text(root, PHASE1_CLOSURE_REL),
+                    EXPECTED_MARKERS["status"],
+                    "`PHASE1_STATUS=stale`",
+                ),
+            ),
+            False,
+        ),
+        (
             "missing_restore_state",
             lambda root: write_text(
                 root / PHASE1_CLOSURE_REL,
@@ -228,6 +240,30 @@ def run_self_test() -> int:
                     load_text(root, PHASE1_CLOSURE_REL),
                     EXPECTED_MARKERS["restore_state"],
                     "`PHASE1_CLOSURE_RESTORE_STATE=docs_only`",
+                ),
+            ),
+            False,
+        ),
+        (
+            "missing_reminder_packet",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                replace_once(
+                    load_text(root, PHASE1_CLOSURE_REL),
+                    EXPECTED_MARKERS["reminder_packet"],
+                    "`PHASE1_CURRENT_REMINDER_PACKET=missing`",
+                ),
+            ),
+            False,
+        ),
+        (
+            "missing_gap_packet",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                replace_once(
+                    load_text(root, PHASE1_CLOSURE_REL),
+                    EXPECTED_MARKERS["gap_packet"],
+                    "`PHASE1_CURRENT_GAP_PACKET=missing`",
                 ),
             ),
             False,
@@ -245,8 +281,54 @@ def run_self_test() -> int:
             False,
         ),
         (
+            "missing_shared_tests_route",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                replace_once(
+                    load_text(root, PHASE1_CLOSURE_REL),
+                    EXPECTED_MARKERS["shared_tests_route"],
+                    "`PHASE1_SHARED_TESTS_ROUTE=missing`",
+                ),
+            ),
+            False,
+        ),
+        (
             "missing_file",
             lambda root: (root / PHASE1_SMOKE_REL).unlink(),
+            False,
+        ),
+        (
+            "bad_phase",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        "phase": "Phase Zero",
+                        "status": "closed",
+                        "helper_count": len(EXPECTED_HELPERS),
+                        "helpers": EXPECTED_HELPERS,
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+            False,
+        ),
+        (
+            "bad_status",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        "phase": "Phase 1",
+                        "status": "parked",
+                        "helper_count": len(EXPECTED_HELPERS),
+                        "helpers": EXPECTED_HELPERS,
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
             False,
         ),
         (
