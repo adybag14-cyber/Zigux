@@ -1,13 +1,13 @@
 {
   "lane_key": "P13-L08",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-16",
+  "surveyed_commit": "master-readback-2026-05-17",
   "anchor": "lib/devres.c",
   "packet": "phase13-devres-dmam-alloc-coherent-planner",
   "status": "planning_only",
   "adjacent_evidence": [
-    "Documentation/zigux/phase13-devres-survey.md",
     "Documentation/zigux/phase13-devres-slice.md",
+    "Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md",
     "zigux/tests/phase13_devres_dma_coherent.zig"
   ],
   "required_markers": [
