@@ -49,11 +49,13 @@ REQUIRED_MARKERS = (
     "`zigux/bindings/notifier_abi.zig`",
     "`include/zigux/abi.h`",
     "`drivers/tty/hvc/hvc_console.h`",
-    "Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep those paths framed as repo-reality gaps rather than as shipped tests-root evidence.",
+    "Current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep those validator-first and checker names framed as repo-reality gaps rather than shipped tests-root evidence.",
+    "Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note framed as an adjacent repo-reality gap rather than as shipped tests-root evidence.",
+    "Current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.",
 )
 
 REQUIRED_TEXT = (
-    "keep the shared contributor-facing handle routed through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` until the missing shared build companion and any future rematerialized make-route support can be reread together; treat the Makefile-backed Phase 13 route family as repo-reality gaps rather than direct shipped current-`master` evidence",
+    "Keep the stable contributor-facing reminder handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/review-checklist.md` and `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` aligned with that stable handle as supporting shared reminder surfaces rather than treating the missing Makefile-backed route family as the shared entrypoint.",
 )
 
 FORBIDDEN_SHIPPED_LINES = (
@@ -142,13 +144,13 @@ def build_self_test_root(root: Path) -> None:
         "",
         "## Phase 13 review packet",
         "",
+        REQUIRED_TEXT[0],
+        "",
         "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:",
     ]
-    section_lines.extend(f"- {marker}" for marker in REQUIRED_MARKERS[:-1])
+    section_lines.extend(f"- {marker}" for marker in REQUIRED_MARKERS[:-3])
     section_lines.append("")
-    section_lines.append(REQUIRED_MARKERS[-1])
-    section_lines.append("")
-    section_lines.append(REQUIRED_TEXT[0])
+    section_lines.extend(REQUIRED_MARKERS[-3:])
     section_lines.append("")
     section_lines.append(PHASE13_SECTION_END)
     write_text(resolve_path(root, TESTS_README), "\n".join(section_lines) + "\n")
@@ -162,7 +164,7 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 7
+    expected_case_count = 8
     with tempfile.TemporaryDirectory(prefix="zigux_p13_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -192,6 +194,19 @@ def run_self_test() -> int:
         )
         issues = collect_issues(root)
         assert ("MISSING_MARKER", REQUIRED_MARKERS[-1]) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TESTS_README)
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                REQUIRED_MARKERS[-2],
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_MARKER", REQUIRED_MARKERS[-2]) in issues
         checks_run += 1
 
         build_self_test_root(root)
