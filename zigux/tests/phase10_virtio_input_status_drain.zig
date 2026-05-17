@@ -1,5 +1,6 @@
 const std = @import("std");
 const virtio_input = @import("virtio_input");
+const status_drain = @import("virtio_input_status_drain");
 
 test "phase10 virtio input status drain preserves suppressed timestamp counts while draining queued statuses" {
     var device = try virtio_input.VirtioInputLab.init("Virtio Touch Lab", "serial-27", 6, null);
@@ -21,7 +22,7 @@ test "phase10 virtio input status drain preserves suppressed timestamp counts wh
     try std.testing.expectEqual(@as(usize, 1), queued.queued_status_count);
     try std.testing.expectEqual(@as(usize, 1), queued.suppressed_status_count);
 
-    const drained = try device.drainStatusQueue(1);
+    const drained = try status_drain.summarize(&device, 1);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", drained.anchor);
     try std.testing.expectEqual(@as(usize, 1), drained.completed_status_count);
     try std.testing.expectEqual(@as(usize, 1), drained.pending_status_count_before);
@@ -45,10 +46,10 @@ test "phase10 virtio input status drain rejects completions beyond queued status
 
     try std.testing.expectError(
         error.StatusCompletionCountExceedsQueued,
-        device.drainStatusQueue(2),
+        status_drain.summarize(&device, 2),
     );
 
-    const drained = try device.drainStatusQueue(1);
+    const drained = try status_drain.summarize(&device, 1);
     try std.testing.expectEqual(@as(usize, 1), drained.completed_status_count);
     try std.testing.expectEqual(@as(usize, 1), drained.pending_status_count_before);
     try std.testing.expectEqual(@as(usize, 0), drained.pending_status_count_after);
