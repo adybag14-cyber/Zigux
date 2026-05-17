@@ -11,35 +11,47 @@ from pathlib import Path
 NOTE_PATH = Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")
 ABI_SLICE_PATH = Path("Documentation/zigux/phase3-abi-slice.md")
 ATOMIC_PATH = Path("zigux/helpers/atomic.zig")
+BARRIER_PATH = Path("zigux/helpers/barrier.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 
 REQUIRED_MARKERS = {
     NOTE_PATH: (
-        "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, but current master now directly exposes one atomic helper shard, one shared narrow-unsafe decoder, this dedicated survey note, and a dedicated survey validator rather than the full helper trio and focused replay packet that earlier continuity notes described",
-        "PHASE3_LOW_LEVEL_WRAPPER_GAP=direct current-head readback on 2026-05-17 reaches Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/unsafe/narrow.zig, and scripts/zigux/validate-phase3-low-level-wrapper-survey.py, while repeated authenticated contents reads still return missing for zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_low_level_wrappers.zig, and zigux/tests/phase3_low_level_wrappers_build.zig",
-        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through in survey-and-gap-accounting mode with the dedicated survey validator keeping the current atomic-plus-narrow reminder packet fail-closed until current master materializes one more bounded companion beside zigux/helpers/atomic.zig and zigux/unsafe/narrow.zig, with the next honest implementation step being either one directly readable barrier-or-mmio helper shard or one equally bounded focused replay companion",
+        "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one shared narrow-unsafe decoder, this dedicated survey note, and a dedicated survey validator rather than the full helper trio and focused replay packet that earlier continuity notes described",
+        "PHASE3_LOW_LEVEL_WRAPPER_GAP=direct current-head readback on 2026-05-17 reaches Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/unsafe/narrow.zig, and scripts/zigux/validate-phase3-low-level-wrapper-survey.py, while repeated authenticated contents reads still return missing for zigux/helpers/mmio.zig, zigux/tests/phase3_low_level_wrappers.zig, and zigux/tests/phase3_low_level_wrappers_build.zig",
+        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through in survey-and-gap-accounting mode with the dedicated survey validator keeping the current atomic-plus-barrier reminder packet fail-closed until current master materializes one more bounded companion beside zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, and zigux/unsafe/narrow.zig, with the next honest implementation step being either one directly readable mmio helper shard or one equally bounded focused replay companion",
         "`Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`",
         "`zigux/helpers/atomic.zig`",
+        "`zigux/helpers/barrier.zig`",
         "`zigux/unsafe/narrow.zig`",
         "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`",
-        "`zigux/helpers/barrier.zig`",
         "`zigux/helpers/mmio.zig`",
         "`zigux/tests/phase3_low_level_wrappers.zig`",
         "`zigux/tests/phase3_low_level_wrappers_build.zig`",
-        "It also now exposes the dedicated survey validator through `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, which keeps the current atomic-plus-narrow reminder surface fail-closed even while the broader wrapper family stays absent.",
-        "Reviewers should treat the low-level wrapper family as partially materialized on current `master`: one atomic helper shard, the shared narrow-unsafe decoder, and the dedicated survey validator are directly readable, while the broader barrier, MMIO, and replay companions remain current repo-reality gaps.",
+        "It also exposes one directly readable barrier helper companion through `zigux/helpers/barrier.zig`, which keeps compiler, acquire, release, full, and acquire-release barrier wrappers reviewable before the wider wrapper family lands.",
+        "It also now exposes the dedicated survey validator through `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, which keeps the current atomic-plus-barrier reminder surface fail-closed even while the broader wrapper family stays partial.",
+        "Reviewers should treat the low-level wrapper family as partially materialized on current `master`: one atomic helper shard, one barrier helper companion, the shared narrow-unsafe decoder, and the dedicated survey validator are directly readable, while the broader MMIO and replay companions remain current repo-reality gaps.",
     ),
     ABI_SLICE_PATH: (
-        "one adjacent low-level-wrapper reminder surface built around the surviving atomic helper shard, shared unsafe-scope decoder, and dedicated survey validator",
-        "one adjacent low-level-wrapper reminder surface built around `zigux/helpers/atomic.zig`, `zigux/unsafe/narrow.zig`, and `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, but it still lacks the broader shared Phase 3 ABI replay route, shared tests-root wiring for the policy packet, the full barrier-and-MMIO helper follow-through, the focused low-level-wrapper replay route, the broader export/UAPI layout family, and the wider shared validator packet that earlier shared reminders described",
-        "and it separately reaches one adjacent low-level-wrapper reminder surface through Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/unsafe/narrow.zig, and scripts/zigux/validate-phase3-low-level-wrapper-survey.py, while representative broader Phase 3 paths still remain absent, including zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_low_level_wrappers.zig, zigux/tests/phase3_low_level_wrappers_build.zig, zigux/tests/phase3_abi.zig, zigux/tests/phase3_abi_dump.zig, scripts/zigux/check-phase3-abi.py, scripts/zigux/validate-phase3.py, and zigux/tests/phase3_export_uapi_layout.zig",
+        "one adjacent low-level-wrapper reminder surface built around the surviving atomic helper shard, one directly readable barrier helper companion, the shared unsafe-scope decoder, and the dedicated survey validator",
+        "one adjacent low-level-wrapper reminder surface built around zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/unsafe/narrow.zig, and scripts/zigux/validate-phase3-low-level-wrapper-survey.py, but it still lacks the broader shared Phase 3 ABI replay route, shared tests-root wiring for the policy packet, the remaining MMIO helper follow-through, the focused low-level-wrapper replay route, the broader export/UAPI layout family, and the wider shared validator packet that earlier shared reminders described",
+        "and it separately reaches one adjacent low-level-wrapper reminder surface through Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/unsafe/narrow.zig, and scripts/zigux/validate-phase3-low-level-wrapper-survey.py, while representative broader Phase 3 paths still remain absent, including zigux/helpers/mmio.zig, zigux/tests/phase3_low_level_wrappers.zig, zigux/tests/phase3_low_level_wrappers_build.zig, zigux/tests/phase3_abi.zig, zigux/tests/phase3_abi_dump.zig, scripts/zigux/check-phase3-abi.py, scripts/zigux/validate-phase3.py, and zigux/tests/phase3_export_uapi_layout.zig",
+        "`zigux/helpers/barrier.zig`",
         "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`",
-        "Current `master` also separately exposes only a partial low-level-wrapper reminder surface through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/helpers/atomic.zig`, `zigux/unsafe/narrow.zig`, and `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`.",
-        "the partial low-level-wrapper reminder surface built around `zigux/helpers/atomic.zig`, `zigux/unsafe/narrow.zig`, the dedicated survey note, and the dedicated survey validator;",
+        "Current `master` also separately exposes only a partial low-level-wrapper reminder surface through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/unsafe/narrow.zig`, and `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`.",
+        "one directly readable barrier helper companion",
+        "the partial low-level-wrapper reminder surface built around `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/unsafe/narrow.zig`, the dedicated survey note, and the dedicated survey validator;",
     ),
     ATOMIC_PATH: (
         "pub fn compareExchangeFailureOrderAllowed(success: Ordering, failure: Ordering) bool {",
         'test "phase3 atomic helper keeps compare-exchange ordering rules explicit" {',
+    ),
+    BARRIER_PATH: (
+        "pub fn compiler() void {",
+        "pub fn acquire() void {",
+        "pub fn release() void {",
+        "pub fn full() void {",
+        "pub fn acquireRelease() void {",
+        'test "phase3 barrier wrappers compile" {',
     ),
     NARROW_PATH: (
         "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {",
@@ -48,10 +60,11 @@ REQUIRED_MARKERS = {
 }
 
 SELF_TEST_CASES = (
-    (NOTE_PATH, "It also now exposes the dedicated survey validator through `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, which keeps the current atomic-plus-narrow reminder surface fail-closed even while the broader wrapper family stays absent."),
-    (NOTE_PATH, "Reviewers should treat the low-level wrapper family as partially materialized on current `master`: one atomic helper shard, the shared narrow-unsafe decoder, and the dedicated survey validator are directly readable, while the broader barrier, MMIO, and replay companions remain current repo-reality gaps."),
-    (ABI_SLICE_PATH, "and it separately reaches one adjacent low-level-wrapper reminder surface through Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/unsafe/narrow.zig, and scripts/zigux/validate-phase3-low-level-wrapper-survey.py, while representative broader Phase 3 paths still remain absent, including zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_low_level_wrappers.zig, zigux/tests/phase3_low_level_wrappers_build.zig, zigux/tests/phase3_abi.zig, zigux/tests/phase3_abi_dump.zig, scripts/zigux/check-phase3-abi.py, scripts/zigux/validate-phase3.py, and zigux/tests/phase3_export_uapi_layout.zig"),
-    (ABI_SLICE_PATH, "Current `master` also separately exposes only a partial low-level-wrapper reminder surface through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/helpers/atomic.zig`, `zigux/unsafe/narrow.zig`, and `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`."),
+    (NOTE_PATH, "It also exposes one directly readable barrier helper companion through `zigux/helpers/barrier.zig`, which keeps compiler, acquire, release, full, and acquire-release barrier wrappers reviewable before the wider wrapper family lands."),
+    (NOTE_PATH, "Reviewers should treat the low-level wrapper family as partially materialized on current `master`: one atomic helper shard, one barrier helper companion, the shared narrow-unsafe decoder, and the dedicated survey validator are directly readable, while the broader MMIO and replay companions remain current repo-reality gaps."),
+    (ABI_SLICE_PATH, "Current `master` also separately exposes only a partial low-level-wrapper reminder surface through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/unsafe/narrow.zig`, and `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`."),
+    (ABI_SLICE_PATH, "one adjacent low-level-wrapper reminder surface built around the surviving atomic helper shard, one directly readable barrier helper companion, the shared unsafe-scope decoder, and the dedicated survey validator"),
+    (BARRIER_PATH, "pub fn acquire() void {"),
     (ATOMIC_PATH, "pub fn compareExchangeFailureOrderAllowed(success: Ordering, failure: Ordering) bool {"),
     (NARROW_PATH, "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {"),
 )
