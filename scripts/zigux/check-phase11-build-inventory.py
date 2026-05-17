@@ -307,6 +307,15 @@ def run_check(root: Path) -> None:
     if expect_string_list("shared_adjunct_replays", inventory.get("shared_adjunct_replays")):
         raise CheckError("expected shared_adjunct_replays to stay empty")
 
+    forbidden_markers = expect_string_list(
+        "forbidden_markers",
+        inventory.get("forbidden_markers"),
+    )
+    normalized_build_file_text = normalize_whitespace(read_text(root / BUILD_FILE_PATH))
+    for marker in forbidden_markers:
+        if normalize_whitespace(marker) in normalized_build_file_text:
+            raise CheckError(f"forbidden marker present in {BUILD_FILE_PATH}: {marker}")
+
     replay_pairs = {
         (entry.get("path"), entry.get("marker"))
         for entry in expect_object_list("shared_replay_markers", inventory.get("shared_replay_markers"))
@@ -340,6 +349,9 @@ def fixture_inventory() -> dict[str, object]:
         "test_root_modules": [
             {"test": test_name, "root_module": module}
             for test_name, module in REQUIRED_TEST_ROOT_MODULES.items()
+        ],
+        "forbidden_markers": [
+            "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
         ],
         "dedicated_survey_replays": ["zigux/tests/phase11_hvc_console_survey.zig"],
         "shared_split_replays": [],
@@ -514,6 +526,22 @@ def run_self_test() -> int:
                 break
         write(wrong_root_module / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_root_module, "test_root_modules mismatch for phase11-hvc-cleanup-tests")
+        case_count += 1
+
+        forbidden_marker_present = tmpdir / "forbidden_marker_present"
+        shutil.copytree(fixture, forbidden_marker_present, dirs_exist_ok=True)
+        write(
+            forbidden_marker_present / BUILD_FILE_PATH,
+            read_text(forbidden_marker_present / BUILD_FILE_PATH).replace(
+                "test_step.dependOn(&run_proof_tests.step);",
+                "test_step.dependOn(&run_proof_tests.step);\n    test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
+                1,
+            ),
+        )
+        expect_failure(
+            forbidden_marker_present,
+            "forbidden marker present in zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+        )
         case_count += 1
 
         missing_replay_pair = tmpdir / "missing_replay_pair"
