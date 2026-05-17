@@ -6,6 +6,29 @@ const bitmap = @import("bitmap");
 const rbtree = @import("rbtree");
 const string = @import("string");
 
+const RbtreeSmokeEntry = struct {
+    key: i32,
+    serial: usize,
+    node: rbtree.Node = rbtree.Node.init(),
+
+    fn less(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+        const lhs_entry: *const RbtreeSmokeEntry = @fieldParentPtr("node", lhs);
+        const rhs_entry: *const RbtreeSmokeEntry = @fieldParentPtr("node", rhs);
+        if (lhs_entry.key != rhs_entry.key) {
+            return lhs_entry.key < rhs_entry.key;
+        }
+        return lhs_entry.serial < rhs_entry.serial;
+    }
+
+    fn cmp(key: *const anyopaque, node: *const rbtree.Node) i32 {
+        const wanted: *const i32 = @ptrCast(@alignCast(key));
+        const entry: *const RbtreeSmokeEntry = @fieldParentPtr("node", node);
+        if (wanted.* < entry.key) return -1;
+        if (wanted.* > entry.key) return 1;
+        return 0;
+    }
+};
+
 test "phase1 host-tools smoke imports the live helper modules" {
     try std.testing.expect(@hasDecl(argv_split, "argvSplit"));
     try std.testing.expect(@hasDecl(cmdline, "memparse"));
@@ -56,4 +79,42 @@ test "phase1 host-tools smoke exercises live helper behavior" {
 
     const sysfs = [_][]const u8{ "disabled", "auto\n", "manual" };
     try std.testing.expectEqual(@as(?usize, 1), string.sysfsMatchString(&sysfs, "auto"));
+
+    var tree_entries = [_]RbtreeSmokeEntry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 5, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+    };
+    var tree_root = rbtree.Root.init();
+    for (&tree_entries) |*entry| {
+        rbtree.add(&entry.node, &tree_root, RbtreeSmokeEntry.less);
+    }
+
+    const duplicate_key = @as(i32, 10);
+    var iter = rbtree.matchIterator(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp);
+    var duplicate_serials: [3]usize = undefined;
+    var duplicate_count: usize = 0;
+    while (iter.next()) |node| {
+        const entry: *const RbtreeSmokeEntry = @fieldParentPtr("node", node);
+        duplicate_serials[duplicate_count] = entry.serial;
+        duplicate_count += 1;
+    }
+    try std.testing.expectEqual(@as(usize, 3), duplicate_count);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 0, 2, 4 }, duplicate_serials[0..duplicate_count]);
+
+    var cached_entries = [_]RbtreeSmokeEntry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 5, .serial = 1 },
+        .{ .key = 15, .serial = 2 },
+    };
+    var cached_root = rbtree.RootCached.init();
+    try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.addCached(&cached_entries[0].node, &cached_root, RbtreeSmokeEntry.less));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.firstCached(&cached_root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[1].node), rbtree.addCached(&cached_entries[1].node, &cached_root, RbtreeSmokeEntry.less));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[1].node), rbtree.firstCached(&cached_root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.addCached(&cached_entries[2].node, &cached_root, RbtreeSmokeEntry.less));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.eraseCached(&cached_entries[1].node, &cached_root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.firstCached(&cached_root));
 }
