@@ -20,9 +20,15 @@ MATERIALIZED_GOVERNANCE_PATHS = (
 )
 
 MATERIALIZED_FOCUSED_COMPANIONS = (
+    "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+)
+
+STILL_MISSING_VALIDATOR_FIRST_PATHS = (
+    "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_build.zig",
-    "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
 )
 
@@ -40,10 +46,7 @@ REQUIRED_NOTE_MARKERS = (
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`zigux/tests/phase15_readiness_gate_manifest.json`",
-    "broader validator-first wording around `scripts/zigux/validate-phase15.py`",
-    "`make -C zigux phase15-validate`",
-    "`make -C zigux phase15-test`",
-    "`make -C zigux phase15`",
+    "broader validator-first wording around `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
 )
 
 STALE_TEXT_MARKERS = (
@@ -79,6 +82,12 @@ def collect_failures(root: Path) -> list[str]:
         if f"`{rel}`" not in gap_note:
             failures.append(f"gap note missing focused-companion marker: `{rel}`")
 
+    for rel in STILL_MISSING_VALIDATOR_FIRST_PATHS:
+        if f"`{rel}`" not in gap_note:
+            failures.append(f"gap note missing still-missing validator-first marker: `{rel}`")
+        if (root / rel).exists():
+            failures.append(f"gap note still treats materialized path as missing: `{rel}`")
+
     for marker in REQUIRED_NOTE_MARKERS:
         if marker not in gap_note:
             failures.append(f"gap note missing required marker: {marker}")
@@ -101,6 +110,7 @@ def _write(path: Path, text: str) -> None:
 def _sample_gap_note() -> str:
     materialized = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_GOVERNANCE_PATHS)
     focused = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_FOCUSED_COMPANIONS)
+    missing = "\n".join(f"- `{rel}`" for rel in STILL_MISSING_VALIDATOR_FIRST_PATHS)
     required = "\n".join(f"- {marker}" for marker in REQUIRED_NOTE_MARKERS)
     return f"""# Phase 15 Shared Summary Gap
 
@@ -111,6 +121,10 @@ def _sample_gap_note() -> str:
 ## Materialized focused companions on current master
 
 {focused}
+
+## Still-missing broader validator-first companions on current master
+
+{missing}
 
 ## Current shared-summary watchpoints
 
@@ -151,6 +165,16 @@ def run_self_test() -> int:
         expected = [f"expected materialized focused companion missing: {MATERIALIZED_FOCUSED_COMPANIONS[0]}"]
         if failures != expected:
             raise AssertionError(f"unexpected focused-companion failure: {failures}")
+
+        rematerialized_root = root / "rematerialized"
+        _seed_repo(rematerialized_root)
+        _write(rematerialized_root / STILL_MISSING_VALIDATOR_FIRST_PATHS[0], "present\n")
+        failures = collect_failures(rematerialized_root)
+        expected = [
+            f"gap note still treats materialized path as missing: `{STILL_MISSING_VALIDATOR_FIRST_PATHS[0]}`"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected rematerialized-path failure: {failures}")
 
         stale_root = root / "stale"
         _seed_repo(stale_root)
