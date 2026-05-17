@@ -67,13 +67,21 @@ README_OWNER_MARKERS = (
     "historical Phase 4 route names such as the parked kprobe and `test_fsmount` survey companions, the validator-first routes, and the direct local-only perf routes stay owned by the reversible-delivery handoff note until the dedicated exact-pin refresh or a broader republish makes those companion blob values directly readable again",
 )
 
+README_ATOMIC64_GAP_MARKERS = (
+    "roadmap-backed Phase 4 differential-gate destinations still missing on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`",
+)
+
+README_PUBLIC_FALLBACK_MARKERS = (
+    "public current-`master` fallback rereads can still expose older broader Phase 4 companions, but keep that fallback visibility separate from authenticated direct-readback proof in this tests-root reminder until the same files return through direct contents reads",
+)
+
 README_MARKERS = (
     "current direct-readback Phase 4 rollback packet",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet",
     "historical provenance for that missing broader packet",
-) + README_OWNER_MARKERS
+) + README_OWNER_MARKERS + README_ATOMIC64_GAP_MARKERS + README_PUBLIC_FALLBACK_MARKERS
 
 DOCS_README_MARKERS = (
     "Phase 4 notes - `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` now keep the current direct-readback rollback packet reviewable from the docs root while the broader validator, lab-matrix, local-only perf, and bitmap-diff companions remain repo-reality gaps on current `master`.",
@@ -232,8 +240,8 @@ def main() -> int:
             readme_path = root / README
             readme_path.write_text(
                 readme_path.read_text(encoding="utf-8").replace(
-                    README_OWNER_MARKERS[1],
-                    "historical route handoff drifted",
+                    README_ATOMIC64_GAP_MARKERS[0],
+                    "roadmap-backed Phase 4 differential-gate warning drifted",
                 ),
                 encoding="utf-8",
             )
@@ -242,7 +250,7 @@ def main() -> int:
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected README historical route drift to fail")
+                raise AssertionError("expected README atomic64 gap drift to fail")
 
             readme_path.write_text((args.root.resolve() / README).read_text(encoding="utf-8"), encoding="utf-8")
             scripts_readme_path = root / SCRIPTS_README
