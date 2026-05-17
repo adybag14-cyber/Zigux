@@ -227,6 +227,29 @@ test "runGenksymsCrc mirrors C fgets chunking for oversized lines" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") != null);
 }
 
+test "runGenksymsCrc splits an oversized final record at EOF like fgets" {
+    var long_line = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 1);
+    defer long_line.deinit(std.testing.allocator);
+    try long_line.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try long_line.append(std.testing.allocator, 'b');
+
+    var capture = try Capture(12288).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(long_line.items, &capture);
+
+    const first_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(long_line.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(first_crc);
+    const second_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("b")});
+    defer std.testing.allocator.free(second_crc);
+    const unsplit_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(long_line.items)});
+    defer std.testing.allocator.free(unsplit_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, unsplit_crc) == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, first_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, second_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") != null);
+}
+
 test "runGenksymsCrc truncates each chunk at the first embedded NUL like fgets plus strlen" {
     const nul_split_input = [_]u8{ 'a', 'b', 'c', 0, 'd', 'e', 'f', '\n', 'x', '\n' };
 
