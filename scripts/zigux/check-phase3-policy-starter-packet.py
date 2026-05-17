@@ -12,6 +12,7 @@ from pathlib import Path
 
 POLICY_NOTE_PATH = Path("Documentation/zigux/phase3-policy-slice.md")
 VALIDATOR_NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
+SHARED_REMINDER_GAP_PATH = Path("Documentation/zigux/phase3-shared-reminder-gap.md")
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
 ABI_BINDING_PATH = Path("zigux/bindings/abi.zig")
 PANIC_POLICY_PATH = Path("zigux/helpers/panic_policy.zig")
@@ -44,6 +45,21 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase3_policy_starter_packet_manifest.json",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
+    ),
+    SHARED_REMINDER_GAP_PATH: (
+        "PHASE3_SHARED_REMINDER_GAP=current master now keeps the bounded dev_t starter packet plus the focused err_ptr/xarray and policy slices explicit",
+        "Documentation/zigux/phase3-policy-slice.md",
+        "include/zigux/abi.h",
+        "zigux/bindings/abi.zig",
+        "zigux/helpers/panic_policy.zig",
+        "zigux/helpers/allocator_policy.zig",
+        "zigux/helpers/unsafe_policy.zig",
+        "zigux/tests/phase3_policy_starter_packet.zig",
+        "zigux/tests/phase3_policy_starter_packet_build.zig",
+        "Documentation/zigux/README.md",
+        "zigux/tests/README.md",
+        "Documentation/zigux/review-checklist.md",
+        "PHASE3_SHARED_REMINDER_NEXT_STEP=narrow Documentation/zigux/README.md, zigux/tests/README.md, and Documentation/zigux/review-checklist.md so they all describe the bounded three-slice Phase 3 posture",
     ),
     ABI_HEADER_PATH: (
         "#define ZIGUX_PANIC_ABORT 0U",
@@ -133,6 +149,10 @@ DUPLICATE_DECLARATION_PATTERNS = {
 SELF_TEST_CASES = (
     (POLICY_NOTE_PATH, "PHASE3_POLICY_SLICE_FILE_COUNT="),
     (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
+    (
+        SHARED_REMINDER_GAP_PATH,
+        "PHASE3_SHARED_REMINDER_GAP=current master now keeps the bounded dev_t starter packet plus the focused err_ptr/xarray and policy slices explicit",
+    ),
     (ABI_HEADER_PATH, "#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U"),
     (ABI_BINDING_PATH, "pub const UnsafeScope = enum(u8) {"),
     (PANIC_POLICY_PATH, "pub fn emitsKernelBug(mode: abi.PanicMode) bool {"),
@@ -198,7 +218,6 @@ SAMPLE_FILES[MANIFEST_PATH] = """{
   "next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into mmio, low-level wrapper, or shared runtime-shim families"
 }
 """
-
 
 
 def _read(path: Path) -> str:
