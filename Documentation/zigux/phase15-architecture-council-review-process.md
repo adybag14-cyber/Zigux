@@ -10,7 +10,7 @@ This note records the bounded Phase 15 review-policy packet for freeze-map ancho
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-16`
 - no Architecture Council approval is currently recorded for a freeze-map status change
-- this note keeps the roadmap-required Architecture Council review-process surface honest on current `master`: the dedicated manifest and Zig replay companions are landed, while no broader Phase 15 scripts-root checker or validator-first route is claimed here
+- this note keeps the roadmap-required Architecture Council review-process surface honest on current `master`: the docs-root field inventory is landed, while the broader manifest, Zig replay, and validator-first shared-summary surfaces remain gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`
 
 ## Purpose
 
@@ -18,7 +18,7 @@ The Phase 15 roadmap keeps deep-core status changes under human governance, not 
 
 That means any request to move a freeze-in-C anchor out of its current blocked posture must arrive as an explicit Architecture Council review packet with named owners, named evidence, and an honest stay-in-C fallback when the evidence is incomplete.
 
-This note exists to keep that review-policy surface explicit beside `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/review-checklist.md`, and the restored `Documentation/zigux/phase15-indefinite-c-policy.md` companion.
+This note exists to keep that review-policy surface explicit beside `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and `Documentation/zigux/phase15-shared-summary-gap.md`.
 
 ## Required review packet
 
@@ -80,13 +80,13 @@ If the refreshed evidence is missing, contradictory, or broader than the allowed
 
 On current `master`, no freeze-map anchor has an Architecture Council approval for a status change.
 
-The current honest packet is therefore maintenance-only:
+The current honest packet is therefore docs-root governance plus gap tracking:
 
 - `Documentation/zigux/phase15-freeze-map-governance.md` keeps the freeze anchor inventory, blocker posture, required approver sets, rollback owners, and evidence-archive paths explicit
 - `Documentation/zigux/phase15-parity-scorecard.md` keeps the blocked-posture accounting explicit
 - `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit
 - `Documentation/zigux/phase15-indefinite-c-policy.md` keeps the stay-in-C policy companion explicit
-- `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, and `zigux/tests/phase15_build.zig` keep the dedicated review-process manifest, focused Zig replay, and shared Phase 15 replay entrypoint visible on current `master`
+- `Documentation/zigux/phase15-shared-summary-gap.md` keeps the currently missing manifest, Zig replay, and validator-first shared-summary surfaces explicit instead of letting this note imply that they have already landed
 - this note keeps the Architecture Council request fields, stay-in-C closeout rule, and reopen-evidence rule explicit
 
 Together, those surfaces define the review policy without claiming that any deep-core anchor is ready to leave C.
@@ -99,7 +99,7 @@ If a future lane reopens it, prefer one of these equally bounded follow-ups:
 
 - align one missing review field between this note and `Documentation/zigux/review-checklist.md`
 - keep the restored dedicated indefinite-C policy companion aligned without widening into unrelated Phase 15 prose
-- keep the dedicated review-process manifest, focused Zig replay, and shared `phase15` build route aligned when this note's field inventory changes
+- if the shared manifest, Zig replay, or validator-first packet truly lands later, align this note with `Documentation/zigux/phase15-shared-summary-gap.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md` before claiming those broader surfaces as current evidence here
 
 Until then, treat this note as the Architecture Council source of truth for review-packet shape and stay-in-C closeout behavior.
 
@@ -108,9 +108,9 @@ Until then, treat this note as the Architecture Council source of truth for revi
 This note does not claim:
 
 - an Architecture Council approval for any freeze-map status change
-- a dedicated Phase 15 scripts-root checker or a broader validator-first route
+- a dedicated Phase 15 scripts-root checker, a dedicated review-process manifest, a focused Zig replay, or a broader validator-first route as current landed evidence here
 - a deep-core Zig bridge, wrapper, or status change
 
 ## Next bounded step
 
-Keep this lane parked unless fresh repo inspection shows a new same-packet field drift in the Architecture Council request inventory, the stay-in-C closeout rule, the reopen-evidence rule, or the dedicated review-process manifest and Zig replay companions.
+Keep this lane parked unless fresh repo inspection shows a new same-packet field drift in the Architecture Council request inventory, the stay-in-C closeout rule, the reopen-evidence rule, or the current shared-summary gap tracking for the still-missing manifest, Zig replay, and validator-first surfaces.
