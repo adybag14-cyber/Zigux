@@ -74,7 +74,6 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
-    "`zigux/tests/fixtures/phase2_cross_targets.json`",
     "the `zigux/tests/fixtures/kconfig_bridge/` manifest roster",
 )
 
@@ -86,6 +85,7 @@ BOOTSTRAP_WARNING_MARKERS = (
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
