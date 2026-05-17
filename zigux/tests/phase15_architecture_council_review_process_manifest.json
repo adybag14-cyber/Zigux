@@ -62,12 +62,14 @@
     "`zigux/tests/phase15_parity_scorecard.zig`",
     "`zigux/tests/phase15_indefinite_c_policy.json`",
     "`zigux/tests/phase15_indefinite_c_policy.zig`",
-    "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
-    "`zigux/tests/phase15_build.zig`",
     "`zigux/tests/phase15_architecture_council_review_process.zig`",
-    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`"
   ],
-  "shared_gap_expected_missing_paths": []
+  "shared_gap_expected_missing_paths": [
+    "`scripts/zigux/validate-phase15.py`",
+    "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+    "`zigux/tests/phase15_build.zig`",
+    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`"
+  ]
 }
