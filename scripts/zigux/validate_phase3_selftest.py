@@ -14,6 +14,7 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-policy-starter-packet.py"), ("--self-test",)),
+    (Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-validator-support-surface.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-selftest-surface.py"), ("--self-test",)),
 )
