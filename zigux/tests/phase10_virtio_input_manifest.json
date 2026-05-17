@@ -154,8 +154,8 @@
       "id": "phase10-virtio-input-status-drain-helper",
       "status": "starter_landed",
       "kind": "lab_driver_starter",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The direct helper keeps queued status completion drainage bounded to in-memory accounting rather than transport-backed callbacks."
+      "zigux_destination": "drivers/virtio/virtio_input_status_drain.zig",
+      "why_now": "The dedicated helper keeps queued status completion drainage bounded to in-memory accounting rather than transport-backed callbacks."
     },
     {
       "id": "phase10-virtio-input-status-drain-replay",
