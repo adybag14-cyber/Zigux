@@ -107,6 +107,8 @@ pub const VirtioMmioLab = struct {
     config_bytes: [max_config_bytes]u8 = [_]u8{0} ** max_config_bytes,
     device_feature_words: [max_feature_words]u32 = [_]u32{ 0, 0 },
     driver_feature_words: [max_feature_words]u32 = [_]u32{ 0, 0 },
+    device_feature_words_known: [max_feature_words]bool = [_]bool{false} ** max_feature_words,
+    driver_feature_words_known: [max_feature_words]bool = [_]bool{false} ** max_feature_words,
     pending_config_write: ?ConfigWritePlanSummary = null,
 
     pub fn init(device_id: u32, queue_sizes: []const u16) !Self {
@@ -135,12 +137,14 @@ pub const VirtioMmioLab = struct {
         const index: usize = @intCast(word_index);
         if (index >= self.device_feature_words.len) return error.FeatureWordOutOfRange;
         self.device_feature_words[index] = value;
+        self.device_feature_words_known[index] = true;
     }
 
     pub fn stageDriverFeatureWord(self: *Self, word_index: u32, value: u32) !void {
         const index: usize = @intCast(word_index);
         if (index >= self.driver_feature_words.len) return error.FeatureWordOutOfRange;
         self.driver_feature_words[index] = value;
+        self.driver_feature_words_known[index] = true;
     }
 
     pub fn bumpConfigGeneration(self: *Self) void {
@@ -189,15 +193,17 @@ pub const VirtioMmioLab = struct {
         const driver_index: usize = @min(self.selected_driver_feature_word, self.driver_feature_words.len - 1);
         const device_feature_word = self.device_feature_words[device_index];
         const driver_feature_word = self.driver_feature_words[driver_index];
+        const device_features_known = self.device_feature_words_known[device_index];
+        const driver_features_known = self.driver_feature_words_known[driver_index];
         return .{
             .anchor = anchor_path,
             .selected_device_feature_word = self.selected_device_feature_word,
             .selected_driver_feature_word = self.selected_driver_feature_word,
             .device_feature_word = device_feature_word,
             .driver_feature_word = driver_feature_word,
-            .device_features_known = device_feature_word != 0,
-            .driver_features_known = driver_feature_word != 0,
-            .negotiation_possible = device_feature_word != 0 and driver_feature_word != 0,
+            .device_features_known = device_features_known,
+            .driver_features_known = driver_features_known,
+            .negotiation_possible = device_features_known and driver_features_known,
         };
     }
 
@@ -308,6 +314,19 @@ fn changedByteMask(previous_value: u32, planned_value: u32) u4 {
         }
     }
     return mask;
+}
+
+test "phase10 virtio mmio zero-valued staged feature words stay known for negotiation summaries" {
+    var device = try VirtioMmioLab.init(71, &[_]u16{ 8, 16 });
+    try device.stageDeviceFeatureWord(0, 0);
+    try device.stageDriverFeatureWord(0, 0);
+
+    const summary = device.featureNegotiationSummary();
+    try std.testing.expect(summary.device_features_known);
+    try std.testing.expect(summary.driver_features_known);
+    try std.testing.expect(summary.negotiation_possible);
+    try std.testing.expectEqual(@as(u32, 0), summary.device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0), summary.driver_feature_word);
 }
 
 test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {
