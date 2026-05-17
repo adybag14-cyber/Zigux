@@ -144,6 +144,63 @@ SELF_TEST_CASES = (
 )
 
 
+SAMPLE_FILES = {path: "\n".join(markers) + "\n" for path, markers in REQUIRED_MARKERS.items()}
+SAMPLE_FILES[ABI_HEADER_PATH] = """#define ZIGUX_PANIC_ABORT 0U
+#define ZIGUX_PANIC_BUG 1U
+#define ZIGUX_PANIC_WARN 2U
+#define ZIGUX_ALLOC_CALLER_PROVIDED 0U
+#define ZIGUX_ALLOC_KERNEL_HEAP 1U
+#define ZIGUX_ALLOC_ARENA 2U
+#define ZIGUX_UNSAFE_NONE 0U
+#define ZIGUX_UNSAFE_VOLATILE_MMIO 1U
+#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U
+struct zigux_interop_policy {
+    unsigned char panic_mode;
+    unsigned char allocator_mode;
+    unsigned char unsafe_scope;
+    unsigned char reserved;
+} zigux_boundary_header;
+"""
+SAMPLE_FILES[ABI_BINDING_PATH] = """pub const PanicMode = enum(u8) {
+pub const AllocatorMode = enum(u8) {
+pub const UnsafeScope = enum(u8) {
+pub const InteropPolicy = extern struct {
+panic_mode: u8,
+allocator_mode: u8,
+unsafe_scope: u8,
+reserved: u8,
+pub fn defaultHeader(flags: u16) BoundaryHeader {
+"""
+SAMPLE_FILES[MANIFEST_PATH] = """{
+  "phase": "Phase 3",
+  "lane": "helper-interop",
+  "slug": "phase3-policy-starter-packet",
+  "status": "policy_slice_present",
+  "scope": "helper-local panic, allocator, and unsafe interop policy replay",
+  "packet_files": [
+    "Documentation/zigux/phase3-policy-slice.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "include/zigux/abi.h",
+    "zigux/bindings/abi.zig",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/unsafe_policy.zig",
+    "zigux/tests/phase3_policy_starter_packet.zig",
+    "zigux/tests/phase3_policy_starter_packet_build.zig",
+    "zigux/tests/phase3_policy_starter_packet_manifest.json",
+    "scripts/zigux/check-phase3-policy-starter-packet.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
+    "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"
+  ],
+  "next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into mmio, low-level wrapper, or shared runtime-shim families"
+}
+"""
+
+
+
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
@@ -188,7 +245,7 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
-        for label, pattern in DUPLICATE_DECLARATION_PATTERNS.get(relative_path, ()): 
+        for label, pattern in DUPLICATE_DECLARATION_PATTERNS.get(relative_path, ()):
             _append_duplicate_declaration_issues(relative_path, text, label, pattern, issues)
 
     manifest_path = repo_root / MANIFEST_PATH
@@ -238,20 +295,8 @@ def validate_repo(repo_root: Path) -> list[str]:
 
 
 def _populate_repo(root: Path) -> None:
-    for relative_path in (
-        POLICY_NOTE_PATH,
-        VALIDATOR_NOTE_PATH,
-        ABI_HEADER_PATH,
-        ABI_BINDING_PATH,
-        PANIC_POLICY_PATH,
-        ALLOCATOR_POLICY_PATH,
-        UNSAFE_POLICY_PATH,
-        TEST_PATH,
-        BUILD_PATH,
-        MANIFEST_PATH,
-    ):
-        source = Path("/workspace/.abi-runtime-scratch") / relative_path
-        _write(root / relative_path, _read(source))
+    for relative_path, text in SAMPLE_FILES.items():
+        _write(root / relative_path, text)
 
 
 def run_self_test() -> int:
