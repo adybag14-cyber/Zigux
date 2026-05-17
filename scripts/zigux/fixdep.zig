@@ -818,3 +818,120 @@ test "escaped hash dependency survives concatenated target comment path" {
         capture.list.items,
     );
 }
+
+test "runFixdep matches multi-target parity packet with escaped hash and deduped config deps" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 512),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const base_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        ".zig-cache/tmp/{s}",
+        .{tmp.sub_path[0..]},
+    );
+    defer std.testing.allocator.free(base_path);
+
+    const source_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/sample2.c", .{base_path});
+    defer std.testing.allocator.free(source_path);
+
+    const local_config_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/sample2-config.h", .{base_path});
+    defer std.testing.allocator.free(local_config_path);
+
+    const shared_config_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/shared#config.h", .{base_path});
+    defer std.testing.allocator.free(shared_config_path);
+
+    const shared_dep_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/shared\\#config.h", .{base_path});
+    defer std.testing.allocator.free(shared_dep_path);
+
+    const so_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/sample2.so", .{base_path});
+    defer std.testing.allocator.free(so_path);
+
+    const depfile_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/sample_multi_target.d", .{base_path});
+    defer std.testing.allocator.free(depfile_path);
+
+    const cmdline = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "clang -Iinclude -DZIGUX_MULTI -c {s} -o module/sample2.o",
+        .{source_path},
+    );
+    defer std.testing.allocator.free(cmdline);
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample2.c",
+        .data = "#define CONFIG_ZIGUX_MULTI 1\n#include \"sample2-config.h\"\n#include \"shared#config.h\"\nint sample2(void) { return 0; }\n",
+    });
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample2-config.h",
+        .data = "#define CONFIG_ZIGUX_SECOND_MODULE 1\n#define CONFIG_ZIGUX_SECOND_MODULE 1\n#define CONFIG_ZIGUX_SHARED 1\n",
+    });
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "shared#config.h",
+        .data = "#define CONFIG_ZIGUX_HASH 1\n#define CONFIG_ZIGUX_SHARED_MODULE 1\n#define CONFIG_ZIGUX_HASH 1\n",
+    });
+
+    const depfile_text = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "module/sample2.o module/sample2.d: {s} \\\n {s} \\\n {s} \\\n {s} \\\n {s}\n# comment line that should be ignored\n",
+        .{ source_path, shared_dep_path, local_config_path, so_path, local_config_path },
+    );
+    defer std.testing.allocator.free(depfile_text);
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample_multi_target.d",
+        .data = depfile_text,
+    });
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runFixdep(
+        std.testing.allocator,
+        std.testing.io,
+        &capture,
+        depfile_path,
+        "module/sample2.o",
+        cmdline,
+    );
+
+    const expected = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "savedcmd_module/sample2.o := {s}\n\n" ++
+            "source_module/sample2.o := {s}\n\n" ++
+            "deps_module/sample2.o := \\\n" ++
+            "    $(wildcard include/config/ZIGUX_MULTI) \\\n" ++
+            "  {s} \\\n" ++
+            "    $(wildcard include/config/ZIGUX_HASH) \\\n" ++
+            "    $(wildcard include/config/ZIGUX_SHARED) \\\n" ++
+            "  {s} \\\n" ++
+            "    $(wildcard include/config/ZIGUX_SECOND) \\\n" ++
+            "  {s} \\\n" ++
+            "\n" ++
+            "module/sample2.o: $(deps_module/sample2.o)\n\n" ++
+            "$(deps_module/sample2.o):\n",
+        .{ cmdline, source_path, shared_config_path, local_config_path, so_path },
+    );
+    defer std.testing.allocator.free(expected);
+
+    try std.testing.expectEqualStrings(expected, capture.list.items);
+}
