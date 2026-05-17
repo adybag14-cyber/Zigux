@@ -33,6 +33,11 @@ MISSING_BROADER_PACKET = (
     "zigux/tests/phase4_perf_baseline_survey.zig",
 )
 
+MISSING_BITMAP_DIFF_PACKET = (
+    "zigux/tests/bitmap_diff.zig",
+    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
+)
+
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 4
@@ -142,7 +147,9 @@ def _require_current_repo_reality(root: Path) -> None:
         )
 
     present_broader = [
-        rel for rel in MISSING_BROADER_PACKET if (root / Path(rel)).exists()
+        rel
+        for rel in MISSING_BROADER_PACKET + MISSING_BITMAP_DIFF_PACKET
+        if (root / Path(rel)).exists()
     ]
     if present_broader:
         raise RuntimeError(
@@ -262,9 +269,9 @@ def main() -> int:
                 direct_packet_checker_source,
                 encoding="utf-8",
             )
-            broader_packet_member = root / "Documentation/zigux/phase4-gate-evidence.md"
+            broader_packet_member = root / "zigux/tests/bitmap_diff.zig"
             broader_packet_member.parent.mkdir(parents=True, exist_ok=True)
-            broader_packet_member.write_text("# returned broader packet member\n", encoding="utf-8")
+            broader_packet_member.write_text("// returned broader packet member\n", encoding="utf-8")
             try:
                 check(root)
             except RuntimeError:
