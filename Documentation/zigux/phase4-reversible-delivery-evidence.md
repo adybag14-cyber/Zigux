@@ -24,6 +24,7 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=98010ca557a586fe12cd770458e27c94b5ef0813`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=a73dc68c02aadcb272bfec8067fbf0120675108c`
   * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`
+  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4`
   * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5`
 ## Current Packet
 
@@ -37,6 +38,8 @@ Current direct-readback packet members:
   * `zigux/tests/README.md`
   * `scripts/zigux/check-phase4-repo-reality-warning.py`
   * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
+
+The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.
 
 The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run: authenticated contents reads returned missing for `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`. The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.
 
