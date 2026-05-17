@@ -15,6 +15,7 @@ SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 SURFACE_PATHS = (
+    ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
@@ -30,6 +31,7 @@ WORKFLOW_LINES = (
 )
 
 README_PRESENT_MARKERS = (
+    "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -44,9 +46,7 @@ README_WARNING_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-zig-toolchain.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "`make -C zigux phase2-validate`",
@@ -73,15 +73,16 @@ BOOTSTRAP_WARNING_MARKERS = (
     "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-cross.py`",
-    "Treat the absent validator-first, direct toolchain-resolution, cross-route, installer, and Linux-style make replay names as historical packet members",
+    "Treat the absent validator-first, cross-route, installer, and Linux-style make replay names as historical packet members",
 )
 
 README_FORBIDDEN_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`, `python3 scripts/zigux/install-zig.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`",
 )
 
 EXPECTED_POLICY = {
@@ -91,7 +92,7 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 61
+EXPECTED_SELF_TEST_CASE_COUNT = 63
 
 
 def read_text(path: Path) -> str:
@@ -255,7 +256,7 @@ def build_self_test_root(root: Path) -> None:
                         "minimum_version": "0.17.0-dev.87+9b177a7d2",
                         "archive_sha256": {"x86_64-linux": "3" * 64},
                         "upgrade_policy": {
-                            "channel_minimum_lockstep": EXPECTED_POLICY["channel_minimum_lockstep"],
+                            "channel_minimum_lockstep": EXPECTED_POLICY["channel_minimum_LOCKSTEP"] if False else EXPECTED_POLICY["channel_minimum_lockstep"],
                             "archive_target_scope": EXPECTED_POLICY["archive_target_scope"],
                             "required_make_routes": EXPECTED_POLICY["required_make_routes"],
                         },
