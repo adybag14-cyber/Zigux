@@ -3,7 +3,7 @@
   "lane_key": "P15-L03",
   "slice": "parity-scorecard-baseline",
   "provenance_mode": "dated_master_readback",
-  "surveyed_commit": "current-master-readback-2026-05-16",
+  "surveyed_commit": "current-master-readback-2026-05-17",
   "posture": {
     "architecture_council_status_change_approval_recorded": false,
     "scorecard_role": "blocked_posture_accounting_not_port_readiness"
@@ -35,7 +35,7 @@
           "Documentation/zigux/phase15-architecture-council-review-process.md"
         ],
         "benchmark_notes_status": "pending_until_bounded_scheduler_seam_exists",
-        "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+        "replay_command": "zig test zigux/tests/phase15_freeze_map_governance.zig",
         "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam"
       },
       "next_honest_posture": "keep the anchor frozen until a bounded scheduler seam exists and a reopen trigger is recorded"
@@ -57,7 +57,7 @@
           "Documentation/zigux/phase15-architecture-council-review-process.md"
         ],
         "benchmark_notes_status": "pending_until_bounded_allocator_seam_exists",
-        "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+        "replay_command": "zig test zigux/tests/phase15_freeze_map_governance.zig",
         "latest_blocker_disposition": "blocked_no_bounded_allocator_seam"
       },
       "next_honest_posture": "keep the anchor frozen until a bounded allocator seam exists and a reopen trigger is recorded"
@@ -79,7 +79,7 @@
           "Documentation/zigux/phase14-rcu-tree-survey.md"
         ],
         "benchmark_notes_status": "pending_until_rcu_followup_is_narrower_than_freeze_boundary",
-        "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+        "replay_command": "zig test zigux/tests/phase15_freeze_map_governance.zig",
         "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"
       },
       "next_honest_posture": "keep the anchor frozen until a narrower-than-freeze RCU follow-up exists and a reopen trigger is recorded"
@@ -102,7 +102,7 @@
           "Documentation/zigux/phase14-core-boundary-traceability.md"
         ],
         "benchmark_notes_status": "pending_until_skbuff_followup_is_narrower_than_lifetime_boundary",
-        "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+        "replay_command": "zig test zigux/tests/phase15_freeze_map_governance.zig",
         "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide"
       },
       "next_honest_posture": "keep the anchor frozen until a narrower-than-lifetime skbuff follow-up exists and a reopen trigger is recorded"
