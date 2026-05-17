@@ -32,11 +32,14 @@ REQUIRED_FILE_RELS = (
     Path("scripts/zigux/check-phase4-reversible-delivery-pins.py"),
     Path("scripts/zigux/check-phase4-tests-readme-packet.py"),
     Path("scripts/zigux/check-phase7-shared-control-gap.py"),
+    Path("scripts/zigux/check-phase10-bootstrap-route.py"),
     Path("scripts/zigux/check-build-only-phase12-surface.py"),
+    Path("scripts/zigux/check-phase12-release-readiness-packet.py"),
     Path("Documentation/zigux/README.md"),
     Path("Documentation/zigux/phase12-release-readiness-survey.md"),
     Path("zigux/tests/README.md"),
     Path("zigux/Makefile"),
+    Path("zigux/tests/phase12_build.zig"),
     Path("zigux/tests/phase8_libbpf_segments_only_build.zig"),
     NOTE_REL,
 )
@@ -45,19 +48,19 @@ REQUIRED_NOTE_LINES = (
     "- `PHASE1_WORKFLOW_STATUS=active`",
     "- `PHASE1_WORKFLOW_SCOPE=current bootstrap Phase 1 reminder checks only`",
     "- `PHASE1_WORKFLOW_NOTE_OWNER=lane17-phase1-workflow-viability`",
-    "- `PHASE1_WORKFLOW_REQUIRED_FILES=.github/workflows/zigux-bootstrap.yml,scripts/zigux/check-zig-toolchain.py,scripts/zigux/check-phase2-kconfig-selftest-alignment.py,scripts/zigux/check-phase2-kbuild-routes.py,scripts/zigux/check-phase2-tests-readme-alignment.py,scripts/zigux/check-phase2-cross-selftest-alignment.py,scripts/zigux/check-phase2-toolchain-pinning.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/check-phase1-workflow-viability.py,scripts/zigux/check-phase4-repo-reality-warning.py,scripts/zigux/check-phase4-reversible-delivery-pins.py,scripts/zigux/check-phase4-tests-readme-packet.py,scripts/zigux/check-phase7-shared-control-gap.py,scripts/zigux/check-build-only-phase12-surface.py,Documentation/zigux/README.md,Documentation/zigux/phase12-release-readiness-survey.md,zigux/tests/README.md,zigux/Makefile,zigux/tests/phase8_libbpf_segments_only_build.zig,Documentation/zigux/phase1-workflow-viability.md`",
+    "- `PHASE1_WORKFLOW_REQUIRED_FILES=.github/workflows/zigux-bootstrap.yml,scripts/zigux/check-zig-toolchain.py,scripts/zigux/check-phase2-kconfig-selftest-alignment.py,scripts/zigux/check-phase2-kbuild-routes.py,scripts/zigux/check-phase2-tests-readme-alignment.py,scripts/zigux/check-phase2-cross-selftest-alignment.py,scripts/zigux/check-phase2-toolchain-pinning.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/check-phase1-workflow-viability.py,scripts/zigux/check-phase4-repo-reality-warning.py,scripts/zigux/check-phase4-reversible-delivery-pins.py,scripts/zigux/check-phase4-tests-readme-packet.py,scripts/zigux/check-phase7-shared-control-gap.py,scripts/zigux/check-phase10-bootstrap-route.py,scripts/zigux/check-build-only-phase12-surface.py,scripts/zigux/check-phase12-release-readiness-packet.py,Documentation/zigux/README.md,Documentation/zigux/phase12-release-readiness-survey.md,zigux/tests/README.md,zigux/Makefile,zigux/tests/phase12_build.zig,zigux/tests/phase8_libbpf_segments_only_build.zig,Documentation/zigux/phase1-workflow-viability.md`",
     "- `PHASE1_WORKFLOW_NEIGHBOR_TOOLCHAIN_STEPS=Self-test current Zig toolchain checker,Check current Zig toolchain policy surface`",
     "- `PHASE1_WORKFLOW_NEIGHBOR_PHASE2_STEPS=Self-test current Phase 2 kconfig bridge checker,Check current Phase 2 kconfig bridge packet,Self-test current Phase 2 kbuild routes checker,Check current Phase 2 kbuild packet,Self-test current Phase 2 tests README checker,Check current Phase 2 tests README packet,Self-test current Phase 2 cross selftest alignment checker,Check current Phase 2 cross alignment packet,Self-test current Phase 2 toolchain pinning checker,Check current Phase 2 toolchain pinning packet`",
     "- `PHASE1_WORKFLOW_SELFTEST_STEPS=Self-test current Phase 1 direct-owner checker,Self-test current Phase 1 string review checker,Self-test current Phase 1 bench checker,Self-test current Phase 1 shared reminder checker,Self-test current Phase 1 workflow viability checker`",
     "- `PHASE1_WORKFLOW_LIVE_STEPS=Check current Phase 1 direct-owner markers,Check current Phase 1 string review packet,Check current Phase 1 shared reminder packet,Check current Phase 1 workflow viability`",
-    "- `PHASE1_WORKFLOW_POST_PHASE1_STEPS=Self-test current Phase 4 repo-reality warning checker,Check current Phase 4 repo-reality warning packet,Self-test current Phase 4 reversible-delivery pin checker,Check current Phase 4 reversible-delivery pin packet,Self-test current Phase 4 tests README checker,Check current Phase 4 tests README packet,Self-test current Phase 7 shared-control gap checker,Check current Phase 7 shared-control gap packet,Self-test current Phase 12 build-only checker,Validate Phase 8 tooling gates,Run focused Phase 8 libbpf segment survey tests,Check current docs-root sanity markers`",
+    "- `PHASE1_WORKFLOW_POST_PHASE1_STEPS=Self-test current Phase 4 repo-reality warning checker,Check current Phase 4 repo-reality warning packet,Self-test current Phase 4 reversible-delivery pin checker,Check current Phase 4 reversible-delivery pin packet,Self-test current Phase 4 tests README checker,Check current Phase 4 tests README packet,Self-test current Phase 7 shared-control gap checker,Check current Phase 7 shared-control gap packet,Self-test current Phase 10 bootstrap route checker,Check current Phase 10 bootstrap route,Validate Phase 10 checker-backed review packet,Run Phase 10 helper tests,Self-test current Phase 12 build-only surface checker,Check current Phase 12 build-only surface,Self-test current Phase 12 release-readiness packet checker,Validate Phase 12 degraded-workflow bundle,Check current Phase 12 release-readiness packet,Run focused Phase 12 smoke shard,Run Phase 12 complex driver tests,Validate Phase 8 tooling gates,Run focused Phase 8 libbpf segment survey tests,Check current docs-root sanity markers`",
     "- `PHASE1_WORKFLOW_COMMAND_PACKET=python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test; python3 scripts/zigux/check-phase1-direct-owner-markers.py; python3 scripts/zigux/check-phase1-string-review-packet.py --self-test; python3 scripts/zigux/check-phase1-string-review-packet.py; python3 scripts/zigux/check-phase1-bench.py --self-test; python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test; python3 scripts/zigux/check-phase1-shared-reminder-packet.py; python3 scripts/zigux/check-phase1-workflow-viability.py --self-test; python3 scripts/zigux/check-phase1-workflow-viability.py`",
     "- current `master` workflow viability stays bounded to the shipped Phase 1 reminder packet, so treat `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` as broader closure-side or make-route packet members until fresh rereads recover them on current `master`.",
     "- the active bootstrap Phase 1 workflow now keeps the direct-owner, string-review, shared-reminder, and workflow-viability live checks together with the direct-owner, string-review, bench, shared-reminder, and workflow-viability self-tests, and should stay narrower than the older installer-backed or live-bench closure stack until those routes materially return.",
     "- keep the newer `scripts/zigux/check-phase1-shared-reminder-packet.py` pair explicit beside direct-owner, string-review, bench, and workflow viability so this lane does not silently regress the already-shipped Phase 1 reminder packet while hardening the workflow shape.",
     "- keep the bench checker self-test-only in the bootstrap workflow until `zigux/tests/fixtures/phase1_bench_expectations.json` returns on current `master`; a live `python3 scripts/zigux/check-phase1-bench.py` workflow step is still a workflow-viability regression in this narrower packet.",
     "- replay this packet on top of the current bootstrap workflow instead of reviving older Phase 2 neighbor names or dropping the newer current ones; the live non-Phase-1 neighbor packet now keeps the current `scripts/zigux/check-zig-toolchain.py` self-test plus policy-surface pair ahead of the current `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, and `scripts/zigux/check-phase2-toolchain-pinning.py` self-test plus live-check packet.",
-    "- keep the current post-Phase-1 bootstrap tail explicit too: the same workflow now carries the shipped `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase7-shared-control-gap.py`, and `scripts/zigux/check-build-only-phase12-surface.py` packet, then runs `make -C zigux phase8-validate` plus `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all` before the docs-root sanity marker check, so this lane must not silently regress those later current-master steps while refreshing the Phase 1 packet.",
+    "- keep the current post-Phase-1 bootstrap tail explicit too: the same workflow now carries the shipped `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase7-shared-control-gap.py`, and `scripts/zigux/check-phase10-bootstrap-route.py` packet, then preserves the current Phase 10 review/test pair plus the shipped `scripts/zigux/check-build-only-phase12-surface.py` and `scripts/zigux/check-phase12-release-readiness-packet.py` packet, the current `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all` steps, and finally runs `make -C zigux phase8-validate` plus `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all` before the docs-root sanity marker check, so this lane must not silently regress those later current-master steps while refreshing the Phase 1 packet.",
     "- if this lane reopens, harden the same current workflow packet first instead of reconstructing the broader missing closure-side Phase 1 validator family from historical route names alone.",
 )
 
@@ -120,8 +123,28 @@ WORKFLOW_LINE_RULES = (
     ("workflow:selftest_phase7_run", "        run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test"),
     ("workflow:check_phase7_name", "      - name: Check current Phase 7 shared-control gap packet"),
     ("workflow:check_phase7_run", "        run: python3 scripts/zigux/check-phase7-shared-control-gap.py"),
-    ("workflow:selftest_phase12_name", "      - name: Self-test current Phase 12 build-only checker"),
+    ("workflow:selftest_phase10_name", "      - name: Self-test current Phase 10 bootstrap route checker"),
+    ("workflow:selftest_phase10_run", "        run: python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test"),
+    ("workflow:check_phase10_name", "      - name: Check current Phase 10 bootstrap route"),
+    ("workflow:check_phase10_run", "        run: python3 scripts/zigux/check-phase10-bootstrap-route.py"),
+    ("workflow:phase10_validate_name", "      - name: Validate Phase 10 checker-backed review packet"),
+    ("workflow:phase10_validate_run", "        run: make -C zigux phase10-validate"),
+    ("workflow:phase10_test_name", "      - name: Run Phase 10 helper tests"),
+    ("workflow:phase10_test_run", "        run: make -C zigux phase10-test"),
+    ("workflow:selftest_phase12_name", "      - name: Self-test current Phase 12 build-only surface checker"),
     ("workflow:selftest_phase12_run", "        run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test"),
+    ("workflow:check_phase12_name", "      - name: Check current Phase 12 build-only surface"),
+    ("workflow:check_phase12_run", "        run: python3 scripts/zigux/check-build-only-phase12-surface.py"),
+    ("workflow:selftest_phase12_release_name", "      - name: Self-test current Phase 12 release-readiness packet checker"),
+    ("workflow:selftest_phase12_release_run", "        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test"),
+    ("workflow:phase12_validate_name", "      - name: Validate Phase 12 degraded-workflow bundle"),
+    ("workflow:phase12_validate_run", "        run: make -C zigux phase12-validate"),
+    ("workflow:check_phase12_release_name", "      - name: Check current Phase 12 release-readiness packet"),
+    ("workflow:check_phase12_release_run", "        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py"),
+    ("workflow:phase12_smoke_name", "      - name: Run focused Phase 12 smoke shard"),
+    ("workflow:phase12_smoke_run", "        run: make -C zigux phase12-smoke"),
+    ("workflow:phase12_test_name", "      - name: Run Phase 12 complex driver tests"),
+    ("workflow:phase12_test_run", "        run: zig build test --build-file zigux/tests/phase12_build.zig --summary all"),
     ("workflow:phase8_validate_name", "      - name: Validate Phase 8 tooling gates"),
     ("workflow:phase8_validate_run", "        run: make -C zigux phase8-validate"),
     ("workflow:phase8_libbpf_name", "      - name: Run focused Phase 8 libbpf segment survey tests"),
@@ -159,7 +182,17 @@ STEP_ORDER = (
     "Check current Phase 4 tests README packet",
     "Self-test current Phase 7 shared-control gap checker",
     "Check current Phase 7 shared-control gap packet",
-    "Self-test current Phase 12 build-only checker",
+    "Self-test current Phase 10 bootstrap route checker",
+    "Check current Phase 10 bootstrap route",
+    "Validate Phase 10 checker-backed review packet",
+    "Run Phase 10 helper tests",
+    "Self-test current Phase 12 build-only surface checker",
+    "Check current Phase 12 build-only surface",
+    "Self-test current Phase 12 release-readiness packet checker",
+    "Validate Phase 12 degraded-workflow bundle",
+    "Check current Phase 12 release-readiness packet",
+    "Run focused Phase 12 smoke shard",
+    "Run Phase 12 complex driver tests",
     "Validate Phase 8 tooling gates",
     "Run focused Phase 8 libbpf segment survey tests",
     "Check current docs-root sanity markers",
@@ -168,7 +201,9 @@ STEP_ORDER = (
 FORBIDDEN_WORKFLOW_SNIPPETS = (
     "scripts/zigux/validate-phase1.py",
     "scripts/zigux/validate-phase1-closure.py",
-    "make -C zigux phase1",
+    "make -C zigux phase1-validate",
+    "make -C zigux phase1-test",
+    "make -C zigux phase1-bench",
     "scripts/zigux/check-kconfig-bridge.py --self-test",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "scripts/zigux/check-phase9-build-only-surface.py",
@@ -177,6 +212,7 @@ FORBIDDEN_WORKFLOW_SNIPPETS = (
 
 FORBIDDEN_WORKFLOW_LINES = (
     "        run: python3 scripts/zigux/check-phase1-bench.py",
+    "        run: make -C zigux phase1",
 )
 
 
@@ -280,28 +316,36 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(root)
         (root / "scripts/zigux/check-phase2-tests-readme-alignment.py").unlink()
         if "missing_file:scripts/zigux/check-phase2-tests-readme-alignment.py" not in collect_failures(root):
             print("self-test:missing_phase2_tests_file_case_failed")
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
+        (root / "zigux/tests/phase12_build.zig").unlink()
+        if "missing_file:zigux/tests/phase12_build.zig" not in collect_failures(root):
+            print("self-test:missing_phase12_build_file_case_failed")
+            return 1
+        case_count += 1
+
+        build_sampleRepo(root)
         (root / "zigux/tests/phase8_libbpf_segments_only_build.zig").unlink()
         if "missing_file:zigux/tests/phase8_libbpf_segments_only_build.zig" not in collect_failures(root):
             print("self-test:missing_phase8_build_file_case_failed")
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         (root / "scripts/zigux/check-phase7-shared-control-gap.py").unlink()
         if "missing_file:scripts/zigux/check-phase7-shared-control-gap.py" not in collect_failures(root):
             print("self-test:missing_phase7_file_case_failed")
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         workflow_path = root / WORKFLOW_REL
         workflow_path.write_text(
             rewrite_once(
@@ -315,7 +359,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         workflow_path.write_text(
             rewrite_once(
                 workflow_path.read_text(encoding="utf-8"),
@@ -328,20 +372,46 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         workflow_path.write_text(
             rewrite_once(
                 workflow_path.read_text(encoding="utf-8"),
-                "      - name: Validate Phase 8 tooling gates\n",
+                "      - name: Validate Phase 10 checker-backed review packet\n",
             ),
             encoding="utf-8",
         )
-        if "workflow:phase8_validate_name:expected=1:actual=0" not in collect_failures(root):
-            print("self-test:missing_phase8_validate_step_case_failed")
+        if "workflow:phase10_validate_name:expected=1:actual=0" not in collect_failures(root):
+            print("self-test:missing_phase10_validate_step_case_failed")
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
+        workflow_path.write_text(
+            rewrite_once(
+                workflow_path.read_text(encoding="utf-8"),
+                "      - name: Self-test current Phase 12 release-readiness packet checker\n",
+            ),
+            encoding="utf-8",
+        )
+        if "workflow:selftest_phase12_release_name:expected=1:actual=0" not in collect_failures(root):
+            print("self-test:missing_phase12_release_selftest_case_failed")
+            return 1
+        case_count += 1
+
+        build_sampleRepo(root)
+        workflow_path.write_text(
+            rewrite_once(
+                workflow_path.read_text(encoding="utf-8"),
+                "      - name: Run Phase 12 complex driver tests\n",
+            ),
+            encoding="utf-8",
+        )
+        if "workflow:phase12_test_name:expected=1:actual=0" not in collect_failures(root):
+            print("self-test:missing_phase12_test_step_case_failed")
+            return 1
+        case_count += 1
+
+        build_sampleRepo(root)
         workflow_path.write_text(
             rewrite_once(
                 workflow_path.read_text(encoding="utf-8"),
@@ -354,7 +424,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         workflow_path.write_text(
             rewrite_once(
                 workflow_path.read_text(encoding="utf-8"),
@@ -367,7 +437,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         workflow_path.write_text(
             rewrite_once(workflow_path.read_text(encoding="utf-8"), DOCS_SANITY_MARKER, "missing"),
             encoding="utf-8",
@@ -377,7 +447,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8")
             + "      - name: Old route\n        run: python3 scripts/zigux/validate-phase1.py\n",
@@ -388,7 +458,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         workflow_path.write_text(
             rewrite_once(
                 workflow_path.read_text(encoding="utf-8"),
@@ -405,7 +475,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8")
             + "      - name: Check current Phase 1 bench packet\n        run: python3 scripts/zigux/check-phase1-bench.py\n",
