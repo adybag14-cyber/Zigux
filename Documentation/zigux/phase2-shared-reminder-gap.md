@@ -49,6 +49,13 @@ Treat that set as the current directly readable Phase 2 reminder packet on `mast
 
 Treat those closure-side, validator-first, cross-route, toolchain-helper, and make-wrapper names as historical packet members until current `master` rematerializes them.
 
+## Alignment nuance
+
+- `zigux/tests/README.md`
+- `scripts/zigux/check-phase2-tests-readme-alignment.py`
+
+That tests-root companion pair still encodes the broader pre-narrowing Phase 2 packet. Any final close-out pass that updates the docs root and review checklist will need to narrow those two surfaces in the same packet if Lane 25 is going to stay checker-backed.
+
 ## Close condition
 
-Lane 25 closes when `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` describe the same current direct packet and the same historical packet members captured here without overstating the older Phase 2 closure stack.
+Lane 25 closes when `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` describe and guard the same current direct packet and the same historical packet members captured here without overstating the older Phase 2 closure stack.
