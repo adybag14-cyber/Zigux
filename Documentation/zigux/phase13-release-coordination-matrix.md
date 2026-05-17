@@ -26,13 +26,13 @@ Keep shared release wording tied to the four roadmap-owned Linux anchors:
 - `security/landlock/ruleset.c`
 - `security/landlock/syscalls.c`
 
-The active shared packet stays contributor-facing and review-first. Helper-local proof remains owned by the `libfs`, `devres`, and `landlock` packets, while notifier evidence stays adjacent release-surface support.
+The active shared packet stays contributor-facing and review-first. Helper-local proof remains owned by the `libfs`, `devres`, and `landlock` packets, while notifier evidence stays adjacent release-surface support through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig`.
 
 ## Owner Split
 
 - PMO / Release Management: keep this matrix, the workflow guide, the sequencing note, and the shared-summary guard aligned
 - helper-local owners: keep `libfs`, `devres`, and `landlock` packet wording grounded in their shipped surveys, slices, starter files, and focused reviewability manifests
-- adjacent notifier support: keep notifier evidence truthful without promoting it into a fifth helper lane
+- adjacent notifier support: keep `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` truthful as support evidence without promoting them into a fifth helper lane
 
 ## Release Handle
 
@@ -54,7 +54,6 @@ Keep these paths recorded as repo-reality gaps rather than shipped current-`mast
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
 
 ## Review Use
 
