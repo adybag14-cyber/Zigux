@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the bounded Phase 4 reversible-delivery exact-pin follow-through."""
+"""Guard the bounded Phase 4 reversible-delivery repo-reality handoff."""
 
 from __future__ import annotations
 
@@ -17,33 +17,42 @@ STATUS_MARKERS = (
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=4`",
 )
 
-TARGET_MARKERS = (
+DIRECT_MARKERS = (
+    "`Documentation/zigux/review-checklist.md`",
+    "`zigux/tests/README.md`",
+    "`scripts/zigux/check-phase4-repo-reality-warning.py`",
+    "`scripts/zigux/check-phase4-reversible-delivery-pins.py`",
+)
+
+MISSING_BROADER_PACKET = (
     "`Documentation/zigux/phase4-gate-evidence.md`",
     "`Documentation/zigux/phase4-validation-matrix.md`",
-    "`scripts/zigux/check-phase4-reversible-delivery-pins.py`",
+    "`scripts/zigux/check-phase4-gate-evidence.py`",
+    "`scripts/zigux/check-phase4-perf-baseline-packet.py`",
     "`scripts/zigux/validate-phase4.py`",
     "`zigux/tests/phase4_build.zig`",
-    "`scripts/zigux/check-phase4-perf-baseline-packet.py`",
     "`zigux/tests/phase4_perf_baseline_manifest.json`",
     "`zigux/tests/phase4_perf_baseline_survey.zig`",
 )
 
-NOTE_MARKERS = STATUS_MARKERS + TARGET_MARKERS + (
-    "The stale Phase 4 repo-reality warning in `zigux/tests/README.md` is now closed",
-    "The next honest same-family follow-through is to run the dedicated exact-pin pass",
-    "The current direct readback now keeps the rollback-owner reminder, the review-checklist handoff, the tests-root route inventory, the new dedicated exact-pin checker",
+NOTE_MARKERS = STATUS_MARKERS + DIRECT_MARKERS + MISSING_BROADER_PACKET + (
+    "The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run",
+    "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
+    "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
 )
 
 README_MARKERS = (
-    "current broader Phase 4 packet reminder",
+    "current direct-readback Phase 4 rollback packet",
+    "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
-    "historical provenance that still needs one exact-pin refresh",
+    "repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet",
+    "historical provenance for that missing broader packet",
 )
 
 WARNING_MARKERS = (
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
-    "The stale Phase 4 repo-reality warning in `zigux/tests/README.md` is now closed",
-    "The next honest same-family follow-through is to run the dedicated exact-pin pass",
+    "The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run",
+    "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     "PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true",
     "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=4",
 )
@@ -84,22 +93,22 @@ def write(path: Path, text: str) -> None:
 
 
 def fixture_root(root: Path) -> None:
-    note_targets = "\n".join(f"  * {item}" for item in TARGET_MARKERS)
+    missing = "\n".join(f"  * {item}" for item in MISSING_BROADER_PACKET)
     write(
         root / NOTE,
         "# Phase 4 Reversible Delivery Evidence\n\n"
-        "The stale Phase 4 repo-reality warning in `zigux/tests/README.md` is now closed.\n\n"
-        "The next honest same-family follow-through is to run the dedicated exact-pin pass.\n\n"
+        "Current direct readback in this run confirmed `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` on current `master`. The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run. The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.\n\n"
+        "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader packet is directly readable again.\n\n"
         "* `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`\n"
         "* `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=4`\n\n"
-        "The current direct readback now keeps the rollback-owner reminder, the review-checklist handoff, the tests-root route inventory, the new dedicated exact-pin checker, and the directly readable validator, lab-matrix, and local-only perf companions explicit without pretending those paths are absent on current `master`.\n\n"
-        f"{note_targets}\n",
+        f"{missing}\n",
     )
     write(
         root / README,
         "# zigux/tests\n\n"
-        "  * current broader Phase 4 packet reminder: `scripts/zigux/check-phase4-reversible-delivery-pins.py`\n"
-        "  * Phase 4 follow-through should treat the stale `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines in `Documentation/zigux/phase4-reversible-delivery-evidence.md` as historical provenance that still needs one exact-pin refresh\n",
+        "  * current direct-readback Phase 4 rollback packet: `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py`\n"
+        "  * repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet: `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` are still missing on current `master`\n"
+        "  * Phase 4 follow-through should treat the stale `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines in `Documentation/zigux/phase4-reversible-delivery-evidence.md` as historical provenance for that missing broader packet\n",
     )
     write(
         root / REPO_REALITY_WARNING,
@@ -108,8 +117,8 @@ def fixture_root(root: Path) -> None:
         "    \"scripts/zigux/check-phase4-reversible-delivery-pins.py\",\n"
         ")\n"
         "NOTE_REQ = (\n"
-        "    \"The stale Phase 4 repo-reality warning in `zigux/tests/README.md` is now closed\",\n"
-        "    \"The next honest same-family follow-through is to run the dedicated exact-pin pass\",\n"
+        "    \"The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run\",\n"
+        "    \"The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open\",\n"
         "    \"PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true\",\n"
         "    \"PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=4\",\n"
         ")\n",
@@ -133,13 +142,13 @@ def self_test() -> None:
             raise AssertionError("expected note pin-checker marker drift to fail")
 
         fixture_root(root)
-        write(root / NOTE, read(root, NOTE).replace(TARGET_MARKERS[0], "`Documentation/zigux/not-the-right-file.md`"))
+        write(root / NOTE, read(root, NOTE).replace(MISSING_BROADER_PACKET[0], "`Documentation/zigux/not-the-right-file.md`"))
         try:
             check(root)
         except RuntimeError:
             cases += 1
         else:
-            raise AssertionError("expected note target drift to fail")
+            raise AssertionError("expected note missing-packet drift to fail")
 
         fixture_root(root)
         write(root / README, read(root, README).replace(README_MARKERS[0], "broader packet wording drifted"))
