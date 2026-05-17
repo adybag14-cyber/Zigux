@@ -64,7 +64,7 @@ EXPECTED_PHASE = "Phase 2"
 EXPECTED_TARGETS = ["x86_64-linux"]
 EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate"]
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-EXPECTED_SELF_TEST_CASE_COUNT = 31
+EXPECTED_SELF_TEST_CASE_COUNT = 36
 
 
 def read_text(path: Path) -> str:
@@ -251,11 +251,12 @@ def run_self_test() -> int:
             assert ("MISSING_TESTS_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, TOOLCHAIN_CHECKER)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), TOOLCHAIN_CHECKER_MARKERS[0]), encoding="utf-8")
-        assert ("MISSING_TOOLCHAIN_CHECKER_MARKERS", TOOLCHAIN_CHECKER_MARKERS[0]) in collect_issues(root)
-        checks_run += 1
+        for marker in TOOLCHAIN_CHECKER_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TOOLCHAIN_CHECKER)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_TOOLCHAIN_CHECKER_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TOOLCHAIN_POLICY)
