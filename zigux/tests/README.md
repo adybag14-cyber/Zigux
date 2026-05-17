@@ -164,6 +164,16 @@ Phase 8 review packet
   * `make -C zigux phase8`
   * keep the shared Phase 8 tooling packet explicit here too: the focused exec-cmd, help, symbol, cpu-mask, file-path bridge, segmented libbpf, and perf-buffer poll replay surfaces stay reviewable from the tests root without widening into deferred process-launch, handle-ownership, or online-CPU routing work
 
+Phase 9 review packet
+  * `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
+  * `scripts/zigux/check-phase9-trace-events-runtime-packet.py`
+  * `zigux/tests/README.md`
+  * `samples/zigux/runtime_trace_events.zig`
+  * the surviving trace-events sample still keeps the roadmap-backed runtime pilot shape concrete by exposing `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking inside `samples/zigux/runtime_trace_events.zig`, so reviewers can still inspect one real runtime-module and selftest-hook surface while the broader shared loader packet remains backlog
+  * there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, `make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`
+
 Phase 12 review packet
   * `scripts/zigux/check-build-only-phase12-surface.py`
   * `Documentation/zigux/phase12-release-sequencing.md`
