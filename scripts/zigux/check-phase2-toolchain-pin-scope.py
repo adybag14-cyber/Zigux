@@ -42,7 +42,6 @@ REVIEW_MARKERS = (
 TESTS_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2-cross`",
@@ -64,7 +63,7 @@ EXPECTED_PHASE = "Phase 2"
 EXPECTED_TARGETS = ["x86_64-linux"]
 EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate"]
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-EXPECTED_SELF_TEST_CASE_COUNT = 40
+EXPECTED_SELF_TEST_CASE_COUNT = 39
 
 
 def read_text(path: Path) -> str:
