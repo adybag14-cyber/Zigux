@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the Phase 1 direct-owner marker packet against lane-note drift."""
+"""Guard the Phase 1 direct-owner marker packet against lane-note and shared-surface drift."""
 
 from __future__ import annotations
 
@@ -8,29 +8,60 @@ import tempfile
 from pathlib import Path
 
 
-DEFAULT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
+DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
+REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
+TESTS_README_REL = Path("zigux/tests/README.md")
+SCRIPTS_README_REL = Path("scripts/zigux/README.md")
+
+REQUIRED_FILES = (
+    LANE_NOTE_REL,
+    DOCS_ROOT_REL,
+    REVIEW_CHECKLIST_REL,
+    TESTS_README_REL,
+    SCRIPTS_README_REL,
+)
 
 REQUIRED_EXACT_LINES = {
-    "missing_phase1_packet_note": "- current authenticated reads do not recover `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, or `zigux/Makefile` on `master`, so this lane should treat those older closure-side and make-route names as historical packet members that need fresh re-materialization before they are reused as live owner-map evidence",
-    "bitmap_direct_owner": "- `PHASE1_BITMAP_DIRECT_OWNER=bitmap helper-local anchors plus the committed bitmap replay keys it already owns; older closure-side bitmap note names stay historical until current master exposes them again`",
-    "find_bit_direct_owner": "- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, and tail-word skip anchors plus the committed tail-clamped find_bit replay fields already emitted by the shared C harness and consumed by the shared fixture`",
-    "rbtree_direct_owner": "- `PHASE1_RBTREE_DIRECT_OWNER=rbtree keeps ordered Linux-style alias, low-level Linux-style alias, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors helper-local while the committed shared replay already owns duplicate-search parity through find(), findFirst(), nextMatch(), and matchIterator() plus the parked cached_leftmost_return_serials witness`",
-    "string_direct_owner": "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
-    "find_bit_or_packet_note": '- current `master` also carries the newer direct `test "find or bit returns the next set bit from either bitmap"` proof inside `tools/lib/find_bit.zig`, so notes-only rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it',
-    "find_bit_clump_packet_note": "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
-    "string_counted_search_alias_note": "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`.",
-    "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; treat the older `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` names as historical packet members until current `master` exposes them again",
-    "shared_reminder_gap_note": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=all four shared reminder surfaces now treat scripts/zigux/check-phase1-installer-companion-checks.py as historical until direct reads recover it, so the docs-root sync step is closed and the shared reminder packet can stay parked unless one of those surfaces drifts`",
-    "shared_reminder_active_packet": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py`",
-    "shared_reminder_route_split": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ROUTE_SPLIT=Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, and scripts/zigux/README.md all keep the repo-reality warning explicit for the missing installer companion, while scripts/zigux/check-phase1-string-review-packet.py and scripts/zigux/check-phase1-direct-owner-markers.py carry the live self-test-versus-guard split for the shipped Phase 1 reminder packet, so the shared reminder packet stays parked unless one of those surfaces drifts`",
-    "shared_reminder_next_step": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=leave the already-aligned shared reminder packet parked and reopen helper-local follow-through only from the helper-specific next-safe-step markers below unless Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, scripts/zigux/README.md, scripts/zigux/check-phase1-string-review-packet.py, or scripts/zigux/check-phase1-direct-owner-markers.py drifts`",
-    "bitmap_next_safe_step": "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen older closure-side or validator-route cue names by default`",
-    "find_bit_next_safe_step": "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or for committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families`",
-    "find_bit_or_next_step_note": '- the already-landed OR-path proof in `test "find or bit returns the next set bit from either bitmap"` belongs to that same `find_bit` direct-anchor packet, so if it drifts, refresh the existing helper-family notes instead of widening shared replay ownership',
-    "find_bit_clump_next_step_note": "- the existing byte-clump and `findLastBit()` proofs belong to that same `find_bit` direct-anchor packet too, so if one of those helper-local anchors drifts, refresh the current helper-family note before widening shared replay ownership",
-    "rbtree_next_safe_step": "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only to keep the already-landed cached_leftmost_return_serials shared replay aligned across the manifest, direct-owner note, and any shared parity gates, or for drift inside the still-helper-local cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors; do not batch a second widening into the same run`",
-    "string_next_safe_step": "- `PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() C-string list lookup, counted-search strnchr, embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture drift; keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default`",
+    LANE_NOTE_REL: {
+        "missing_phase1_packet_note": "- current authenticated reads do not recover `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, or `zigux/Makefile` on `master`, so this lane should treat those older closure-side and make-route names as historical packet members that need fresh re-materialization before they are reused as live owner-map evidence",
+        "bitmap_direct_owner": "- `PHASE1_BITMAP_DIRECT_OWNER=bitmap helper-local anchors plus the committed bitmap replay keys it already owns; older closure-side bitmap note names stay historical until current master exposes them again`",
+        "find_bit_direct_owner": "- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, and tail-word skip anchors plus the committed tail-clamped find_bit replay fields already emitted by the shared C harness and consumed by the shared fixture`",
+        "rbtree_direct_owner": "- `PHASE1_RBTREE_DIRECT_OWNER=rbtree keeps ordered Linux-style alias, low-level Linux-style alias, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors helper-local while the committed shared replay already owns duplicate-search parity through find(), findFirst(), nextMatch(), and matchIterator() plus the parked cached_leftmost_return_serials witness`",
+        "string_direct_owner": "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
+        "find_bit_or_packet_note": "- current `master` also carries the newer direct `test \"find or bit returns the next set bit from either bitmap\"` proof inside `tools/lib/find_bit.zig`, so notes-only rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it",
+        "find_bit_clump_packet_note": "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
+        "string_counted_search_alias_note": "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`.",
+        "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; treat the older `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` names as historical packet members until current `master` exposes them again",
+        "shared_reminder_gap_note": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=all four shared reminder surfaces now treat scripts/zigux/check-phase1-installer-companion-checks.py as historical until direct reads recover it, so the docs-root sync step is closed and the shared reminder packet can stay parked unless one of those surfaces drifts`",
+        "shared_reminder_active_packet": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py`",
+        "shared_reminder_route_split": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ROUTE_SPLIT=Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, and scripts/zigux/README.md all keep the repo-reality warning explicit for the missing installer companion, while scripts/zigux/check-phase1-string-review-packet.py and scripts/zigux/check-phase1-direct-owner-markers.py carry the live self-test-versus-guard split for the shipped Phase 1 reminder packet, so the shared reminder packet stays parked unless one of those surfaces drifts`",
+        "shared_reminder_next_step": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=leave the already-aligned shared reminder packet parked and reopen helper-local follow-through only from the helper-specific next-safe-step markers below unless Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, scripts/zigux/README.md, scripts/zigux/check-phase1-string-review-packet.py, or scripts/zigux/check-phase1-direct-owner-markers.py drifts`",
+        "bitmap_next_safe_step": "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen older closure-side or validator-route cue names by default`",
+        "find_bit_next_safe_step": "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or for committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families`",
+        "find_bit_or_next_step_note": "- the already-landed OR-path proof in `test \"find or bit returns the next set bit from either bitmap\"` belongs to that same `find_bit` direct-anchor packet, so if it drifts, refresh the existing helper-family notes instead of widening shared replay ownership",
+        "find_bit_clump_next_step_note": "- the existing byte-clump and `findLastBit()` proofs belong to that same `find_bit` direct-anchor packet too, so if one of those helper-local anchors drifts, refresh the current helper-family note before widening shared replay ownership",
+        "rbtree_next_safe_step": "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only to keep the already-landed cached_leftmost_return_serials shared replay aligned across the manifest, direct-owner note, and any shared parity gates, or for drift inside the still-helper-local cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors; do not batch a second widening into the same run`",
+        "string_next_safe_step": "- `PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() C-string list lookup, counted-search strnchr, embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture drift; keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default`",
+    },
+    DOCS_ROOT_REL: {
+        "phase1_direct_checks": "- the current docs-root Phase 1 reminder packet should stay parked on the live owner-map and string-review guards: `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py` are the shipped direct checks, while `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around them.",
+        "phase1_self_test_split": "- `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the bounded current reminder checks, while the live checker routes guard the shipped Phase 1 packet without widening it back into the older closure-side or installer-companion stack.",
+    },
+    REVIEW_CHECKLIST_REL: {
+        "phase1_packet_alignment": "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/check-phase1-direct-owner-markers.py` still agree on the same bounded current-`master` reminder packet: the thirteen-helper owner map, the parked shared-replay-versus-direct-anchor split, the live string-review and direct-owner guards, and the repo-reality warning that older installer-backed, closure-side, validator-first, make-route, bench, and replay paths such as `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` stay framed as historical packet members rather than direct current evidence unless a fresh reread materializes them again, without widening Phase 1 beyond the bounded host-side helper packet?",
+        "phase1_self_test_alignment": "  * if the change touches that same Phase 1 reminder packet, does the checklist still say clearly that `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the bounded live reminder checks while `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py` guard the shipped current-`master` Phase 1 reminder packet, and that the older installer-companion self-test-versus-live route wording stays historical until `scripts/zigux/check-phase1-installer-companion-checks.py` is directly readable again?",
+    },
+    TESTS_README_REL: {
+        "phase1_direct_packet": "  * current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py`",
+        "phase1_historical_warning": "  * repo-reality warning for the broader Phase 1 closure-and-replay packet: repeated authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+    },
+    SCRIPTS_README_REL: {
+        "phase1_self_tests": "- `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the shipped bounded Phase 1 reminder checks",
+        "phase1_live_guards": "- `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py` keep the shipped string-review and direct-owner marker packet explicit from the scripts root",
+        "phase1_companions": "- `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `zigux/tests/fixtures/phase1_helper_manifest.json` remain the current reminder-surface companions for that packet",
+    },
 }
 
 
@@ -43,22 +74,33 @@ def load_text(root: Path, relative_path: Path) -> str:
 
 
 def require_exact_line(text: str, label: str, line: str) -> list[str]:
-    count = sum(1 for current_line in text.splitlines() if current_line.strip() == line)
+    expected = line.strip()
+    count = sum(1 for current_line in text.splitlines() if current_line.strip() == expected)
     if count != 1:
         return [f"{label}:expected=1:actual={count}"]
     return []
 
 
 def collect_direct_owner_failures(root: Path) -> list[str]:
-    lane_note_path = root / LANE_NOTE_REL
-    if not lane_note_path.exists():
-        return [f"missing_file:{LANE_NOTE_REL.as_posix()}"]
-
-    lane_note_text = load_text(root, LANE_NOTE_REL)
     missing: list[str] = []
-    for label, line in REQUIRED_EXACT_LINES.items():
-        missing.extend(require_exact_line(lane_note_text, f"lane_note:{label}", line))
-    return missing
+    for relative_path in REQUIRED_FILES:
+        if not (root / relative_path).exists():
+            missing.append(f"missing_file:{relative_path.as_posix()}")
+    if missing:
+        return missing
+
+    failures: list[str] = []
+    for relative_path, labels in REQUIRED_EXACT_LINES.items():
+        text = load_text(root, relative_path)
+        for label, line in labels.items():
+            failures.extend(
+                require_exact_line(
+                    text,
+                    f"{relative_path.as_posix()}:{label}",
+                    line,
+                )
+            )
+    return failures
 
 
 def write_file(root: Path, relative_path: Path, text: str) -> None:
@@ -67,72 +109,45 @@ def write_file(root: Path, relative_path: Path, text: str) -> None:
     destination.write_text(text, encoding="utf-8")
 
 
-def sample_lane_note_text() -> str:
-    ordered_lines = [
-        REQUIRED_EXACT_LINES["missing_phase1_packet_note"],
-        REQUIRED_EXACT_LINES["find_bit_or_packet_note"],
-        REQUIRED_EXACT_LINES["find_bit_clump_packet_note"],
-        REQUIRED_EXACT_LINES["shared_reminder_gap_note"],
-        REQUIRED_EXACT_LINES["shared_reminder_active_packet"],
-        REQUIRED_EXACT_LINES["shared_reminder_route_split"],
-        REQUIRED_EXACT_LINES["bitmap_direct_owner"],
-        REQUIRED_EXACT_LINES["find_bit_direct_owner"],
-        REQUIRED_EXACT_LINES["rbtree_direct_owner"],
-        REQUIRED_EXACT_LINES["string_direct_owner"],
-        REQUIRED_EXACT_LINES["string_counted_search_alias_note"],
-        REQUIRED_EXACT_LINES["string_review_rule_note"],
-        REQUIRED_EXACT_LINES["shared_reminder_next_step"],
-        REQUIRED_EXACT_LINES["bitmap_next_safe_step"],
-        REQUIRED_EXACT_LINES["find_bit_next_safe_step"],
-        REQUIRED_EXACT_LINES["find_bit_or_next_step_note"],
-        REQUIRED_EXACT_LINES["find_bit_clump_next_step_note"],
-        REQUIRED_EXACT_LINES["rbtree_next_safe_step"],
-        REQUIRED_EXACT_LINES["string_next_safe_step"],
-    ]
-    return (
-        "# Phase 1 Host-Helper Lane Sequencing\n\n"
-        "## Current Repo Reality\n\n"
-        + "\n".join(ordered_lines[:6])
-        + "\n\n## Direct-Anchor Owner Map\n\n"
-        + "\n".join(ordered_lines[6:12])
-        + "\n\n## Next Bounded Step\n\n"
-        + "\n".join(ordered_lines[12:])
-        + "\n"
-    )
+def sample_text(relative_path: Path) -> str:
+    labels = REQUIRED_EXACT_LINES[relative_path]
+    return "# sample\n\n" + "\n".join(labels.values()) + "\n"
 
 
 def build_sample_repo(root: Path) -> None:
-    write_file(root, LANE_NOTE_REL, sample_lane_note_text())
+    for relative_path in REQUIRED_FILES:
+        write_file(root, relative_path, sample_text(relative_path))
 
 
 def run_self_test() -> int:
-    cases: list[tuple[str, str | None, str]] = [("success", None, "none")]
-    for label, line in REQUIRED_EXACT_LINES.items():
-        cases.append((f"missing_{label}", line, "remove"))
-        cases.append((f"duplicate_{label}", line, "duplicate"))
+    cases: list[tuple[str, Path | None, str | None, str]] = [("success", None, None, "none")]
+    for relative_path, labels in REQUIRED_EXACT_LINES.items():
+        for label, line in labels.items():
+            cases.append((f"missing_{relative_path.name}_{label}", relative_path, line, "remove"))
+            cases.append((f"duplicate_{relative_path.name}_{label}", relative_path, line, "duplicate"))
 
-    for name, needle, operation in cases:
+    for name, relative_path, needle, operation in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-direct-owner-{name}-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
-            if needle:
-                target = root / LANE_NOTE_REL
+            if relative_path and needle:
+                target = root / relative_path
                 text = target.read_text(encoding="utf-8")
                 if operation == "remove":
                     target.write_text(text.replace(needle + "\n", "", 1), encoding="utf-8")
                 elif operation == "duplicate":
                     target.write_text(text.replace(needle, needle + "\n" + needle, 1), encoding="utf-8")
 
-            missing = collect_direct_owner_failures(root)
+            failures = collect_direct_owner_failures(root)
             if name == "success":
-                if missing:
+                if failures:
                     print(f"self-test:{name}:unexpected_failures")
-                    for item in missing:
+                    for item in failures:
                         print(item)
                     return 1
                 continue
 
-            if not missing:
+            if not failures:
                 print(f"self-test:{name}:expected_failure")
                 return 1
 
@@ -149,9 +164,9 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    missing = collect_direct_owner_failures(repo_root(args.root))
-    if missing:
-        for item in missing:
+    failures = collect_direct_owner_failures(repo_root(args.root))
+    if failures:
+        for item in failures:
             print(item)
         return 1
 
