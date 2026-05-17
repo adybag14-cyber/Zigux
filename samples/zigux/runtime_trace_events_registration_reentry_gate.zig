@@ -40,6 +40,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(@as(?[]const u8, null), initialized_before.last_main_template_cond_message);
     try std.testing.expectEqual(@as(?[]const u8, null), initialized_before.last_main_template_print_message);
     try std.testing.expectEqual(@as(?[]const u8, null), initialized_before.last_main_relative_location_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), initialized_before.last_format_template);
 
     try module.registerFunctionThread();
     const initialized_replay = try module.emitFunctionIteration(3);
@@ -78,6 +79,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(@as(?[]const u8, null), initialized_after.last_main_template_cond_message);
     try std.testing.expectEqual(@as(?[]const u8, null), initialized_after.last_main_template_print_message);
     try std.testing.expectEqual(@as(?[]const u8, null), initialized_after.last_main_relative_location_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), initialized_after.last_format_template);
 
     _ = try module.runSelftest();
 
@@ -113,6 +115,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqualStrings("prints other times", selftest_before.last_main_template_cond_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("I have to be different", selftest_before.last_main_template_print_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Hello __rel_loc", selftest_before.last_main_relative_location_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("iter=%d", selftest_before.last_format_template orelse return error.ExpectedMainPayload);
 
     try module.registerFunctionThread();
     const selftest_replay = try module.emitFunctionIteration(11);
@@ -151,8 +154,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqualStrings("prints other times", selftest_after.last_main_template_cond_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("I have to be different", selftest_after.last_main_template_print_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Hello __rel_loc", selftest_after.last_main_relative_location_message orelse return error.ExpectedMainPayload);
-    try std.testing.expectEqualStrings("foo_bar_reg", selftest_after.last_register_label orelse return error.ExpectedRegisterLabel);
-    try std.testing.expectEqualStrings("foo_bar_unreg", selftest_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+    try std.testing.expectEqualStrings("iter=%d", selftest_after.last_format_template orelse return error.ExpectedMainPayload);
 
     const before_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, before_exit.stage);
@@ -186,6 +188,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqualStrings("Hello __rel_loc", before_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("foo_bar_reg", before_exit.last_register_label orelse return error.ExpectedRegisterLabel);
     try std.testing.expectEqualStrings("foo_bar_unreg", before_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+    try std.testing.expectEqualStrings("iter=%d", before_exit.last_format_template orelse return error.ExpectedMainPayload);
 
     try module.exit();
 
@@ -223,6 +226,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqualStrings(before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings(before_exit.last_register_label orelse return error.ExpectedRegisterLabel, after_exit.last_register_label orelse return error.ExpectedRegisterLabel);
     try std.testing.expectEqualStrings(before_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel, after_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+    try std.testing.expectEqualStrings(before_exit.last_format_template orelse return error.ExpectedMainPayload, after_exit.last_format_template orelse return error.ExpectedMainPayload);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
