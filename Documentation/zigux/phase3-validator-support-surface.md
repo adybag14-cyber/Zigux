@@ -1,27 +1,26 @@
 # Phase 3 Validator Support Surface
 
-This note records the current validator-facing Phase 3 surface on live `master`.
+This note records the current validator-facing Phase 3 surface on the Lane 27 branch relative to live `master`.
 
-Current `master` now carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings, one focused helper-local `err_ptr` / `xarray` interop slice, one focused helper-local bitmap/cpumask interop slice, and one focused helper-local policy slice. It does not currently ship the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
+Live `master` still carries one bounded `dev_t` starter packet, one focused helper-local `err_ptr` / `xarray` interop slice, and one focused helper-local policy slice. This branch adds one focused helper-local bitmap/cpumask interop slice with both starter-packet and fixture-backed parity coverage. It does not currently ship the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
 
-## Current starter packet present on `master`
+## Current starter packet present on live `master`
 
 - `Documentation/zigux/phase3-abi-slice.md`
 - `include/linux/zigux.h`
 - `include/zigux/dev_t.h`
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
+- `zigux/bindings/abi.zig`
 - `zigux/bindings/dev_t.zig`
 - `zigux/bindings/version.zig`
+- `zigux/kernel/export_shim.zig`
 - `zigux/tests/phase3_dev_t_starter_packet.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_build.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_manifest.json`
 - `scripts/zigux/check-phase3-dev-t-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py`
-- `zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all`
 
-## Focused helper slice present on `master`
+## Focused helper slice present on live `master`
 
 - `Documentation/zigux/phase3-errptr-xarray-slice.md`
 - `zigux/helpers/err_ptr.zig`
@@ -30,10 +29,14 @@ Current `master` now carries one bounded `dev_t` starter packet with paired `dev
 - `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
 - `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+- `zigux/tests/phase3_errptr_xarray_dump.zig`
+- `zigux/tests/phase3_errptr_xarray_dump_build.zig`
+- `zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c`
+- `zigux/tests/fixtures/phase3_errptr_xarray/expected.json`
+- `zigux/tests/fixtures/phase3_errptr_xarray_manifest.json`
+- `scripts/zigux/check-phase3-errptr-xarray.py`
 
-## Focused bitmap/cpumask slice present on `master`
+## Focused bitmap/cpumask slice present on this branch
 
 - `Documentation/zigux/phase3-bitmap-cpumask-slice.md`
 - `include/zigux/bitmap_cpumask.h`
@@ -45,10 +48,14 @@ Current `master` now carries one bounded `dev_t` starter packet with paired `dev
 - `zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig`
 - `zigux/tests/phase3_bitmap_cpumask_starter_packet_manifest.json`
 - `scripts/zigux/check-phase3-bitmap-cpumask-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-bitmap-cpumask-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-bitmap-cpumask-starter-packet.py`
+- `zigux/tests/phase3_bitmap_cpumask_dump.zig`
+- `zigux/tests/phase3_bitmap_cpumask_dump_build.zig`
+- `zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c`
+- `zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json`
+- `zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json`
+- `scripts/zigux/check-phase3-bitmap-cpumask.py`
 
-## Focused policy slice present on `master`
+## Focused policy slice present on live `master`
 
 - `Documentation/zigux/phase3-policy-slice.md`
 - `include/zigux/abi.h`
@@ -60,17 +67,14 @@ Current `master` now carries one bounded `dev_t` starter packet with paired `dev
 - `zigux/tests/phase3_policy_starter_packet_build.zig`
 - `zigux/tests/phase3_policy_starter_packet_manifest.json`
 - `scripts/zigux/check-phase3-policy-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-policy-starter-packet.py`
-- `zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
 
 ## Review boundary
 
-Keep the shared Phase 3 reminder packet anchored to those four current-tree-backed slices until additional validator, export-boundary, or shared replay proof lands.
+Keep the shared Phase 3 reminder packet anchored to those four bounded slices until additional validator, export-boundary, or shared replay proof lands.
 
-Do not treat the current starter packet, its manifest-backed replay guard, its direct Zig compile replay, plus the three focused helper slices as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
+Do not treat the current `dev_t` starter packet, its manifest-backed replay guard, its direct Zig compile replay, the helper-local fixture-backed parity packets for `err_ptr` / `xarray` and bitmap/cpumask, plus the focused policy slice as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on live `master`.
 
-## Sampled broader gaps still absent on `master`
+## Sampled broader gaps still absent on live `master`
 
 The following representative Phase 3 routes still read as absent on the live tree and should be treated as repo-reality gaps rather than shipped validator support:
 
@@ -84,16 +88,15 @@ The following representative Phase 3 routes still read as absent on the live tre
 - `zigux/tests/phase3_export_uapi_layout_build.zig`
 - `zigux/tests/phase3_low_level_wrappers.zig`
 - `zigux/tests/phase3_low_level_wrappers_build.zig`
-- `zigux/kernel/export_shim.zig`
 - `Documentation/zigux/phase3-abi-header-family-survey.md`
 - `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
 
 ## Shared reminder follow-up
 
-`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still need the same bounded four-slice reminder wording that the dedicated slice notes and this validator-support note already carry on this branch.
+`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` should keep the same bounded four-slice reminder wording that the dedicated slice notes and this validator-support note now carry on this branch.
 
-Keep the remaining shared reminder follow-up focused on narrowing those broader summary surfaces so they stay anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-bitmap-cpumask-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, this note, the manifest-backed starter packets, and the dedicated replay routes until additional current-tree-backed validator or export-boundary proof lands.
+Keep any remaining follow-up focused on shared reminder or scripts-root inventory truthfulness if one of those broader surfaces drifts again. This note should not be used to imply that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
 
 ## Scope
 
-This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, its machine-readable manifest, its direct compile replay, and the three focused helper slices explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
+This note is limited to the validator-support posture for the bounded starter packet and helper-local slices above. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, the two helper-local fixture-backed parity packets, and the focused policy slice explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
