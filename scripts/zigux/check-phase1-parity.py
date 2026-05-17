@@ -84,13 +84,14 @@ ARTIFACT_DIFF_MARKERS = (
 )
 
 README_REQUIRED_MARKERS = (
-    "`python3 scripts/zigux/artifact_diff.py --self-test`, `python3 scripts/zigux/check-phase1-parity.py --self-test`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the shipped bounded Phase 1 parity, artifact-diff, and reminder checks",
-    "`scripts/zigux/artifact_diff.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/check-phase1-direct-owner-markers.py` keep the shipped parity-fixture, artifact-diff, string-review, and direct-owner marker packet explicit from the scripts root",
+    "`python3 scripts/zigux/artifact_diff.py --self-test`, `python3 scripts/zigux/check-phase1-parity.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the shipped bounded Phase 1 parity, artifact-diff, bench, and reminder checks",
+    "`scripts/zigux/artifact_diff.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/check-phase1-direct-owner-markers.py` keep the shipped parity-fixture, artifact-diff, bench, string-review, and direct-owner marker packet explicit from the scripts root",
     "`Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zigux/tests/fixtures/phase1_helpers.json` remain the current reminder-surface companions for that packet",
+    "current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
 )
 
 README_FORBIDDEN_MARKERS = (
-    "`scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`",
+    "`scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`",
 )
 
 
@@ -259,11 +260,12 @@ def make_readme_text() -> str:
             "",
             "## Phase 1",
             "",
-            "- Phase 1 flow - the current host-tools reminder packet keeps the closed helper tranche reviewable through the live parity-fixture, owner-map, and string-review guards instead of rebuilding the broader installer-backed closure packet from older missing routes",
+            "- Phase 1 flow - the current host-tools reminder packet keeps the closed helper tranche reviewable through the live parity-fixture, artifact-diff, bench, owner-map, and string-review guards instead of rebuilding the broader installer-backed closure packet from older missing routes",
             f"- {README_REQUIRED_MARKERS[0]}",
             f"- {README_REQUIRED_MARKERS[1]}",
             f"- {README_REQUIRED_MARKERS[2]}",
-            "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, closure-side, bench-side, and replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
+            "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, closure-side, bench-side replay, and helper-replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
+            f"- {README_REQUIRED_MARKERS[3]}",
         )
     ) + "\n"
 
@@ -366,7 +368,7 @@ def run_self_test() -> int:
         write_file(
             readme_forbidden_root / README_REL,
             make_readme_text()
-            + "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`\n",
+            + "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`\n",
         )
         cases.append(("readme_forbidden", run_check(readme_forbidden_root) != 0))
 
