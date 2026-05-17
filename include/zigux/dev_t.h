@@ -6,6 +6,8 @@
 #define ZIGUX_DEV_T_FIELDS_ABI_VERSION 1u
 #define ZIGUX_DEV_T_FIELDS_SIZE 8u
 #define ZIGUX_DEV_T_FIELDS_ALIGN 4u
+#define ZIGUX_DEV_T_MAJOR_OFFSET 0u
+#define ZIGUX_DEV_T_MINOR_OFFSET 4u
 
 struct zigux_dev_t_fields {
     uint32_t major;
