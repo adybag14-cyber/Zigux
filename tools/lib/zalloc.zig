@@ -76,3 +76,21 @@ test "zfreeValue tolerates null optionals" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zfreeValue supports repeated free after destroying an allocated value" {
+    const allocator = std.testing.allocator;
+    const Value = struct {
+        count: usize,
+    };
+
+    var value: ?*Value = try zallocValue(allocator, Value);
+    defer zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expectEqual(@as(usize, 0), value.?.count);
+
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+}
