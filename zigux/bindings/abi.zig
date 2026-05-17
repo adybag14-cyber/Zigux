@@ -1,4 +1,5 @@
 const std = @import("std");
+const notifier_abi = @import("notifier_abi.zig");
 
 pub const ABI_VERSION: u16 = 1;
 
@@ -72,11 +73,7 @@ pub const UnsafeScope = enum(u8) {
     raw_pointer_bridge = UNSAFE_RAW_POINTER_BRIDGE,
 };
 
-pub const NotifierResult = enum(u32) {
-    done = NOTIFIER_DONE,
-    ok = NOTIFIER_OK,
-    stop = NOTIFIER_STOP,
-};
+pub const NotifierResult = notifier_abi.NotifierResult;
 
 pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView = extern struct {
     ack_window: u32,
@@ -102,11 +99,11 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = e
     skipped: u32,
 };
 
-pub const NotifierBlock = extern struct {
-    notifier_call: usize,
-    next: usize,
-    priority: i32,
-};
+pub const NotifierBlock = notifier_abi.NotifierBlock;
+
+pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
+    return notifier_abi.chainHasNonincreasingPriority(head);
+}
 
 pub fn defaultHeader(flags: u16) BoundaryHeader {
     return .{
@@ -200,4 +197,45 @@ test "abi binding notifier block keeps the published layout" {
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
+}
+
+test "abi binding notifier helper matches the dedicated notifier binding" {
+    const third = NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 3,
+    };
+    const second = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&third),
+        .priority = 5,
+    };
+    const first = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&second),
+        .priority = 5,
+    };
+
+    try std.testing.expect(chainHasNonincreasingPriority(&first));
+    try std.testing.expectEqual(
+        notifier_abi.chainHasNonincreasingPriority(&first),
+        chainHasNonincreasingPriority(&first),
+    );
+
+    const increasing_tail = NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 8,
+    };
+    const increasing_head = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&increasing_tail),
+        .priority = 2,
+    };
+
+    try std.testing.expect(!chainHasNonincreasingPriority(&increasing_head));
+    try std.testing.expectEqual(
+        notifier_abi.chainHasNonincreasingPriority(&increasing_head),
+        chainHasNonincreasingPriority(&increasing_head),
+    );
 }
