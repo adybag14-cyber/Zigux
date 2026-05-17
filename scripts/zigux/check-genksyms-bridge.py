@@ -123,6 +123,12 @@ EXPECTED_CASES = [
         "expected": "version_before_short_help_expected.json",
     },
     {
+        "name": "version_before_long_help",
+        "argv": ["-V", "--help"],
+        "mode": "process_json",
+        "expected": "version_before_long_help_expected.json",
+    },
+    {
         "name": "repeated_version",
         "argv": ["-VV"],
         "mode": "process_json",
@@ -313,6 +319,11 @@ EXPECTED_OUTPUTS = {
         "stderr": "genksyms version 2.5.60\nUsage:\ngenksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver\n\n -d, --debug Increment the debug level (repeatable)\n -D, --dump Dump expanded symbol defs (for debugging only)\n -r, --reference file Read reference symbols from a file\n -T, --dump-types file Dump expanded types into file\n -p, --preserve Preserve reference modversions or fail\n -w, --warnings Enable warnings\n -q, --quiet Disable warnings (default)\n -h, --help Print this message\n -V, --version Print the release version\n",
         "exit_code": 0,
     },
+    "version_before_long_help_expected.json": {
+        "stdout": "",
+        "stderr": "genksyms version 2.5.60\nUsage:\ngenksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver\n\n -d, --debug Increment the debug level (repeatable)\n -D, --dump Dump expanded symbol defs (for debugging only)\n -r, --reference file Read reference symbols from a file\n -T, --dump-types file Dump expanded types into file\n -p, --preserve Preserve reference modversions or fail\n -w, --warnings Enable warnings\n -q, --quiet Disable warnings (default)\n -h, --help Print this message\n -V, --version Print the release version\n",
+        "exit_code": 0,
+    },
     "repeated_version_expected.json": {
         "stdout": "",
         "stderr": "genksyms version 2.5.60\ngenksyms version 2.5.60\n",
@@ -354,6 +365,7 @@ EXPECTED_TOOL_TESTS = [
     'test "genksyms bridge renders version side effect before invalid short option"',
     'test "genksyms bridge renders canonical unexpected long option argument via parsed failure"',
     'test "genksyms bridge keeps version side effect before short help"',
+    'test "genksyms bridge keeps version side effect before long help"',
     'test "genksyms bridge rejects more than sixteen reference files like the C harness"',
     'test "genksyms bridge renders normalized invocation plan"',
     'test "genksyms bridge ignores positional args while still parsing later options"',
