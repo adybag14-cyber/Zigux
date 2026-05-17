@@ -56,42 +56,23 @@ Key entrypoints
 
 Phase 2 review packet
   * `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
-  * `Documentation/zigux/phase2-closure.md`
   * `Documentation/zigux/review-checklist.md`
   * `scripts/zigux/README.md`
-  * `scripts/zigux/validate-phase2.py`
-  * `scripts/zigux/validate-phase2-closure.py`
-  * `scripts/zigux/check-phase2-tests-readme-alignment.py`
-  * `scripts/zigux/check-phase2-kconfig-readme-alignment.py`
-  * `scripts/zigux/check-phase2-tool-manifest-packets.py`
-  * `scripts/zigux/check-phase2-toolchain-pin-scope.py`
-  * `scripts/zigux/check-genksyms-bridge.py`
+  * `scripts/zigux/check-phase2-kbuild-routes.py`
   * `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
-  * `scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py`
-  * `scripts/zigux/check-phase2-fixdep-gate.py`
-  * `scripts/zigux/check-kconfig-bridge.py`
-  * `scripts/zigux/check-phase2-cross.py`
-  * `scripts/zigux/check-phase2-cross-selftest-alignment.py`
-  * `scripts/zigux/genksyms.zig`
+  * `scripts/zigux/check-phase2-tests-readme-alignment.py`
+  * `scripts/zigux/check-phase2-toolchain-pinning.py`
+  * `scripts/zigux/kconfig/conf_bridge.zig`
+  * `scripts/zigux/kconfig/confdata_bridge.zig`
   * `zigux/tests/fixtures/phase2_cross_targets.json`
   * `zigux/tests/fixtures/phase2_tool_manifest.json`
   * `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
-  * `zigux/tests/fixtures/genksyms_bridge/manifest.json`
   * `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
   * `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
-  * `scripts/zigux/kconfig/conf_bridge.zig`
-  * `scripts/zigux/kconfig/confdata_bridge.zig`
-  * `python3 scripts/zigux/install-zig.py --self-test`
-  * `python3 scripts/zigux/check-zig-toolchain.py --self-test`
-  * `zig test scripts/zigux/fixdep.zig`
-  * `make -C zigux phase2-toolchain`
-  * `make -C zigux phase2-validate`
-  * `make -C zigux phase2-tools`
-  * `make -C zigux phase2-kconfig`
-  * `make -C zigux phase2-cross`
-  * `make -C zigux phase2`
-  * the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset
-  * keep the shipped genksyms bridge direct replay visible in the tests root through the committed fixture packet instead of reviving a direct tests-root replay command
+  * `zigux/tests/fixtures/kconfig_bridge/cases.json`
+  * the current directly readable Phase 2 packet is the scripts-root kbuild and toolchain reminder set plus the live kconfig bridge helpers and their fixture roster; keep this tests-root summary aligned to that narrower packet instead of rebuilding the older validator-first, cross-route, and make-route stack from missing current-`master` paths
+  * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`, `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2`, so keep those route names framed as historical packet members rather than direct tests-root evidence until the files or wrappers return on current `master`
+  * keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
 
 Phase 3 review packet
   * `Documentation/zigux/phase3-abi-slice.md`
@@ -258,23 +239,3 @@ Phase 13 review packet
   * `scripts/zigux/check-phase13-devres-packet-alignment.py`
   * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
   * `scripts/zigux/check-phase13-notifier-priority-signal.py`
-  * `scripts/zigux/validate-phase13-release.py`
-  * `Documentation/zigux/review-checklist.md`
-  * `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
-  * `zigux/tests/README.md`
-  * `zigux/helpers/notifier_chain_view.zig`
-  * `zigux/bindings/notifier_abi.zig`
-  * `include/zigux/abi.h`
-  * `drivers/tty/hvc/hvc_console.h`
-  * `zigux/Makefile`
-  * stable `make -C zigux phase13-validate`
-  * blocked convenience route `make -C zigux phase13`
-
-  * keep the shared validator-first release handle anchored to current repo reality: current `master` materializes the bounded `fs/libfs.zig` foothold together with `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`
-  * keep the direct devres boundary-evidence replay explicit beside the shared devres packet through `lib/devres.zig`, `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, and `scripts/zigux/check-phase13-devres-packet-alignment.py`
-  * keep the helper-owned Landlock evidence explicit through the ownership and syscall-governance notes, the ruleset and syscall slice plus survey notes, `security/landlock/ruleset.zig`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
-  * keep the adjacent notifier shards `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h` explicit as shipped adjacent evidence without counting them as extra shared replay steps
-  * current `master` still does not materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep that checker framed as a remaining shared-summary repo-reality gap rather than as shipped tests-root evidence
-  * current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`, but that broader convenience route still fans out to `phase13-test`, which calls `zig build test --build-file zigux/tests/phase13_build.zig --summary all` while `zigux/tests/phase13_build.zig` remains a repo-reality gap
-  * keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands, and treat the broader `phase13` route as blocked convenience wiring rather than direct shipped current-`master` evidence
-  * if direct companions such as `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, or the older `scripts/zigux/check-phase13-devres-packet.py` cannot be materialized on current `master`, record them as repo-reality gaps instead of presenting them here as independently shipped review evidence
