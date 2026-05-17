@@ -56,6 +56,7 @@ MODULE_MARKERS = [
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "zigux/tests/phase10_virtio_input_manifest.json",
     "queued status completions are only reclaimed in memory",
     "wrapper-facing verify coverage still proves queue-callback ordering, registration prerequisites, and teardown-reset parity across reset without widening into transport-backed queue execution or freeze, restore, or remove lifecycle claims",
     "registration lifecycle closure, freeze, restore, remove, and broader transport-backed lifecycle work remain outside this module slice",
@@ -464,12 +465,12 @@ def run_self_test() -> int:
         manifest_path = root / "zigux/tests/phase10_virtio_input_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
-            original_manifest.replace('"zigux/helpers/"', '"zigux/runtime/"', 1),
+            original_manifest.replace('\"zigux/helpers/\"', '\"zigux/runtime/\"', 1),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            'manifest:"zigux/helpers/"',
+            'manifest:\"zigux/helpers/\"',
             "phase10-input-live-packet-self-test:manifest_roadmap_destinations",
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
@@ -479,15 +480,15 @@ def run_self_test() -> int:
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
             original_build.replace(
-                '"phase10-virtio-input-verify-tests"',
-                '"phase10-virtio-input-verify-drift"',
+                '\"phase10-virtio-input-verify-tests\"',
+                '\"phase10-virtio-input-verify-drift\"',
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            'phase10_build:"phase10-virtio-input-verify-tests"',
+            'phase10_build:\"phase10-virtio-input-verify-tests\"',
             "phase10-input-live-packet-self-test:build_verify_test",
         )
         build_path.write_text(original_build, encoding="utf-8")
@@ -495,18 +496,36 @@ def run_self_test() -> int:
 
         build_path.write_text(
             original_build.replace(
-                '"phase10-virtio-input-survey-tests"',
-                '"phase10-virtio-input-survey-drift"',
+                '\"phase10-virtio-input-survey-tests\"',
+                '\"phase10-virtio-input-survey-drift\"',
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            'phase10_build:"phase10-virtio-input-survey-tests"',
+            'phase10_build:\"phase10-virtio-input-survey-tests\"',
             "phase10-input-live-packet-self-test:build_survey_test",
         )
         build_path.write_text(original_build, encoding="utf-8")
+        case_count += 1
+
+        module_note_path = root / "Documentation/zigux/phase10-virtio-input-module-slice.md"
+        original_module_note = module_note_path.read_text(encoding="utf-8")
+        module_note_path.write_text(
+            original_module_note.replace(
+                "zigux/tests/phase10_virtio_input_manifest.json",
+                "zigux/tests/phase10_virtio_input_manifest_missing.json",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "module_note:zigux/tests/phase10_virtio_input_manifest.json",
+            "phase10-input-live-packet-self-test:module_note_manifest_path",
+        )
+        module_note_path.write_text(original_module_note, encoding="utf-8")
         case_count += 1
 
         status_drain_helper_path = root / "drivers/virtio/virtio_input_status_drain.zig"
