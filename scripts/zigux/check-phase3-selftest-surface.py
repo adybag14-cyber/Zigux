@@ -54,16 +54,20 @@ TESTS_README_MARKERS = (
 REVIEW_CHECKLIST_MARKERS = (
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-errptr-xarray-slice.md",
+    "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "include/linux/zigux.h",
     "include/zigux/dev_t.h",
+    "include/zigux/abi.h",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
     "zigux/bindings/dev_t.zig",
+    "zigux/bindings/abi.zig",
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+    "scripts/zigux/check-phase3-policy-starter-packet.py",
     "repo-reality gaps rather than shipped current-`master` evidence",
 )
 
@@ -175,6 +179,7 @@ def run_self_test() -> int:
     cases = (
         (README_PATH, README_MARKERS[0], "docs README"),
         (TESTS_README_PATH, TESTS_README_MARKERS[-1], "tests README"),
+        (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS[2], "review checklist"),
         (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS[-1], "review checklist"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[-1], "validator-support note"),
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[0], "scripts README"),
@@ -204,7 +209,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=7")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
