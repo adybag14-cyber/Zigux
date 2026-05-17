@@ -18,6 +18,7 @@ Current `master` now carries one bounded `dev_t` starter packet, one focused hel
 - `scripts/zigux/check-phase3-dev-t-starter-packet.py`
 - `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test`
 - `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py`
+- `zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all`
 
 ## Focused helper slice present on `master`
 
@@ -49,7 +50,7 @@ Current `master` now carries one bounded `dev_t` starter packet, one focused hel
 
 Keep the shared Phase 3 reminder packet anchored to those three current-tree-backed slices until additional validator, export-boundary, or shared replay proof lands.
 
-Do not treat the current starter packet, its manifest-backed replay guard, plus the two focused helper slices as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
+Do not treat the current starter packet, its manifest-backed replay guard, its direct Zig compile replay, plus the two focused helper slices as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
 
 ## Sampled broader gaps still absent on `master`
 
@@ -79,4 +80,4 @@ Keep that remaining follow-up focused on those shared summaries so they stop par
 
 ## Scope
 
-This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, and the two focused helper slices explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
+This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, and the two focused helper slices explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
