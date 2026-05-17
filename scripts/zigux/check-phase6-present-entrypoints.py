@@ -10,6 +10,16 @@ from pathlib import Path
 HELPER_EVIDENCE_CATALOG_PATH = Path(
     "Documentation/zigux/phase6-helper-evidence-catalog.md"
 )
+BASE64_HELPER_PATH = Path("lib/base64.zig")
+BSEARCH_HELPER_PATH = Path("lib/bsearch.zig")
+CHECKSUM_HELPER_PATH = Path("lib/checksum.zig")
+HEXDUMP_HELPER_PATH = Path("lib/hexdump.zig")
+REQUIRED_HELPER_PATHS = [
+    BASE64_HELPER_PATH,
+    BSEARCH_HELPER_PATH,
+    CHECKSUM_HELPER_PATH,
+    HEXDUMP_HELPER_PATH,
+]
 
 REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback warning",
@@ -59,7 +69,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 
-SELF_TEST_CASE_COUNT = 45
+SELF_TEST_CASE_COUNT = 49
 
 
 class ValidationError(RuntimeError):
@@ -84,6 +94,11 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
 
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
+    for helper_path in REQUIRED_HELPER_PATHS:
+        if not (repo_root / helper_path).is_file():
+            raise ValidationError(
+                f"missing required file: {helper_path.as_posix()}"
+            )
 
 
 def write(path: Path, content: str) -> None:
@@ -96,6 +111,8 @@ def scaffold_repo(root: Path) -> None:
         root / HELPER_EVIDENCE_CATALOG_PATH,
         "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n",
     )
+    for helper_path in REQUIRED_HELPER_PATHS:
+        write(root / helper_path, "// stub\n")
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -169,6 +186,12 @@ def run_self_test() -> None:
         ]:
             write(catalog_path, read_text(catalog_path).replace(snippet + "\n", "", 1))
             expect_failure(root, snippet)
+            cases_run += 1
+            scaffold_repo(root)
+
+        for helper_path in REQUIRED_HELPER_PATHS:
+            (root / helper_path).unlink()
+            expect_failure(root, helper_path.as_posix())
             cases_run += 1
             scaffold_repo(root)
 
