@@ -1,0 +1,63 @@
+{
+  "lane_key": "P15-L08",
+  "phase": "Phase 15",
+  "surveyed_commit": "current-master-readback-2026-05-16",
+  "review_process_note": "Documentation/zigux/phase15-architecture-council-review-process.md",
+  "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+  "shared_summary_gap_note": "Documentation/zigux/phase15-shared-summary-gap.md",
+  "checker": "scripts/zigux/check-phase15-review-process-handoff.py",
+  "required_review_fields": [
+    "exact Linux anchor path",
+    "roadmap phase",
+    "decision record ID",
+    "lane owner",
+    "current status bucket",
+    "requested decision bucket",
+    "required approver set",
+    "rollback owner",
+    "validation gate summary",
+    "evidence archive path",
+    "latest blocker disposition",
+    "benchmark notes",
+    "replay command",
+    "rollback threshold",
+    "automatic return-to-blocked trigger",
+    "retained discussion state",
+    "reopen triggers",
+    "trigger-specific evidence refresh",
+    "parity scorecard link or blocker record",
+    "indefinite-C policy link or explicit non-applicability note",
+    "explicit non-goals",
+    "written rationale"
+  ],
+  "stay_in_c_closeout_fields": [
+    "the retained `freeze_in_c` decision",
+    "the current blocker",
+    "the required approver set",
+    "`retired_from_active_discussion` state",
+    "the reopen triggers",
+    "the evidence archive path that will be refreshed before any later reopen request"
+  ],
+  "reopen_evidence_fields": [
+    "the exact reopen trigger being exercised",
+    "refreshed evidence by path",
+    "the blocker disposition being challenged",
+    "the narrower seam or policy change that makes the new review safe to consider"
+  ],
+  "handoff_required_markers": [
+    "`Documentation/zigux/phase15-architecture-council-review-process.md`",
+    "`Documentation/zigux/phase15-indefinite-c-policy.md`",
+    "`Documentation/zigux/phase15-shared-summary-gap.md`",
+    "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+    "`scripts/zigux/check-phase15-review-process-handoff.py`",
+    "one focused review-process checker plus the shared-summary gap checker"
+  ],
+  "shared_gap_expected_present_paths": [
+    "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+    "`scripts/zigux/check-phase15-review-process-handoff.py`"
+  ],
+  "shared_gap_expected_missing_paths": [
+    "`scripts/zigux/validate-phase15.py`",
+    "`zigux/tests/phase15_build.zig`"
+  ]
+}
