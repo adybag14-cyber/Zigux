@@ -4,9 +4,9 @@ This note records the current bounded Phase 3 reminder drift on `master`.
 
 ## Current Status
 
-- `PHASE3_SHARED_REMINDER_GAP=current master now keeps the bounded dev_t starter packet plus the focused err_ptr/xarray and policy slices explicit in the dedicated Phase 3 notes, but the shared docs-root, tests-root, and review-checklist summaries still lag that three-slice posture`
-- `PHASE3_SHARED_REMINDER_GAP_DETAIL=direct current-head readback confirms the starter packet through Documentation/zigux/phase3-abi-slice.md, Documentation/zigux/phase3-validator-support-surface.md, include/linux/zigux.h, include/zigux/dev_t.h, zigux/uapi/version.zig, zigux/uapi/dev_t.zig, zigux/bindings/dev_t.zig, zigux/tests/phase3_dev_t_starter_packet.zig, and zigux/tests/phase3_dev_t_starter_packet_build.zig, the focused helper slice through Documentation/zigux/phase3-errptr-xarray-slice.md, zigux/helpers/err_ptr.zig, zigux/helpers/xa_value.zig, zigux/tests/phase3_errptr_xarray_starter_packet.zig, and zigux/tests/phase3_errptr_xarray_starter_packet_build.zig, and the focused policy slice through Documentation/zigux/phase3-policy-slice.md, include/zigux/abi.h, zigux/bindings/abi.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/unsafe_policy.zig, zigux/tests/phase3_policy_starter_packet.zig, zigux/tests/phase3_policy_starter_packet_build.zig, zigux/tests/phase3_policy_starter_packet_manifest.json, and scripts/zigux/check-phase3-policy-starter-packet.py`
-- `PHASE3_SHARED_REMINDER_NEXT_STEP=narrow Documentation/zigux/README.md, zigux/tests/README.md, and Documentation/zigux/review-checklist.md so they all describe the bounded three-slice Phase 3 posture and stop parking the policy slice as a broader missing route`
+- `PHASE3_SHARED_REMINDER_GAP=current master now keeps the bounded dev_t starter packet plus the focused err_ptr/xarray and policy slices explicit in the dedicated Phase 3 notes, but the shared docs-root and review-checklist summaries still lag that three-slice posture`
+- `PHASE3_SHARED_REMINDER_GAP_DETAIL=direct current-head readback confirms the starter packet through Documentation/zigux/phase3-abi-slice.md, Documentation/zigux/phase3-validator-support-surface.md, include/linux/zigux.h, include/zigux/dev_t.h, zigux/uapi/version.zig, zigux/uapi/dev_t.zig, zigux/bindings/dev_t.zig, zigux/tests/phase3_dev_t_starter_packet.zig, and zigux/tests/phase3_dev_t_starter_packet_build.zig, the focused helper slice through Documentation/zigux/phase3-errptr-xarray-slice.md, zigux/helpers/err_ptr.zig, zigux/helpers/xa_value.zig, zigux/tests/phase3_errptr_xarray_starter_packet.zig, and zigux/tests/phase3_errptr_xarray_starter_packet_build.zig, and the focused policy slice through Documentation/zigux/phase3-policy-slice.md, include/zigux/abi.h, zigux/bindings/abi.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/unsafe_policy.zig, zigux/tests/phase3_policy_starter_packet.zig, zigux/tests/phase3_policy_starter_packet_build.zig, zigux/tests/phase3_policy_starter_packet_manifest.json, and scripts/zigux/check-phase3-policy-starter-packet.py, while zigux/tests/README.md already reflects that bounded three-slice posture`
+- `PHASE3_SHARED_REMINDER_NEXT_STEP=narrow Documentation/zigux/README.md and Documentation/zigux/review-checklist.md so both describe the bounded three-slice Phase 3 posture and stop parking the policy slice as a broader missing route, while keeping zigux/tests/README.md aligned with the dedicated Phase 3 notes`
 
 ## Directly Readable Current Packet
 
@@ -39,21 +39,21 @@ This note records the current bounded Phase 3 reminder drift on `master`.
 
 - `Documentation/zigux/phase3-validator-support-surface.md` already reflects the bounded three-slice posture on current `master`.
 - `Documentation/zigux/README.md` still describes the Phase 3 summary as the starter packet plus the `err_ptr` / `xarray` helper slice and still frames `include/zigux/abi.h` and `zigux/bindings/abi.zig` as broader parked routes.
-- `zigux/tests/README.md` still carries the same narrower Phase 3 summary and still treats the policy slice anchors as broader repo-reality gaps.
+- `zigux/tests/README.md` already carries the bounded three-slice Phase 3 summary and should stay aligned with the dedicated notes while the remaining shared reminder surfaces catch up.
 - `Documentation/zigux/review-checklist.md` still tells reviewers to treat `Documentation/zigux/README.md` and `zigux/tests/README.md` as the remaining broader shared reminder surfaces and still anchors the Phase 3 shared question to only the starter packet plus `err_ptr` / `xarray`.
 
 ## Sampled Missing Wider Packet Members
 
 - `zigux/bindings/notifier_abi.zig`
-- `zigux/tests/phase3_export_uapi_layout.zig`
-- `scripts/zigux/validate-phase3-export-uapi-survey.py`
-- `zigux/kernel/export_shim.zig`
+- `scripts/zigux/check-phase3-abi.py`
+- `scripts/zigux/validate-phase3.py`
+- `zigux/tests/phase3_low_level_wrappers.zig`
 
 ## Current Gap
 
-The earlier docs-root and tests-root reminder drift around the starter packet and the `err_ptr` / `xarray` slice was reduced, but the later landed policy slice reopened a small truthful-summary gap. Dedicated Phase 3 notes now point at three bounded current-tree-backed slices, while the shared docs-root, tests-root, and review-checklist summaries still describe only two of them and still park the policy slice anchors as if they were absent.
+The earlier docs-root and tests-root reminder drift around the starter packet and the `err_ptr` / `xarray` slice was reduced, and the later landed policy slice is now already reflected in `zigux/tests/README.md`. The remaining truthful-summary gap is narrower: the docs root and review checklist still describe only two bounded current-tree-backed slices and still park the policy slice anchors as if they were absent.
 
-That means the next truthful step is one narrow reminder-surface cleanup pass, not a new helper or validator packet. Future Phase 3 work should first bring those three shared summaries up to the current three-slice posture, then only reopen broader reminder work again if additional validator or export-boundary routes land on `master`.
+That means the next truthful step is one narrow reminder-surface cleanup pass for those two shared summaries, not a new helper or validator packet. Future Phase 3 work should first bring `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` up to the current three-slice posture, then only reopen broader reminder work again if additional validator or export-boundary routes land on `master`.
 
 ## Scope
 
