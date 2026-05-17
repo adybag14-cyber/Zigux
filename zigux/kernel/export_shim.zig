@@ -15,8 +15,46 @@ pub fn canonicalHeader(flags: u16) BoundaryHeader {
     return abi.defaultHeader(flags);
 }
 
+pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {
+    return abi.compatibleHeader(size, flags);
+}
+
+pub fn headerHasCurrentAbiVersion(abi_version: u16) bool {
+    return abi.headerHasCurrentAbiVersion(abi_version);
+}
+
+pub fn headerIsCanonical(header: BoundaryHeader) bool {
+    return abi.headerIsCanonical(header);
+}
+
+pub fn headerIsCompatible(header: BoundaryHeader) bool {
+    return abi.headerIsCompatible(header);
+}
+
+pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {
+    return abi.canonicalizeHeader(header);
+}
+
 pub fn currentVersion() Version {
     return version.current();
+}
+
+pub fn currentVersionHasAbiMajor(abi_major: u32) bool {
+    return abi_major == version.abi_major;
+}
+
+pub fn currentVersionHasAbiMinor(abi_minor: u32) bool {
+    return abi_minor == version.abi_minor;
+}
+
+pub fn currentVersionHasHeaderFamilyRevision(header_family_revision: u32) bool {
+    return header_family_revision == version.header_family_revision;
+}
+
+pub fn currentVersionMatches(snapshot: Version) bool {
+    return currentVersionHasAbiMajor(snapshot.abi_major) and
+        currentVersionHasAbiMinor(snapshot.abi_minor) and
+        currentVersionHasHeaderFamilyRevision(snapshot.header_family_revision);
 }
 
 pub fn makeDevTFields(major: u32, minor: u32) DevTFields {
@@ -39,19 +77,62 @@ pub fn errorStatus(code: i32, facility: Facility) ExportStatus {
     };
 }
 
-test "export shim preserves the canonical boundary header and version snapshot" {
-    const header = canonicalHeader(0x41);
+test "export shim preserves boundary header compatibility helpers" {
+    const canonical = canonicalHeader(0x41);
+    const expanded = compatibleHeader(@sizeOf(BoundaryHeader) + 8, 0x41);
+    const stale = BoundaryHeader{
+        .size = @sizeOf(BoundaryHeader),
+        .abi_version = abi.ABI_VERSION + 1,
+        .flags = 0,
+    };
+    const canonicalized = canonicalizeHeader(expanded);
+
+    try testing.expect(headerHasCurrentAbiVersion(canonical.abi_version));
+    try testing.expect(headerIsCanonical(canonical));
+    try testing.expect(headerIsCompatible(canonical));
+
+    try testing.expect(!headerIsCanonical(expanded));
+    try testing.expect(headerIsCompatible(expanded));
+
+    try testing.expect(!headerHasCurrentAbiVersion(stale.abi_version));
+    try testing.expect(!headerIsCanonical(stale));
+    try testing.expect(!headerIsCompatible(stale));
+
+    try testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), canonicalized.size);
+    try testing.expectEqual(@as(u16, abi.ABI_VERSION), canonicalized.abi_version);
+    try testing.expectEqual(expanded.flags, canonicalized.flags);
+    try testing.expect(headerIsCanonical(canonicalized));
+}
+
+test "export shim preserves current version compatibility helpers" {
     const current = currentVersion();
+    const stale_major = Version{
+        .abi_major = current.abi_major + 1,
+        .abi_minor = current.abi_minor,
+        .header_family_revision = current.header_family_revision,
+    };
+    const stale_minor = Version{
+        .abi_major = current.abi_major,
+        .abi_minor = current.abi_minor + 1,
+        .header_family_revision = current.header_family_revision,
+    };
+    const stale_revision = Version{
+        .abi_major = current.abi_major,
+        .abi_minor = current.abi_minor,
+        .header_family_revision = current.header_family_revision + 1,
+    };
 
-    try testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), header.size);
-    try testing.expectEqual(@as(u16, abi.ABI_VERSION), header.abi_version);
-    try testing.expectEqual(@as(u16, 0x41), header.flags);
-    try testing.expectEqual(@as(usize, 8), @sizeOf(BoundaryHeader));
-    try testing.expectEqual(@as(usize, 4), @alignOf(BoundaryHeader));
+    try testing.expect(currentVersionHasAbiMajor(current.abi_major));
+    try testing.expect(!currentVersionHasAbiMajor(stale_major.abi_major));
+    try testing.expect(currentVersionHasAbiMinor(current.abi_minor));
+    try testing.expect(!currentVersionHasAbiMinor(stale_minor.abi_minor));
+    try testing.expect(currentVersionHasHeaderFamilyRevision(current.header_family_revision));
+    try testing.expect(!currentVersionHasHeaderFamilyRevision(stale_revision.header_family_revision));
 
-    try testing.expectEqual(@as(u32, 0), current.abi_major);
-    try testing.expectEqual(@as(u32, 1), current.abi_minor);
-    try testing.expectEqual(@as(u32, 1), current.header_family_revision);
+    try testing.expect(currentVersionMatches(current));
+    try testing.expect(!currentVersionMatches(stale_major));
+    try testing.expect(!currentVersionMatches(stale_minor));
+    try testing.expect(!currentVersionMatches(stale_revision));
     try testing.expect(version.eql(current, version.current()));
 }
 
