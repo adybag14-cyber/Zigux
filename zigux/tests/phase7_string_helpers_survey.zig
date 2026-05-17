@@ -140,6 +140,10 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper, "pub fn memcpyAndPad");
     try expectContains(helper, "pub fn memcpy_and_pad");
     try expectContains(helper, "pub fn strreplace");
+    try expectContains(helper, "pub fn stringUpper");
+    try expectContains(helper, "pub fn string_upper");
+    try expectContains(helper, "pub fn stringLower");
+    try expectContains(helper, "pub fn string_lower");
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
@@ -165,6 +169,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
+    try expectContains(helper_tests, "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary");
     try expectContains(helper_tests, "const zero_written = string_helpers.string_get_size(42, 0, string_helpers.STRING_UNITS_10, &zero_buf, 0);");
     try expectContains(helper_tests, "const zero_capacity_len = string_helpers.stringUnescape(\"\\n\", &zero_capacity, 0, string_helpers.UNESCAPE_SPACE);");
     try expectContains(helper_tests, "const duplicated = try string_helpers.kstrdupAndReplace(std.testing.allocator, &source, '/', '_');");
@@ -213,6 +218,10 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper, "pub fn stringEscapeStrAnyNp");
     try expectContains(helper, "pub fn memcpyAndPad");
     try expectContains(helper, "pub fn strreplace");
+    try expectContains(helper, "pub fn stringUpper");
+    try expectContains(helper, "pub fn string_upper");
+    try expectContains(helper, "pub fn stringLower");
+    try expectContains(helper, "pub fn string_lower");
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
@@ -232,6 +241,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper_tests, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
+    try expectContains(helper_tests, "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary");
 
     const survey = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_survey.zig");
     defer allocator.free(survey);
@@ -251,6 +261,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(survey, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
     try expectContains(survey, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(survey, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
+    try expectContains(survey, "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary");
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
