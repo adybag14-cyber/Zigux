@@ -48,13 +48,18 @@ NOTE_MARKERS = STATUS_MARKERS + DIRECT_MARKERS + MISSING_BROADER_PACKET + ATOMIC
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
 )
 
+README_OWNER_MARKERS = (
+    "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone",
+    "historical Phase 4 route names such as the parked kprobe and `test_fsmount` survey companions, the validator-first routes, and the direct local-only perf routes stay owned by the reversible-delivery handoff note until the dedicated exact-pin refresh or a broader republish makes those companion blob values directly readable again",
+)
+
 README_MARKERS = (
     "current direct-readback Phase 4 rollback packet",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet",
     "historical provenance for that missing broader packet",
-)
+) + README_OWNER_MARKERS
 
 WARNING_MARKERS = (
     "DIRECT_READBACK_PACKET = (",
@@ -65,7 +70,7 @@ WARNING_MARKERS = (
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     "PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true",
     "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=",
-)
+) + README_OWNER_MARKERS
 
 
 def parse_args() -> argparse.Namespace:
@@ -121,7 +126,9 @@ def fixture_root(root: Path) -> None:
         "# zigux/tests\n\n"
         "  * current direct-readback Phase 4 rollback packet: `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py`\n"
         "  * repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet: `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` are still missing on current `master`\n"
-        "  * Phase 4 follow-through should treat the stale `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines in `Documentation/zigux/phase4-reversible-delivery-evidence.md` as historical provenance for that missing broader packet\n",
+        "  * Phase 4 follow-through should treat the stale `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines in `Documentation/zigux/phase4-reversible-delivery-evidence.md` as historical provenance for that missing broader packet\n"
+        "  * current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone\n"
+        "  * historical Phase 4 route names such as the parked kprobe and `test_fsmount` survey companions, the validator-first routes, and the direct local-only perf routes stay owned by the reversible-delivery handoff note until the dedicated exact-pin refresh or a broader republish makes those companion blob values directly readable again\n",
     )
     write(
         root / REPO_REALITY_WARNING,
@@ -137,6 +144,10 @@ def fixture_root(root: Path) -> None:
         "    \"The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open\",\n"
         "    \"PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true\",\n"
         "    \"PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=\",\n"
+        ")\n"
+        "README_PENDING_REQ = (\n"
+        "    \"current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone\",\n"
+        "    \"historical Phase 4 route names such as the parked kprobe and `test_fsmount` survey companions, the validator-first routes, and the direct local-only perf routes stay owned by the reversible-delivery handoff note until the dedicated exact-pin refresh or a broader republish makes those companion blob values directly readable again\",\n"
         ")\n",
     )
 
@@ -167,20 +178,29 @@ def self_test() -> None:
             raise AssertionError("expected note missing-packet drift to fail")
 
         fixture_root(root)
-        write(root / README, read(root, README).replace(README_MARKERS[0], "broader packet wording drifted"))
+        write(root / README, read(root, README).replace(README_OWNER_MARKERS[0], "current shared ownership reminder drifted"))
         try:
             check(root)
         except RuntimeError:
             cases += 1
         else:
-            raise AssertionError("expected README drift to fail")
+            raise AssertionError("expected README ownership reminder drift to fail")
+
+        fixture_root(root)
+        write(root / README, read(root, README).replace(README_OWNER_MARKERS[1], "historical route handoff drifted"))
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected README historical route drift to fail")
 
         fixture_root(root)
         write(
             root / REPO_REALITY_WARNING,
             read(root, REPO_REALITY_WARNING).replace(
-                "scripts/zigux/check-phase4-perf-baseline-packet.py",
-                "scripts/zigux/not-the-right-phase4-checker.py",
+                README_OWNER_MARKERS[0],
+                "current shared ownership reminder drifted",
             ),
         )
         try:
@@ -188,7 +208,22 @@ def self_test() -> None:
         except RuntimeError:
             cases += 1
         else:
-            raise AssertionError("expected repo-reality warning drift to fail")
+            raise AssertionError("expected repo-reality warning ownership drift to fail")
+
+        fixture_root(root)
+        write(
+            root / REPO_REALITY_WARNING,
+            read(root, REPO_REALITY_WARNING).replace(
+                README_OWNER_MARKERS[1],
+                "historical route handoff drifted",
+            ),
+        )
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected repo-reality warning historical route drift to fail")
 
     print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass")
     print(f"PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES={cases}")
