@@ -20,7 +20,6 @@ Current `master` anchors that adjacent packet through:
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `scripts/zigux/validate-phase13-release.py`
 - `zigux/bindings/notifier_abi.zig`
@@ -30,6 +29,8 @@ Current `master` anchors that adjacent packet through:
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - blocked convenience route `make -C zigux phase13`
+
+Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note recorded as an adjacent repo-reality gap rather than a current anchor.
 
 If direct notifier companions such as `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, or `zigux/helpers/hlist_view.zig` cannot be materialized on current `master`, keep them recorded as adjacent repo-reality gaps instead of listing them as independently shipped review evidence.
 
@@ -43,7 +44,7 @@ Keep the current owner map explicit:
 - `landlock/syscalls` helper truthfulness keeps the shipped manifest-backed packet explicit through repo packet id `P13-L17`, but scheduled coordination is currently split across `P13-Y04` governance-note follow-through and `P13-L13` survey-companion follow-through: `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`. Treat `P13-L17` as the underlying repo packet id, `P13-Y04` as governance-note truthfulness, and `P13-L13` as survey-companion follow-through instead of treating those labels as three competing syscall owners.
 - Shared contributor-surface truthfulness routes through `P13-Y08` only: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `scripts/zigux/check-phase13-shared-summary-surfaces.py` recorded as the current repo-reality gap for that lane until `master` materializes it again. This broad reminder lane must not absorb helper-local verification, helper increments, or packet-local note repairs.
 - Shared owner-map maintenance for this note itself routes through `P13-Y05` only: `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`. Keep that sequencing lane narrower than the broader contributor-reminder lane `P13-Y08`, and do not use it to reopen helper-local packets unless the owner map itself cannot be made truthful without a directly coupled same-note reference.
-- Adjacent notifier evidence owns `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/validate-phase13-release.py`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `include/zigux/abi.h`, `drivers/tty/hvc/hvc_console.h`, `zigux/Makefile`, `make -C zigux phase13-validate`, and blocked convenience route `make -C zigux phase13`. If direct notifier companions such as `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, or `zigux/helpers/hlist_view.zig` cannot be materialized on current `master`, keep that absence recorded as an adjacent repo-reality gap instead of listing those paths as shipped current-`master` evidence, and keep the landed nonincreasing-priority signal explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, and blocked convenience route `make -C zigux phase13`.
+- Adjacent notifier evidence owns `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/validate-phase13-release.py`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `include/zigux/abi.h`, `drivers/tty/hvc/hvc_console.h`, `zigux/Makefile`, `make -C zigux phase13-validate`, and blocked convenience route `make -C zigux phase13`. If direct notifier companions such as `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, or `zigux/helpers/hlist_view.zig` cannot be materialized on current `master`, keep that absence recorded as an adjacent repo-reality gap instead of listing those paths as shipped current-`master` evidence, and keep the landed nonincreasing-priority signal explicit through `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, and blocked convenience route `make -C zigux phase13`.
 
 ## Shared Packet Surfaces
 
@@ -57,14 +58,13 @@ When a real Phase 13 change lands, keep these shared surfaces aligned:
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - blocked convenience route `make -C zigux phase13`
 
-Treat stable `make -C zigux phase13-validate` as the shared replay handle, keep `scripts/zigux/check-phase13-shared-summary-surfaces.py` recorded as the remaining shared-summary repo-reality gap until current `master` materializes it again, and keep `make -C zigux phase13` framed as blocked convenience wiring until `zigux/tests/phase13_build.zig` lands.
+Treat stable `make -C zigux phase13-validate` as the shared replay handle, keep `scripts/zigux/check-phase13-shared-summary-surfaces.py` recorded as the remaining shared-summary repo-reality gap until current `master` materializes it again, keep `Documentation/zigux/phase13-notifier-list-survey.md` recorded as the adjacent notifier repo-reality gap until current `master` materializes it again, and keep `make -C zigux phase13` framed as blocked convenience wiring until `zigux/tests/phase13_build.zig` lands.
 
 If the direct `zigux/tests/phase13_build.zig` build route still cannot be materialized on current `master`, keep that build path recorded as the remaining repo-reality gap while `scripts/zigux/validate-phase13-release.py` stays explicit as shipped validator-first evidence.
 
@@ -74,7 +74,7 @@ Use this note to keep the bounded work order honest:
 
 1. Prefer one helper lane at a time instead of batching `libfs`, `devres`, `landlock`, and notifier evidence into one mixed change.
 2. Treat adjacent notifier evidence as release-surface support for the shared packet, not as an extra shared replay step.
-3. Keep the validator-first route explicit through stable `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13`, and keep `scripts/zigux/check-phase13-shared-summary-surfaces.py` recorded as the remaining shared-summary repo-reality gap until current `master` materializes it; if a direct `zigux/tests/phase13_build.zig` build route can be materialized later, pair it with that stable make route instead of presenting the direct path as independently shipped evidence before readback confirms it.
+3. Keep the validator-first route explicit through stable `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13`, keep `scripts/zigux/check-phase13-shared-summary-surfaces.py` recorded as the remaining shared-summary repo-reality gap until current `master` materializes it, keep `Documentation/zigux/phase13-notifier-list-survey.md` recorded as the adjacent notifier repo-reality gap until current `master` materializes it, and if a direct `zigux/tests/phase13_build.zig` build route can be materialized later, pair it with that stable make route instead of presenting the direct path as independently shipped evidence before readback confirms it.
 4. If a broad reminder surface changes, keep the owner split visible instead of replacing it with a generic "Phase 13 helper packet" summary.
 5. Do not imply a closed Phase 13 tranche or a fifth helper anchor while the packet still depends on bounded adjacent notifier evidence.
 6. Keep the repo packet ids and the scheduled aliases distinct: `P13-L04` with helper-governance alias `P13-Y01` and verification alias `P13-L03` for `libfs`, `P13-L01` with scheduled follow-through split `P13-L05` plus `P13-L06` and verification alias `P13-L07` for `devres`, `P13-Y03` with verification alias `P13-L11` for `landlock/ruleset`, `P13-L17` with scheduled follow-through split `P13-Y04` plus `P13-L13` for `landlock/syscalls`, `P13-Y08` for shared contributor reminders, and `P13-Y05` for this shared owner-map note.
