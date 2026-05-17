@@ -1,53 +1,49 @@
 const std = @import("std");
-const bridge = @import("../../kernel/workqueue_bridge.zig");
+const workqueue_bridge = @import("workqueue_bridge");
 
-fn expectContains(haystack: []const []const u8, needle: []const u8) !void {
-    for (haystack) |item| {
-        if (std.mem.eql(u8, item, needle)) return;
-    }
-    return error.TestExpectedEqual;
+test "phase14 workqueue bridge descriptor matches the blocked-maintenance bridge" {
+    const descriptor = workqueue_bridge.WorkqueueBridgeLab.descriptor();
+    const map = workqueue_bridge.WorkqueueBridgeLab.boundaryMap();
+    const audit = workqueue_bridge.WorkqueueBridgeLab.concurrencyAudit();
+
+    try std.testing.expectEqualStrings("workqueue_boundary_map_lab", descriptor.name);
+    try std.testing.expectEqualStrings("kernel/workqueue.c", descriptor.anchor);
+    try std.testing.expectEqualStrings("boundary_map_only", descriptor.posture);
+    try std.testing.expect(descriptor.provides_boundary_map);
+    try std.testing.expect(descriptor.provides_concurrency_audit_outline);
+    try std.testing.expect(descriptor.provides_stay_in_c_decisions);
+    try std.testing.expect(!descriptor.touches_live_worker_pools);
+    try std.testing.expect(!descriptor.touches_live_work_execution);
+    try std.testing.expect(!descriptor.touches_scheduler_hooks);
+    try std.testing.expectEqual(@as(usize, 8), map.areas.len);
+    try std.testing.expectEqual(@as(usize, 6), workqueue_bridge.WorkqueueBridgeLab.stayInCDecisionCount());
+    try std.testing.expectEqual(@as(usize, 15), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 7), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 15), workqueue_bridge.WorkqueueBridgeLab.auditCheckpointCount());
+    try std.testing.expectEqualStrings("phase14-workqueue-scheduler-visible-worker-state-refinement", workqueue_bridge.WorkqueueBridgeLab.currentSliceId());
+    try std.testing.expectEqualStrings("phase14-workqueue-scheduler-visible-worker-state-refinement", audit.current_slice_id);
+    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "blocked maintenance") != null);
+    try std.testing.expectEqualStrings("delayed-work-timer-and-requeue", map.areas[2].id);
+    try std.testing.expectEqualStrings("runtime-max-active-retuning", map.areas[5].id);
+    try std.testing.expectEqualStrings("hotplug-topology-rebinding", map.areas[6].id);
+    try std.testing.expectEqualStrings("pending-bit-claim-window", audit.checkpoints[8].id);
+    try std.testing.expectEqualStrings("delayed-submission-aliases", audit.checkpoints[9].id);
+    try std.testing.expectEqualStrings("delayed-timer-expiry-handoff", audit.checkpoints[10].id);
+    try std.testing.expectEqualStrings("delayed-requeue-governance", audit.checkpoints[11].id);
+    try std.testing.expectEqualStrings("flush-drain-color-governance", audit.checkpoints[12].id);
+    try std.testing.expectEqualStrings("hotplug-topology-rebinding", audit.checkpoints[13].id);
+    try std.testing.expectEqualStrings("scheduler-visible-worker-state-refinement", audit.checkpoints[14].id);
 }
 
-test "phase14 workqueue bridge keeps lane metadata anchored to the bounded study surface" {
-    try std.testing.expectEqualStrings("P14-L04", bridge.lane_key);
-    try std.testing.expectEqualStrings("Phase 14", bridge.phase);
-    try std.testing.expectEqualStrings("kernel/workqueue.c", bridge.anchor);
-    try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", bridge.recommended_destination);
-    try std.testing.expectEqualStrings("phase14-workqueue-flush-color-followup", bridge.ready_next_gap);
-    try std.testing.expectEqualStrings("phase14-workqueue-live-execution-blocker", bridge.blocked_gap);
-}
+test "phase14 workqueue bridge maintenance handoff stays bridge-local and explicit" {
+    const handoff = workqueue_bridge.WorkqueueBridgeLab.maintenanceHandoff();
 
-test "phase14 workqueue bridge records the pending-bit submission boundary as stay-in-c governance" {
-    const audit = bridge.findAudit("pending-bit-and-unbound-retry") orelse return error.TestUnexpectedResult;
-
-    try std.testing.expectEqual(bridge.AuditKind.concurrency_audit, audit.kind);
-    try std.testing.expectEqual(bridge.Ownership.stay_in_c, audit.ownership);
-    try expectContains(audit.symbols, "try_to_grab_pending");
-    try expectContains(audit.symbols, "queue_work_on");
-    try expectContains(audit.symbols, "__queue_work");
-    try expectContains(audit.coupled_state, "WORK_STRUCT_PENDING_BIT");
-    try expectContains(audit.coupled_state, "WORK_OFFQ_CANCELING");
-    try expectContains(audit.coupled_state, "pwq->refcnt");
-}
-
-test "phase14 workqueue bridge records the drain cancel boundary as a stay-in-c audit" {
-    const audit = bridge.findAudit("flush-drain-cancel-boundary") orelse return error.TestUnexpectedResult;
-
-    try std.testing.expectEqual(bridge.AuditKind.concurrency_audit, audit.kind);
-    try std.testing.expectEqual(bridge.Ownership.stay_in_c, audit.ownership);
-    try expectContains(audit.symbols, "drain_workqueue");
-    try expectContains(audit.symbols, "__flush_work");
-    try expectContains(audit.symbols, "__cancel_work_sync");
-    try expectContains(audit.coupled_state, "wq->work_color");
-    try expectContains(audit.coupled_state, "pwq->nr_in_flight");
-}
-
-test "phase14 workqueue bridge keeps live execution blocked behind worker_pool ownership" {
-    const audit = bridge.findAudit("rescuer-and-scheduler-hooks") orelse return error.TestUnexpectedResult;
-
-    try std.testing.expectEqual(bridge.Ownership.blocked_on_live_concurrency, audit.ownership);
-    try expectContains(audit.symbols, "manage_workers");
-    try expectContains(audit.symbols, "rescuer_thread");
-    try expectContains(audit.symbols, "wq_worker_running");
-    try expectContains(audit.coupled_state, "worker_pool state machine");
+    try std.testing.expectEqualStrings("blocked_maintenance", handoff.posture);
+    try std.testing.expectEqual(@as(usize, 6), handoff.reread_surfaces.len);
+    try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", handoff.reread_surfaces[0]);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_workqueue_bridge.zig", handoff.reread_surfaces[1]);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_workqueue_reviewability.zig", handoff.reread_surfaces[2]);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[0], "blocked-maintenance posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[1], "shared smoke or core traceability packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "blocked maintenance") != null);
 }
