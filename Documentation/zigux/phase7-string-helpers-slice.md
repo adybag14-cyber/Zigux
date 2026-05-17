@@ -106,5 +106,5 @@ This expanded starter slice does not yet claim:
 
 ## Next Bounded Step
 
-The next bounded follow-through should keep the quotable helper packet truthful across the helper-local survey, manifest, boundary replay, and slice note.
+The next bounded follow-through should leave the current quotable helper packet parked unless a fresh reread finds helper-local drift across the survey, manifest, boundary replay, and slice note.
 Route any shared validator, Makefile, workflow, tests-root, or docs-root drift to the separate Phase 7 shared-control lanes only after a fresh same-family reread proves those broader reminders are directly readable again on current `master` before deciding whether `kstrdup_quotable_cmdline()` can join the same helper-local packet.
