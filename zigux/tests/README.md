@@ -132,15 +132,21 @@ Phase 8 review packet
     `Documentation/zigux/phase8-tooling-lane-sequencing.md`
     `Documentation/zigux/phase8-help-slice.md`
     `Documentation/zigux/phase8-kallsyms-slice.md`
+    `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
     `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
     `Documentation/zigux/phase8-libbpf-segment-survey.md`
     `scripts/zigux/validate-phase8.py`
+    `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+    `zigux/tests/phase8_file_path_handle_bridge.zig`
+    `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
+    `zigux/tests/phase8_build.zig`
     `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
     `zigux/tests/phase8_libbpf_segments.zig`
     `zigux/tests/phase8_libbpf_segments_only_build.zig`
     `zigux/Makefile`
-  * keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet instead of reconstructing the broader shared tooling packet from older route names alone
-  * if future same-lane work rematerializes the missing docs, validator, or Makefile routes, or changes the focused build shards or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together on current `master`
+    `make -C zigux phase8-file-path-handle-bridge-test`
+  * keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while keeping the shared bridge-boundary survey, focused bridge helper, focused bridge replay, shared build replay, and Linux-style bridge make route framed as broader Phase 8 packet members rather than pretending they disappeared from the current review bundle
+  * if future same-lane work rematerializes the missing docs, validator, or Makefile routes, or changes the focused build shards, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together on current `master`
 
 Phase 9 review packet
   * `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
