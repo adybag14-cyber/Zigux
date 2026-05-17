@@ -21,6 +21,7 @@ ROOT = infer_repo_root()
 
 DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 RELEASE_READINESS_SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
@@ -32,6 +33,7 @@ RAW_GITHUB_COVERAGE_SURVEY_PATH = "Documentation/zigux/phase12-raw-github-covera
 REQUIRED_FILES = [
     DOCS_README_PATH,
     REVIEW_CHECKLIST_PATH,
+    FREEZE_MAP_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     RELEASE_READINESS_SURVEY_PATH,
@@ -54,6 +56,12 @@ REQUIRED_MARKERS = {
         "make -C zigux phase12-validate",
         "avoid implying a broader shared `check-phase12-*.py` family, focused-libbpf-only replay, or cross-build replay",
         "support-bundle evidence rather than as a second direct replay route",
+    ],
+    FREEZE_MAP_PATH: [
+        "`net/core/skbuff.c`",
+        "`kernel/workqueue.c`",
+        "`kernel/trace/ring_buffer.c`",
+        "any lane that touches a listed anchor must declare owner, phase, status bucket, validation gate summary, and rollback owner in the reviewable record for that lane",
     ],
     SCRIPTS_README_PATH: [
         "scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
@@ -154,6 +162,7 @@ def marker_fixture(rel_path: str) -> str:
     title = {
         DOCS_README_PATH: "# Zigux Documentation",
         REVIEW_CHECKLIST_PATH: "# Zigux Review Checklist",
+        FREEZE_MAP_PATH: "# Zigux Freeze Map",
         SCRIPTS_README_PATH: "# scripts/zigux",
         TESTS_README_PATH: "# zigux/tests",
         RELEASE_READINESS_SURVEY_PATH: "# Phase 12 Release Readiness Survey",
@@ -186,7 +195,7 @@ def build_exact_count_self_test_cases() -> list[tuple[str, str]]:
 
 SELF_TEST_CASES = build_self_test_cases()
 EXACT_COUNT_SELF_TEST_CASES = build_exact_count_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 53
+EXPECTED_SELF_TEST_CASE_COUNT = 58
 
 
 def write_fixture_tree(root: Path) -> None:
