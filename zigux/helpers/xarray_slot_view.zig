@@ -1,3 +1,4 @@
+const std = @import("std");
 const err_ptr = @import("err_ptr");
 const xa_value = @import("xa_value");
 
@@ -68,4 +69,31 @@ pub fn fromRaw(raw: usize) SlotView {
 
 pub fn isTaggedInternalEntry(raw: usize) bool {
     return err_ptr.isErrValue(raw) or xa_value.isValue(raw);
+}
+
+test "err floor stays in the err lane even with the xa_value low tag bit set" {
+    const slot = fromRaw(err_ptr.err_floor);
+
+    try std.testing.expect(!slot.isNull());
+    try std.testing.expect(!slot.isValue());
+    try std.testing.expect(slot.isErr());
+    try std.testing.expect(!slot.isPointer());
+    try std.testing.expectEqual(@as(?isize, -4095), slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), slot.value());
+    try std.testing.expectEqual(@as(?usize, null), slot.pointerValue());
+    try std.testing.expect(isTaggedInternalEntry(err_ptr.err_floor));
+}
+
+test "gap below err floor stays pointer-like and leaves tagged decoders closed" {
+    const raw = err_ptr.err_floor - 1;
+    const slot = fromRaw(raw);
+
+    try std.testing.expect(!slot.isNull());
+    try std.testing.expect(!slot.isValue());
+    try std.testing.expect(!slot.isErr());
+    try std.testing.expect(slot.isPointer());
+    try std.testing.expectEqual(@as(?isize, null), slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), slot.value());
+    try std.testing.expectEqual(@as(?usize, raw), slot.pointerValue());
+    try std.testing.expect(!isTaggedInternalEntry(raw));
 }
