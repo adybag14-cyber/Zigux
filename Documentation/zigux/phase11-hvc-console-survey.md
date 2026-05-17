@@ -33,11 +33,14 @@ continuity remains parked under `P11-L16`.
   `zigux/tests/phase11_hvc_console_modem_control_split.zig`,
   `zigux/tests/phase11_hvc_console_poll_retry_split.zig`,
   `Documentation/zigux/phase11-hvc-console-slice.md`,
-  `Documentation/zigux/phase11-hvc-console-teardown-note.md`,
-  `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and
-  `scripts/zigux/check-phase11-hvc-survey-packet.py` as the bounded
+  `Documentation/zigux/phase11-hvc-console-teardown-note.md`, and
+  `Documentation/zigux/phase11-hvc-console-validation-matrix.md` as the bounded
   starter-depth packet that closes the Phase 11 simple-driver roadmap gap
   without claiming live tty or hypervisor execution
+- current authenticated contents reads in this lane still do not rematerialize
+  `scripts/zigux/check-phase11-hvc-survey-packet.py`, so keep that dedicated
+  survey-checker path framed as a same-lane repo-reality gap until a future
+  reread proves it returned
 - remaining unported work is still tty-driver registration, khvcd worker
   execution, live sysrq execution, notifier callback execution, and host-backed
   transport or teardown validation
@@ -80,11 +83,11 @@ survey paths below tied directly to the roadmap-facing simple-driver packet:
 - `Documentation/zigux/phase11-hvc-console-slice.md`
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-- `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `make -C zigux phase11-hvc-survey`
 
-Keep that dedicated survey checker explicit beside the recovered starter packet
-so future rereads fail closed on the same archival review surface.
+Keep the dedicated survey replay route explicit beside the recovered starter
+packet, but treat `scripts/zigux/check-phase11-hvc-survey-packet.py` as a
+same-lane repo-reality gap until a future reread proves it returned.
 
 Treat that packet as bounded starter-depth evidence rather than proof of live
 tty registration, notifier callback execution, khvcd execution, live sysrq
