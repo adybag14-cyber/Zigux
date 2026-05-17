@@ -10,6 +10,9 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase13-devres-survey.md",
     "lib/devres.zig",
     "zigux/tests/phase13_devres.zig",
+    "zigux/tests/phase13_devres_manifest.json",
+    "zigux/tests/phase13_devres_reviewability.zig",
+    "zigux/tests/phase13_devres_boundary_evidence.zig",
 ]
 
 SLICE_MARKERS = [
@@ -31,6 +34,8 @@ SURVEY_MARKERS = [
     ".provides_ioremap_wc_wrapper_planning = true",
     ".provides_ioremap_np_wrapper_planning = true",
     "`zigux/tests/phase13_devres.zig` is still present on current `master`",
+    "`zigux/tests/phase13_devres_reviewability.zig` and `zigux/tests/phase13_devres_dma_coherent.zig` are both present on current `master`, while `zigux/tests/phase13_build.zig` is absent on current `master`.",
+    "older `scripts/zigux/check-phase13-devres-packet.py` wording should be treated as stale packet drift",
 ]
 
 HELPER_MARKERS = [
@@ -43,6 +48,7 @@ HELPER_MARKERS = [
     ".touches_live_device_lists = false,",
     ".touches_live_mmio = false,",
     ".touches_live_arch_memtype = false,",
+    "pub fn planManagedIoremapAcquire(",
     "pub fn planManagedIoremapAcquirePlain(",
     "pub fn planManagedIoremapAcquireUc(",
     "pub fn planManagedIoremapAcquireWc(",
@@ -51,6 +57,8 @@ HELPER_MARKERS = [
     "return tracked_address == candidate_address;",
     "pub fn planManagedIounmap(tracked_address: usize, candidate_address: usize) ManagedIounmapPlan {",
     ".warns_on_release_miss = !release_matches,",
+    "pub fn planManagedIoremapResource(",
+    "pub fn planDeviceTreeIomap(",
 ]
 
 TEST_MARKERS = [
@@ -63,6 +71,40 @@ TEST_MARKERS = [
     'test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
     'test "phase13 devres non-posted ioremap wrapper forces the NP lifetime path" {',
     'test "phase13 devres non-posted ioremap wrapper frees the release record on map failure" {',
+    'test "device tree iomap success preserves reported size and mapping plan" {',
+]
+
+MANIFEST_MARKERS = [
+    '"lane_key": "P13-L01"',
+    '"surveyed_commit": "master-readback-2026-05-14"',
+    '"preexisting_phase13_devres_reviewability_present": true',
+    '"preexisting_phase13_devres_boundary_evidence_present": true',
+    '"phase13-devres-reviewability-gate"',
+    '"phase13-devres-boundary-evidence-gate"',
+    '"phase13-devres-live-region-reservation"',
+    '"phase13-devres-live-release-region-mutation"',
+]
+
+REVIEWABILITY_MARKERS = [
+    "preexisting_phase13_devres_boundary_evidence_present",
+    "try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_boundary_evidence_present);",
+    "preexisting_phase13_devres_dma_coherent_present",
+    "try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);",
+    'phase13-devres-boundary-evidence-gate',
+    'try expectGap(manifest, "phase13-devres-test-gate", "starter_landed", "zigux/tests/phase13_devres.zig", "`devm_iounmap()` planner");',
+    'try expectGap(manifest, "phase13-devres-test-gate", "starter_landed", "zigux/tests/phase13_devres.zig", "`devm_ioremap_np()`");',
+    'try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres plans a managed iounmap call and warns on release misses") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase13 devres non-posted ioremap wrapper forces the NP lifetime path") != null);',
+    'try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);',
+]
+
+BOUNDARY_REPLAY_MARKERS = [
+    "phase13 devres boundary evidence keeps the manifest-backed blocked surfaces explicit",
+    "phase13-devres-boundary-evidence-gate",
+    "live release-region mutation",
+    "live device-tree walking",
+    "live arch memtype state transitions",
+    "phase13 devres planners keep blocked arch memtype boundaries in detach-bookkeeping form",
 ]
 
 
@@ -89,6 +131,9 @@ def validate(root: Path) -> list[str]:
         ("Documentation/zigux/phase13-devres-survey.md", SURVEY_MARKERS, "survey"),
         ("lib/devres.zig", HELPER_MARKERS, "helper"),
         ("zigux/tests/phase13_devres.zig", TEST_MARKERS, "test"),
+        ("zigux/tests/phase13_devres_manifest.json", MANIFEST_MARKERS, "manifest"),
+        ("zigux/tests/phase13_devres_reviewability.zig", REVIEWABILITY_MARKERS, "reviewability"),
+        ("zigux/tests/phase13_devres_boundary_evidence.zig", BOUNDARY_REPLAY_MARKERS, "boundary"),
     ]
 
     for rel, markers, prefix in checks:
@@ -102,6 +147,9 @@ def seed_fixture_tree(root: Path) -> None:
         "Documentation/zigux/phase13-devres-survey.md": "\n".join(SURVEY_MARKERS) + "\n",
         "lib/devres.zig": "\n".join(HELPER_MARKERS) + "\n",
         "zigux/tests/phase13_devres.zig": "\n".join(TEST_MARKERS) + "\n",
+        "zigux/tests/phase13_devres_manifest.json": "\n".join(MANIFEST_MARKERS) + "\n",
+        "zigux/tests/phase13_devres_reviewability.zig": "\n".join(REVIEWABILITY_MARKERS) + "\n",
+        "zigux/tests/phase13_devres_boundary_evidence.zig": "\n".join(BOUNDARY_REPLAY_MARKERS) + "\n",
     }
     for rel, text in writes.items():
         write_text(root / rel, text)
@@ -163,6 +211,54 @@ def run_self_test() -> int:
             validate(root),
             ['test:missing_marker:test "phase13 devres release matching stays pointer-exact" {'],
             "test_missing_release_match_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / "zigux/tests/phase13_devres_manifest.json",
+            "\n".join(marker for marker in MANIFEST_MARKERS if marker != '"phase13-devres-boundary-evidence-gate"') + "\n",
+        )
+        assert_only(
+            validate(root),
+            ['manifest:missing_marker:"phase13-devres-boundary-evidence-gate"'],
+            "manifest_missing_boundary_gate_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / "zigux/tests/phase13_devres_reviewability.zig",
+            "\n".join(
+                marker
+                for marker in REVIEWABILITY_MARKERS
+                if marker != "try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_boundary_evidence_present);"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "reviewability:missing_marker:try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_boundary_evidence_present);"
+            ],
+            "reviewability_missing_boundary_summary_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / "zigux/tests/phase13_devres_boundary_evidence.zig",
+            "\n".join(
+                marker
+                for marker in BOUNDARY_REPLAY_MARKERS
+                if marker != "live arch memtype state transitions"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["boundary:missing_marker:live arch memtype state transitions"],
+            "boundary_missing_arch_memtype_failed",
         )
         case_count += 1
 
