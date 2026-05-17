@@ -14,6 +14,7 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-policy-starter-packet.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-shared-tests-routes.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-validator-support-surface.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-selftest-surface.py"), ("--self-test",)),
@@ -76,6 +77,23 @@ def run_self_test() -> int:
         if expected not in missing:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing script was not reported")
+            return 1
+
+        for rel_path, _args in SELFTEST_COMMANDS:
+            path = root / rel_path
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                "#!/usr/bin/env python3\n" "raise SystemExit(0)\n",
+                encoding="utf-8",
+            )
+
+        shared_routes_path = SELFTEST_COMMANDS[3][0]
+        (root / shared_routes_path).unlink()
+        missing = validate_script_list(root)
+        expected = f"missing selftest script: {shared_routes_path.as_posix()}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected shared-routes script omission was not reported")
             return 1
 
         for rel_path, _args in SELFTEST_COMMANDS:
