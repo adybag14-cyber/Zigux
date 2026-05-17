@@ -318,6 +318,16 @@ def describe_missing_archive(
     return "pinned Zig archive not found in archive search roots", format_search_roots(search_roots)
 
 
+def describe_invalid_explicit_archive_path(archive_path: Path) -> str | None:
+    if not archive_path.exists():
+        return None
+    if archive_path.is_dir():
+        return f"explicit archive path is a directory, expected a regular file: {archive_path}"
+    if not archive_path.is_file():
+        return f"explicit archive path is not a regular file: {archive_path}"
+    return None
+
+
 def describe_missing_zig(
     *,
     pinned_channel: str | None,
@@ -437,7 +447,6 @@ def validate_policy_archive(path: Path, archive_target: str, *, policy_path: Pat
             actual_sha,
         )
     return "present", None, expected_sha, actual_sha
-
 
 def read_zig_version(zig: str, *, runner=subprocess.run) -> str:
     try:
@@ -734,6 +743,12 @@ def run_self_test() -> int:
                 None,
             ),
         )
+        explicit_archive_dir = root / "archive-dir"
+        explicit_archive_dir.mkdir()
+        expect_equal(
+            describe_invalid_explicit_archive_path(explicit_archive_dir),
+            f"explicit archive path is a directory, expected a regular file: {explicit_archive_dir}",
+        )
         expect_equal(
             describe_missing_archive(
                 None,
@@ -902,6 +917,19 @@ def main() -> int:
                 print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={args.archive_target}")
             print(f"ZIG_TOOLCHAIN_NOTE={exc}")
             return 1
+
+        if args.archive is not None and archive_path is not None:
+            invalid_archive_note = describe_invalid_explicit_archive_path(archive_path)
+            if invalid_archive_note is not None:
+                print("ZIG_TOOLCHAIN_ARCHIVE_STATUS=invalid")
+                print(f"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path}")
+                print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}")
+                if expected_filename is not None:
+                    print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_FILENAME={expected_filename}")
+                if expected_sha is not None:
+                    print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={expected_sha}")
+                print(f"ZIG_TOOLCHAIN_NOTE={invalid_archive_note}")
+                return 1
 
         if archive_path is None or not archive_path.is_file():
             search_roots = iter_archive_search_roots()
