@@ -43,7 +43,7 @@ test "phase9 trace-events sample keeps unregistered function-thread failures fai
     const initialized_after = module.summary();
     try expectSummaryStable(initialized_before, initialized_after);
 
-    try module.runSelftest();
+    _ = try module.runSelftest();
     _ = try module.emitMainIteration(5);
 
     const selftest_complete_before = module.summary();
