@@ -62,6 +62,7 @@ Contributor reminder:
 
 ## Phase 11 contributor packet
 Keep the shared-versus-dedicated simple-driver packet explicit through:
+- `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-closure-note.md`
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
@@ -99,7 +100,7 @@ Keep the shared-versus-dedicated simple-driver packet explicit through:
 
 Contributor reminder:
 - keep the shared replay split explicit instead of collapsing bcm2835, gpio, DesignWare, HVC, header-boundary, and the inventory-backed shared contract route into one generic driver note
-- keep the shared replay contract rooted in `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-build-inventory.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_build.zig`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase11-contract`, and the exact `zig build test --build-file zigux/tests/phase11_build.zig --summary all` replay so the checker pair, workflow replay, and build-backed packet stay explicit together on current `master` while `Documentation/zigux/phase11-shared-replay-contract.md` remains a repo-reality gap until a fresh reread shows it returned
+- keep the shared replay contract rooted in `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-build-inventory.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_build.zig`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase11-contract`, and the exact `zig build test --build-file zigux/tests/phase11_build.zig --summary all` replay so the shared note, checker pair, workflow replay, and build-backed packet stay explicit together on current `master`
 - keep the directly readable watchdog replay anchors explicit through `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `drivers/watchdog/dw_wdt.zig`, and `drivers/watchdog/dw_wdt_verify.zig` as landed bounded replay evidence on current `master` rather than implying that those watchdog packet surfaces only live behind the shared build inventory or broader validation matrices
 - treat `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `scripts/zigux/check-phase11-dw-wdt-packet.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` together as the surviving DesignWare continuity packet on current `master`
 - keep the validation matrix, survey note, slice note, teardown companion, manifest-backed survey gate, and registration-scaffold replay explicit in broader contributor wording instead of demoting those directly readable DesignWare surfaces to removed or absent evidence
