@@ -10,8 +10,9 @@ The module-facing surface stays intentionally narrow:
 - adds a tiny `timeoutPropertyCheckpointSummary()` helper so the starter records that the required `hw_margin_ms` property still sits between descriptor lookup and the later always-running plus registration-facing bookkeeping without claiming a live property or GPIO path
 - adds a tiny `drvdataOwnershipCheckpointSummary()` helper so the starter records that parent linkage and module ownership remain attached when the bounded drvdata owner is chosen, and that this ownership checkpoint still sits before the registration-facing handoff without claiming live platform registration
 - models the in-memory start, ping, stop, disable, and nowayout-aware stop-request paths without claiming GPIO descriptor ownership or watchdog-core registration
+- now pairs the stop-policy split, drvdata ownership checkpoint, and registration handoff with `Documentation/zigux/phase11-gpio-wdt-teardown-note.md` so the first teardown-facing note stays adjacent to the same host-free starter packet
 - stays under the shared `zigux/tests/phase11_build.zig` review gate so the starter and survey lane remain aligned
 
 This slice does not claim platform-driver registration, live GPIO descriptor lookup, watchdog-core registration, reboot integration beyond summary bookkeeping, module parameter wiring beyond `nowayout` bookkeeping, or hardware validation coverage yet.
 
-The next honest bounded step inside the same Phase 11 lane is now one tiny teardown-note or hardware-validation checkpoint that stays immediately adjacent to the new drvdata ownership checkpoint and the existing registration handoff, before any live GPIO or broader platform glue lands.
+The next honest bounded step inside the same Phase 11 lane is now one tiny hardware-validation checkpoint that stays immediately adjacent to the teardown note, the drvdata ownership checkpoint, and the existing registration handoff before any live GPIO or broader platform glue lands.
