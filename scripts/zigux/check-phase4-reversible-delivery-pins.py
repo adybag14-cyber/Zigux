@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 
 NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
+DOCS_README = Path("Documentation/zigux/README.md")
 README = Path("zigux/tests/README.md")
 SCRIPTS_README = Path("scripts/zigux/README.md")
 REPO_REALITY_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
@@ -68,6 +69,21 @@ README_MARKERS = (
     "historical provenance for that missing broader packet",
 ) + README_OWNER_MARKERS
 
+DOCS_README_MARKERS = (
+    "Phase 4 notes - `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` now keep the current direct-readback rollback packet reviewable from the docs root while the broader validator, lab-matrix, local-only perf, and bitmap-diff companions remain repo-reality gaps on current `master`.",
+    "`Documentation/zigux/phase4-gate-evidence.md`",
+    "`Documentation/zigux/phase4-validation-matrix.md`",
+    "`scripts/zigux/check-phase4-gate-evidence.py`",
+    "`scripts/zigux/check-phase4-perf-baseline-packet.py`",
+    "`scripts/zigux/validate-phase4.py`",
+    "`zigux/tests/phase4_build.zig`",
+    "`zigux/tests/phase4_perf_baseline_manifest.json`",
+    "`zigux/tests/phase4_perf_baseline_survey.zig`",
+    "`zigux/tests/atomic64_diff.zig`",
+    "`zigux/tests/runtime_atomic64_diff.zig`",
+    "keep the pending shared-CI perf-promotion posture explicit instead of implying those broader Phase 4 routes are live current-head evidence.",
+)
+
 SCRIPTS_README_MARKERS = (
     "Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, and scripts-root surfaces while the broader validator, lab-matrix, and local-only perf packet is currently a repo-reality gap on `master`",
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
@@ -89,7 +105,7 @@ WARNING_MARKERS = (
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
-    "REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = \"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES\"",
+    'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
     "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 4",
     "EXPECTED_PIN_SELF_TEST_CASES = 5",
     "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5` here",
@@ -135,10 +151,12 @@ def require_exact_self_test_count(
 
 def check(root: Path) -> None:
     note = read(root, NOTE)
+    docs_readme = read(root, DOCS_README)
     readme = read(root, README)
     scripts_readme = read(root, SCRIPTS_README)
     repo_warning = read(root, REPO_REALITY_WARNING)
     require(note, NOTE_MARKERS, NOTE.as_posix())
+    require(docs_readme, DOCS_README_MARKERS, DOCS_README.as_posix())
     require(readme, README_MARKERS, README.as_posix())
     require(scripts_readme, SCRIPTS_README_MARKERS, SCRIPTS_README.as_posix())
     require(repo_warning, WARNING_MARKERS, REPO_REALITY_WARNING.as_posix())
@@ -162,7 +180,7 @@ def main() -> int:
         cases = 0
         with tempfile.TemporaryDirectory(prefix="phase4-reversible-delivery-pins-") as tmp:
             root = Path(tmp)
-            for rel in (NOTE, README, SCRIPTS_README, REPO_REALITY_WARNING):
+            for rel in (NOTE, DOCS_README, README, SCRIPTS_README, REPO_REALITY_WARNING):
                 src = args.root.resolve() / rel
                 dst = root / rel
                 dst.parent.mkdir(parents=True, exist_ok=True)
@@ -233,6 +251,22 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError("expected scripts README atomic64 drift to fail")
+
+            scripts_readme_path.write_text((args.root.resolve() / SCRIPTS_README).read_text(encoding="utf-8"), encoding="utf-8")
+            docs_readme_path = root / DOCS_README
+            docs_readme_path.write_text(
+                docs_readme_path.read_text(encoding="utf-8").replace(
+                    DOCS_README_MARKERS[11],
+                    "pending perf posture drifted",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected docs README perf-promotion drift to fail")
 
         print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass")
         print(f"PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES={cases}")
