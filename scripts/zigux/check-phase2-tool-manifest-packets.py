@@ -16,6 +16,12 @@ PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure
 MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 
 CHECKER_PATH = "scripts/zigux/check-phase2-tool-manifest-packets.py"
+TOOLCHAIN_BOOTSTRAP_DOC_PATH = "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+CLOSURE_VALIDATOR_PATH = "scripts/zigux/validate-phase2-closure.py"
+CLOSURE_DOC_PATH = "Documentation/zigux/phase2-closure.md"
+SHARED_VALIDATOR_PATH = "scripts/zigux/validate-phase2.py"
+MAKEFILE_PATH = "zigux/Makefile"
+WORKFLOW_SURFACE_PATH = ".github/workflows/zigux-bootstrap.yml"
 PIN_SCOPE_CHECKER_PATH = "scripts/zigux/check-phase2-toolchain-pin-scope.py"
 
 CLOSURE_DOC_MARKERS = (
@@ -72,7 +78,7 @@ EXPECTED_MISSING_FILES = [
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 27
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -138,14 +144,26 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_MANIFEST_FIELD", "phase"))
     if manifest.get("status") != "lane24_branch_closure_packet_restacked":
         issues.append(("INVALID_MANIFEST_FIELD", "status"))
+    if manifest.get("toolchain_bootstrap_doc") != TOOLCHAIN_BOOTSTRAP_DOC_PATH:
+        issues.append(("INVALID_MANIFEST_FIELD", "toolchain_bootstrap_doc"))
+    if manifest.get("closure_validator") != CLOSURE_VALIDATOR_PATH:
+        issues.append(("INVALID_MANIFEST_FIELD", "closure_validator"))
+    if manifest.get("closure_doc") != CLOSURE_DOC_PATH:
+        issues.append(("INVALID_MANIFEST_FIELD", "closure_doc"))
+    if manifest.get("shared_validator") != SHARED_VALIDATOR_PATH:
+        issues.append(("INVALID_MANIFEST_FIELD", "shared_validator"))
     if manifest.get("tool_manifest_checker") != CHECKER_PATH:
         issues.append(("INVALID_MANIFEST_FIELD", "tool_manifest_checker"))
+    if manifest.get("makefile") != MAKEFILE_PATH:
+        issues.append(("INVALID_MANIFEST_FIELD", "makefile"))
     if manifest.get("present_files") != EXPECTED_PRESENT_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "present_files"))
     if manifest.get("missing_files") != EXPECTED_MISSING_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "missing_files"))
     if manifest.get("master_present_branch_missing_files") != EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files"))
+    if manifest.get("workflow_surface") != WORKFLOW_SURFACE_PATH:
+        issues.append(("INVALID_MANIFEST_FIELD", "workflow_surface"))
 
     if CHECKER_PATH in manifest.get("missing_files", []):
         issues.append(("CHECKER_STILL_MARKED_MISSING", CHECKER_PATH))
@@ -184,16 +202,27 @@ def manifest_json(
     packet: str = "phase2_tool_manifest",
     phase: str = "phase2",
     status: str = "lane24_branch_closure_packet_restacked",
+    toolchain_bootstrap_doc: str = TOOLCHAIN_BOOTSTRAP_DOC_PATH,
+    closure_validator: str = CLOSURE_VALIDATOR_PATH,
+    closure_doc: str = CLOSURE_DOC_PATH,
+    shared_validator: str = SHARED_VALIDATOR_PATH,
     tool_manifest_checker: str = CHECKER_PATH,
+    makefile: str = MAKEFILE_PATH,
     present_files: list[str] | None = None,
     missing_files: list[str] | None = None,
     master_present_branch_missing_files: list[str] | None = None,
+    workflow_surface: str = WORKFLOW_SURFACE_PATH,
 ) -> str:
     payload = {
         "packet": packet,
         "phase": phase,
         "status": status,
+        "toolchain_bootstrap_doc": toolchain_bootstrap_doc,
+        "closure_validator": closure_validator,
+        "closure_doc": closure_doc,
+        "shared_validator": shared_validator,
         "tool_manifest_checker": tool_manifest_checker,
+        "makefile": makefile,
         "present_files": EXPECTED_PRESENT_FILES if present_files is None else present_files,
         "missing_files": EXPECTED_MISSING_FILES if missing_files is None else missing_files,
         "master_present_branch_missing_files": (
@@ -201,6 +230,7 @@ def manifest_json(
             if master_present_branch_missing_files is None
             else master_present_branch_missing_files
         ),
+        "workflow_surface": workflow_surface,
     }
     return json.dumps(payload, indent=2) + "\n"
 
@@ -244,15 +274,22 @@ def run_self_test() -> int:
             assert (code, marker) in collect_issues(root)
             checks_run += 1
 
-        build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(packet="wrong"))
-        assert ("INVALID_MANIFEST_FIELD", "packet") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(tool_manifest_checker="scripts/zigux/other.py"))
-        assert ("INVALID_MANIFEST_FIELD", "tool_manifest_checker") in collect_issues(root)
-        checks_run += 1
+        for field, kwargs in (
+            ("packet", {"packet": "wrong"}),
+            ("phase", {"phase": "Phase 2"}),
+            ("status", {"status": "partial"}),
+            ("toolchain_bootstrap_doc", {"toolchain_bootstrap_doc": "Documentation/zigux/other.md"}),
+            ("closure_validator", {"closure_validator": "scripts/zigux/other.py"}),
+            ("closure_doc", {"closure_doc": "Documentation/zigux/other.md"}),
+            ("shared_validator", {"shared_validator": "scripts/zigux/other.py"}),
+            ("tool_manifest_checker", {"tool_manifest_checker": "scripts/zigux/other.py"}),
+            ("makefile", {"makefile": "zigux/Other.mk"}),
+            ("workflow_surface", {"workflow_surface": ".github/workflows/other.yml"}),
+        ):
+            build_self_test_root(root)
+            write_text(root, MANIFEST, manifest_json(**kwargs))
+            assert ("INVALID_MANIFEST_FIELD", field) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(present_files=EXPECTED_PRESENT_FILES[:-1]))
@@ -340,10 +377,10 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the Lane 24 Phase 2 tool-manifest packet aligned with the branch-local closure surfaces."
+        description="Check the Lane 24 Phase 2 manifest packet stays aligned across the closure packet surfaces."
     )
-    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage")
     args = parser.parse_args()
 
     if args.self_test:
@@ -354,8 +391,7 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE2_TOOL_MANIFEST_PACKETS=pass")
-    print(f"PHASE2_TOOL_MANIFEST_PRESENT_FILE_COUNT={len(EXPECTED_PRESENT_FILES)}")
-    print(f"PHASE2_TOOL_MANIFEST_MISSING_FILE_COUNT={len(EXPECTED_MISSING_FILES)}")
+    print(f"ROOT={args.root}")
     return 0
 
 
