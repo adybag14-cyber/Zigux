@@ -31,11 +31,25 @@ Current `master` now carries one bounded `dev_t` starter packet with paired `dev
 - `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
 - `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
 - `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+- `zigux/tests/phase3_errptr_xarray_dump.zig`
+- `zigux/tests/phase3_errptr_xarray_dump_build.zig`
+- `zigux/tests/fixtures/phase3_errptr_xarray_manifest.json`
+- `scripts/zigux/check-phase3-errptr-xarray.py`
+- `python3 scripts/zigux/check-phase3-errptr-xarray.py --self-test`
+- `python3 scripts/zigux/check-phase3-errptr-xarray.py --repo-root . --zig zig --cc gcc`
+- `zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig`
 - `Documentation/zigux/phase3-xarray-slot-slice.md`
 - `zigux/helpers/xarray_slot_view.zig`
 - `zigux/tests/phase3_xarray_slot_starter_packet.zig`
 - `zigux/tests/phase3_xarray_slot_starter_packet_build.zig`
 - `scripts/zigux/check-phase3-xarray-slot-starter-packet.py`
+- `zigux/tests/phase3_xarray_slot_dump.zig`
+- `zigux/tests/phase3_xarray_slot_dump_build.zig`
+- `zigux/tests/fixtures/phase3_xarray_slot_manifest.json`
+- `scripts/zigux/check-phase3-xarray-slot.py`
+- `python3 scripts/zigux/check-phase3-xarray-slot.py --self-test`
+- `python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc`
+- `zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig`
 
 ## Focused policy slice present on `master`
 
@@ -57,7 +71,7 @@ Current `master` now carries one bounded `dev_t` starter packet with paired `dev
 
 Keep the shared Phase 3 reminder packet anchored to those four current-tree-backed slices until additional validator, export-boundary, or shared replay proof lands.
 
-Do not treat the current starter packet, its manifest-backed replay guard, its direct Zig compile replay, plus the three focused helper and policy slices as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
+Do not treat the current starter packet, the machine-readable manifests, the direct Zig compile replay, plus the three focused helper and policy slices as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
 
 ## Sampled broader gaps still absent on `master`
 
