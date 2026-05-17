@@ -18,6 +18,7 @@ FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase10-virtio-input-module-slice.md",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_build.zig",
@@ -53,6 +54,21 @@ COMPANION_MARKERS = [
     "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
     "make -C zigux phase10",
+]
+
+MODULE_SLICE_MARKERS = [
+    "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_probe_preflight.zig",
+    "drivers/virtio/virtio_input_registration_preflight.zig",
+    "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input.zig",
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "queued status completions are still reclaimed in memory",
+    "registration lifecycle closure, freeze, restore, remove, and broader transport-backed lifecycle work remain outside this module slice",
 ]
 
 BUILD_MARKERS = [
@@ -127,6 +143,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     companion = read_text(
         root, "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
     )
+    module_slice = read_text(root, "Documentation/zigux/phase10-virtio-input-module-slice.md")
     build = read_text(root, "zigux/tests/phase10_build.zig")
     registration_helper = read_text(root, "drivers/virtio/virtio_input_registration_preflight.zig")
     verify = read_text(root, "drivers/virtio/virtio_input_verify.zig")
@@ -139,6 +156,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         REVIEW_CHECKLIST_MARKERS,
     )
     check_markers(missing_markers, "tests_root_companion", companion, COMPANION_MARKERS)
+    check_markers(
+        missing_markers,
+        "phase10_input_module_slice",
+        module_slice,
+        MODULE_SLICE_MARKERS,
+    )
     check_markers(missing_markers, "phase10_build", build, BUILD_MARKERS)
     check_markers(
         missing_markers,
@@ -169,6 +192,10 @@ def write_fixture(root: Path) -> None:
         + "\n",
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(
             COMPANION_MARKERS
+        )
+        + "\n",
+        "Documentation/zigux/phase10-virtio-input-module-slice.md": "\n".join(
+            MODULE_SLICE_MARKERS
         )
         + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
@@ -288,6 +315,24 @@ def run_self_test() -> int:
             "phase10-harness-coverage-self-test:companion_registration_helper_path",
         )
         companion_path.write_text(original_companion, encoding="utf-8")
+        case_count += 1
+
+        module_slice_path = root / "Documentation/zigux/phase10-virtio-input-module-slice.md"
+        original_module_slice = module_slice_path.read_text(encoding="utf-8")
+        module_slice_path.write_text(
+            original_module_slice.replace(
+                "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+                "zigux/tests/phase10_virtio_input_queue_callback_preflight_missing.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "phase10_input_module_slice:zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+            "phase10-harness-coverage-self-test:module_slice_queue_callback_replay_path",
+        )
+        module_slice_path.write_text(original_module_slice, encoding="utf-8")
         case_count += 1
 
         build_path = root / "zigux/tests/phase10_build.zig"
@@ -422,7 +467,7 @@ def main() -> int:
     print(f"PHASE10_HARNESS_COVERAGE_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE10_HARNESS_COVERAGE_REQUIRED_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(MODULE_SLICE_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS)}"
     )
     return 0
 
