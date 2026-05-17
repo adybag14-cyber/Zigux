@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 from pathlib import Path
 import sys
@@ -10,17 +11,21 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 
+MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
+SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
+SEGMENTS_TEST_PATH = "zigux/tests/phase8_libbpf_segments.zig"
+
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
-    "Documentation/zigux/phase8-libbpf-segment-survey.md",
+    SURVEY_PATH,
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase8-libbpf-segment-gate.py",
     "zigux/Makefile",
     "zigux/tests/README.md",
-    "zigux/tests/phase8_libbpf_segments.zig",
+    SEGMENTS_TEST_PATH,
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
-    "tools/lib/bpf/zigux_segments/manifest.json",
+    MANIFEST_PATH,
 ]
 
 REQUIRED_MARKERS = {
@@ -37,8 +42,7 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-libbpf-segments-test",
         "zigux/tests/phase8_libbpf_segments_only_build.zig",
     ],
-    "Documentation/zigux/phase8-libbpf-segment-survey.md": [
-        "The manifest currently records eleven bounded segments.",
+    SURVEY_PATH: [
         "tools/lib/bpf/zigux_segments/manifest.json",
         "scripts/zigux/check-phase8-libbpf-segment-gate.py",
         "make -C zigux phase8-libbpf-segments-test",
@@ -72,9 +76,8 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-libbpf-segments-test",
         "scripts/zigux/check-phase8-libbpf-segment-gate.py",
     ],
-    "zigux/tests/phase8_libbpf_segments.zig": [
+    SEGMENTS_TEST_PATH: [
         "const current_surveyed_commit = ",
-        "The manifest currently records eleven bounded segments",
         "phase8_libbpf_segments_only_build.zig",
         "survey checkpoint: refreshed against inspected `master` head `",
     ],
@@ -83,7 +86,7 @@ REQUIRED_MARKERS = {
         "phase8-libbpf-segment-tests",
         "Run focused Phase 8 libbpf segment survey tests",
     ],
-    "tools/lib/bpf/zigux_segments/manifest.json": [
+    MANIFEST_PATH: [
         "\"lane_key\": \"P8-L15\"",
         "\"surveyed_commit\": ",
         "\"segments\": [",
@@ -91,6 +94,26 @@ REQUIRED_MARKERS = {
         "\"map-reuse-compatibility\"",
     ],
 }
+
+
+FIXTURE_SURVEYED_COMMIT = "0123456789abcdef0123456789abcdef01234567"
+
+
+def segment_count_marker(count: int) -> str:
+    noun = "segment" if count == 1 else "segments"
+    return f"The manifest currently records {count} bounded {noun}."
+
+
+def build_fixture_manifest_text() -> str:
+    return """{
+  "lane_key": "P8-L15",
+  "surveyed_commit": "0123456789abcdef0123456789abcdef01234567",
+  "segments": [
+    {"slug": "logging-version-and-errno"},
+    {"slug": "map-reuse-compatibility"}
+  ]
+}
+"""
 
 
 FIXTURE_TEXT = {
@@ -110,10 +133,10 @@ FIXTURE_TEXT = {
 - `make -C zigux phase8-libbpf-segments-test`
 - `zigux/tests/phase8_libbpf_segments_only_build.zig`
 """,
-    "Documentation/zigux/phase8-libbpf-segment-survey.md": """# Phase 8 Libbpf Segment Survey
+    SURVEY_PATH: f"""# Phase 8 Libbpf Segment Survey
 
-- survey checkpoint: refreshed against inspected `master` head `0123456789abcdef0123456789abcdef01234567`
-- The manifest currently records eleven bounded segments.
+- survey checkpoint: refreshed against inspected `master` head `{FIXTURE_SURVEYED_COMMIT}`
+- {segment_count_marker(2)}
 - tools/lib/bpf/zigux_segments/manifest.json
 - scripts/zigux/check-phase8-libbpf-segment-gate.py
 - make -C zigux phase8-libbpf-segments-test
@@ -142,31 +165,23 @@ phase8-libbpf-segments-test:
 - make -C zigux phase8-libbpf-segments-test
 - scripts/zigux/check-phase8-libbpf-segment-gate.py
 """,
-    "zigux/tests/phase8_libbpf_segments.zig": """const current_surveyed_commit = \"0123456789abcdef0123456789abcdef01234567\";
+    SEGMENTS_TEST_PATH: f"""const current_surveyed_commit = "{FIXTURE_SURVEYED_COMMIT}";
 
-test \"phase 8 libbpf survey stays wired\" {
-    _ = \"The manifest currently records eleven bounded segments\";
-    _ = \"phase8_libbpf_segments_only_build.zig\";
-    _ = \"survey checkpoint: refreshed against inspected `master` head `0123456789abcdef0123456789abcdef01234567`\";
-}
+test "phase 8 libbpf survey stays wired" {{
+    _ = "{segment_count_marker(2)}";
+    _ = "phase8_libbpf_segments_only_build.zig";
+    _ = "survey checkpoint: refreshed against inspected `master` head `{FIXTURE_SURVEYED_COMMIT}`";
+}}
 """,
     "zigux/tests/phase8_libbpf_segments_only_build.zig": """const root_module = b.createModule(.{
-    .root_source_file = b.path(\"phase8_libbpf_segments.zig\"),
+    .root_source_file = b.path("phase8_libbpf_segments.zig"),
 });
 const libbpf_segments_tests = b.addTest(.{
-    .name = \"phase8-libbpf-segment-tests\",
+    .name = "phase8-libbpf-segment-tests",
 });
-const test_step = b.step(\"test\", \"Run focused Phase 8 libbpf segment survey tests\");
+const test_step = b.step("test", "Run focused Phase 8 libbpf segment survey tests");
 """,
-    "tools/lib/bpf/zigux_segments/manifest.json": """{
-  \"lane_key\": \"P8-L15\",
-  \"surveyed_commit\": \"0123456789abcdef0123456789abcdef01234567\",
-  \"segments\": [
-    {\"slug\": \"logging-version-and-errno\"},
-    {\"slug\": \"map-reuse-compatibility\"}
-  ]
-}
-""",
+    MANIFEST_PATH: build_fixture_manifest_text(),
 }
 
 
@@ -189,6 +204,18 @@ def require_match(pattern: str, text: str, label: str) -> str:
     return match.group(1)
 
 
+def read_manifest_segment_count(root: Path) -> int:
+    try:
+        manifest = json.loads(read_text(root, MANIFEST_PATH))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"manifest:invalid_json:{exc.msg}") from exc
+
+    segments = manifest.get("segments")
+    if not isinstance(segments, list):
+        raise ValueError("manifest:missing_or_invalid_segments")
+    return len(segments)
+
+
 def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
@@ -205,19 +232,20 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     try:
         surveyed_commit_from_note = require_match(
             r"survey checkpoint: refreshed against inspected `master` head `([0-9a-f]{40})`",
-            read_text(root, "Documentation/zigux/phase8-libbpf-segment-survey.md"),
+            read_text(root, SURVEY_PATH),
             "survey_note:missing_or_invalid_surveyed_commit",
         )
         surveyed_commit_from_test = require_match(
             r'const current_surveyed_commit = "([0-9a-f]{40})";',
-            read_text(root, "zigux/tests/phase8_libbpf_segments.zig"),
+            read_text(root, SEGMENTS_TEST_PATH),
             "phase8_libbpf_segments_test:missing_or_invalid_current_surveyed_commit",
         )
         surveyed_commit_from_manifest = require_match(
             r'"surveyed_commit"\s*:\s*"([0-9a-f]{40})"',
-            read_text(root, "tools/lib/bpf/zigux_segments/manifest.json"),
+            read_text(root, MANIFEST_PATH),
             "manifest:missing_or_invalid_surveyed_commit",
         )
+        manifest_segment_count = read_manifest_segment_count(root)
     except ValueError as exc:
         commit_sync_errors.append(str(exc))
     else:
@@ -232,6 +260,12 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
                     f"manifest:{surveyed_commit_from_manifest}",
                 ]
             )
+
+        segment_count_text = segment_count_marker(manifest_segment_count)
+        for rel_path in (SURVEY_PATH, SEGMENTS_TEST_PATH):
+            text = read_text(root, rel_path)
+            if segment_count_text not in text:
+                missing_markers.append(f"{rel_path}:{segment_count_text}")
 
     return [], missing_markers, commit_sync_errors
 
@@ -294,12 +328,12 @@ def run_self_test() -> int:
         )
         docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
-        survey_path = tmp_root / "Documentation/zigux/phase8-libbpf-segment-survey.md"
+        survey_path = tmp_root / SURVEY_PATH
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
             original_survey.replace(
-                "The manifest currently records eleven bounded segments.",
-                "The manifest currently records ten bounded segments.",
+                segment_count_marker(2),
+                segment_count_marker(3),
                 1,
             ),
             encoding="utf-8",
@@ -307,7 +341,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "survey_segment_count",
             tmp_root,
-            "Documentation/zigux/phase8-libbpf-segment-survey.md:The manifest currently records eleven bounded segments.",
+            f"{SURVEY_PATH}:{segment_count_marker(2)}",
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
@@ -426,7 +460,7 @@ def run_self_test() -> int:
         )
         focused_build_path.write_text(original_focused_build, encoding="utf-8")
 
-        manifest_path = tmp_root / "tools/lib/bpf/zigux_segments/manifest.json"
+        manifest_path = tmp_root / MANIFEST_PATH
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
             original_manifest.replace(
@@ -443,11 +477,26 @@ def run_self_test() -> int:
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
-        libbpf_segments_test_path = tmp_root / "zigux/tests/phase8_libbpf_segments.zig"
-        original_libbpf_segments_test = libbpf_segments_test_path.read_text(encoding="utf-8")
-        libbpf_segments_test_path.write_text(
-            original_libbpf_segments_test.replace(
-                "0123456789abcdef0123456789abcdef01234567",
+        segments_test_path = tmp_root / SEGMENTS_TEST_PATH
+        original_segments_test = segments_test_path.read_text(encoding="utf-8")
+        segments_test_path.write_text(
+            original_segments_test.replace(
+                segment_count_marker(2),
+                segment_count_marker(1),
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "segments_test_count_marker",
+            tmp_root,
+            f"{SEGMENTS_TEST_PATH}:{segment_count_marker(2)}",
+        )
+        segments_test_path.write_text(original_segments_test, encoding="utf-8")
+
+        segments_test_path.write_text(
+            original_segments_test.replace(
+                FIXTURE_SURVEYED_COMMIT,
                 "fedcba9876543210fedcba9876543210fedcba98",
                 1,
             ),
@@ -468,7 +517,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=10")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
