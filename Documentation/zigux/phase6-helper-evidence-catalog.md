@@ -30,9 +30,6 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 - `Documentation/zigux/phase6-hexdump-slice.md`
 - `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - `zigux/tests/phase6_helper_parity_manifest.json`
-- `zigux/tests/phase6_bsearch_c_abi_budget.zig`
-- `zigux/tests/phase6_checksum.zig`
-- `zigux/tests/phase6_checksum_perf.zig`
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - `zigux/tests/phase6_hexdump.zig`
 - `zigux/tests/phase6_hexdump_perf.zig`
@@ -63,11 +60,11 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - roadmap anchor: `lib/bsearch.c`
 - Zig helper: `lib/bsearch.zig`
 - focused helper replay: `zigux/tests/phase6_bsearch.zig`
-- focused C ABI lower-bound replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
+- focused C ABI replays: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` and `zigux/tests/phase6_bsearch_c_abi_budget.zig`
 - compact shared seed fixture companion: `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
-- last-known companion packet members still needing fresh direct reads: `zigux/tests/phase6_bsearch_c_abi_budget.zig` and `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
-- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, and the restored shared build foothold `zigux/tests/phase6_build.zig`, while the comparison-budget companion and dedicated corpus checker still need fresh direct reads before they are presented as current shipped evidence
+- last-known companion packet members still needing fresh direct reads: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
+- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, and the restored shared build foothold `zigux/tests/phase6_build.zig`, while the dedicated corpus checker still needs fresh direct reads before it is presented as current shipped evidence
 
 ### checksum
 
@@ -78,7 +75,7 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
-- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, dedicated slowdown replay, slice note, and parity members again
+- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence now includes `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders; the fixture surface, slice note, and direct C parity members still need fresh direct reads before they are presented as current shipped evidence
 
 ### hexdump
 
