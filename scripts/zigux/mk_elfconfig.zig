@@ -12,6 +12,11 @@ const not_elf_text = "Error: not ELF\n";
 const elfclass32_define = "#define KERNEL_ELFCLASS ELFCLASS32\n";
 const elfclass64_define = "#define KERNEL_ELFCLASS ELFCLASS64\n";
 
+const HeaderRead = struct {
+    bytes: [ei_nident]u8,
+    len: usize,
+};
+
 pub const Outcome = enum {
     elf32,
     elf64,
@@ -60,15 +65,23 @@ pub fn runMkElfconfig(stdin_bytes: []const u8, stdout: anytype, stderr: anytype)
     return renderOutcome(stdout, stderr, classify(stdin_bytes));
 }
 
-fn readHeader(fd: std.posix.fd_t) !struct { bytes: [ei_nident]u8, len: usize } {
+fn readHeaderFrom(read_context: anytype, comptime readFn: fn (@TypeOf(read_context), []u8) anyerror!usize) !HeaderRead {
     var header: [ei_nident]u8 = undefined;
     var filled: usize = 0;
     while (filled < header.len) {
-        const count = try std.posix.read(fd, header[filled..]);
+        const count = try readFn(read_context, header[filled..]);
         if (count == 0) break;
         filled += count;
     }
     return .{ .bytes = header, .len = filled };
+}
+
+fn readPosix(fd: std.posix.fd_t, bytes: []u8) !usize {
+    return std.posix.read(fd, bytes);
+}
+
+fn readHeader(fd: std.posix.fd_t) !HeaderRead {
+    return readHeaderFrom(fd, readPosix);
 }
 
 pub fn main(init: std.process.Init) !void {
@@ -108,6 +121,30 @@ const Capture = struct {
     }
 };
 
+const SplitReader = struct {
+    bytes: []const u8,
+    chunk_sizes: []const usize,
+    offset: usize = 0,
+    read_index: usize = 0,
+    call_count: usize = 0,
+
+    fn read(self: *@This(), dest: []u8) !usize {
+        self.call_count += 1;
+        if (self.offset >= self.bytes.len or self.read_index >= self.chunk_sizes.len) {
+            return 0;
+        }
+
+        const planned = self.chunk_sizes[self.read_index];
+        self.read_index += 1;
+
+        const remaining = self.bytes.len - self.offset;
+        const count = @min(planned, @min(dest.len, remaining));
+        std.mem.copyForwards(u8, dest[0..count], self.bytes[self.offset..][0..count]);
+        self.offset += count;
+        return count;
+    }
+};
+
 test "classifies 32-bit ELF header" {
     const header = [_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     try std.testing.expectEqual(Outcome.elf32, classify(&header));
@@ -142,6 +179,24 @@ test "readHeader returns zero bytes on immediate EOF" {
 
     const header = try readHeader(file.handle);
     try std.testing.expectEqual(@as(usize, 0), header.len);
+}
+
+test "readHeader combines split reads into one ELF header" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{
+            0x7f, 'E',  'L',  'F',  elfclass64, 1, 1, 0,
+            0,    0,    0,    0,    0,          0, 0, 0,
+            0xaa, 0xbb, 0xcc, 0xdd,
+        },
+        .chunk_sizes = &[_]usize{ 5, 3, 8, 4 },
+    };
+
+    const header = try readHeaderFrom(&reader, SplitReader.read);
+    try std.testing.expectEqual(@as(usize, ei_nident), header.len);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualSlices(u8, &[_]u8{
+        0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    }, header.bytes[0..header.len]);
 }
 
 test "readHeader stops at the first ELF header" {
