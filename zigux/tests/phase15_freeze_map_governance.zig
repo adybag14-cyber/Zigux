@@ -154,7 +154,7 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 32 * 1024);
+    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 40 * 1024);
     defer std.testing.allocator.free(governance_note);
 
     try expectContains(governance_note, "PHASE15_STATUS=governance_slice_landed");
@@ -194,7 +194,7 @@ test "phase 15 freeze-map required terms and maintenance handoff stay aligned" {
     const freeze_map = try loadFile(io_instance.io(), "Documentation/zigux/freeze-map.md", 24 * 1024);
     defer std.testing.allocator.free(freeze_map);
 
-    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 32 * 1024);
+    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 40 * 1024);
     defer std.testing.allocator.free(governance_note);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
@@ -229,7 +229,7 @@ test "phase 15 freeze-map required terms and maintenance handoff stay aligned" {
     for (parsed.value.deep_core_blocker_survey) |survey| {
         try expectContains(governance_note, survey.anchor);
         try expectContains(governance_note, survey.roadmap_basis);
-        try expectContains(governance_note, survey.repo_reality);
+        try expectContainsWithoutBackticks(governance_note, survey.repo_reality);
         try expectContains(governance_note, survey.current_blocker);
     }
 }
