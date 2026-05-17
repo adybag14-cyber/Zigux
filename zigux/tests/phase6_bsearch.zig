@@ -70,6 +70,24 @@ fn compareDirectOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     return compareDirectInt(typed_key, typed_item);
 }
 
+fn compareSymbol(key: *const []const u8, item: *const []const u8) i32 {
+    return switch (std.mem.order(u8, key.*, item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareOpaqueRecordKey(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const fixtures.RawRecord = @ptrCast(@alignCast(item));
+    return switch (std.math.order(typed_key.*, typed_item.key)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
 fn typedProbe(items: []const u32, target: u32, expect_hit: bool, compare: anytype) !usize {
     var comparisons: usize = 0;
     const key = CountedKey{ .target = target, .comparisons = &comparisons };
@@ -292,4 +310,34 @@ test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator p
         const typed_found: *const u32 = @ptrCast(@alignCast(found));
         try std.testing.expectEqual(@as(u32, 24), typed_found.*);
     }
+}
+
+test "phase 6 bsearch keeps symbol fixtures searchable through typed bounds" {
+    const hit_symbol: []const u8 = "kmalloc";
+    const hit_index = bsearch.searchIndex([]const u8, []const u8, &hit_symbol, fixtures.sorted_symbols[0..], compareSymbol) orelse return error.ExpectedMatch;
+    try std.testing.expectEqual(@as(usize, 2), hit_index);
+    try std.testing.expectEqual(@as(usize, 2), bsearch.lowerBoundIndex([]const u8, []const u8, &hit_symbol, fixtures.sorted_symbols[0..], compareSymbol));
+    try std.testing.expectEqual(@as(usize, 3), bsearch.upperBoundIndex([]const u8, []const u8, &hit_symbol, fixtures.sorted_symbols[0..], compareSymbol));
+
+    const miss_symbol: []const u8 = "kzalloc";
+    try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex([]const u8, []const u8, &miss_symbol, fixtures.sorted_symbols[0..], compareSymbol));
+    try std.testing.expectEqual(@as(usize, 3), bsearch.lowerBoundIndex([]const u8, []const u8, &miss_symbol, fixtures.sorted_symbols[0..], compareSymbol));
+    try std.testing.expectEqual(@as(usize, 3), bsearch.upperBoundIndex([]const u8, []const u8, &miss_symbol, fixtures.sorted_symbols[0..], compareSymbol));
+}
+
+test "phase 6 bsearch keeps packed-record fixtures searchable through raw wrappers" {
+    const target = @as(u32, 21);
+    const found = bsearch.bsearch(&target, @ptrCast(fixtures.packed_record_values[0..].ptr), fixtures.packed_record_values.len, @sizeOf(fixtures.RawRecord), compareOpaqueRecordKey) orelse return error.ExpectedMatch;
+    const typed_found: *const fixtures.RawRecord = @ptrCast(@alignCast(found));
+    try std.testing.expectEqual(@as(u32, 21), typed_found.key);
+    try std.testing.expectEqual(@as(u32, 0x15000), typed_found.value);
+
+    const range = bsearch.bsearchEqualRangeIndex(&target, @ptrCast(fixtures.packed_record_values[0..].ptr), fixtures.packed_record_values.len, @sizeOf(fixtures.RawRecord), compareOpaqueRecordKey);
+    try std.testing.expectEqual(bsearch.IndexRange{ .lower = 3, .upper = 4 }, range);
+
+    var mutable_records = fixtures.packed_record_values;
+    const mutable_found = bsearch.bsearchMutable(&target, @ptrCast(mutable_records[0..].ptr), mutable_records.len, @sizeOf(fixtures.RawRecord), compareOpaqueRecordKey) orelse return error.ExpectedMatch;
+    const typed_mutable_found: *fixtures.RawRecord = @ptrCast(@alignCast(mutable_found));
+    typed_mutable_found.value = 0x15001;
+    try std.testing.expectEqual(@as(u32, 0x15001), mutable_records[3].value);
 }
