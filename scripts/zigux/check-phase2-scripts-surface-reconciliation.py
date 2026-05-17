@@ -38,15 +38,24 @@ MISSING_PATHS = (
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
 )
 
+README_DRIFT_MARKERS = (
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2-cross",
+    "`make -C zigux phase2` routes as current Phase 2 scripts-root evidence",
+)
+
 REQUIRED_NOTE_MARKERS = (
     "# Phase 2 Scripts Surface Reconciliation",
     "## Present scripts-root packet",
     "## Current repo-reality gaps",
+    "## Outstanding scripts-root README drift",
     "## Lane 25 boundary",
     "Treat those paths as active repo-reality gaps on current `master`, not as shipped scripts-root evidence.",
+    "Keep that README drift framed as the next bounded Lane 25 follow-up instead of folding it back into this note as if the scripts-root summary were already reconciled.",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 53
+EXPECTED_SELF_TEST_CASE_COUNT = 59
 
 
 def read_text(path: Path) -> str:
@@ -69,16 +78,20 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_NOTE_MARKERS", marker))
 
     for relative in PRESENT_PATHS:
-        if relative not in note_text:
+        if f"- `{relative}`\n" not in note_text:
             issues.append(("MISSING_PRESENT_NOTE_PATHS", relative))
         if not resolve(root, relative).exists():
             issues.append(("MISSING_PRESENT_REPO_PATHS", relative))
 
     for relative in MISSING_PATHS:
-        if relative not in note_text:
+        if f"- `{relative}`\n" not in note_text:
             issues.append(("MISSING_GAP_NOTE_PATHS", relative))
         if resolve(root, relative).exists():
             issues.append(("UNEXPECTED_PRESENT_GAP_PATHS", relative))
+
+    for marker in README_DRIFT_MARKERS:
+        if marker not in note_text:
+            issues.append(("MISSING_README_DRIFT_MARKERS", marker))
 
     return issues
 
@@ -127,9 +140,14 @@ def build_note_text() -> str:
             "",
             "Treat those paths as active repo-reality gaps on current `master`, not as shipped scripts-root evidence.",
             "",
+            "## Outstanding scripts-root README drift",
+            "",
+            "- `scripts/zigux/README.md` still presents `scripts/zigux/kconfig/confdata_bridge.zig`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/check-phase2-cross.py`, `zigux/Makefile`, and the Linux-style `make -C zigux phase2-validate`, `make -C zigux phase2-cross`, and `make -C zigux phase2` routes as current Phase 2 scripts-root evidence even though fresh current-master reads still miss those branch-local, closure-side, cross-matrix, and make-route surfaces.",
+            "- Keep that README drift framed as the next bounded Lane 25 follow-up instead of folding it back into this note as if the scripts-root summary were already reconciled.",
+            "",
             "## Lane 25 boundary",
             "",
-            "Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth until the separate closure, cross-target, and tool-restoration lanes land.",
+            "Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth until the separate closure, cross-target, tool-restoration, and scripts-root README reconciliation lanes land.",
             "",
         ]
     )
@@ -172,7 +190,7 @@ def run_self_test() -> int:
             build_self_test_root(root)
             note_path = root / NOTE.relative_to(ROOT)
             note_path.write_text(
-                replace_once(note_path.read_text(encoding="utf-8"), relative),
+                replace_once(note_path.read_text(encoding="utf-8"), f"- `{relative}`\n"),
                 encoding="utf-8",
             )
             issues = collect_issues(root)
@@ -190,7 +208,7 @@ def run_self_test() -> int:
             build_self_test_root(root)
             note_path = root / NOTE.relative_to(ROOT)
             note_path.write_text(
-                replace_once(note_path.read_text(encoding="utf-8"), relative),
+                replace_once(note_path.read_text(encoding="utf-8"), f"- `{relative}`\n"),
                 encoding="utf-8",
             )
             issues = collect_issues(root)
@@ -202,6 +220,17 @@ def run_self_test() -> int:
             write_text(resolve(root, relative), "# should stay missing\n")
             issues = collect_issues(root)
             assert ("UNEXPECTED_PRESENT_GAP_PATHS", relative) in issues
+            checks_run += 1
+
+        for marker in README_DRIFT_MARKERS:
+            build_self_test_root(root)
+            note_path = root / NOTE.relative_to(ROOT)
+            note_path.write_text(
+                replace_once(note_path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("MISSING_README_DRIFT_MARKERS", marker) in issues
             checks_run += 1
 
         build_self_test_root(root)
@@ -238,6 +267,7 @@ def main() -> int:
     print("PHASE2_SCRIPTS_SURFACE_RECONCILIATION=pass")
     print(f"PHASE2_SCRIPTS_SURFACE_PRESENT_COUNT={len(PRESENT_PATHS)}")
     print(f"PHASE2_SCRIPTS_SURFACE_GAP_COUNT={len(MISSING_PATHS)}")
+    print(f"PHASE2_SCRIPTS_SURFACE_README_DRIFT_COUNT={len(README_DRIFT_MARKERS)}")
     return 0
 
 
