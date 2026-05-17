@@ -113,6 +113,19 @@ def marker_fixture(rel_path: str) -> str:
     return f"{title}\n\n{body}\n"
 
 
+def build_self_test_cases() -> list[tuple[str, int]]:
+    cases: list[tuple[str, int]] = []
+    for rel_path, markers in REQUIRED_MARKERS.items():
+        fixture_text = marker_fixture(rel_path)
+        for marker_index, marker in enumerate(markers):
+            if fixture_text.count(marker) == 1:
+                cases.append((rel_path, marker_index))
+    return cases
+
+
+SELF_TEST_CASES = build_self_test_cases()
+
+
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
@@ -133,6 +146,13 @@ def remove_marker(path: Path, marker: str) -> None:
     )
 
 
+def expect_marker_failure(root: Path, rel_path: str, marker_index: int) -> None:
+    marker = REQUIRED_MARKERS[rel_path][marker_index]
+    write_fixture_tree(root)
+    remove_marker(root / rel_path, marker)
+    expect_failure(root, f"{rel_path}:{marker}")
+
+
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase12-release-readiness-packet-"))
     try:
@@ -145,69 +165,14 @@ def run_self_test() -> int:
         (base / RELEASE_READINESS_SURVEY_PATH).unlink()
         expect_failure(base, f"missing_file:{RELEASE_READINESS_SURVEY_PATH}")
 
-        write_fixture_tree(base)
-        remove_marker(base / RELEASE_READINESS_SURVEY_PATH, REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][1])
-        expect_failure(
-            base,
-            f"{RELEASE_READINESS_SURVEY_PATH}:{REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][1]}",
-        )
-
-        write_fixture_tree(base)
-        remove_marker(base / RELEASE_READINESS_SURVEY_PATH, REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][2])
-        expect_failure(
-            base,
-            f"{RELEASE_READINESS_SURVEY_PATH}:{REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][2]}",
-        )
-
-        write_fixture_tree(base)
-        remove_marker(base / RELEASE_READINESS_SURVEY_PATH, REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][3])
-        expect_failure(
-            base,
-            f"{RELEASE_READINESS_SURVEY_PATH}:{REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][3]}",
-        )
-
-        write_fixture_tree(base)
-        remove_marker(base / RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][2])
-        expect_failure(
-            base,
-            f"{RAW_GITHUB_COVERAGE_SURVEY_PATH}:{REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][2]}",
-        )
-
-        write_fixture_tree(base)
-        remove_marker(base / RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][1])
-        expect_failure(
-            base,
-            f"{RAW_GITHUB_COVERAGE_SURVEY_PATH}:{REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][1]}",
-        )
-
-        write_fixture_tree(base)
-        remove_marker(base / RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][4])
-        expect_failure(
-            base,
-            f"{RAW_GITHUB_COVERAGE_SURVEY_PATH}:{REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][4]}",
-        )
-
-        write_fixture_tree(base)
-        remove_marker(base / SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][0])
-        expect_failure(base, f"{SCRIPTS_README_PATH}:{REQUIRED_MARKERS[SCRIPTS_README_PATH][0]}")
-
-        write_fixture_tree(base)
-        remove_marker(base / TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][2])
-        expect_failure(base, f"{TESTS_README_PATH}:{REQUIRED_MARKERS[TESTS_README_PATH][2]}")
-
-        write_fixture_tree(base)
-        remove_marker(base / REVIEW_CHECKLIST_PATH, REQUIRED_MARKERS[REVIEW_CHECKLIST_PATH][2])
-        expect_failure(
-            base,
-            f"{REVIEW_CHECKLIST_PATH}:{REQUIRED_MARKERS[REVIEW_CHECKLIST_PATH][2]}",
-        )
-
-        write_fixture_tree(base)
-        remove_marker(base / DOCS_README_PATH, REQUIRED_MARKERS[DOCS_README_PATH][4])
-        expect_failure(base, f"{DOCS_README_PATH}:{REQUIRED_MARKERS[DOCS_README_PATH][4]}")
+        for rel_path, marker_index in SELF_TEST_CASES:
+            expect_marker_failure(base, rel_path, marker_index)
 
         print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-        print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=11")
+        print(
+            "PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT="
+            f"{1 + len(SELF_TEST_CASES)}"
+        )
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
