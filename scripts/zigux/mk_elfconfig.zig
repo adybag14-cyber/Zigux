@@ -133,6 +133,37 @@ test "classifies unsupported ELF class silently" {
     try std.testing.expectEqual(Outcome.invalid_class, classify(&header));
 }
 
+test "readHeader stops at the first ELF header" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "header.bin", .{ .read = true });
+    defer file.close(io);
+    try file.writePositionalAll(io, &[_]u8{
+        0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0xaa, 0xbb, 0xcc, 0xdd,
+    }, 0);
+
+    const header = try readHeader(file.handle);
+    try std.testing.expectEqual(@as(usize, ei_nident), header.len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{
+        0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    }, header.bytes[0..header.len]);
+}
+
+test "readHeader reports the exact truncated byte count" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "truncated.bin", .{ .read = true });
+    defer file.close(io);
+    try file.writePositionalAll(io, &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 }, 0);
+
+    const header = try readHeader(file.handle);
+    try std.testing.expectEqual(@as(usize, 8), header.len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 }, header.bytes[0..header.len]);
+}
+
 test "renders 32-bit define" {
     var stdout = try Capture.init(std.testing.allocator);
     defer stdout.deinit();
