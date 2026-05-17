@@ -1,12 +1,12 @@
-# Phase 15 Parity Scorecard Gap Survey
+# Phase 15 Parity Scorecard Survey
 
-This document records the bounded Phase 15 governance lane around surveying the current parity-tracking gap versus the roadmap on `master`.
+This document records the bounded Phase 15 roadmap-facing survey for the live parity-accounting packet on `master`.
 
 ## Status
 
 - `PHASE15_LANE_KEY=P15-L09`
-- `PHASE15_STATUS=parity_scorecard_gap_survey`
-- `PHASE15_SLICE=parity-tracking-gap-vs-roadmap-refresh`
+- `PHASE15_STATUS=parity_scorecard_survey_landed`
+- `PHASE15_SLICE=parity-roadmap-readback-alignment`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one survey-grade note that compares the roadmap's parity-scorecard requirement against the live scorecard note, machine-readable JSON, and dedicated Zig guard without widening into new deep-core implementation or shared-summary follow-through
 - survey rechecked against current `master` on 2026-05-17; the dedicated parity-scorecard packet now carries dated readback marker `current-master-readback-2026-05-17`
@@ -57,13 +57,13 @@ The live anchor inventory remains:
 
 Each anchor still carries explicit lane owner, phase, current status bucket, required approver set, validation gate summary, rollback owner, current blocker, evidence-archive path, benchmark-notes status, replay command, and next honest posture.
 
-## Current gap versus roadmap
+## Current roadmap posture
 
 The roadmap-required parity scorecard packet is no longer missing on current `master`.
 
 The dedicated scorecard note, machine-readable JSON companion, and dedicated Zig guard are all present and aligned, so the core parity-tracking requirement named by the roadmap is currently satisfied inside the Phase 15 governance packet.
 
-The current same-lane gap was survey truthfulness only:
+The only same-lane drift this survey needed to close was survey truthfulness:
 
 - this survey note still reported a 2026-05-14 reread after the dedicated parity-scorecard packet moved to the 2026-05-17 dated-readback posture
 - it still named the dedicated parity-scorecard packet as `P15-Y03` even though the live scorecard note, JSON companion, and Zig guard now agree on `P15-L03`
@@ -96,7 +96,7 @@ The current lane state is:
 
 This keeps the lane narrow.
 
-The next truthful follow-through for parity metrics, anchor evidence, or reporting-governance details belongs to the dedicated parity-scorecard packet, not to this roadmap-gap survey.
+The next truthful follow-through for parity metrics, anchor evidence, or reporting-governance details belongs to the dedicated parity-scorecard packet, not to this roadmap-facing survey.
 
 ## Non-goals
 
