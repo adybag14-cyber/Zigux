@@ -18,6 +18,14 @@ test "phase 7 rbtree survey keeps the direct anchor and repo-reality warning ali
     );
     defer std.testing.allocator.free(tests_root);
 
+    const parity_checker = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(parity_checker);
+
     const broader_packet_paths = [_][]const u8{
         "`Documentation/zigux/phase7-helper-lane-sequencing.md`",
         "`Documentation/zigux/phase7-rbtree-slice.md`",
@@ -49,4 +57,8 @@ test "phase 7 rbtree survey keeps the direct anchor and repo-reality warning ali
         tests_root,
         "keep the narrower current Phase 7 reminder surface tied to the directly readable `zigux/tests/phase7_rbtree_survey.zig` anchor instead of reconstructing the broader helper packet from older route names alone",
     );
+    try expectContains(parity_checker, "helper_impl_linked_type_marker");
+    try expectContains(parity_checker, "helper_impl_clear_linked_node_marker");
+    try expectContains(parity_checker, "helper_impl_add_linked_marker");
+    try expectContains(parity_checker, "helper_impl_erase_linked_marker");
 }
