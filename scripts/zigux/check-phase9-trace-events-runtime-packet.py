@@ -59,6 +59,9 @@ SAMPLE_COLD_SELFTEST_REJECTION_MARKER = (
 SAMPLE_COLD_EXIT_REJECTION_MARKER = (
     "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());"
 )
+SAMPLE_SELFTEST_COMPLETE_MODULE_STAGE_MARKER = (
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());"
+)
 SAMPLE_FAILED_EXIT_TEST_MARKER = (
     'test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {'
 )
@@ -144,6 +147,7 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_COLD_STAGE_MARKER,
     SAMPLE_COLD_SELFTEST_REJECTION_MARKER,
     SAMPLE_COLD_EXIT_REJECTION_MARKER,
+    SAMPLE_SELFTEST_COMPLETE_MODULE_STAGE_MARKER,
     SAMPLE_FAILED_EXIT_TEST_MARKER,
     SAMPLE_REJECTED_SELFTEST_TEST_MARKER,
     SAMPLE_EXITED_MAIN_REPLAY_REJECTION_MARKER,
@@ -261,6 +265,7 @@ test \"trace-events sample keeps selftest replay-summary continuity explicit aft
     try std.testing.expectEqual(ModuleStage.cold, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
     try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_summary.stage);
     try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.selftest_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));
