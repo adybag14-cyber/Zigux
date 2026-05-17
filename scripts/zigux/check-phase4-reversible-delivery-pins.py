@@ -15,8 +15,14 @@ SCRIPTS_README = Path("scripts/zigux/README.md")
 REPO_REALITY_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
 
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
+REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 4
+EXPECTED_PIN_SELF_TEST_CASES = 5
 
-STATUS_MARKERS = ("`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",)
+STATUS_MARKERS = (
+    "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5` here",
+)
 
 DIRECT_MARKERS = (
     "`Documentation/zigux/review-checklist.md`",
@@ -83,7 +89,10 @@ WARNING_MARKERS = (
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
-    "PIN_SELF_TEST_COUNT_LABEL = \"PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT\"",
+    "REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = \"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES\"",
+    "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 4",
+    "EXPECTED_PIN_SELF_TEST_CASES = 5",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5` here",
 ) + README_OWNER_MARKERS
 
 
@@ -107,15 +116,20 @@ def require(text: str, markers: tuple[str, ...], label: str) -> None:
         raise RuntimeError(f"{label} is missing required fragments: {missing}")
 
 
-def require_positive_pin_self_test_count(text: str, label: str) -> None:
-    matches = re.findall(rf"`{PIN_SELF_TEST_COUNT_LABEL}=(\d+)`", text)
+def require_exact_self_test_count(
+    text: str,
+    label: str,
+    count_label: str,
+    expected: int,
+) -> None:
+    matches = re.findall(rf"`{count_label}=(\d+)`", text)
     if not matches:
         raise RuntimeError(
-            f"{label} is missing a numeric `{PIN_SELF_TEST_COUNT_LABEL}=...` marker"
+            f"{label} is missing a numeric `{count_label}=...` marker"
         )
-    if any(int(value) < 1 for value in matches):
+    if any(int(value) != expected for value in matches):
         raise RuntimeError(
-            f"{label} has a non-positive `{PIN_SELF_TEST_COUNT_LABEL}=...` marker"
+            f"{label} must carry `{count_label}={expected}` exactly"
         )
 
 
@@ -128,7 +142,18 @@ def check(root: Path) -> None:
     require(readme, README_MARKERS, README.as_posix())
     require(scripts_readme, SCRIPTS_README_MARKERS, SCRIPTS_README.as_posix())
     require(repo_warning, WARNING_MARKERS, REPO_REALITY_WARNING.as_posix())
-    require_positive_pin_self_test_count(note, NOTE.as_posix())
+    require_exact_self_test_count(
+        note,
+        NOTE.as_posix(),
+        REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL,
+        EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES,
+    )
+    require_exact_self_test_count(
+        note,
+        NOTE.as_posix(),
+        PIN_SELF_TEST_COUNT_LABEL,
+        EXPECTED_PIN_SELF_TEST_CASES,
+    )
 
 
 def main() -> int:
@@ -159,6 +184,23 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError("expected non-positive pin self-test count to fail")
+
+            note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
+            note_path.write_text(
+                note_path.read_text(encoding="utf-8").replace(
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4`",
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=0`",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError(
+                    "expected repo-reality warning self-test count drift to fail"
+                )
 
             note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
             readme_path = root / README
