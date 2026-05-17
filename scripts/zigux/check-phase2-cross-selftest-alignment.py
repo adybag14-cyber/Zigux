@@ -155,9 +155,9 @@ DOCS_ROOT_README_BOUNDARY_SENTENCE = (
     "the pinned installer path and reaches the same live toolchain gate indirectly through "
     "`python3 scripts/zigux/check-phase2-cross.py --target <matrix-zig-target>`, because "
     "that target-mode replay starts with `python3 scripts/zigux/check-zig-toolchain.py --zig "
-    "\"<resolved-zig>\"` before the cross-target Zig tests, while the Linux-style "
+    "\\\"<resolved-zig>\\\"` before the cross-target Zig tests, while the Linux-style "
     "`make -C zigux phase2-cross` route still picks up `phase2-toolchain` and its direct "
-    '`python3 scripts/zigux/check-zig-toolchain.py --zig \"$(ZIG)\"` replay through '
+    '`python3 scripts/zigux/check-zig-toolchain.py --zig \\"$(ZIG)\\"` replay through '
     "`zigux/Makefile`."
 )
 
@@ -216,11 +216,14 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 109
+EXPECTED_SELF_TEST_CASE_COUNT = 111
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"{label}:invalid_json:{exc.msg}") from exc
     if not isinstance(payload, dict):
         raise SystemExit(f"{label}:expected_object")
     return payload
@@ -629,6 +632,10 @@ def run_self_test() -> int:
         raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern")
     checks_run += 1
 
+    if validate_workflow_scope_pattern("if true; then") != ["workflow_scope_pattern:missing"]:
+        raise SystemExit("phase2-cross-alignment:self-test:workflow_scope_pattern_missing")
+    checks_run += 1
+
     for marker in WORKFLOW_SCOPE_PATTERN_MARKERS:
         missing_scope_pattern = scope_pattern_text.replace(f"{marker}|", "", 1)
         if missing_scope_pattern == scope_pattern_text:
@@ -900,6 +907,19 @@ def run_self_test() -> int:
         checks_run += 1
         if round_trip["zig_test_files"] != EXPECTED_ZIG_TEST_FILES:
             raise SystemExit("phase2-cross-alignment:self-test:json_zig_test_files_round_trip")
+        checks_run += 1
+
+        invalid_json_manifest_path = tmp_root / "phase2_cross_targets_invalid.json"
+        invalid_json_manifest_path.write_text("{", encoding="utf-8")
+        try:
+            load_json_object(invalid_json_manifest_path, label="targets")
+        except SystemExit as exc:
+            if not str(exc).startswith("targets:invalid_json:"):
+                raise SystemExit(
+                    "phase2-cross-alignment:self-test:json_invalid_shape"
+                ) from exc
+        else:
+            raise SystemExit("phase2-cross-alignment:self-test:json_invalid_missing")
         checks_run += 1
 
         non_object_manifest_path = tmp_root / "phase2_cross_targets_not_object.json"
