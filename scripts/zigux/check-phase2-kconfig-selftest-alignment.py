@@ -21,6 +21,8 @@ KCONFIG_BRIDGE_SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
 )
 
 VALIDATOR_MARKERS = (
@@ -101,7 +103,7 @@ PHASE2_BOOTSTRAP_NOTES_MARKERS = (
     "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 67
+EXPECTED_SELF_TEST_CASE_COUNT = 69
 
 
 def read_text(path: Path) -> str:
@@ -497,6 +499,7 @@ def main() -> int:
     print("PHASE2_KCONFIG_ALIGNMENT=pass")
     print(f"PHASE2_KCONFIG_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(WORKFLOW_LINES)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(MAKEFILE_LINES)}")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_BRIDGE_SURFACE_PATH_COUNT={len(KCONFIG_BRIDGE_SURFACE_PATHS)}")
     return 0
 
 
