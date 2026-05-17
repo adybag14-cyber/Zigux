@@ -32,7 +32,9 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 - `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - `zigux/tests/phase6_bsearch_c_abi_budget.zig`
 - `zigux/tests/phase6_checksum.zig`
+- `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - `zigux/tests/phase6_hexdump.zig`
+- `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - `scripts/zigux/check-phase6-base64-c-parity.py`
 - `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
