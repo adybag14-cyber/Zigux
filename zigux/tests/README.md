@@ -157,7 +157,8 @@ Phase 9 review packet
   * `zigux/tests/README.md`
   * `samples/zigux/runtime_trace_events.zig`
   * `samples/zigux/runtime_trace_events_unregistered_gate.zig`
-  * the surviving trace-events packet still keeps the roadmap-backed runtime pilot shape concrete by exposing `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking inside `samples/zigux/runtime_trace_events.zig`, while `samples/zigux/runtime_trace_events_unregistered_gate.zig` keeps the same narrow packet's unregistered function-thread failures fail-closed, so reviewers can still inspect one real runtime-module plus its companion boundary while the broader shared loader packet remains backlog
+  * `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
+  * the surviving trace-events packet still keeps the roadmap-backed runtime pilot shape concrete by exposing `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking inside `samples/zigux/runtime_trace_events.zig`, while `samples/zigux/runtime_trace_events_unregistered_gate.zig` keeps the same narrow packet's unregistered function-thread failures fail-closed and `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` keeps balanced function-thread registration reusable before and after selftest, so reviewers can still inspect one real runtime-module plus its companion registration and lifecycle boundaries while the broader shared loader packet remains backlog
   * there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, `make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`
 
 Phase 12 review packet
