@@ -87,6 +87,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "kstrdupQuotable() keeps returned storage caller-owned, hex-escapes special logging hazards and double quotes, and still stops at the duplicated exported prefix");
     try expectContains(manifest, "in-place replacement inside the exported C-string prefix");
     try expectContains(manifest, "\"next_bounded_step\": \"Leave the current quotable helper packet parked unless a fresh reread finds helper-local drift across the slice note, helper-local manifest, dedicated survey, or dedicated no-string-sample boundary replay; if that packet stays aligned, the next same-lane reopen can decide whether `kstrdup_quotable_cmdline()` belongs in the same helper-local packet without widening into shared-control or file-path semantics.\"");
+    try expectContains(manifest, "shared no-sample boundary and helper-local reviewability");
+    try expectNotContains(manifest, "validator-backed reviewability");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 
@@ -239,6 +241,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(manifest, "\"bounded sequential string-array allocation with NULL-terminated pointer views\"");
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
+    try expectContains(manifest, "shared no-sample boundary and helper-local reviewability");
+    try expectNotContains(manifest, "validator-backed reviewability");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 }
