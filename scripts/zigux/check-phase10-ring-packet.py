@@ -43,7 +43,10 @@ MARKERS = {
         "zigux/tests/phase10_virtio_ring_manifest.json",
         "Documentation/zigux/phase10-virtio-ring-survey.md",
         "Documentation/zigux/phase10-virtio-ring-slice.md",
+        "the surviving directly re-readable docs and manifests stay limited to `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`",
         RING_MISSING_DIRECT_READBACK,
+        "Repeated authenticated contents reads still return missing for `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_core_manifest.json`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core and ring members framed as manifest-backed packet vocabulary rather than direct current-`master` evidence.",
+        "- evidence: `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`",
     ],
     "Documentation/zigux/phase10-virtio-ring-survey.md": [
         "`PHASE10_STATUS=parked`",
@@ -154,7 +157,7 @@ EXPECTED_GAP_WHY_NOW = {
     "phase10-virtio-core-lab-starter": "Fresh direct contents reads now return missing for the broader core foothold, so the ring packet must treat that path as absent repo reality rather than as current direct evidence.",
     "phase10-virtio-ring-survey-gate": "The dedicated ring survey replay no longer materializes through current master contents reads, so the ring packet should keep that gate explicit as a missing direct surface instead of a landed replay.",
     "phase10-virtio-ring-survey-note": "The survey note itself is still directly readable and is the narrowest place to record the current ring packet truthfully.",
-    "phase10-virtqueue-shape-helper": "The queue-shape helper path is currently missing on master, so the ring packet must treat that path as a repo-reality gap until a fresh reread materializes the file again.",
+    "phase10-virtqueue-shape-helper": "The queue-shape helper path is currently missing on master, so the ring packet must treat it as a repo-reality gap until a fresh reread materializes the file again.",
     "phase10-used-buffer-polling-helper": "The used-buffer polling helper remains part of the bounded ring vocabulary, but its direct helper file is currently absent on master.",
     "phase10-callback-enable-helper": "The callback re-enable helper is still a ring-lane destination, yet current direct readback does not materialize the owning helper file.",
     "phase10-callback-delay-helper": "The delayed-callback helper should stay explicit as a ring packet destination, but it is not currently backed by a readable direct helper file on master.",
@@ -319,6 +322,24 @@ def run_self_test() -> int:
             RING_MISSING_DIRECT_READBACK,
             "repeated authenticated contents reads still return missing for `drivers/virtio/virtio_ring.zig` only",
             f"phase10-closure-evidence.md:{RING_MISSING_DIRECT_READBACK}",
+        )
+        replace_once(
+            "Documentation/zigux/phase10-closure-evidence.md",
+            "the surviving directly re-readable docs and manifests stay limited to `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`",
+            "the surviving directly re-readable docs and manifests stay limited to `Documentation/zigux/phase10-closure-evidence.md`",
+            "phase10-closure-evidence.md:the surviving directly re-readable docs and manifests stay limited to `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`",
+        )
+        replace_once(
+            "Documentation/zigux/phase10-closure-evidence.md",
+            "Repeated authenticated contents reads still return missing for `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_core_manifest.json`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core and ring members framed as manifest-backed packet vocabulary rather than direct current-`master` evidence.",
+            "Repeated authenticated contents reads still return missing for `drivers/virtio/virtio.zig` only.",
+            "phase10-closure-evidence.md:Repeated authenticated contents reads still return missing for `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_core_manifest.json`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core and ring members framed as manifest-backed packet vocabulary rather than direct current-`master` evidence.",
+        )
+        replace_once(
+            "Documentation/zigux/phase10-closure-evidence.md",
+            "- evidence: `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`",
+            "- evidence: `drivers/virtio/virtio_mmio.zig`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`",
+            "phase10-closure-evidence.md:- evidence: `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`",
         )
         replace_once(
             "Documentation/zigux/phase10-virtio-ring-survey.md",
