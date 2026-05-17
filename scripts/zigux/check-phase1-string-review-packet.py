@@ -110,6 +110,14 @@ EXPECTED_STRING_ANCHORS = {
         'test "strnchr honors count and C-string boundaries"',
         'test "strnchrNul returns the first match, NUL, or count boundary"',
     ],
+    "strnchr_review_anchor": 'test "strnchr honors count and C-string boundaries"',
+    "strnchrnul_review_anchor": 'test "strnchrNul returns the first match, NUL, or count boundary"',
+    "strnchr_review_summary": (
+        "the direct counted-search follow-up stays explicit because the shared Phase 1 replay "
+        "still does not carry dedicated counted-search fixture keys, so strnchr() count-limited "
+        "scanning and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned "
+        "by the helper-local anchors"
+    ),
     "parity_fixture_keys": [
         "strtobool_y",
         "strtobool_on",
@@ -152,6 +160,9 @@ LIST_FIELDS = (
 
 SCALAR_FIELDS = (
     "sysfs_review_summary",
+    "strnchr_review_anchor",
+    "strnchrnul_review_anchor",
+    "strnchr_review_summary",
     "basename_review_anchor",
     "trim_nul_review_anchor",
     "memchr_moving_dirty_anchor",
@@ -159,7 +170,7 @@ SCALAR_FIELDS = (
     "next_safe_step_note",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 23
 
 
 def repo_root(root: str | None) -> Path:
@@ -338,7 +349,7 @@ def run_self_test() -> int:
                 if operation == "remove":
                     lane_note.write_text(text.replace(STRING_REVIEW_RULE_LINE + "\n", "", 1), encoding="utf-8")
                 elif operation == "duplicate":
-                    lane_note.write_text(
+                    lane_note.writeText(
                         text.replace(
                             STRING_REVIEW_RULE_LINE,
                             STRING_REVIEW_RULE_LINE + "\n" + STRING_REVIEW_RULE_LINE,
