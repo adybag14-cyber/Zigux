@@ -3,8 +3,17 @@ const argv_split = @import("argv_split");
 const cmdline = @import("cmdline");
 pub const find_bit = @import("find_bit");
 const bitmap = @import("bitmap");
+const ctype = @import("ctype");
+const hweight = @import("hweight");
+const list_sort = @import("list_sort");
 const rbtree = @import("rbtree");
 const string = @import("string");
+
+const ListSortSmokeEntry = struct {
+    key: i32,
+    ordinal: usize,
+    node: list_sort.ListHead = .{},
+};
 
 const RbtreeSmokeEntry = struct {
     key: i32,
@@ -34,6 +43,9 @@ test "phase1 host-tools smoke imports the live helper modules" {
     try std.testing.expect(@hasDecl(cmdline, "memparse"));
     try std.testing.expect(@hasDecl(find_bit, "findFirstBit"));
     try std.testing.expect(@hasDecl(bitmap, "setRange"));
+    try std.testing.expect(@hasDecl(ctype, "isalpha"));
+    try std.testing.expect(@hasDecl(hweight, "swHweight64"));
+    try std.testing.expect(@hasDecl(list_sort, "listSort"));
     try std.testing.expect(@hasDecl(rbtree, "find"));
     try std.testing.expect(@hasDecl(rbtree, "matchIterator"));
     try std.testing.expect(@hasDecl(string, "strtobool"));
@@ -58,6 +70,51 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqualStrings("mode", unterminated.param);
     try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
     try std.testing.expectEqualStrings("", unterminated.remaining);
+
+    try std.testing.expect(ctype.isalpha('Q'));
+    try std.testing.expect(ctype.isdigit('7'));
+    try std.testing.expectEqual(@as(u8, 'm'), ctype.fastTolower('M'));
+    try std.testing.expectEqual(@as(u8, 'Z'), ctype.toupper('z'));
+
+    try std.testing.expectEqual(@as(u32, 16), hweight.swHweight32(0xf0f0_f0f0));
+    try std.testing.expectEqual(@as(u64, 32), hweight.swHweight64(0xf0f0_f0f0_f0f0_f0f0));
+    try std.testing.expectEqual(@popCount(@as(usize, 0xf0f0)), hweight.hweightLong(0xf0f0));
+
+    var list_head: list_sort.ListHead = .{};
+    list_head.init();
+    var list_entries = [_]ListSortSmokeEntry{
+        .{ .key = 2, .ordinal = 0 },
+        .{ .key = 1, .ordinal = 1 },
+        .{ .key = 3, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 3, .ordinal = 4 },
+    };
+    const list_cmp = struct {
+        fn less(_: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_sort.ListHead) i32 {
+            const lhs: *const ListSortSmokeEntry = @fieldParentPtr("node", a);
+            const rhs: *const ListSortSmokeEntry = @fieldParentPtr("node", b);
+            if (lhs.key < rhs.key) return -1;
+            if (lhs.key > rhs.key) return 1;
+            return 0;
+        }
+    }.less;
+    for (&list_entries) |*entry| {
+        list_sort.listAddTail(&entry.node, &list_head);
+    }
+    list_sort.listSort(null, &list_head, list_cmp);
+
+    var sorted_keys: [5]i32 = undefined;
+    var sorted_ordinals: [5]usize = undefined;
+    var sorted_count: usize = 0;
+    var sorted_node = list_head.next;
+    while (sorted_node != &list_head) : (sorted_node = sorted_node.?.next) {
+        const entry: *const ListSortSmokeEntry = @fieldParentPtr("node", sorted_node.?);
+        sorted_keys[sorted_count] = entry.key;
+        sorted_ordinals[sorted_count] = entry.ordinal;
+        sorted_count += 1;
+    }
+    try std.testing.expectEqualSlices(i32, &.{ 1, 1, 2, 3, 3 }, sorted_keys[0..sorted_count]);
+    try std.testing.expectEqualSlices(usize, &.{ 1, 3, 0, 2, 4 }, sorted_ordinals[0..sorted_count]);
 
     const word_bits = find_bit.bits_per_long;
     const nbits = word_bits + 5;
