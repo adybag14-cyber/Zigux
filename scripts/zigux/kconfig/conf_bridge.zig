@@ -515,6 +515,22 @@ test "conf bridge emits alldefconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
 }
 
+test "conf bridge explicit allconfig override wins over alldefconfig sentinel" {
+    var capture = try TestCapture.init(std.testing.allocator, 192);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .alldefconfig,
+        .kconfig = "Kconfig",
+        .config = "build/.config",
+        .arch = "arm64",
+        .allconfig = "mini.config",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"mini.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
+}
+
 test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     var capture = try TestCapture.init(std.testing.allocator, 160);
     defer capture.deinit();
