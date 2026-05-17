@@ -26,6 +26,9 @@ MARKERS = {
         "pub fn publishDescriptorChain(self: *Self, queue_index: u16) !void {",
         "pub fn prepareKick(self: *Self, queue_index: u16) !QueueNotificationSummary {",
         "pub fn pollUsedBuffers(self: *Self, queue_index: u16) !UsedBufferPollSummary {",
+        "pub fn enableCallback(self: *Self, queue_index: u16) !CallbackEnableSummary {",
+        "pub fn enableCallbackDelayed(self: *Self, queue_index: u16) !DelayedCallbackSummary {",
+        "pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
         "pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
         "pub fn clearBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
         "pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary {",
@@ -131,7 +134,11 @@ def run_self_test() -> int:
         )
         expect_missing_marker(
             "drivers/virtio/virtio_ring.zig",
-            "pub fn clearBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
+            "pub fn enableCallbackDelayed(self: *Self, queue_index: u16) !DelayedCallbackSummary {",
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring.zig",
+            "pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
         )
         expect_missing_marker(
             "zigux/tests/phase10_build.zig",
@@ -151,6 +158,7 @@ def run_self_test() -> int:
         )
         expect_missing_file("drivers/virtio/virtio_ring.zig")
         expect_missing_file("zigux/tests/phase10_build.zig")
+        expect_missing_file("zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig")
         expect_missing_file("zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
