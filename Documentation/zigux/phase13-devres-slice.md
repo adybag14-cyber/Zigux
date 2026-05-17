@@ -1,13 +1,13 @@
 # Phase 13 devres Slice
 
-This bounded Phase 13 slice keeps `lib/devres.c` visible as a shared-helper anchor. Current `master` now materializes one direct replay surface in `zigux/tests/phase13_devres_dma_coherent.zig`, but it still does not yet materialize the direct `lib/devres.zig` starter or the older broader helper-packet set that earlier notes sometimes summarized.
+This bounded Phase 13 slice keeps `lib/devres.c` visible as a shared-helper anchor. Current `master` now materializes the direct `lib/devres.zig` starter plus the paired direct replay packet, while the DMA and scatterlist boundary evidence stays separate from broader live-side-effect claims.
 
-Current repo reality for this lane is intentionally narrow:
+Current repo reality for this lane is intentionally helper-first:
   * the docs-side slice note is still present so the Phase 13 owner split can keep `devres` separate from `libfs`, `landlock`, and adjacent notifier evidence
-  * the older `scripts/zigux/check-phase13-devres-packet-alignment.py` checker name plus the paired survey, helper, manifest, and broader direct replay packet should stay recorded as repo-reality gaps rather than described here as shipped current-`master` evidence
-  * `zigux/tests/phase13_devres_dma_coherent.zig` now materializes one direct replay surface for the planning-only DMA/scatterlist boundary, but it does not by itself claim live helper delivery
-  * direct companions such as `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, and `zigux/tests/phase13_devres_manifest.json` should stay recorded as repo-reality gaps rather than described here as already shipped helper evidence
+  * `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_manifest.json` now ship the bounded direct helper packet on current `master`
+  * `scripts/zigux/check-phase13-devres-packet-alignment.py` is the current lane-local checker for that direct packet, while the older `scripts/zigux/check-phase13-devres-packet.py` wording should stay treated as stale history rather than as the active checker label
+  * `zigux/tests/phase13_devres_dma_coherent.zig` remains the direct replay surface for the planning-only DMA and scatterlist boundary, but it still does not by itself claim live DMA helper delivery, live scatterlist ownership, or `sg_table` lifecycle control
 
-This slice therefore does not claim managed `__devm_ioremap()` bookkeeping, exact `devm_iounmap()` pointer matching, `__devm_ioremap_resource()` planning, `devm_of_iomap()` bridging, arch WC detach planners, live MMIO side effects, live DMA ownership, scatterlist ownership, or broader devres-group teardown behavior on current `master`.
+This slice therefore claims only the bounded helper-first surface already present on current `master`: managed `__devm_ioremap()` bookkeeping, exact `devm_iounmap()` pointer matching, pure `devm_ioremap_uc()` and `devm_ioremap_wc()` wrapper planners, `__devm_ioremap_resource()` planning-time region bookkeeping, `devm_of_iomap()` translation handoff, and arch WC detach planners. It still does not claim live MMIO side effects, live region reservation or release-region mutation, live DMA ownership, scatterlist ownership, or broader devres-group teardown behavior.
 
-The next honest bounded step in this same lane is to either materialize `lib/devres.zig` itself or trim any broader shared reminder that still treats the remaining missing direct companions as shipped current-`master` evidence.
+The next honest bounded step in this same lane is to compare the direct helper packet and the DMA-boundary shard together on current `master` before widening anything else, and only trim broader shared reminders if they drift from that shipped helper-first surface.
