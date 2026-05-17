@@ -274,7 +274,7 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-workflow-viability-") as tmpdir:
         root = Path(tmpdir)
 
-        build_sampleRepo(root)
+        build_sample_repo(root)
         if collect_failures(root):
             print("self-test:unexpected_failures")
             return 1
