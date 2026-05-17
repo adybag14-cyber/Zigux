@@ -31,6 +31,12 @@ test "phase4 perf baseline survey keeps dedicated local-only ownership and comma
     try requireMarker("\"final_first_zero\": 109");
 }
 
+test "phase4 perf baseline survey keeps rollback and decision ownership explicit" {
+    try requireMarker("\"rollback_owner\": \"Validation and Perf Team\"");
+    try requireMarker("\"decision_owner\": \"Validation and Perf Team\"");
+    try requireMarker("\"local_only_posture_note\": \"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\"");
+}
+
 test "phase4 perf baseline survey keeps the dedicated packet contract reviewable" {
     try requireMarker("\"id\": \"phase4-perf-baseline-shared-promotion-decision\"");
     try requireMarker("\"status\": \"shared CI perf promotion pending\"");
