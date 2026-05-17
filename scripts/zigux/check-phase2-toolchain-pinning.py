@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
+POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
@@ -18,7 +20,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
-    ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json",
+    POLICY_PATH,
 )
 
 WORKFLOW_LINES = (
@@ -57,7 +59,14 @@ README_FORBIDDEN_MARKERS = (
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 38
+EXPECTED_POLICY = {
+    "phase": "Phase 2",
+    "channel_minimum_lockstep": True,
+    "archive_target_scope": ["x86_64-linux"],
+    "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+}
+
+EXPECTED_SELF_TEST_CASE_COUNT = 44
 
 
 def read_text(path: Path) -> str:
@@ -86,6 +95,59 @@ def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) ->
     return [(code, marker) for marker in markers if marker in text]
 
 
+def load_policy(root: Path) -> object:
+    return json.loads(read_text(resolve_path(root, POLICY_PATH)))
+
+
+def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    try:
+        payload = load_policy(root)
+    except json.JSONDecodeError as exc:
+        return [("INVALID_POLICY_JSON", exc.msg)]
+
+    if not isinstance(payload, dict):
+        return [("INVALID_POLICY_PAYLOAD", type(payload).__name__)]
+
+    if payload.get("phase") != EXPECTED_POLICY["phase"]:
+        issues.append(
+            (
+                "POLICY_PHASE_MISMATCH",
+                f"actual={payload.get('phase')!r}:expected={EXPECTED_POLICY['phase']!r}",
+            )
+        )
+
+    upgrade_policy = payload.get("upgrade_policy")
+    if not isinstance(upgrade_policy, dict):
+        return issues + [("INVALID_UPGRADE_POLICY", type(upgrade_policy).__name__)]
+
+    if upgrade_policy.get("channel_minimum_lockstep") is not EXPECTED_POLICY["channel_minimum_lockstep"]:
+        issues.append(
+            (
+                "POLICY_LOCKSTEP_MISMATCH",
+                f"actual={upgrade_policy.get('channel_minimum_lockstep')!r}:expected={EXPECTED_POLICY['channel_minimum_lockstep']!r}",
+            )
+        )
+
+    if upgrade_policy.get("archive_target_scope") != EXPECTED_POLICY["archive_target_scope"]:
+        issues.append(
+            (
+                "POLICY_ARCHIVE_TARGET_SCOPE_MISMATCH",
+                f"actual={upgrade_policy.get('archive_target_scope')!r}:expected={EXPECTED_POLICY['archive_target_scope']!r}",
+            )
+        )
+
+    if upgrade_policy.get("required_make_routes") != EXPECTED_POLICY["required_make_routes"]:
+        issues.append(
+            (
+                "POLICY_REQUIRED_MAKE_ROUTES_MISMATCH",
+                f"actual={upgrade_policy.get('required_make_routes')!r}:expected={EXPECTED_POLICY['required_make_routes']!r}",
+            )
+        )
+
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
@@ -106,6 +168,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not resolve_path(root, path).exists():
             issues.append(("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()))
 
+    if resolve_path(root, POLICY_PATH).exists():
+        issues.extend(collect_policy_issues(root))
     return issues
 
 
@@ -141,7 +205,27 @@ def build_self_test_root(root: Path) -> None:
     ]
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(readme_lines) + "\n")
     for path in SURFACE_PATHS:
-        write_text(resolve_path(root, path), "present\n")
+        if path == POLICY_PATH:
+            write_text(
+                resolve_path(root, path),
+                json.dumps(
+                    {
+                        "phase": EXPECTED_POLICY["phase"],
+                        "channel": "0.17.0-dev.87+9b177a7d2",
+                        "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                        "archive_sha256": {"x86_64-linux": "3" * 64},
+                        "upgrade_policy": {
+                            "channel_minimum_lockstep": EXPECTED_POLICY["channel_minimum_lockstep"],
+                            "archive_target_scope": EXPECTED_POLICY["archive_target_scope"],
+                            "required_make_routes": EXPECTED_POLICY["required_make_routes"],
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        else:
+            write_text(resolve_path(root, path), "present\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -238,6 +322,41 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("MISSING_SURFACE_PATHS", rel_path.relative_to(ROOT).as_posix()) in issues
             checks_run += 1
+
+        policy_mutations = (
+            ("phase", "Phase 3", "POLICY_PHASE_MISMATCH"),
+            ("lockstep", False, "POLICY_LOCKSTEP_MISMATCH"),
+            ("archive_target_scope", ["aarch64-linux"], "POLICY_ARCHIVE_TARGET_SCOPE_MISMATCH"),
+            ("required_make_routes", ["phase2-toolchain"], "POLICY_REQUIRED_MAKE_ROUTES_MISMATCH"),
+        )
+        for field_name, replacement, expected_code in policy_mutations:
+            build_self_test_root(root)
+            path = resolve_path(root, POLICY_PATH)
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            if field_name == "phase":
+                payload["phase"] = replacement
+            elif field_name == "lockstep":
+                payload["upgrade_policy"]["channel_minimum_lockstep"] = replacement
+            else:
+                payload["upgrade_policy"][field_name] = replacement
+            path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert any(issue[0] == expected_code for issue in issues)
+            checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, POLICY_PATH)
+        path.write_text("{not-json}\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(issue[0] == "INVALID_POLICY_JSON" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, POLICY_PATH)
+        path.write_text("[]\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_POLICY_PAYLOAD", "list") in issues
+        checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=pass")
