@@ -2,7 +2,7 @@
 
 This note records the current validator-facing Phase 3 surface on live `master`.
 
-Current `master` now carries one bounded `dev_t` starter packet plus one focused helper-local `err_ptr` / `xarray` interop slice. It does not currently ship the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
+Current `master` now carries one bounded `dev_t` starter packet, two focused helper-local interop slices, and one focused helper-local policy slice. It does not currently ship the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
 
 ## Current starter packet present on `master`
 
@@ -26,13 +26,45 @@ Current `master` now carries one bounded `dev_t` starter packet plus one focused
 - `zigux/helpers/xa_value.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
+- `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
 - `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+- `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
+- `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+
+## Focused bitmap/cpumask slice present on `master`
+
+- `Documentation/zigux/phase3-bitmap-cpumask-slice.md`
+- `include/zigux/bitmap_cpumask.h`
+- `zigux/uapi/bitmap_cpumask.zig`
+- `zigux/bindings/bitmap_cpumask.zig`
+- `zigux/helpers/bitmap_view.zig`
+- `zigux/helpers/cpumask_view.zig`
+- `zigux/tests/phase3_bitmap_cpumask_starter_packet.zig`
+- `zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig`
+- `zigux/tests/phase3_bitmap_cpumask_starter_packet_manifest.json`
+- `scripts/zigux/check-phase3-bitmap-cpumask-starter-packet.py`
+- `python3 scripts/zigux/check-phase3-bitmap-cpumask-starter-packet.py --self-test`
+- `python3 scripts/zigux/check-phase3-bitmap-cpumask-starter-packet.py`
+
+## Focused policy slice present on `master`
+
+- `Documentation/zigux/phase3-policy-slice.md`
+- `include/zigux/abi.h`
+- `zigux/bindings/abi.zig`
+- `zigux/helpers/panic_policy.zig`
+- `zigux/helpers/allocator_policy.zig`
+- `zigux/tests/phase3_policy_starter_packet.zig`
+- `zigux/tests/phase3_policy_starter_packet_build.zig`
+- `zigux/tests/phase3_policy_starter_packet_manifest.json`
+- `scripts/zigux/check-phase3-policy-starter-packet.py`
+- `python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test`
+- `python3 scripts/zigux/check-phase3-policy-starter-packet.py`
 
 ## Review boundary
 
-Keep the shared Phase 3 reminder packet anchored to those two current-tree-backed slices until additional validator, export-boundary, or shared replay proof lands.
+Keep the shared Phase 3 reminder packet anchored to those four current-tree-backed slices until additional validator, export-boundary, or shared replay proof lands.
 
-Do not treat the current starter packet, its manifest-backed replay guard, plus helper slice as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
+Do not treat the current starter packet, its manifest-backed replay guard, plus the three focused helper slices as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
 
 ## Sampled broader gaps still absent on `master`
 
@@ -43,7 +75,6 @@ The following representative Phase 3 routes still read as absent on the live tre
 - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
 - `scripts/zigux/validate-phase3.py`
 - `scripts/zigux/phase3_catalog.py`
-- `zigux/bindings/abi.zig`
 - `zigux/bindings/notifier_abi.zig`
 - `zigux/tests/phase3_export_uapi_layout.zig`
 - `zigux/tests/phase3_export_uapi_layout_build.zig`
@@ -55,10 +86,10 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 ## Shared reminder follow-up
 
-`Documentation/zigux/README.md` still carries broader shared Phase 3 reminder language than the directly readable slices on current `master`, while `Documentation/zigux/review-checklist.md` and `zigux/tests/README.md` now match the bounded starter-packet-plus-helper-slice posture.
+`Documentation/zigux/review-checklist.md` still carries broader shared Phase 3 reminder language than the directly readable slices on current `master`, while `Documentation/zigux/README.md` and `zigux/tests/README.md` now match the bounded starter-packet-plus-helper-slice posture.
 
-Keep the remaining shared reminder follow-up focused on narrowing that broader docs-root surface so it stays anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, this note, the new manifest-backed starter packet, and the dedicated replay routes until additional current-tree-backed validator or export-boundary proof lands.
+Keep the remaining shared reminder follow-up focused on narrowing that broader review-checklist surface so it stays anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-bitmap-cpumask-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, this note, the manifest-backed starter packet, and the dedicated replay routes until additional current-tree-backed validator or export-boundary proof lands.
 
 ## Scope
 
-This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, its machine-readable manifest, and helper slice explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
+This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, its machine-readable manifest, and the three focused helper slices explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
