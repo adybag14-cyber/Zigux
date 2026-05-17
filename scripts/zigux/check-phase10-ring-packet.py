@@ -301,6 +301,16 @@ def run_self_test() -> int:
         )
         mutate_manifest(
             lambda manifest: next(
+                gap for gap in manifest["gaps"] if gap["id"] == "phase10-notify-prepare-helper"
+            ).__setitem__("kind", "validation"),
+            "manifest:gap_kind:phase10-notify-prepare-helper='validation'",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__("freeze_boundary_owner_lane", "P10-L10"),
+            "manifest:freeze_boundary_owner_lane='P10-L10'",
+        )
+        mutate_manifest(
+            lambda manifest: next(
                 gap for gap in manifest["gaps"] if gap["id"] == "phase10-ring-verify-replay"
             ).__setitem__("zigux_destination", "zigux/tests/phase10_virtio_ring_survey.zig"),
             "manifest:gap_destination:phase10-ring-verify-replay='zigux/tests/phase10_virtio_ring_survey.zig'",
