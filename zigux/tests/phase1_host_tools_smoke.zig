@@ -129,6 +129,11 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     var strerror_buffer: [64]u8 = undefined;
     try std.testing.expectEqualStrings("No such file or directory", str_error_r.strErrorR(2, &strerror_buffer));
     try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 64)=22", str_error_r.strErrorR(4096, &strerror_buffer));
+    var strerror_empty: [0]u8 = undefined;
+    try std.testing.expectEqualStrings("", str_error_r.strErrorR(2, &strerror_empty));
+    var strerror_tiny = [_]u8{0xaa};
+    try std.testing.expectEqualStrings("", str_error_r.strErrorR(4096, &strerror_tiny));
+    try std.testing.expectEqual(@as(u8, 0), strerror_tiny[0]);
 
     slab.kmalloc_nr_allocated = 0;
     try std.testing.expect(slab.kmallocBytes(8, 0) == null);
@@ -138,6 +143,8 @@ test "phase1 host-tools smoke exercises live helper behavior" {
         try std.testing.expectEqual(@as(u8, 0), value);
     }
     slab.kfree(slab_plain);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+    slab.kfree(null);
     try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
     try std.testing.expect(slab.slabIsAvailable());
 
@@ -149,6 +156,9 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     const scnprintf_pad_len = vsprintf.scnprintfPad(&vsprintf_pad_buffer, vsprintf_pad_buffer.len - 1, "id={d}", .{7});
     try std.testing.expect(scnprintf_pad_len <= vsprintf_pad_buffer.len - 1);
     try std.testing.expectEqualStrings("id=7    ", vsprintf_pad_buffer[0 .. vsprintf_pad_buffer.len - 1]);
+    var vsprintf_zero = [_]u8{ 'x', 'x', 'x', 'x' };
+    try std.testing.expectEqual(@as(usize, 0), vsprintf.scnprintfPad(&vsprintf_zero, 0, "{s}", .{"zigux"}));
+    try std.testing.expectEqual(@as(u8, 0), vsprintf_zero[0]);
 
     const allocator = std.testing.allocator;
     var zalloc_bytes: ?[]u8 = try zalloc.zallocBytes(allocator, 8);
@@ -159,6 +169,15 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     zalloc.zfreeBytes(allocator, &zalloc_bytes);
     try std.testing.expect(zalloc_bytes == null);
 
+    var zalloc_zero: ?[]u8 = try zalloc.zallocBytes(allocator, 0);
+    defer zalloc.zfreeBytes(allocator, &zalloc_zero);
+    try std.testing.expect(zalloc_zero != null);
+    try std.testing.expectEqual(@as(usize, 0), zalloc_zero.?.len);
+    zalloc.zfreeBytes(allocator, &zalloc_zero);
+    try std.testing.expect(zalloc_zero == null);
+    zalloc.zfreeBytes(allocator, &zalloc_zero);
+    try std.testing.expect(zalloc_zero == null);
+
     const ZallocValue = struct {
         a: u32,
         b: bool,
@@ -167,6 +186,8 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     defer zalloc.zfreeValue(allocator, ZallocValue, &zalloc_value);
     try std.testing.expectEqual(@as(u32, 0), zalloc_value.?.a);
     try std.testing.expectEqual(false, zalloc_value.?.b);
+    zalloc.zfreeValue(allocator, ZallocValue, &zalloc_value);
+    try std.testing.expect(zalloc_value == null);
     zalloc.zfreeValue(allocator, ZallocValue, &zalloc_value);
     try std.testing.expect(zalloc_value == null);
 }
