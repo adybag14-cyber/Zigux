@@ -24,8 +24,10 @@ MANIFEST_MARKERS = [
     '"lane_key": "P12-L04"',
     '"phase": "Phase 12"',
     '"anchor": "drivers/net/virtio_net.c"',
+    '"status": "starter_control_queue_payload_shape_refill_and_transmit_recycle_present_throughput_gate_missing"',
     '"id": "phase12-build-gate"',
     '"status": "shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay"',
+    '"id": "phase12-virtio-net-queue-recovery-followup"',
     '"id": "phase12-virtio-net-transmit-recycle-followup"',
     '"id": "phase12-virtio-net-runtime-data-path"',
     '"status": "blocked_on_dma_transport_runtime"',
@@ -34,8 +36,12 @@ MANIFEST_MARKERS = [
 SURVEY_NOTE_MARKERS = [
     "`PHASE12_STATUS=starter-present-transmit-recycle-followup`",
     "current `master` now also carries `drivers/net/virtio_net_transmit_recycle.zig`",
+    "freezeForReset()",
+    "recoveryQueuePlan()",
+    "restoreAfterReset()",
     "summarizeTransmitRecycle()",
     "current `master` now carries `zigux/tests/phase12_virtio_net_transmit_recycle.zig`",
+    "throughput and recovery parity remain roadmap requirements",
     "still does not claim live DMA-safe receive ownership",
 ]
 
@@ -43,8 +49,12 @@ SURVEY_GATE_MARKERS = [
     "phase12 virtio net survey manifest keeps the bounded transmit-recycle packet truthful",
     "phase12 virtio net survey note stays aligned with the bounded transmit-recycle follow-up",
     "phase12 virtio net survey gate keeps present lane files explicit",
+    "phase12 virtio net syntax lab keeps payload-shaping and recovery markers explicit",
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "drivers/net/virtio_net_transmit_recycle.zig",
+    "planControlQueuePayloadShape",
+    "controlQueueRecoveryPlan",
+    "requires_mergeable_buffer_refill",
     "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
 ]
 
@@ -133,6 +143,10 @@ def make_fixture_tree(root: Path) -> None:
                 "anchor": "drivers/net/virtio_net.c",
                 "gaps": [
                     {
+                        "id": "phase12-virtio-net-queue-recovery-followup",
+                        "status": "starter_landed",
+                    },
+                    {
                         "id": "phase12-build-gate",
                         "status": "shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay",
                     },
@@ -145,6 +159,11 @@ def make_fixture_tree(root: Path) -> None:
                         "status": "blocked_on_dma_transport_runtime",
                     },
                 ],
+                "roadmap_gap_check": {
+                    "throughput_and_recovery_parity": {
+                        "status": "starter_control_queue_payload_shape_refill_and_transmit_recycle_present_throughput_gate_missing"
+                    }
+                },
             },
             indent=2,
         )
@@ -190,6 +209,18 @@ def run_self_test() -> None:
                 raise
         else:
             raise AssertionError("expected manifest marker failure")
+        case_count += 1
+
+        make_fixture_tree(root)
+        broken_survey_gate = root / "zigux/tests/phase12_virtio_net_survey.zig"
+        broken_survey_gate.write_text("broken\n", encoding="utf-8")
+        try:
+            run_check(root)
+        except CheckError as err:
+            if "phase12_virtio_net_survey.zig" not in str(err):
+                raise
+        else:
+            raise AssertionError("expected survey-gate marker failure")
         case_count += 1
 
     print("PHASE12_VIRTIO_NET_PACKET_SELF_TEST=pass")
