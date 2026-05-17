@@ -135,6 +135,8 @@ def _sample_manifest() -> str:
                 "the narrower seam or policy change that makes the new review safe to consider",
             ],
             "handoff_required_markers": [
+                "`Documentation/zigux/review-checklist.md`",
+                "`Documentation/zigux/README.md`",
                 "`Documentation/zigux/phase15-architecture-council-review-process.md`",
                 "`Documentation/zigux/phase15-indefinite-c-policy.md`",
                 "`Documentation/zigux/phase15-shared-summary-gap.md`",
@@ -209,6 +211,8 @@ A later reopen request must not rely on generic intent alone. It must cite:
 def _sample_handoff_note() -> str:
     return """# Phase 15 Handoff Next Steps Survey
 
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`, which together keep one focused review-process checker plus the shared-summary gap checker materialized on current `master`
@@ -231,9 +235,9 @@ def _sample_gap_note() -> str:
 
 
 def _sample_test_file() -> str:
-    return """const std = @import("std");
+    return """const std = @import(\"std\");
 
-test "placeholder focused review-process replay exists" {
+test \"placeholder focused review-process replay exists\" {
     try std.testing.expect(true);
 }
 """
@@ -265,12 +269,12 @@ def run_self_test() -> int:
         _write(
             root / HANDOFF_NOTE_PATH,
             _sample_handoff_note().replace(
-                "- `scripts/zigux/check-phase15-review-process-handoff.py`\n", "", 1
+                "- `Documentation/zigux/review-checklist.md`\n", "", 1
             ),
         )
         failures = collect_failures(root)
         if failures != [
-            "handoff note is missing required marker: `scripts/zigux/check-phase15-review-process-handoff.py`"
+            "handoff note is missing required marker: `Documentation/zigux/review-checklist.md`"
         ]:
             raise AssertionError(f"unexpected handoff failure: {failures}")
 
