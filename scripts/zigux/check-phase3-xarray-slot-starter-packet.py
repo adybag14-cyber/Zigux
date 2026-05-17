@@ -10,6 +10,7 @@ from pathlib import Path
 
 SLICE_PATH = Path("Documentation/zigux/phase3-xarray-slot-slice.md")
 VALIDATOR_NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
+REMINDER_GAP_PATH = Path("Documentation/zigux/phase3-shared-reminder-gap.md")
 HELPER_PATH = Path("zigux/helpers/xarray_slot_view.zig")
 ERR_PTR_PATH = Path("zigux/helpers/err_ptr.zig")
 XA_VALUE_PATH = Path("zigux/helpers/xa_value.zig")
@@ -35,6 +36,14 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase3-xarray-slot-starter-packet.py",
         "`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still need one narrow truthfulness pass",
         "Keep the remaining follow-up focused on those three shared reminder surfaces so they stop parking the policy slice and the xarray-slot slice as broader missing routes",
+    ),
+    REMINDER_GAP_PATH: (
+        "the remaining shared Phase 3 reminder drift is the four-slice truthfulness pass across Documentation/zigux/README.md, zigux/tests/README.md, and Documentation/zigux/review-checklist.md",
+        "Documentation/zigux/phase3-xarray-slot-slice.md",
+        "Documentation/zigux/phase3-policy-slice.md",
+        "zigux/tests/phase3_xarray_slot_dump.zig",
+        "zigux/tests/phase3_policy_starter_packet.zig",
+        "Documentation/zigux/review-checklist.md` still needs the same four-slice narrowing pass.",
     ),
     HELPER_PATH: (
         'const err_ptr = @import("err_ptr");',
@@ -75,6 +84,7 @@ SAMPLE_FILES = {
 SELF_TEST_CASES = (
     (SLICE_PATH, "zigux/helpers/xarray_slot_view.zig"),
     (VALIDATOR_NOTE_PATH, "Documentation/zigux/phase3-policy-slice.md"),
+    (REMINDER_GAP_PATH, "Documentation/zigux/phase3-policy-slice.md"),
     (HELPER_PATH, "pub const SlotKind = enum {"),
     (TEST_PATH, 'test "xarray slot view keeps null slots explicit" {'),
     (BUILD_PATH, '"phase3-xarray-slot-starter-packet-test"'),
