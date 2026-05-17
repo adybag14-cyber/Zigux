@@ -1,0 +1,322 @@
+#!/usr/bin/env python3
+"""Guard the current directly readable Phase 2 toolchain pin-scope packet."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import tempfile
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
+DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
+REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
+TESTS_README = ROOT / "zigux" / "tests" / "README.md"
+TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
+TOOLCHAIN_CHECKER = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
+
+DOCS_ROOT_MARKERS = (
+    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2`",
+    "pinned Zig toolchain",
+)
+
+REVIEW_MARKERS = (
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2`",
+    "same pinned toolchain",
+)
+
+TESTS_MARKERS = (
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2`",
+    "pinned `x86_64-linux` bootstrap archive note",
+    "repo-local `.zig-toolchain` fallback reused",
+)
+
+TOOLCHAIN_CHECKER_MARKERS = (
+    'TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"',
+    "def load_min_version(",
+    "def load_pinned_channel(",
+    "def iter_repo_local_zig_candidates(",
+    "def resolve_zig_executable(",
+    'parser.add_argument("--policy-only"',
+)
+
+EXPECTED_PHASE = "Phase 2"
+EXPECTED_TARGETS = ["x86_64-linux"]
+EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate"]
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+EXPECTED_SELF_TEST_CASE_COUNT = 31
+
+
+def read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise SystemExit(f"required file missing: {path}") from exc
+
+
+def resolve_path(root: Path, path: Path) -> Path:
+    try:
+        return root / path.relative_to(ROOT)
+    except ValueError:
+        return root / path
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def replace_once(text: str, marker: str, replacement: str = "") -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, replacement, 1)
+
+
+def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker not in text]
+
+
+def validate_policy(payload: object) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    if not isinstance(payload, dict):
+        return [("INVALID_POLICY", "expected JSON object")]
+
+    if payload.get("phase") != EXPECTED_PHASE:
+        issues.append(("INVALID_POLICY", f"phase={payload.get('phase')!r}"))
+
+    channel = payload.get("channel")
+    minimum_version = payload.get("minimum_version")
+    if not isinstance(channel, str) or not channel:
+        issues.append(("INVALID_POLICY", "channel"))
+    if not isinstance(minimum_version, str) or not minimum_version:
+        issues.append(("INVALID_POLICY", "minimum_version"))
+    if isinstance(channel, str) and isinstance(minimum_version, str) and channel != minimum_version:
+        issues.append(("INVALID_POLICY", "channel_minimum_version_mismatch"))
+
+    archive_sha256 = payload.get("archive_sha256")
+    if not isinstance(archive_sha256, dict):
+        issues.append(("INVALID_POLICY", "archive_sha256"))
+    else:
+        if list(archive_sha256.keys()) != EXPECTED_TARGETS:
+            issues.append(("INVALID_POLICY", f"archive_sha256_keys={list(archive_sha256.keys())!r}"))
+        for target, digest in archive_sha256.items():
+            if not isinstance(digest, str) or SHA256_RE.fullmatch(digest) is None:
+                issues.append(("INVALID_POLICY", f"archive_sha256[{target}]"))
+
+    upgrade_policy = payload.get("upgrade_policy")
+    if not isinstance(upgrade_policy, dict):
+        issues.append(("INVALID_POLICY", "upgrade_policy"))
+    else:
+        if upgrade_policy.get("channel_minimum_lockstep") is not True:
+            issues.append(("INVALID_POLICY", "channel_minimum_lockstep"))
+        if upgrade_policy.get("archive_target_scope") != EXPECTED_TARGETS:
+            issues.append(("INVALID_POLICY", "archive_target_scope"))
+        if upgrade_policy.get("required_make_routes") != EXPECTED_REQUIRED_ROUTES:
+            issues.append(("INVALID_POLICY", "required_make_routes"))
+
+    return issues
+
+
+def collect_issues(root: Path) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    issues.extend(
+        collect_missing_markers(
+            read_text(resolve_path(root, DOCS_ROOT_README)),
+            DOCS_ROOT_MARKERS,
+            "MISSING_DOCS_ROOT_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            read_text(resolve_path(root, REVIEW_CHECKLIST)),
+            REVIEW_MARKERS,
+            "MISSING_REVIEW_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            read_text(resolve_path(root, TESTS_README)),
+            TESTS_MARKERS,
+            "MISSING_TESTS_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            read_text(resolve_path(root, TOOLCHAIN_CHECKER)),
+            TOOLCHAIN_CHECKER_MARKERS,
+            "MISSING_TOOLCHAIN_CHECKER_MARKERS",
+        )
+    )
+
+    policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+    try:
+        payload = json.loads(read_text(policy_path))
+    except json.JSONDecodeError as exc:
+        issues.append(("INVALID_POLICY_JSON", exc.msg))
+    else:
+        issues.extend(validate_policy(payload))
+
+    return issues
+
+
+def emit_issues(issues: list[tuple[str, str]]) -> int:
+    grouped: dict[str, list[str]] = {}
+    for code, value in issues:
+        grouped.setdefault(code, []).append(value)
+
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE=fail")
+    print("INVALID_PHASE2_TOOLCHAIN_PIN_SCOPE_START")
+    for code, values in grouped.items():
+        for value in values:
+            print(f"{code}:{value}")
+    print("INVALID_PHASE2_TOOLCHAIN_PIN_SCOPE_END")
+    return 1
+
+
+def build_self_test_root(root: Path) -> None:
+    write_text(resolve_path(root, DOCS_ROOT_README), "\n".join(["# docs", *DOCS_ROOT_MARKERS]) + "\n")
+    write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(["# review", *REVIEW_MARKERS]) + "\n")
+    write_text(resolve_path(root, TESTS_README), "\n".join(["# tests", *TESTS_MARKERS]) + "\n")
+    write_text(
+        resolve_path(root, TOOLCHAIN_CHECKER),
+        "\n".join(["#!/usr/bin/env python3", *TOOLCHAIN_CHECKER_MARKERS]) + "\n",
+    )
+    write_text(
+        resolve_path(root, TOOLCHAIN_POLICY),
+        json.dumps(
+            {
+                "phase": EXPECTED_PHASE,
+                "channel": "0.17.0-dev.87+9b177a7d2",
+                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "archive_sha256": {"x86_64-linux": "3" * 64},
+                "upgrade_policy": {
+                    "channel_minimum_lockstep": True,
+                    "archive_target_scope": EXPECTED_TARGETS,
+                    "required_make_routes": EXPECTED_REQUIRED_ROUTES,
+                },
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+
+
+def run_self_test() -> int:
+    checks_run = 0
+    with tempfile.TemporaryDirectory(prefix="zigux_phase2_toolchain_pin_scope_") as tmp_dir:
+        root = Path(tmp_dir)
+
+        build_self_test_root(root)
+        assert collect_issues(root) == []
+        checks_run += 1
+
+        for marker in DOCS_ROOT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, DOCS_ROOT_README)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_DOCS_ROOT_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in REVIEW_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_REVIEW_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in TESTS_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_TESTS_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_CHECKER)
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), TOOLCHAIN_CHECKER_MARKERS[0]), encoding="utf-8")
+        assert ("MISSING_TOOLCHAIN_CHECKER_MARKERS", TOOLCHAIN_CHECKER_MARKERS[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["minimum_version"] = "0.16.0"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_POLICY", "channel_minimum_version_mismatch") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["archive_sha256"] = {"aarch64-linux": "3" * 64}
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_POLICY", "archive_sha256_keys=['aarch64-linux']") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        path.write_text("{not-json}\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(code == "INVALID_POLICY_JSON" for code, _ in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve_path(root, DOCS_ROOT_README).unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+        else:
+            raise AssertionError("missing docs root readme did not abort")
+        checks_run += 1
+
+    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT={checks_run}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Check that the current directly readable Phase 2 toolchain pin-scope packet stays aligned."
+    )
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = collect_issues(args.root.resolve())
+    if issues:
+        return emit_issues(issues)
+
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE=pass")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_DOCS_MARKER_COUNT={len(DOCS_ROOT_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_REVIEW_MARKER_COUNT={len(REVIEW_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_TESTS_MARKER_COUNT={len(TESTS_MARKERS)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
