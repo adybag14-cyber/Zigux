@@ -35,6 +35,7 @@ EXPECTED_STRING_PACKET = {
         'test "strscpyPad stops at embedded NUL and pads the remaining tail"',
         'test "strscpyPad preserves strscpy truncation semantics"',
         'test "strscpy_pad mirrors strscpyPad padding semantics"',
+        'test "strscpy and strscpyPad keep one-byte destinations terminated"',
         'test "streq matches C-string equality semantics"',
         'test "skip trim remove and replace spaces work in place"',
         'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
@@ -124,6 +125,7 @@ EXPECTED_STRING_PACKET = {
         'test "strscpyPad stops at embedded NUL and pads the remaining tail"',
         'test "strscpyPad preserves strscpy truncation semantics"',
         'test "strscpy_pad mirrors strscpyPad padding semantics"',
+        'test "strscpy and strscpyPad keep one-byte destinations terminated"',
     ],
     "strscpy_review_summary": (
         "helper-local string copy-and-pad anchors stay explicit through the direct string tests "
