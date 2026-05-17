@@ -85,6 +85,58 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     try expectGapStatus(manifest, "phase14-workqueue-scheduler-visible-worker-state-refinement", "starter_landed");
     try expectGapStatus(manifest, "phase14-workqueue-live-execution-blocker", "blocked_on_live_concurrency");
 
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-workqueue-bridge-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE14_LANE_KEY=P14-L04") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE14_SLICE=phase14-workqueue-scheduler-visible-worker-state-refinement") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase14_workqueue_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "blocked maintenance") != null);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_STATUS=blocked_maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L04") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=9b98d3b9c812840bf279508030be0b8de093736c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-workqueue-scheduler-visible-worker-state-refinement") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared Phase 14 smoke packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14_workqueue_reviewability.zig") != null);
+
+    const traceability_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(traceability_note);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "`kernel/workqueue.c`: `Study / Boundary Only`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "`kernel/workqueue_bridge.zig` remains review-only boundary evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "delayed-work requeue ownership") != null);
+
+    const smoke_survey = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(smoke_survey);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_survey, "`zigux/tests/phase14_workqueue_reviewability.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        smoke_survey,
+        "workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L04`, surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, ready-next `none currently recorded`, blocked `phase14-workqueue-live-execution-blocker`",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_survey, "`phase14-workqueue-reviewability-tests` -> `phase14_workqueue_reviewability.zig` -> `full_bundle_only`") != null);
+
     const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
