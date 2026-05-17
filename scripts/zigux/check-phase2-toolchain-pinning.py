@@ -151,9 +151,14 @@ EXPECTED_TOOL_MANIFEST = {
         "scripts/zigux/check-phase2-cross.py",
         "zigux/tests/fixtures/phase2_cross_targets.json",
     ],
+    "notes": [
+        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, required make-route guard, kbuild routes checker, cross-selftest checker, and kconfig bridge fixture roster.",
+        "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
+        "Do not treat missing validator-first, cross-route, installer, and Linux-style make replay names as directly readable current-master evidence until they are republished.",
+    ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 93
+EXPECTED_SELF_TEST_CASE_COUNT = 94
 
 
 def read_text(path: Path) -> str:
@@ -277,6 +282,14 @@ def collect_tool_manifest_issues(root: Path) -> list[tuple[str, str]]:
             (
                 "TOOL_MANIFEST_REPO_GAPS_MISMATCH",
                 f"actual={payload.get('repo_reality_gaps')!r}:expected={EXPECTED_TOOL_MANIFEST['repo_reality_gaps']!r}",
+            )
+        )
+
+    if payload.get("notes") != EXPECTED_TOOL_MANIFEST["notes"]:
+        issues.append(
+            (
+                "TOOL_MANIFEST_NOTES_MISMATCH",
+                f"actual={payload.get('notes')!r}:expected={EXPECTED_TOOL_MANIFEST['notes']!r}",
             )
         )
 
@@ -596,6 +609,13 @@ def run_self_test() -> int:
         mutate_json(path, lambda payload: payload.__setitem__("repo_reality_gaps", []))
         issues = collect_issues(root)
         assert any(code == "TOOL_MANIFEST_REPO_GAPS_MISMATCH" for code, _ in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOL_MANIFEST_PATH)
+        mutate_json(path, lambda payload: payload.__setitem__("notes", []))
+        issues = collect_issues(root)
+        assert any(code == "TOOL_MANIFEST_NOTES_MISMATCH" for code, _ in issues)
         checks_run += 1
 
         build_self_test_root(root)
