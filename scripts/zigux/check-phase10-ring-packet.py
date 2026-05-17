@@ -127,6 +127,24 @@ EXPECTED_GAPS = {
     "phase10-virtio-ring-slice-note": {"status": "starter_landed", "kind": "documentation", "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md"},
     "phase10-ring-lab-driver-bridge": {"status": "blocked_on_risky_transport", "kind": "roadmap_gap", "zigux_destination": "drivers/virtio/virtio_mmio.zig"},
 }
+EXPECTED_GAP_WHY_NOW = {
+    "phase10-build-gate": "Current direct readback still materializes the shared Phase 10 build gate even while the direct ring helper and replay packet has dropped out of current master.",
+    "phase10-virtio-core-lab-starter": "Fresh direct contents reads now return missing for the broader core foothold, so the ring packet must treat that path as absent repo reality rather than as current direct evidence.",
+    "phase10-virtio-ring-survey-gate": "The dedicated ring survey replay no longer materializes through current master contents reads, so the ring packet should keep that gate explicit as a missing direct surface instead of a landed replay.",
+    "phase10-virtio-ring-survey-note": "The survey note itself is still directly readable and is the narrowest place to record the current ring packet truthfully.",
+    "phase10-virtqueue-shape-helper": "The queue-shape helper path is currently missing on master, so the ring packet must treat it as a repo-reality gap until a fresh reread materializes the file again.",
+    "phase10-used-buffer-polling-helper": "The used-buffer polling helper remains part of the bounded ring vocabulary, but its direct helper file is currently absent on master.",
+    "phase10-callback-enable-helper": "The callback re-enable helper is still a ring-lane destination, yet current direct readback does not materialize the owning helper file.",
+    "phase10-callback-delay-helper": "The delayed-callback helper should stay explicit as a ring packet destination, but it is not currently backed by a readable direct helper file on master.",
+    "phase10-notify-prepare-helper": "The notify-prepare helper remains part of the ring packet vocabulary while its direct helper file is currently missing from contents reads.",
+    "phase10-notification-data-summary-helper": "The notification-data summary helper should stay explicit as a ring packet destination, but current master no longer materializes the helper file itself.",
+    "phase10-broken-queue-poll-guard": "The broken-queue polling guard remains bounded ring vocabulary even though the direct ring helper file is absent on current master.",
+    "phase10-queue-reset-helper": "The reset helper should stay listed as a ring-lane destination, but a fresh direct reread still returns missing for the helper file that would carry it.",
+    "phase10-queue-reset-readiness-helper": "The reset-readiness helper remains a bounded ring packet target, but it is currently absent as direct contents evidence on master.",
+    "phase10-ring-verify-replay": "The wrapper-facing verify replay path no longer materializes through current master contents reads, so the ring packet must mark it as a direct repo-reality gap.",
+    "phase10-virtio-ring-slice-note": "The packet-local slice note is still directly readable and can carry the narrowed ring packet vocabulary without overstating missing helper and replay files as present evidence.",
+    "phase10-ring-lab-driver-bridge": "Transport-backed queue discovery, IRQ acknowledgement, queue reset execution, and probe/remove lifecycle behavior remain blocked behind the adjacent MMIO-owned bridge.",
+}
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -185,6 +203,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:gap_kind:{gap_id}={gap.get('kind')!r}")
         if gap.get("zigux_destination") != expected["zigux_destination"]:
             missing_markers.append(f"manifest:gap_destination:{gap_id}={gap.get('zigux_destination')!r}")
+        if gap.get("why_now") != EXPECTED_GAP_WHY_NOW[gap_id]:
+            missing_markers.append(f"manifest:gap_why_now:{gap_id}={gap.get('why_now')!r}")
 
     return [], missing_markers
 
@@ -211,7 +231,7 @@ def write_fixture(root: Path) -> None:
                         "status": expected["status"],
                         "kind": expected["kind"],
                         "zigux_destination": expected["zigux_destination"],
-                        "why_now": f"synthetic:{gap_id}",
+                        "why_now": EXPECTED_GAP_WHY_NOW[gap_id],
                     }
                     for gap_id, expected in EXPECTED_GAPS.items()
                 ],
@@ -314,6 +334,12 @@ def run_self_test() -> int:
                 gap for gap in manifest["gaps"] if gap["id"] == "phase10-ring-verify-replay"
             ).__setitem__("zigux_destination", "zigux/tests/phase10_virtio_ring_survey.zig"),
             "manifest:gap_destination:phase10-ring-verify-replay='zigux/tests/phase10_virtio_ring_survey.zig'",
+        )
+        mutate_manifest(
+            lambda manifest: next(
+                gap for gap in manifest["gaps"] if gap["id"] == "phase10-notification-data-summary-helper"
+            ).__setitem__("why_now", "synthetic drift"),
+            "manifest:gap_why_now:phase10-notification-data-summary-helper='synthetic drift'",
         )
 
         slice_path = root / "Documentation/zigux/phase10-virtio-ring-slice.md"
