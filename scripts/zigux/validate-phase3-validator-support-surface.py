@@ -58,11 +58,11 @@ REQUIRED_MARKERS = (
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-    "`Documentation/zigux/README.md` and `zigux/tests/README.md` now reflect that bounded three-slice posture",
-    "`Documentation/zigux/review-checklist.md` is the remaining shared reminder surface that still needs the same three-slice wording refresh",
-    "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for that checklist-only follow-through.",
-    "`scripts/zigux/README.md` remains parked on the older scripts-root absent-route wording around the broader inventory",
-    "Keep any remaining follow-up focused on either the review-checklist wording repair or the separate scripts-root inventory truthfulness packet if one of those broader surfaces drifts again.",
+    "`Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
+    "`zigux/tests/README.md` carries the bounded three-slice Phase 3 summary overall, but one shared follow-through sentence still over-groups the docs root and checklist with work that is already closed; keep the next reminder repair limited to that tests-root sentence.",
+    "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for that narrower tests-root follow-through.",
+    "`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.",
+    "Keep any remaining follow-up focused on that one tests-root sentence cleanup or on a separate scripts-root inventory drift if that broader surface changes again.",
     "This note is limited to the current validator-support posture for Phase 3.",
 )
 
@@ -76,20 +76,20 @@ SELF_TEST_CASES = (
         "scripts/zigux/validate-phase3.py",
     ),
     (
-        "`Documentation/zigux/README.md` and `zigux/tests/README.md` now reflect that bounded three-slice posture",
-        "`Documentation/zigux/README.md` and `zigux/tests/README.md` now reflect that bounded three-slice posture",
+        "`Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
+        "`Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
     ),
     (
-        "`Documentation/zigux/review-checklist.md` is the remaining shared reminder surface that still needs the same three-slice wording refresh",
-        "`Documentation/zigux/review-checklist.md` is the remaining shared reminder surface that still needs the same three-slice wording refresh",
+        "`zigux/tests/README.md` carries the bounded three-slice Phase 3 summary overall, but one shared follow-through sentence still over-groups the docs root and checklist with work that is already closed; keep the next reminder repair limited to that tests-root sentence.",
+        "`zigux/tests/README.md` carries the bounded three-slice Phase 3 summary overall, but one shared follow-through sentence still over-groups the docs root and checklist with work that is already closed; keep the next reminder repair limited to that tests-root sentence.",
     ),
     (
-        "`scripts/zigux/README.md` remains parked on the older scripts-root absent-route wording around the broader inventory",
-        "`scripts/zigux/README.md` remains parked on the older scripts-root absent-route wording around the broader inventory",
+        "`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.",
+        "`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.",
     ),
     (
-        "Keep any remaining follow-up focused on either the review-checklist wording repair or the separate scripts-root inventory truthfulness packet if one of those broader surfaces drifts again.",
-        "Keep any remaining follow-up focused on either the review-checklist wording repair or the separate scripts-root inventory truthfulness packet if one of those broader surfaces drifts again.",
+        "Keep any remaining follow-up focused on that one tests-root sentence cleanup or on a separate scripts-root inventory drift if that broader surface changes again.",
+        "Keep any remaining follow-up focused on that one tests-root sentence cleanup or on a separate scripts-root inventory drift if that broader surface changes again.",
     ),
 )
 EXPECTED_SELF_TEST_CASE_COUNT = len(SELF_TEST_CASES) + 1
