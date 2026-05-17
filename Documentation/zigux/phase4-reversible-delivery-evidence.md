@@ -24,7 +24,7 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=98010ca557a586fe12cd770458e27c94b5ef0813`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=2e16726fec8500136f25afae73e415dbc977faa7`
   * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`
-  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9`
+  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11`
   * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`
 ## Current Packet
 
@@ -39,7 +39,7 @@ Current direct-readback packet members:
   * `scripts/zigux/check-phase4-repo-reality-warning.py`
   * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
 
-The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.
+The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.
 
 The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run: authenticated contents reads returned missing for `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`. Public current-`master` fallback readback still exposes those broader companions, so keep the shared owner map narrow until authenticated exact reads recover instead of treating public fallback visibility as current direct-readback proof. The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.
 
@@ -47,7 +47,7 @@ Historical broader packet references still include `scripts/zigux/artifact_diff.
 
 Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` also return missing on current `master`, even though public current-`master` fallback readback still exposes those roadmap-backed differential-gate destinations. Keep that pair parked as authenticated-readback repo-reality gaps instead of listing them as current direct-readback packet members.
 
-The tests-root guide already keeps the broader packet missing-warning aligned, and the repo-reality warning checker now fails closed on that broader-packet distinction between authenticated direct-readback gaps and public current-`master` fallback visibility. The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, local-only perf, and bitmap-diff packet is directly readable again, while the roadmap-backed `atomic64_diff` pair stays framed as missing current-head destinations until a same-family lane mirrors that fallback-visibility distinction there or republishes the pair. The next same-family follow-through inside this live warning packet is therefore either one tests-root wording sync for the `atomic64_diff` fallback-visibility distinction or one missing broader companion refresh before any fresh exact-pin pass against still-missing companions.
+The tests-root guide already keeps the broader packet missing-warning aligned, and the repo-reality warning checker now fails closed on that broader-packet distinction between authenticated direct-readback gaps and public current-`master` fallback visibility. The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, local-only perf companions, the bitmap-diff companions, or the roadmap-backed `atomic64_diff` pair are presently readable on current `master`.
 
 Historical broader validator and owner-map packet members:
   * `Documentation/zigux/artifact-diff.md`
