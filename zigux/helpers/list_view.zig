@@ -1,69 +1,54 @@
 const std = @import("std");
+const abi = @import("list_hlist_binding");
 
-fn ptrFromRaw(raw: usize) ?*const ListHead {
+fn pointerFromRaw(raw: usize) ?*const abi.ListHead {
     if (raw == 0) return null;
-    const node: *const ListHead = @ptrFromInt(raw);
-    return node;
+    const ptr: *const abi.ListHead = @ptrFromInt(raw);
+    return ptr;
 }
 
-pub const ListHead = extern struct {
-    next: usize,
-    prev: usize,
-};
-
-pub const BackLinkBreak = struct {
-    current_index: usize,
-    expected_prev: usize,
-    actual_prev: usize,
-};
-
 pub const Iterator = struct {
-    head: *const ListHead,
-    current: ?*const ListHead = null,
-    started: bool = false,
+    head: *const abi.ListHead,
+    current: ?*const abi.ListHead,
 
-    pub fn next(self: *Iterator) ?*const ListHead {
-        const candidate = if (!self.started) blk: {
-            self.started = true;
-            break :blk ptrFromRaw(self.head.next) orelse return null;
-        } else blk: {
-            const node = self.current orelse return null;
-            break :blk ptrFromRaw(node.next) orelse return null;
-        };
-
-        if (candidate == self.head) {
+    pub fn next(self: *Iterator) ?*const abi.ListHead {
+        const node = self.current orelse return null;
+        const next_node = pointerFromRaw(node.next) orelse {
             self.current = null;
-            return null;
-        }
-
-        self.current = candidate;
-        return candidate;
+            return node;
+        };
+        self.current = if (next_node == self.head) null else next_node;
+        return node;
     }
 };
 
 pub const ListView = struct {
-    head: *const ListHead,
+    head: *const abi.ListHead,
 
-    pub fn init(head: *const ListHead) ListView {
+    pub fn init(head: *const abi.ListHead) ListView {
         return .{ .head = head };
     }
 
     pub fn isEmpty(self: ListView) bool {
-        return self.head.next == @intFromPtr(self.head);
+        const head_addr = @intFromPtr(self.head);
+        return self.head.next == head_addr and self.head.prev == head_addr;
     }
 
-    pub fn first(self: ListView) ?*const ListHead {
-        const node = ptrFromRaw(self.head.next) orelse return null;
-        return if (node == self.head) null else node;
+    pub fn first(self: ListView) ?*const abi.ListHead {
+        if (self.isEmpty()) return null;
+        return pointerFromRaw(self.head.next);
     }
 
-    pub fn last(self: ListView) ?*const ListHead {
-        const node = ptrFromRaw(self.head.prev) orelse return null;
-        return if (node == self.head) null else node;
+    pub fn last(self: ListView) ?*const abi.ListHead {
+        if (self.isEmpty()) return null;
+        return pointerFromRaw(self.head.prev);
     }
 
     pub fn iterator(self: ListView) Iterator {
-        return .{ .head = self.head };
+        return .{
+            .head = self.head,
+            .current = self.first(),
+        };
     }
 
     pub fn len(self: ListView) usize {
@@ -75,71 +60,38 @@ pub const ListView = struct {
         return count;
     }
 
-    pub fn hasConsistentBacklinks(self: ListView) bool {
-        return self.firstBrokenBacklink() == null;
-    }
+    pub fn isCircular(self: ListView) bool {
+        const head_addr = @intFromPtr(self.head);
+        if (self.head.next == 0 or self.head.prev == 0) return false;
+        if (self.isEmpty()) return true;
 
-    pub fn firstBrokenBacklink(self: ListView) ?BackLinkBreak {
-        var expected_prev = @intFromPtr(self.head);
-        var current_index: usize = 0;
-        var cursor = ptrFromRaw(self.head.next) orelse {
-            return .{
-                .current_index = 0,
-                .expected_prev = expected_prev,
-                .actual_prev = 0,
-            };
-        };
+        const first_node = self.first() orelse return false;
+        var current = first_node;
+        var steps: usize = 0;
 
-        while (cursor != self.head) {
-            if (cursor.prev != expected_prev) {
-                return .{
-                    .current_index = current_index,
-                    .expected_prev = expected_prev,
-                    .actual_prev = cursor.prev,
-                };
+        while (true) {
+            steps += 1;
+            if (steps > 1024) return false;
+
+            const next = pointerFromRaw(current.next) orelse return false;
+            const prev = pointerFromRaw(current.prev) orelse return false;
+            if (next.prev != @intFromPtr(current)) return false;
+            if (prev.next != @intFromPtr(current)) return false;
+
+            if (next == self.head) {
+                return self.head.prev == @intFromPtr(current) and self.head.next == @intFromPtr(first_node);
             }
 
-            expected_prev = @intFromPtr(cursor);
-            current_index += 1;
-            cursor = ptrFromRaw(cursor.next) orelse {
-                return .{
-                    .current_index = current_index,
-                    .expected_prev = expected_prev,
-                    .actual_prev = 0,
-                };
-            };
+            if (@intFromPtr(next) == head_addr) return false;
+            current = next;
         }
-
-        if (self.head.prev != expected_prev) {
-            return .{
-                .current_index = current_index,
-                .expected_prev = expected_prev,
-                .actual_prev = self.head.prev,
-            };
-        }
-
-        return null;
     }
 };
 
-test "list view treats a sentinel-only list as empty" {
-    var head = ListHead{ .next = 0, .prev = 0 };
-    head.next = @intFromPtr(&head);
-    head.prev = @intFromPtr(&head);
-
-    const view = ListView.init(&head);
-    try std.testing.expect(view.isEmpty());
-    try std.testing.expectEqual(@as(usize, 0), view.len());
-    try std.testing.expectEqual(@as(?*const ListHead, null), view.first());
-    try std.testing.expectEqual(@as(?*const ListHead, null), view.last());
-    try std.testing.expect(view.hasConsistentBacklinks());
-    try std.testing.expect(view.firstBrokenBacklink() == null);
-}
-
-test "list view walks a circular list_head chain in order" {
-    var head = ListHead{ .next = 0, .prev = 0 };
-    var first = ListHead{ .next = 0, .prev = 0 };
-    var second = ListHead{ .next = 0, .prev = 0 };
+test "list view walks bounded circular list entries" {
+    var head = abi.ListHead{ .next = 0, .prev = 0 };
+    var first = abi.ListHead{ .next = 0, .prev = 0 };
+    var second = abi.ListHead{ .next = 0, .prev = 0 };
 
     head.next = @intFromPtr(&first);
     head.prev = @intFromPtr(&second);
@@ -151,31 +103,25 @@ test "list view walks a circular list_head chain in order" {
     const view = ListView.init(&head);
     try std.testing.expect(!view.isEmpty());
     try std.testing.expectEqual(@as(usize, 2), view.len());
-    try std.testing.expectEqual(@as(?*const ListHead, &first), view.first());
-    try std.testing.expectEqual(@as(?*const ListHead, &second), view.last());
+    try std.testing.expect(view.isCircular());
+    try std.testing.expectEqual(@as(*const abi.ListHead, &first), view.first().?);
+    try std.testing.expectEqual(@as(*const abi.ListHead, &second), view.last().?);
 
     var it = view.iterator();
-    try std.testing.expectEqual(@as(?*const ListHead, &first), it.next());
-    try std.testing.expectEqual(@as(?*const ListHead, &second), it.next());
-    try std.testing.expectEqual(@as(?*const ListHead, null), it.next());
-    try std.testing.expect(view.hasConsistentBacklinks());
+    try std.testing.expectEqual(@as(?*const abi.ListHead, &first), it.next());
+    try std.testing.expectEqual(@as(?*const abi.ListHead, &second), it.next());
+    try std.testing.expectEqual(@as(?*const abi.ListHead, null), it.next());
 }
 
-test "list view reports the first broken backlink witness" {
-    var head = ListHead{ .next = 0, .prev = 0 };
-    var first = ListHead{ .next = 0, .prev = 0 };
-    var second = ListHead{ .next = 0, .prev = 0 };
+test "list view keeps empty sentinel behavior explicit" {
+    var head = abi.ListHead{ .next = 0, .prev = 0 };
+    head.next = @intFromPtr(&head);
+    head.prev = @intFromPtr(&head);
 
-    head.next = @intFromPtr(&first);
-    head.prev = @intFromPtr(&second);
-    first.next = @intFromPtr(&second);
-    first.prev = @intFromPtr(&head);
-    second.next = @intFromPtr(&head);
-    second.prev = @intFromPtr(&head);
-
-    const breakage = ListView.init(&head).firstBrokenBacklink().?;
-    try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
-    try std.testing.expectEqual(@as(usize, @intFromPtr(&first)), breakage.expected_prev);
-    try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.actual_prev);
-    try std.testing.expect(!ListView.init(&head).hasConsistentBacklinks());
+    const view = ListView.init(&head);
+    try std.testing.expect(view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 0), view.len());
+    try std.testing.expect(view.isCircular());
+    try std.testing.expect(view.first() == null);
+    try std.testing.expect(view.last() == null);
 }
