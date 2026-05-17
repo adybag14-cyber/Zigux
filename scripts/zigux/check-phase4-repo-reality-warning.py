@@ -10,7 +10,6 @@ import tempfile
 from pathlib import Path
 
 NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
-DOCS_README = Path("Documentation/zigux/README.md")
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 README = Path("zigux/tests/README.md")
 SELF = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
@@ -54,23 +53,6 @@ NOTE_REQ = (
     "The tests-root guide already keeps the broader packet missing-warning aligned, and the repo-reality warning checker now fails closed on that broader-packet distinction between authenticated direct-readback gaps and public current-`master` fallback visibility.",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
     "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
-)
-
-DOCS_README_PENDING_REQ = (
-    "Phase 4 notes - `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` now keep the current direct-readback rollback packet reviewable from the docs root while the broader validator, lab-matrix, local-only perf, and bitmap-diff companions remain repo-reality gaps on current `master`.",
-    "`Documentation/zigux/phase4-gate-evidence.md`",
-    "`Documentation/zigux/phase4-validation-matrix.md`",
-    "`scripts/zigux/check-phase4-gate-evidence.py`",
-    "`scripts/zigux/check-phase4-perf-baseline-packet.py`",
-    "`scripts/zigux/validate-phase4.py`",
-    "`zigux/tests/phase4_build.zig`",
-    "`zigux/tests/phase4_perf_baseline_manifest.json`",
-    "`zigux/tests/phase4_perf_baseline_survey.zig`",
-    "`zigux/tests/atomic64_diff.zig`",
-    "`zigux/tests/runtime_atomic64_diff.zig`",
-    "`zigux/tests/bitmap_diff.zig`",
-    "`zigux/tests/phase4_bitmap_live_helper_replay.zig`",
-    "keep the pending shared-CI perf-promotion posture explicit instead of implying those broader Phase 4 routes are live current-head evidence.",
 )
 
 README_OWNER_MARKERS = (
@@ -163,11 +145,9 @@ def _require_direct_packet(root: Path) -> None:
 
 def check(root: Path) -> None:
     note = read(root, NOTE)
-    docs_readme = read(root, DOCS_README)
     checklist = read(root, CHECKLIST)
     readme = read(root, README)
     require(note, NOTE_REQ + DIRECT_READBACK_PACKET + MISSING_BROADER_PACKET, "phase4 note")
-    require(docs_readme, DOCS_README_PENDING_REQ, "docs README")
     require(readme, README_PENDING_REQ + MISSING_BROADER_PACKET, "tests README")
     require(checklist, CHECKLIST_PENDING_REQ, "review checklist")
     require_exact_self_test_count(
@@ -207,16 +187,6 @@ def baseline_note() -> str:
     ) + "\n"
 
 
-def baseline_docs_readme() -> str:
-    return "\n".join(
-        [
-            "# Zigux Documentation",
-            DOCS_README_PENDING_REQ[0],
-            *DOCS_README_PENDING_REQ[1:],
-        ]
-    ) + "\n"
-
-
 def baseline_tests_readme() -> str:
     return "\n".join(
         [
@@ -239,7 +209,6 @@ def baseline_checklist() -> str:
 
 def build_baseline_tree(root: Path) -> None:
     write(root, NOTE, baseline_note())
-    write(root, DOCS_README, baseline_docs_readme())
     write(root, README, baseline_tests_readme())
     write(root, CHECKLIST, baseline_checklist())
     write(root, SELF, "# repo-reality warning checker placeholder\n")
@@ -288,22 +257,6 @@ def main() -> int:
                 raise AssertionError(
                     "expected stale repo-reality warning self-test count to fail"
                 )
-
-            build_baseline_tree(root)
-            docs_readme_path = root / DOCS_README
-            docs_readme_path.write_text(
-                docs_readme_path.read_text(encoding="utf-8").replace(
-                    DOCS_README_PENDING_REQ[-1],
-                    "pending perf posture drifted",
-                ),
-                encoding="utf-8",
-            )
-            try:
-                check(root)
-            except RuntimeError:
-                cases += 1
-            else:
-                raise AssertionError("expected docs README repo-reality drift to fail")
 
             build_baseline_tree(root)
             readme_path = root / README
@@ -411,6 +364,24 @@ def main() -> int:
             else:
                 raise AssertionError(
                     "expected missing artifact-diff contract marker to fail"
+                )
+
+            build_baseline_tree(root)
+            note_path = root / NOTE
+            note_path.write_text(
+                note_path.read_text(encoding="utf-8").replace(
+                    "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, local-only perf, and bitmap-diff packet is directly readable again.",
+                    "The Phase 4 repo-reality warning next-step wording drifted.",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError(
+                    "expected note next-step drift to fail"
                 )
 
         print("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass")
