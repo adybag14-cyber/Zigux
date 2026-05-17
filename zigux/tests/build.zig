@@ -49,6 +49,11 @@ fn addPhase1HostToolsSmoke(
         .target = target,
         .optimize = optimize,
     });
+    const rbtree_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/rbtree.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const string_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/string.zig"),
         .target = target,
@@ -60,6 +65,7 @@ fn addPhase1HostToolsSmoke(
     root_module.addImport("cmdline", cmdline_module);
     root_module.addImport("find_bit", find_bit_module);
     root_module.addImport("bitmap", bitmap_module);
+    root_module.addImport("rbtree", rbtree_module);
     root_module.addImport("string", string_module);
 
     const tests = b.addTest(.{
