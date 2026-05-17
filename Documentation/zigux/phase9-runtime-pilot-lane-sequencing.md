@@ -53,12 +53,14 @@ This lane may:
 - keep `samples/zigux/runtime_trace_events_unregistered_gate.zig` explicit as the same packet's fail-closed companion
 - keep the shipped `scripts/zigux/check-phase9-trace-events-runtime-packet.py` guard explicit as part of the narrow current review packet
 - keep the roadmap target explicit without pretending the broader shared runtime-loader family is still shipped
+- keep the freeze-map study-only anchors explicit: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` still belong to `Documentation/zigux/freeze-map.md` as boundary-study-only anchors, so this lane may use them only as cautionary non-owner context rather than as proof of runtime-substrate or bridge readiness
 
 This lane should not reopen:
 
 - new runtime behavior or sample semantics based only on stale reminder wording
 - checker or validator growth when the real issue is a stale shared summary
 - backlog promotion of removed `phase9_build`, shared runtime-loader, or multi-sample runtime packet surfaces without a fresh repo reread that proves they have returned
+- `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as runtime-pilot follow-up targets, implied bridge candidates, or evidence that the surviving trace-events packet has crossed the freeze-map study boundary
 
 ## Shared reminder packet rules
 
@@ -68,8 +70,9 @@ This lane should not reopen:
 4. Do not describe `zigux/tests/phase9_build.zig`, shared `zigux/tests/runtime_*` replays, shared runtime-loader kernel files, `zigux/Makefile`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds as shipped evidence unless a fresh repo reread proves they have returned.
 5. Treat the older `phase9-runtime-loader-gap-survey` note plus the `runtime_loader_gap_*` survey companions as historical blocked-boundary vocabulary, not as current shared-owner proof for the surviving narrow packet, unless a fresh repo reread proves the broader loader family returned.
 6. Treat stale reminder overclaim as the active blocker before reopening checker-local or runtime-behavior work.
-7. Refresh one shared reminder surface at a time when the tree changes again.
-8. If the broader shared runtime-loader packet returns later, reread the exact file family before widening this note back out.
+7. Keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` framed as freeze-map study-only anchors instead of letting the surviving runtime-pilot packet imply deeper runtime-substrate or bridge readiness across those boundaries.
+8. Refresh one shared reminder surface at a time when the tree changes again.
+9. If the broader shared runtime-loader packet returns later, reread the exact file family before widening this note back out.
 
 ## Recommended next-step order
 
@@ -80,4 +83,4 @@ This lane should not reopen:
 
 ## Anti-overlap rule
 
-If a scheduled run is assigned shared Phase 9 backlog or governance work, keep the run inside repo-reality rereads and one-file reminder repair. Do not reopen runtime behavior just because older notes still remember the removed shared runtime-loader packet, and do not treat absent loader, build, kernel, or sample paths as live evidence.
+If a scheduled run is assigned shared Phase 9 backlog or governance work, keep the run inside repo-reality rereads and one-file reminder repair. Do not reopen runtime behavior just because older notes still remember the removed shared runtime-loader packet, do not treat `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as runtime-pilot expansion evidence, and do not treat absent loader, build, kernel, or sample paths as live evidence.
