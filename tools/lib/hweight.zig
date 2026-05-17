@@ -41,10 +41,27 @@ pub fn hweightLong(value: usize) usize {
         @intCast(swHweight64(@intCast(value)));
 }
 
+pub const __sw_hweight8 = swHweight8;
+pub const __sw_hweight16 = swHweight16;
+pub const __sw_hweight32 = swHweight32;
+pub const __sw_hweight64 = swHweight64;
+pub const hweight_long = hweightLong;
+
 test "software hweight helpers match popcount" {
     try std.testing.expectEqual(@as(u32, 4), swHweight8(0b1111_0000));
     try std.testing.expectEqual(@as(u32, 8), swHweight16(0b1111_0000_1111_0000));
     try std.testing.expectEqual(@as(u32, 16), swHweight32(0xf0f0_f0f0));
     try std.testing.expectEqual(@as(u64, 32), swHweight64(0xf0f0_f0f0_f0f0_f0f0));
     try std.testing.expectEqual(@popCount(@as(usize, 0xf0f0)), hweightLong(0xf0f0));
+}
+
+test "Linux-style hweight aliases mirror the primary helper surface" {
+    try std.testing.expectEqual(swHweight8(0xf0), __sw_hweight8(0xf0));
+    try std.testing.expectEqual(swHweight16(0xf0f0), __sw_hweight16(0xf0f0));
+    try std.testing.expectEqual(swHweight32(0xf0f0_f0f0), __sw_hweight32(0xf0f0_f0f0));
+    try std.testing.expectEqual(
+        swHweight64(0xf0f0_f0f0_f0f0_f0f0),
+        __sw_hweight64(0xf0f0_f0f0_f0f0_f0f0),
+    );
+    try std.testing.expectEqual(hweightLong(0xf0f0), hweight_long(0xf0f0));
 }
