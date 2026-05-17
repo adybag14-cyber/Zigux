@@ -16,29 +16,32 @@ PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure
 MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 
 CHECKER_PATH = "scripts/zigux/check-phase2-tool-manifest-packets.py"
+PIN_SCOPE_CHECKER_PATH = "scripts/zigux/check-phase2-toolchain-pin-scope.py"
 
 CLOSURE_DOC_MARKERS = (
     "`PHASE2_TOOL_MANIFEST_CHECKER=scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "branch-local manifest packet",
-    "already landed on current `master`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
 )
 
 BOOTSTRAP_NOTES_MARKERS = (
     "`PHASE2_TOOL_MANIFEST_CHECKER=scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "branch-local manifest packet",
-    "already landed on current `master`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
 )
 
 PHASE2_VALIDATOR_MARKERS = (
     'ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"',
+    'ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"',
 )
 
 PHASE2_CLOSURE_VALIDATOR_MARKERS = (
     '"`PHASE2_TOOL_MANIFEST_CHECKER=scripts/zigux/check-phase2-tool-manifest-packets.py`"',
     '"tool_manifest_checker"',
     '"scripts/zigux/check-phase2-tool-manifest-packets.py"',
+    '"scripts/zigux/check-phase2-toolchain-pin-scope.py"',
     '"master_present_branch_missing_files"',
 )
 
@@ -58,18 +61,16 @@ EXPECTED_PRESENT_FILES = [
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
 ]
 
 EXPECTED_MISSING_FILES = [
     "scripts/zigux/check-phase2-cross.py",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/install-zig.py",
 ]
 
-EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES = [
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-]
+EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
 
 EXPECTED_SELF_TEST_CASE_COUNT = 17
 
@@ -150,6 +151,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("CHECKER_STILL_MARKED_MISSING", CHECKER_PATH))
     if CHECKER_PATH not in manifest.get("present_files", []):
         issues.append(("CHECKER_NOT_MARKED_PRESENT", CHECKER_PATH))
+    if PIN_SCOPE_CHECKER_PATH in manifest.get("missing_files", []):
+        issues.append(("PIN_SCOPE_STILL_MARKED_MISSING", PIN_SCOPE_CHECKER_PATH))
+    if PIN_SCOPE_CHECKER_PATH not in manifest.get("present_files", []):
+        issues.append(("PIN_SCOPE_NOT_MARKED_PRESENT", PIN_SCOPE_CHECKER_PATH))
 
     return issues
 
@@ -260,7 +265,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=[]))
+        write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=[PIN_SCOPE_CHECKER_PATH]))
         assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in collect_issues(root)
         checks_run += 1
 
@@ -283,6 +288,27 @@ def run_self_test() -> int:
         )
         issues = collect_issues(root)
         assert ("CHECKER_STILL_MARKED_MISSING", CHECKER_PATH) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            MANIFEST,
+            manifest_json(
+                present_files=[item for item in EXPECTED_PRESENT_FILES if item != PIN_SCOPE_CHECKER_PATH],
+            ),
+        )
+        assert ("PIN_SCOPE_NOT_MARKED_PRESENT", PIN_SCOPE_CHECKER_PATH) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            MANIFEST,
+            manifest_json(missing_files=[PIN_SCOPE_CHECKER_PATH, *EXPECTED_MISSING_FILES]),
+        )
+        issues = collect_issues(root)
+        assert ("PIN_SCOPE_STILL_MARKED_MISSING", PIN_SCOPE_CHECKER_PATH) in issues
         checks_run += 1
 
         build_self_test_root(root)
