@@ -145,7 +145,9 @@ def _sample_manifest() -> str:
                 "the current blocker",
                 "the required approver set",
                 "`retired_from_active_discussion` state",
+                "the automatic return-to-blocked trigger",
                 "the reopen triggers",
+                "the trigger-specific evidence refresh",
                 "the evidence archive path that will be refreshed before any later reopen request",
             ],
             "reopen_evidence_fields": [
@@ -217,7 +219,9 @@ If a freeze-in-C review closes without a status change, the closeout record must
 - the current blocker
 - the required approver set
 - `retired_from_active_discussion` state
+- the automatic return-to-blocked trigger
 - the reopen triggers
+- the trigger-specific evidence refresh
 - the evidence archive path that will be refreshed before any later reopen request
 
 A later reopen request must not rely on generic intent alone. It must cite:
@@ -292,6 +296,19 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if failures != ["review-process note is missing required review field: roadmap phase"]:
             raise AssertionError(f"unexpected roadmap-phase failure: {failures}")
+
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / REVIEW_PROCESS_PATH,
+            _sample_review_process().replace(
+                "- the automatic return-to-blocked trigger\n", "", 1
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "review-process note is missing stay-in-C closeout field: the automatic return-to-blocked trigger"
+        ]:
+            raise AssertionError(f"unexpected stay-in-C closeout failure: {failures}")
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(
