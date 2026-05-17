@@ -21,6 +21,7 @@ README_MARKERS = (
     "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "Documentation/zigux/phase3-shared-reminder-gap.md",
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "include/linux/zigux.h",
     "include/zigux/dev_t.h",
     "include/zigux/abi.h",
@@ -35,6 +36,9 @@ README_MARKERS = (
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/unsafe_policy.zig",
+    "zigux/helpers/atomic.zig",
+    "zigux/helpers/barrier.zig",
+    "zigux/helpers/mmio.zig",
     "zigux/tests/phase3_dev_t_starter_packet.zig",
     "zigux/tests/phase3_dev_t_starter_packet_build.zig",
     "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
@@ -43,9 +47,13 @@ README_MARKERS = (
     "zigux/tests/phase3_policy_starter_packet.zig",
     "zigux/tests/phase3_policy_starter_packet_build.zig",
     "zigux/tests/phase3_policy_starter_packet_manifest.json",
+    "zigux/tests/phase3_low_level_wrappers.zig",
+    "zigux/tests/phase3_low_level_wrappers_build.zig",
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
+    "scripts/zigux/validate-phase3.py",
+    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
 )
 
 TESTS_README_MARKERS = (
@@ -86,7 +94,6 @@ REVIEW_CHECKLIST_MARKERS = (
     "include/linux/zigux.h",
     "include/zigux/dev_t.h",
     "include/zigux/abi.h",
-    "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
     "zigux/bindings/dev_t.zig",
     "zigux/bindings/abi.zig",
@@ -235,6 +242,9 @@ def _remove_exact_line(path: Path, marker: str) -> None:
 def run_self_test() -> int:
     cases = (
         (README_PATH, README_MARKERS[2], "docs README"),
+        (README_PATH, README_MARKERS[5], "docs README"),
+        (README_PATH, README_MARKERS[31], "docs README"),
+        (README_PATH, README_MARKERS[-1], "docs README"),
         (TESTS_README_PATH, TESTS_README_MARKERS[-1], "tests README"),
         (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS[-1], "review checklist"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[7], "validator-support note"),
@@ -243,8 +253,8 @@ def run_self_test() -> int:
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[13], "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[15], "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[-1], "validator-support note"),
-        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[25], "scripts README"),
-        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[20], "scripts README"),
+        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[24], "scripts README"),
+        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[19], "scripts README"),
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[34], "scripts README"),
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[-1], "scripts README"),
         (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[4], "selftest driver"),
@@ -274,7 +284,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=16")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
