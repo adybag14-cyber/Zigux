@@ -8,14 +8,14 @@ This note records the bounded Phase 15 handoff surface for the existing governan
 - `PHASE15_LANE_KEY=P15-L11`
 - `PHASE15_SLICE=existing_governance_packet_handoff_inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-16`
-- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` without implying that the broader readiness, lane-sequencing, tests-root, or validator-first packet has fully landed
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
+- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` without implying that the broader docs-root, scripts-root, tests-root, or validator-first reminder packet is fully aligned
 
 ## Why this note exists
 
 The roadmap's Phase 15 work is about governance discipline and honest handoff, not one more deep-core implementation push.
 
-Current `master` already carries the freeze-map, the freeze-map governance note, the Architecture Council review-process note, the indefinite-C policy note, the parity scorecard, the study-only anchor accounting note, and the shared-summary gap note. Before this refresh, the handoff note still treated the review-process and indefinite-C-policy surfaces as future work instead of current governance evidence.
+Current `master` already carries the freeze-map, the freeze-map governance note, the Architecture Council review-process note, the indefinite-C policy note, the parity scorecard, the parity-scorecard survey, the readiness-gate survey, the governance-lane-sequencing note, the study-only anchor accounting note, and the shared-summary gap note. Before this refresh, the handoff note still treated the readiness-gate survey and the governance-lane-sequencing note as missing follow-through even though the shared-summary gap packet now records them as materialized governance evidence.
 
 That made future-target prep stale. Reviewers had to reconcile this note against the newer landed Phase 15 policy packet by hand.
 
@@ -26,6 +26,9 @@ That made future-target prep stale. Reviewers had to reconcile this note against
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
+- `Documentation/zigux/phase15-parity-scorecard-survey.md`
+- `Documentation/zigux/phase15-readiness-gate-survey.md`
+- `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
@@ -39,19 +42,19 @@ That made future-target prep stale. Reviewers had to reconcile this note against
 
 - keep the four freeze-in-C anchors parked: `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`
 - keep the two roadmap study-only anchors parked: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`
-- treat missing readiness, lane-sequencing, broader scripts-root, manifest, and tests-root surfaces as truthfulness gaps, not as already-landed evidence
+- treat broader docs-root, scripts-root, tests-root, and validator-first Phase 15 wording drift as truthfulness gaps, not as already-landed evidence
 - do not treat any direct Zig deep-core bridge as a next-phase commitment while the current blocker posture remains unchanged
 
 ## Next bounded future targets
 
 1. either narrow `Documentation/zigux/README.md` to only the live Phase 15 surfaces or land the remaining docs, scripts, manifests, and tests that summary still names
 2. add a `Phase 15 review packet` section to `zigux/tests/README.md` only when that section can point to real current-`master` evidence instead of route names alone
-3. keep the landed `Documentation/zigux/phase15-architecture-council-review-process.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, and `Documentation/zigux/phase15-indefinite-c-policy.md` companions aligned with the shared-summary gap note before any freeze-map status change discussion
+3. keep the landed `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, and `Documentation/zigux/phase15-indefinite-c-policy.md` companions aligned with the shared-summary gap note before any freeze-map status change discussion
 4. if future work touches `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, keep it study-only unless a smaller-than-boundary seam is explicitly recorded in the governance packet
 
 ## Handoff rules
 
-- if one of the currently missing shared-summary paths materializes, tighten `Documentation/zigux/phase15-shared-summary-gap.md` and `scripts/zigux/check-phase15-shared-summary-gap.py` immediately so they stop claiming that path is absent
+- if a broad Phase 15 reminder surface drifts away from the materialized governance packet, tighten `Documentation/zigux/phase15-shared-summary-gap.md` and `scripts/zigux/check-phase15-shared-summary-gap.py` immediately so they stop carrying stale missing-path or stale present-path claims
 - if the freeze-map anchor set or any blocker disposition changes, reopen `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/phase15-parity-scorecard.md` before widening this note
 - if tests-root or scripts-root Phase 15 packet surfaces land, refresh this handoff note so it points to those direct surfaces instead of leaning on shared-gap language
 
@@ -65,4 +68,4 @@ This note does not claim:
 
 ## Next bounded step
 
-Keep this note parked until one currently missing shared-summary surface lands or one existing governance packet changes enough that the future-target inventory above becomes stale.
+Keep this note parked until one broad Phase 15 reminder surface drifts away from the materialized governance packet above or one existing governance packet changes enough that the future-target inventory above becomes stale.
