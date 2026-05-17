@@ -17,36 +17,46 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
+PHASE2_CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
+PHASE2_CROSS_TARGETS_REL = "zigux/tests/fixtures/phase2_cross_targets.json"
+
 CHECKERS = (
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
 )
 
 EXPECTED_PRESENT_FILE_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
-    "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/Makefile`",
 )
 
 EXPECTED_MAKEFILE_LINES = (
-    ".PHONY: phase2-validate phase2-toolchain phase2-fixdep phase2-tools phase2-kconfig phase2",
-    "phase2-validate:",
-    "phase2-toolchain: phase2-validate",
-    "phase2-fixdep: phase2-validate",
+    ".PHONY: phase2-validate phase2-toolchain phase2-fixdep phase2-tools phase2-kconfig phase2-cross phase2",
+    "phase2-toolchain:",
+    'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "phase2-fixdep: phase2-toolchain",
     "phase2-tools: phase2-fixdep",
-    "phase2-kconfig: phase2-validate",
-    "phase2: phase2-tools phase2-kconfig",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
+    "phase2-kconfig: phase2-toolchain",
+    "phase2-validate: phase2-tools phase2-kconfig",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "phase2-cross: phase2-toolchain",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+    "phase2: phase2-validate phase2-cross",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -83,7 +93,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if marker not in review_checklist_text:
             issues.append(("MISSING_REVIEW_CHECKLIST_MARKERS", marker))
 
-    for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE):
+    for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE, PHASE2_CROSS_TARGETS):
         if not resolve_path(root, path).exists():
             issues.append(("MISSING_REQUIRED_FILE", path.relative_to(ROOT).as_posix()))
     for path in CHECKERS:
@@ -134,6 +144,11 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, WORKFLOW, "name: zigux-bootstrap\n")
     write_text(root, FIXDEP, "// present\n")
     write_text(root, CONF_BRIDGE, "// present\n")
+    write_text(
+        root,
+        PHASE2_CROSS_TARGETS,
+        '{\n  "phase": "Phase 2",\n  "status": "closed",\n  "target_count": 3,\n  "targets": [\n    "x86_64-linux-musl",\n    "aarch64-linux-musl",\n    "riscv64-linux-musl"\n  ],\n  "zig_test_files": [\n    "scripts/zigux/fixdep.zig"\n  ]\n}\n',
+    )
     for path in CHECKERS:
         write_text(root, path, "# present\n")
 
@@ -172,13 +187,13 @@ def run_self_test() -> int:
             assert (code, EXPECTED_PRESENT_FILE_MARKERS[0]) in collect_issues(root)
             checks_run += 1
 
-        for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE):
+        for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE, PHASE2_CROSS_TARGETS):
             build_self_test_root(root)
             resolve_path(root, path).unlink()
             assert ("MISSING_REQUIRED_FILE", path.relative_to(ROOT).as_posix()) in collect_issues(root)
             checks_run += 1
 
-        for path in CHECKERS[:4]:
+        for path in CHECKERS:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
             assert ("MISSING_CHECKER", path.relative_to(ROOT).as_posix()) in collect_issues(root)
