@@ -257,6 +257,14 @@ def run_self_test() -> int:
         expect_failure(missing_build_name, "phase11-hvc-cleanup-tests")
         case_count += 1
 
+        missing_shared_step = tmpdir / "missing_shared_step"
+        shutil.copytree(fixture, missing_shared_step, dirs_exist_ok=True)
+        inventory = read_json(missing_shared_step / INVENTORY_PATH)
+        inventory["shared_test_depend_steps"].remove("run_hvc_console_verify_tests")
+        write(missing_shared_step / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        expect_failure(missing_shared_step, "run_hvc_console_verify_tests")
+        case_count += 1
+
         wrong_module_path = tmpdir / "wrong_module_path"
         shutil.copytree(fixture, wrong_module_path, dirs_exist_ok=True)
         inventory = read_json(wrong_module_path / INVENTORY_PATH)
@@ -277,6 +285,20 @@ def run_self_test() -> int:
                 break
         write(wrong_root_module / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_root_module, "test_root_modules mismatch for phase11-hvc-cleanup-tests")
+        case_count += 1
+
+        missing_dedicated_survey_replay = tmpdir / "missing_dedicated_survey_replay"
+        shutil.copytree(fixture, missing_dedicated_survey_replay, dirs_exist_ok=True)
+        inventory = read_json(missing_dedicated_survey_replay / INVENTORY_PATH)
+        inventory["dedicated_survey_replays"].clear()
+        write(
+            missing_dedicated_survey_replay / INVENTORY_PATH,
+            json.dumps(inventory, indent=2) + "\n",
+        )
+        expect_failure(
+            missing_dedicated_survey_replay,
+            "zigux/tests/phase11_hvc_console_survey.zig",
+        )
         case_count += 1
 
         missing_replay_pair = tmpdir / "missing_replay_pair"
