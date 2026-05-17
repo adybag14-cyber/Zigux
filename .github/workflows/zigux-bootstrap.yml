@@ -97,6 +97,12 @@ jobs:
       - name: Self-test current Phase 12 build-only checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
 
+      - name: Self-test current Phase 12 bootstrap lane checker
+        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test
+
+      - name: Check current Phase 12 bootstrap lane shape
+        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py
+
       - name: Check current docs-root sanity markers
         run: |
           python3 - <<'PY'
