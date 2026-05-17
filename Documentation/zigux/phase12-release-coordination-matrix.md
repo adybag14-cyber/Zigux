@@ -59,7 +59,8 @@ Keep the degraded-workflow validation trio explicit beside that same order too:
 
 ## Boundaries
 - This matrix tracks only the shipped build-only contract and the active survey-backed packet on `master`.
-- Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`, but it still does not expose a standalone Phase 12 cross-build checker, a standalone Phase 12 cross-build replay, a focused-libbpf-only replay, or another shared cross-target route, so release-planning notes should keep that validator-first support packet distinct from the smoke-first direct replay packet.
+- Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`.
+- The shared build-only contract checker `scripts/zigux/check-build-only-phase12-surface.py` remains explicit beside that validator-first support packet, but current `master` still does not expose a standalone Phase 12 cross-build checker, a standalone Phase 12 cross-build replay, a focused-libbpf-only replay, or another shared cross-target route, so release-planning notes should keep that validator-first support packet distinct from the smoke-first direct replay packet.
 - Queueing, throughput, rollback, and recovery wording must stay bounded to the driver-local packets and the lab-only reversible-delivery evidence already recorded in the shared Phase 12 docs; this PMO companion must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 
 ## Review Use
