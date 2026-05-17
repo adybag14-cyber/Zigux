@@ -67,7 +67,9 @@ EXPECTED_PRESENT_FILES = [
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py"
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-zig-toolchain.py"
 ]
 
 EXPECTED_MISSING_FILES = [
@@ -75,8 +77,13 @@ EXPECTED_MISSING_FILES = [
     "scripts/zigux/install-zig.py",
 ]
 
+EXPECTED_SHARED_PRESENT_FILES = [
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-zig-toolchain.py",
+]
+
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 16
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -167,6 +174,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("CHECKER_STILL_MARKED_MISSING", CHECKER_PATH))
     if CHECKER_PATH not in manifest.get("present_files", []):
         issues.append(("CHECKER_NOT_MARKED_PRESENT", CHECKER_PATH))
+    for shared_path in EXPECTED_SHARED_PRESENT_FILES:
+        if shared_path in manifest.get("missing_files", []):
+            issues.append(("SHARED_TOOL_STILL_MARKED_MISSING", shared_path))
+        if shared_path not in manifest.get("present_files", []):
+            issues.append(("SHARED_TOOL_NOT_MARKED_PRESENT", shared_path))
 
     return issues
 
@@ -291,6 +303,13 @@ def run_self_test() -> int:
         bad["present_files"] = [item for item in EXPECTED_PRESENT_FILES if item != CHECKER_PATH]
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
         assert ("CHECKER_NOT_MARKED_PRESENT", CHECKER_PATH) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["present_files"] = [item for item in EXPECTED_PRESENT_FILES if item != EXPECTED_SHARED_PRESENT_FILES[0]]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("SHARED_TOOL_NOT_MARKED_PRESENT", EXPECTED_SHARED_PRESENT_FILES[0]) in collect_issues(root)
         checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
