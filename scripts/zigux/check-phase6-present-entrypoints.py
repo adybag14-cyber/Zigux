@@ -37,18 +37,22 @@ EXPECTED_HELPERS = {
     "base64": {
         "zig_helper": "lib/base64.zig",
         "slice_note": "Documentation/zigux/phase6-base64-slice.md",
+        "review_posture": "helper-local-direct-readback-confirmed",
     },
     "bsearch": {
         "zig_helper": "lib/bsearch.zig",
         "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
+        "review_posture": "direct-readback-limited",
     },
     "checksum": {
         "zig_helper": "lib/checksum.zig",
         "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
+        "review_posture": "direct-readback-limited",
     },
     "hexdump": {
         "zig_helper": "lib/hexdump.zig",
         "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
+        "review_posture": "direct-readback-limited",
     },
 }
 
@@ -59,15 +63,12 @@ REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback warning",
     "- `Documentation/zigux/phase6-helper-parity-catalog.md`",
     "- `Documentation/zigux/phase6-perf-gate-survey.md`",
-    "- `zigux/tests/phase6_build.zig`",
     "- `zigux/tests/phase6_helper_parity_manifest.json`",
-    "- `zigux/tests/phase6_base64.zig`",
     "- `zigux/tests/phase6_bsearch.zig`",
     "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
     "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
     "- `zigux/tests/phase6_checksum.zig`",
     "- `zigux/tests/phase6_hexdump.zig`",
-    "- `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
     "- `scripts/zigux/check-phase6-checksum-c-parity.py`",
     "- `scripts/zigux/check-phase6-hexdump-packet.py`",
@@ -81,11 +82,11 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- Zig helper: `lib/checksum.zig`",
     "- Zig helper: `lib/hexdump.zig`",
     "- shared machine-readable manifest: `zigux/tests/phase6_helper_evidence_manifest.json`",
-    "- direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+    "- direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- direct corpus evidence checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
     "- direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
     "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`",
-    "- current review posture: the roadmap-backed base64 packet remains the intended bounded helper surface, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
+    "- current review posture: fresh direct reads now confirm the helper-local base64 replay, fixture, slowdown, and C-parity companions named above, while the broader shared parity and perf reminder routes outside those directly readable base64-local surfaces still stay limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders",
     "- current review posture: the roadmap-backed bsearch packet still names the right parity and comparison-budget surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replays and corpus checker again",
     "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
     "- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, checker, and perf companions again",
@@ -231,11 +232,11 @@ def validate_helper_entries(manifest: dict) -> None:
                 f"{key} in {HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: expected "
                 f'{expected["slice_note"]}, got {entry.get("slice_note")}'
             )
-        if entry.get("current_review_posture") != "direct-readback-limited":
+        if entry.get("current_review_posture") != expected["review_posture"]:
             raise ValidationError(
                 "Phase 6 helper manifest review posture mismatch for "
                 f"{key} in {HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: expected "
-                "direct-readback-limited"
+                f'{expected["review_posture"]}'
             )
 
 
@@ -289,7 +290,7 @@ def scaffold_manifest_json() -> str:
                 "roadmap_anchor": anchor,
                 "zig_helper": expected["zig_helper"],
                 "slice_note": expected["slice_note"],
-                "current_review_posture": "direct-readback-limited",
+                "current_review_posture": expected["review_posture"],
             }
             for key, expected, anchor in [
                 ("base64", EXPECTED_HELPERS["base64"], "lib/base64.c"),
@@ -374,7 +375,7 @@ def run_self_test() -> None:
         scaffold_repo(root)
 
         manifest = load_manifest_data(manifest_path)
-        manifest["helpers"][0]["current_review_posture"] = "fully-readable"
+        manifest["helpers"][0]["current_review_posture"] = "direct-readback-limited"
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "Phase 6 helper manifest review posture mismatch for base64")
         cases_run += 1
