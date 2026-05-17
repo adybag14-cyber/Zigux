@@ -36,19 +36,62 @@ REQUIRED_DIRECT_READBACK_COMPANIONS = [
 EXPECTED_HELPERS = {
     "base64": {
         "zig_helper": "lib/base64.zig",
+        "focused_helper_replay": "zigux/tests/phase6_base64.zig",
+        "dedicated_slowdown_replay": "zigux/tests/phase6_base64_perf.zig",
+        "fixture_surfaces": [
+            "zigux/tests/fixtures/phase6_base64_vectors.zig",
+            "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
+        ],
+        "checker_surfaces": [
+            "zigux/tests/phase6_base64_c_parity.zig",
+            "zigux/tests/phase6_base64_c_casegen.zig",
+            "zigux/tests/fixtures/phase6_base64_c_harness.c",
+            "scripts/zigux/check-phase6-base64-c-parity.py",
+        ],
         "slice_note": "Documentation/zigux/phase6-base64-slice.md",
     },
     "bsearch": {
         "zig_helper": "lib/bsearch.zig",
+        "focused_helper_replay": "zigux/tests/phase6_bsearch.zig",
+        "focused_c_abi_replays": [
+            "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+            "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+        ],
+        "fixture_surfaces": [
+            "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
+        ],
+        "checker_surfaces": [
+            "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+        ],
         "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
     },
     "checksum": {
         "zig_helper": "lib/checksum.zig",
+        "focused_helper_replay": "zigux/tests/phase6_checksum.zig",
+        "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig",
+        "fixture_surfaces": [
+            "zigux/tests/fixtures/phase6_checksum_vectors.zig",
+        ],
+        "checker_surfaces": [
+            "zigux/tests/phase6_checksum_c_parity.zig",
+            "zigux/tests/fixtures/phase6_checksum_c_harness.c",
+            "scripts/zigux/check-phase6-checksum-c-parity.py",
+        ],
         "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
     },
     "hexdump": {
         "zig_helper": "lib/hexdump.zig",
+        "focused_helper_replay": "zigux/tests/phase6_hexdump.zig",
+        "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig",
+        "perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf_matrix.zig",
+        "fixture_surfaces": [
+            "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
+        ],
+        "checker_surfaces": [
+            "scripts/zigux/check-phase6-hexdump-packet.py",
+        ],
         "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
+        "perf_refresh_note": "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     },
 }
 
@@ -120,7 +163,7 @@ REQUIRED_MANIFEST_SNIPPETS = [
     '"make -C zigux phase6-hexdump-perf"',
 ]
 
-SELF_TEST_CASE_COUNT = len(REQUIRED_CATALOG_SNIPPETS) + 7 + len(REQUIRED_HELPER_PATHS)
+SELF_TEST_CASE_COUNT = len(REQUIRED_CATALOG_SNIPPETS) + 9 + len(REQUIRED_HELPER_PATHS)
 
 
 class ValidationError(RuntimeError):
@@ -237,6 +280,16 @@ def validate_helper_entries(manifest: dict) -> None:
                 f"{key} in {HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: expected "
                 "direct-readback-limited"
             )
+        for field_name, expected_value in expected.items():
+            if field_name in {"zig_helper", "slice_note"}:
+                continue
+            if entry.get(field_name) != expected_value:
+                raise ValidationError(
+                    "Phase 6 helper manifest "
+                    f"{field_name} mismatch for {key} in "
+                    f"{HELPER_EVIDENCE_MANIFEST_PATH.as_posix()}: expected "
+                    f"{expected_value!r}, got {entry.get(field_name)!r}"
+                )
 
 
 def validate(repo_root: Path) -> None:
@@ -285,18 +338,71 @@ def scaffold_manifest_json() -> str:
         ],
         "helpers": [
             {
-                "key": key,
-                "roadmap_anchor": anchor,
-                "zig_helper": expected["zig_helper"],
-                "slice_note": expected["slice_note"],
+                "key": "base64",
+                "roadmap_anchor": "lib/base64.c",
+                "zig_helper": EXPECTED_HELPERS["base64"]["zig_helper"],
+                "focused_helper_replay": EXPECTED_HELPERS["base64"][
+                    "focused_helper_replay"
+                ],
+                "dedicated_slowdown_replay": EXPECTED_HELPERS["base64"][
+                    "dedicated_slowdown_replay"
+                ],
+                "fixture_surfaces": EXPECTED_HELPERS["base64"]["fixture_surfaces"],
+                "checker_surfaces": EXPECTED_HELPERS["base64"]["checker_surfaces"],
+                "slice_note": EXPECTED_HELPERS["base64"]["slice_note"],
                 "current_review_posture": "direct-readback-limited",
-            }
-            for key, expected, anchor in [
-                ("base64", EXPECTED_HELPERS["base64"], "lib/base64.c"),
-                ("bsearch", EXPECTED_HELPERS["bsearch"], "lib/bsearch.c"),
-                ("checksum", EXPECTED_HELPERS["checksum"], "lib/checksum.c"),
-                ("hexdump", EXPECTED_HELPERS["hexdump"], "lib/hexdump.c"),
-            ]
+            },
+            {
+                "key": "bsearch",
+                "roadmap_anchor": "lib/bsearch.c",
+                "zig_helper": EXPECTED_HELPERS["bsearch"]["zig_helper"],
+                "focused_helper_replay": EXPECTED_HELPERS["bsearch"][
+                    "focused_helper_replay"
+                ],
+                "focused_c_abi_replays": EXPECTED_HELPERS["bsearch"][
+                    "focused_c_abi_replays"
+                ],
+                "fixture_surfaces": EXPECTED_HELPERS["bsearch"]["fixture_surfaces"],
+                "checker_surfaces": EXPECTED_HELPERS["bsearch"]["checker_surfaces"],
+                "slice_note": EXPECTED_HELPERS["bsearch"]["slice_note"],
+                "current_review_posture": "direct-readback-limited",
+            },
+            {
+                "key": "checksum",
+                "roadmap_anchor": "lib/checksum.c",
+                "zig_helper": EXPECTED_HELPERS["checksum"]["zig_helper"],
+                "focused_helper_replay": EXPECTED_HELPERS["checksum"][
+                    "focused_helper_replay"
+                ],
+                "dedicated_slowdown_replay": EXPECTED_HELPERS["checksum"][
+                    "dedicated_slowdown_replay"
+                ],
+                "fixture_surfaces": EXPECTED_HELPERS["checksum"]["fixture_surfaces"],
+                "checker_surfaces": EXPECTED_HELPERS["checksum"]["checker_surfaces"],
+                "slice_note": EXPECTED_HELPERS["checksum"]["slice_note"],
+                "current_review_posture": "direct-readback-limited",
+            },
+            {
+                "key": "hexdump",
+                "roadmap_anchor": "lib/hexdump.c",
+                "zig_helper": EXPECTED_HELPERS["hexdump"]["zig_helper"],
+                "focused_helper_replay": EXPECTED_HELPERS["hexdump"][
+                    "focused_helper_replay"
+                ],
+                "dedicated_slowdown_replay": EXPECTED_HELPERS["hexdump"][
+                    "dedicated_slowdown_replay"
+                ],
+                "perf_matrix_preflight": EXPECTED_HELPERS["hexdump"][
+                    "perf_matrix_preflight"
+                ],
+                "fixture_surfaces": EXPECTED_HELPERS["hexdump"]["fixture_surfaces"],
+                "checker_surfaces": EXPECTED_HELPERS["hexdump"]["checker_surfaces"],
+                "slice_note": EXPECTED_HELPERS["hexdump"]["slice_note"],
+                "perf_refresh_note": EXPECTED_HELPERS["hexdump"][
+                    "perf_refresh_note"
+                ],
+                "current_review_posture": "direct-readback-limited",
+            },
         ],
         "current_repo_reality_gaps": [
             "Documentation/zigux/phase6-helper-parity-catalog.md",
@@ -384,6 +490,22 @@ def run_self_test() -> None:
         manifest["helpers"][0]["slice_note"] = "Documentation/zigux/wrong.md"
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "Phase 6 helper manifest slice_note mismatch for base64")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest = load_manifest_data(manifest_path)
+        manifest["helpers"][0]["fixture_surfaces"] = [
+            "zigux/tests/fixtures/phase6_base64_vectors.zig"
+        ]
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "Phase 6 helper manifest fixture_surfaces mismatch for base64")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest = load_manifest_data(manifest_path)
+        manifest["helpers"][1]["checker_surfaces"] = []
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "Phase 6 helper manifest checker_surfaces mismatch for bsearch")
         cases_run += 1
         scaffold_repo(root)
 
