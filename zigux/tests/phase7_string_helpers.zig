@@ -12,6 +12,12 @@ fn runKstrdupQuotableWithFailingAllocator(allocator: std.mem.Allocator, src: ?[]
     }
 }
 
+fn runKstrdupQuotableCmdlineWithFailingAllocator(allocator: std.mem.Allocator, src: ?[]const u8) !void {
+    if (try string_helpers.kstrdupQuotableCmdline(allocator, src)) |quoted| {
+        allocator.free(quoted);
+    }
+}
+
 fn runKstrdupAndReplaceWithFailingAllocator(
     allocator: std.mem.Allocator,
     src: []const u8,
@@ -383,6 +389,25 @@ test "phase 7 string helpers starter quotes special log-hazard bytes without wid
     try std.testing.expectEqualStrings("path", bounded);
 }
 
+test "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators" {
+    const cmdline = [_]u8{ 'z', 'i', 'g', 0, 'b', 'u', 'i', 'l', 'd', '\n', '"', 0, 0 };
+    const quoted = (try string_helpers.kstrdupQuotableCmdline(std.testing.allocator, &cmdline)).?;
+    defer std.testing.allocator.free(quoted);
+    try std.testing.expectEqualStrings("zig build\\x0A\\x22", quoted);
+
+    const alias_input = [_]u8{ 'r', 'u', 'n', 0, 'x', 0, 0 };
+    const alias_cmdline = (try string_helpers.kstrdup_quotable_cmdline(std.testing.allocator, &alias_input)).?;
+    defer std.testing.allocator.free(alias_cmdline);
+    try std.testing.expectEqualStrings("run x", alias_cmdline);
+
+    const blank = [_]u8{ 0, 0 };
+    const quoted_blank = (try string_helpers.kstrdupQuotableCmdline(std.testing.allocator, &blank)).?;
+    defer std.testing.allocator.free(quoted_blank);
+    try std.testing.expectEqualStrings("", quoted_blank);
+
+    try std.testing.expect((try string_helpers.kstrdupQuotableCmdline(std.testing.allocator, null)) == null);
+}
+
 test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {
     const upper_src = [_]u8{ 'm', 'i', 'x', 'e', 'd', 0, 'z' };
     var upper_dst = [_]u8{ '#', '#', '#', '#', '#', '#', '#' };
@@ -408,6 +433,14 @@ test "phase 7 string helpers starter reports kstrdupQuotable allocation failure 
         std.testing.allocator,
         runKstrdupQuotableWithFailingAllocator,
         .{ "phase7\nquote\"", },
+    );
+}
+
+test "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKstrdupQuotableCmdlineWithFailingAllocator,
+        .{ "zig\x00test\x00\x00", },
     );
 }
 
