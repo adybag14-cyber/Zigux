@@ -17,16 +17,22 @@ fn requireMarkerCount(marker: []const u8, expected: usize) !void {
 }
 
 test "phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit" {
-    try requireMarkerCount("\"acceptable_limit_iterations\": 4", 1);
-    try requireMarkerCount("\"acceptable_limit_sample_count\": 7", 1);
+    try requireMarkerCount("\"acceptable_limit_iterations\": 4", 2);
+    try requireMarkerCount("\"acceptable_limit_sample_count\": 7", 2);
+    try requireMarkerCount("\"sample_count_note\": \"seven monotonic samples\"", 2);
     try std.testing.expectEqual(@as(u64, 4), @as(u64, 4));
     try std.testing.expectEqual(@as(u64, 7), @as(u64, 7));
 }
 
-test "phase4 perf baseline survey keeps dedicated local-only ownership and command evidence explicit" {
+test "phase4 perf baseline survey keeps atomic64 and bitmap command evidence explicit" {
     try requireMarker("\"owner\": \"Validation and Perf Team\"");
+    try requireMarker("\"benchmark_command\": \"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\"");
     try requireMarker("\"benchmark_command\": \"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\"");
     try requireMarker("\"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"");
+    try requireMarker("\"checksum\": 3626254113632800175");
+    try requireMarker("\"checksum\": 9210681150676220922");
+    try requireMarker("\"final_counter\": 130322557735600377");
+    try requireMarker("\"final_counter\": 130322557735600376");
     try requireMarker("\"checksum\": 5216946504564592253");
     try requireMarker("\"checksum\": 7942141539243507472");
     try requireMarker("\"final_first_zero\": 109");
