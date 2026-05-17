@@ -83,7 +83,7 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 - `Documentation/zigux/phase12-virtio-net-survey.md`
 - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet and the parked verify-shard-backed libbpf survey packet reviewable from the scripts root
-- If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`
+- If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-smoke ZIG=<attached-zig-path>` and `make -C zigux phase12 ZIG=<attached-zig-path>`, while `make -C zigux phase12-validate` stays the shipped support-bundle route.
 
 ## Phase 13
 
