@@ -61,6 +61,17 @@ test "bitmap starter helpers keep a full bounded bitmap from leaking tail zeros"
     try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.weight);
 }
 
+test "bitmap starter helpers fail closed on malformed views" {
+    const invalid = binding.initBitmapView(0, bitmap_view.bits_per_word + 1, 1);
+    const summary = bitmap_view.summarize(invalid);
+
+    try testing.expect(!bitmap_view.isValid(invalid));
+    try testing.expect(!bitmap_view.testBit(invalid, 0));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "cpumask starter helpers keep cpu membership reviewable" {
     var backing = [_]usize{
         (@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 7),
@@ -117,6 +128,19 @@ test "cpumask starter helpers keep a full bounded mask from leaking tail zeros" 
     try testing.expectEqual(@as(u32, 0), summary.first_set);
     try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.first_zero);
     try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.weight);
+}
+
+test "cpumask starter helpers fail closed on malformed views" {
+    const invalid = binding.initCpumaskView(0, bitmap_view.bits_per_word + 1, 1, bitmap_view.bits_per_word + 1);
+    const summary = cpumask_view.summarize(invalid);
+
+    try testing.expect(!cpumask_view.isValid(invalid));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid, 0));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
 test "starter packet stays aligned with the live Linux-facing header family version" {
