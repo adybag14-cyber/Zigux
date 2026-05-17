@@ -198,6 +198,16 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
         try std.testing.expectEqualStrings(expected, manifest.sample_replay_contract.checked_focus[index]);
     }
 
+    const expected_lifecycle_states = [_][]const u8{
+        "cold",
+        "initialized",
+        "replay_complete",
+        "exited",
+    };
+    for (expected_lifecycle_states, 0..) |expected, index| {
+        try std.testing.expectEqualStrings(expected, manifest.sample_replay_contract.lifecycle_states[index]);
+    }
+
     const expected_verification_checks = [_][]const u8{
         "descriptor stays `string_helpers_sample` and anchors to `lib/string_helpers.c`",
         "lifecycle starts at `cold`, `init()` moves to `initialized`, replay moves to `replay_complete`, and `exit()` finishes at `exited`",
