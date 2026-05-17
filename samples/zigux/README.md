@@ -55,9 +55,11 @@ Treat `samples/zigux/runtime_trace_events_unregistered_gate.zig` as a companion 
 
 Current `master` still ships no standalone Phase 5 sample-root files here for:
 
+* `*string*`
 * `*cmdline*`
 * `*argv*`
 * `*rbtree*`
 * `*bitmap*`
 
 Keep broader helper and formatting review surfaces in their existing helper, closure, or later-phase packets instead of treating this directory as proof that dedicated cmdline, argv, rbtree, bitmap, `printf`, or `vsprintf` sample families landed here as standalone samples.
+current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;
