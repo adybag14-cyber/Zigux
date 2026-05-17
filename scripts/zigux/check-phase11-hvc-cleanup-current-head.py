@@ -2,10 +2,10 @@
 """Fail-close guard for the current-head Phase 11 HVC cleanup packet.
 
 The current `master` branch keeps the HVC cleanup packet reviewable through the
-survey note plus the shared Phase 11 build inventory. The direct HVC teardown,
-matrix, verify, and helper files are still inventory-backed archival members, so
-this checker must validate that bounded current-head truth instead of requiring
-those missing files to exist locally.
+survey note, the verify-helper boundary note, and the shared Phase 11 build
+inventory. The direct HVC teardown, matrix, verify, and helper files are still
+inventory-backed archival members, so this checker must validate that bounded
+current-head truth instead of requiring those missing files to exist locally.
 """
 
 from __future__ import annotations
@@ -20,6 +20,7 @@ from pathlib import Path
 DEFAULT_ROOT = Path(__file__).resolve().parents[3]
 
 SURVEY_PATH = Path("Documentation/zigux/phase11-hvc-console-survey.md")
+VERIFY_HELPER_PATH = Path("Documentation/zigux/phase11-hvc-verify-helper-boundary.md")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 
 SURVEY_MARKERS = (
@@ -28,6 +29,14 @@ SURVEY_MARKERS = (
     "The direct driver, test, split-replay, dedicated-checker, and coupled-doc companions above should stay framed as inventory-backed archival packet members until a future reread materializes them again.",
     "That archived helper keeps sysrq toggle handoff, pending-dispatch separation, literal-byte fallback on non-kernel `^O`, and post-teardown unavailability explicit without claiming live sysrq execution.",
     "Those archival companions keep direct `hvc_console` replay, verify-side helper boundaries, bounded cleanup-time teardown checks, and the targetless notifier no-unregister edge visible beside the archival survey gate",
+)
+
+VERIFY_HELPER_MARKERS = (
+    "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit without implying live `hvc_remove()` execution.",
+    "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove handoff explicit when tty teardown outlives console binding, preserving hangup-driven teardown without implying live `hvc_remove()` execution.",
+    "`error.NotifierDispatchRequiresTtyRegistration` keeps notifier prerequisite failures explicit instead of implying sysrq-triggered notifier dispatch can occur before tty registration.",
+    "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
+    "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit without promoting the lane to live sysrq execution.",
 )
 
 REQUIRED_BUILD_TEST_NAMES = (
@@ -124,6 +133,11 @@ def run_check(root: Path) -> None:
         if marker not in survey_text:
             raise CheckError(f"missing survey marker: {marker}")
 
+    verify_helper_text = read_text(root / VERIFY_HELPER_PATH)
+    for marker in VERIFY_HELPER_MARKERS:
+        if marker not in verify_helper_text:
+            raise CheckError(f"missing verify-helper marker: {marker}")
+
     inventory = read_json(root / INVENTORY_PATH)
 
     build_test_names = expect_string_list("build_test_names", inventory.get("build_test_names"))
@@ -217,8 +231,28 @@ def fixture_survey() -> str:
     )
 
 
+def fixture_verify_helper() -> str:
+    return "\n".join(
+        [
+            "# Phase 11 HVC Verify Helper Boundary",
+            "",
+            "This note records the direct helper-facing failure-mode packet already landed in `drivers/tty/hvc/hvc_console_verify.zig`.",
+            "",
+            "## Verify Helper Coverage",
+            "",
+            "- `drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit without implying live `hvc_remove()` execution.",
+            "- `drivers/tty/hvc/hvc_console_verify.zig` keeps the remove handoff explicit when tty teardown outlives console binding, preserving hangup-driven teardown without implying live `hvc_remove()` execution.",
+            "- `error.NotifierDispatchRequiresTtyRegistration` keeps notifier prerequisite failures explicit instead of implying sysrq-triggered notifier dispatch can occur before tty registration.",
+            "- `NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
+            "- the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit without promoting the lane to live sysrq execution.",
+            "",
+        ]
+    )
+
+
 def build_fixture(root: Path) -> None:
     write(root / SURVEY_PATH, fixture_survey())
+    write(root / VERIFY_HELPER_PATH, fixture_verify_helper())
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
 
 
@@ -247,6 +281,19 @@ def run_self_test() -> int:
             read_text(missing_survey / SURVEY_PATH).replace(SURVEY_MARKERS[0], "", 1),
         )
         expect_failure(missing_survey, SURVEY_MARKERS[0])
+        case_count += 1
+
+        missing_verify_helper = tmpdir / "missing_verify_helper_marker"
+        shutil.copytree(fixture, missing_verify_helper, dirs_exist_ok=True)
+        write(
+            missing_verify_helper / VERIFY_HELPER_PATH,
+            read_text(missing_verify_helper / VERIFY_HELPER_PATH).replace(
+                VERIFY_HELPER_MARKERS[1],
+                "",
+                1,
+            ),
+        )
+        expect_failure(missing_verify_helper, VERIFY_HELPER_MARKERS[1])
         case_count += 1
 
         missing_build_name = tmpdir / "missing_build_name"
