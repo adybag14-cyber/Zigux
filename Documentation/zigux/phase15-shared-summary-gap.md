@@ -19,7 +19,7 @@ The shared summary surfaces are still not aligned with that smaller live packet 
 
 - `Documentation/zigux/README.md` still presents a broader Phase 15 packet that names docs, scripts, manifests, and test routes not materialized on current `master`
 - `zigux/tests/README.md` still has no `Phase 15 review packet` section at all
-- the `scripts/zigux` tree still lacks the broader Phase 15 validator and checker family that the docs-root summary names, with only `scripts/zigux/check-phase15-shared-summary-gap.py` materialized on current `master`
+- the `scripts/zigux` tree still lacks the broader Phase 15 validator and checker family that the docs-root summary names, even though `scripts/zigux/check-phase15-review-process-handoff.py` and `scripts/zigux/check-phase15-shared-summary-gap.py` are now materialized on current `master`
 
 That makes the honest smallest next step recovery-oriented truthfulness, not wider Phase 15 expansion.
 
@@ -31,10 +31,8 @@ The current shared-summary drift is anchored to these still-missing paths:
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/validate-phase15.py`
-- `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 - `zigux/tests/phase15_build.zig`
@@ -53,9 +51,11 @@ The current shared-summary drift is anchored to these still-missing paths:
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+- `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-shared-summary-gap.py`
 - the overclaiming `Documentation/zigux/README.md` Phase 15 summary that should be treated as a gap source rather than shipped proof
 - the still-Phase13-only `zigux/tests/README.md` summary that leaves the Phase 15 tests-root packet absent
-- `scripts/zigux/check-phase15-shared-summary-gap.py` as the current fail-closed reminder for this gap
 
 ## Recovery rule
 
