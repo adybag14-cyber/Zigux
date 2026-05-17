@@ -11,6 +11,7 @@ SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 PHASE2_BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 PHASE2_CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
+WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 
 SCRIPTS_README_MARKERS = (
     "`check-phase2-fixdep-gate.py --self-test` plus `check-phase2-fixdep-gate.py`, "
@@ -48,7 +49,20 @@ TESTS_README_MARKERS = (
     "zig test scripts/zigux/fixdep.zig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+WORKFLOW_MARKERS = (
+    "      - name: Self-test Phase 2 fixdep gate checker\n"
+    "        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "      - name: Check Phase 2 fixdep gate packet\n"
+    "        run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "      - name: Self-test Phase 2 fixdep diff checker\n"
+    "        run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
+    "      - name: Check Phase 2 fixdep diff packet\n"
+    "        run: python3 scripts/zigux/check-fixdep-diff.py",
+    "      - name: Run Phase 2 fixdep unit tests\n"
+    "        run: zig test scripts/zigux/fixdep.zig",
+)
+
+EXPECTED_SELF_TEST_CASE_COUNT = 25
 
 
 def read_text(path: Path) -> str:
@@ -76,6 +90,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     bootstrap_notes_text = read_text(resolve_path(root, PHASE2_BOOTSTRAP_NOTES))
     closure_doc_text = read_text(resolve_path(root, PHASE2_CLOSURE_DOC))
     tests_readme_text = read_text(resolve_path(root, TESTS_README))
+    workflow_text = read_text(resolve_path(root, WORKFLOW))
 
     issues.extend(
         collect_missing_markers(
@@ -103,6 +118,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             tests_readme_text,
             TESTS_README_MARKERS,
             "MISSING_TESTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            workflow_text,
+            WORKFLOW_MARKERS,
+            "MISSING_WORKFLOW_MARKERS",
         )
     )
     return issues
@@ -135,6 +157,7 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(resolve_path(root, PHASE2_CLOSURE_DOC), "\n".join(PHASE2_CLOSURE_DOC_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_MARKERS) + "\n")
 
 
 def replace_once(text: str, marker: str, replacement: str) -> str:
@@ -196,11 +219,23 @@ def run_self_test() -> int:
             assert ("MISSING_TESTS_README_MARKERS", marker) in issues
             checks_run += 1
 
+        for marker in WORKFLOW_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, WORKFLOW)
+            path.write_text(
+                replace_once(path.read_text(encoding="utf-8"), marker, ""),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("MISSING_WORKFLOW_MARKERS", marker) in issues
+            checks_run += 1
+
         for rel_path in (
             SCRIPTS_README,
             PHASE2_BOOTSTRAP_NOTES,
             PHASE2_CLOSURE_DOC,
             TESTS_README,
+            WORKFLOW,
         ):
             build_self_test_root(root)
             resolve_path(root, rel_path).unlink()
@@ -235,7 +270,10 @@ def main() -> int:
 
     print("PHASE2_FIXDEP_SCRIPTS_SURFACE=pass")
     print(f"PHASE2_FIXDEP_SCRIPTS_SURFACE_SCRIPTS_MARKER_COUNT={len(SCRIPTS_README_MARKERS)}")
-    print(f"PHASE2_FIXDEP_SCRIPTS_SURFACE_SHARED_MARKER_COUNT={len(PHASE2_BOOTSTRAP_NOTES_MARKERS) + len(PHASE2_CLOSURE_DOC_MARKERS) + len(TESTS_README_MARKERS)}")
+    print(
+        "PHASE2_FIXDEP_SCRIPTS_SURFACE_SHARED_MARKER_COUNT="
+        f"{len(PHASE2_BOOTSTRAP_NOTES_MARKERS) + len(PHASE2_CLOSURE_DOC_MARKERS) + len(TESTS_README_MARKERS) + len(WORKFLOW_MARKERS)}"
+    )
     return 0
 
 
