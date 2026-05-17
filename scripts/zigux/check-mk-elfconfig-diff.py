@@ -16,6 +16,7 @@ CASES_PATH = FIXTURE_DIR / "cases.json"
 
 EXPECTED_CASES = {
     "elf32": {"input": "elf32.hex", "expected": "elf32_expected.json"},
+    "elf32_trailing": {"input": "elf32_trailing.hex", "expected": "elf32_trailing_expected.json"},
     "elf64": {"input": "elf64.hex", "expected": "elf64_expected.json"},
     "elf64_trailing": {"input": "elf64_trailing.hex", "expected": "elf64_trailing_expected.json"},
     "empty": {"input": "empty.hex", "expected": "empty_expected.json"},
@@ -29,6 +30,8 @@ EXPECTED_FIXTURE_FILES = frozenset(
         "cases.json",
         "elf32.hex",
         "elf32_expected.json",
+        "elf32_trailing.hex",
+        "elf32_trailing_expected.json",
         "elf64.hex",
         "elf64_expected.json",
         "elf64_trailing.hex",
@@ -44,7 +47,7 @@ EXPECTED_FIXTURE_FILES = frozenset(
     }
 )
 EXPECTED_RESULT_KEYS = frozenset({"stdout", "stderr", "exit_code"})
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 8
 
 C_REFERENCE_SOURCE = """// SPDX-License-Identifier: GPL-2.0
 #include <stdio.h>
