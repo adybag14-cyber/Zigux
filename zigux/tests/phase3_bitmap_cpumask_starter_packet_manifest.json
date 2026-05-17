@@ -3,7 +3,7 @@
   "lane": "helper-interop",
   "slug": "phase3-bitmap-cpumask-starter-packet",
   "status": "starter_packet_present",
-  "scope": "helper-local bitmap summary and cpumask membership replay",
+  "scope": "helper-local bitmap summary and cpumask membership replay inside the broader bitmap/cpumask slice",
   "packet_files": [
     "Documentation/zigux/phase3-bitmap-cpumask-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
@@ -23,13 +23,10 @@
     "zig build phase3-bitmap-cpumask-starter-packet-test --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig"
   ],
   "repo_reality_gaps": [
-    "zigux/tests/phase3_bitmap_cpumask_dump.zig",
-    "zigux/tests/phase3_bitmap_cpumask_dump_build.zig",
-    "zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c",
-    "zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json",
-    "zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json",
-    "scripts/zigux/check-phase3-bitmap-cpumask.py",
-    "scripts/zigux/validate-phase3.py"
+    "scripts/zigux/validate-phase3.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "zigux/tests/phase3_export_uapi_layout.zig",
+    "zigux/tests/phase3_low_level_wrappers.zig"
   ],
-  "next_safe_step": "keep the bitmap and cpumask helper family bounded to manifest-backed replay and truthful validator-support wording before widening into the fixture-backed parity packet or broader Phase 3 closure claims"
+  "next_safe_step": "keep the starter packet reviewable alongside the new fixture-backed parity dump while the broader shared Phase 3 reminder surfaces catch up"
 }
