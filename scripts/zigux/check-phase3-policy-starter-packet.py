@@ -15,6 +15,7 @@ ABI_HEADER_PATH = Path("include/zigux/abi.h")
 ABI_BINDING_PATH = Path("zigux/bindings/abi.zig")
 PANIC_POLICY_PATH = Path("zigux/helpers/panic_policy.zig")
 ALLOCATOR_POLICY_PATH = Path("zigux/helpers/allocator_policy.zig")
+UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 TEST_PATH = Path("zigux/tests/phase3_policy_starter_packet.zig")
 BUILD_PATH = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
@@ -24,6 +25,7 @@ REQUIRED_MARKERS = {
         "PHASE3_POLICY_SLICE_FILE_COUNT=",
         "PHASE3_POLICY_SLICE_SCOPE=",
         "PHASE3_POLICY_NEXT_SAFE_STEP=",
+        "zigux/helpers/unsafe_policy.zig",
         "zigux/tests/phase3_policy_starter_packet_manifest.json",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
@@ -34,6 +36,7 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase3-policy-slice.md",
         "zigux/helpers/panic_policy.zig",
         "zigux/helpers/allocator_policy.zig",
+        "zigux/helpers/unsafe_policy.zig",
         "zigux/tests/phase3_policy_starter_packet_manifest.json",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
@@ -45,14 +48,19 @@ REQUIRED_MARKERS = {
         "#define ZIGUX_ALLOC_CALLER_PROVIDED 0U",
         "#define ZIGUX_ALLOC_KERNEL_HEAP 1U",
         "#define ZIGUX_ALLOC_ARENA 2U",
+        "#define ZIGUX_UNSAFE_NONE 0U",
+        "#define ZIGUX_UNSAFE_VOLATILE_MMIO 1U",
+        "#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U",
         "struct zigux_interop_policy {",
     ),
     ABI_BINDING_PATH: (
         "pub const PanicMode = enum(u8) {",
         "pub const AllocatorMode = enum(u8) {",
+        "pub const UnsafeScope = enum(u8) {",
         "pub const InteropPolicy = extern struct {",
         "panic_mode: u8,",
         "allocator_mode: u8,",
+        "unsafe_scope: u8,",
         "reserved: u8,",
     ),
     PANIC_POLICY_PATH: (
@@ -71,21 +79,33 @@ REQUIRED_MARKERS = {
         "pub fn initializesOwnedState(mode: abi.AllocatorMode) bool {",
         "pub fn requiresResetOnInit(mode: abi.AllocatorMode) bool {",
     ),
+    UNSAFE_POLICY_PATH: (
+        "pub const AccessBoundary = enum {",
+        "pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {",
+        "pub fn accessBoundaryFor(mode: abi.UnsafeScope) AccessBoundary {",
+        "pub fn allowsTypedOnlyAccess(mode: abi.UnsafeScope) bool {",
+        "pub fn requiresVolatileMmioAccess(mode: abi.UnsafeScope) bool {",
+        "pub fn requiresRawPointerBridge(mode: abi.UnsafeScope) bool {",
+    ),
     TEST_PATH: (
         'test "policy starter packet decodes shared interop policy records" {',
         'test "panic policy starter packet keeps escalation semantics explicit" {',
         'test "allocator policy starter packet keeps init ownership semantics explicit" {',
+        'test "unsafe policy starter packet keeps access semantics explicit" {',
         "panic_policy.modeFromInteropPolicy(bug_heap)",
         "allocator_policy.modeFromInteropPolicy(warn_arena)",
-        "allocator_policy.requiresResetOnInit(.arena)",
+        "unsafe_policy.modeFromInteropPolicy(warn_arena)",
+        "unsafe_policy.requiresRawPointerBridge(.raw_pointer_bridge)",
     ),
     BUILD_PATH: (
         '.root_source_file = b.path("../bindings/abi.zig"),',
         '.root_source_file = b.path("../helpers/panic_policy.zig"),',
         '.root_source_file = b.path("../helpers/allocator_policy.zig"),',
+        '.root_source_file = b.path("../helpers/unsafe_policy.zig"),',
         '.root_source_file = b.path("phase3_policy_starter_packet.zig"),',
         'root_module.addImport("panic_policy", panic_policy);',
         'root_module.addImport("allocator_policy", allocator_policy);',
+        'root_module.addImport("unsafe_policy", unsafe_policy);',
         '"phase3-policy-starter-packet-test"',
     ),
     MANIFEST_PATH: (
@@ -94,22 +114,24 @@ REQUIRED_MARKERS = {
         '"Documentation/zigux/phase3-policy-slice.md"',
         '"zigux/helpers/panic_policy.zig"',
         '"zigux/helpers/allocator_policy.zig"',
+        '"zigux/helpers/unsafe_policy.zig"',
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
         '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
-        '"next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into unsafe or runtime-shim families"',
+        '"next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into mmio, low-level wrapper, or shared runtime-shim families"',
     ),
 }
 
 SELF_TEST_CASES = (
     (POLICY_NOTE_PATH, "PHASE3_POLICY_SLICE_FILE_COUNT="),
     (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
-    (ABI_HEADER_PATH, "#define ZIGUX_ALLOC_ARENA 2U"),
-    (ABI_BINDING_PATH, "pub const AllocatorMode = enum(u8) {"),
+    (ABI_HEADER_PATH, "#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U"),
+    (ABI_BINDING_PATH, "pub const UnsafeScope = enum(u8) {"),
     (PANIC_POLICY_PATH, "pub fn emitsKernelBug(mode: abi.PanicMode) bool {"),
     (ALLOCATOR_POLICY_PATH, "pub fn requiresResetOnInit(mode: abi.AllocatorMode) bool {"),
-    (TEST_PATH, "allocator_policy.requiresResetOnInit(.arena)"),
-    (BUILD_PATH, '"phase3-policy-starter-packet-test"'),
-    (MANIFEST_PATH, '"status": "policy_slice_present"'),
+    (UNSAFE_POLICY_PATH, "pub fn requiresRawPointerBridge(mode: abi.UnsafeScope) bool {"),
+    (TEST_PATH, "unsafe_policy.requiresRawPointerBridge(.raw_pointer_bridge)"),
+    (BUILD_PATH, 'root_module.addImport("unsafe_policy", unsafe_policy);'),
+    (MANIFEST_PATH, '"zigux/helpers/unsafe_policy.zig"'),
 )
 
 
@@ -156,6 +178,7 @@ def validate_repo(repo_root: Path) -> list[str]:
                     "zigux/bindings/abi.zig",
                     "zigux/helpers/panic_policy.zig",
                     "zigux/helpers/allocator_policy.zig",
+                    "zigux/helpers/unsafe_policy.zig",
                     "zigux/tests/phase3_policy_starter_packet.zig",
                     "zigux/tests/phase3_policy_starter_packet_build.zig",
                     "zigux/tests/phase3_policy_starter_packet_manifest.json",
@@ -188,6 +211,7 @@ def _populate_repo(root: Path) -> None:
         ABI_BINDING_PATH,
         PANIC_POLICY_PATH,
         ALLOCATOR_POLICY_PATH,
+        UNSAFE_POLICY_PATH,
         TEST_PATH,
         BUILD_PATH,
         MANIFEST_PATH,
