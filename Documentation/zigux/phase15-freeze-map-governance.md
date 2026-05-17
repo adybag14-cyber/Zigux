@@ -72,6 +72,7 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
   - `make -C zigux phase15-validate`
   - `make -C zigux phase15-test`
   - `make -C zigux phase15`
+- those parked `make -C zigux phase15*` entries are kept here as shared reminder-route vocabulary only; unlike the validator and dedicated-build file paths above, they are not direct contents-read artifacts and should not be treated as standalone current-`master` file-presence evidence.
 - reopen only when one of the packet-local conditions below becomes true:
   - a freeze-map anchor changes status bucket, blocker disposition, or required approver set
   - the freeze-in-C or study-only anchor set changes in `Documentation/zigux/freeze-map.md`
