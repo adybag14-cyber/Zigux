@@ -31,7 +31,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqualStrings("foo_bar_reg", initialized_after.last_register_label orelse return error.ExpectedRegisterLabel);
     try std.testing.expectEqualStrings("foo_bar_unreg", initialized_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);
 
-    try module.runSelftest();
+    _ = try module.runSelftest();
 
     const selftest_before = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_before.stage);
