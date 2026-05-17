@@ -144,6 +144,21 @@ test "phase 8 perf-buffer poll helper rejects ready waits without processing att
     );
 }
 
+test "phase 8 perf-buffer poll rejects impossible post-wait buffer states" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.TimeoutObservationHasReadyBuffer,
+        perf_buffer_poll.summarizePoll(0, .timed_out, &.{.{ .error_code = -5 }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.InterruptedObservationHasReadyBuffer,
+        perf_buffer_poll.summarizePoll(-1, .interrupted, &.{.{ .ready = true }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.FailedObservationHasBufferState,
+        perf_buffer_poll.summarizePoll(5, .{ .failed = -11 }, &.{.{ .error_code = -32 }}),
+    );
+}
+
 test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {
     const buffer_fds = [_]?i32{ 9, null, 21 };
 
@@ -217,6 +232,10 @@ test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact
 }
 
 test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {
+    const resolvePollExecutionResultFromWaitResult =
+        perf_buffer_poll.resolvePollExecutionResultFromWaitResult;
+    // _ = resolvePollExecutionResultFromWaitResult;
+
     const ready_execution = try perf_buffer_poll.summarizePollExecutionFromWaitResult(
         12,
         2,
@@ -230,11 +249,11 @@ test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result an
     );
     try std.testing.expectError(
         perf_buffer_poll.PollError.WaitResultDisagreesWithExecutionOutcome,
-        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(0, ready_execution),
+        resolvePollExecutionResultFromWaitResult(0, ready_execution),
     );
     try std.testing.expectError(
         perf_buffer_poll.PollError.WaitResultDisagreesWithReadyEventCount,
-        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(3, ready_execution),
+        resolvePollExecutionResultFromWaitResult(3, ready_execution),
     );
 
     const failed_execution = try perf_buffer_poll.summarizePollExecutionFromWaitResult(
@@ -245,6 +264,6 @@ test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result an
     );
     try std.testing.expectError(
         perf_buffer_poll.PollError.WaitResultDisagreesWithFailureCode,
-        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(-9, failed_execution),
+        resolvePollExecutionResultFromWaitResult(-9, failed_execution),
     );
 }
