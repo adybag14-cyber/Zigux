@@ -96,6 +96,12 @@ fn addPhase3DevTStarterPacket(
         .optimize = optimize,
     });
     dev_t_binding.addImport("uapi_dev_t", uapi_dev_t);
+    const version_binding = b.createModule(.{
+        .root_source_file = b.path("../bindings/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    version_binding.addImport("uapi_version", uapi_version);
 
     const abi_bindings = b.createModule(.{
         .root_source_file = b.path("../bindings/abi.zig"),
@@ -109,7 +115,7 @@ fn addPhase3DevTStarterPacket(
     });
     export_shim.addImport("abi_bindings", abi_bindings);
     export_shim.addImport("dev_t_binding", dev_t_binding);
-    export_shim.addImport("version_binding", uapi_version);
+    export_shim.addImport("version_binding", version_binding);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_dev_t_starter_packet.zig"),
@@ -118,7 +124,7 @@ fn addPhase3DevTStarterPacket(
     });
     root_module.addImport("uapi_dev_t", uapi_dev_t);
     root_module.addImport("dev_t_binding", dev_t_binding);
-    root_module.addImport("version_binding", uapi_version);
+    root_module.addImport("version_binding", version_binding);
     root_module.addImport("export_shim", export_shim);
 
     const tests = b.addTest(.{
@@ -238,6 +244,87 @@ fn addPhase3PolicyStarterPacket(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3LowLevelWrappers(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const atomic = b.createModule(.{
+        .root_source_file = b.path("../helpers/atomic.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const barrier = b.createModule(.{
+        .root_source_file = b.path("../helpers/barrier.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const mmio = b.createModule(.{
+        .root_source_file = b.path("../helpers/mmio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_low_level_wrappers.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("atomic", atomic);
+    root_module.addImport("barrier", barrier);
+    root_module.addImport("mmio", mmio);
+
+    const tests = b.addTest(.{
+        .name = "phase3-low-level-wrappers",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
+fn addPhase3ListHListDump(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const uapi_list_hlist = b.createModule(.{
+        .root_source_file = b.path("../uapi/list_hlist.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const list_hlist_bindings = b.createModule(.{
+        .root_source_file = b.path("../bindings/list_hlist.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    list_hlist_bindings.addImport("uapi_list_hlist", uapi_list_hlist);
+
+    const list_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/list_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const hlist_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/hlist_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_list_hlist_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("list_hlist_bindings", list_hlist_bindings);
+    root_module.addImport("list_view", list_view);
+    root_module.addImport("hlist_view", hlist_view);
+
+    const exe = b.addExecutable(.{
+        .name = "phase3-list-hlist-dump",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(exe);
+}
+
 fn addPhase3AbiDump(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -271,10 +358,10 @@ pub fn build(b: *std.Build) void {
     const phase3_errptr_xarray_starter_packet = addPhase3ErrPtrXarrayStarterPacket(b, target, optimize);
     const phase3_errptr_xarray_dump = addPhase3ErrPtrXarrayDump(b, target, optimize);
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
+    const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
+    const phase3_list_hlist_dump = addPhase3ListHListDump(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
 
-    // Keep the shared tests root centered on anchors that are still present on
-    // current master while reintroducing a compact Phase 1 host-tools smoke path.
     const phase12_virtio_net_survey = addSurveyTest(
         b,
         "phase12-virtio-net-survey",
@@ -313,6 +400,18 @@ pub fn build(b: *std.Build) void {
     );
     phase3_policy_step.dependOn(&phase3_policy_starter_packet.step);
 
+    const phase3_low_level_wrapper_step = b.step(
+        "phase3-low-level-wrappers",
+        "Run the shared Phase 3 low-level wrapper packet from zigux/tests",
+    );
+    phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);
+
+    const phase3_list_hlist_step = b.step(
+        "phase3-list-hlist",
+        "Run the shared Phase 3 list/hlist dump from zigux/tests",
+    );
+    phase3_list_hlist_step.dependOn(&phase3_list_hlist_dump.step);
+
     const phase3_test_step = b.step(
         "phase3-test",
         "Run the current shared Phase 3 starter packet bundle from zigux/tests",
@@ -320,6 +419,7 @@ pub fn build(b: *std.Build) void {
     phase3_test_step.dependOn(&phase3_dev_t_starter_packet.step);
     phase3_test_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
     phase3_test_step.dependOn(&phase3_policy_starter_packet.step);
+    phase3_test_step.dependOn(&phase3_low_level_wrappers.step);
 
     const phase3_dump_step = b.step(
         "phase3-dump",
