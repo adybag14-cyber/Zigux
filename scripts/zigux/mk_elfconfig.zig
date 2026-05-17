@@ -430,6 +430,23 @@ test "split-read ELF input exits with stdout and ignores trailing bytes" {
     try std.testing.expectEqualStrings("", stderr.list.items);
 }
 
+test "split-read empty input exits with stderr after immediate EOF" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{},
+        .chunk_sizes = &[_]usize{},
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
+}
+
 test "split-read invalid class exits silently and ignores trailing bytes" {
     var reader = SplitReader{
         .bytes = &[_]u8{
