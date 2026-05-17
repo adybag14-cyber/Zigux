@@ -58,10 +58,11 @@ REQUIRED_MARKERS = (
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-    "`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still need one narrow truthfulness pass",
-    "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback tracker for that docs-root, tests-root, and review-checklist three-slice cleanup.",
+    "`Documentation/zigux/README.md` still needs one narrow truthfulness pass",
+    "`zigux/tests/README.md` and `Documentation/zigux/review-checklist.md` already reflect that bounded three-slice posture",
+    "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback tracker for that remaining docs-root-only cleanup.",
     "`scripts/zigux/README.md` is still parked on the older absent-route wording for `zigux/kernel/export_shim.zig`",
-    "Keep the remaining follow-up focused on those shared reminder surfaces",
+    "Keep the remaining follow-up focused on those shared reminder surfaces so the docs root stops treating the policy slice anchors and the starter export shim companion as broader missing routes",
     "This note is limited to the current validator-support posture for Phase 3.",
 )
 
