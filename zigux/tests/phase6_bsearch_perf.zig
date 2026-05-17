@@ -7,6 +7,16 @@ const PerfCase = struct {
     reps: usize,
 };
 
+const WitnessCase = struct {
+    query: u32,
+    expected_hit: bool,
+};
+
+const WitnessResult = struct {
+    max_compare_calls: usize,
+    case_count: usize,
+};
+
 const perf_cases = [_]PerfCase{
     .{ .label = "256", .len = 256, .reps = 2_000 },
     .{ .label = "4096", .len = 4096, .reps = 500 },
@@ -20,7 +30,7 @@ pub fn main(init: std.process.Init) !void {
     for (perf_cases) |case| {
         const result = try runPerfCase(case, io);
         std.debug.print(
-            "phase6-bsearch-perf {s} len={} reps={} ns_per_lookup={} avg_compare_calls={d:.2} max_compare_calls={} max_compare_budget={}\n",
+            "phase6-bsearch-perf {s} len={} reps={} ns_per_lookup={} avg_compare_calls={d:.2} max_compare_calls={} max_compare_budget={} witness_max_compare_calls={} witness_case_count={}\n",
             .{
                 case.label,
                 case.len,
@@ -29,6 +39,8 @@ pub fn main(init: std.process.Init) !void {
                 result.avg_compare_calls,
                 result.max_compare_calls,
                 result.max_compare_budget,
+                result.witness_max_compare_calls,
+                result.witness_case_count,
             },
         );
     }
@@ -39,6 +51,8 @@ const PerfResult = struct {
     avg_compare_calls: f64,
     max_compare_calls: usize,
     max_compare_budget: usize,
+    witness_max_compare_calls: usize,
+    witness_case_count: usize,
 };
 
 fn compareCounted(key: *const u32, item: *const u32) i32 {
@@ -54,6 +68,39 @@ fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
 }
 
+fn runWitnessCases(values: []const u32) !WitnessResult {
+    const middle_index = values.len / 2;
+    const last_index = values.len - 1;
+    const witness_cases = [_]WitnessCase{
+        .{ .query = values[0], .expected_hit = true },
+        .{ .query = values[middle_index], .expected_hit = true },
+        .{ .query = values[last_index], .expected_hit = true },
+        .{ .query = values[0] + 1, .expected_hit = false },
+        .{ .query = values[middle_index] + 1, .expected_hit = false },
+        .{ .query = values[last_index] + 1, .expected_hit = false },
+    };
+
+    var witness_max_compare_calls: usize = 0;
+
+    for (witness_cases) |witness| {
+        compare_calls = 0;
+        const found = bsearch.searchIndex(u32, u32, &witness.query, values, compareCounted);
+        witness_max_compare_calls = @max(witness_max_compare_calls, compare_calls);
+
+        if (witness.expected_hit) {
+            const index = found orelse return error.TestUnexpectedResult;
+            try std.testing.expectEqual(witness.query, values[index]);
+        } else {
+            try std.testing.expect(found == null);
+        }
+    }
+
+    return .{
+        .max_compare_calls = witness_max_compare_calls,
+        .case_count = witness_cases.len,
+    };
+}
+
 fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     const allocator = std.heap.page_allocator;
     const values = try allocator.alloc(u32, case.len);
@@ -62,6 +109,10 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     for (values, 0..) |*value, idx| {
         value.* = @as(u32, @intCast(idx * 2));
     }
+
+    const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;
+    const witness_result = try runWitnessCases(values);
+    try std.testing.expect(witness_result.max_compare_calls <= max_compare_budget);
 
     const query_count = 32;
     var queries: [query_count]u32 = undefined;
@@ -102,7 +153,6 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     }
 
     const elapsed = benchTime(io) - started_at;
-    const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;
     const avg_compare_calls = @as(f64, @floatFromInt(total_compare_calls)) /
         @as(f64, @floatFromInt(total_lookups));
 
@@ -114,5 +164,7 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
         .avg_compare_calls = avg_compare_calls,
         .max_compare_calls = worst_compare_calls,
         .max_compare_budget = max_compare_budget,
+        .witness_max_compare_calls = witness_result.max_compare_calls,
+        .witness_case_count = witness_result.case_count,
     };
 }
