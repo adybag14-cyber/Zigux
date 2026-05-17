@@ -16,12 +16,13 @@ BCM2835_STOP_MARKERS = (
     "full_reset_armed_after_stop",
 )
 
-DW_WDT_STOP_MARKERS = (
-    "pub const StopSummary = struct {",
-    "pub fn stopSummary(self: *DwWdtLab) StopSummary {",
+DW_WDT_TEARDOWN_MARKERS = (
+    "pub const TeardownSummary = struct {",
+    "pub fn teardownSummary(self: *DwWdtLab) !TeardownSummary {",
     "reset_control_stop",
     "continued_heartbeat",
-    'test "phase11 dw_wdt stop summary keeps idle, stoppable, and unstoppable paths distinct"',
+    "hardware_running_after_teardown",
+    'test "phase11 dw_wdt teardown summary keeps idle, stoppable, and unstoppable paths distinct"',
 )
 
 
@@ -42,24 +43,26 @@ def run_check(repo_root: pathlib.Path) -> list[str]:
 
     errors: list[str] = []
     errors.extend(require_markers("bcm2835_stop_surface", bcm2835_text, BCM2835_STOP_MARKERS))
-    errors.extend(require_markers("dw_wdt_stop_surface", dw_wdt_text, DW_WDT_STOP_MARKERS))
+    errors.extend(
+        require_markers("dw_wdt_teardown_surface", dw_wdt_text, DW_WDT_TEARDOWN_MARKERS)
+    )
     return errors
 
 
 def run_self_test() -> int:
     bcm2835_text = "\n".join(BCM2835_STOP_MARKERS)
-    dw_wdt_text = "\n".join(DW_WDT_STOP_MARKERS)
+    dw_wdt_text = "\n".join(DW_WDT_TEARDOWN_MARKERS)
 
     assert not require_markers("bcm2835_stop_surface", bcm2835_text, BCM2835_STOP_MARKERS)
-    assert not require_markers("dw_wdt_stop_surface", dw_wdt_text, DW_WDT_STOP_MARKERS)
+    assert not require_markers("dw_wdt_teardown_surface", dw_wdt_text, DW_WDT_TEARDOWN_MARKERS)
 
     missing = require_markers(
-        "dw_wdt_stop_surface",
-        dw_wdt_text.replace(DW_WDT_STOP_MARKERS[1], ""),
-        DW_WDT_STOP_MARKERS,
+        "dw_wdt_teardown_surface",
+        dw_wdt_text.replace(DW_WDT_TEARDOWN_MARKERS[1], ""),
+        DW_WDT_TEARDOWN_MARKERS,
     )
     assert len(missing) == 1
-    assert "pub fn stopSummary(self: *DwWdtLab) StopSummary {" in missing[0]
+    assert "pub fn teardownSummary(self: *DwWdtLab) !TeardownSummary {" in missing[0]
 
     with tempfile.TemporaryDirectory() as tmpdir:
         repo_root = pathlib.Path(tmpdir)
@@ -71,10 +74,10 @@ def run_self_test() -> int:
         dw_wdt_path.write_text(dw_wdt_text, encoding="utf-8")
         assert not run_check(repo_root)
 
-        dw_wdt_path.write_text("\n".join(DW_WDT_STOP_MARKERS[:-1]), encoding="utf-8")
+        dw_wdt_path.write_text("\n".join(DW_WDT_TEARDOWN_MARKERS[:-1]), encoding="utf-8")
         errors = run_check(repo_root)
         assert len(errors) == 1
-        assert DW_WDT_STOP_MARKERS[-1] in errors[0]
+        assert DW_WDT_TEARDOWN_MARKERS[-1] in errors[0]
 
     print("self-test passed")
     return 0
