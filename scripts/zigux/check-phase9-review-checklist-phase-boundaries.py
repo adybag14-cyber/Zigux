@@ -22,9 +22,13 @@ DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 TESTS_README_PATH = "zigux/tests/README.md"
+SCRIPTS_README_PATH = "scripts/zigux/README.md"
+SAMPLES_README_PATH = "samples/zigux/README.md"
 
 PHASE9_SHARED_PACKET_MARKER = "if the change touches the shared Phase 9 runtime-loader packet"
+PHASE9_SCRIPTS_PACKET_MARKER = "Phase 9 flow - the current shared runtime-pilot packet is narrow and review-first"
 TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
+PHASE9_BOUNDARY_CHECKER_MARKER = "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`"
 PHASE2_CONF_BRIDGE_MARKER = "`scripts/zigux/kconfig/conf_bridge.zig`"
 PHASE2_CONFDATA_BRIDGE_MARKER = "`scripts/zigux/kconfig/confdata_bridge.zig`"
 PHASE3_EXPORTS_MARKER = "`rust/exports.c`"
@@ -45,6 +49,7 @@ REVIEW_CHECKLIST_RUNTIME_LOADER_SCAFFOLD_MARKER = "`samples/zigux/runtime_*_load
 LANE_SEQUENCING_SAMPLE_MARKER = "surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`"
 LANE_SEQUENCING_SELFTEST_MARKER = "`.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking"
 LANE_SEQUENCING_BACKLOG_MARKER = "does not currently expose the broader shared runtime-loader packet"
+
 TESTS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 TESTS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 TESTS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
@@ -52,6 +57,7 @@ TESTS_README_BACKLOG_MARKER = (
     "there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, "
     "`make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`"
 )
+
 DOCS_README_PHASE9_NOTES_MARKER = "Phase 9 notes - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`"
 DOCS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 DOCS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
@@ -59,6 +65,17 @@ DOCS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifec
 DOCS_README_BACKLOG_MARKER = "does not currently expose the older shared runtime-loader packet that earlier reminder surfaces described"
 DOCS_README_PHASE2_BOUNDARY_MARKER = "remain Phase 2 config-surface bridge references"
 DOCS_README_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than runtime-pilot evidence"
+
+SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
+SCRIPTS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
+SCRIPTS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
+SCRIPTS_README_BACKLOG_MARKER = "current `master` still does not materialize `zigux/tests/phase9_build.zig`"
+
+SAMPLES_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
+SAMPLES_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
+SAMPLES_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
+SAMPLES_README_BACKLOG_MARKER = "does not currently expose the broader shared runtime-loader packet"
+SAMPLES_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
 
 CHECKLIST_REQUIRED_MARKERS = [
     PHASE9_SHARED_PACKET_MARKER,
@@ -105,6 +122,38 @@ DOCS_README_REQUIRED_MARKERS = [
     DOCS_README_PHASE3_BOUNDARY_MARKER,
 ]
 
+SCRIPTS_README_REQUIRED_MARKERS = [
+    PHASE9_SCRIPTS_PACKET_MARKER,
+    PHASE9_BOUNDARY_CHECKER_MARKER,
+    TRACE_EVENTS_PACKET_CHECKER_MARKER,
+    SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER,
+    SCRIPTS_README_SELFTEST_HOOK_MARKER,
+    SCRIPTS_README_LIFECYCLE_MARKER,
+    SCRIPTS_README_BACKLOG_MARKER,
+    PHASE2_CONF_BRIDGE_MARKER,
+    PHASE2_CONFDATA_BRIDGE_MARKER,
+    PHASE3_EXPORTS_MARKER,
+    PHASE3_EXPORT_SHIM_MARKER,
+    PHASE2_BOUNDARY_MARKER,
+    PHASE3_BOUNDARY_MARKER,
+]
+
+SAMPLES_README_REQUIRED_MARKERS = [
+    PHASE9_BOUNDARY_CHECKER_MARKER,
+    TRACE_EVENTS_PACKET_CHECKER_MARKER,
+    SAMPLES_README_TRACE_EVENTS_SAMPLE_MARKER,
+    SAMPLES_README_SELFTEST_HOOK_MARKER,
+    SAMPLES_README_LIFECYCLE_MARKER,
+    SAMPLES_README_BACKLOG_MARKER,
+    SAMPLES_README_UNREGISTERED_GATE_MARKER,
+    PHASE2_CONF_BRIDGE_MARKER,
+    PHASE2_CONFDATA_BRIDGE_MARKER,
+    PHASE3_EXPORTS_MARKER,
+    PHASE3_EXPORT_SHIM_MARKER,
+    PHASE2_BOUNDARY_MARKER,
+    PHASE3_BOUNDARY_MARKER,
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -121,6 +170,8 @@ def validate(root: Path) -> list[str]:
     checklist_path = root / REVIEW_CHECKLIST_PATH
     lane_sequencing_path = root / LANE_SEQUENCING_PATH
     tests_readme_path = root / TESTS_README_PATH
+    scripts_readme_path = root / SCRIPTS_README_PATH
+    samples_readme_path = root / SAMPLES_README_PATH
     if not docs_readme_path.exists():
         failures.append(f"missing_file:{DOCS_README_PATH}")
     if not checklist_path.exists():
@@ -129,6 +180,10 @@ def validate(root: Path) -> list[str]:
         failures.append(f"missing_file:{LANE_SEQUENCING_PATH}")
     if not tests_readme_path.exists():
         failures.append(f"missing_file:{TESTS_README_PATH}")
+    if not scripts_readme_path.exists():
+        failures.append(f"missing_file:{SCRIPTS_README_PATH}")
+    if not samples_readme_path.exists():
+        failures.append(f"missing_file:{SAMPLES_README_PATH}")
     if failures:
         return failures
 
@@ -152,13 +207,23 @@ def validate(root: Path) -> list[str]:
         if marker not in tests_readme:
             failures.append(f"missing_marker:{TESTS_README_PATH}:{marker}")
 
+    scripts_readme = read_text(root, SCRIPTS_README_PATH)
+    for marker in SCRIPTS_README_REQUIRED_MARKERS:
+        if marker not in scripts_readme:
+            failures.append(f"missing_marker:{SCRIPTS_README_PATH}:{marker}")
+
+    samples_readme = read_text(root, SAMPLES_README_PATH)
+    for marker in SAMPLES_README_REQUIRED_MARKERS:
+        if marker not in samples_readme:
+            failures.append(f"missing_marker:{SAMPLES_README_PATH}:{marker}")
+
     return failures
 
 
 def build_docs_readme_fixture_text() -> str:
     return f"""# Zigux Documentation
 
-{DOCS_README_PHASE9_NOTES_MARKER} - `Documentation/zigux/review-checklist.md` - `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` - {TRACE_EVENTS_PACKET_CHECKER_MARKER} - `zigux/tests/README.md` - {DOCS_README_TRACE_EVENTS_SAMPLE_MARKER} now keep the current narrow runtime-pilot packet reviewable from the docs root: the surviving direct runtime-module sample still exposes {DOCS_README_SELFTEST_HOOK_MARKER} together with {DOCS_README_LIFECYCLE_MARKER}, while current `master` {DOCS_README_BACKLOG_MARKER}.
+{DOCS_README_PHASE9_NOTES_MARKER} - `Documentation/zigux/review-checklist.md` - {PHASE9_BOUNDARY_CHECKER_MARKER} - {TRACE_EVENTS_PACKET_CHECKER_MARKER} - `zigux/tests/README.md` - {DOCS_README_TRACE_EVENTS_SAMPLE_MARKER} now keep the current narrow runtime-pilot packet reviewable from the docs root: the surviving direct runtime-module sample still exposes {DOCS_README_SELFTEST_HOOK_MARKER} together with {DOCS_README_LIFECYCLE_MARKER}, while current `master` {DOCS_README_BACKLOG_MARKER}.
 - the same shared Phase 9 summary should keep the older non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {DOCS_README_PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {DOCS_README_PHASE3_BOUNDARY_MARKER}.
 """
 
@@ -178,8 +243,8 @@ def build_fixture_text() -> str:
 def build_lane_sequencing_fixture_text() -> str:
     return f"""# Phase 9 Runtime Pilot Lane Sequencing
 
-- surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, {TRACE_EVENTS_PACKET_CHECKER_MARKER}, and `zigux/tests/README.md`
-- surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`
+- surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, {PHASE9_BOUNDARY_CHECKER_MARKER}, {TRACE_EVENTS_PACKET_CHECKER_MARKER}, and `zigux/tests/README.md`
+- {LANE_SEQUENCING_SAMPLE_MARKER}
 - surviving runtime-module evidence inside that sample: {LANE_SEQUENCING_SELFTEST_MARKER}
 
 Current `master` {LANE_SEQUENCING_BACKLOG_MARKER} that earlier reminder surfaces described.
@@ -195,82 +260,99 @@ Phase 9 review packet
 """
 
 
+def build_scripts_readme_fixture_text() -> str:
+    return f"""# scripts/zigux
+
+## Phase 9
+
+- {PHASE9_SCRIPTS_PACKET_MARKER}: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, {PHASE9_BOUNDARY_CHECKER_MARKER}, {TRACE_EVENTS_PACKET_CHECKER_MARKER}, `zigux/tests/README.md`, and {SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER} keep the live reminder surface honest from the scripts root
+- {SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER} remains the surviving direct runtime-module sample and still exposes {SCRIPTS_README_SELFTEST_HOOK_MARKER} together with {SCRIPTS_README_LIFECYCLE_MARKER}
+- {SCRIPTS_README_BACKLOG_MARKER}, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds, so treat those loader, build, kernel, workflow, and sample paths as absent backlog evidence until a fresh reread proves they returned
+- keep the older non-owner boundaries explicit here too: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {PHASE3_BOUNDARY_MARKER}
+"""
+
+
+def build_samples_readme_fixture_text() -> str:
+    return f"""# samples/zigux
+
+## Phase 9 runtime pilot family
+
+Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, {PHASE9_BOUNDARY_CHECKER_MARKER}, {TRACE_EVENTS_PACKET_CHECKER_MARKER}, and `zigux/tests/README.md` aligned with that surviving direct runtime-module sample instead of reviving the removed shared loader packet by implication.
+
+Keep the current direct runtime-module evidence explicit here too: {SAMPLES_README_TRACE_EVENTS_SAMPLE_MARKER} still exposes {SAMPLES_README_SELFTEST_HOOK_MARKER} together with {SAMPLES_README_LIFECYCLE_MARKER}.
+
+Keep saying clearly that current `master` {SAMPLES_README_BACKLOG_MARKER}, so `zigux/tests/phase9_build.zig`, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the older `samples/zigux/runtime_*_loader.zig` scaffolds stay backlog references unless a fresh repo reread proves they have returned.
+
+Keep older cross-phase non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {PHASE3_BOUNDARY_MARKER}.
+
+Treat {SAMPLES_README_UNREGISTERED_GATE_MARKER} as a companion reminder inside that same narrow runtime packet, not as proof that the broader shared loader family has returned.
+"""
+
+
 def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
     if expected not in failures:
         raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
 
 
+def seed_fixture_tree(base: Path) -> None:
+    write_text(base / DOCS_README_PATH, build_docs_readme_fixture_text())
+    write_text(base / REVIEW_CHECKLIST_PATH, build_fixture_text())
+    write_text(base / LANE_SEQUENCING_PATH, build_lane_sequencing_fixture_text())
+    write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
+    write_text(base / SCRIPTS_README_PATH, build_scripts_readme_fixture_text())
+    write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
+
+
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase9-review-checklist-boundaries-"))
     try:
-        docs_readme_path = base / DOCS_README_PATH
-        fixture_path = base / REVIEW_CHECKLIST_PATH
-        lane_sequencing_path = base / LANE_SEQUENCING_PATH
-        tests_readme_path = base / TESTS_README_PATH
-        write_text(docs_readme_path, build_docs_readme_fixture_text())
-        write_text(fixture_path, build_fixture_text())
-        write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
-        write_text(tests_readme_path, build_tests_readme_fixture_text())
+        seed_fixture_tree(base)
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
         for marker in DOCS_README_REQUIRED_MARKERS:
-            write_text(docs_readme_path, build_docs_readme_fixture_text().replace(marker, "", 1))
-            write_text(fixture_path, build_fixture_text())
-            write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
-            write_text(tests_readme_path, build_tests_readme_fixture_text())
+            seed_fixture_tree(base)
+            write_text(base / DOCS_README_PATH, build_docs_readme_fixture_text().replace(marker, ""))
             expect_failure(base, f"missing_marker:{DOCS_README_PATH}:{marker}")
-            write_text(docs_readme_path, build_docs_readme_fixture_text())
 
         for marker in CHECKLIST_REQUIRED_MARKERS:
-            write_text(docs_readme_path, build_docs_readme_fixture_text())
-            write_text(fixture_path, build_fixture_text().replace(marker, "", 1))
-            write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
-            write_text(tests_readme_path, build_tests_readme_fixture_text())
+            seed_fixture_tree(base)
+            write_text(base / REVIEW_CHECKLIST_PATH, build_fixture_text().replace(marker, ""))
             expect_failure(base, f"missing_marker:{REVIEW_CHECKLIST_PATH}:{marker}")
-            write_text(fixture_path, build_fixture_text())
 
         for marker in LANE_SEQUENCING_REQUIRED_MARKERS:
-            write_text(docs_readme_path, build_docs_readme_fixture_text())
-            write_text(fixture_path, build_fixture_text())
-            write_text(lane_sequencing_path, build_lane_sequencing_fixture_text().replace(marker, "", 1))
-            write_text(tests_readme_path, build_tests_readme_fixture_text())
+            seed_fixture_tree(base)
+            write_text(base / LANE_SEQUENCING_PATH, build_lane_sequencing_fixture_text().replace(marker, ""))
             expect_failure(base, f"missing_marker:{LANE_SEQUENCING_PATH}:{marker}")
-            write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
 
         for marker in TESTS_README_REQUIRED_MARKERS:
-            write_text(docs_readme_path, build_docs_readme_fixture_text())
-            write_text(fixture_path, build_fixture_text())
-            write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
-            write_text(tests_readme_path, build_tests_readme_fixture_text().replace(marker, "", 1))
+            seed_fixture_tree(base)
+            write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text().replace(marker, ""))
             expect_failure(base, f"missing_marker:{TESTS_README_PATH}:{marker}")
-            write_text(tests_readme_path, build_tests_readme_fixture_text())
 
-        (base / DOCS_README_PATH).unlink()
-        expect_failure(base, f"missing_file:{DOCS_README_PATH}")
-        write_text(docs_readme_path, build_docs_readme_fixture_text())
-        write_text(fixture_path, build_fixture_text())
-        write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
-        write_text(tests_readme_path, build_tests_readme_fixture_text())
+        for marker in SCRIPTS_README_REQUIRED_MARKERS:
+            seed_fixture_tree(base)
+            write_text(base / SCRIPTS_README_PATH, build_scripts_readme_fixture_text().replace(marker, ""))
+            expect_failure(base, f"missing_marker:{SCRIPTS_README_PATH}:{marker}")
 
-        (base / REVIEW_CHECKLIST_PATH).unlink()
-        expect_failure(base, f"missing_file:{REVIEW_CHECKLIST_PATH}")
-        write_text(docs_readme_path, build_docs_readme_fixture_text())
-        write_text(fixture_path, build_fixture_text())
-        write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
-        write_text(tests_readme_path, build_tests_readme_fixture_text())
+        for marker in SAMPLES_README_REQUIRED_MARKERS:
+            seed_fixture_tree(base)
+            write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text().replace(marker, ""))
+            expect_failure(base, f"missing_marker:{SAMPLES_README_PATH}:{marker}")
 
-        (base / LANE_SEQUENCING_PATH).unlink()
-        expect_failure(base, f"missing_file:{LANE_SEQUENCING_PATH}")
-        write_text(docs_readme_path, build_docs_readme_fixture_text())
-        write_text(fixture_path, build_fixture_text())
-        write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
-        write_text(tests_readme_path, build_tests_readme_fixture_text())
-
-        (base / TESTS_README_PATH).unlink()
-        expect_failure(base, f"missing_file:{TESTS_README_PATH}")
+        for rel_path in [
+            DOCS_README_PATH,
+            REVIEW_CHECKLIST_PATH,
+            LANE_SEQUENCING_PATH,
+            TESTS_README_PATH,
+            SCRIPTS_README_PATH,
+            SAMPLES_README_PATH,
+        ]:
+            seed_fixture_tree(base)
+            (base / rel_path).unlink()
+            expect_failure(base, f"missing_file:{rel_path}")
     finally:
         shutil.rmtree(base, ignore_errors=True)
 
@@ -279,12 +361,14 @@ def run_self_test() -> int:
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_CHECKLIST_MARKER_COUNT={len(CHECKLIST_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist keeps the surviving trace-events runtime packet and backlog posture explicit, that the docs-root and lane-sequencing summaries keep the surviving trace-events packet explicit, and that the tests guide keeps the same selftest-hook lifecycle evidence visible."
+        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, tests-root guide, scripts-root reminder, and samples-root reminder all keep the surviving trace-events runtime packet, backlog posture, and older Phase 2 versus Phase 3 non-owner boundaries explicit."
     )
     parser.add_argument(
         "--repo-root",
@@ -312,6 +396,8 @@ def main() -> int:
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_CHECKLIST_MARKER_COUNT={len(CHECKLIST_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
     print("PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES=pass")
     return 0
 
