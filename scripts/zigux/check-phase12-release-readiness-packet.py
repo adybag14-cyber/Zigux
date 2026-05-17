@@ -63,7 +63,7 @@ REQUIRED_MARKERS = {
     RELEASE_READINESS_SURVEY_PATH: [
         "`PHASE12_STATUS=active`",
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "scripts/zigux/check-build-only-phase12-surface.py` now matches that shipped support-checker-plus-validate-route reminder too",
+        "`scripts/zigux/check-build-only-phase12-surface.py` now matches that shipped support-checker-plus-validate-route reminder too",
         "the broader reviewer-facing reminder family now keeps the absent standalone `scripts/zigux/check-phase12-cross.py` file explicit instead of overstating a cross-checker surface that current `master` does not ship",
         "make -C zigux phase12-validate",
     ],
@@ -153,6 +153,13 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        remove_marker(base / RELEASE_READINESS_SURVEY_PATH, REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][2])
+        expect_failure(
+            base,
+            f"{RELEASE_READINESS_SURVEY_PATH}:{REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][2]}",
+        )
+
+        write_fixture_tree(base)
         remove_marker(base / RELEASE_READINESS_SURVEY_PATH, REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][3])
         expect_failure(
             base,
@@ -193,7 +200,7 @@ def run_self_test() -> int:
         expect_failure(base, f"{DOCS_README_PATH}:{REQUIRED_MARKERS[DOCS_README_PATH][4]}")
 
         print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-        print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=9")
+        print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=10")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
