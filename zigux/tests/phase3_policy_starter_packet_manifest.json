@@ -23,12 +23,11 @@
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"
   ],
   "repo_reality_gaps": [
-    "zigux/unsafe/narrow.zig",
-    "zigux/helpers/mmio.zig",
-    "zigux/helpers/barrier.zig",
-    "zigux/helpers/atomic.zig",
-    "zigux/kernel/export_shim.zig",
-    "scripts/zigux/validate-phase3.py"
+    "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_abi_dump.zig",
+    "scripts/zigux/check-phase3-abi.py",
+    "scripts/zigux/validate-phase3.py",
+    "zigux/tests/phase3_export_uapi_layout.zig"
   ],
   "next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into mmio, low-level wrapper, or shared runtime-shim families"
 }
