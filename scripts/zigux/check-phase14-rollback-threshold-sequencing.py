@@ -28,8 +28,9 @@ TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summ
 SELF_TEST_SHARED_SURVEYED_COMMIT = "b9afa7c3be853219eba57856e08aeea900414116"
 SMOKE_NOTE_SHARED_GUARD_MARKER = (
     "- `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, "
+    f"`{TESTS_README_CHECKER_PATH} --self-test`, "
     "`scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and "
-    "`scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the three live checker invocations inside "
+    "`scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the four live checker invocations inside "
     "`make -C zigux phase14-validate`, while `scripts/zigux/validate-phase14.py` continues to rerun "
     f"`{TESTS_README_CHECKER_PATH}` inside that same validator-first route. That keeps all four dedicated Phase 14 "
     "drift guards on the shared contract path without implying a separate tests-readme make target that current `master` "
@@ -94,6 +95,8 @@ MAKEFILE_EXACT_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH} --self-test",
+    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH}",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
@@ -253,6 +256,7 @@ def check(root: Path) -> list[str]:
     makefile = read_text(root, MAKEFILE_PATH)
     for marker in [
         "phase14-validate:",
+        TESTS_README_CHECKER_PATH,
         "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
         "phase14-smoke:",
         "phase14-test:",
@@ -343,6 +347,8 @@ def current_makefile_text() -> str:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH} --self-test",
+            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH}",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
@@ -392,8 +398,42 @@ def run_self_test() -> int:
         if not any("manifest:surveyed_commit" in error for error in check(root)):
             print("self-test expected manifest surveyed-commit format failure", file=sys.stderr)
             return 1
+
+        write(root, MANIFEST_PATH, current_manifest_text())
+        write(
+            root,
+            MAKEFILE_PATH,
+            current_makefile_text().replace(
+                f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH} --self-test\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            f"{TESTS_README_CHECKER_PATH} --self-test" in error
+            for error in check(root)
+        ):
+            print("self-test expected tests-readme make self-test gap failure", file=sys.stderr)
+            return 1
+
+        write(
+            root,
+            MAKEFILE_PATH,
+            current_makefile_text().replace(
+                f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH}\n",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            error.endswith(f"{TESTS_README_CHECKER_PATH} (expected 1, found 0)")
+            or error.endswith(f"{TESTS_README_CHECKER_PATH}:count=0")
+            for error in check(root)
+        ):
+            print("self-test expected tests-readme make route gap failure", file=sys.stderr)
+            return 1
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=18")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=20")
     return 0
 
 def main() -> int:
