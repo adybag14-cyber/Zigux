@@ -45,6 +45,22 @@ test "bitmap starter helpers keep first set first zero and weight aligned" {
     try testing.expectEqual(@as(u32, 4), summary.weight);
 }
 
+test "bitmap starter helpers keep a full bounded bitmap from leaking tail zeros" {
+    var backing = [_]usize{
+        ~@as(usize, 0),
+        bitmap_view.lastWordMask(bitmap_view.bits_per_word + 11),
+    };
+    const view = bitmap_view.viewFromWords(backing[0..], bitmap_view.bits_per_word + 11);
+    const summary = bitmap_view.summarize(view);
+
+    try testing.expect(bitmap_view.isValid(view));
+    try testing.expect(bitmap_view.testBit(view, bitmap_view.bits_per_word + 10));
+    try testing.expect(!bitmap_view.testBit(view, bitmap_view.bits_per_word + 11));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.first_zero);
+    try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.weight);
+}
+
 test "cpumask starter helpers keep cpu membership reviewable" {
     var backing = [_]usize{
         (@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 7),
