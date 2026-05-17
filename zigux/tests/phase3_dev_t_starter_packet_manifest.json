@@ -3,7 +3,7 @@
   "lane": "abi-runtime",
   "slug": "phase3-dev-t-starter-packet",
   "status": "starter_packet_present",
-  "scope": "starter Linux-facing header family and dev_t binding replay",
+  "scope": "starter Linux-facing header family plus dev_t and version binding replay",
   "packet_files": [
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
@@ -12,6 +12,7 @@
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
     "zigux/bindings/dev_t.zig",
+    "zigux/bindings/version.zig",
     "zigux/tests/phase3_dev_t_starter_packet.zig",
     "zigux/tests/phase3_dev_t_starter_packet_build.zig",
     "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
