@@ -12,6 +12,11 @@ const not_elf_text = "Error: not ELF\n";
 const elfclass32_define = "#define KERNEL_ELFCLASS ELFCLASS32\n";
 const elfclass64_define = "#define KERNEL_ELFCLASS ELFCLASS64\n";
 
+const HeaderReadResult = struct {
+    bytes: [ei_nident]u8,
+    len: usize,
+};
+
 pub const Outcome = enum {
     elf32,
     elf64,
@@ -60,15 +65,20 @@ pub fn runMkElfconfig(stdin_bytes: []const u8, stdout: anytype, stderr: anytype)
     return renderOutcome(stdout, stderr, classify(stdin_bytes));
 }
 
-fn readHeader(fd: std.posix.fd_t) !struct { bytes: [ei_nident]u8, len: usize } {
+fn readHeaderFromReader(reader: anytype) !HeaderReadResult {
     var header: [ei_nident]u8 = undefined;
     var filled: usize = 0;
     while (filled < header.len) {
-        const count = try std.posix.read(fd, header[filled..]);
+        const count = try reader.read(header[filled..]);
         if (count == 0) break;
         filled += count;
     }
     return .{ .bytes = header, .len = filled };
+}
+
+fn readHeader(fd: std.posix.fd_t) !HeaderReadResult {
+    var reader = FdReader{ .fd = fd };
+    return readHeaderFromReader(&reader);
 }
 
 pub fn main(init: std.process.Init) !void {
@@ -105,6 +115,14 @@ const Capture = struct {
 
     fn writeAll(self: *@This(), bytes: []const u8) !void {
         try self.list.appendSlice(self.allocator, bytes);
+    }
+};
+
+const FdReader = struct {
+    fd: std.posix.fd_t,
+
+    fn read(self: *@This(), buffer: []u8) !usize {
+        return std.posix.read(self.fd, buffer);
     }
 };
 
@@ -160,6 +178,28 @@ test "readHeader stops at the first ELF header" {
     try std.testing.expectEqualSlices(u8, &[_]u8{
         0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     }, header.bytes[0..header.len]);
+}
+
+test "readHeader assembles a full header across split reads" {
+    const expected = [_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    const SplitReader = struct {
+        bytes: []const u8,
+        offset: usize = 0,
+
+        fn read(self: *@This(), buffer: []u8) !usize {
+            if (self.offset >= self.bytes.len) return 0;
+            const remaining = self.bytes.len - self.offset;
+            const chunk_len = @min(@min(buffer.len, remaining), 5);
+            @memcpy(buffer[0..chunk_len], self.bytes[self.offset .. self.offset + chunk_len]);
+            self.offset += chunk_len;
+            return chunk_len;
+        }
+    };
+
+    var reader = SplitReader{ .bytes = &expected };
+    const header = try readHeaderFromReader(&reader);
+    try std.testing.expectEqual(@as(usize, ei_nident), header.len);
+    try std.testing.expectEqualSlices(u8, &expected, header.bytes[0..header.len]);
 }
 
 test "readHeader reports the exact truncated byte count" {
