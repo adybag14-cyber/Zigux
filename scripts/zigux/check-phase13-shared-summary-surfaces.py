@@ -26,12 +26,17 @@ REQUIRED_MARKERS = {
         "This note records the closure of the old missing-checker gap.",
         "The shipped guard is `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.",
     ],
+    "scripts/zigux/README.md": [
+        "scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` explicit as returned shared-summary and adjacent notifier evidence on current `master` instead of leaving them in the repo-reality-gap list",
+        "current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`",
+    ],
 }
 
 FORBIDDEN_MARKERS = (
     "`scripts/zigux/check-phase13-shared-summary-surfaces.py` is still absent on current `master`",
     "missing guard path: `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
     "Keep only `scripts/zigux/check-phase13-shared-summary-surfaces.py` recorded as a shared-summary repo-reality gap",
+    "scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_build.zig`",
 )
 
 
@@ -130,6 +135,20 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:`scripts/zigux/check-phase13-shared-summary-surfaces.py` is still absent on current `master`"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        scripts_readme = tempdir / "scripts/zigux/README.md"
+        scripts_readme.write_text(
+            scripts_readme.read_text(encoding="utf-8")
+            + "scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_build.zig`\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "forbidden_marker:scripts/zigux/README.md:scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_build.zig`"
             in issues
         )
         checks_run += 1
