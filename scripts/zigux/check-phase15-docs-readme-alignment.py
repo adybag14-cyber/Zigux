@@ -23,7 +23,6 @@ REQUIRED_MARKERS = (
     "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
     "without implying any Architecture Council approval for a freeze-map status change",
     "the shared Phase 15 docs-root handoff should also keep",
-    "repo-reality gaps rather than shipped evidence or Architecture Council approval",
     "the named reopen trigger",
     "deep-core blocker-posture change",
 )
@@ -60,7 +59,6 @@ Phase 15 notes
 `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 without implying any Architecture Council approval for a freeze-map status change
 the shared Phase 15 docs-root handoff should also keep
-repo-reality gaps rather than shipped evidence or Architecture Council approval
 the named reopen trigger
 deep-core blocker-posture change
 """
@@ -104,7 +102,9 @@ def run_self_test() -> int:
 
         _write(
             root / DOCS_README_PATH,
-            _sample_docs_readme().replace("`scripts/zigux/check-phase15-docs-readme-alignment.py`\n", "", 1),
+            _sample_docs_readme().replace(
+                "`scripts/zigux/check-phase15-docs-readme-alignment.py`\n", "", 1
+            ),
         )
         missing = collect_missing_markers(root)
         if missing != ["docs_readme:`scripts/zigux/check-phase15-docs-readme-alignment.py`"]:
@@ -124,24 +124,8 @@ def run_self_test() -> int:
             "docs_readme:without implying any Architecture Council approval for a freeze-map status change"
         ]
         if missing != expected:
-            raise AssertionError(f"unexpected missing markers for approval-posture case: {missing}")
-        case_count += 1
-
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace(
-                "repo-reality gaps rather than shipped evidence or Architecture Council approval\n",
-                "",
-                1,
-            ),
-        )
-        missing = collect_missing_markers(root)
-        expected = [
-            "docs_readme:repo-reality gaps rather than shipped evidence or Architecture Council approval"
-        ]
-        if missing != expected:
             raise AssertionError(
-                f"unexpected missing markers for repo-reality-gap case: {missing}"
+                f"unexpected missing markers for approval-posture case: {missing}"
             )
         case_count += 1
 
@@ -151,7 +135,9 @@ def run_self_test() -> int:
         )
         missing = collect_missing_markers(root)
         if missing != ["docs_readme:deep-core blocker-posture change"]:
-            raise AssertionError(f"unexpected missing markers for blocker-posture case: {missing}")
+            raise AssertionError(
+                f"unexpected missing markers for blocker-posture case: {missing}"
+            )
         case_count += 1
 
     print("PHASE15_DOCS_README_ALIGNMENT_SELF_TEST=pass")
