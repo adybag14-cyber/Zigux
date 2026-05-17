@@ -659,6 +659,34 @@ pub fn kstrdup_and_replace(
     return kstrdupAndReplace(allocator, src, old, new);
 }
 
+pub fn stringUpper(dst: []u8, src: []const u8) void {
+    const limit = @min(dst.len, src.len);
+    var idx: usize = 0;
+    while (idx < limit) : (idx += 1) {
+        const ch = src[idx];
+        dst[idx] = std.ascii.toUpper(ch);
+        if (ch == 0) return;
+    }
+}
+
+pub fn string_upper(dst: []u8, src: []const u8) void {
+    stringUpper(dst, src);
+}
+
+pub fn stringLower(dst: []u8, src: []const u8) void {
+    const limit = @min(dst.len, src.len);
+    var idx: usize = 0;
+    while (idx < limit) : (idx += 1) {
+        const ch = src[idx];
+        dst[idx] = std.ascii.toLower(ch);
+        if (ch == 0) return;
+    }
+}
+
+pub fn string_lower(dst: []u8, src: []const u8) void {
+    stringLower(dst, src);
+}
+
 pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
     const bounded_count = @min(count, src.len);
     const copy_len = @min(dest.len, bounded_count);
