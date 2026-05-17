@@ -15,7 +15,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 is where Zigux starts moving from earlier standalone helper ports into reusable in-kernel runtime helper families.
 
-The current `string_helpers` state on `master` now carries an expanded starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, bounded duplicate-and-replace, bounded string-array ownership, bounded unescape, bounded string-escape, and bounded quotable-cmdline helpers reviewable while the broader family stays deliberately out of scope.
+The current `string_helpers` state on `master` now carries an expanded starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, bounded duplicate-and-replace, bounded string-array ownership, bounded unescape, bounded string-escape, bounded case-conversion, and bounded quotable-cmdline helpers reviewable while the broader family stays deliberately out of scope.
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample, so the dedicated boundary replay should keep that separation explicit while the expanded starter packet advances through helper-local review surfaces only.
 
@@ -66,6 +66,8 @@ The expanded starter packet on current `master` covers:
 - `kstrdupAndReplace()` and `kstrdup_and_replace()`
 - `kstrdupQuotable()` and `kstrdup_quotable()`
 - `kstrdupQuotableCmdline()` and `kstrdup_quotable_cmdline()`
+- `stringUpper()` and `string_upper()`
+- `stringLower()` and `string_lower()`
 - `memcpyAndPad()` and `memcpy_and_pad()`
 - `strreplace()`
 
@@ -82,6 +84,7 @@ The current starter replay keeps these proofs explicit:
 - allocator-backed duplicate-and-replace behavior that rewrites only the exported C-string prefix and leaves the source buffer untouched
 - quoted-log-safe duplication that hex-escapes special logging hazards and double quotes while still stopping at the exported C-string prefix
 - quoted cmdline duplication that collapses trailing NULs, replaces inter-argument NULs with spaces, and then reuses the quotable escape path inside caller-owned output
+- uppercase and lowercase copying that stops at the exported C-string boundary and truncates to caller-owned destination storage
 - bounded memcpy-and-pad behavior that truncates long copies, pads short ones, and stays inside the provided source slice
 - in-place replacement behavior that stops at the first NUL
 - the dedicated survey gate, helper-local manifest packet, and no-sample boundary replay
@@ -96,6 +99,7 @@ The current starter replay also keeps these ownership-focused boundaries explici
 - `kstrdupAndReplace()` returns caller-owned duplicated storage, applies replacements only inside the duplicated exported prefix, and leaves the source slice unchanged
 - `kstrdupQuotable()` returns caller-owned duplicated storage, hex-escapes special logging hazards, and still stops at the exported C-string prefix
 - `kstrdupQuotableCmdline()` keeps returned storage caller-owned, collapses trailing and inter-argument NUL separators inside duplicated command-line storage, and only then applies quotable escaping
+- `stringUpper()`, `string_upper()`, `stringLower()`, and `string_lower()` keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary
 - `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries
 
 ## Non-goals
