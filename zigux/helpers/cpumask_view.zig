@@ -1,0 +1,71 @@
+const std = @import("std");
+const binding = @import("bitmap_cpumask_binding");
+const bitmap = @import("bitmap_view_helper");
+
+pub const Word = bitmap.Word;
+
+pub fn viewFromWords(backing: []const Word, nr_cpu_ids: u32) binding.CpumaskView {
+    std.debug.assert(backing.len == bitmap.wordCount(nr_cpu_ids));
+    return binding.initCpumaskView(
+        if (backing.len == 0) 0 else @intFromPtr(backing.ptr),
+        nr_cpu_ids,
+        @intCast(backing.len),
+        nr_cpu_ids,
+    );
+}
+
+pub fn isValid(view: binding.CpumaskView) bool {
+    if (view.nr_cpu_ids != view.nbits) return false;
+    return bitmap.isValid(binding.asBitmap(view));
+}
+
+pub fn cpuIsSet(view: binding.CpumaskView, cpu: u32) bool {
+    return bitmap.testBit(binding.asBitmap(view), cpu);
+}
+
+pub fn firstCpu(view: binding.CpumaskView) u32 {
+    if (!isValid(view)) return 0;
+    return bitmap.firstSet(binding.asBitmap(view));
+}
+
+pub fn firstAbsentCpu(view: binding.CpumaskView) u32 {
+    if (!isValid(view)) return 0;
+    return bitmap.firstZero(binding.asBitmap(view));
+}
+
+pub fn weight(view: binding.CpumaskView) u32 {
+    if (!isValid(view)) return 0;
+    return bitmap.weight(binding.asBitmap(view));
+}
+
+pub fn summarize(view: binding.CpumaskView) binding.BitmapSummary {
+    if (!isValid(view)) return binding.initBitmapSummary(0, 0, 0);
+    return bitmap.summarize(binding.asBitmap(view));
+}
+
+test "cpumask view helpers keep cpu windows reviewable" {
+    var backing = [_]Word{
+        (@as(Word, 1) << 0) | (@as(Word, 1) << 2) | (@as(Word, 1) << 7),
+    };
+    const view = viewFromWords(backing[0..], 16);
+    const summary = summarize(view);
+
+    try std.testing.expect(isValid(view));
+    try std.testing.expect(cpuIsSet(view, 0));
+    try std.testing.expect(cpuIsSet(view, 7));
+    try std.testing.expect(!cpuIsSet(view, 1));
+    try std.testing.expectEqual(@as(u32, 0), firstCpu(view));
+    try std.testing.expectEqual(@as(u32, 1), firstAbsentCpu(view));
+    try std.testing.expectEqual(@as(u32, 3), weight(view));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 3), summary.weight);
+}
+
+test "cpumask validity requires nr_cpu_ids to match the bounded bit count" {
+    const invalid = binding.initCpumaskView(0, 4, 0, 3);
+
+    try std.testing.expect(!isValid(invalid));
+    try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), weight(invalid));
+}

@@ -1,0 +1,74 @@
+const std = @import("std");
+const testing = std.testing;
+
+const binding = @import("bitmap_cpumask_binding");
+const bitmap_view = @import("bitmap_view_helper");
+const cpumask_view = @import("cpumask_view_helper");
+const version = @import("uapi_version");
+
+test "bitmap cpumask starter binding preserves the helper-local layout" {
+    try testing.expectEqual(@as(u32, 1), binding.bitmap_view_abi_version);
+    try testing.expectEqual(@as(u32, 1), binding.bitmap_summary_abi_version);
+    try testing.expectEqual(@as(u32, 1), binding.cpumask_view_abi_version);
+
+    try testing.expectEqual(@as(usize, 0), binding.bitmap_view_words_addr_offset);
+    try testing.expectEqual(@as(usize, @sizeOf(usize)), binding.bitmap_view_nbits_offset);
+    try testing.expectEqual(@as(usize, @sizeOf(usize) + 4), binding.bitmap_view_word_count_offset);
+
+    try testing.expectEqual(@as(usize, 0), binding.bitmap_summary_first_set_offset);
+    try testing.expectEqual(@as(usize, 4), binding.bitmap_summary_first_zero_offset);
+    try testing.expectEqual(@as(usize, 8), binding.bitmap_summary_weight_offset);
+    try testing.expectEqual(@as(usize, 12), binding.bitmap_summary_reserved_offset);
+
+    try testing.expectEqual(@as(usize, 0), binding.cpumask_view_words_addr_offset);
+    try testing.expectEqual(@as(usize, @sizeOf(usize)), binding.cpumask_view_nbits_offset);
+    try testing.expectEqual(@as(usize, @sizeOf(usize) + 4), binding.cpumask_view_word_count_offset);
+    try testing.expectEqual(@as(usize, @sizeOf(usize) + 8), binding.cpumask_view_nr_cpu_ids_offset);
+    try testing.expectEqual(@as(usize, @sizeOf(usize) + 12), binding.cpumask_view_reserved_offset);
+}
+
+test "bitmap starter helpers keep first set first zero and weight aligned" {
+    var backing = [_]usize{
+        (@as(usize, 1) << 1) | (@as(usize, 1) << 3) | (@as(usize, 1) << 5),
+        (@as(usize, 1) << 2),
+    };
+    const view = bitmap_view.viewFromWords(backing[0..], bitmap_view.bits_per_word + 6);
+    const summary = bitmap_view.summarize(view);
+
+    try testing.expect(bitmap_view.isValid(view));
+    try testing.expect(bitmap_view.testBit(view, 3));
+    try testing.expect(!bitmap_view.testBit(view, 4));
+    try testing.expectEqual(@as(u32, 1), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 4), summary.weight);
+}
+
+test "cpumask starter helpers keep cpu membership reviewable" {
+    var backing = [_]usize{
+        (@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 7),
+    };
+    const view = cpumask_view.viewFromWords(backing[0..], 16);
+    const summary = cpumask_view.summarize(view);
+
+    try testing.expect(cpumask_view.isValid(view));
+    try testing.expect(cpumask_view.cpuIsSet(view, 0));
+    try testing.expect(cpumask_view.cpuIsSet(view, 7));
+    try testing.expect(!cpumask_view.cpuIsSet(view, 1));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(view));
+    try testing.expectEqual(@as(u32, 1), cpumask_view.firstAbsentCpu(view));
+    try testing.expectEqual(@as(u32, 3), cpumask_view.weight(view));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 1), summary.first_zero);
+    try testing.expectEqual(@as(u32, 3), summary.weight);
+}
+
+test "starter packet stays aligned with the live Linux-facing header family version" {
+    const current = version.current();
+
+    try testing.expectEqual(@as(u32, 0), version.abi_major);
+    try testing.expectEqual(@as(u32, 1), version.abi_minor);
+    try testing.expectEqual(@as(u32, 1), version.header_family_revision);
+    try testing.expectEqual(@as(u32, 0), current.abi_major);
+    try testing.expectEqual(@as(u32, 1), current.abi_minor);
+    try testing.expectEqual(@as(u32, 1), current.header_family_revision);
+}
