@@ -191,6 +191,7 @@ def main() -> int:
                 raise AssertionError("expected non-numeric pin self-test count to fail")
 
             note_text = (args.root.resolve() / NOTE).read_text(encoding="utf-8")
+            drifted.write_text(note_text, encoding="utf-8")
             drifted.write_text(
                 note_text.replace(
                     "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4`",
@@ -222,6 +223,33 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError("expected README ownership reminder drift to fail")
+
+            (root / README).write_text(readme_text, encoding="utf-8")
+            direct_packet_checker_source = (
+                args.root.resolve() / "scripts/zigux/check-phase4-reversible-delivery-pins.py"
+            ).read_text(encoding="utf-8")
+            direct_packet_checker = root / "scripts/zigux/check-phase4-reversible-delivery-pins.py"
+            direct_packet_checker.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                pass
+            else:
+                raise AssertionError("expected missing direct packet member to fail")
+
+            direct_packet_checker.write_text(
+                direct_packet_checker_source,
+                encoding="utf-8",
+            )
+            broader_packet_member = root / "Documentation/zigux/phase4-gate-evidence.md"
+            broader_packet_member.parent.mkdir(parents=True, exist_ok=True)
+            broader_packet_member.write_text("# returned broader packet member\n", encoding="utf-8")
+            try:
+                check(root)
+            except RuntimeError:
+                pass
+            else:
+                raise AssertionError("expected restored broader packet member to fail")
 
         print("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass")
         print(f"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES={cases}")
