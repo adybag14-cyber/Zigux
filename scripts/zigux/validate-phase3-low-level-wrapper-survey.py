@@ -77,19 +77,45 @@ REQUIRED_MARKERS = {
 }
 
 SELF_TEST_CASES = (
-    (NOTE_PATH, "It also now exposes one dedicated shared build companion through `zigux/tests/phase3_low_level_wrappers_build.zig`, which keeps the focused replay shard runnable through `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig` without widening the low-level wrapper packet into a broader Phase 3 completion claim."),
-    (NOTE_PATH, "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`"),
-    (ABI_SLICE_PATH, "That reminder surface keeps one directly readable MMIO helper companion, the dedicated survey validator, the focused replay shard, and the dedicated shared build companion explicit through `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig` without implying that the broader shared validator stack or export-or-UAPI replay routes already ship."),
+    (
+        NOTE_PATH,
+        "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one MMIO helper companion, one shared narrow-unsafe decoder, this dedicated survey note, a dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion",
+    ),
+    (
+        NOTE_PATH,
+        "PHASE3_LOW_LEVEL_WRAPPER_GAP=direct current-head readback on 2026-05-17 reaches Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/unsafe/narrow.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, zigux/tests/phase3_low_level_wrappers.zig, and zigux/tests/phase3_low_level_wrappers_build.zig, while broader shared Phase 3 validator and export-or-UAPI replay routes remain separate current-master gaps",
+    ),
+    (
+        NOTE_PATH,
+        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and shared tests-root wiring until current master materializes the broader Phase 3 validator and export-or-UAPI replay routes beside this wrapper packet",
+    ),
+    (
+        NOTE_PATH,
+        "It also now exposes one dedicated shared build companion through `zigux/tests/phase3_low_level_wrappers_build.zig`, which keeps the focused replay shard runnable through `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig` without widening the low-level wrapper packet into a broader Phase 3 completion claim.",
+    ),
+    (
+        ABI_SLICE_PATH,
+        "That reminder surface keeps one directly readable MMIO helper companion, the dedicated survey validator, the focused replay shard, and the dedicated shared build companion explicit through `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig` without implying that the broader shared validator stack or export-or-UAPI replay routes already ship.",
+    ),
+    (
+        ATOMIC_PATH,
+        "pub fn compareExchangeFailureOrderAllowed(success: Ordering, failure: Ordering) bool {",
+    ),
+    (BARRIER_PATH, "pub fn compiler() void {"),
     (BARRIER_PATH, "pub fn acquire() void {"),
+    (BARRIER_PATH, "pub fn full() void {"),
     (BARRIER_PATH, "pub fn fullFence() void {"),
     (MMIO_PATH, "pub fn read(comptime T: type, ptr: *const volatile T) T {"),
+    (MMIO_PATH, "pub fn write(comptime T: type, ptr: *volatile T, value: T) void {"),
     (MMIO_PATH, "pub fn exchange(comptime T: type, ptr: *volatile T, value: T) T {"),
     (MMIO_PATH, "pub fn writeMasked(comptime T: type, ptr: *volatile T, clear_mask: T, set_mask: T) T {"),
     (NARROW_PATH, "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {"),
     (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep atomic ordering, barriers, and MMIO handoffs aligned" {'),
     (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {'),
+    (WRAPPER_BUILD_PATH, '.root_source_file = b.path("../helpers/mmio.zig"),'),
     (WRAPPER_BUILD_PATH, 'mmio.addImport("abi_bindings", abi_bindings);'),
     (WRAPPER_BUILD_PATH, 'mmio.addImport("unsafe_policy", unsafe_policy);'),
+    (WRAPPER_BUILD_PATH, '"phase3-low-level-wrappers-test"'),
 )
 
 
