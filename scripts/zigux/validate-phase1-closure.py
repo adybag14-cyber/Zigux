@@ -123,7 +123,11 @@ def collect_failures(root: Path) -> list[str]:
     readme_text = read_text(readme_path)
     build_text = read_text(build_path)
     smoke_text = read_text(smoke_path)
-    manifest = json.loads(read_text(manifest_path))
+    try:
+        manifest = json.loads(read_text(manifest_path))
+    except json.JSONDecodeError:
+        failures.append("manifest:json")
+        return failures
 
     for marker in REQUIRED_NOTE_MARKERS:
         require_once(note_text, marker, "phase1_closure_note", failures)
@@ -182,7 +186,8 @@ const smoke_file = "phase1_host_tools_smoke.zig";
     )
     write_text(
         root / "zigux/tests/phase1_host_tools_smoke.zig",
-        """const argv_split = @import("argv_split");
+        """const std = @import("std");
+const argv_split = @import("argv_split");
 const cmdline = @import("cmdline");
 const find_bit = @import("find_bit");
 const bitmap = @import("bitmap");
@@ -263,6 +268,14 @@ def run_self_test() -> int:
                     '@hasDecl(bitmap, "setRange")',
                     '@hasDecl(bitmap, "setBits")',
                 ),
+            ),
+            False,
+        ),
+        (
+            "manifest_invalid_json",
+            lambda root: write_text(
+                root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+                "{\n",
             ),
             False,
         ),
