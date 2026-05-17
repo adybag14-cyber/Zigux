@@ -154,7 +154,7 @@ def build_self_test_fixture(root: Path) -> None:
         root / FILES["matrix_gap_note"],
         """# Phase 11 Validation Matrix Gap Survey
 
-- `PHASE11_MATRIX_GAP_STATUS=four_matrix_direct-readback_restored`
+- `PHASE11_MATRIX_GAP_STATUS=four_matrix_direct_readback_restored`
 - lane: `P11-L03`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
@@ -207,7 +207,7 @@ def run_self_test() -> None:
             case_root = tmpdir / f"required_{idx}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / FILES[label]
-            path.writeText(
+            path.write_text(
                 path.read_text(encoding="utf-8").replace(marker + "\n", "", 1).replace(marker, "", 1),
                 encoding="utf-8",
             )
