@@ -275,10 +275,11 @@ def main() -> int:
                 raise AssertionError("expected docs README perf-promotion drift to fail")
 
             docs_readme_path.write_text((args.root.resolve() / DOCS_README).read_text(encoding="utf-8"), encoding="utf-8")
-            docs_readme_path.write_text(
-                docs_readme_path.read_text(encoding="utf-8").replace(
-                    DOCS_BITMAP_GAP_MARKERS[0],
-                    "bitmap diff reminder drifted",
+            repo_warning_path = root / REPO_REALITY_WARNING
+            repo_warning_path.write_text(
+                repo_warning_path.read_text(encoding="utf-8").replace(
+                    WARNING_MARKERS[4],
+                    "repo-reality warning summary drifted",
                 ),
                 encoding="utf-8",
             )
@@ -287,7 +288,7 @@ def main() -> int:
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected docs README bitmap-diff drift to fail")
+                raise AssertionError("expected repo-reality warning drift to fail")
 
         print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass")
         print(f"PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES={cases}")
