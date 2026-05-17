@@ -45,7 +45,7 @@
     "preexisting_phase10_core_doc_present": false,
     "preexisting_virtio_ring_zig_present": true,
     "preexisting_virtio_ring_doc_present": true,
-    "preexisting_ring_verify_present": false
+    "preexisting_ring_verify_present": true
   },
   "gaps": [
     {
@@ -141,17 +141,17 @@
     },
     {
       "id": "phase10-ring-verify-replay",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "drivers/virtio/virtio_ring_verify.zig",
-      "why_now": "The wrapper-facing verify replay path still does not materialize through current master contents reads, so the ring packet must keep it in the direct gap bucket."
+      "why_now": "The wrapper-facing verify replay path is directly readable again on current master, so the ring packet should keep it explicit as landed validation evidence instead of a gap."
     },
     {
       "id": "phase10-virtio-ring-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
-      "why_now": "The packet-local slice note is still directly readable and can carry the narrowed ring packet vocabulary without overstating the remaining verify and survey replay gaps."
+      "why_now": "The packet-local slice note is still directly readable and can carry the narrowed ring packet vocabulary without overstating the remaining survey replay gap."
     },
     {
       "id": "phase10-ring-lab-driver-bridge",
