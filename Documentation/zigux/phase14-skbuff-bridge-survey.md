@@ -3,31 +3,34 @@ This document records the bounded Phase 14 survey lane around `net/core/skbuff.c
 
 ## Status
 - `PHASE14_LANE_KEY=P14-L11`
-- `PHASE14_BLOCKED_GAP=phase14-skbuff-live-ownership-blocker`
-- current `master` still ships the bounded skbuff anchor packet files `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_build.zig`, and `net/core/skbuff_bridge.zig`
-- the live packet remains review-first and `boundary_map_only`: `net/core/skbuff_bridge.zig` keeps seven boundary-map areas plus the review-only lifetime and segmentation checkpoints without claiming live skbuff ownership
-- explicit stay-in-C ownership for qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, destructor coordination, and the final sock-owned tail transfer remains the Phase 14 boundary
-- the helper, manifest, and dedicated gate keep the exported `segs->prev` publication, `tail->next` splicing, `validate_xmit_skb_list()` consumer path, `skb_mark_not_on_list()` single-skb reset, and `tail = skb->prev` cue explicit as blocked C-owned behavior
+- `PHASE14_BLOCKED_GAP=phase14-skbuff-anchor-packet-missing`
+- current `master` no longer exposes the earlier `P14-L11` skbuff anchor packet files `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_build.zig`, `net/core/skbuff_bridge.zig`, or `zigux/tests/phase14_skbuff_bridge_manifest.json`
+- the previous `full_bundle_only` compile path from commits `a953f7dfe776dce0c693c8c15633684ed5243af8` and `9cf18b7e5859e0639347c620a7b9dc2005a3dee6` is archival only and must not be treated as live compile evidence on current `master`
+- explicit stay-in-C ownership for queue publication, skb lifetime, checksum state, destructor coordination, segmentation metadata, and the final sock-owned tail transfer remains the Phase 14 boundary even while the anchor packet is absent
 
 ## Boundary Reading
 Against the Phase 14 roadmap, `net/core/skbuff.c` still belongs in a bounded review-first, stay-in-C posture rather than a live parity claim.
-The live Zigux packet is therefore a boundary-map helper plus focused survey gate, not a rewrite, ownership-transfer, or parity-ready implementation.
-Queue-facing tail publication, queue ownership, shared-info refcount ownership, checksum state, destructor and frag-list teardown, segmentation metadata, the final sock-owned tail transfer through `SKB_GSO_PARTIAL` and `sock_wfree`, and the consumer-side list reset inside `validate_xmit_skb_list()` still belong to the C implementation.
+The current repo state no longer ships the earlier skbuff bridge helper, focused survey gate, or manifest packet, so this note is now a truthfulness marker rather than a live companion to a shipped anchor packet.
+That means the meaningful current statement is narrower than the previous review-only helper summary: there is no live Zigux skbuff bridge packet on current `master`, and there is therefore no honest skbuff-local compile route to claim today.
+The Phase 14 boundary itself has not changed.
+Queue-facing tail publication, queue ownership, shared-info refcount ownership, checksum state, destructor and frag-list teardown, segmentation metadata, the final sock-owned tail transfer, and the consumer-side list reset inside `validate_xmit_skb_list()` still belong to the C implementation.
 
 ## Compile Evidence
-- current `master` exposes `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_build.zig`, and `net/core/skbuff_bridge.zig`
-- `zigux/tests/phase14_build.zig` wires `../../net/core/skbuff_bridge.zig` into `phase14_skbuff_bridge.zig` and registers the bounded `phase14-skbuff-bridge-tests` route inside the shared Phase 14 bundle
-- the skbuff anchor remains `full_bundle_only` through `phase14-skbuff-bridge-tests`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and `make -C zigux phase14-test`
-- current `zigux/tests/phase14_build.zig` keeps the skbuff shard out of `phase14-smoke`, so there is still no focused-smoke compile claim for this anchor packet
-- that route is honest compile and gate coverage for the bounded bridge packet only; it is not evidence that Zigux owns live queue publication, skb lifetime ownership, checksum ownership, destructor coordination, or the final sock-owned tail transfer
-- any future widening beyond this bridge packet still needs new stay-in-C evidence first, not stale absence wording
+- current `master` no longer exposes `zigux/tests/phase14_skbuff_bridge.zig`
+- current `master` no longer exposes `zigux/tests/phase14_build.zig`
+- current `master` no longer exposes `net/core/skbuff_bridge.zig`
+- current `master` no longer exposes `zigux/tests/phase14_skbuff_bridge_manifest.json`
+- because those packet files are absent, there is no live `phase14-skbuff-bridge-tests`, `phase14-smoke`, or `full_bundle_only` replay route to validate in this lane today
+- any future compile claim for this lane must first restore a bounded skbuff anchor packet and only then reintroduce compile-route wording
 
 ## Gates
-1. keep this note aligned with the live bridge packet
-   - it must not claim the helper, dedicated gate, or shared Phase 14 build route is absent while those files remain on current `master`
-2. keep the blocked tail-owner-transfer and consumer-tail contract explicit
-   - `segs->prev`, `tail->next`, `validate_xmit_skb_list()`, `skb_mark_not_on_list()`, and `tail = skb->prev` must remain named as C-owned review points while the packet stays review-first
+1. treat this note as a truthfulness gate only
+   - it must not claim a live skbuff helper, focused survey gate, manifest packet, or shared build route while those files remain absent on current `master`
+2. restore a bounded anchor packet before restoring compile claims
+   - only after a shipped skbuff helper plus focused survey gate exists again should this lane claim live compile evidence
+3. keep the blocked consumer-tail contract explicit even while the packet is absent
+   - `validate_xmit_skb_list()`, qdisc-facing publication, checksum ownership, segmentation metadata, destructor ordering, and the final sock-owned tail transfer must remain named as C-owned review points while the lane stays freeze-in-C
 
 ## Next bounded step
-Leave this lane parked unless a fresh skbuff-bridge-local reread finds another same-packet blocker-summary, survey, or build-route drift.
-If it reopens, reread this note against `net/core/skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, `zigux/tests/phase14_skbuff_bridge.zig`, and `zigux/tests/phase14_build.zig` before touching any shared Phase 14 surface.
+Leave this lane parked unless a future current-`master` change restores a bounded skbuff anchor packet or reintroduces stale compile-route wording.
+If it reopens, first reread this note and confirm whether `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_build.zig`, `net/core/skbuff_bridge.zig`, and `zigux/tests/phase14_skbuff_bridge_manifest.json` all exist again before claiming any compile evidence.
