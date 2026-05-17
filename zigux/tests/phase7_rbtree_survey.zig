@@ -450,6 +450,10 @@ test "phase 7 rbtree survey manifest records the parked runtime leaf surface and
     try expectContains(parity_checker, "zigux/tests/fixtures/phase7_rbtree.json");
     try expectContains(parity_checker, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectContains(parity_checker, "lib/rbtree.zig");
+    try expectContains(parity_checker, "pub const NodeLinked");
+    try expectContains(parity_checker, "pub fn clearLinkedNode");
+    try expectContains(parity_checker, "pub fn addLinked");
+    try expectContains(parity_checker, "pub fn eraseLinked");
     try expectContains(parity_fixture, "\"ordered\"");
     try expectContains(parity_fixture, "\"reverse_order\"");
     try expectContains(parity_fixture, "\"replace_order\"");
