@@ -118,6 +118,20 @@ def load_expectations(path: Path) -> object:
     return load_expectations_text(path.read_text(encoding="utf-8"))
 
 
+def load_runtime_expectations(path: Path) -> tuple[str, object]:
+    try:
+        expectations = load_expectations(path)
+    except FileNotFoundError:
+        return ("missing_expectations_file", path)
+    except json.JSONDecodeError as exc:
+        return ("expectations_json_error", exc)
+
+    kind, payload = validate_expectations(expectations)
+    if kind != "pass":
+        return (kind, payload)
+    return ("pass", expectations)
+
+
 def validate_expectations(expectations: object) -> tuple[str, object]:
     if not isinstance(expectations, dict):
         return ("expectations_type", type(expectations).__name__)
@@ -935,21 +949,28 @@ def main() -> int:
         run_self_test()
         return 0
 
-    try:
-        expectations = load_expectations(EXPECTATIONS)
-    except json.JSONDecodeError as exc:
+    kind, payload = load_runtime_expectations(EXPECTATIONS)
+    if kind == "missing_expectations_file":
         print("PHASE1_BENCH_CHECK=fail")
-        print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")
-        print(f"EXPECTATIONS_JSON_LINE={exc.lineno}")
-        print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")
+        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+        print(f"EXPECTATIONS_PATH={payload}")
         return 1
-
-    kind, payload = validate_expectations(expectations)
+    if kind == "expectations_json_error":
+        exc = payload
+        assert isinstance(exc, json.JSONDecodeError)
+        print("PHASE1_BENCH_CHECK=fail")
+        print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))
+        print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))
+        print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))
+        return 1
     if kind != "pass":
         print("PHASE1_BENCH_CHECK=fail")
         print(f"PHASE1_BENCH_CHECK_REASON={kind}")
         print(payload)
         return 1
+
+    expectations = payload
+    assert isinstance(expectations, dict)
 
     zig = find_zig(args.zig)
     result = subprocess.run(
@@ -967,7 +988,6 @@ def main() -> int:
             print(result.stderr.rstrip("\n"))
         return 1
 
-    assert isinstance(expectations, dict)
     kind, payload = validate_output(expectations, result.stdout)
     if kind != "pass":
         print("PHASE1_BENCH_CHECK=fail")
