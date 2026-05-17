@@ -4,6 +4,12 @@
 
 This document turns the `zigux_bundle_v2.zip` planning bundle into an actionable product roadmap for Zigux.
 
+## Bootstrap Status Note
+
+This roadmap remains the planning baseline for Zigux bootstrap sequencing and phase intent.
+
+For later-lane current-state decisions after the bounded early commit train recorded in `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`, confirm the live repo tree, `Documentation/zigux/README.md`, and active lane notes before treating every later phase packet below as already materialized on `master`.
+
 Positioning:
 - `ZAR-Zig-Agent-Runtime` remains the experimental research and proving repo.
 - `Zigux` is the product repo.
