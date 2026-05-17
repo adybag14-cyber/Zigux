@@ -16,7 +16,7 @@ It only records the current bounded evidence posture and the explicit reasons th
 
 - `kernel/workqueue.c`: `Study / Boundary Only` in the roadmap and freeze map. `kernel/workqueue_bridge.zig` remains review-only boundary evidence rather than a live execution or ownership claim.
 - `kernel/trace/ring_buffer.c`: `Study / Boundary Only` in the roadmap and freeze map. `kernel/trace/ring_buffer.zig` remains blocked until much stronger long-horizon evidence exists.
-- `net/core/skbuff.c`: `Freeze In C Initially` in the roadmap and freeze map. `net/core/skbuff_bridge.zig` is review-only boundary evidence, not a parity claim or ownership transfer.
+- `net/core/skbuff.c`: `Freeze In C Initially` in the roadmap and freeze map. `Documentation/zigux/phase14-skbuff-bridge-survey.md` is the surviving skbuff truthfulness marker on current `master`; `net/core/skbuff_bridge.zig` is not currently shipped, so there is no live skbuff-local bridge or compile route to treat as evidence.
 - `kernel/rcu/tree.c`: `Freeze In C Initially` in the roadmap and freeze map. `kernel/rcu/tree_bridge.zig` remains blocked on stay-in-C evidence.
 
 ## Current direct readback
@@ -40,7 +40,7 @@ The honest current statement is still boundary-study only: the dedicated `P14-L0
 ### Skbuff
 
 Live skb lifetime, shared-info `dataref` and header-write ownership, destructor ordering, checksum-state ownership, segmentation metadata, qdisc-facing publication, and the final sock-owned tail transfer still remain in C.
-The surviving skbuff survey note keeps that stay-in-C posture explicit while also marking the older skbuff packet as absent on current `master`.
+The surviving skbuff survey note keeps that stay-in-C posture explicit while also marking the older skbuff packet as absent on current `master`, so this shared note must not imply a live `net/core/skbuff_bridge.zig` helper or any skbuff-local compile route.
 
 ### RCU tree
 
