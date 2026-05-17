@@ -13,6 +13,7 @@ CHECK_COMMANDS = (
     (Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"), ()),
     (Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"), ()),
     (Path("scripts/zigux/check-phase3-policy-starter-packet.py"), ()),
+    (Path("scripts/zigux/check-phase3-shared-tests-routes.py"), ()),
     (Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"), ()),
     (Path("scripts/zigux/validate-phase3-validator-support-surface.py"), ()),
     (Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ()),
@@ -90,6 +91,23 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
 
+        shared_routes_path = CHECK_COMMANDS[3][0]
+        (root / shared_routes_path).unlink()
+        missing = validate_script_list(root)
+        expected = f"missing phase3 check script: {shared_routes_path.as_posix()}"
+        if expected not in missing:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected shared-tests-routes script omission was not reported")
+            return 1
+
+        for rel_path, _args in CHECK_COMMANDS:
+            path = root / rel_path
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
+                encoding="utf-8",
+            )
+
         failing_path = CHECK_COMMANDS[-2][0]
         (root / failing_path).write_text(
             "#!/usr/bin/env python3\n"
@@ -106,7 +124,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
-        print("PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT=3")
+        print("PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT=4")
         return 0
 
 
