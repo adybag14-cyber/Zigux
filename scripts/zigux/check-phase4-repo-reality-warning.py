@@ -33,6 +33,9 @@ MISSING_BROADER_PACKET = (
 )
 
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
+REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 4
+EXPECTED_PIN_SELF_TEST_CASES = 5
 
 NOTE_REQ = (
     "Documentation/zigux/review-checklist.md",
@@ -45,6 +48,7 @@ NOTE_REQ = (
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5` here",
 )
 
 README_OWNER_MARKERS = (
@@ -60,7 +64,7 @@ README_PENDING_REQ = (
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet",
     "historical provenance for that missing broader packet",
- ) + README_OWNER_MARKERS
+) + README_OWNER_MARKERS
 
 CHECKLIST_PENDING_REQ = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
@@ -92,15 +96,20 @@ def require(text: str, parts: tuple[str, ...], label: str) -> None:
         raise RuntimeError(f"{label} is missing required fragments: {missing}")
 
 
-def require_positive_pin_self_test_count(text: str, label: str) -> None:
-    matches = re.findall(rf"`{PIN_SELF_TEST_COUNT_LABEL}=(\d+)`", text)
+def require_exact_self_test_count(
+    text: str,
+    label: str,
+    count_label: str,
+    expected: int,
+) -> None:
+    matches = re.findall(rf"`{count_label}=(\d+)`", text)
     if not matches:
         raise RuntimeError(
-            f"{label} is missing a numeric `{PIN_SELF_TEST_COUNT_LABEL}=...` marker"
+            f"{label} is missing a numeric `{count_label}=...` marker"
         )
-    if any(int(value) < 1 for value in matches):
+    if any(int(value) != expected for value in matches):
         raise RuntimeError(
-            f"{label} has a non-positive `{PIN_SELF_TEST_COUNT_LABEL}=...` marker"
+            f"{label} must carry `{count_label}={expected}` exactly"
         )
 
 
@@ -131,7 +140,18 @@ def check(root: Path) -> None:
     require(note, NOTE_REQ + DIRECT_READBACK_PACKET + MISSING_BROADER_PACKET, "phase4 note")
     require(readme, README_PENDING_REQ + MISSING_BROADER_PACKET, "tests README")
     require(checklist, CHECKLIST_PENDING_REQ, "review checklist")
-    require_positive_pin_self_test_count(note, "phase4 note")
+    require_exact_self_test_count(
+        note,
+        "phase4 note",
+        REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL,
+        EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES,
+    )
+    require_exact_self_test_count(
+        note,
+        "phase4 note",
+        PIN_SELF_TEST_COUNT_LABEL,
+        EXPECTED_PIN_SELF_TEST_CASES,
+    )
     _require_current_repo_reality(root)
 
 
@@ -171,6 +191,22 @@ def main() -> int:
                 raise AssertionError("expected non-numeric pin self-test count to fail")
 
             note_text = (args.root.resolve() / NOTE).read_text(encoding="utf-8")
+            drifted.write_text(
+                note_text.replace(
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4`",
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=99`",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError(
+                    "expected stale repo-reality warning self-test count to fail"
+                )
+
             readme_text = (args.root.resolve() / README).read_text(encoding="utf-8")
             drifted.write_text(note_text, encoding="utf-8")
             (root / README).write_text(
