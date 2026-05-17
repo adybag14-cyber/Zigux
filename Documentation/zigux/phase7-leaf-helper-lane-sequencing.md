@@ -22,25 +22,26 @@ Do not use this lane to widen into:
 
 ## Current Repo Reality
 
-Fresh repo-first inspection shows the live Phase 7 packet already has its four roadmap-backed runtime helper destinations under `lib/`.
+Fresh repo-first inspection shows the roadmap-backed Phase 7 family is only partially materialized on current `master`.
 
-That means the honest current lane split is helper-local rather than shared-batch delivery:
+That means the honest current lane split is helper-local and direct-readback-aware rather than a four-helper landed batch:
 
-- `lib/string_helpers.zig` owns string copy-and-pad helpers, sysfs and match-string equality rules, counted-search helpers, and C-string-safe duplication or replacement follow-through
-- `lib/cmdline.zig` owns `memparse()`, `parseOptionStr()`, `nextArg()`, and option-range parsing follow-through
-- `lib/argv_split.zig` owns copied-storage tokenization, exported empty-view reuse, and null-terminated argv contract follow-through
-- `lib/rbtree.zig` owns ordered traversal, duplicate-search helpers, cached-root leftmost tracking, and alias-surface follow-through
+- `lib/string_helpers.zig` plus its helper-local survey, manifest, and no-string-sample boundary packet are directly readable and remain the clearest same-lane reopen surface
+- `lib/argv_split.zig` is directly readable, but the older helper-local slice and checker companions are not directly readable in the same reread, so treat it as a narrower helper-only surface until those companion reminders return
+- `lib/cmdline.zig` is not directly readable on current `master` during this reread
+- `lib/rbtree.zig` and the older broader rbtree companion packet are not directly readable on current `master` during this reread
 
-No helper in this packet should be treated as a generic stand-in for the others. Reopen one helper family at a time.
+No helper in this packet should be treated as a generic stand-in for the others.
+Reopen one directly readable helper family at a time.
 
 ## Validation Discipline
 
-Use the narrowest honest replay that matches the chosen helper family.
+Use the narrowest honest replay that matches the chosen helper family and the files you can directly prove are present on current `master`.
 
 - `lib/string_helpers.zig`: `zig test lib/string_helpers.zig`
-- `lib/cmdline.zig`: `zig test lib/cmdline.zig`
 - `lib/argv_split.zig`: `zig test lib/argv_split.zig`
-- `lib/rbtree.zig`: `zig test lib/rbtree.zig`
+- `lib/cmdline.zig`: use `zig test lib/cmdline.zig` only after a fresh reread proves the helper has returned on current `master`
+- `lib/rbtree.zig`: use `zig test lib/rbtree.zig` only after a fresh reread proves the helper has returned on current `master`
 
 If a future change adds shared Phase 7 tests-root wiring, keep that route additive. Do not replace the helper-local Zig replay with a broader route unless the broader route proves the same boundary more clearly.
 
@@ -60,15 +61,15 @@ When this lane reopens, stay inside one bounded step only.
 This Phase 7 packet is outside the deep-core freeze map.
 
 That does not authorize broader runtime work.
-It only means these four runtime-safe leaf helpers may continue to evolve inside their bounded helper-owned contracts while deep-core freeze-in-C anchors remain governed by the separate Phase 15 packet.
+It only means these runtime-safe leaf helpers may continue to evolve inside their bounded helper-owned contracts while deep-core freeze-in-C anchors remain governed by the separate Phase 15 packet.
 
 ## Next Bounded Step
 
-Start from one helper family only and pick the smallest truthful follow-up:
+Start from one directly readable helper family only and pick the smallest truthful follow-up:
 
 - `lib/string_helpers.zig`: helper-local boundary or ownership drift in string, sysfs, or counted-search behavior
-- `lib/cmdline.zig`: helper-local drift in `memparse()`, `parseOptionStr()`, or `nextArg()` token-boundary behavior
 - `lib/argv_split.zig`: helper-local drift in empty-view reuse, copied-storage tokenization, or null-terminated argv export
-- `lib/rbtree.zig`: helper-local drift in cached-root leftmost behavior, duplicate-search traversal, or alias-surface parity
+- `lib/cmdline.zig`: reopen only after a fresh reread proves `lib/cmdline.zig` and at least one current helper-local companion surface have returned on `master`
+- `lib/rbtree.zig`: reopen only after a fresh reread proves `lib/rbtree.zig` or a current helper-local companion packet has returned on `master`
 
 If current helper-local tests and ownership notes already agree, leave the helper parked and do not widen to a second family in the same lane.
