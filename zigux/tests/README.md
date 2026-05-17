@@ -168,6 +168,7 @@ Phase 12 review packet
   * `Documentation/zigux/phase12-virtio-net-survey.md`
   * `Documentation/zigux/phase12-libbpf-segment-survey.md`
   * `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
+  * `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`
   * `scripts/zigux/check-phase12-release-readiness-packet.py`
   * while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`
   * `drivers/net/virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_queue_resume.zig`, and `zigux/tests/phase12_virtio_net_queue_resume.zig` keep the bounded `virtio_net` transmit-disposition and queue-resume follow-up replays explicit inside the shared Phase 12 smoke-and-test packet without promoting them into live DMA or queue-restart parity
