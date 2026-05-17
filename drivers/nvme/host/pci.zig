@@ -65,6 +65,9 @@ pub const RecoveryReservationReplayPlanSummary = struct {
     replayable_reserved_io_queues: usize,
     first_queue_id: u16,
     last_queue_id: u16,
+    planned_io_queues_after_replay: usize,
+    next_io_queue_id_after_replay: u16,
+    queue_numbering_restarted: bool,
     controller_limited: bool,
     planner_limited: bool,
     queue_planning_blocked: bool,
@@ -309,6 +312,9 @@ pub const NvmePciQueueLab = struct {
             .replayable_reserved_io_queues = plan.selected_io_queues,
             .first_queue_id = plan.first_queue_id,
             .last_queue_id = plan.last_queue_id,
+            .planned_io_queues_after_replay = try checkedAddUsize(self.planned_io_queues, plan.selected_io_queues),
+            .next_io_queue_id_after_replay = try checkedAddU16(plan.last_queue_id, 1),
+            .queue_numbering_restarted = self.reset_generation != 0 and plan.first_queue_id == 1,
             .controller_limited = plan.controller_limited,
             .planner_limited = plan.planner_limited,
             .queue_planning_blocked = false,
@@ -745,6 +751,32 @@ test "nvme pci recovery restore summary requires a frozen reset and clears after
     try std.testing.expectEqual(@as(usize, 0), second.io_queue_count);
     try std.testing.expectEqual(@as(u32, 1), second.total_host_dma_pages);
     try std.testing.expect(!second.restores_io_after_admin);
+}
+
+test "nvme pci recovery reservation replay summary keeps post-replay queue numbering explicit" {
+    var lab = try NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(8, 6);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    _ = try lab.planAdminQueue(32, 64, false);
+
+    const summary = try lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try std.testing.expectEqual(@as(usize, 3), summary.replayable_reserved_io_queues);
+    try std.testing.expectEqual(@as(usize, 3), summary.planned_io_queues_after_replay);
+    try std.testing.expectEqual(@as(u16, 4), summary.next_io_queue_id_after_replay);
+    try std.testing.expect(summary.queue_numbering_restarted);
+
+    const recovery = lab.recoverySummary();
+    try std.testing.expectEqual(@as(usize, 0), recovery.planned_io_queues);
 }
 
 test "nvme pci dropped backlog retirement waits for admin replay and rebuilt queues" {
