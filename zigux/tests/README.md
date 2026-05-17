@@ -96,25 +96,36 @@ Phase 2 review packet
 Phase 3 review packet
   * `Documentation/zigux/phase3-abi-slice.md`
   * `Documentation/zigux/phase3-errptr-xarray-slice.md`
+  * `Documentation/zigux/phase3-policy-slice.md`
   * `Documentation/zigux/phase3-validator-support-surface.md`
   * `include/linux/zigux.h`
   * `include/zigux/dev_t.h`
+  * `include/zigux/abi.h`
   * `zigux/uapi/version.zig`
   * `zigux/uapi/dev_t.zig`
   * `zigux/bindings/dev_t.zig`
+  * `zigux/bindings/abi.zig`
   * `zigux/helpers/err_ptr.zig`
   * `zigux/helpers/xa_value.zig`
+  * `zigux/helpers/panic_policy.zig`
+  * `zigux/helpers/allocator_policy.zig`
+  * `zigux/helpers/unsafe_policy.zig`
   * `zigux/tests/phase3_dev_t_starter_packet.zig`
   * `zigux/tests/phase3_dev_t_starter_packet_build.zig`
   * `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
   * `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
+  * `zigux/tests/phase3_policy_starter_packet.zig`
+  * `zigux/tests/phase3_policy_starter_packet_build.zig`
+  * `zigux/tests/phase3_policy_starter_packet_manifest.json`
   * `scripts/zigux/check-phase3-dev-t-starter-packet.py`
   * `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+  * `scripts/zigux/check-phase3-policy-starter-packet.py`
   * `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test`
   * `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
-  * keep the current shared Phase 3 reminder anchored to the bounded `dev_t` starter packet plus the helper-local `err_ptr` / `xarray` slice already described in `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, and `Documentation/zigux/phase3-validator-support-surface.md` instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence
-  * treat broader routes such as `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-abi-h-boundary-next-step.md`, `include/zigux/abi.h`, `zigux/bindings/abi.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, `scripts/zigux/validate-phase3.py`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and `scripts/zigux/phase3_catalog.py` as repo-reality gaps until fresh current-tree proof lands
-  * keep the broader docs-root follow-up in `Documentation/zigux/README.md` separate, because that shared summary still needs the same narrowing pass after this tests-root packet is truthful again
+  * `python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test`
+  * keep the current shared Phase 3 reminder anchored to the bounded `dev_t` starter packet, the helper-local `err_ptr` / `xarray` slice, and the focused policy slice already described in `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and `Documentation/zigux/phase3-validator-support-surface.md` instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence
+  * treat broader routes such as `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-abi-h-boundary-next-step.md`, `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, `scripts/zigux/validate-phase3.py`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and `scripts/zigux/phase3_catalog.py` as repo-reality gaps until fresh current-tree proof lands
+  * keep the remaining broader shared-summary follow-up in `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` separate, because those two shared reminder surfaces still need the same three-slice narrowing pass after this tests-root packet is truthful again
 
 Phase 7 review packet
   * current direct-readback Phase 7 anchor: `zigux/tests/phase7_rbtree_survey.zig`
