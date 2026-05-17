@@ -6,7 +6,7 @@ This note records the current roadmap-versus-repo reality for the bounded Phase 
 
 - `PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one MMIO helper companion, one shared narrow-unsafe decoder, this dedicated survey note, a dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion`
 - `PHASE3_LOW_LEVEL_WRAPPER_GAP=direct current-head readback on 2026-05-17 reaches Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/unsafe/narrow.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, zigux/tests/phase3_low_level_wrappers.zig, and zigux/tests/phase3_low_level_wrappers_build.zig, while broader shared Phase 3 validator and export-or-UAPI replay routes remain separate current-master gaps`
-- `PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the dedicated build companion and shared tests-root wiring until current master materializes the broader Phase 3 validator and export-or-UAPI replay routes beside this wrapper packet`
+- `PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and shared tests-root wiring until current master materializes the broader Phase 3 validator and export-or-UAPI replay routes beside this wrapper packet`
 
 ## Current Directly Readable Low-Level Wrapper Evidence
 
@@ -18,6 +18,7 @@ This note records the current roadmap-versus-repo reality for the bounded Phase 
 - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `zigux/tests/phase3_low_level_wrappers.zig`
 - `zigux/tests/phase3_low_level_wrappers_build.zig`
+- `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 
 ## Remaining Adjacent Phase 3 Gaps
 
@@ -29,10 +30,10 @@ This note records the current roadmap-versus-repo reality for the bounded Phase 
 
 The live Phase 3 tree is no longer missing the dedicated build companion for the current low-level wrapper packet. It already exposes one directly readable low-level helper shard through `zigux/helpers/atomic.zig`, one barrier helper companion through `zigux/helpers/barrier.zig`, one MMIO helper companion through `zigux/helpers/mmio.zig`, the shared narrow-unsafe decoder through `zigux/unsafe/narrow.zig`, the dedicated survey validator through `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, and one focused low-level-wrapper replay shard through `zigux/tests/phase3_low_level_wrappers.zig`.
 
-It also now exposes one dedicated shared build companion through `zigux/tests/phase3_low_level_wrappers_build.zig`, which keeps the focused replay shard runnable without widening the low-level wrapper packet into a broader Phase 3 completion claim.
+It also now exposes one dedicated shared build companion through `zigux/tests/phase3_low_level_wrappers_build.zig`, which keeps the focused replay shard runnable through `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig` without widening the low-level wrapper packet into a broader Phase 3 completion claim.
 
-Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, the shared narrow-unsafe decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion are directly readable, while the broader shared Phase 3 validator and export-or-UAPI replay routes remain separate gaps.
+Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, the shared narrow-unsafe decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, and one direct replay command are directly readable, while the broader shared Phase 3 validator and export-or-UAPI replay routes remain separate gaps.
 
 ## Scope
 
-This note is limited to roadmap-versus-repo-reality accounting for the low-level wrapper family. It records the directly readable atomic helper shard, the barrier helper companion, the MMIO helper companion, the shared narrow-unsafe decoder, the dedicated survey validator, the focused replay shard, and the dedicated shared build companion; names the remaining broader same-phase validation and export-or-UAPI replay gaps; and keeps the next bounded implementation step explicit. It does not claim that the broader shared Phase 3 validator stack or export-or-UAPI replay family already ships on current `master`.
+This note is limited to roadmap-versus-repo-reality accounting for the low-level wrapper family. It records the directly readable atomic helper shard, the barrier helper companion, the MMIO helper companion, the shared narrow-unsafe decoder, the dedicated survey validator, the focused replay shard, the dedicated shared build companion, and the direct replay command; names the remaining broader same-phase validation and export-or-UAPI replay gaps; and keeps the next bounded implementation step explicit. It does not claim that the broader shared Phase 3 validator stack or export-or-UAPI replay family already ships on current `master`.
