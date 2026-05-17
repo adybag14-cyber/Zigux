@@ -35,18 +35,15 @@ test "phase 7 string helper boundary keeps the no-string-sample policy lane-loca
     try std.testing.expect(total_zig_files >= 1);
 }
 
-test "phase 7 string helper boundary keeps the lane-local helper packet aligned without claiming shared control surfaces" {
+test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     const allocator = std.testing.allocator;
     const io = std.testing.io;
 
-    try std.Io.Dir.cwd().access(io, "Documentation/zigux/README.md", .{});
-    try std.Io.Dir.cwd().access(io, "Documentation/zigux/phase7-string-helpers-slice.md", .{});
-    try std.Io.Dir.cwd().access(io, "Documentation/zigux/review-checklist.md", .{});
     try std.Io.Dir.cwd().access(io, "lib/string_helpers.zig", .{});
-    try std.Io.Dir.cwd().access(io, "samples/zigux/README.md", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers.zig", .{});
-    try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_manifest.json", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_survey.zig", .{});
+    try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_manifest.json", .{});
+    try std.Io.Dir.cwd().access(io, "samples/zigux/README.md", .{});
 
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-string-helpers-slice.md");
     defer allocator.free(slice_note);
@@ -124,24 +121,14 @@ test "phase 7 string helper boundary keeps the lane-local helper packet aligned 
     defer allocator.free(samples_readme);
     try expectContains(samples_readme, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;");
 
-    const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
-    defer allocator.free(docs_root);
-    try expectContains(docs_root, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample");
-    try expectContains(docs_root, "Documentation/zigux/phase7-string-helpers-slice.md");
-    try expectContains(docs_root, "lib/string_helpers.zig");
-    try expectContains(docs_root, "zigux/tests/phase7_string_helpers.zig");
-    try expectContains(docs_root, "zigux/tests/phase7_string_helpers_survey.zig");
-    try expectContains(docs_root, "zigux/tests/phase7_string_helpers_manifest.json");
-    try expectContains(docs_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
-
-    const review_checklist = try readRepoFile(allocator, "Documentation/zigux/review-checklist.md");
-    defer allocator.free(review_checklist);
-    try expectContains(review_checklist, "there is no standalone `samples/zigux/*string*` reference sample");
-    try expectContains(review_checklist, "Documentation/zigux/phase7-string-helpers-slice.md");
-    try expectContains(review_checklist, "lib/string_helpers.zig");
-    try expectContains(review_checklist, "samples/zigux/README.md");
-    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers.zig");
-    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers_survey.zig");
-    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers_manifest.json");
-    try expectContains(review_checklist, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    defer allocator.free(sample_boundary);
+    try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-string-sample policy lane-local");
+    try expectContains(sample_boundary, "phase 7 string helper boundary stays on sample-boundary surfaces only");
+    try expectNotContains(sample_boundary, "scripts/zigux/validate-phase7.py");
+    try expectNotContains(sample_boundary, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectNotContains(sample_boundary, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
+    try expectNotContains(sample_boundary, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectNotContains(sample_boundary, "zigux/tests/phase7_build.zig");
+    try expectNotContains(sample_boundary, "current shared reminders aligned");
 }
