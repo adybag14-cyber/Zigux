@@ -70,7 +70,7 @@ REQUIRED_MARKERS = {
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "`PHASE12_STATUS=active`",
         "scripts/zigux/check-phase12-release-readiness-packet.py",
-        "direct contents reads for `zigux/tests/phase12_build.zig`, `zigux/Makefile`, and `scripts/zigux/check-phase12-release-readiness-packet.py` still return 404 through the same current `master` bridge",
+        "treat the directly readable build-only checker, release-readiness checker, workflow, and scripts-root README quartet as bounded reminder evidence only",
         "make -C zigux phase12-validate",
         "if that local fallback is also absent, rerun only the shipped Make routes with `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`",
     ],
