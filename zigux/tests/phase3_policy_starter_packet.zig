@@ -4,6 +4,7 @@ const testing = std.testing;
 const abi = @import("abi_bindings");
 const allocator_policy = @import("allocator_policy");
 const panic_policy = @import("panic_policy");
+const unsafe_policy = @import("unsafe_policy");
 
 test "policy starter packet decodes shared interop policy records" {
     const bug_heap = abi.InteropPolicy{
@@ -27,10 +28,13 @@ test "policy starter packet decodes shared interop policy records" {
 
     try testing.expectEqual(@as(?abi.PanicMode, .bug), panic_policy.modeFromInteropPolicy(bug_heap));
     try testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), allocator_policy.modeFromInteropPolicy(bug_heap));
+    try testing.expectEqual(@as(?abi.UnsafeScope, .none), unsafe_policy.modeFromInteropPolicy(bug_heap));
     try testing.expectEqual(@as(?abi.PanicMode, .warn), panic_policy.modeFromInteropPolicy(warn_arena));
     try testing.expectEqual(@as(?abi.AllocatorMode, .arena), allocator_policy.modeFromInteropPolicy(warn_arena));
+    try testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), unsafe_policy.modeFromInteropPolicy(warn_arena));
     try testing.expectEqual(@as(?abi.PanicMode, null), panic_policy.modeFromInteropPolicy(reserved));
     try testing.expectEqual(@as(?abi.AllocatorMode, null), allocator_policy.modeFromInteropPolicy(reserved));
+    try testing.expectEqual(@as(?abi.UnsafeScope, null), unsafe_policy.modeFromInteropPolicy(reserved));
 }
 
 test "panic policy starter packet keeps escalation semantics explicit" {
@@ -61,4 +65,20 @@ test "allocator policy starter packet keeps init ownership semantics explicit" {
     try testing.expect(!allocator_policy.initializesOwnedState(.caller_provided));
     try testing.expect(allocator_policy.requiresResetOnInit(.arena));
     try testing.expect(!allocator_policy.requiresResetOnInit(.kernel_heap));
+}
+
+test "unsafe policy starter packet keeps access semantics explicit" {
+    try testing.expectEqual(unsafe_policy.AccessBoundary.typed_safe, unsafe_policy.accessBoundaryFor(.none));
+    try testing.expectEqual(unsafe_policy.AccessBoundary.volatile_mmio_window, unsafe_policy.accessBoundaryFor(.volatile_mmio));
+    try testing.expectEqual(unsafe_policy.AccessBoundary.raw_pointer_bridge, unsafe_policy.accessBoundaryFor(.raw_pointer_bridge));
+
+    try testing.expect(unsafe_policy.allowsTypedOnlyAccess(.none));
+    try testing.expect(!unsafe_policy.allowsTypedOnlyAccess(.volatile_mmio));
+    try testing.expect(!unsafe_policy.allowsTypedOnlyAccess(.raw_pointer_bridge));
+    try testing.expect(!unsafe_policy.requiresVolatileMmioAccess(.none));
+    try testing.expect(unsafe_policy.requiresVolatileMmioAccess(.volatile_mmio));
+    try testing.expect(!unsafe_policy.requiresVolatileMmioAccess(.raw_pointer_bridge));
+    try testing.expect(!unsafe_policy.requiresRawPointerBridge(.none));
+    try testing.expect(!unsafe_policy.requiresRawPointerBridge(.volatile_mmio));
+    try testing.expect(unsafe_policy.requiresRawPointerBridge(.raw_pointer_bridge));
 }
