@@ -10,7 +10,6 @@ import tempfile
 from pathlib import Path
 
 NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
-DOCS_README = Path("Documentation/zigux/README.md")
 README = Path("zigux/tests/README.md")
 SCRIPTS_README = Path("scripts/zigux/README.md")
 REPO_REALITY_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
@@ -51,11 +50,6 @@ ATOMIC64_GAP_MARKERS = (
     "restore the roadmap-backed `zigux/tests/atomic64_diff.zig` pair",
 )
 
-DOCS_BITMAP_GAP_MARKERS = (
-    "`zigux/tests/bitmap_diff.zig`",
-    "`zigux/tests/phase4_bitmap_live_helper_replay.zig`",
-)
-
 NOTE_MARKERS = STATUS_MARKERS + DIRECT_MARKERS + MISSING_BROADER_PACKET + ATOMIC64_GAP_MARKERS + (
     "The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run",
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
@@ -82,22 +76,6 @@ README_MARKERS = (
     "repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet",
     "historical provenance for that missing broader packet",
 ) + README_OWNER_MARKERS + README_ATOMIC64_GAP_MARKERS + README_PUBLIC_FALLBACK_MARKERS
-
-DOCS_README_MARKERS = (
-    "Phase 4 notes - `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` now keep the current direct-readback rollback packet reviewable from the docs root while the broader validator, lab-matrix, local-only perf, and bitmap-diff companions remain repo-reality gaps on current `master`.",
-    "`Documentation/zigux/phase4-gate-evidence.md`",
-    "`Documentation/zigux/phase4-validation-matrix.md`",
-    "`scripts/zigux/check-phase4-gate-evidence.py`",
-    "`scripts/zigux/check-phase4-perf-baseline-packet.py`",
-    "`scripts/zigux/validate-phase4.py`",
-    "`zigux/tests/phase4_build.zig`",
-    "`zigux/tests/phase4_perf_baseline_manifest.json`",
-    "`zigux/tests/phase4_perf_baseline_survey.zig`",
-    "`zigux/tests/atomic64_diff.zig`",
-    "`zigux/tests/runtime_atomic64_diff.zig`",
-) + DOCS_BITMAP_GAP_MARKERS + (
-    "keep the pending shared-CI perf-promotion posture explicit instead of implying those broader Phase 4 routes are live current-head evidence.",
-)
 
 SCRIPTS_README_MARKERS = (
     "Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, and scripts-root surfaces while the broader validator, lab-matrix, dedicated local-only perf, bitmap-diff, and roadmap-backed `atomic64_diff` companions remain authenticated-readback repo-reality gaps on current `master`, so this note should stay aligned with that narrower direct-readback packet instead of treating public fallback visibility as the same thing as direct current-head proof",
@@ -167,12 +145,10 @@ def require_exact_self_test_count(
 
 def check(root: Path) -> None:
     note = read(root, NOTE)
-    docs_readme = read(root, DOCS_README)
     readme = read(root, README)
     scripts_readme = read(root, SCRIPTS_README)
     repo_warning = read(root, REPO_REALITY_WARNING)
     require(note, NOTE_MARKERS, NOTE.as_posix())
-    require(docs_readme, DOCS_README_MARKERS, DOCS_README.as_posix())
     require(readme, README_MARKERS, README.as_posix())
     require(scripts_readme, SCRIPTS_README_MARKERS, SCRIPTS_README.as_posix())
     require(repo_warning, WARNING_MARKERS, REPO_REALITY_WARNING.as_posix())
@@ -196,7 +172,7 @@ def main() -> int:
         cases = 0
         with tempfile.TemporaryDirectory(prefix="phase4-reversible-delivery-pins-") as tmp:
             root = Path(tmp)
-            for rel in (NOTE, DOCS_README, README, SCRIPTS_README, REPO_REALITY_WARNING):
+            for rel in (NOTE, README, SCRIPTS_README, REPO_REALITY_WARNING):
                 src = args.root.resolve() / rel
                 dst = root / rel
                 dst.parent.mkdir(parents=True, exist_ok=True)
@@ -269,11 +245,10 @@ def main() -> int:
                 raise AssertionError("expected scripts README atomic64 drift to fail")
 
             scripts_readme_path.write_text((args.root.resolve() / SCRIPTS_README).read_text(encoding="utf-8"), encoding="utf-8")
-            docs_readme_path = root / DOCS_README
-            docs_readme_path.write_text(
-                docs_readme_path.read_text(encoding="utf-8").replace(
-                    DOCS_README_MARKERS[-1],
-                    "pending perf posture drifted",
+            scripts_readme_path.write_text(
+                scripts_readme_path.read_text(encoding="utf-8").replace(
+                    SCRIPTS_README_MARKERS[0],
+                    "Phase 4 flow drifted",
                 ),
                 encoding="utf-8",
             )
@@ -282,9 +257,9 @@ def main() -> int:
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected docs README perf-promotion drift to fail")
+                raise AssertionError("expected scripts README packet summary drift to fail")
 
-            docs_readme_path.write_text((args.root.resolve() / DOCS_README).read_text(encoding="utf-8"), encoding="utf-8")
+            scripts_readme_path.write_text((args.root.resolve() / SCRIPTS_README).read_text(encoding="utf-8"), encoding="utf-8")
             repo_warning_path = root / REPO_REALITY_WARNING
             repo_warning_path.write_text(
                 repo_warning_path.read_text(encoding="utf-8").replace(
@@ -299,6 +274,21 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError("expected repo-reality warning drift to fail")
+
+            repo_warning_path.write_text((args.root.resolve() / REPO_REALITY_WARNING).read_text(encoding="utf-8"), encoding="utf-8")
+            note_path.write_text(
+                note_path.read_text(encoding="utf-8").replace(
+                    ATOMIC64_GAP_MARKERS[2],
+                    "atomic64 next-step wording drifted",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected note atomic64 next-step drift to fail")
 
         print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass")
         print(f"PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES={cases}")
