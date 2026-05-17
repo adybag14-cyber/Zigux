@@ -16,6 +16,7 @@ UAPI_FILE = Path("zigux/uapi/dev_t.zig")
 LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE = Path(
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
 )
+LOW_LEVEL_WRAPPER_REPLAY_FILE = Path("zigux/tests/phase3_low_level_wrappers.zig")
 WORKFLOW_FILE = Path(".github/workflows/zigux-bootstrap.yml")
 POLICY_STARTER_BUILD_FILE = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 
@@ -25,6 +26,7 @@ UAPI_MARKER = "zigux/uapi/dev_t.zig"
 LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER = (
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
 )
+LOW_LEVEL_WRAPPER_REPLAY_MARKER = "zigux/tests/phase3_low_level_wrappers.zig"
 WORKFLOW_MARKER = ".github/workflows/zigux-bootstrap.yml"
 
 REQUIRED_FILES = (
@@ -66,6 +68,7 @@ REQUIRED_FILES = (
     Path("zigux/tests/phase3_errptr_xarray_starter_packet_build.zig"),
     Path("zigux/tests/phase3_policy_starter_packet.zig"),
     POLICY_STARTER_BUILD_FILE,
+    LOW_LEVEL_WRAPPER_REPLAY_FILE,
     WORKFLOW_FILE,
 )
 
@@ -110,6 +113,7 @@ REQUIRED_MARKERS = (
     "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
     "zigux/tests/phase3_policy_starter_packet.zig",
     "zigux/tests/phase3_policy_starter_packet_build.zig",
+    "zigux/tests/phase3_low_level_wrappers.zig",
     ".github/workflows/zigux-bootstrap.yml",
 )
 
@@ -189,6 +193,10 @@ def run_self_test() -> int:
                 LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER,
                 "expected missing low-level-wrapper survey validator README marker was not reported",
             ),
+            (
+                LOW_LEVEL_WRAPPER_REPLAY_MARKER,
+                "expected missing low-level-wrapper replay README marker was not reported",
+            ),
             (WORKFLOW_MARKER, "expected missing workflow README marker was not reported"),
         ):
             _populate_repo(root)
@@ -204,6 +212,10 @@ def run_self_test() -> int:
                 LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE,
                 "expected missing low-level-wrapper survey validator file was not reported",
             ),
+            (
+                LOW_LEVEL_WRAPPER_REPLAY_FILE,
+                "expected missing low-level-wrapper replay file was not reported",
+            ),
             (WORKFLOW_FILE, "expected missing workflow file was not reported"),
             (
                 POLICY_STARTER_BUILD_FILE,
@@ -215,7 +227,7 @@ def run_self_test() -> int:
                 return 1
 
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=12")
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=14")
         return 0
 
 
