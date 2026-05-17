@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 
 
 HERE = Path(__file__).resolve()
@@ -122,7 +123,7 @@ def load_runtime_expectations(path: Path) -> tuple[str, object]:
     try:
         expectations = load_expectations(path)
     except FileNotFoundError:
-        return ("missing_expectations_file", path)
+        return ("expectations_missing", path)
     except json.JSONDecodeError as exc:
         return ("expectations_json_error", exc)
 
@@ -562,6 +563,14 @@ def run_self_test() -> None:
     assert kind == "pass"
     case_count += 1
 
+    missing_expectations_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-missing.json"
+    if missing_expectations_path.exists():
+        missing_expectations_path.unlink()
+    kind, payload = load_runtime_expectations(missing_expectations_path)
+    assert kind == "expectations_missing"
+    assert payload == missing_expectations_path
+    case_count += 1
+
     status_mismatch_output = ok_output.replace(
         "PHASE1_BENCH=pass",
         "PHASE1_BENCH=fail",
@@ -950,10 +959,10 @@ def main() -> int:
         return 0
 
     kind, payload = load_runtime_expectations(EXPECTATIONS)
-    if kind == "missing_expectations_file":
+    if kind == "expectations_missing":
         print("PHASE1_BENCH_CHECK=fail")
-        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
-        print(f"EXPECTATIONS_PATH={payload}")
+        print("PHASE1_BENCH_CHECK_REASON=expectations_missing")
+        print(f"PHASE1_BENCH_EXPECTATIONS={payload}")
         return 1
     if kind == "expectations_json_error":
         exc = payload
@@ -996,8 +1005,7 @@ def main() -> int:
         return 1
 
     print("PHASE1_BENCH_CHECK=pass")
-    print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")
-    print(f"PHASE1_BENCH_ZIG={zig}")
+    print(f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}")
     return 0
 
 
