@@ -130,6 +130,7 @@ SCRIPTS_README_MARKERS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
+    "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`",
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/run-phase3-checks.py",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
@@ -153,6 +154,7 @@ SCRIPTS_README_MARKERS = (
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     ".github/workflows/zigux-bootstrap.yml",
     "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
+    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "python3 scripts/zigux/validate_phase3_selftest.py --self-test",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/phase3_catalog.py",
@@ -275,6 +277,16 @@ def run_self_test() -> int:
             "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
             "scripts README",
         ),
+        (
+            SCRIPTS_README_PATH,
+            "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`",
+            "scripts README",
+        ),
+        (
+            SCRIPTS_README_PATH,
+            "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+            "scripts README",
+        ),
         (SCRIPTS_README_PATH, "zigux/helpers/atomic.zig", "scripts README"),
         (SCRIPTS_README_PATH, "zigux/tests/phase3_low_level_wrappers_build.zig", "scripts README"),
         (SCRIPTS_README_PATH, "scripts/zigux/validate-phase3-export-uapi-survey.py", "scripts README"),
@@ -310,7 +322,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
