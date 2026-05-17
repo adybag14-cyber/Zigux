@@ -4,60 +4,36 @@ This note records the current roadmap-versus-repo reality for the Phase 3 low-le
 
 ## Current Status
 
-- `PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, but current master does not yet materialize that helper trio or the focused replay and survey packet that earlier continuity notes described`
-- `PHASE3_LOW_LEVEL_WRAPPER_GAP=direct current-head readback on 2026-05-17 reaches the bounded Phase 3 starter, helper-local err_ptr/xarray, and focused policy slices, while repeated authenticated contents reads return missing for zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_low_level_wrappers.zig, zigux/tests/phase3_low_level_wrappers_build.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, and Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md before this note landed`
-- `PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through in survey-and-gap-accounting mode until current master actually materializes one bounded helper or focused replay surface; the next honest implementation step would be the first directly readable atomic, barrier, or MMIO helper shard together with one equally bounded proof route`
+- `PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, but current master now directly exposes only one atomic helper shard plus this dedicated survey note rather than the full helper trio and focused replay packet that earlier continuity notes described`
+- `PHASE3_LOW_LEVEL_WRAPPER_GAP=direct current-head readback on 2026-05-17 reaches Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md and zigux/helpers/atomic.zig, while repeated authenticated contents reads still return missing for zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/unsafe/narrow.zig, zigux/tests/phase3_low_level_wrappers.zig, zigux/tests/phase3_low_level_wrappers_build.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, and zigux/tests/fixtures/phase3_abi_manifest.json`
+- `PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through in survey-and-gap-accounting mode until current master materializes one more bounded companion beside zigux/helpers/atomic.zig, with the next honest implementation step being either one directly readable barrier-or-mmio helper shard or one equally bounded focused replay companion`
 
 ## Roadmap And Ledger Anchors
 
 - The Phase 3 roadmap still names `approved atomic, barrier, and MMIO wrappers` as required Zigux features inside the ABI and interop substrate.
 - Bootstrap ledger step `26`, `feat(zigux): start bounded Phase 3 abi substrate skeleton`, still lists `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `scripts/zigux/check-phase3-abi.py`, `scripts/zigux/validate-phase3.py`, and `Documentation/zigux/phase3-abi-slice.md` as part of that original bounded Phase 3 substrate packet.
 
-## Current Directly Readable Phase 3 Packet
+## Current Directly Readable Low-Level Wrapper Evidence
 
-- `Documentation/zigux/phase3-abi-slice.md`
-- `Documentation/zigux/phase3-errptr-xarray-slice.md`
-- `Documentation/zigux/phase3-policy-slice.md`
-- `Documentation/zigux/phase3-shared-reminder-gap.md`
-- `Documentation/zigux/phase3-validator-support-surface.md`
-- `include/linux/zigux.h`
-- `include/zigux/dev_t.h`
-- `include/zigux/abi.h`
-- `zigux/uapi/version.zig`
-- `zigux/uapi/dev_t.zig`
-- `zigux/bindings/dev_t.zig`
-- `zigux/bindings/abi.zig`
-- `zigux/helpers/err_ptr.zig`
-- `zigux/helpers/xa_value.zig`
-- `zigux/helpers/panic_policy.zig`
-- `zigux/helpers/allocator_policy.zig`
-- `zigux/helpers/unsafe_policy.zig`
-- `zigux/tests/phase3_dev_t_starter_packet.zig`
-- `zigux/tests/phase3_dev_t_starter_packet_build.zig`
-- `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
-- `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
-- `zigux/tests/phase3_policy_starter_packet.zig`
-- `zigux/tests/phase3_policy_starter_packet_build.zig`
-- `zigux/tests/phase3_policy_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-dev-t-starter-packet.py`
-- `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
-- `scripts/zigux/check-phase3-policy-starter-packet.py`
-
-## Missing Low-Level Wrapper Surfaces On Current `master`
-
+- `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
 - `zigux/helpers/atomic.zig`
+
+## Missing Low-Level Wrapper Companions On Current `master`
+
 - `zigux/helpers/barrier.zig`
 - `zigux/helpers/mmio.zig`
+- `zigux/unsafe/narrow.zig`
 - `zigux/tests/phase3_low_level_wrappers.zig`
 - `zigux/tests/phase3_low_level_wrappers_build.zig`
 - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
+- `zigux/tests/fixtures/phase3_abi_manifest.json`
 
 ## Current Gap
 
-The live Phase 3 tree is not empty. It already exposes the bounded starter packet, the focused helper-local `err_ptr` and `xarray` slice, and the focused policy slice. What it does not currently expose is the separate low-level wrapper family that the roadmap and ledger still reserve.
+The live Phase 3 tree is not empty. It already exposes one directly readable low-level helper shard through `zigux/helpers/atomic.zig`, and that shard keeps compare-exchange ordering rules reviewable on current `master`. What it does not currently expose is the rest of the approved low-level wrapper family: the barrier and MMIO helper companions, the explicit narrow-unsafe bridge companion, the focused replay route, and the dedicated survey validator packet that earlier continuity notes described.
 
-That makes the real same-lane outcome a survey-first truthfulness repair, not another speculative helper edit. Reviewers should treat atomic, barrier, and MMIO wrappers as an open Phase 3 gap on current `master` until at least one helper shard and one matching proof route become directly readable again.
+That makes the real same-lane outcome a survey-first truthfulness repair, not another speculative helper claim. Reviewers should treat the low-level wrapper family as partially materialized on current `master`: one atomic helper shard is directly readable, while the broader barrier, MMIO, narrow-unsafe, replay, and validator companions remain current repo-reality gaps.
 
 ## Scope
 
-This note is limited to roadmap-versus-repo-reality accounting for the low-level wrapper family. It records the current directly readable Phase 3 packet, names the missing atomic, barrier, and MMIO wrapper surfaces, and keeps the next bounded implementation step explicit. It does not claim that the broader low-level wrapper packet, shared ABI replay, or validator stack already ships on current `master`.
+This note is limited to roadmap-versus-repo-reality accounting for the low-level wrapper family. It records the one directly readable atomic helper shard, names the missing barrier, MMIO, narrow-unsafe, replay, validator, and manifest companions, and keeps the next bounded implementation step explicit. It does not claim that the broader low-level wrapper packet, shared ABI replay, or validator stack already ships on current `master`.
