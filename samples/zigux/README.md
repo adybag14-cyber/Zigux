@@ -50,7 +50,7 @@ Keep saying clearly that current `master` does not currently expose the broader 
 
 Keep older cross-phase non-owner boundaries explicit: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence.
 
-Treat `samples/zigux/runtime_trace_events_unregistered_gate.zig` as a companion reminder inside that same narrow runtime packet, not as proof that the broader shared loader family has returned.
+Treat `samples/zigux/runtime_trace_events_unregistered_gate.zig` as the same narrow runtime packet's fail-closed companion for unregistered function-thread failures, not as proof that the broader shared loader family has returned.
 
 ## No-extra-sample reminders
 
