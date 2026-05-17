@@ -54,8 +54,28 @@ fn addPhase1HostToolsSmoke(
         .target = target,
         .optimize = optimize,
     });
+    const slab_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/slab.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const str_error_r_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/str_error_r.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const string_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/string.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const vsprintf_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/vsprintf.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const zalloc_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/zalloc.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -66,7 +86,11 @@ fn addPhase1HostToolsSmoke(
     root_module.addImport("find_bit", find_bit_module);
     root_module.addImport("bitmap", bitmap_module);
     root_module.addImport("rbtree", rbtree_module);
+    root_module.addImport("slab", slab_module);
+    root_module.addImport("str_error_r", str_error_r_module);
     root_module.addImport("string", string_module);
+    root_module.addImport("vsprintf", vsprintf_module);
+    root_module.addImport("zalloc", zalloc_module);
 
     const tests = b.addTest(.{
         .name = "phase1-host-tools-smoke",
