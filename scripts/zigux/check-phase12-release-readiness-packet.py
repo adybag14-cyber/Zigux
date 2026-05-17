@@ -88,6 +88,7 @@ REQUIRED_MARKERS = {
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "validator-first support route: `scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`",
         "Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`",
+        "PMO / Release Management: keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this matrix, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` aligned around the same active-not-closed release posture and the same smoke-first packet.",
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "`PHASE12_STATUS=active`",
@@ -149,7 +150,7 @@ def build_self_test_cases() -> list[tuple[str, int]]:
 
 
 SELF_TEST_CASES = build_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 44
+EXPECTED_SELF_TEST_CASE_COUNT = 45
 
 
 def write_fixture_tree(root: Path) -> None:
