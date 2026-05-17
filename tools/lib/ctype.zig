@@ -123,3 +123,43 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(isodigit('7'));
     try std.testing.expect(!isodigit('8'));
 }
+
+test "ctype extended latin pairs and table-driven invariants stay aligned" {
+    try std.testing.expect(isupper(0xC0));
+    try std.testing.expect(islower(0xE0));
+    try std.testing.expectEqual(@as(u8, 0xE0), tolower(0xC0));
+    try std.testing.expectEqual(@as(u8, 0xC0), toupper(0xE0));
+    try std.testing.expectEqual(@as(u8, 0xF8), fastTolower(0xD8));
+
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const byte_mask = table[byte];
+
+        try std.testing.expectEqual(byte_mask, mask(byte));
+        try std.testing.expectEqual((byte_mask & (_U | _L | _D)) != 0, isalnum(byte));
+        try std.testing.expectEqual((byte_mask & (_U | _L)) != 0, isalpha(byte));
+        try std.testing.expectEqual((byte_mask & _C) != 0, iscntrl(byte));
+        try std.testing.expectEqual((byte_mask & (_P | _U | _L | _D)) != 0, isgraph(byte));
+        try std.testing.expectEqual((byte_mask & _L) != 0, islower(byte));
+        try std.testing.expectEqual((byte_mask & (_P | _U | _L | _D | _SP)) != 0, isprint(byte));
+        try std.testing.expectEqual((byte_mask & _P) != 0, ispunct(byte));
+        try std.testing.expectEqual((byte_mask & _S) != 0, isspace(byte));
+        try std.testing.expectEqual((byte_mask & _U) != 0, isupper(byte));
+        try std.testing.expectEqual((byte_mask & (_D | _X)) != 0, isxdigit(byte));
+        try std.testing.expectEqual(byte <= 0x7f, isascii(byte));
+        try std.testing.expectEqual(@as(u8, byte & 0x7f), toascii(byte));
+
+        if (isupper(byte)) {
+            try std.testing.expectEqual(@as(u8, byte | 0x20), tolower(byte));
+            try std.testing.expectEqual(@as(u8, byte | 0x20), fastTolower(byte));
+            try std.testing.expectEqual(byte, toupper(byte));
+        } else if (islower(byte)) {
+            try std.testing.expectEqual(@as(u8, byte - ('a' - 'A')), toupper(byte));
+            try std.testing.expectEqual(byte, tolower(byte));
+            try std.testing.expectEqual(byte, fastTolower(byte));
+        } else {
+            try std.testing.expectEqual(byte, fastTolower(byte));
+        }
+    }
+}
