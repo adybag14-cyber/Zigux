@@ -55,7 +55,7 @@ SURVEY_MARKERS = (
 )
 
 EXPECTED_FINAL_FIRST_ZERO_COUNT = 2
-EXPECTED_SELF_TEST_CASES = 10
+EXPECTED_SELF_TEST_CASES = 12
 
 
 def parse_args() -> argparse.Namespace:
@@ -232,6 +232,21 @@ def run_self_test() -> int:
             manifest,
             replace_once(
                 read_text(manifest),
+                '"shared_ci_perf_promotion_status": "pending"',
+                '"shared_ci_perf_promotion_status": "approved"',
+            ),
+        )
+        if not expect_failure(root, 'manifest_marker:"shared_ci_perf_promotion_status": "pending"'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest shared-ci-promotion-status drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
                 '"status": "shared CI perf promotion pending"',
                 '"status": "shared CI perf promotion approved"',
             ),
@@ -254,6 +269,21 @@ def run_self_test() -> int:
         if not expect_failure(root, 'survey_marker:try requireMarker("\\"id\\": \\"phase4-perf-baseline-shared-promotion-decision\\"");'):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("survey promotion-decision drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            survey,
+            replace_once(
+                read_text(survey),
+                'try requireMarker("\\"owner\\": \\"Validation and Perf Team\\"");',
+                'try requireMarker("\\"owner\\": \\"ABI and Runtime Team\\"");',
+            ),
+        )
+        if not expect_failure(root, 'survey_marker:try requireMarker("\\"owner\\": \\"Validation and Perf Team\\"");'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("survey owner drift case did not fail closed")
             return 1
         cases += 1
 
