@@ -31,3 +31,32 @@ test "phase10 virtio input queue callback preflight tracks queue and ready-state
     try std.testing.expect(summary.device_ready);
     try std.testing.expect(summary.ready_for_queue_callbacks);
 }
+
+test "phase10 virtio input queue callback preflight accepts incremental refills before ready-state handoff" {
+    var device = try virtio_input.VirtioInputLab.init("Virtio Touch Lab", "serial-29", 8, null);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+
+    var summary = device.queueCallbackPreflightSummary();
+    try std.testing.expectEqual(virtio_input.QueueCallbackPreflightBlocker.event_buffers_unfilled, summary.blocker.?);
+    try std.testing.expectEqual(@as(u16, 0), summary.queued_event_buffer_count);
+    try std.testing.expect(!summary.event_buffers_ready);
+
+    const refill = try device.refillEventBuffers(2);
+    try std.testing.expectEqual(@as(u16, 0), refill.queued_event_buffer_count_before);
+    try std.testing.expectEqual(@as(u16, 2), refill.queued_event_buffer_count_after);
+
+    summary = device.queueCallbackPreflightSummary();
+    try std.testing.expectEqual(virtio_input.QueueCallbackPreflightBlocker.device_not_ready, summary.blocker.?);
+    try std.testing.expect(summary.event_buffers_ready);
+    try std.testing.expectEqual(@as(u16, 2), summary.queued_event_buffer_count);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(!summary.ready_for_queue_callbacks);
+
+    try device.markReady();
+    summary = device.queueCallbackPreflightSummary();
+    try std.testing.expectEqual(@as(?virtio_input.QueueCallbackPreflightBlocker, null), summary.blocker);
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(summary.ready_for_queue_callbacks);
+}
