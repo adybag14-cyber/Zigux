@@ -56,6 +56,20 @@ fn compareCOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) ca
     return compareCountedOpaqueDescendingInt(key, item);
 }
 
+fn compareDirectInt(key: *const u32, item: *const u32) i32 {
+    return switch (std.math.order(key.*, item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareDirectOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return compareDirectInt(typed_key, typed_item);
+}
+
 fn typedProbe(items: []const u32, target: u32, expect_hit: bool, compare: anytype) !usize {
     var comparisons: usize = 0;
     const key = CountedKey{ .target = target, .comparisons = &comparisons };
@@ -222,29 +236,48 @@ test "phase 6 bsearch raw lookup keeps representative work inside a binary-searc
 test "phase 6 bsearch bounded typed and raw equality probes stay inside a binary-search budget" {
     const duplicates = fixtures.representative_duplicate_values;
     var duplicate_target = @as(u32, 21);
-    const typed_range = bsearch.equalRangeIndex(u32, u32, &duplicate_target, duplicates[0..], struct {
-        fn compare(key: *const u32, item: *const u32) i32 {
-            return switch (std.math.order(key.*, item.*)) {
-                .lt => -1,
-                .eq => 0,
-                .gt => 1,
-            };
-        }
-    }.compare);
+    const typed_range = bsearch.equalRangeIndex(u32, u32, &duplicate_target, duplicates[0..], compareDirectInt);
     try std.testing.expectEqual(bsearch.IndexRange{ .lower = 4, .upper = 7 }, typed_range);
 
-    const raw_range = bsearch.bsearchEqualRangeIndex(&duplicate_target, @ptrCast(duplicates[0..].ptr), duplicates.len, @sizeOf(u32), struct {
-        fn compare(key: *const anyopaque, item: *const anyopaque) i32 {
-            const typed_key: *const u32 = @ptrCast(@alignCast(key));
-            const typed_item: *const u32 = @ptrCast(@alignCast(item));
-            return switch (std.math.order(typed_key.*, typed_item.*)) {
-                .lt => -1,
-                .eq => 0,
-                .gt => 1,
-            };
-        }
-    }.compare);
+    const raw_range = bsearch.bsearchEqualRangeIndex(&duplicate_target, @ptrCast(duplicates[0..].ptr), duplicates.len, @sizeOf(u32), compareDirectOpaqueInt);
     try std.testing.expectEqual(bsearch.IndexRange{ .lower = 4, .upper = 7 }, raw_range);
+}
+
+test "phase 6 bsearch direct equalRange wrappers keep duplicate-span and write-through coverage aligned" {
+    const duplicates = fixtures.representative_duplicate_values;
+    const duplicate_target = @as(u32, 21);
+
+    const typed_view = bsearch.equalRange(u32, u32, &duplicate_target, duplicates[0..], compareDirectInt);
+    try std.testing.expectEqual(@as(usize, 3), typed_view.len);
+    try std.testing.expectEqualSlices(u32, &[_]u32{ 21, 21, 21 }, typed_view);
+
+    const missing_target = @as(u32, 22);
+    const missing_view = bsearch.equalRange(u32, u32, &missing_target, duplicates[0..], compareDirectInt);
+    try std.testing.expectEqual(@as(usize, 0), missing_view.len);
+    try std.testing.expectEqual(@intFromPtr(&duplicates[7]), @intFromPtr(missing_view.ptr));
+
+    var mutable_duplicates = duplicates;
+    const mutable_view = bsearch.equalRangeMutable(u32, u32, &duplicate_target, mutable_duplicates[0..], compareDirectInt);
+    try std.testing.expectEqual(@as(usize, 3), mutable_view.len);
+    mutable_view[1] = 22;
+    try std.testing.expectEqual(@as(u32, 22), mutable_duplicates[5]);
+
+    const duplicate_bytes = bsearch.bsearchEqualRange(&duplicate_target, @ptrCast(duplicates[0..].ptr), duplicates.len, @sizeOf(u32), compareDirectOpaqueInt);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(u32)), duplicate_bytes.len);
+    const typed_duplicate_bytes: [*]const u32 = @ptrCast(@alignCast(duplicate_bytes.ptr));
+    try std.testing.expectEqual(@as(u32, 21), typed_duplicate_bytes[0]);
+    try std.testing.expectEqual(@as(u32, 21), typed_duplicate_bytes[2]);
+
+    const missing_bytes = bsearch.bsearchEqualRange(&missing_target, @ptrCast(duplicates[0..].ptr), duplicates.len, @sizeOf(u32), compareDirectOpaqueInt);
+    try std.testing.expectEqual(@as(usize, 0), missing_bytes.len);
+    try std.testing.expectEqual(@intFromPtr(@as([*]const u8, @ptrCast(duplicates[0..].ptr)) + (7 * @sizeOf(u32))), @intFromPtr(missing_bytes.ptr));
+
+    var mutable_raw_duplicates = duplicates;
+    const mutable_bytes = bsearch.bsearchEqualRangeMutable(&duplicate_target, @ptrCast(mutable_raw_duplicates[0..].ptr), mutable_raw_duplicates.len, @sizeOf(u32), compareDirectOpaqueInt);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(u32)), mutable_bytes.len);
+    const typed_mutable_bytes: [*]u32 = @ptrCast(@alignCast(mutable_bytes.ptr));
+    typed_mutable_bytes[1] = 22;
+    try std.testing.expectEqual(@as(u32, 22), mutable_raw_duplicates[5]);
 }
 
 test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers" {
