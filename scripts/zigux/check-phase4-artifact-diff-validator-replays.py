@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import sys
+import tempfile
 from pathlib import Path
 
 
@@ -18,6 +20,7 @@ EXPECTED_SELF_TEST_CASES = [
     "catalog_shape",
     "validator_marker_round_trip",
     "validator_marker_drift",
+    "validator_target_missing",
 ]
 
 
@@ -25,6 +28,22 @@ def assert_markers(text: str, markers: list[str], label: str) -> None:
     missing = [marker for marker in markers if marker not in text]
     if missing:
         raise AssertionError(f"{label} markers missing: {missing}")
+
+
+def read_validator_text(path: Path, display_path: str | None = None) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        label = display_path
+        if label is None:
+            try:
+                label = path.relative_to(ROOT).as_posix()
+            except ValueError:
+                label = path.as_posix()
+        raise RuntimeError(
+            "current tree is missing the historical validator replay target: "
+            f"{label}"
+        ) from exc
 
 
 def run_self_test() -> int:
@@ -53,6 +72,28 @@ def run_self_test() -> int:
         covered_cases.append("validator_marker_drift")
     else:
         raise AssertionError("expected validator_marker_drift to fail closed")
+
+    with tempfile.TemporaryDirectory(prefix="phase4-validator-replays-") as tmp:
+        missing_root = Path(tmp)
+        missing_target = missing_root / "scripts" / "zigux" / "validate-phase4.py"
+        try:
+            read_validator_text(
+                missing_target,
+                display_path="scripts/zigux/validate-phase4.py",
+            )
+        except RuntimeError as exc:
+            expected = (
+                "current tree is missing the historical validator replay target: "
+                "scripts/zigux/validate-phase4.py"
+            )
+            if str(exc) != expected:
+                raise AssertionError(
+                    "missing validator target message drifted: "
+                    f"expected {expected!r}, got {str(exc)!r}"
+                ) from exc
+            covered_cases.append("validator_target_missing")
+        else:
+            raise AssertionError("expected validator_target_missing to fail closed")
 
     if covered_cases != EXPECTED_SELF_TEST_CASES:
         raise AssertionError(
@@ -88,13 +129,17 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    run_self_test()
-    validator_text = VALIDATOR.read_text(encoding="utf-8")
-    assert_markers(
-        validator_text,
-        EXPECTED_VALIDATOR_REPLAY_MARKERS,
-        "validator_surface",
-    )
+    try:
+        run_self_test()
+        validator_text = read_validator_text(VALIDATOR)
+        assert_markers(
+            validator_text,
+            EXPECTED_VALIDATOR_REPLAY_MARKERS,
+            "validator_surface",
+        )
+    except RuntimeError as exc:
+        print(f"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=fail: {exc}", file=sys.stderr)
+        return 1
 
     print("PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass")
     print(
