@@ -22,26 +22,30 @@ REQUIRED_FILES = [
 ]
 
 DOCS_ROOT_MARKERS = [
-    "  * the current docs-root Phase 1 reminder packet should stay parked on the live owner-map and string-review guards: `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py` are the shipped direct checks, while `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around them.",
-    "  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`, so treat those installer-backed, closure-side, validator-first, bench, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-master evidence.",
+    "keep the live owner map, parked shared-replay-versus-direct-anchor split, the shipped bench checker, and the current Phase 1 reminder packet explicit from the docs root without rebuilding the broader host-tools closure stack from older missing validator and replay surfaces.",
+    "  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`, so treat those installer-backed, closure-side, validator-first, bench-route, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-master evidence.",
+    "  * the current docs-root Phase 1 reminder packet should stay parked on the live owner-map, string-review, direct-owner, and bench guards: `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks, while `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around the broader missing installer, closure-side, bench-route, and replay surfaces.",
     "  * keep the helper-family split explicit here too: the nine shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string keep the only bounded direct-anchor follow-up anchors on current master.",
+    "  * `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded current reminder checks, while the live checker routes guard the shipped Phase 1 packet without widening it back into the older closure-side or installer-companion stack.",
 ]
 
 SCRIPTS_README_MARKERS = [
+    "- Phase 1 flow - the current host-tools reminder packet keeps the closed helper tranche reviewable through the live owner-map and string-review guards instead of rebuilding the broader installer-backed closure packet from older missing routes",
     "- `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the shipped bounded Phase 1 reminder checks",
     "- `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py` keep the shipped string-review and direct-owner marker packet explicit from the scripts root",
     "- current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
 ]
 
 TESTS_README_MARKERS = [
-    "  * current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py`",
-    "  * repo-reality warning for the broader Phase 1 installer-backed closure-and-replay packet: repeated authenticated contents reads on current `master` now return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
-    "  * keep current Phase 1 follow-through tied to the live owner-map plus string-review reminder packet instead of reconstructing the broader installer-backed closure-and-replay packet from those older missing installer, closure-side, and replay files and routes alone",
+    "  * current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py`",
+    "  * repo-reality warning for the broader Phase 1 installer-backed closure-and-replay packet: repeated authenticated contents reads on current `master` now return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+    "  * current `master` does ship `scripts/zigux/check-phase1-bench.py`, so keep the remaining shared reminder follow-through on the broader docs-root, checklist, and tests-root bench wording instead of treating the checker itself as a missing tests-root route",
+    "  * keep current Phase 1 follow-through tied to the live owner-map plus string-review and bench reminder packet instead of reconstructing the broader installer-backed closure-and-replay packet from those older missing installer, closure-side, and replay files and routes alone",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
-    "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/check-phase1-direct-owner-markers.py` still agree on the same bounded current-`master` reminder packet: the thirteen-helper owner map, the parked shared-replay-versus-direct-anchor split, the live string-review and direct-owner guards, and the repo-reality warning that older installer-backed, closure-side, validator-first, make-route, bench, and replay paths such as `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` stay framed as historical packet members rather than direct current evidence unless a fresh reread materializes them again, without widening Phase 1 beyond the bounded host-side helper packet?",
-    "  * if the change touches that same Phase 1 reminder packet, does the checklist still say clearly that `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the bounded live reminder checks while `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py` guard the shipped current-`master` Phase 1 reminder packet, and that the older installer-companion self-test-versus-live route wording stays historical until `scripts/zigux/check-phase1-installer-companion-checks.py` is directly readable again?",
+    "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/check-phase1-direct-owner-markers.py` still agree on the same bounded current-`master` reminder packet: the thirteen-helper owner map, the parked shared-replay-versus-direct-anchor split, the live string-review and direct-owner guards, and the repo-reality warning that older installer-backed, closure-side, validator-first, make-route, bench, and replay paths such as `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` stay framed as historical packet members rather than direct current evidence unless a fresh reread materializes them again, while `scripts/zigux/check-phase1-bench.py` stays explicit as the shipped bench-side checker anchor for the remaining shared reminder wording, without widening Phase 1 beyond the bounded host-side helper packet?",
+    "  * if the change touches that same Phase 1 reminder packet, does the checklist still say clearly that `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded live reminder checks while `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` guard the shipped current-`master` Phase 1 reminder packet, that the older installer-companion self-test-versus-live route wording stays historical until `scripts/zigux/check-phase1-installer-companion-checks.py` is directly readable again, and that the broader docs-root, checklist, and tests-root bench wording stays aligned with the shipped bench checker instead of treating it as missing current evidence?",
 ]
 
 WORKFLOW_MARKERS = [
@@ -53,9 +57,9 @@ WORKFLOW_MARKERS = [
 BUILD_ZIG_MARKERS = [
     'root_source_file = b.path("phase1_host_tools_smoke.zig"),',
     '.name = "phase1-host-tools-smoke",',
-    '"Run the shared Phase 1 host-tools smoke anchor from zigux/tests",',
-    "smoke_step.dependOn(&phase1_host_tools_smoke.step);",
-    "test_step.dependOn(&phase1_host_tools_smoke.step);",
+    "root_module.addImport(\"argv_split\", argv_split_module);",
+    "root_module.addImport(\"string\", string_module);",
+    "return b.addRunArtifact(tests);",
 ]
 
 SMOKE_ZIG_MARKERS = [
@@ -66,7 +70,11 @@ SMOKE_ZIG_MARKERS = [
     'try std.testing.expect(@hasDecl(bitmap, "setRange"));',
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 24
+FORBIDDEN_SHARED_SURFACE_FRAGMENTS = [
+    "`scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`",
+]
+
+EXPECTED_SELF_TEST_CASE_COUNT = 28
 
 
 def repo_root(root: str | None) -> Path:
@@ -100,6 +108,15 @@ def collect_stripped_line_markers(text: str, label: str, markers: list[str]) -> 
     return missing
 
 
+def collect_forbidden_fragments(text: str, label: str, fragments: list[str]) -> list[str]:
+    issues: list[str] = []
+    for fragment in fragments:
+        count = text.count(fragment)
+        if count != 0:
+            issues.append(f"{label}:forbidden:{fragment}:actual={count}")
+    return issues
+
+
 def collect_missing_markers(root: Path) -> list[str]:
     missing = [f"missing_file:{relative_path}" for relative_path in collect_missing_files(root)]
     if missing:
@@ -126,6 +143,34 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(collect_exact_count_markers(build_zig, "build_zig", BUILD_ZIG_MARKERS))
     missing.extend(collect_exact_count_markers(smoke_zig, "smoke_zig", SMOKE_ZIG_MARKERS))
     missing.extend(collect_stripped_line_markers(workflow, "workflow", WORKFLOW_MARKERS))
+    missing.extend(
+        collect_forbidden_fragments(
+            docs_root,
+            "docs_root",
+            FORBIDDEN_SHARED_SURFACE_FRAGMENTS,
+        )
+    )
+    missing.extend(
+        collect_forbidden_fragments(
+            review_checklist,
+            "review_checklist",
+            FORBIDDEN_SHARED_SURFACE_FRAGMENTS,
+        )
+    )
+    missing.extend(
+        collect_forbidden_fragments(
+            scripts_readme,
+            "scripts_readme",
+            FORBIDDEN_SHARED_SURFACE_FRAGMENTS,
+        )
+    )
+    missing.extend(
+        collect_forbidden_fragments(
+            tests_readme,
+            "tests_readme",
+            FORBIDDEN_SHARED_SURFACE_FRAGMENTS,
+        )
+    )
     return missing
 
 
@@ -187,18 +232,22 @@ def run_self_test() -> int:
         ("missing_docs_marker", "Documentation/zigux/README.md", "remove_marker"),
         ("duplicate_docs_marker", "Documentation/zigux/README.md", "duplicate_marker"),
         ("missing_docs_historical_warning", "Documentation/zigux/README.md", "remove_docs_historical_warning"),
+        ("forbidden_docs_fragment", "Documentation/zigux/README.md", "insert_forbidden_fragment"),
         ("missing_scripts_marker", "scripts/zigux/README.md", "remove_marker"),
         ("missing_scripts_bench_marker", "scripts/zigux/README.md", "remove_scripts_bench_marker"),
         ("duplicate_scripts_bench_marker", "scripts/zigux/README.md", "duplicate_scripts_bench_marker"),
+        ("forbidden_scripts_fragment", "scripts/zigux/README.md", "insert_forbidden_fragment"),
         ("missing_bench_checker", "scripts/zigux/check-phase1-bench.py", "remove_file"),
         ("missing_tests_marker", "zigux/tests/README.md", "remove_marker"),
         ("missing_tests_historical_warning", "zigux/tests/README.md", "remove_tests_historical_warning"),
         ("duplicate_tests_historical_warning", "zigux/tests/README.md", "duplicate_tests_historical_warning"),
+        ("forbidden_tests_fragment", "zigux/tests/README.md", "insert_forbidden_fragment"),
         ("missing_phase1_build", "zigux/tests/build.zig", "remove_file"),
         ("missing_phase1_host_tools_smoke", "zigux/tests/phase1_host_tools_smoke.zig", "remove_file"),
         ("missing_checklist_marker", "Documentation/zigux/review-checklist.md", "remove_marker"),
         ("missing_checklist_packet_alignment", "Documentation/zigux/review-checklist.md", "remove_checklist_packet_alignment"),
         ("duplicate_checklist_packet_alignment", "Documentation/zigux/review-checklist.md", "duplicate_checklist_packet_alignment"),
+        ("forbidden_checklist_fragment", "Documentation/zigux/review-checklist.md", "insert_forbidden_fragment"),
         ("missing_build_marker", "zigux/tests/build.zig", "remove_build_marker"),
         ("duplicate_build_marker", "zigux/tests/build.zig", "duplicate_build_marker"),
         ("missing_smoke_marker", "zigux/tests/phase1_host_tools_smoke.zig", "remove_smoke_marker"),
@@ -218,13 +267,14 @@ def run_self_test() -> int:
     first_docs_marker = DOCS_ROOT_MARKERS[0]
     docs_historical_warning_marker = DOCS_ROOT_MARKERS[1]
     first_scripts_marker = SCRIPTS_README_MARKERS[0]
-    bench_scripts_marker = SCRIPTS_README_MARKERS[2]
+    bench_scripts_marker = SCRIPTS_README_MARKERS[3]
     first_tests_marker = TESTS_README_MARKERS[0]
     tests_historical_warning_marker = TESTS_README_MARKERS[1]
     first_checklist_marker = REVIEW_CHECKLIST_MARKERS[0]
     checklist_packet_alignment_marker = REVIEW_CHECKLIST_MARKERS[1]
     first_build_marker = BUILD_ZIG_MARKERS[0]
     first_smoke_marker = SMOKE_ZIG_MARKERS[0]
+    forbidden_fragment = FORBIDDEN_SHARED_SURFACE_FRAGMENTS[0]
 
     for name, relative_path, operation in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-shared-reminder-{name}-") as tmpdir:
@@ -249,6 +299,8 @@ def run_self_test() -> int:
                     text.replace(docs_historical_warning_marker + "\n", "", 1),
                     encoding="utf-8",
                 )
+            elif operation == "insert_forbidden_fragment":
+                target.write_text(text + forbidden_fragment + "\n", encoding="utf-8")
             elif operation == "remove_scripts_bench_marker":
                 target.write_text(text.replace(bench_scripts_marker + "\n", "", 1), encoding="utf-8")
             elif operation == "duplicate_scripts_bench_marker":
