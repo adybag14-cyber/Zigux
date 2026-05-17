@@ -8,6 +8,7 @@ This note records one bounded Phase 3 helper-side interop slice on current `mast
 - `zigux/helpers/xa_value.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
+- `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
 - `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
 
 ## Bounded Contract
@@ -16,7 +17,16 @@ The helper pair stays intentionally small:
 
 - `zigux/helpers/err_ptr.zig` only models the Linux `MAX_ERRNO` tag band as a pointer-sized integer encoding
 - `zigux/helpers/xa_value.zig` only models the low-bit inline-value tag and rejects values that would enter the `err_ptr` band
-- `zigux/tests/phase3_errptr_xarray_starter_packet.zig` proves that accepted inline values round-trip cleanly and that overlapping encodings fail closed
+- `zigux/tests/phase3_errptr_xarray_starter_packet.zig` proves that accepted inline values round-trip cleanly, that the highest tagged inline boundary still stays below the `err_ptr` floor, and that overlapping encodings fail closed
+
+## Current Replay Surface
+
+The current helper-local packet is now kept explicit through one small manifest-backed replay guard:
+
+- `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
+- `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+- `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
+- `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
 
 ## Current Gap
 
