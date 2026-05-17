@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the Phase 1 string review packet against live helper, manifest, and lane-note drift."""
+"""Guard the Phase 1 string review packet against helper, manifest, and lane-note drift."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ STRING_REVIEW_RULE_LINE = (
     "names as historical packet members until current `master` exposes them again"
 )
 
-EXPECTED_STRING_ANCHORS = {
+EXPECTED_STRING_PACKET = {
     "helper_test_anchors": [
         'test "strtobool accepts common Linux forms"',
         'test "strlcpy copies and returns the source length"',
@@ -78,18 +78,24 @@ EXPECTED_STRING_ANCHORS = {
         'test "memparse consumes suffix after saturation"',
         'test "memparse applies suffixes before signed clamping"',
     ],
-    "strscpy_review_anchors": [
-        'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
-        'test "strscpyPad zero-pads the tail after a short source"',
-        'test "strscpyPad stops at embedded NUL and pads the remaining tail"',
-        'test "strscpyPad preserves strscpy truncation semantics"',
-        'test "strscpy_pad mirrors strscpyPad padding semantics"',
-    ],
+    "memparse_review_summary": (
+        "helper-local memparse safety anchors stay explicit through the direct string tests so "
+        "sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split "
+        "aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of "
+        "trapping, and suffixes are still consumed after saturation"
+    ),
     "prefix_suffix_review_anchors": [
         'test "strHasPrefix returns the matched prefix length with C-string semantics"',
         'test "strstarts mirrors the header-level prefix helper"',
         'test "strEndsWith honors C-string boundaries"',
     ],
+    "prefix_suffix_review_summary": (
+        "helper-local prefix and suffix boundary anchors stay explicit through the direct string "
+        "tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity "
+        "rather than dedicated prefix or suffix fixture fields, so strHasPrefix and str_has_prefix "
+        "plus strstarts plus strEndsWith and str_ends_with plus strends remain review-visible at "
+        "the helper surface"
+    ),
     "sysfs_review_anchors": [
         'test "sysfsStreq treats trailing newline and NUL as equivalent"',
         'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
@@ -97,15 +103,33 @@ EXPECTED_STRING_ANCHORS = {
         'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
     ],
     "sysfs_review_summary": (
-        "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit "
-        "through the direct string tests because the shared Phase 1 replay still carries no "
-        "dedicated sysfs fixture keys, so sysfsStreq and sysfs_streq plus sysfsMatchString "
-        "and sysfs_match_string remain review-visible at the helper surface"
+        "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit through "
+        "the direct string tests because the shared Phase 1 replay still carries no dedicated "
+        "sysfs fixture keys, so sysfsStreq and sysfs_streq plus sysfsMatchString and "
+        "sysfs_match_string remain review-visible at the helper surface"
     ),
     "lookup_review_anchors": [
         'test "matchString finds C-string matches and preserves first-match order"',
         'test "match_string mirrors matchString for empty and matched lists"',
     ],
+    "lookup_review_summary": (
+        "helper-local string lookup anchors stay explicit through the direct string tests because "
+        "the shared Phase 1 replay still does not carry dedicated matchString() or "
+        "match_string() fixture keys, so C-string list lookup order and the Linux-style alias "
+        "remain review-visible at the helper surface"
+    ),
+    "strscpy_review_anchors": [
+        'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
+        'test "strscpyPad zero-pads the tail after a short source"',
+        'test "strscpyPad stops at embedded NUL and pads the remaining tail"',
+        'test "strscpyPad preserves strscpy truncation semantics"',
+        'test "strscpy_pad mirrors strscpyPad padding semantics"',
+    ],
+    "strscpy_review_summary": (
+        "helper-local string copy-and-pad anchors stay explicit through the direct string tests "
+        "because the shared Phase 1 replay still does not carry dedicated strscpy() or "
+        "strscpyPad() fixture keys"
+    ),
     "counted_search_review_anchors": [
         'test "strnchr honors count and C-string boundaries"',
         'test "strnchrNul returns the first match, NUL, or count boundary"',
@@ -117,6 +141,40 @@ EXPECTED_STRING_ANCHORS = {
         "still does not carry dedicated counted-search fixture keys, so strnchr() count-limited "
         "scanning and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned "
         "by the helper-local anchors"
+    ),
+    "basename_review_anchor": 'test "kbasename returns the final path component with C-string semantics"',
+    "basename_review_summary": (
+        "helper-local basename path-tail anchor stays explicit through the direct string tests "
+        "because the shared Phase 1 replay still does not carry dedicated kbasename fixture keys, "
+        "so final path-component extraction at the first C-string terminator remains review-visible "
+        "at the helper surface"
+    ),
+    "trim_nul_review_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
+    "trim_nul_review_summary": (
+        "the direct trim follow-up stays explicit because the shared Phase 1 string fixture "
+        "records the trimmed bytes but not the preserved tail bytes beyond the first embedded "
+        "terminator"
+    ),
+    "phase1_trim_cstr_replay_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
+    "phase1_trim_cstr_replay_summary": (
+        "the shared Phase 1 string replay still only locks the plain trailing-whitespace "
+        "trimSpaces bytes from the committed fixture, while the direct helper-local trim "
+        "follow-up keeps embedded-NUL trimming for trimSpaces and strim plus strstrip and "
+        "preserved tail-byte review explicit because the shared packet still does not exercise "
+        "every trim alias or every post-NUL byte position"
+    ),
+    "memchr_moving_dirty_anchor": 'test "memchrInv follows the earliest dirty byte as long buffers change"',
+    "memchr_moving_dirty_review_summary": (
+        "the direct memchrInv follow-up stays explicit because the shared Phase 1 fixture pins "
+        "one fixed dirty index and the clean case, but not the moving earliest-mismatch ownership "
+        "as later dirty bytes become the next live divergence"
+    ),
+    "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
+    "shared_replace_char_cstr_review_summary": (
+        "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, "
+        "trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated "
+        "embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without "
+        "widening helper-local memparse ownership"
     ),
     "parity_fixture_keys": [
         "strtobool_y",
@@ -136,41 +194,45 @@ EXPECTED_STRING_ANCHORS = {
         "memchr_inv_index",
         "memchr_inv_none",
     ],
-    "basename_review_anchor": 'test "kbasename returns the final path component with C-string semantics"',
-    "trim_nul_review_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
-    "memchr_moving_dirty_anchor": 'test "memchrInv follows the earliest dirty byte as long buffers change"',
-    "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
     "next_safe_step_note": (
-        "If this helper lane reopens, keep the helper-local sysfs review anchors aligned "
-        "across the string review packet and this lane note unless dedicated shared sysfs "
-        "fixture keys land; do not reopen missing closure-side validator names by default."
+        "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across "
+        "the string review packet and this lane note unless dedicated shared sysfs fixture keys "
+        "land; do not reopen missing closure-side validator names by default."
     ),
 }
 
 LIST_FIELDS = (
     "helper_test_anchors",
     "memparse_review_anchors",
-    "strscpy_review_anchors",
     "prefix_suffix_review_anchors",
     "sysfs_review_anchors",
     "lookup_review_anchors",
+    "strscpy_review_anchors",
     "counted_search_review_anchors",
     "parity_fixture_keys",
 )
 
 SCALAR_FIELDS = (
+    "memparse_review_summary",
+    "prefix_suffix_review_summary",
     "sysfs_review_summary",
+    "lookup_review_summary",
+    "strscpy_review_summary",
     "strnchr_review_anchor",
     "strnchrnul_review_anchor",
     "strnchr_review_summary",
     "basename_review_anchor",
+    "basename_review_summary",
     "trim_nul_review_anchor",
+    "trim_nul_review_summary",
+    "phase1_trim_cstr_replay_anchor",
+    "phase1_trim_cstr_replay_summary",
     "memchr_moving_dirty_anchor",
+    "memchr_moving_dirty_review_summary",
     "phase1_helper_replay_anchor",
+    "shared_replace_char_cstr_review_summary",
     "next_safe_step_note",
 )
-
-EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def repo_root(root: str | None) -> Path:
@@ -185,14 +247,6 @@ def load_json(root: Path, relative_path: Path) -> Any:
     return json.loads(load_text(root, relative_path))
 
 
-def collect_missing_files(root: Path) -> list[str]:
-    missing: list[str] = []
-    for relative_path in (STRING_HELPER_REL, LANE_NOTE_REL, MANIFEST_REL):
-        if not (root / relative_path).exists():
-            missing.append(f"missing_file:{relative_path.as_posix()}")
-    return missing
-
-
 def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
     count = text.count(marker)
     if count != 1:
@@ -200,198 +254,168 @@ def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
     return []
 
 
-def require_expected_list(value: Any, label: str, expected: list[str]) -> list[str]:
+def require_exact_list(value: Any, label: str, expected: list[str]) -> list[str]:
     if value != expected:
         return [f"string_manifest:{label}:expected_current_packet"]
     return []
 
 
-def require_expected_string(value: Any, label: str, expected: str) -> list[str]:
+def require_exact_string(value: Any, label: str, expected: str) -> list[str]:
     if value != expected:
         return [f"string_manifest:{label}:expected_current_packet"]
     return []
 
 
-def collect_string_review_packet_failures(root: Path) -> list[str]:
-    missing = collect_missing_files(root)
-    if missing:
-        return missing
+def collect_failures(root: Path) -> list[str]:
+    failures: list[str] = []
+
+    for relative_path in (STRING_HELPER_REL, LANE_NOTE_REL, MANIFEST_REL):
+        if not (root / relative_path).exists():
+            failures.append(f"missing_file:{relative_path.as_posix()}")
+    if failures:
+        return failures
 
     helper_text = load_text(root, STRING_HELPER_REL)
     lane_note_text = load_text(root, LANE_NOTE_REL)
     manifest = load_json(root, MANIFEST_REL)
 
-    if not isinstance(manifest, dict):
-        return ["string_manifest:json_object"]
-
-    review_anchors = manifest.get("review_anchors")
+    review_anchors = manifest.get("review_anchors") if isinstance(manifest, dict) else None
     if not isinstance(review_anchors, dict):
         return ["string_manifest:review_anchors"]
-
-    string_anchors = review_anchors.get("tools/lib/string.zig")
-    if not isinstance(string_anchors, dict):
+    string_packet = review_anchors.get("tools/lib/string.zig")
+    if not isinstance(string_packet, dict):
         return ["string_manifest:tools/lib/string.zig"]
 
-    missing.extend(
+    failures.extend(
         require_exact_occurrence(
             lane_note_text,
             "lane_note:string_review_rule",
             STRING_REVIEW_RULE_LINE,
         )
     )
-
-    for field in LIST_FIELDS:
-        missing.extend(
-            require_expected_list(
-                string_anchors.get(field),
-                field,
-                EXPECTED_STRING_ANCHORS[field],
-            )
-        )
-
-    for field in SCALAR_FIELDS:
-        expected = EXPECTED_STRING_ANCHORS[field]
-        missing.extend(require_expected_string(string_anchors.get(field), field, expected))
-
-    for anchor in EXPECTED_STRING_ANCHORS["helper_test_anchors"]:
-        missing.extend(
-            require_exact_occurrence(
-                helper_text,
-                f"string_helper:{anchor}",
-                anchor,
-            )
-        )
-
-    missing.extend(
+    failures.extend(
         require_exact_occurrence(
             lane_note_text,
             "lane_note:string_next_safe_step_note",
-            EXPECTED_STRING_ANCHORS["next_safe_step_note"],
+            EXPECTED_STRING_PACKET["next_safe_step_note"],
         )
     )
 
-    return missing
+    for field in LIST_FIELDS:
+        failures.extend(
+            require_exact_list(string_packet.get(field), field, EXPECTED_STRING_PACKET[field])
+        )
+    for field in SCALAR_FIELDS:
+        failures.extend(
+            require_exact_string(string_packet.get(field), field, EXPECTED_STRING_PACKET[field])
+        )
+
+    for anchor in EXPECTED_STRING_PACKET["helper_test_anchors"]:
+        failures.extend(
+            require_exact_occurrence(helper_text, f"string_helper:{anchor}", anchor)
+        )
+
+    return failures
 
 
 def write_file(root: Path, relative_path: Path, text: str) -> None:
-    destination = root / relative_path
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(text, encoding="utf-8")
-
-
-def sample_string_helper_text() -> str:
-    return "\n".join(EXPECTED_STRING_ANCHORS["helper_test_anchors"]) + "\n"
-
-
-def sample_manifest() -> dict[str, Any]:
-    return {
-        "review_anchors": {
-            "tools/lib/string.zig": copy.deepcopy(EXPECTED_STRING_ANCHORS),
-        }
-    }
-
-
-def sample_lane_note_text() -> str:
-    return (
-        "# Phase 1 Host-Helper Lane Sequencing\n\n"
-        "## Direct-Anchor Owner Map\n\n"
-        f"{STRING_REVIEW_RULE_LINE}\n\n"
-        "## Next Bounded Step\n\n"
-        f"- {EXPECTED_STRING_ANCHORS['next_safe_step_note']}\n"
-    )
+    path = root / relative_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
 
 
 def build_sample_repo(root: Path) -> None:
-    write_file(root, STRING_HELPER_REL, sample_string_helper_text())
-    write_file(root, LANE_NOTE_REL, sample_lane_note_text())
-    write_file(root, MANIFEST_REL, json.dumps(sample_manifest(), indent=2) + "\n")
-
-
-def build_self_test_cases() -> list[tuple[str, str, str]]:
-    return [
-        ("missing_rule_line", "lane_rule", "remove"),
-        ("duplicate_rule_line", "lane_rule", "duplicate"),
-        ("missing_helper_anchor", "helper_anchor", "remove"),
-        ("duplicate_helper_anchor", "helper_anchor", "duplicate"),
-        ("missing_next_safe_step", "lane_next_safe_step_note", "remove"),
-        ("duplicate_next_safe_step", "lane_next_safe_step_note", "duplicate"),
-        *[(f"mutate_{field}", field, "mutate_list") for field in LIST_FIELDS],
-        *[(f"mutate_{field}", field, "mutate_scalar") for field in SCALAR_FIELDS],
-    ]
+    write_file(root, STRING_HELPER_REL, "\n".join(EXPECTED_STRING_PACKET["helper_test_anchors"]) + "\n")
+    write_file(
+        root,
+        LANE_NOTE_REL,
+        "# sample\n\n"
+        + STRING_REVIEW_RULE_LINE
+        + "\n\n- "
+        + EXPECTED_STRING_PACKET["next_safe_step_note"]
+        + "\n",
+    )
+    write_file(
+        root,
+        MANIFEST_REL,
+        json.dumps(
+            {"review_anchors": {"tools/lib/string.zig": copy.deepcopy(EXPECTED_STRING_PACKET)}},
+            indent=2,
+        )
+        + "\n",
+    )
 
 
 def run_self_test() -> int:
-    cases = build_self_test_cases()
-    if 1 + len(cases) != EXPECTED_SELF_TEST_CASE_COUNT:
-        print(
-            "self-test:case-count-mismatch:"
-            f"expected={EXPECTED_SELF_TEST_CASE_COUNT}:actual={1 + len(cases)}"
-        )
-        return 1
-
-    with tempfile.TemporaryDirectory(prefix="phase1-string-review-success-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="phase1-string-review-ok-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
-        missing = collect_string_review_packet_failures(root)
-        if missing:
+        failures = collect_failures(root)
+        if failures:
             print("self-test:success:unexpected_failures")
-            for item in missing:
+            for item in failures:
                 print(item)
             return 1
 
-    for name, target, operation in cases:
+    mutation_specs = [
+        ("lane_rule_removed", "lane_rule", "remove"),
+        ("lane_rule_duplicated", "lane_rule", "duplicate"),
+        ("next_safe_step_removed", "next_safe_step", "remove"),
+        ("next_safe_step_duplicated", "next_safe_step", "duplicate"),
+        ("helper_anchor_removed", "helper_anchor", "remove"),
+        ("helper_anchor_duplicated", "helper_anchor", "duplicate"),
+    ]
+    mutation_specs.extend((f"{field}_mutated", field, "manifest") for field in LIST_FIELDS)
+    mutation_specs.extend((f"{field}_mutated", field, "manifest") for field in SCALAR_FIELDS)
+
+    for name, target, kind in mutation_specs:
         with tempfile.TemporaryDirectory(prefix=f"phase1-string-review-{name}-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
 
-            if target == "lane_rule":
-                lane_note = root / LANE_NOTE_REL
-                text = lane_note.read_text(encoding="utf-8")
-                if operation == "remove":
-                    lane_note.write_text(text.replace(STRING_REVIEW_RULE_LINE + "\n", "", 1), encoding="utf-8")
-                elif operation == "duplicate":
-                    lane_note.write_text(
-                        text.replace(
+            if kind in {"remove", "duplicate"}:
+                if target == "lane_rule":
+                    path = root / LANE_NOTE_REL
+                    text = path.read_text(encoding="utf-8")
+                    if kind == "remove":
+                        text = text.replace(STRING_REVIEW_RULE_LINE + "\n", "", 1)
+                    else:
+                        text = text.replace(
                             STRING_REVIEW_RULE_LINE,
                             STRING_REVIEW_RULE_LINE + "\n" + STRING_REVIEW_RULE_LINE,
                             1,
-                        ),
-                        encoding="utf-8",
-                    )
-            elif target == "helper_anchor":
-                helper_path = root / STRING_HELPER_REL
-                text = helper_path.read_text(encoding="utf-8")
-                marker = EXPECTED_STRING_ANCHORS["helper_test_anchors"][0]
-                if operation == "remove":
-                    helper_path.write_text(text.replace(marker + "\n", "", 1), encoding="utf-8")
-                elif operation == "duplicate":
-                    helper_path.write_text(
-                        text.replace(marker + "\n", marker + "\n" + marker + "\n", 1),
-                        encoding="utf-8",
-                    )
-            elif target == "lane_next_safe_step_note":
-                lane_note = root / LANE_NOTE_REL
-                text = lane_note.read_text(encoding="utf-8")
-                marker = EXPECTED_STRING_ANCHORS["next_safe_step_note"]
-                if operation == "remove":
-                    lane_note.write_text(text.replace(marker, "", 1), encoding="utf-8")
-                elif operation == "duplicate":
-                    lane_note.write_text(
-                        text.replace(marker, marker + "\n" + marker, 1),
-                        encoding="utf-8",
-                    )
+                        )
+                    path.write_text(text, encoding="utf-8")
+                elif target == "next_safe_step":
+                    path = root / LANE_NOTE_REL
+                    marker = EXPECTED_STRING_PACKET["next_safe_step_note"]
+                    text = path.read_text(encoding="utf-8")
+                    if kind == "remove":
+                        text = text.replace(marker, "", 1)
+                    else:
+                        text = text.replace(marker, marker + "\n" + marker, 1)
+                    path.write_text(text, encoding="utf-8")
+                else:
+                    path = root / STRING_HELPER_REL
+                    marker = EXPECTED_STRING_PACKET["helper_test_anchors"][0]
+                    text = path.read_text(encoding="utf-8")
+                    if kind == "remove":
+                        text = text.replace(marker + "\n", "", 1)
+                    else:
+                        text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
+                    path.write_text(text, encoding="utf-8")
             else:
-                manifest_path = root / MANIFEST_REL
-                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                string_anchors = manifest["review_anchors"]["tools/lib/string.zig"]
-                if operation == "mutate_list":
-                    string_anchors[target] = string_anchors[target][1:]
-                elif operation == "mutate_scalar":
-                    string_anchors[target] = string_anchors[target] + " drift"
-                manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+                path = root / MANIFEST_REL
+                manifest = json.loads(path.read_text(encoding="utf-8"))
+                packet = manifest["review_anchors"]["tools/lib/string.zig"]
+                if isinstance(packet[target], list):
+                    packet[target] = packet[target][1:]
+                else:
+                    packet[target] = packet[target] + " drift"
+                path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
-            missing = collect_string_review_packet_failures(root)
-            if not missing:
+            failures = collect_failures(root)
+            if not failures:
                 print(f"self-test:{name}:expected_failure")
                 return 1
 
@@ -408,9 +432,9 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    missing = collect_string_review_packet_failures(repo_root(args.root))
-    if missing:
-        for item in missing:
+    failures = collect_failures(repo_root(args.root))
+    if failures:
+        for item in failures:
             print(item)
         return 1
 
