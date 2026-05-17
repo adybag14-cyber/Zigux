@@ -31,6 +31,8 @@ WORKFLOW_LINES = (
 )
 
 README_PRESENT_MARKERS = (
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -45,9 +47,7 @@ README_WARNING_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-zig-toolchain.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "`make -C zigux phase2-validate`",
@@ -59,6 +59,8 @@ README_FORBIDDEN_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`zigux/Makefile`, `scripts/zigux/check-zig-toolchain.py`, `python3 scripts/zigux/install-zig.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`",
 )
 
 EXPECTED_POLICY = {
@@ -68,7 +70,7 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 46
+EXPECTED_SELF_TEST_CASE_COUNT = 48
 
 
 def read_text(path: Path) -> str:
