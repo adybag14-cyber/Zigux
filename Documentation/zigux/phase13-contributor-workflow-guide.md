@@ -6,50 +6,39 @@ This guide is a shared workflow companion. It is not a tranche-closure note, not
 
 ## Purpose
 
-Keep broad contributor wording aligned with the active Phase 13 helper packet that currently stays centered on four roadmap-owned Linux anchors:
+Keep broad contributor wording aligned with the active Phase 13 helper packet centered on four roadmap-owned Linux anchors:
 
 - `fs/libfs.c`
 - `lib/devres.c`
 - `security/landlock/ruleset.c`
 - `security/landlock/syscalls.c`
 
-Adjacent notifier evidence matters for release-surface truthfulness, but it is still adjacent evidence rather than a fifth helper family.
+Adjacent notifier evidence still matters for release-surface truthfulness, but it remains adjacent evidence rather than a fifth helper family.
 
 ## Stable Shared Handle
 
-Keep the broader contributor-facing shared reminder packet aligned through:
+Keep the contributor-facing shared handle aligned through:
 
 1. `Documentation/zigux/phase13-contributor-workflow-guide.md`
-2. `scripts/zigux/README.md`
-3. `zigux/tests/README.md`
+2. `Documentation/zigux/phase13-release-coordination-matrix.md`
+3. `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+4. `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 
-Current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zigux phase13`, so keep those older shared make-route names recorded as repo-reality gaps instead of folding them into the stable shared handle.
+stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 
-Current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep those older validator-first and checker names recorded as repo-reality gaps instead of folding them into the stable shared handle.
+`zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13` stay recorded as repo-reality gaps until current `master` rematerializes the shared build handle.
 
 ## Shared Surfaces To Reread Together
 
 When shared Phase 13 wording changes, reread these contributor-facing surfaces together:
 
-- `Documentation/zigux/README.md`
-- `Documentation/zigux/review-checklist.md`
-- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
-- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
-- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
-- `Documentation/zigux/phase13-release-notes-survey.md`
-- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
-- `Documentation/zigux/phase13-notifier-summary-gap.md`
-- `scripts/zigux/check-phase13-tests-readme-alignment.py`
-- `scripts/zigux/README.md`
-- `zigux/tests/README.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 
-If current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, keep those checker names recorded as repo-reality gaps rather than rereadable shared surfaces.
-
-Current `master` also still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note recorded as an adjacent repo-reality gap rather than a rereadable shared surface.
-
-If one of those broad reminder surfaces changes, refresh the others before widening helper-local claims. Keep the shared-summary gap note, notifier gap note, and tests-readme alignment checker in that reread set so broad reminder work stays tied to the shipped gap-tracking packet instead of older validator-first route names.
+Keep broader README and tests-root packet refresh as a separate same-lane follow-up instead of mixing it into helper-local packet work.
 
 ## Helper-Local Packets
 
@@ -57,19 +46,13 @@ Keep helper-local ownership explicit instead of flattening the packet into a sin
 
 ### `libfs`
 
-Keep the shipped `libfs` foothold explicit through:
-
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `fs/libfs.zig`
 - `zigux/tests/phase13_libfs.zig`
 - `zigux/tests/phase13_libfs_reviewability.zig`
 - `zigux/tests/phase13_libfs_manifest.json`
 
-Treat the older `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_build.zig`, and `zigux/tests/phase13_libfs_addressability.zig` paths as repo-reality gaps until they materialize again on current `master`.
-
 ### `devres`
-
-Keep the shipped `devres` packet explicit through:
 
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
@@ -80,11 +63,7 @@ Keep the shipped `devres` packet explicit through:
 - `zigux/tests/phase13_devres_boundary_evidence.zig`
 - `zigux/tests/phase13_devres_manifest.json`
 
-Keep the current helper-only DMA and scatterlist boundary explicit too: no DMA mapping helpers, no live scatterlist ownership, and no `sg_table` lifecycle control belong to the current packet. Treat older `scripts/zigux/check-phase13-devres-packet.py` wording and the missing `scripts/zigux/check-phase13-devres-packet-alignment.py` path as stale packet drift, not shipped current-`master` checker evidence.
-
 ### `landlock/ruleset`
-
-Keep the shipped ruleset packet explicit through:
 
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-ruleset-slice.md`
@@ -93,11 +72,7 @@ Keep the shipped ruleset packet explicit through:
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 
-Treat the older `scripts/zigux/check-phase13-landlock-ruleset-packet.py` path as a repo-reality gap until current `master` materializes it again.
-
 ### `landlock/syscalls`
-
-Keep the shipped syscall packet explicit through:
 
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
@@ -107,59 +82,26 @@ Keep the shipped syscall packet explicit through:
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 
-Keep Landlock framed as shipped helper-local evidence, not as docs-only governance metadata.
+## Adjacent Notifier Evidence
 
-### Adjacent Notifier Evidence
-
-Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that survey note recorded as an adjacent repo-reality gap while keeping the shipped notifier support packet explicit through:
+Keep notifier evidence explicit as adjacent release-surface support through:
 
 - `zigux/bindings/notifier_abi.zig`
 - `zigux/helpers/notifier_chain_view.zig`
 - `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
 
-Treat notifier evidence as release-surface support rather than a fifth shared-helper anchor, and treat the older `scripts/zigux/check-phase13-notifier-priority-signal.py` path as a repo-reality gap until current `master` materializes it again.
-
-## Shared Lane Split
-
-Use the owner split from `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` and keep the broad reminder lane narrow:
-
-- helper-local `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` work should stay in their packet-local lanes
-- shared contributor-surface truthfulness should stay in the broad reminder lane only
-- this workflow guide should not absorb helper-local replays, helper growth, or packet-local survey repairs unless the broad reminder packet itself becomes untruthful without them
-
-## Repo-Reality Gaps To Keep Honest
-
-When contributor wording references absent direct companions, keep the absence explicit instead of presenting those paths as shipped evidence:
-
-- `zigux/Makefile`
-- `make -C zigux phase13-validate`
-- `make -C zigux phase13`
-- `scripts/zigux/validate-phase13-release.py`
-- `scripts/zigux/check-phase13-devres-packet-alignment.py`
-- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
-- `scripts/zigux/check-phase13-notifier-priority-signal.py`
-- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
-- `zigux/tests/phase13_build.zig`
-- `Documentation/zigux/phase13-libfs-slice.md`
-- `zigux/tests/phase13_libfs_addressability.zig`
-- `zigux/tests/phase13_notifier_list_manifest.json`
-- `zigux/tests/phase13_notifier_list_reviewability.zig`
-- `scripts/zigux/check-phase13-notifier-packet.py`
-- `include/zigux/notifier_abi.h`
-- `zigux/helpers/list_view.zig`
-- `zigux/helpers/hlist_view.zig`
-- older `scripts/zigux/check-phase13-devres-packet.py`
+Keep `Documentation/zigux/phase13-notifier-list-survey.md` and `scripts/zigux/check-phase13-notifier-priority-signal.py` recorded as repo-reality gaps until they rematerialize on current `master`.
 
 ## Reviewer Prompt
 
 Before landing a broad Phase 13 reminder change, check that:
 
-- the shared contributor surfaces still describe the same active-not-closed helper packet
-- the stable shared handle still runs through the materialized `scripts/zigux/README.md` and `zigux/tests/README.md` reminder surfaces, while `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `Documentation/zigux/phase13-notifier-summary-gap.md`, and `scripts/zigux/check-phase13-tests-readme-alignment.py` stay explicit as the shipped gap-tracking companions, and `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, and `scripts/zigux/check-phase13-shared-summary-surfaces.py` stay explicit as repo-reality gaps
-- `libfs`, `devres`, `landlock`, and adjacent notifier evidence still keep their separate owner maps
-- repo-reality gaps stay explicit instead of being promoted into shipped current-`master` evidence
+- the shared contributor surfaces still describe the same active helper packet
+- the stable shared-summary guard remains `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- helper-local owner maps for `libfs`, `devres`, and `landlock` remain explicit
+- adjacent notifier evidence stays adjacent rather than becoming a fifth helper family
+- the Makefile-backed route family stays recorded as repo-reality gaps rather than being promoted into shipped current-`master` evidence
 
 ## Non-Goals
 
