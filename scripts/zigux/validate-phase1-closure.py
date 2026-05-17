@@ -94,18 +94,22 @@ FORBIDDEN_DOCS_README_MARKERS = {
 
 
 def repo_root(root: str | None) -> Path:
+    """Return the repository root used for validation."""
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
 
 
 def load_text(path: Path) -> str:
+    """Read a UTF-8 text file from the validation tree."""
     return path.read_text(encoding="utf-8")
 
 
 def load_json(path: Path) -> Any:
+    """Decode a JSON file from the validation tree."""
     return json.loads(load_text(path))
 
 
 def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
+    """Report a failure when a required marker appears anything but once."""
     count = text.count(marker)
     if count != 1:
         return [f"{label}:expected=1:actual={count}"]
@@ -113,12 +117,14 @@ def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
 
 
 def require_absent(text: str, label: str, marker: str) -> list[str]:
+    """Report a failure when a forbidden marker is still present."""
     if marker in text:
         return [f"{label}:forbidden_marker_present"]
     return []
 
 
 def collect_failures(root: Path) -> list[str]:
+    """Validate the Phase 1 closure packet rooted at ``root``."""
     failures: list[str] = []
     file_map = {
         CLOSURE_NOTE_REL: root / CLOSURE_NOTE_REL,
@@ -184,12 +190,14 @@ def collect_failures(root: Path) -> list[str]:
 
 
 def write_file(root: Path, relative_path: Path, text: str) -> None:
+    """Materialize one file inside a temporary self-test repository."""
     destination = root / relative_path
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(text, encoding="utf-8")
 
 
 def build_sample_repo(root: Path) -> None:
+    """Copy the current validation packet into a temporary self-test tree."""
     source_root = DEFAULT_ROOT
     for relpath in (
         CLOSURE_NOTE_REL,
@@ -205,6 +213,7 @@ def build_sample_repo(root: Path) -> None:
 
 
 def run_self_test() -> int:
+    """Exercise the checker against success and targeted failure fixtures."""
     cases = [("success", None, None)]
     cases.extend((f"remove_note_{label}", CLOSURE_NOTE_REL, marker) for label, marker in REQUIRED_NOTE_MARKERS.items())
     cases.extend((f"remove_build_{label}", BUILD_FILE_REL, marker) for label, marker in REQUIRED_BUILD_MARKERS.items())
@@ -246,6 +255,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
+    """Run the self-test mode or validate one repository root."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override the repository root for validation")
     parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test")
