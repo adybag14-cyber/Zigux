@@ -5,7 +5,7 @@ This note records the current bounded Phase 3 reminder drift on `master`.
 ## Current Status
 
 - `PHASE3_SHARED_REMINDER_GAP=current master now keeps the bounded dev_t starter packet plus the focused err_ptr/xarray and policy slices explicit in the dedicated Phase 3 notes, but the shared docs-root, tests-root, and review-checklist summaries still lag that three-slice posture`
-- `PHASE3_SHARED_REMINDER_GAP_DETAIL=direct current-head readback confirms the starter packet through Documentation/zigux/phase3-abi-slice.md, Documentation/zigux/phase3-validator-support-surface.md, include/linux/zigux.h, include/zigux/dev_t.h, zigux/uapi/version.zig, zigux/uapi/dev_t.zig, zigux/bindings/dev_t.zig, zigux/tests/phase3_dev_t_starter_packet.zig, and zigux/tests/phase3_dev_t_starter_packet_build.zig, the focused helper slice through Documentation/zigux/phase3-errptr-xarray-slice.md, zigux/helpers/err_ptr.zig, zigux/helpers/xa_value.zig, zigux/tests/phase3_errptr_xarray_starter_packet.zig, and zigux/tests/phase3_errptr_xarray_starter_packet_build.zig, and the focused policy slice through Documentation/zigux/phase3-policy-slice.md, include/zigux/abi.h, zigux/bindings/abi.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/tests/phase3_policy_starter_packet.zig, and zigux/tests/phase3_policy_starter_packet_build.zig`
+- `PHASE3_SHARED_REMINDER_GAP_DETAIL=direct current-head readback confirms the starter packet through Documentation/zigux/phase3-abi-slice.md, Documentation/zigux/phase3-validator-support-surface.md, include/linux/zigux.h, include/zigux/dev_t.h, zigux/uapi/version.zig, zigux/uapi/dev_t.zig, zigux/bindings/dev_t.zig, zigux/tests/phase3_dev_t_starter_packet.zig, and zigux/tests/phase3_dev_t_starter_packet_build.zig, the focused helper slice through Documentation/zigux/phase3-errptr-xarray-slice.md, zigux/helpers/err_ptr.zig, zigux/helpers/xa_value.zig, zigux/tests/phase3_errptr_xarray_starter_packet.zig, and zigux/tests/phase3_errptr_xarray_starter_packet_build.zig, and the focused policy slice through Documentation/zigux/phase3-policy-slice.md, include/zigux/abi.h, zigux/bindings/abi.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/unsafe_policy.zig, zigux/tests/phase3_policy_starter_packet.zig, zigux/tests/phase3_policy_starter_packet_build.zig, zigux/tests/phase3_policy_starter_packet_manifest.json, and scripts/zigux/check-phase3-policy-starter-packet.py`
 - `PHASE3_SHARED_REMINDER_NEXT_STEP=narrow Documentation/zigux/README.md, zigux/tests/README.md, and Documentation/zigux/review-checklist.md so they all describe the bounded three-slice Phase 3 posture and stop parking the policy slice as a broader missing route`
 
 ## Directly Readable Current Packet
@@ -25,12 +25,15 @@ This note records the current bounded Phase 3 reminder drift on `master`.
 - `zigux/helpers/xa_value.zig`
 - `zigux/helpers/panic_policy.zig`
 - `zigux/helpers/allocator_policy.zig`
+- `zigux/helpers/unsafe_policy.zig`
 - `zigux/tests/phase3_dev_t_starter_packet.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_build.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
 - `zigux/tests/phase3_policy_starter_packet.zig`
 - `zigux/tests/phase3_policy_starter_packet_build.zig`
+- `zigux/tests/phase3_policy_starter_packet_manifest.json`
+- `scripts/zigux/check-phase3-policy-starter-packet.py`
 
 ## Shared Reminder Surfaces
 
