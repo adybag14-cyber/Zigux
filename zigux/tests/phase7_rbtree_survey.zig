@@ -51,6 +51,10 @@ test "phase 7 rbtree survey keeps the direct anchor and repo-reality warning ali
     );
     try expectContains(
         tests_root,
+        "leave `string_helpers`, `cmdline`, and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond rbtree",
+    );
+    try expectContains(
+        tests_root,
         "`scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_manifest.json`",
     );
 }
