@@ -206,7 +206,6 @@ def run_self_test() -> int:
         checks_run += 1
 
         workflow_path = resolve_path(root, WORKFLOW)
-        workflow_path.writeText = None
         workflow_path.write_text(
             replace_exact_line(workflow_path.read_text(encoding="utf-8"), workflow_lines()[0]),
             encoding="utf-8",
