@@ -109,6 +109,14 @@
     "expected": "version_before_missing_short_option_argument_expected.json"
   },
   {
+    "name": "version_before_short_help",
+    "argv": [
+      "-Vh"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_short_help_expected.json"
+  },
+  {
     "name": "unsupported_long_option",
     "argv": [
       "--unknown"
