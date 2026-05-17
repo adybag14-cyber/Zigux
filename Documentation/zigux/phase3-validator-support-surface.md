@@ -71,9 +71,9 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 ## Shared reminder follow-up
 
-`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still lag the directly readable current Phase 3 surface after the policy slice landed. Those shared summaries still need one narrow truthfulness pass so they stop presenting `include/zigux/abi.h` and `zigux/bindings/abi.zig` as broader missing routes and instead describe the bounded three-slice posture on current `master`.
+`zigux/tests/README.md` and `Documentation/zigux/review-checklist.md` now match the bounded three-slice posture on current `master`, while `Documentation/zigux/README.md` still needs one narrow truthfulness pass because it names `Documentation/zigux/phase3-shared-reminder-gap.md` as an active tracker even though authenticated reads on current `master` still return that path missing.
 
-Keep that remaining shared reminder follow-up focused on those three files so they stay anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, this note, the manifest-backed starter packets, and the dedicated replay routes until additional current-tree-backed validator or export-boundary proof lands.
+Keep that remaining docs-root follow-up focused on `Documentation/zigux/README.md` so it stays anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, this note, the manifest-backed starter packets, and the dedicated replay routes, and records any residual reminder drift directly instead of pointing at a missing tracker note, until additional current-tree-backed validator or export-boundary proof lands.
 
 ## Scope
 
