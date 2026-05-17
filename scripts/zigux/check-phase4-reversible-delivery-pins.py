@@ -50,6 +50,11 @@ ATOMIC64_GAP_MARKERS = (
     "restore the roadmap-backed `zigux/tests/atomic64_diff.zig` pair",
 )
 
+DOCS_BITMAP_GAP_MARKERS = (
+    "`zigux/tests/bitmap_diff.zig`",
+    "`zigux/tests/phase4_bitmap_live_helper_replay.zig`",
+)
+
 NOTE_MARKERS = STATUS_MARKERS + DIRECT_MARKERS + MISSING_BROADER_PACKET + ATOMIC64_GAP_MARKERS + (
     "The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run",
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
@@ -81,6 +86,7 @@ DOCS_README_MARKERS = (
     "`zigux/tests/phase4_perf_baseline_survey.zig`",
     "`zigux/tests/atomic64_diff.zig`",
     "`zigux/tests/runtime_atomic64_diff.zig`",
+) + DOCS_BITMAP_GAP_MARKERS + (
     "keep the pending shared-CI perf-promotion posture explicit instead of implying those broader Phase 4 routes are live current-head evidence.",
 )
 
@@ -256,7 +262,7 @@ def main() -> int:
             docs_readme_path = root / DOCS_README
             docs_readme_path.write_text(
                 docs_readme_path.read_text(encoding="utf-8").replace(
-                    DOCS_README_MARKERS[11],
+                    DOCS_README_MARKERS[-1],
                     "pending perf posture drifted",
                 ),
                 encoding="utf-8",
@@ -267,6 +273,21 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError("expected docs README perf-promotion drift to fail")
+
+            docs_readme_path.write_text((args.root.resolve() / DOCS_README).read_text(encoding="utf-8"), encoding="utf-8")
+            docs_readme_path.write_text(
+                docs_readme_path.read_text(encoding="utf-8").replace(
+                    DOCS_BITMAP_GAP_MARKERS[0],
+                    "bitmap diff reminder drifted",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected docs README bitmap-diff drift to fail")
 
         print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass")
         print(f"PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES={cases}")
