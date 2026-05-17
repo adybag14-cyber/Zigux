@@ -35,9 +35,9 @@ Fresh repo-first inspection in this run confirmed that current `master` still ke
 - `samples/zigux/README.md`
 - `zigux/tests/README.md`
 
-The same reread also confirmed that the dedicated non-runtime sample packet is no longer in the older missing-sample-root posture. Current `master` keeps the bytestream, kobject, kretprobe, and trace-events anchors directly visible again through the sample root, while the directly coupled survey and tests-root companion surfaces remain a mix of authenticated-readback proof and public raw or tree fallback proof depending on the path.
+The same reread also confirmed that the dedicated non-runtime packet is still split by anchor. Current `master` keeps the bytestream, kobject, and kretprobe anchors directly visible again through the sample root, while the trace-events anchor remains in the narrower formatting-companion posture and its older direct sample-local companions still need fresh reread proof before they can be treated as returned current-`master` evidence.
 
-Keep this shared note truthful about that restored packet instead of repeating the older split-readback wording that treated the non-runtime sample root or the dedicated survey notes as still absent.
+Keep this shared note truthful about that narrower trace-events packet instead of repeating the older restored-direct-sample wording.
 
 ## Current sample-root reality
 
@@ -47,13 +47,12 @@ Current `samples/zigux/README.md` says the sample root directly exposes:
 - `samples/zigux/bytestream_fifo.zig`
 - `samples/zigux/kobject_example.zig`
 - `samples/zigux/kretprobe_example.zig`
-- `samples/zigux/trace_events_sample.zig`
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 - `samples/zigux/runtime_trace_events.zig`
 - `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 
-So the four roadmap-backed non-runtime Phase 5 sample-root ports are current direct sample-root evidence on `master` again.
-Treat those four `.zig` files as the current sample-root proof for the approved Phase 5 anchors, and treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a fifth sample.
+So the current direct sample-root proof for the roadmap-backed non-runtime Phase 5 lane is the bytestream, kobject, and kretprobe ports plus the bounded trace-events formatting companion.
+Treat those three direct `.zig` files as the current sample-root proof for their approved anchors, and treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a fourth returned direct sample-root port or a fifth sample.
 
 ## Tracing and probe packet
 
@@ -68,11 +67,11 @@ For the tracing and probe lane, keep follow-through aligned with these bounded r
 Those files should describe:
 
 - the roadmap-backed `kretprobe` and `trace_events` anchors
-- the restored direct sample-root packet on `master`
+- the current split between the restored direct kretprobe packet and the narrower trace-events formatting-companion packet
 - the approved selected-string plus `iter=%d` formatting idiom cue
 - the rule that Phase 9 runtime trace-events files are not extra Phase 5 sample proof
 - the returned direct kretprobe packet through `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`
-- the landed direct trace-events packet through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`, while still keeping `zigux/tests/phase5_build.zig` framed as current public-tree-backed companion evidence unless a fresh authenticated reread returns it directly again
+- the current bounded trace-events reminder packet through `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, and the shared Phase 5 reminder surfaces, while `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` stay framed as repo-reality gaps or current public-tree-backed companion evidence until a fresh reread proves they returned directly on `master`
 
 ## Sequencing rules
 
@@ -104,4 +103,4 @@ Keep the no-extra-sample helper-family boundaries explicit too:
 
 ## Next-step posture
 
-The next honest Phase 5 tracing/probe step is another one-file reminder-surface repair or tests-root alignment update that keeps the approved anchors explicit without flattening the restored direct sample-root packet or overstating the shared `zigux/tests/phase5_build.zig` route as direct authenticated proof.
+The next honest Phase 5 tracing/probe step is another one-file reminder-surface repair or tests-root alignment update that keeps the approved anchors explicit without flattening the narrower trace-events formatting packet or overstating the shared `zigux/tests/phase5_build.zig` route as direct authenticated proof.
