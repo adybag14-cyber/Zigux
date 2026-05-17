@@ -230,6 +230,38 @@
       "review_packet_summary": "shared find, first-match, next-match, and match-iterator duplicate-search parity stays explicit through the Phase 1 fixture and replay, and current master already consumes `cached_leftmost_return_serials` as shared cached-root leftmost-return evidence, while the remaining cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed review anchors stay explicit at the helper surface for any paths the shared replay still does not cover",
       "next_safe_step_note": "If this helper lane reopens, keep the already-landed shared-replay promotion for `cached_leftmost_return_serials` aligned across the committed fixture, shared replay, and direct cached-root anchors; until another committed cached-root field lands, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior stay owned by direct helper-local anchors."
     },
+    "tools/lib/list_sort.zig": {
+      "helper_test_anchors": [
+        "test \"list sort keeps stable ordering for tri-state comparator\"",
+        "test \"list sort accepts boolean-style comparator\"",
+        "test \"list sort honors comparator context\"",
+        "test \"list sort can reorder the same circular list twice\"",
+        "test \"list sort keeps reverse links aligned after reordering\"",
+        "test \"list sort preserves sorted unique input\"",
+        "test \"list sort preserves stable bucket order across parity groups\"",
+        "test \"list sort preserves stable modulo bucket order across a longer merge path\"",
+        "test \"list sort preserves input order when every comparison ties\"",
+        "test \"list sort handles empty and singleton lists\""
+      ],
+      "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
+      "parity_fixture_keys": [
+        "tri_sorted_keys",
+        "tri_sorted_ordinals",
+        "bool_sorted_keys",
+        "bool_sorted_ordinals"
+      ],
+      "shared_replay_summary": "the committed Phase 1 fixture still owns the tri-state and boolean-style comparator parity keys for list_sort, while current master keeps comparator-context handling, repeat-sort circular-list integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, all-ties stability, and empty-or-singleton handling explicit at the helper surface until the broader shared replay packet returns",
+      "comparator_context_anchor": "test \"list sort honors comparator context\"",
+      "repeat_sort_anchor": "test \"list sort can reorder the same circular list twice\"",
+      "reverse_link_anchor": "test \"list sort keeps reverse links aligned after reordering\"",
+      "sorted_input_anchor": "test \"list sort preserves sorted unique input\"",
+      "parity_bucket_anchor": "test \"list sort preserves stable bucket order across parity groups\"",
+      "modulo_bucket_anchor": "test \"list sort preserves stable modulo bucket order across a longer merge path\"",
+      "all_ties_anchor": "test \"list sort preserves input order when every comparison ties\"",
+      "empty_singleton_anchor": "test \"list sort handles empty and singleton lists\"",
+      "review_packet_summary": "keep list_sort parked in the shared-replay helper family for fixture ownership, but reread the helper-local proof packet before reopening the lane: current master already names direct witnesses for comparator-context ordering, repeat-sort circular integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, all-ties stability, and empty-or-singleton handling beside the committed parity keys",
+      "next_safe_step_note": "If this helper lane reopens, keep list_sort parked unless a fresh reread finds drift in the committed `tri_sorted_*` or `bool_sorted_*` fixture keys, or in the current helper-local anchors for comparator-context ordering, repeat-sort circular integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, all-ties stability, or empty-or-singleton handling; do not widen into the missing shared replay stack by default."
+    },
     "tools/lib/string.zig": {
       "helper_test_anchors": [
         "test \"strtobool accepts common Linux forms\"",
