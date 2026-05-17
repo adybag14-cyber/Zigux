@@ -1,0 +1,16 @@
+savedcmd_module/sample2.o := clang -Iinclude -DZIGUX_MULTI -c zigux/tests/fixtures/fixdep/sample2.c -o module/sample2.o
+
+source_module/sample2.o := zigux/tests/fixtures/fixdep/sample2.c
+
+deps_module/sample2.o := \
+    $(wildcard include/config/ZIGUX_MULTI) \
+  zigux/tests/fixtures/fixdep/shared#config.h \
+    $(wildcard include/config/ZIGUX_HASH) \
+    $(wildcard include/config/ZIGUX_SHARED) \
+  zigux/tests/fixtures/fixdep/sample2-config.h \
+    $(wildcard include/config/ZIGUX_SECOND) \
+  zigux/tests/fixtures/fixdep/sample2.so \
+
+module/sample2.o: $(deps_module/sample2.o)
+
+$(deps_module/sample2.o):
