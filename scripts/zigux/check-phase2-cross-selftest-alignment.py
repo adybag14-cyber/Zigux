@@ -157,7 +157,7 @@ DOCS_ROOT_README_BOUNDARY_SENTENCE = (
     "that target-mode replay starts with `python3 scripts/zigux/check-zig-toolchain.py --zig "
     "\"<resolved-zig>\"` before the cross-target Zig tests, while the Linux-style "
     "`make -C zigux phase2-cross` route still picks up `phase2-toolchain` and its direct "
-    '"`python3 scripts/zigux/check-zig-toolchain.py --zig \"$(ZIG)\"` replay through '
+    '`python3 scripts/zigux/check-zig-toolchain.py --zig \"$(ZIG)\"` replay through '
     "`zigux/Makefile`."
 )
 
