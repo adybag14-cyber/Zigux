@@ -639,6 +639,26 @@ pub fn kstrdup_quotable(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8
     return kstrdupQuotable(allocator, src);
 }
 
+pub fn kstrdupQuotableCmdline(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8 {
+    const raw = src orelse return null;
+
+    var end = raw.len;
+    while (end > 0 and raw[end - 1] == 0) : (end -= 1) {}
+
+    const normalized = try allocator.dupe(u8, raw[0..end]);
+    defer allocator.free(normalized);
+
+    for (normalized) |*ch| {
+        if (ch.* == 0) ch.* = ' ';
+    }
+
+    return (try kstrdupQuotable(allocator, normalized)).?;
+}
+
+pub fn kstrdup_quotable_cmdline(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8 {
+    return kstrdupQuotableCmdline(allocator, src);
+}
+
 pub fn kstrdupAndReplace(
     allocator: std.mem.Allocator,
     src: []const u8,
@@ -726,6 +746,12 @@ fn runKstrdupAndReplaceWithFailingAllocator(
 ) !void {
     const duplicated = try kstrdupAndReplace(allocator, src, old, new);
     allocator.free(duplicated);
+}
+
+fn runKstrdupQuotableCmdlineWithFailingAllocator(allocator: std.mem.Allocator, src: ?[]const u8) !void {
+    if (try kstrdupQuotableCmdline(allocator, src)) |quoted| {
+        allocator.free(quoted);
+    }
 }
 
 test "kasprintfStrarray keeps sentinel ownership stable for empty and populated arrays" {
@@ -825,6 +851,28 @@ test "kstrdupAndReplace reports allocation failure cleanly" {
         std.testing.allocator,
         runKstrdupAndReplaceWithFailingAllocator,
         .{ "phase7/helper", '/', '_' },
+    );
+}
+
+test "kstrdupQuotableCmdline collapses trailing nulls and replaces inter-argument separators before quoting" {
+    const cmdline = [_]u8{ 'z', 'i', 'g', 0, 'b', 'u', 'i', 'l', 'd', '\n', '"', 0, 0 };
+    const quoted = (try kstrdupQuotableCmdline(std.testing.allocator, &cmdline)).?;
+    defer std.testing.allocator.free(quoted);
+    try std.testing.expectEqualStrings("zig build\\x0A\\x22", quoted);
+
+    const blank = [_]u8{ 0, 0, 0 };
+    const quoted_blank = (try kstrdupQuotableCmdline(std.testing.allocator, &blank)).?;
+    defer std.testing.allocator.free(quoted_blank);
+    try std.testing.expectEqualStrings("", quoted_blank);
+
+    try std.testing.expect((try kstrdupQuotableCmdline(std.testing.allocator, null)) == null);
+}
+
+test "kstrdupQuotableCmdline reports allocation failure cleanly" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKstrdupQuotableCmdlineWithFailingAllocator,
+        .{ "zig\x00test\x00\x00" },
     );
 }
 
