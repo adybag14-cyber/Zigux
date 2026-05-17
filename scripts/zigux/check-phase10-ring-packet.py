@@ -20,13 +20,14 @@ DIRECT_PACKET_FILES = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
     "Documentation/zigux/phase10-virtio-ring-slice.md",
+    "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "zigux/tests/phase10_virtio_ring_manifest.json",
 ]
 
 MARKERS = {
     "Documentation/zigux/phase10-closure-evidence.md": [
-        "`virtqueue_wrappers=starter_landed`",
+        "`virtqueue_wrappers=repo_reality_gap`",
         "`dual_implementations_for_risky_areas=blocked_on_risky_transport`",
         "scripts/zigux/check-phase10-ring-packet.py",
         "zigux/tests/phase10_virtio_ring_manifest.json",
@@ -40,7 +41,7 @@ MARKERS = {
         SURVEYED_COMMIT,
         "direct contents reads for `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig` still return missing on current `master`",
         "Only `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, and `zigux/tests/phase10_virtio_ring_manifest.json` remain directly re-readable inside the ring packet today.",
-        "keep the queue-local helper ladder framed as manifest-backed ring packet vocabulary until a fresh reread materializes those helper and replay paths again",
+        "while keeping the queue-local helper ladder framed as manifest-backed ring packet vocabulary until a fresh reread materializes those helper and replay paths again",
         "phase10-ring-lab-driver-bridge",
         "blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
     ],
@@ -50,6 +51,16 @@ MARKERS = {
         "phase10-notification-data-summary-helper",
         "phase10-ring-lab-driver-bridge",
         "drivers/virtio/virtio_mmio.zig",
+    ],
+    "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
+        "`PHASE10_STATUS=parked`",
+        "`PHASE10_SLICE=virtio-ring-freeze-boundary-survey`",
+        "current packet lane on master: `P10-L10`",
+        "adjacent freeze-boundary owner: `P10-L11`",
+        "Repeated direct contents reads still return missing for `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig` on current `master`, so keep the queue-local ring helper ladder framed as manifest-backed review vocabulary rather than direct current-head evidence.",
+        "shared closure evidence and the current ring survey agree that `virtqueue_wrappers=repo_reality_gap` while risky transport stays blocked on the MMIO-owned bridge",
+        "scripts/zigux/check-phase10-ring-packet.py",
+        "blocked `phase10-ring-lab-driver-bridge`",
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "scripts/zigux/check-phase10-ring-packet.py",
@@ -215,6 +226,7 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(MARKERS["Documentation/zigux/phase10-closure-evidence.md"]) + "\n",
         "Documentation/zigux/phase10-virtio-ring-survey.md": "\n".join(MARKERS["Documentation/zigux/phase10-virtio-ring-survey.md"]) + "\n",
         "Documentation/zigux/phase10-virtio-ring-slice.md": "\n".join(MARKERS["Documentation/zigux/phase10-virtio-ring-slice.md"]) + "\n",
+        "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": "\n".join(MARKERS["Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md"]) + "\n",
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]) + "\n",
         "zigux/tests/phase10_virtio_ring_manifest.json": json.dumps(
             {
@@ -308,6 +320,18 @@ def run_self_test() -> int:
             "The shared ring packet therefore keeps those helper and replay paths as manifest-backed review vocabulary",
             "The shared ring packet therefore keeps those helper paths as review vocabulary",
             "phase10-virtio-ring-slice.md:The shared ring packet therefore keeps those helper and replay paths as manifest-backed review vocabulary",
+        )
+        replace_once(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            "current packet lane on master: `P10-L10`",
+            "current packet lane on master: `P10-L07`",
+            "phase10-virtio-ring-freeze-boundary-survey.md:current packet lane on master: `P10-L10`",
+        )
+        replace_once(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            "shared closure evidence and the current ring survey agree that `virtqueue_wrappers=repo_reality_gap` while risky transport stays blocked on the MMIO-owned bridge",
+            "shared closure evidence and the current ring survey agree that `virtqueue_wrappers=starter_landed` while risky transport stays blocked on the MMIO-owned bridge",
+            "phase10-virtio-ring-freeze-boundary-survey.md:shared closure evidence and the current ring survey agree that `virtqueue_wrappers=repo_reality_gap` while risky transport stays blocked on the MMIO-owned bridge",
         )
         mutate_manifest(
             lambda manifest: manifest["survey_summary"].__setitem__("preexisting_virtio_ring_zig_present", True),
