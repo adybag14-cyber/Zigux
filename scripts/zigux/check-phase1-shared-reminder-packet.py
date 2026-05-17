@@ -222,7 +222,7 @@ def run_self_test() -> int:
     first_tests_marker = TESTS_README_MARKERS[0]
     tests_historical_warning_marker = TESTS_README_MARKERS[1]
     first_checklist_marker = REVIEW_CHECKLIST_MARKERS[0]
-    checklist_packet_alignment_marker = REVIEW_CHECKLIST_MARKERS[0]
+    checklist_packet_alignment_marker = REVIEW_CHECKLIST_MARKERS[1]
     first_build_marker = BUILD_ZIG_MARKERS[0]
     first_smoke_marker = SMOKE_ZIG_MARKERS[0]
 
