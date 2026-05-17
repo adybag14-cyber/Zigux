@@ -36,6 +36,7 @@ Current `master` gives this lane a mixed set of directly re-readable packet-loca
 5. Keep the MMIO lane below transport-backed queue setup, IRQ delivery, DMA handoff, and probe or remove lifecycle claims.
 6. Future shared-note refreshes should start from `Documentation/zigux/phase10-closure-evidence.md` plus the directly re-readable packet-local anchors before restating inventory counts, route names, or direct-readback posture.
 7. If a packet-local companion is absent on current `master`, record that gap explicitly instead of silently re-promoting it into shipped shared evidence.
+8. Treat the shared `zigux/tests/phase10_build.zig` route as already-landed validation evidence for the input packet's probe-preflight, registration-preflight, and teardown-observation compile entries; do not keep routing that build-graph work into stale adjacent lane `P10-L15` reminder text.
 
 ## Non-Goals
 This note does not widen Phase 10 into:
