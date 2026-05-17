@@ -48,7 +48,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 21
 
 
 class ValidationError(RuntimeError):
@@ -118,6 +118,11 @@ def run_self_test() -> None:
 
         cases_run = 0
         for path, snippet in [
+            (root / SCRIPTS_README_PATH, "## Phase 6"),
+            (
+                root / SCRIPTS_README_PATH,
+                "- `python3 scripts/zigux/check-phase6-shared-surface.py --self-test` and `python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test` replay the shipped shared-surface and present-entrypoint guards",
+            ),
             (
                 root / SCRIPTS_README_PATH,
                 "- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/README.md`, and this scripts-root reminder remain the current directly readable shared companions for that packet",
@@ -133,6 +138,10 @@ def run_self_test() -> None:
             (
                 root / SCRIPTS_README_PATH,
                 "- the shared replay inventory now treats `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-base64-perf`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-checksum-perf` as committed rerun routes beside the existing bsearch and hexdump reminders, so keep those wrappers out of the older inventory-only bucket",
+            ),
+            (
+                root / SCRIPTS_README_PATH,
+                "- keep the current partially blocked helper packet tied to those shared surfaces instead of reconstructing broader helper-local proof from older route names alone until fresh direct reads recover the missing helper-local replay files again",
             ),
             (
                 root / TESTS_README_PATH,
@@ -158,10 +167,7 @@ def run_self_test() -> None:
                 root / DOCS_README_PATH,
                 "- keep current Phase 6 follow-through tied to `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, and `scripts/zigux/check-phase6-present-entrypoints.py` instead of reconstructing the broader helper-local parity and perf packet from older route names alone until fresh direct reads recover those helper-local replay and checker files again.",
             ),
-            (
-                root / HELPER_EVIDENCE_CATALOG_PATH,
-                "## Current direct-readback warning",
-            ),
+            (root / HELPER_EVIDENCE_CATALOG_PATH, "## Current direct-readback warning"),
             (
                 root / HELPER_EVIDENCE_CATALOG_PATH,
                 "- `Documentation/zigux/phase6-helper-parity-catalog.md`",
@@ -170,13 +176,19 @@ def run_self_test() -> None:
                 root / HELPER_EVIDENCE_CATALOG_PATH,
                 "- `Documentation/zigux/phase6-perf-gate-survey.md`",
             ),
+            (root / HELPER_EVIDENCE_CATALOG_PATH, "- `zigux/tests/phase6_build.zig`"),
+            (
+                root / HELPER_EVIDENCE_CATALOG_PATH,
+                "- `zigux/tests/phase6_helper_parity_manifest.json`",
+            ),
             (
                 root / HELPER_EVIDENCE_CATALOG_PATH,
                 "Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again.",
             ),
+            (root / HELPER_EVIDENCE_CATALOG_PATH, "## Last-known shared replay inventory"),
             (
                 root / HELPER_EVIDENCE_CATALOG_PATH,
-                "## Last-known shared replay inventory",
+                "- `make -C zigux phase6-hexdump-perf`",
             ),
         ]:
             expect_failure(root, path, snippet)
