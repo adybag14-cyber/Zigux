@@ -64,7 +64,7 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
         const end = skipArg(text, idx);
         argv[arg_idx] = try allocator.dupe(u8, text[idx..end]);
         errdefer {
-            for (argv[0..arg_idx + 1]) |arg| {
+            for (argv[0 .. arg_idx + 1]) |arg| {
                 allocator.free(arg);
             }
         }
@@ -112,4 +112,29 @@ test "argvSplit collapses repeated whitespace and blank inputs to zero arguments
     var only_spaces = try argv_split(std.testing.allocator, " \n\t ");
     defer argv_free(&only_spaces);
     try std.testing.expectEqual(@as(usize, 0), only_spaces.argc());
+}
+
+test "argvSplit treats ascii control whitespace as separators and quotes literally" {
+    var result = try argvSplit(std.testing.allocator, "\ralpha\x0bbeta\x0cgamma\r\n\"delta epsilon\" zeta");
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 6), result.argc());
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
+    try std.testing.expectEqualStrings("beta", result.argv[1]);
+    try std.testing.expectEqualStrings("gamma", result.argv[2]);
+    try std.testing.expectEqualStrings("\"delta", result.argv[3]);
+    try std.testing.expectEqualStrings("epsilon\"", result.argv[4]);
+    try std.testing.expectEqualStrings("zeta", result.argv[5]);
+}
+
+test "argvSplit duplicates argument storage before the source buffer changes" {
+    var source = [_]u8{ 'o', 'n', 'e', ' ', 't', 'w', 'o' };
+    var result = try argvSplit(std.testing.allocator, &source);
+    defer result.deinit();
+
+    source[0] = 'X';
+    source[4] = 'Y';
+
+    try std.testing.expectEqualStrings("one", result.argv[0]);
+    try std.testing.expectEqualStrings("two", result.argv[1]);
 }
