@@ -51,10 +51,9 @@ pub fn crc32(s: []const u8) u32 {
 }
 
 fn trimTrailingCarriageReturn(text: []const u8) []const u8 {
-    if (text.len > 0 and text[text.len - 1] == '\r') {
-        return text[0 .. text.len - 1];
-    }
-    return text;
+    var end = text.len;
+    while (end > 0 and text[end - 1] == '\r') end -= 1;
+    return text[0..end];
 }
 
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
@@ -192,6 +191,46 @@ test "runGenksymsCrc preserves case order while skipping blank lines" {
     try runGenksymsCrc("struct device\n\nint\r\n", &capture);
     try std.testing.expectEqualStrings(
         "{\"cases\":[{\"input\":\"struct device\",\"crc_hex\":\"0xa38c4517\"},{\"input\":\"int\",\"crc_hex\":\"0x1451dab1\"}]}\n",
+        capture.list.items,
+    );
+}
+
+test "runGenksymsCrc trims repeated carriage returns before hashing" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 96),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc("int\r\r\n", &capture);
+    try std.testing.expectEqualStrings(
+        "{\"cases\":[{\"input\":\"int\",\"crc_hex\":\"0x1451dab1\"}]}\n",
         capture.list.items,
     );
 }
