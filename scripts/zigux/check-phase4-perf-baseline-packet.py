@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -20,6 +21,7 @@ MANIFEST_MARKERS = (
     '"ABI and Runtime Team"',
     '"Shared Subsystems Pod"',
     '"shared_ci_perf_promotion_status": "pending"',
+    '"local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending."',
     '"benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"',
     '"linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey"',
     '"acceptable_limit_status": "approved_local_only"',
@@ -55,7 +57,16 @@ SURVEY_MARKERS = (
 )
 
 EXPECTED_FINAL_FIRST_ZERO_COUNT = 2
-EXPECTED_SELF_TEST_CASES = 16
+EXPECTED_SELF_TEST_CASES = 19
+EXPECTED_COORDINATION_OWNERS = [
+    "ABI and Runtime Team",
+    "Shared Subsystems Pod",
+]
+EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
+    "The dedicated perf-baseline survey keeps approved local benchmark commands and "
+    "approved local-only acceptable limits explicit while shared CI perf promotion "
+    "remains intentionally pending."
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -80,6 +91,80 @@ def require_markers(text: str, markers: tuple[str, ...], label: str, missing: li
             missing.append(f"{label}:{marker}")
 
 
+def read_json(path: Path, missing: list[str]) -> dict[str, object] | None:
+    try:
+        return json.loads(read_text(path))
+    except json.JSONDecodeError as exc:
+        missing.append(f"manifest_json:decode:{exc.msg}")
+        return None
+
+
+def expect_json_value(
+    payload: object,
+    path: tuple[str | int, ...],
+    expected: object,
+    missing: list[str],
+) -> None:
+    current = payload
+    for step in path:
+        try:
+            if isinstance(step, int):
+                current = current[step]  # type: ignore[index]
+            else:
+                current = current[step]  # type: ignore[index]
+        except (KeyError, IndexError, TypeError):
+            path_label = ".".join(str(part) for part in path)
+            missing.append(f"manifest_json:{path_label}:missing")
+            return
+
+    if current != expected:
+        path_label = ".".join(str(part) for part in path)
+        missing.append(
+            f"manifest_json:{path_label}:expected={expected!r}:actual={current!r}"
+        )
+
+
+def validate_manifest_json(manifest_data: dict[str, object], missing: list[str]) -> None:
+    expected_values: tuple[tuple[tuple[str | int, ...], object], ...] = (
+        (("lane_key",), "P4-L20"),
+        (("phase",), "Phase 4"),
+        (("owner",), "Validation and Perf Team"),
+        (("rollback_owner",), "Validation and Perf Team"),
+        (("decision_owner",), "Validation and Perf Team"),
+        (("coordination_owners",), EXPECTED_COORDINATION_OWNERS),
+        (("shared_ci_perf_promotion_status",), "pending"),
+        (("local_only_posture_note",), EXPECTED_LOCAL_ONLY_POSTURE_NOTE),
+        (("bitmap", "benchmark_command"), "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"),
+        (("bitmap", "linux_style_wrapper"), "make -C zigux phase4-perf-baseline-survey"),
+        (("bitmap", "acceptable_limit_status"), "approved_local_only"),
+        (("bitmap", "acceptable_limit_metric"), "median_elapsed_ns"),
+        (("bitmap", "acceptable_limit_iterations"), 4),
+        (("bitmap", "acceptable_limit_sample_count"), 7),
+        (("bitmap", "acceptable_limit_max_elapsed_ns"), 12288),
+        (("bitmap", "evidence", 0, "id"), "phase4-perf-baseline-bitmap-acceptable-limit"),
+        (("bitmap", "evidence", 0, "kind"), "acceptable_limit"),
+        (("bitmap", "evidence", 0, "metric"), "median_elapsed_ns"),
+        (("bitmap", "evidence", 0, "status"), "approved_local_only"),
+        (("bitmap", "evidence", 0, "sample_count_note"), "seven monotonic samples"),
+        (("bitmap", "evidence", 0, "max_elapsed_ns"), 12288),
+        (("bitmap", "evidence", 1, "id"), "phase4-perf-baseline-bitmap-command-evidence"),
+        (("bitmap", "evidence", 1, "kind"), "threshold_replay"),
+        (("bitmap", "evidence", 1, "runs", 0, "iterations"), 1),
+        (("bitmap", "evidence", 1, "runs", 0, "checksum"), 5216946504564592253),
+        (("bitmap", "evidence", 1, "runs", 0, "final_first_zero"), 109),
+        (("bitmap", "evidence", 1, "runs", 1, "iterations"), 4),
+        (("bitmap", "evidence", 1, "runs", 1, "checksum"), 7942141539243507472),
+        (("bitmap", "evidence", 1, "runs", 1, "final_first_zero"), 109),
+        (("promotion_decision", "id"), "phase4-perf-baseline-shared-promotion-decision"),
+        (("promotion_decision", "status"), "shared CI perf promotion pending"),
+        (("promotion_decision", "owner"), "Validation and Perf Team"),
+        (("promotion_decision", "coordination_owners"), EXPECTED_COORDINATION_OWNERS),
+    )
+
+    for path, expected in expected_values:
+        expect_json_value(manifest_data, path, expected, missing)
+
+
 def validate_root(root: Path) -> list[str]:
     missing: list[str] = []
 
@@ -89,6 +174,9 @@ def validate_root(root: Path) -> list[str]:
     else:
         manifest_text = read_text(manifest)
         require_markers(manifest_text, MANIFEST_MARKERS, "manifest_marker", missing)
+        manifest_data = read_json(manifest, missing)
+        if manifest_data is not None:
+            validate_manifest_json(manifest_data, missing)
         final_first_zero_count = manifest_text.count('"final_first_zero": 109')
         if final_first_zero_count != EXPECTED_FINAL_FIRST_ZERO_COUNT:
             missing.append(
@@ -217,6 +305,21 @@ def run_self_test() -> int:
             manifest,
             replace_once(
                 read_text(manifest),
+                '"owner": "Validation and Perf Team"',
+                '"owner": "ABI and Runtime Team"',
+            ),
+        )
+        if not expect_failure(root, "manifest_json:owner:"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest top-level owner drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
                 '"decision_owner": "Validation and Perf Team"',
                 '"decision_owner": "ABI and Runtime Team"',
             ),
@@ -253,6 +356,21 @@ def run_self_test() -> int:
         if not expect_failure(root, 'manifest_marker:"ABI and Runtime Team"'):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("manifest coordination-owner drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
+                '"local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending."',
+                '"local_only_posture_note": "The dedicated perf-baseline survey still needs shared CI approval."',
+            ),
+        )
+        if not expect_failure(root, "manifest_json:local_only_posture_note:"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest local-only posture drift case did not fail closed")
             return 1
         cases += 1
 
@@ -313,6 +431,21 @@ def run_self_test() -> int:
         if not expect_failure(root, 'manifest_marker:"status": "shared CI perf promotion pending"'):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("manifest promotion-status drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
+                '"promotion_decision": {\n    "id": "phase4-perf-baseline-shared-promotion-decision",\n    "status": "shared CI perf promotion pending",\n    "owner": "Validation and Perf Team",',
+                '"promotion_decision": {\n    "id": "phase4-perf-baseline-shared-promotion-decision",\n    "status": "shared CI perf promotion pending",\n    "owner": "ABI and Runtime Team",',
+            ),
+        )
+        if not expect_failure(root, "manifest_json:promotion_decision.owner:"):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest promotion owner drift case did not fail closed")
             return 1
         cases += 1
 
