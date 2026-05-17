@@ -63,7 +63,7 @@ Contributor reminder:
 - keep the parked `P10-L11` MMIO freeze-boundary owner and rollback-owner note explicit around `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
 - keep Phase 5 reference samples and Phase 9 runtime starters as adjacent evidence, not extra Phase 10 closure proof
 - keep the separate Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit
-- keep `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` explicit as restored shared-review evidence on current `master`; do not frame any current packet-local Phase 10 slice companion as a repo-reality gap unless a fresh reread proves it disappeared
+- keep `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md` explicit as directly re-readable shared-review evidence on current `master`, keep `Documentation/zigux/phase10-virtio-mmio-survey.md` as the directly re-readable MMIO companion, and keep `Documentation/zigux/phase10-virtio-core-slice.md` plus `Documentation/zigux/phase10-virtio-mmio-slice.md` framed as repo-reality gaps until a fresh reread proves they returned
 
 ## Phase 11 contributor packet
 Keep the current-head simple-driver truthfulness packet explicit through:
