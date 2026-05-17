@@ -14,10 +14,12 @@ TOOLCHAIN_PINNING = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning
 TESTS_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 
 SCRIPTS_README_MARKERS = (
-    "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
-    "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
-    "shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
-    "shared cross-selftest alignment gate: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "repeated authenticated reads on current `master` still return missing for",
+    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py`",
+    "historical packet members",
 )
 
 TESTS_README_MARKERS = (
@@ -50,7 +52,7 @@ TESTS_ALIGNMENT_MARKERS = (
     "'`make -C zigux phase2-cross`'",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 28
+EXPECTED_SELF_TEST_CASE_COUNT = 30
 
 
 def read_text(path: Path) -> str:
