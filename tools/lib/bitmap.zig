@@ -688,3 +688,18 @@ test "bitmap Linux-style aliases mirror primary allocation and state helpers" {
     bitmap_free(allocator, &zeroed_opt);
     try std.testing.expect(zeroed_opt == null);
 }
+
+test "bitmap Linux-style aliases keep zero-bit calls as no-ops" {
+    var work = [_]Word{ 0x55aa, ~@as(Word, 0) };
+    const before = work;
+
+    try std.testing.expectEqual(@as(usize, 0), bitmap_size(0));
+    try std.testing.expect(bitmap_empty(work[0..0], 0));
+    try std.testing.expect(bitmap_full(work[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weight(work[0..0], 0));
+
+    bitmap_zero(work[0..0], 0);
+    bitmap_fill(work[0..0], 0);
+
+    try std.testing.expectEqualSlices(Word, &before, &work);
+}
