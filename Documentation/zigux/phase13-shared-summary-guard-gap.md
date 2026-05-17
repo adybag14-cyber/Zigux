@@ -1,50 +1,53 @@
-# Phase 13 Shared Summary Guard Gap
+# Phase 13 Shared Summary Guard Handoff
 
-This note records the remaining shared-summary guard gap inside the active Phase 13 contributor packet.
+This note records the closure of the old missing-checker gap.
 
-It is a bounded validation note, not a tranche-closure claim and not a replacement for the missing shared-summary checker itself.
+The shipped guard is `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.
 
 ## Status
 
 - `PHASE13_STATUS=active`
-- `PHASE13_SHARED_SUMMARY_GUARD_GAP=present`
-- missing guard path: `scripts/zigux/check-phase13-shared-summary-surfaces.py`
-- stable shared handle: `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`
-- blocked convenience route `make -C zigux phase13`
+- `PHASE13_SHARED_SUMMARY_GUARD=shipped`
+- stable guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- companion handoff check: `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`
+- blocked route family remains outside the shared handle: `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
 
-## Gap Shape
+## What Closed
 
-Current `master` keeps the missing guard explicit in:
+The old gap was the absence of one narrow guard that could keep the shared Phase 13 contributor wording honest across the phase-local workflow and release notes.
+
+That gap is now closed through these shipped surfaces:
 
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
-- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
-- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
-- `scripts/zigux/README.md`
-- `zigux/tests/README.md`
-- `Documentation/zigux/README.md`
+- `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 
-Fresh current-`master` rereads now show the broader reminder surfaces already agree on the Phase 13 shared-handle posture. `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all keep the older validator-first helper names, `zigux/Makefile`, `make -C zigux phase13-validate`, and blocked convenience route `make -C zigux phase13` framed as repo-reality gaps or blocked-convenience wording instead of shipped current-`master` evidence.
+## Remaining Follow-Up
 
-That means the remaining drift is narrower than this note used to claim. The still-open shared-summary risk is that the dedicated guard file itself is absent, while broad reminder surfaces can still drift again unless one narrow checker keeps the missing guard and blocked-route posture explicit.
+The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard.
 
-## What This Gap Does Not Mean
+Keep these paths recorded as repo-reality gaps until current `master` rematerializes them:
 
-- It does not promote adjacent notifier evidence into a fifth helper family.
-- It does not turn `make -C zigux phase13` into a shipped replay route while `zigux/tests/phase13_build.zig` remains absent.
-- It does not justify widening into helper-local `libfs`, `devres`, or `landlock` edits.
-- It does not mean `Documentation/zigux/README.md` still carries an open Phase 13 shared-summary mismatch.
+- `zigux/Makefile`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
+- `scripts/zigux/validate-phase13-release.py`
+- `scripts/zigux/check-phase13-devres-packet-alignment.py`
+- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
+- `scripts/zigux/check-phase13-notifier-priority-signal.py`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
 
 ## Review Use
 
-1. Run `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`.
-2. Keep `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/README.md` aligned around the same missing `scripts/zigux/check-phase13-shared-summary-surfaces.py` reality until the guard materializes and the shared packet is reread together.
-3. Treat `zigux/Makefile`, `make -C zigux phase13-validate`, and blocked convenience route `make -C zigux phase13` as repo-reality-gap or blocked-convenience vocabulary in broad shared reminders until current `master` materializes the missing shared build foothold again.
-4. Leave the shared-subsystems lane parked unless the dedicated guard file lands or a fresh same-lane reread finds a new broad reminder drift.
+1. Run `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.
+2. Run `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`.
+3. Keep the Makefile-backed route family recorded as repo-reality gaps rather than promoting it into shipped contributor workflow evidence.
+4. Treat broader docs-root, scripts-root, and tests-root refresh as a separate same-lane follow-up step.
 
 ## Boundaries
 
-- This note documents one shared-summary validation gap only.
-- This note does not land `scripts/zigux/check-phase13-shared-summary-surfaces.py`.
-- This note does not close the broader Phase 13 contributor packet.
+- This note does not reopen the old missing-checker claim.
+- This note does not close the broader Phase 13 tranche.
+- This note does not promote adjacent notifier evidence into a fifth helper family.
