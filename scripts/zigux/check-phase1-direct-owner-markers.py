@@ -20,6 +20,9 @@ REQUIRED_EXACT_LINES = {
     "find_bit_or_packet_note": '- current `master` also carries the newer direct `test "find or bit returns the next set bit from either bitmap"` proof inside `tools/lib/find_bit.zig`, so notes-only rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it',
     "find_bit_clump_packet_note": "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
     "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; treat the older `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` names as historical packet members until current `master` exposes them again",
+    "shared_reminder_gap_note": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=Documentation/zigux/README.md still treats scripts/zigux/check-phase1-installer-companion-checks.py as a live reminder surface even though the current checklist, tests-root, and scripts-root packet already treats that path as historical until direct reads recover it`",
+    "shared_reminder_active_packet": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py`",
+    "shared_reminder_route_split": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ROUTE_SPLIT=Documentation/zigux/review-checklist.md, zigux/tests/README.md, and scripts/zigux/README.md already keep the repo-reality warning explicit for the missing installer companion, while scripts/zigux/check-phase1-string-review-packet.py and scripts/zigux/check-phase1-direct-owner-markers.py carry the live self-test-versus-guard split for the shipped Phase 1 reminder packet; Documentation/zigux/README.md is the remaining docs-root sync step`",
     "shared_reminder_next_step": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=sync Documentation/zigux/README.md to the already-landed historical-warning wording carried by Documentation/zigux/review-checklist.md, zigux/tests/README.md, and scripts/zigux/README.md so the docs-root Phase 1 reminder packet stops treating scripts/zigux/check-phase1-installer-companion-checks.py as a live current-master checker; after that, leave the shared reminder packet parked and reopen helper-local follow-through only from the helper-specific next-safe-step markers below`",
     "bitmap_next_safe_step": "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen older closure-side or validator-route cue names by default`",
     "find_bit_next_safe_step": "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or for committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families`",
@@ -68,6 +71,9 @@ def sample_lane_note_text() -> str:
         REQUIRED_EXACT_LINES["missing_phase1_packet_note"],
         REQUIRED_EXACT_LINES["find_bit_or_packet_note"],
         REQUIRED_EXACT_LINES["find_bit_clump_packet_note"],
+        REQUIRED_EXACT_LINES["shared_reminder_gap_note"],
+        REQUIRED_EXACT_LINES["shared_reminder_active_packet"],
+        REQUIRED_EXACT_LINES["shared_reminder_route_split"],
         REQUIRED_EXACT_LINES["bitmap_direct_owner"],
         REQUIRED_EXACT_LINES["find_bit_direct_owner"],
         REQUIRED_EXACT_LINES["rbtree_direct_owner"],
@@ -84,11 +90,11 @@ def sample_lane_note_text() -> str:
     return (
         "# Phase 1 Host-Helper Lane Sequencing\n\n"
         "## Current Repo Reality\n\n"
-        + "\n".join(ordered_lines[:3])
+        + "\n".join(ordered_lines[:6])
         + "\n\n## Direct-Anchor Owner Map\n\n"
-        + "\n".join(ordered_lines[3:8])
+        + "\n".join(ordered_lines[6:11])
         + "\n\n## Next Bounded Step\n\n"
-        + "\n".join(ordered_lines[8:])
+        + "\n".join(ordered_lines[11:])
         + "\n"
     )
 
