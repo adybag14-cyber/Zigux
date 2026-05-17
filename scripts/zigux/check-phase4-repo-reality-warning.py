@@ -38,7 +38,7 @@ MISSING_BROADER_PACKET = (
 
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 9
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 11
 EXPECTED_PIN_SELF_TEST_CASES = 7
 
 NOTE_REQ = (
@@ -53,7 +53,7 @@ NOTE_REQ = (
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     "The tests-root guide already keeps the broader packet missing-warning aligned, and the repo-reality warning checker now fails closed on that broader-packet distinction between authenticated direct-readback gaps and public current-`master` fallback visibility.",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
 )
 
 DOCS_README_PENDING_REQ = (
@@ -194,14 +194,14 @@ def baseline_note() -> str:
             "",
             "Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` on current `master`.",
             f"Current direct-readback packet members: {direct_packet}.",
-            "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.",
+            "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.",
             f"The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run: authenticated contents reads returned missing for {broader_packet}.",
             "Historical broader packet references still include `scripts/zigux/artifact_diff.py` and `scripts/zigux/check-artifact-diff-contract.py`, so the shared repo-reality warning must keep those contract anchors explicit even while the broader packet stays historical here.",
             "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.",
             "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, local-only perf, and bitmap-diff packet is directly readable again.",
             "The tests-root guide already keeps the broader packet missing-warning aligned, and the repo-reality warning checker now fails closed on that broader-packet distinction between authenticated direct-readback gaps and public current-`master` fallback visibility.",
             "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-            "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9`",
+            "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11`",
             "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`",
         ]
     ) + "\n"
@@ -275,7 +275,7 @@ def main() -> int:
             drifted = root / NOTE
             drifted.write_text(
                 drifted.read_text(encoding="utf-8").replace(
-                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9`",
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11`",
                     "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=99`",
                 ),
                 encoding="utf-8",
@@ -338,6 +338,38 @@ def main() -> int:
                 raise AssertionError("expected tests README atomic64 warning drift to fail")
 
             build_baseline_tree(root)
+            readme_path = root / README
+            readme_path.write_text(
+                readme_path.read_text(encoding="utf-8").replace(
+                    README_OWNER_MARKERS[0],
+                    "shared Phase 4 ownership reminder drifted",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected tests README owner reminder drift to fail")
+
+            build_baseline_tree(root)
+            checklist_path = root / CHECKLIST
+            checklist_path.write_text(
+                checklist_path.read_text(encoding="utf-8").replace(
+                    CHECKLIST_PENDING_REQ[3],
+                    "decision-owner wording drifted",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected review checklist decision-owner drift to fail")
+
+            build_baseline_tree(root)
             checklist_path = root / CHECKLIST
             checklist_path.write_text(
                 checklist_path.read_text(encoding="utf-8").replace(
@@ -353,7 +385,7 @@ def main() -> int:
             else:
                 raise AssertionError("expected review checklist drift to fail")
 
-            build_baseline_tree(root)
+            build_baselineTree(root)
             direct_packet_checker = root / PINS
             direct_packet_checker.unlink()
             try:
