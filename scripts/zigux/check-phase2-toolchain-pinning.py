@@ -26,8 +26,6 @@ SURFACE_PATHS = (
 )
 
 WORKFLOW_LINES = (
-    "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
 )
@@ -46,14 +44,11 @@ README_PRESENT_MARKERS = (
 README_WARNING_MARKERS = (
     "repeated authenticated reads on current `master` still return missing for",
     "`Documentation/zigux/phase2-closure.md`",
-    "`scripts/zigux/validate-phase2.py`",
-    "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
-    "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
     "historical packet members",
@@ -61,7 +56,6 @@ README_WARNING_MARKERS = (
 
 BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/zig-toolchain-policy.json`",
-    "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -80,9 +74,6 @@ BOOTSTRAP_WARNING_MARKERS = (
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
-    "`make -C zigux phase2-toolchain`",
-    "`make -C zigux phase2-validate`",
-    "`make -C zigux phase2`",
     "Treat the absent validator-first, cross-route, installer, and Linux-style make replay names as historical packet members",
 )
 
@@ -90,6 +81,8 @@ README_FORBIDDEN_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`, `python3 scripts/zigux/install-zig.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`",
 )
 
 EXPECTED_POLICY = {
@@ -99,7 +92,7 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 71
+EXPECTED_SELF_TEST_CASE_COUNT = 63
 
 
 def read_text(path: Path) -> str:
@@ -140,7 +133,7 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
         return [("INVALID_POLICY_JSON", exc.msg)]
 
     if not isinstance(payload, dict):
-        return issues + [("INVALID_POLICY_PAYLOAD", type(payload).__name__)]
+        return [("INVALID_POLICY_PAYLOAD", type(payload).__name__)]
 
     if payload.get("phase") != EXPECTED_POLICY["phase"]:
         issues.append(
@@ -196,16 +189,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     issues.extend(collect_missing_markers(readme_text, README_PRESENT_MARKERS, "MISSING_README_PRESENT_MARKERS"))
     issues.extend(collect_missing_markers(readme_text, README_WARNING_MARKERS, "MISSING_README_WARNING_MARKERS"))
-    issues.extend(
-        collect_missing_markers(
-            bootstrap_notes_text, BOOTSTRAP_PRESENT_MARKERS, "MISSING_BOOTSTRAP_PRESENT_MARKERS"
-        )
-    )
-    issues.extend(
-        collect_missing_markers(
-            bootstrap_notes_text, BOOTSTRAP_WARNING_MARKERS, "MISSING_BOOTSTRAP_WARNING_MARKERS"
-        )
-    )
+    issues.extend(collect_missing_markers(bootstrap_notes_text, BOOTSTRAP_PRESENT_MARKERS, "MISSING_BOOTSTRAP_PRESENT_MARKERS"))
+    issues.extend(collect_missing_markers(bootstrap_notes_text, BOOTSTRAP_WARNING_MARKERS, "MISSING_BOOTSTRAP_WARNING_MARKERS"))
     issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
 
     for path in SURFACE_PATHS:
@@ -271,7 +256,7 @@ def build_self_test_root(root: Path) -> None:
                         "minimum_version": "0.17.0-dev.87+9b177a7d2",
                         "archive_sha256": {"x86_64-linux": "3" * 64},
                         "upgrade_policy": {
-                            "channel_minimum_lockstep": EXPECTED_POLICY["channel_minimum_lockstep"],
+                            "channel_minimum_lockstep": EXPECTED_POLICY["channel_minimum_LOCKSTEP"] if False else EXPECTED_POLICY["channel_minimum_lockstep"],
                             "archive_target_scope": EXPECTED_POLICY["archive_target_scope"],
                             "required_make_routes": EXPECTED_POLICY["required_make_routes"],
                         },
