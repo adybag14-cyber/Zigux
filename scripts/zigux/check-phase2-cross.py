@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import stat
 import subprocess
 import tempfile
 from pathlib import Path
@@ -11,7 +12,7 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
-FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
+FIXTURE_REL = Path("zigux/tests/fixtures/phase2_cross_targets.json")
 
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_LANE = 21
@@ -27,9 +28,13 @@ EXPECTED_ZIG_TEST_FILES = [
 ]
 
 
+def fixture_path(root: Path) -> Path:
+    return root / FIXTURE_REL
+
+
 def require_files(root: Path) -> list[str]:
     required = [
-        Path("zigux/tests/fixtures/phase2_cross_targets.json"),
+        FIXTURE_REL,
         Path("scripts/zigux/kconfig/conf_bridge.zig"),
         Path("scripts/zigux/kconfig/confdata_bridge.zig"),
     ]
@@ -61,7 +66,7 @@ def collect_list_issues(payload: object, issue_prefix: str) -> tuple[list[str], 
 
 def validate_fixture(root: Path) -> list[str]:
     issues: list[str] = []
-    payload = load_fixture(root / "zigux/tests/fixtures/phase2_cross_targets.json")
+    payload = load_fixture(fixture_path(root))
 
     if payload.get("phase") != EXPECTED_PHASE:
         issues.append(f"fixture:phase:{payload.get('phase')!r}")
@@ -98,21 +103,24 @@ def resolve_zig(override: str | None) -> str | None:
     return shutil.which("zig")
 
 
-def run_cross_compile(root: Path, target: str, zig: str) -> int:
-    payload = load_fixture(root / "zigux/tests/fixtures/phase2_cross_targets.json")
+def load_configured_lists(root: Path) -> tuple[list[str], list[str]] | tuple[None, None]:
+    payload = load_fixture(fixture_path(root))
     targets = payload.get("targets")
-    if not isinstance(targets, list) or target not in targets:
+    if not isinstance(targets, list) or not all(isinstance(item, str) for item in targets):
         print("PHASE2_CROSS=fail")
-        print(f"PHASE2_CROSS_TARGET={target}")
-        print("PHASE2_CROSS_NOTE=target not listed in fixture")
-        return 1
+        print("PHASE2_CROSS_NOTE=fixture targets is invalid")
+        return None, None
 
     zig_test_files = payload.get("zig_test_files")
     if not isinstance(zig_test_files, list) or not all(isinstance(item, str) for item in zig_test_files):
         print("PHASE2_CROSS=fail")
         print("PHASE2_CROSS_NOTE=fixture zig_test_files is invalid")
-        return 1
+        return None, None
 
+    return targets, zig_test_files
+
+
+def replay_target(root: Path, target: str, zig: str, zig_test_files: list[str]) -> int:
     for rel_path in zig_test_files:
         completed = subprocess.run(
             [zig, "test", rel_path, "-target", target, "--test-no-exec"],
@@ -124,9 +132,46 @@ def run_cross_compile(root: Path, target: str, zig: str) -> int:
             print(f"PHASE2_CROSS_TARGET={target}")
             print(f"PHASE2_CROSS_FAILED_FILE={rel_path}")
             return completed.returncode
+    return 0
+
+
+def run_cross_compile(root: Path, target: str, zig: str) -> int:
+    targets, zig_test_files = load_configured_lists(root)
+    if targets is None or zig_test_files is None:
+        return 1
+
+    if target not in targets:
+        print("PHASE2_CROSS=fail")
+        print(f"PHASE2_CROSS_TARGET={target}")
+        print("PHASE2_CROSS_NOTE=target not listed in fixture")
+        return 1
+
+    result = replay_target(root, target, zig, zig_test_files)
+    if result != 0:
+        return result
 
     print("PHASE2_CROSS=pass")
+    print("PHASE2_CROSS_REPLAY_MODE=single-target")
     print(f"PHASE2_CROSS_TARGET={target}")
+    print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
+    return 0
+
+
+def run_all_targets(root: Path, zig: str) -> int:
+    targets, zig_test_files = load_configured_lists(root)
+    if targets is None or zig_test_files is None:
+        return 1
+
+    for target in targets:
+        result = replay_target(root, target, zig, zig_test_files)
+        if result != 0:
+            print("PHASE2_CROSS_REPLAY_MODE=all-targets")
+            return result
+
+    print("PHASE2_CROSS=pass")
+    print("PHASE2_CROSS_REPLAY_MODE=all-targets")
+    print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")
+    print(f"PHASE2_CROSS_TARGETS={','.join(targets)}")
     print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
     return 0
 
@@ -138,7 +183,7 @@ def write_text(path: Path, content: str) -> None:
 
 def build_self_test_root(root: Path) -> None:
     write_text(
-        root / "zigux/tests/fixtures/phase2_cross_targets.json",
+        fixture_path(root),
         json.dumps(
             {
                 "phase": EXPECTED_PHASE,
@@ -156,6 +201,20 @@ def build_self_test_root(root: Path) -> None:
     write_text(root / "scripts/zigux/kconfig/confdata_bridge.zig", 'test "stub" {}\n')
 
 
+def make_fake_zig(path: Path, log_path: Path, fail_target: str | None = None) -> None:
+    fail_clause = ""
+    if fail_target is not None:
+        fail_clause = f'case "$*" in *"{fail_target}"*) exit 7 ;; esac\n'
+    script = (
+        "#!/bin/sh\n"
+        f'printf "%s\\n" "$*" >> "{log_path}"\n'
+        f"{fail_clause}"
+        "exit 0\n"
+    )
+    path.write_text(script, encoding="utf-8")
+    path.chmod(path.stat().st_mode | stat.S_IXUSR)
+
+
 def run_self_test() -> int:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase2_cross_") as tmp_dir:
@@ -167,7 +226,7 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
+        (fixture_path(root)).write_text(
             json.dumps(
                 {
                     "phase": EXPECTED_PHASE,
@@ -188,7 +247,7 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
+        (fixture_path(root)).write_text(
             json.dumps(
                 {
                     "phase": EXPECTED_PHASE,
@@ -208,7 +267,7 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
+        (fixture_path(root)).write_text(
             json.dumps(
                 {
                     "phase": EXPECTED_PHASE,
@@ -228,7 +287,7 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
+        (fixture_path(root)).write_text(
             json.dumps(
                 {
                     "phase": EXPECTED_PHASE,
@@ -259,6 +318,27 @@ def run_self_test() -> int:
         assert "scripts/zigux/kconfig/confdata_bridge.zig" in missing
         case_count += 1
 
+        build_self_test_root(root)
+        success_log = root / "success-zig.log"
+        success_zig = root / "fake-zig-success.sh"
+        make_fake_zig(success_zig, success_log)
+        assert run_all_targets(root, str(success_zig)) == 0
+        success_lines = success_log.read_text(encoding="utf-8").splitlines()
+        assert len(success_lines) == len(EXPECTED_TARGETS) * len(EXPECTED_ZIG_TEST_FILES)
+        assert any("-target x86_64-linux-musl --test-no-exec" in line for line in success_lines)
+        assert any("-target aarch64-linux-musl --test-no-exec" in line for line in success_lines)
+        assert any("-target riscv64-linux-musl --test-no-exec" in line for line in success_lines)
+        case_count += 1
+
+        build_self_test_root(root)
+        fail_log = root / "fail-zig.log"
+        fail_zig = root / "fake-zig-fail.sh"
+        make_fake_zig(fail_zig, fail_log, fail_target="riscv64-linux-musl")
+        assert run_all_targets(root, str(fail_zig)) == 7
+        fail_lines = fail_log.read_text(encoding="utf-8").splitlines()
+        assert any("-target riscv64-linux-musl --test-no-exec" in line for line in fail_lines)
+        case_count += 1
+
     print("PHASE2_CROSS_SELF_TEST=pass")
     print(f"PHASE2_CROSS_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -266,17 +346,20 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current-master-safe Phase 2 cross-target starter packet and optionally replay one target."
+        description="Validate the current-master-safe Phase 2 cross-target starter packet and optionally replay one target or the full starter matrix."
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage.")
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect.")
     parser.add_argument("--target", help="Run the configured Zig test files for one target.")
+    parser.add_argument("--all-targets", action="store_true", help="Run the configured Zig test files for every listed target.")
     parser.add_argument("--zig", help="Path to the Zig executable for target-mode replays.")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    missing = require_files(ROOT)
+    root = args.root.resolve()
+    missing = require_files(root)
     if missing:
         print("PHASE2_CROSS=fail")
         print("PHASE2_CROSS_MISSING_FILES_START")
@@ -286,7 +369,7 @@ def main() -> int:
         return 1
 
     try:
-        issues = validate_fixture(ROOT)
+        issues = validate_fixture(root)
     except json.JSONDecodeError as exc:
         print("PHASE2_CROSS=fail")
         print(f"PHASE2_CROSS_NOTE=invalid fixture JSON: {exc.msg}")
@@ -304,15 +387,23 @@ def main() -> int:
         print("PHASE2_CROSS_ISSUES_END")
         return 1
 
-    if args.target:
+    if args.target and args.all_targets:
+        print("PHASE2_CROSS=fail")
+        print("PHASE2_CROSS_NOTE=choose either --target or --all-targets")
+        return 1
+
+    if args.target or args.all_targets:
         zig = resolve_zig(args.zig)
         if zig is None:
             print("PHASE2_CROSS=fail")
             print("PHASE2_CROSS_NOTE=zig not found on PATH")
             return 1
-        return run_cross_compile(ROOT, args.target, zig)
 
-    payload = load_fixture(FIXTURE)
+        if args.target:
+            return run_cross_compile(root, args.target, zig)
+        return run_all_targets(root, zig)
+
+    payload = load_fixture(fixture_path(root))
     targets = payload["targets"]
     zig_test_files = payload["zig_test_files"]
     print("PHASE2_CROSS=pass")
