@@ -25,6 +25,10 @@ pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_F
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED: u32 = 1;
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED: u32 = 1;
 
+pub const NOTIFIER_DONE: u32 = 0;
+pub const NOTIFIER_OK: u32 = 1;
+pub const NOTIFIER_STOP: u32 = 2;
+
 pub const BoundaryHeader = extern struct {
     size: u32,
     abi_version: u16,
@@ -68,6 +72,12 @@ pub const UnsafeScope = enum(u8) {
     raw_pointer_bridge = UNSAFE_RAW_POINTER_BRIDGE,
 };
 
+pub const NotifierResult = enum(u32) {
+    done = NOTIFIER_DONE,
+    ok = NOTIFIER_OK,
+    stop = NOTIFIER_STOP,
+};
+
 pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView = extern struct {
     ack_window: u32,
     delivery_window: u32,
@@ -90,6 +100,12 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = e
     attempted: u32,
     applied: u32,
     skipped: u32,
+};
+
+pub const NotifierBlock = extern struct {
+    notifier_call: usize,
+    next: usize,
+    priority: i32,
 };
 
 pub fn defaultHeader(flags: u16) BoundaryHeader {
@@ -124,6 +140,10 @@ test "abi binding enums stay aligned with exported constants" {
     try std.testing.expectEqual(@as(u8, UNSAFE_NONE), @intFromEnum(UnsafeScope.none));
     try std.testing.expectEqual(@as(u8, UNSAFE_VOLATILE_MMIO), @intFromEnum(UnsafeScope.volatile_mmio));
     try std.testing.expectEqual(@as(u8, UNSAFE_RAW_POINTER_BRIDGE), @intFromEnum(UnsafeScope.raw_pointer_bridge));
+
+    try std.testing.expectEqual(@as(u32, NOTIFIER_DONE), @intFromEnum(NotifierResult.done));
+    try std.testing.expectEqual(@as(u32, NOTIFIER_OK), @intFromEnum(NotifierResult.ok));
+    try std.testing.expectEqual(@as(u32, NOTIFIER_STOP), @intFromEnum(NotifierResult.stop));
 }
 
 test "abi binding chrdev structs keep the published layout" {
@@ -150,4 +170,15 @@ test "abi binding chrdev structs keep the published layout" {
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted"));
     try std.testing.expectEqual(@as(usize, 4), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied"));
     try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"));
+}
+
+test "abi binding notifier block keeps the published layout" {
+    const raw_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
+    const expected_size = std.mem.alignForward(usize, raw_size, @alignOf(usize));
+
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
+    try std.testing.expectEqual(expected_size, @sizeOf(NotifierBlock));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
 }
