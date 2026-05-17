@@ -20,6 +20,7 @@ CURRENT_RING_PACKET_FILES = [
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
+    "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
 ]
 
 MARKERS = {
@@ -49,12 +50,15 @@ MARKERS = {
         '.root_source_file = b.path("phase10_virtio_ring_prepare_kick_idempotent.zig"),',
         '.root_source_file = b.path("phase10_virtio_ring_reset_reuse.zig"),',
         '.root_source_file = b.path("phase10_virtio_ring_broken_queue_queue_discipline.zig"),',
+        '.root_source_file = b.path("phase10_virtio_ring_delayed_callback_budget.zig"),',
         '.name = "phase10-virtio-ring-prepare-kick-idempotent-tests",',
         '.name = "phase10-virtio-ring-reset-reuse-tests",',
         '.name = "phase10-virtio-ring-broken-queue-queue-discipline-tests",',
+        '.name = "phase10-virtio-ring-delayed-callback-budget-tests",',
         "test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_delayed_callback_budget_tests.step);",
         "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
     ],
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
@@ -78,6 +82,17 @@ MARKERS = {
         "try std.testing.expectError(error.QueueResetWhileBroken, ring.resetQueue(3));",
         "const cleared_summary = try ring.clearBroken(3);",
         "const second_kick = try ring.prepareKick(3);",
+    ],
+    "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig": [
+        'test "phase10 virtio ring delayed callback budget stays bounded to queue-local replay state" {',
+        'const virtio_ring = @import("virtio_ring");',
+        "var summary = try ring.enableCallbackDelayed(7);",
+        "try std.testing.expectEqual(@as(u16, 1), summary.delay_budget_count);",
+        "try std.testing.expectEqual(@as(u16, 2), summary.pending_used_chain_count);",
+        "try std.testing.expect(summary.should_poll);",
+        "summary = try ring.enableCallbackDelayed(7);",
+        "try std.testing.expect(!summary.should_poll);",
+        "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
     ],
 }
 
@@ -178,11 +193,19 @@ def run_self_test() -> int:
         )
         expect_missing_marker(
             "zigux/tests/phase10_build.zig",
+            '.name = "phase10-virtio-ring-delayed-callback-budget-tests",',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_build.zig",
             "test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);",
         )
         expect_missing_marker(
             "zigux/tests/phase10_build.zig",
             "test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);",
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_build.zig",
+            "test_step.dependOn(&run_phase10_virtio_ring_delayed_callback_budget_tests.step);",
         )
         expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
@@ -200,12 +223,21 @@ def run_self_test() -> int:
             "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
             "try std.testing.expectError(error.QueueResetWhileBroken, ring.resetQueue(3));",
         )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
+            "try std.testing.expectEqual(@as(u16, 1), summary.delay_budget_count);",
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
+            "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
+        )
         expect_missing_file("drivers/virtio/virtio_ring.zig")
         expect_missing_file("drivers/virtio/virtio_ring_verify.zig")
         expect_missing_file("zigux/tests/phase10_build.zig")
         expect_missing_file("zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig")
         expect_missing_file("zigux/tests/phase10_virtio_ring_reset_reuse.zig")
         expect_missing_file("zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig")
+        expect_missing_file("zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
     print(f"PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT={case_count}")
