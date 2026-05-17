@@ -26,9 +26,9 @@ REQUIRED_SCRIPTS_SNIPPETS = [
 ]
 
 REQUIRED_TESTS_SNIPPETS = [
-    "* current direct-readback Phase 6 shared packet: `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/README.md`, and `scripts/zigux/README.md`",
-    "* repo-reality warning for the broader Phase 6 helper parity and perf packet: repeated authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `zigux/tests/phase6_build.zig`, and `zigux/tests/phase6_helper_parity_manifest.json`",
-    "* keep current Phase 6 follow-through tied to those directly readable shared reminder surfaces instead of reconstructing the broader helper-local parity and perf packet from older route names alone",
+    "* current direct-readback Phase 6 shared packet: `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/phase6_build.zig`, and `zigux/tests/phase6_helper_evidence_manifest.json`",
+    "* repo-reality warning for the broader Phase 6 helper parity and perf packet: repeated authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`",
+    "* keep current Phase 6 follow-through tied to those directly readable shared reminder surfaces plus the restored shared build and machine-readable evidence footholds instead of reconstructing the broader helper-local parity and perf packet from older route names alone",
 ]
 
 REQUIRED_DOCS_SNIPPETS = [
@@ -145,15 +145,15 @@ def run_self_test() -> None:
             ),
             (
                 root / TESTS_README_PATH,
-                "* current direct-readback Phase 6 shared packet: `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/README.md`, and `scripts/zigux/README.md`",
+                "* current direct-readback Phase 6 shared packet: `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/phase6_build.zig`, and `zigux/tests/phase6_helper_evidence_manifest.json`",
             ),
             (
                 root / TESTS_README_PATH,
-                "* repo-reality warning for the broader Phase 6 helper parity and perf packet: repeated authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `zigux/tests/phase6_build.zig`, and `zigux/tests/phase6_helper_parity_manifest.json`",
+                "* repo-reality warning for the broader Phase 6 helper parity and perf packet: repeated authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`",
             ),
             (
                 root / TESTS_README_PATH,
-                "* keep current Phase 6 follow-through tied to those directly readable shared reminder surfaces instead of reconstructing the broader helper-local parity and perf packet from older route names alone",
+                "* keep current Phase 6 follow-through tied to those directly readable shared reminder surfaces plus the restored shared build and machine-readable evidence footholds instead of reconstructing the broader helper-local parity and perf packet from older route names alone",
             ),
             (
                 root / DOCS_README_PATH,
