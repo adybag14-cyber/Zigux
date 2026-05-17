@@ -74,6 +74,10 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper, "pub fn stringEscapeStrAnyNp");
     try expectContains(helper, "pub fn memcpyAndPad");
     try expectContains(helper, "pub fn strreplace");
+    try expectContains(helper, "pub fn stringUpper");
+    try expectContains(helper, "pub fn string_upper");
+    try expectContains(helper, "pub fn stringLower");
+    try expectContains(helper, "pub fn string_lower");
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
@@ -93,6 +97,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper_tests, "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
+    try expectContains(helper_tests, "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary");
 
     const survey = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_survey.zig");
     defer allocator.free(survey);
@@ -125,6 +130,12 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(manifest, "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries");
     try expectContains(manifest, "the broader parse, file-path, or device-managed follow-ons as landed");
     try expectContains(manifest, "`parse_int_array()` belongs in the same helper-local packet");
+    try expectContains(manifest, "\"stringEscapeStrAnyNp\"");
+    try expectContains(manifest, "\"stringUpper\"");
+    try expectContains(manifest, "\"string_upper\"");
+    try expectContains(manifest, "\"stringLower\"");
+    try expectContains(manifest, "\"string_lower\"");
+    try expectContains(manifest, "bounded uppercase and lowercase copies through the exported C-string boundary");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 
