@@ -18,6 +18,7 @@ FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-input-module-slice.md",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_verify.zig",
@@ -102,6 +103,16 @@ VERIFY_MARKERS = [
     'test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
 ]
 
+CLOSURE_EVIDENCE_MARKERS = [
+    "`PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`",
+    "the surviving direct driver anchors are `drivers/virtio/virtio_input.zig` and `drivers/virtio/virtio_mmio.zig`",
+    "the surviving direct lab-validation replays stay limited to `zigux/tests/phase10_build.zig` plus the input and MMIO test packet",
+    "Repeated authenticated contents reads still return missing for `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core and ring members framed as manifest-backed packet vocabulary rather than direct current-`master` evidence.",
+    "`virtqueue_wrappers=repo_reality_gap`",
+    "`lab_only_driver_validation=partial_direct_packet`",
+    "`mmio_wrappers=starter_landed`",
+]
+
 SCRIPTS_README_MARKERS = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
@@ -170,6 +181,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     companion = read_text(
         root, "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
     )
+    closure_evidence = read_text(root, "Documentation/zigux/phase10-closure-evidence.md")
     module_slice = read_text(root, "Documentation/zigux/phase10-virtio-input-module-slice.md")
     build = read_text(root, "zigux/tests/phase10_build.zig")
     registration_helper = read_text(root, "drivers/virtio/virtio_input_registration_preflight.zig")
@@ -184,6 +196,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         REVIEW_CHECKLIST_MARKERS,
     )
     check_markers(missing_markers, "tests_root_companion", companion, COMPANION_MARKERS)
+    check_markers(
+        missing_markers,
+        "phase10_closure_evidence",
+        closure_evidence,
+        CLOSURE_EVIDENCE_MARKERS,
+    )
     check_markers(
         missing_markers,
         "phase10_input_module_slice",
@@ -234,6 +252,8 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(
             COMPANION_MARKERS
         )
+        + "\n",
+        "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_EVIDENCE_MARKERS)
         + "\n",
         "Documentation/zigux/phase10-virtio-input-module-slice.md": "\n".join(
             MODULE_SLICE_MARKERS
@@ -357,6 +377,56 @@ def run_self_test() -> int:
             "phase10-harness-coverage-self-test:companion_registration_helper_path",
         )
         companion_path.write_text(original_companion, encoding="utf-8")
+        case_count += 1
+
+        closure_evidence_path = root / "Documentation/zigux/phase10-closure-evidence.md"
+        original_closure_evidence = closure_evidence_path.read_text(encoding="utf-8")
+        closure_evidence_path.write_text(
+            original_closure_evidence.replace(
+                "`virtqueue_wrappers=repo_reality_gap`",
+                "`virtqueue_wrappers=starter_landed`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "phase10_closure_evidence:`virtqueue_wrappers=repo_reality_gap`",
+            "phase10-harness-coverage-self-test:closure_evidence_ring_status",
+        )
+        closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
+        case_count += 1
+
+        closure_evidence_path.write_text(
+            original_closure_evidence.replace(
+                "the surviving direct driver anchors are `drivers/virtio/virtio_input.zig` and `drivers/virtio/virtio_mmio.zig`",
+                "the surviving direct driver anchors are `drivers/virtio/virtio_input.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "phase10_closure_evidence:the surviving direct driver anchors are `drivers/virtio/virtio_input.zig` and `drivers/virtio/virtio_mmio.zig`",
+            "phase10-harness-coverage-self-test:closure_evidence_driver_inventory",
+        )
+        closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
+        case_count += 1
+
+        closure_evidence_path.write_text(
+            original_closure_evidence.replace(
+                "Repeated authenticated contents reads still return missing for `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core and ring members framed as manifest-backed packet vocabulary rather than direct current-`master` evidence.",
+                "Repeated authenticated contents reads still return missing for `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, and `drivers/virtio/virtio_ring.zig`.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "phase10_closure_evidence:Repeated authenticated contents reads still return missing for `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core and ring members framed as manifest-backed packet vocabulary rather than direct current-`master` evidence.",
+            "phase10-harness-coverage-self-test:closure_evidence_missing_inventory",
+        )
+        closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
         case_count += 1
 
         module_slice_path = root / "Documentation/zigux/phase10-virtio-input-module-slice.md"
@@ -504,6 +574,15 @@ def run_self_test() -> int:
         docs_root_path.write_text(original_docs_root, encoding="utf-8")
         case_count += 1
 
+        (root / "Documentation/zigux/phase10-closure-evidence.md").unlink()
+        expect_missing_file(
+            root,
+            "Documentation/zigux/phase10-closure-evidence.md",
+            "phase10-harness-coverage-self-test:missing_closure_evidence",
+        )
+        write_fixture(root)
+        case_count += 1
+
         (root / "drivers/virtio/virtio_input_verify.zig").unlink()
         expect_missing_file(
             root,
@@ -553,7 +632,7 @@ def main() -> int:
     print(f"PHASE10_HARNESS_COVERAGE_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE10_HARNESS_COVERAGE_REQUIRED_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(MODULE_SLICE_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS) + len(SCRIPTS_README_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(CLOSURE_EVIDENCE_MARKERS) + len(MODULE_SLICE_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS) + len(SCRIPTS_README_MARKERS)}"
     )
     print(
         "PHASE10_HARNESS_COVERAGE_FORBIDDEN_MARKER_COUNT="
