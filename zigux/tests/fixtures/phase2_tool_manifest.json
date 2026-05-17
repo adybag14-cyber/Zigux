@@ -26,7 +26,9 @@
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py"
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-zig-toolchain.py"
   ],
   "missing_files": [
     "scripts/zigux/check-genksyms-bridge.py",
