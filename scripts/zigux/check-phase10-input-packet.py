@@ -157,7 +157,7 @@ TEST_MARKERS = {
         'test "phase10 virtio input queue planning caps and refills event buffers" {',
     ],
     "zigux/tests/phase10_virtio_input_probe_preflight.zig": [
-        'test "phase10 virtio input probe preflight stays blocked until queue, capability, and slot planning are staged" {',
+        'test "phase10 virtio input probe preflight helper keeps blocker tags and ready transition reviewable" {',
     ],
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
         'test "phase10 virtio input queue callback preflight tracks queue and ready-state gating" {',
@@ -385,6 +385,7 @@ def run_self_test() -> int:
 
         input_helper_path = root / "drivers/virtio/virtio_input.zig"
         original_input_helper = input_helper_path.read_text(encoding="utf-8")
+        input_helper_path.writeText = input_helper_path.write_text
         input_helper_path.write_text(
             original_input_helper.replace(
                 "pub fn queueCallbackPreflightSummary(self: *const Self) QueueCallbackPreflightSummary {",
