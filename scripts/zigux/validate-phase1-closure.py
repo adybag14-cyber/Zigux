@@ -32,12 +32,12 @@ REQUIRED_NOTE_MARKERS = [
     "`PHASE1_CLOSURE_RESTORE_STATE=partial`",
     "`PHASE1_HELPER_COUNT=13`",
     "manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`",
-    "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`",
-    "`PHASE1_SHARED_REMINDER_SYNC_STATE=checklist_pending`",
+    "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`",
+    "`PHASE1_SHARED_REMINDER_SYNC_STATE=aligned`",
     "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`",
     "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
-    "`PHASE1_NEXT_SAFE_STEP=sync Documentation/zigux/review-checklist.md to this restored closure anchor before widening into zigux/tests/phase1_helpers.zig or bench claims`",
+    "`PHASE1_NEXT_SAFE_STEP=rematerialize one replay-side helper or bench companion on current master before widening reminder wording again`",
 ]
 
 REQUIRED_DOCS_README_MARKERS = [
@@ -52,6 +52,19 @@ FORBIDDEN_DOCS_README_MARKERS = [
     "`scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`",
     "the current docs-root Phase 1 reminder packet should stay parked on the live owner-map and string-review guards",
     "`python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the bounded current reminder checks",
+]
+
+REQUIRED_REVIEW_CHECKLIST_MARKERS = [
+    "restored closure anchor plus narrow closure validator",
+    "while `scripts/zigux/check-phase1-bench.py` stays explicit as the shipped bench-side checker anchor for the remaining shared reminder wording",
+    "`python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/validate-phase1-closure.py --self-test` replay the bounded live reminder checks",
+    "`scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, and `scripts/zigux/validate-phase1-closure.py` guard the shipped current-`master` Phase 1 reminder packet",
+    "the broader docs-root, checklist, and tests-root bench wording stays aligned with the shipped bench checker instead of treating it as missing current evidence",
+]
+
+FORBIDDEN_REVIEW_CHECKLIST_MARKERS = [
+    "`Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`",
+    "`python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the bounded live reminder checks",
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
@@ -112,6 +125,7 @@ def require_once(text: str, marker: str, label: str, failures: list[str]) -> Non
 def collect_failures(root: Path) -> list[str]:
     note_path = root / "Documentation/zigux/phase1-closure.md"
     docs_readme_path = root / "Documentation/zigux/README.md"
+    review_checklist_path = root / "Documentation/zigux/review-checklist.md"
     tests_readme_path = root / "zigux/tests/README.md"
     readme_path = root / "scripts/zigux/README.md"
     manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
@@ -122,6 +136,7 @@ def collect_failures(root: Path) -> list[str]:
     for path in (
         note_path,
         docs_readme_path,
+        review_checklist_path,
         tests_readme_path,
         readme_path,
         manifest_path,
@@ -135,6 +150,7 @@ def collect_failures(root: Path) -> list[str]:
 
     note_text = read_text(note_path)
     docs_readme_text = read_text(docs_readme_path)
+    review_checklist_text = read_text(review_checklist_path)
     tests_readme_text = read_text(tests_readme_path)
     readme_text = read_text(readme_path)
     build_text = read_text(build_path)
@@ -152,6 +168,11 @@ def collect_failures(root: Path) -> list[str]:
     for marker in FORBIDDEN_DOCS_README_MARKERS:
         if marker in docs_readme_text:
             failures.append(f"docs_readme:forbidden={marker}")
+    for marker in REQUIRED_REVIEW_CHECKLIST_MARKERS:
+        require_once(review_checklist_text, marker, "review_checklist", failures)
+    for marker in FORBIDDEN_REVIEW_CHECKLIST_MARKERS:
+        if marker in review_checklist_text:
+            failures.append(f"review_checklist:forbidden={marker}")
     for marker in REQUIRED_TESTS_README_MARKERS:
         require_once(tests_readme_text, marker, "tests_readme", failures)
     for marker in FORBIDDEN_TESTS_README_MARKERS:
@@ -182,6 +203,7 @@ def collect_failures(root: Path) -> list[str]:
 def make_fixture_tree(root: Path) -> None:
     write_text(root / "Documentation/zigux/phase1-closure.md", read_text(Path(__file__).resolve().parents[2] / "Documentation/zigux/phase1-closure.md"))
     write_text(root / "Documentation/zigux/README.md", read_text(Path(__file__).resolve().parents[2] / "Documentation/zigux/README.md"))
+    write_text(root / "Documentation/zigux/review-checklist.md", read_text(Path(__file__).resolve().parents[2] / "Documentation/zigux/review-checklist.md"))
     write_text(root / "zigux/tests/README.md", read_text(Path(__file__).resolve().parents[2] / "zigux/tests/README.md"))
     write_text(root / "scripts/zigux/README.md", read_text(Path(__file__).resolve().parents[2] / "scripts/zigux/README.md"))
     write_text(
@@ -239,7 +261,7 @@ def run_self_test() -> int:
                 root / "Documentation/zigux/phase1-closure.md",
                 replace_once(
                     read_text(root / "Documentation/zigux/phase1-closure.md"),
-                    "`PHASE1_SHARED_REMINDER_SYNC_STATE=checklist_pending`",
+                    "`PHASE1_SHARED_REMINDER_SYNC_STATE=aligned`",
                     "`PHASE1_SHARED_REMINDER_SYNC_STATE=drifted`",
                 ),
             ),
@@ -253,6 +275,18 @@ def run_self_test() -> int:
                     read_text(root / "Documentation/zigux/README.md"),
                     "the current docs-root Phase 1 reminder packet should stay parked on the restored closure anchor, narrow closure validator, live owner-map, and string-review guards",
                     "the current docs-root Phase 1 reminder packet should stay parked on the live owner-map and string-review guards",
+                ),
+            ),
+            False,
+        ),
+        (
+            "review_checklist_missing_marker",
+            lambda root: write_text(
+                root / "Documentation/zigux/review-checklist.md",
+                replace_once(
+                    read_text(root / "Documentation/zigux/review-checklist.md"),
+                    "restored closure anchor plus narrow closure validator",
+                    "restored closure anchor",
                 ),
             ),
             False,
