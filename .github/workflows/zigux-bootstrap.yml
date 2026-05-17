@@ -82,6 +82,9 @@ jobs:
           fi
           python3 -m py_compile "${scripts[@]}"
 
+      - name: Self-test current Phase 2 kconfig bridge checker
+        run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
+
       - name: Self-test current Phase 1 direct-owner checker
         run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
 
