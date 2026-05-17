@@ -103,6 +103,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase10_virtio_input_teardown_observation_module.addImport("virtio_input", virtio_input_module);
+    virtio_input_verify_module.addImport(
+        "virtio_input_teardown_observation",
+        phase10_virtio_input_teardown_observation_module,
+    );
 
     const phase10_virtio_input_survey_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_input_survey.zig"),
