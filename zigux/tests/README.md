@@ -174,7 +174,7 @@ Phase 8 review packet
   * `zigux/tests/phase8_kallsyms.zig`
   * `zigux/tests/phase8_kallsyms_only_build.zig`
   * `zigux/tests/phase8_cpu_mask.zig`
-  * `zigux/tests/phase8_cpu_mask_ONLY_BUILD.zig`
+  * `zigux/tests/phase8_cpu_mask_only_build.zig`
   * `zigux/tests/phase8_logging.zig`
   * `zigux/tests/phase8_pin_path.zig`
   * `zigux/tests/phase8_bpf_type_names.zig`
