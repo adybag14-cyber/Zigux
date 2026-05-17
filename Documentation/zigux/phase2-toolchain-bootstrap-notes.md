@@ -30,7 +30,7 @@ This note records the bounded Phase 2 toolchain pinning, build-check, and kbuild
 ## Pin Scope
 
 - closure note: `Documentation/zigux/phase2-closure.md`
-- workflow install path: `python3 scripts/zigux/install-zig.py --dest .zig-toolchain`
+- workflow install path remains historical on this branch until `scripts/zigux/install-zig.py` is restored: `python3 scripts/zigux/install-zig.py --dest .zig-toolchain`
 - workflow verification path: `python3 scripts/zigux/check-zig-toolchain.py`
 - current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`
 - current minimum Zig version: `0.17.0-dev.87+9b177a7d2`
