@@ -30,6 +30,7 @@ WORKFLOW_LINES = (
 )
 
 README_PRESENT_MARKERS = (
+    "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -42,13 +43,14 @@ README_PRESENT_MARKERS = (
 README_WARNING_MARKERS = (
     "repeated authenticated reads on current `master` still return missing for",
     "`Documentation/zigux/phase2-closure.md`",
+    "`scripts/zigux/validate-phase2.py`",
+    "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-zig-toolchain.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
+    "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
     "historical packet members",
@@ -56,6 +58,7 @@ README_WARNING_MARKERS = (
 
 BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/zig-toolchain-policy.json`",
+    "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -73,9 +76,8 @@ BOOTSTRAP_WARNING_MARKERS = (
     "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-cross.py`",
-    "Treat the absent validator-first, direct toolchain-resolution, cross-route, installer, and Linux-style make replay names as historical packet members",
+    "Treat the absent validator-first, cross-route, installer, and Linux-style make replay names as historical packet members",
 )
 
 README_FORBIDDEN_MARKERS = (
@@ -91,7 +93,7 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 61
+EXPECTED_SELF_TEST_CASE_COUNT = 63
 
 
 def read_text(path: Path) -> str:
@@ -188,8 +190,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     issues.extend(collect_missing_markers(readme_text, README_PRESENT_MARKERS, "MISSING_README_PRESENT_MARKERS"))
     issues.extend(collect_missing_markers(readme_text, README_WARNING_MARKERS, "MISSING_README_WARNING_MARKERS"))
-    issues.extend(collect_missing_markers(bootstrap_notes_text, BOOTSTRAP_PRESENT_MARKERS, "MISSING_BOOTSTRAP_PRESENT_MARKERS"))
-    issues.extend(collect_missing_markers(bootstrap_notes_text, BOOTSTRAP_WARNING_MARKERS, "MISSING_BOOTSTRAP_WARNING_MARKERS"))
+    issues.extend(
+        collect_missing_markers(
+            bootstrap_notes_text, BOOTSTRAP_PRESENT_MARKERS, "MISSING_BOOTSTRAP_PRESENT_MARKERS"
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            bootstrap_notes_text, BOOTSTRAP_WARNING_MARKERS, "MISSING_BOOTSTRAP_WARNING_MARKERS"
+        )
+    )
     issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
 
     for path in SURFACE_PATHS:
