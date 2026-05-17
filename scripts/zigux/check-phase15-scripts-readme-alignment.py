@@ -2,174 +2,70 @@
 from __future__ import annotations
 
 import argparse
-import json
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
 README_REL = "scripts/zigux/README.md"
-DOCS_README_REL = "Documentation/zigux/README.md"
-MAKEFILE_REL = "zigux/Makefile"
-WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
-REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
-REVIEW_PROCESS_NOTE_REL = "Documentation/zigux/phase15-architecture-council-review-process.md"
-HANDOFF_NEXT_STEPS_NOTE_REL = "Documentation/zigux/phase15-handoff-next-steps-survey.md"
-READINESS_GATE_NOTE_REL = "Documentation/zigux/phase15-readiness-gate-survey.md"
-PARITY_SCORECARD_NOTE_REL = "Documentation/zigux/phase15-parity-scorecard.md"
-TESTS_README_REL = "zigux/tests/README.md"
-HANDOFF_CHECKER_REL = "scripts/zigux/check-phase15-review-process-handoff.py"
+LANE_SEQ_REL = "Documentation/zigux/phase15-governance-lane-sequencing.md"
+READINESS_REL = "Documentation/zigux/phase15-readiness-gate-survey.md"
+SHARED_GAP_REL = "Documentation/zigux/phase15-shared-summary-gap.md"
 DOCS_CHECKER_REL = "scripts/zigux/check-phase15-docs-readme-alignment.py"
-SHARED_SUMMARY_CHECKER_REL = "scripts/zigux/check-phase15-shared-summary-gap.py"
-MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
-BUILD_REL = "zigux/tests/phase15_build.zig"
+SCRIPTS_CHECKER_REL = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
+HANDOFF_CHECKER_REL = "scripts/zigux/check-phase15-review-process-handoff.py"
+GAP_CHECKER_REL = "scripts/zigux/check-phase15-shared-summary-gap.py"
+READINESS_MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
+REVIEW_PROCESS_MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
 
 REQUIRED_FILES = (
     README_REL,
-    DOCS_README_REL,
-    MAKEFILE_REL,
-    WORKFLOW_REL,
-    REVIEW_CHECKLIST_REL,
-    REVIEW_PROCESS_NOTE_REL,
-    HANDOFF_NEXT_STEPS_NOTE_REL,
-    READINESS_GATE_NOTE_REL,
-    TESTS_README_REL,
-    HANDOFF_CHECKER_REL,
+    LANE_SEQ_REL,
+    READINESS_REL,
+    SHARED_GAP_REL,
     DOCS_CHECKER_REL,
-    SHARED_SUMMARY_CHECKER_REL,
-    MANIFEST_REL,
-    BUILD_REL,
-    "Documentation/zigux/freeze-map.md",
-    "Documentation/zigux/phase15-freeze-map-governance.md",
-    "Documentation/zigux/phase15-governance-lane-sequencing.md",
-    PARITY_SCORECARD_NOTE_REL,
-    "Documentation/zigux/phase15-indefinite-c-policy.md",
-    "zigux/tests/phase15_freeze_map_governance.zig",
-    "zigux/tests/phase15_parity_scorecard.zig",
-    "zigux/tests/phase15_architecture_council_review_process.zig",
-    "zigux/tests/phase15_handoff_next_steps.zig",
-    "zigux/tests/phase15_indefinite_c_policy.json",
-    "zigux/tests/phase15_indefinite_c_policy.zig",
-    "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-    "zigux/tests/phase15_governance_lane_sequencing.zig",
-    "zigux/tests/phase15_readiness_gate.zig",
+    SCRIPTS_CHECKER_REL,
+    HANDOFF_CHECKER_REL,
+    GAP_CHECKER_REL,
+    READINESS_MANIFEST_REL,
+    REVIEW_PROCESS_MANIFEST_REL,
 )
 
-README_MARKERS = (
-    "Phase 15 flow",
-    "check-phase15-docs-readme-alignment.py",
-    "check-phase15-scripts-readme-alignment.py",
-    "check-phase15-review-process-handoff.py",
-    "check-phase15-shared-summary-gap.py",
+LANE_SEQ_MARKERS = (
+    "`scripts/zigux/README.md`",
+    "`Documentation/zigux/review-checklist.md`",
+    "`Documentation/zigux/phase15-readiness-gate-survey.md`",
+    "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
+)
+
+READINESS_MARKERS = (
+    "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
+    "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
+    "`scripts/zigux/check-phase15-review-process-handoff.py`",
+    "`scripts/zigux/check-phase15-shared-summary-gap.py`",
+    "`zigux/Makefile`",
+    "blocked route vocabulary",
+)
+
+SHARED_GAP_MARKERS = (
+    "`scripts/zigux/README.md`",
+    "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
+    "`scripts/zigux/check-phase15-review-process-handoff.py`",
+    "`scripts/zigux/check-phase15-shared-summary-gap.py`",
+    "`zigux/tests/phase15_readiness_gate_manifest.json`",
+    "`scripts/zigux/validate-phase15.py`",
+    "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+    "`zigux/tests/phase15_build.zig`",
+    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+    "parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
+)
+
+STALE_README_MARKERS = (
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
     "make -C zigux phase15",
-    "no-approval",
-    "reopen-trigger",
-)
-
-DOCS_README_MARKERS = (
-    "Phase 15 notes",
-    "Documentation/zigux/phase15-governance-lane-sequencing.md",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "make -C zigux phase15-validate",
-    "make -C zigux phase15-test",
-    "make -C zigux phase15",
-)
-
-MAKEFILE_MARKERS = (
-    "PHONY += phase15-validate phase15-test phase15",
-    "phase15-validate:",
-    "scripts/zigux/check-phase15-docs-readme-alignment.py --self-test",
-    "scripts/zigux/check-phase15-docs-readme-alignment.py",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py --self-test",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
-    "scripts/zigux/check-phase15-shared-summary-gap.py --self-test",
-    "scripts/zigux/check-phase15-shared-summary-gap.py",
-    "phase15-test:",
-    "$(ZIG) build test --build-file zigux/tests/phase15_build.zig",
-    "phase15: phase15-validate phase15-test",
-)
-
-WORKFLOW_MARKERS = (
-    "Validate Phase 15 governance packet",
-    "make -C zigux phase15-validate",
-    "Run Phase 15 governance tests",
-    "make -C zigux phase15-test",
-)
-
-REVIEW_CHECKLIST_MARKERS = (
-    "if the change touches the shared Phase 15 governance packet",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
-    "make -C zigux phase15-validate",
-    "make -C zigux phase15-test",
-    "make -C zigux phase15",
-)
-
-REVIEW_PROCESS_NOTE_MARKERS = (
-    "no Architecture Council approval is currently recorded for a freeze-map status change",
-    "reopen triggers",
-    "Keep the Phase 15 governance lane in maintenance mode.",
-)
-
-PARITY_SCORECARD_MARKERS = (
-    "shared validator-first gate through",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
-    "make -C zigux phase15-validate",
-)
-
-TESTS_README_MARKERS = (
-    "keep the parked Phase 15 governance packet explicit in the tests root too:",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
-    "zigux/tests/phase15_handoff_next_steps_manifest.json",
-    "zigux/tests/phase15_readiness_gate_manifest.json",
-    "make -C zigux phase15-validate",
-    "make -C zigux phase15-test",
-    "make -C zigux phase15",
-)
-
-HANDOFF_CHECKER_MARKERS = (
-    'NOTE_PATH = "Documentation/zigux/phase15-architecture-council-review-process.md"',
-    'MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"',
-    'print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")',
-)
-
-MANIFEST_LANE_MARKERS = (
-    "scripts-root validator path",
-    "Linux-style `make -C zigux phase15-validate` route",
-    "tests-root guidance path",
-    "dedicated handoff-checker route",
-)
-
-CURRENT_REPO_HANDOFF_MARKERS = (
-    "Documentation/zigux/phase15-freeze-map-governance.md",
-    "Documentation/zigux/phase15-governance-lane-sequencing.md",
-    "scripts/zigux/README.md",
-    "zigux/tests/README.md",
-    "zigux/Makefile",
-    ".github/workflows/zigux-bootstrap.yml",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
-    "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-    "zigux/tests/phase15_governance_lane_sequencing.zig",
+    "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_build.zig",
-)
-
-BUILD_MARKERS = (
-    'b.path("phase15_freeze_map_governance.zig")',
-    'b.path("phase15_parity_scorecard.zig")',
-    'b.path("phase15_architecture_council_review_process.zig")',
-    'b.path("phase15_handoff_next_steps.zig")',
-    'b.path("phase15_indefinite_c_policy.zig")',
-    'b.path("phase15_indefinite_c_lane_owner_alignment.zig")',
-    'b.path("phase15_readiness_gate.zig")',
-    'b.step("test", "Run Phase 15 governance tests")',
+    "zigux/Makefile",
 )
 
 
@@ -182,196 +78,131 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
-def _require_markers_present(text: str, markers: tuple[str, ...], prefix: str, issues: list[str]) -> None:
+def _require_markers(text: str, markers: tuple[str, ...], prefix: str, failures: list[str]) -> None:
     for marker in markers:
         if marker not in text:
-            issues.append(f"{prefix}:missing:{marker}")
+            failures.append(f"{prefix}:missing:{marker}")
 
 
 def validate(root: Path) -> list[str]:
-    issues: list[str] = []
+    failures: list[str] = []
     for rel in REQUIRED_FILES:
         if not (root / rel).exists():
-            issues.append(f"missing_file:{rel}")
-    if issues:
-        return issues
+            failures.append(f"missing_file:{rel}")
+    if failures:
+        return failures
 
     readme = _read(root / README_REL)
-    docs_readme = _read(root / DOCS_README_REL)
-    makefile = _read(root / MAKEFILE_REL)
-    workflow = _read(root / WORKFLOW_REL)
-    handoff_checker = _read(root / HANDOFF_CHECKER_REL)
-    review_checklist = _read(root / REVIEW_CHECKLIST_REL)
-    review_process_note = _read(root / REVIEW_PROCESS_NOTE_REL)
-    parity_scorecard = _read(root / PARITY_SCORECARD_NOTE_REL)
-    tests_readme = _read(root / TESTS_README_REL)
-    manifest = json.loads(_read(root / MANIFEST_REL))
-    build = _read(root / BUILD_REL)
+    lane_seq = _read(root / LANE_SEQ_REL)
+    readiness = _read(root / READINESS_REL)
+    shared_gap = _read(root / SHARED_GAP_REL)
 
-    _require_markers_present(readme, README_MARKERS, "readme", issues)
-    _require_markers_present(docs_readme, DOCS_README_MARKERS, "docs_readme", issues)
-    _require_markers_present(makefile, MAKEFILE_MARKERS, "makefile", issues)
-    _require_markers_present(workflow, WORKFLOW_MARKERS, "workflow", issues)
-    _require_markers_present(handoff_checker, HANDOFF_CHECKER_MARKERS, "handoff_checker", issues)
-    _require_markers_present(review_checklist, REVIEW_CHECKLIST_MARKERS, "review_checklist", issues)
-    _require_markers_present(review_process_note, REVIEW_PROCESS_NOTE_MARKERS, "review_process_note", issues)
-    _require_markers_present(parity_scorecard, PARITY_SCORECARD_MARKERS, "parity_scorecard", issues)
-    _require_markers_present(tests_readme, TESTS_README_MARKERS, "tests_readme", issues)
-    _require_markers_present(build, BUILD_MARKERS, "build", issues)
+    _require_markers(lane_seq, LANE_SEQ_MARKERS, "lane_seq", failures)
+    _require_markers(readiness, READINESS_MARKERS, "readiness", failures)
+    _require_markers(shared_gap, SHARED_GAP_MARKERS, "shared_gap", failures)
 
-    handoff_evidence = manifest.get("handoff_evidence")
-    if not isinstance(handoff_evidence, dict):
-        issues.append("manifest:missing:handoff_evidence")
-    else:
-        current_repo_handoff = handoff_evidence.get("current_repo_handoff")
-        if not isinstance(current_repo_handoff, str):
-            issues.append("manifest:missing:handoff_evidence.current_repo_handoff")
-        else:
-            _require_markers_present(current_repo_handoff, CURRENT_REPO_HANDOFF_MARKERS, "manifest_current_repo_handoff", issues)
-        current_bounded_lane = handoff_evidence.get("current_bounded_lane")
-        if not isinstance(current_bounded_lane, str):
-            issues.append("manifest:missing:handoff_evidence.current_bounded_lane")
-        else:
-            _require_markers_present(current_bounded_lane, MANIFEST_LANE_MARKERS, "manifest_current_bounded_lane", issues)
+    for marker in STALE_README_MARKERS:
+        if marker in readme:
+            failures.append(f"readme:stale_phase15_route:{marker}")
 
-    return issues
+    return failures
 
 
-def _baseline_readme() -> str:
-    return "\n".join(
-        (
-            "# scripts/zigux",
-            "",
-            "Phase 15 flow",
-            "- `check-phase15-docs-readme-alignment.py` remains part of the parked Phase 15 validator-first route.",
-            "- `check-phase15-scripts-readme-alignment.py` remains part of the parked Phase 15 validator-first route.",
-            "- `check-phase15-review-process-handoff.py` remains part of the parked Phase 15 validator-first route.",
-            "- `check-phase15-shared-summary-gap.py` remains the dedicated shared-summary drift guard for the parked Phase 15 governance packet's docs-root, checklist, scripts-root, and tests-root reminder wording, including the no-approval and reopen-trigger maintenance posture that must stay explicit without widening into a freeze-map status change.",
-            "- `make -C zigux phase15-validate` now reruns `validate-phase15.py`, `check-phase15-docs-readme-alignment.py`, `check-phase15-scripts-readme-alignment.py`, `check-phase15-review-process-handoff.py`, and `check-phase15-shared-summary-gap.py` together so the shipped validator-first route covers the broad readiness packet, the docs-root and scripts-root shared-summary guards, and the dedicated parity-scorecard reporting packet before `make -C zigux phase15-test` replays `zigux/tests/phase15_build.zig`.",
-            "- `make -C zigux phase15` remains the parked convenience route.",
-            "",
-        )
+def _seed(root: Path) -> None:
+    _write(
+        root / README_REL,
+        "# scripts/zigux\n\n"
+        "This directory holds shipped Zigux validation helpers and compact reminder surfaces.\n\n"
+        "## Phase 13\n\n"
+        "- keep the shipped Phase 13 helper packet explicit.\n",
     )
-
-
-def _baseline_docs_readme() -> str:
-    return "\n".join(("# Zigux Documentation", "", "Phase 15 notes", "- Documentation/zigux/phase15-governance-lane-sequencing.md", "- scripts/zigux/check-phase15-scripts-readme-alignment.py", "- make -C zigux phase15-validate", "- make -C zigux phase15-test", "- make -C zigux phase15", ""))
-
-
-def _baseline_makefile() -> str:
-    return "\n".join(
-        (
-            "PHONY += phase15-validate phase15-test phase15",
-            "",
-            "phase15-validate:",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-docs-readme-alignment.py --self-test",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-docs-readme-alignment.py",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py --self-test",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py",
-            "",
-            "phase15-test:",
-            "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase15_build.zig",
-            "",
-            "phase15: phase15-validate phase15-test",
-            "",
-        )
+    _write(
+        root / LANE_SEQ_REL,
+        "# Phase 15 Governance Lane Sequencing\n\n"
+        "- `scripts/zigux/README.md`\n"
+        "- `Documentation/zigux/review-checklist.md`\n"
+        "- `Documentation/zigux/phase15-readiness-gate-survey.md`\n"
+        "- `Documentation/zigux/phase15-handoff-next-steps-survey.md`\n",
     )
-
-
-def _baseline_workflow() -> str:
-    return "\n".join(("Validate Phase 15 governance packet", "make -C zigux phase15-validate", "Run Phase 15 governance tests", "make -C zigux phase15-test", ""))
-
-
-def _baseline_handoff_checker() -> str:
-    return "\n".join((
-        '#!/usr/bin/env python3',
-        'NOTE_PATH = "Documentation/zigux/phase15-architecture-council-review-process.md"',
-        'MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"',
-        'print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")',
-        "",
-    ))
-
-
-def _baseline_review_checklist() -> str:
-    return "\n".join(("# Checklist", "- if the change touches the shared Phase 15 governance packet", "- scripts/zigux/check-phase15-scripts-readme-alignment.py", "- scripts/zigux/check-phase15-review-process-handoff.py", "- make -C zigux phase15-validate", "- make -C zigux phase15-test", "- make -C zigux phase15", ""))
-
-
-def _baseline_review_process_note() -> str:
-    return "\n".join(("# Phase 15", "- no Architecture Council approval is currently recorded for a freeze-map status change", "- reopen triggers remain attached", "- Keep the Phase 15 governance lane in maintenance mode.", ""))
-
-
-def _baseline_parity_scorecard() -> str:
-    return "\n".join(("# Phase 15 Parity Scorecard", "", "shared validator-first gate through", "scripts/zigux/check-phase15-scripts-readme-alignment.py", "scripts/zigux/check-phase15-review-process-handoff.py", "make -C zigux phase15-validate", ""))
-
-
-def _baseline_tests_readme() -> str:
-    return "\n".join(("# zigux/tests", "", "keep the parked Phase 15 governance packet explicit in the tests root too:", "scripts/zigux/check-phase15-scripts-readme-alignment.py", "scripts/zigux/check-phase15-review-process-handoff.py", "zigux/tests/phase15_handoff_next_steps_manifest.json", "zigux/tests/phase15_readiness_gate_manifest.json", "make -C zigux phase15-validate", "make -C zigux phase15-test", "make -C zigux phase15", ""))
-
-
-def _baseline_manifest() -> str:
-    return json.dumps({
-        "handoff_evidence": {
-            "current_repo_handoff": "Documentation/zigux/phase15-freeze-map-governance.md Documentation/zigux/phase15-governance-lane-sequencing.md scripts/zigux/README.md zigux/tests/README.md zigux/Makefile .github/workflows/zigux-bootstrap.yml scripts/zigux/check-phase15-scripts-readme-alignment.py scripts/zigux/check-phase15-review-process-handoff.py zigux/tests/phase15_indefinite_c_blocker_evidence.zig zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig zigux/tests/phase15_governance_lane_sequencing.zig zigux/tests/phase15_build.zig",
-            "current_bounded_lane": "scripts-root validator path Linux-style `make -C zigux phase15-validate` route tests-root guidance path dedicated handoff-checker route",
-        }
-    }, indent=2) + "\n"
-
-
-def _baseline_build() -> str:
-    return "\n".join((
-        'b.path("phase15_freeze_map_governance.zig")',
-        'b.path("phase15_parity_scorecard.zig")',
-        'b.path("phase15_architecture_council_review_process.zig")',
-        'b.path("phase15_handoff_next_steps.zig")',
-        'b.path("phase15_indefinite_c_policy.zig")',
-        'b.path("phase15_indefinite_c_lane_owner_alignment.zig")',
-        'b.path("phase15_readiness_gate.zig")',
-        'b.step("test", "Run Phase 15 governance tests")',
-        "",
-    ))
+    _write(
+        root / READINESS_REL,
+        "# Phase 15 Readiness Gate Survey\n\n"
+        "- `scripts/zigux/check-phase15-docs-readme-alignment.py`\n"
+        "- `scripts/zigux/check-phase15-scripts-readme-alignment.py`\n"
+        "- `scripts/zigux/check-phase15-review-process-handoff.py`\n"
+        "- `scripts/zigux/check-phase15-shared-summary-gap.py`\n"
+        "- `zigux/Makefile`\n"
+        "- broader replay remains blocked route vocabulary\n",
+    )
+    _write(
+        root / SHARED_GAP_REL,
+        "# Phase 15 Shared Summary Gap\n\n"
+        "- `scripts/zigux/README.md`\n"
+        "- `scripts/zigux/check-phase15-docs-readme-alignment.py`\n"
+        "- `scripts/zigux/check-phase15-review-process-handoff.py`\n"
+        "- `scripts/zigux/check-phase15-shared-summary-gap.py`\n"
+        "- `zigux/tests/phase15_readiness_gate_manifest.json`\n"
+        "- `scripts/zigux/validate-phase15.py`\n"
+        "- `zigux/tests/phase15_handoff_next_steps_manifest.json`\n"
+        "- `zigux/tests/phase15_build.zig`\n"
+        "- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`\n"
+        "- parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes\n",
+    )
+    for rel in (
+        DOCS_CHECKER_REL,
+        SCRIPTS_CHECKER_REL,
+        HANDOFF_CHECKER_REL,
+        GAP_CHECKER_REL,
+        READINESS_MANIFEST_REL,
+        REVIEW_PROCESS_MANIFEST_REL,
+    ):
+        _write(root / rel, "placeholder\n")
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="phase15_scripts_readme_alignment_") as tmpdir:
         root = Path(tmpdir)
-        _write(root / README_REL, _baseline_readme())
-        _write(root / DOCS_README_REL, _baseline_docs_readme())
-        _write(root / MAKEFILE_REL, _baseline_makefile())
-        _write(root / WORKFLOW_REL, _baseline_workflow())
-        _write(root / HANDOFF_CHECKER_REL, _baseline_handoff_checker())
-        _write(root / REVIEW_CHECKLIST_REL, _baseline_review_checklist())
-        _write(root / REVIEW_PROCESS_NOTE_REL, _baseline_review_process_note())
-        _write(root / PARITY_SCORECARD_NOTE_REL, _baseline_parity_scorecard())
-        _write(root / TESTS_README_REL, _baseline_tests_readme())
-        _write(root / MANIFEST_REL, _baseline_manifest())
-        _write(root / BUILD_REL, _baseline_build())
-        for rel in REQUIRED_FILES:
-            path = root / rel
-            if not path.exists():
-                _write(path, "placeholder\n")
-        issues = validate(root)
-    if issues:
-        for issue in issues:
-            print(issue)
-        return 1
+        _seed(root)
+        failures = validate(root)
+        if failures:
+            raise AssertionError(f"baseline fixture should pass: {failures}")
+
+        stale = root / "stale"
+        _seed(stale)
+        _write(stale / README_REL, _read(stale / README_REL) + "\n- make -C zigux phase15-validate\n")
+        failures = validate(stale)
+        expected = [
+            "readme:stale_phase15_route:make -C zigux phase15-validate",
+            "readme:stale_phase15_route:make -C zigux phase15",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected stale-route failure: {failures}")
+
+        missing = root / "missing"
+        _seed(missing)
+        _write(missing / READINESS_REL, "# Phase 15 Readiness Gate Survey\n")
+        failures = validate(missing)
+        expected = [f"readiness:missing:{marker}" for marker in READINESS_MARKERS]
+        if failures != expected:
+            raise AssertionError(f"unexpected readiness-marker failure: {failures}")
+
     print("PHASE15_SCRIPTS_README_ALIGNMENT=pass")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--self-test", action="store_true", help="run the built-in fixture test")
+    parser = argparse.ArgumentParser(
+        description="Verify that the Phase 15 scripts-root reminder stays aligned with current repo reality."
+    )
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
         return run_self_test()
-    issues = validate(ROOT)
-    if issues:
-        for issue in issues:
-            print(issue)
+    failures = validate(args.root)
+    if failures:
+        for failure in failures:
+            print(failure)
         return 1
     print("PHASE15_SCRIPTS_README_ALIGNMENT=pass")
     return 0
