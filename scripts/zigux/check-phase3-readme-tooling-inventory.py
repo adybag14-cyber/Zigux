@@ -40,12 +40,15 @@ REQUIRED_FILES = (
     Path("zigux/helpers/mmio.zig"),
     Path("zigux/unsafe/narrow.zig"),
     Path("zigux/kernel/export_shim.zig"),
+    Path("zigux/uapi/dev_t.zig"),
+    Path("zigux/uapi/version.zig"),
     Path("zigux/tests/phase3_dev_t_starter_packet.zig"),
     Path("zigux/tests/phase3_dev_t_starter_packet_build.zig"),
     Path("zigux/tests/phase3_errptr_xarray_starter_packet.zig"),
     Path("zigux/tests/phase3_errptr_xarray_starter_packet_build.zig"),
     Path("zigux/tests/phase3_policy_starter_packet.zig"),
     Path("zigux/tests/phase3_policy_starter_packet_build.zig"),
+    Path(".github/workflows/zigux-bootstrap.yml"),
 )
 
 REQUIRED_MARKERS = (
@@ -81,12 +84,15 @@ REQUIRED_MARKERS = (
     "zigux/bindings/version.zig",
     "zigux/bindings/abi.zig",
     "zigux/unsafe/narrow.zig",
+    "zigux/uapi/dev_t.zig",
+    "zigux/uapi/version.zig",
     "zigux/tests/phase3_dev_t_starter_packet.zig",
     "zigux/tests/phase3_dev_t_starter_packet_build.zig",
     "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
     "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
     "zigux/tests/phase3_policy_starter_packet.zig",
     "zigux/tests/phase3_policy_starter_packet_build.zig",
+    ".github/workflows/zigux-bootstrap.yml",
 )
 
 
@@ -153,6 +159,24 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
+        readme.write_text(_read(readme).replace(REQUIRED_MARKERS[32], "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        expected = f"missing scripts README marker: {REQUIRED_MARKERS[32]}"
+        if expected not in issues:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing UAPI README marker was not reported")
+            return 1
+
+        _populate_repo(root)
+        readme.write_text(_read(readme).replace(REQUIRED_MARKERS[-1], "", 1), encoding="utf-8")
+        issues = validate_repo(root)
+        expected = f"missing scripts README marker: {REQUIRED_MARKERS[-1]}"
+        if expected not in issues:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing workflow README marker was not reported")
+            return 1
+
+        _populate_repo(root)
         missing_file = REQUIRED_FILES[12]
         (root / missing_file).unlink()
         issues = validate_repo(root)
@@ -183,7 +207,27 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
+        missing_file = REQUIRED_FILES[30]
+        (root / missing_file).unlink()
+        issues = validate_repo(root)
+        expected = f"missing repo file: {missing_file.as_posix()}"
+        if expected not in issues:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing UAPI file was not reported")
+            return 1
+
+        _populate_repo(root)
         missing_file = REQUIRED_FILES[-1]
+        (root / missing_file).unlink()
+        issues = validate_repo(root)
+        expected = f"missing repo file: {missing_file.as_posix()}"
+        if expected not in issues:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing workflow file was not reported")
+            return 1
+
+        _populate_repo(root)
+        missing_file = REQUIRED_FILES[-2]
         (root / missing_file).unlink()
         issues = validate_repo(root)
         expected = f"missing repo file: {missing_file.as_posix()}"
@@ -193,7 +237,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=6")
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=10")
         return 0
 
 
