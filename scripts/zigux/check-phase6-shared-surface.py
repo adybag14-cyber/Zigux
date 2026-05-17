@@ -9,7 +9,6 @@ from pathlib import Path
 
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
-DOCS_README_PATH = Path("Documentation/zigux/README.md")
 HELPER_EVIDENCE_CATALOG_PATH = Path(
     "Documentation/zigux/phase6-helper-evidence-catalog.md"
 )
@@ -21,7 +20,7 @@ REQUIRED_SCRIPTS_SNIPPETS = [
     "- `python3 scripts/zigux/check-phase6-shared-surface.py --self-test` and `python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test` replay the shipped shared-surface and present-entrypoint guards",
     "- `scripts/zigux/check-phase6-shared-surface.py` and `scripts/zigux/check-phase6-present-entrypoints.py` keep the direct-readback warning, the helper-evidence catalog packet, and the shared replay inventory explicit from the scripts root",
     "- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/README.md`, and this scripts-root reminder remain the current directly readable shared companions for that packet",
-    "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `zigux/tests/phase6_build.zig`, and `zigux/tests/phase6_helper_parity_manifest.json`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` scripts-root evidence",
+    "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` scripts-root evidence",
     "- the shared replay inventory now treats `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-base64-perf`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-checksum-perf` as committed rerun routes beside the existing bsearch and hexdump reminders, so keep those wrappers out of the older inventory-only bucket",
     "- keep the current partially blocked helper packet tied to those shared surfaces instead of reconstructing broader helper-local proof from older route names alone until fresh direct reads recover the missing helper-local replay files again",
 ]
@@ -30,12 +29,6 @@ REQUIRED_TESTS_SNIPPETS = [
     "* current direct-readback Phase 6 shared packet: `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/phase6_build.zig`, and `zigux/tests/phase6_helper_evidence_manifest.json`",
     "* repo-reality warning for the broader Phase 6 helper parity and perf packet: repeated authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`",
     "* keep current Phase 6 follow-through tied to those directly readable shared reminder surfaces plus the restored shared build and machine-readable evidence footholds instead of reconstructing the broader helper-local parity and perf packet from older route names alone",
-]
-
-REQUIRED_DOCS_SNIPPETS = [
-    "Phase 6 notes - `Documentation/zigux/phase6-helper-evidence-catalog.md` - `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, and `scripts/zigux/check-phase6-present-entrypoints.py` now keep the current shared helper-evidence packet reviewable from the docs root while the broader helper-local parity and perf packet remains a repo-reality gap on current `master`.",
-    "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `scripts/zigux/check-phase6-base64-c-parity.py`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, `scripts/zigux/check-phase6-checksum-c-parity.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, and the older `make -C zigux phase6*` and `zig build phase6*` wrapper routes, so treat those broader reminder, replay, checker, and wrapper paths as last-known packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` docs-root evidence.",
-    "- keep current Phase 6 follow-through tied to `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, and `scripts/zigux/check-phase6-present-entrypoints.py` instead of reconstructing the broader helper-local parity and perf packet from older route names alone until fresh direct reads recover those helper-local replay and checker files again.",
 ]
 
 REQUIRED_CATALOG_SNIPPETS = [
@@ -68,7 +61,7 @@ REQUIRED_MANIFEST_SNIPPETS = [
     '"make -C zigux phase6-hexdump-perf"',
 ]
 
-SELF_TEST_CASE_COUNT = 28
+SELF_TEST_CASE_COUNT = 25
 
 
 class ValidationError(RuntimeError):
@@ -94,7 +87,6 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
     require_snippets(repo_root / TESTS_README_PATH, REQUIRED_TESTS_SNIPPETS)
-    require_snippets(repo_root / DOCS_README_PATH, REQUIRED_DOCS_SNIPPETS)
     require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
     require_snippets(repo_root / HELPER_EVIDENCE_MANIFEST_PATH, REQUIRED_MANIFEST_SNIPPETS)
 
@@ -107,7 +99,6 @@ def write(path: Path, content: str) -> None:
 def scaffold_repo(root: Path) -> None:
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_SNIPPETS) + "\n")
     write(root / TESTS_README_PATH, "\n".join(REQUIRED_TESTS_SNIPPETS) + "\n")
-    write(root / DOCS_README_PATH, "\n".join(REQUIRED_DOCS_SNIPPETS) + "\n")
     write(
         root / HELPER_EVIDENCE_CATALOG_PATH,
         "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n",
@@ -154,7 +145,7 @@ def run_self_test() -> None:
             ),
             (
                 root / SCRIPTS_README_PATH,
-                "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `zigux/tests/phase6_build.zig`, and `zigux/tests/phase6_helper_parity_manifest.json`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` scripts-root evidence",
+                "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` scripts-root evidence",
             ),
             (
                 root / SCRIPTS_README_PATH,
@@ -179,18 +170,6 @@ def run_self_test() -> None:
             (
                 root / TESTS_README_PATH,
                 "* keep current Phase 6 follow-through tied to those directly readable shared reminder surfaces plus the restored shared build and machine-readable evidence footholds instead of reconstructing the broader helper-local parity and perf packet from older route names alone",
-            ),
-            (
-                root / DOCS_README_PATH,
-                "Phase 6 notes - `Documentation/zigux/phase6-helper-evidence-catalog.md` - `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, and `scripts/zigux/check-phase6-present-entrypoints.py` now keep the current shared helper-evidence packet reviewable from the docs root while the broader helper-local parity and perf packet remains a repo-reality gap on current `master`.",
-            ),
-            (
-                root / DOCS_README_PATH,
-                "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `scripts/zigux/check-phase6-base64-c-parity.py`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, `scripts/zigux/check-phase6-checksum-c-parity.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, and the older `make -C zigux phase6*` and `zig build phase6*` wrapper routes, so treat those broader reminder, replay, checker, and wrapper paths as last-known packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` docs-root evidence.",
-            ),
-            (
-                root / DOCS_README_PATH,
-                "- keep current Phase 6 follow-through tied to `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, and `scripts/zigux/check-phase6-present-entrypoints.py` instead of reconstructing the broader helper-local parity and perf packet from older route names alone until fresh direct reads recover those helper-local replay and checker files again.",
             ),
             (root / HELPER_EVIDENCE_CATALOG_PATH, "## Current direct-readback warning"),
             (
