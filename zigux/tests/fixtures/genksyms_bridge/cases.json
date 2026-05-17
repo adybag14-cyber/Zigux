@@ -93,6 +93,15 @@
     "expected": "version_before_invalid_short_option_expected.json"
   },
   {
+    "name": "unsupported_long_option",
+    "argv": [
+      "--unknown"
+    ],
+    "mode": "process_json",
+    "expected": "unsupported_long_option_expected.json",
+    "normalize_stderr": true
+  },
+  {
     "name": "too_many_reference_files",
     "argv": [
       "-r",
