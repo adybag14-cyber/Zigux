@@ -9,7 +9,8 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_PATH = Path(__file__).resolve()
+ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
@@ -27,6 +28,19 @@ REQUIRED_FILES = [
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     MANIFEST_PATH,
 ]
+
+LANDED_SLICES_MARKER = (
+    "The seven landed bounded slices are `logging-version-and-errno`, "
+    "`pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, "
+    "`fdinfo-map-info-helpers`, `map-reuse-compatibility`, and "
+    "`perf-buffer-poll-bookkeeping`."
+)
+
+DEFERRED_FOLLOW_ONS_MARKER = (
+    "The deferred or blocked follow-ons are `file-path-and-handle-bridge`, "
+    "`perf-buffer-online-cpu-routing`, `skeleton-population`, "
+    "`object-and-elf-loader`, and `btf-relocation-and-program-load`."
+)
 
 REQUIRED_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
@@ -47,7 +61,8 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase8-libbpf-segment-gate.py",
         "make -C zigux phase8-libbpf-segments-test",
         "zigux/tests/phase8_libbpf_segments_only_build.zig",
-        "six landed helper-first starter slices",
+        LANDED_SLICES_MARKER,
+        DEFERRED_FOLLOW_ONS_MARKER,
     ],
     "scripts/zigux/README.md": [
         "check-phase8-libbpf-segment-gate.py",
@@ -62,6 +77,8 @@ REQUIRED_MARKERS = {
         "Run focused Phase 8 libbpf segment survey tests",
         "phase8-libbpf-segment-tests",
         "survey checkpoint: refreshed against inspected `master` head `",
+        "LANDED_SLICES_MARKER",
+        "DEFERRED_FOLLOW_ONS_MARKER",
     ],
     "zigux/Makefile": [
         "phase8-validate:",
@@ -92,6 +109,7 @@ REQUIRED_MARKERS = {
         "\"segments\": [",
         "\"logging-version-and-errno\"",
         "\"map-reuse-compatibility\"",
+        "\"btf-relocation-and-program-load\"",
     ],
 }
 
@@ -110,7 +128,17 @@ def build_fixture_manifest_text() -> str:
   "surveyed_commit": "0123456789abcdef0123456789abcdef01234567",
   "segments": [
     {"slug": "logging-version-and-errno"},
-    {"slug": "map-reuse-compatibility"}
+    {"slug": "pin-path-helpers"},
+    {"slug": "cpu-mask-parsing"},
+    {"slug": "type-name-helpers"},
+    {"slug": "fdinfo-map-info-helpers"},
+    {"slug": "map-reuse-compatibility"},
+    {"slug": "perf-buffer-poll-bookkeeping"},
+    {"slug": "file-path-and-handle-bridge"},
+    {"slug": "perf-buffer-online-cpu-routing"},
+    {"slug": "skeleton-population"},
+    {"slug": "object-and-elf-loader"},
+    {"slug": "btf-relocation-and-program-load"}
   ]
 }
 """
@@ -136,12 +164,13 @@ FIXTURE_TEXT = {
     SURVEY_PATH: f"""# Phase 8 Libbpf Segment Survey
 
 - survey checkpoint: refreshed against inspected `master` head `{FIXTURE_SURVEYED_COMMIT}`
-- {segment_count_marker(2)}
+- {segment_count_marker(12)}
 - tools/lib/bpf/zigux_segments/manifest.json
 - scripts/zigux/check-phase8-libbpf-segment-gate.py
 - make -C zigux phase8-libbpf-segments-test
 - zigux/tests/phase8_libbpf_segments_only_build.zig
-- six landed helper-first starter slices
+- {LANDED_SLICES_MARKER}
+- {DEFERRED_FOLLOW_ONS_MARKER}
 """,
     "scripts/zigux/README.md": """# scripts/zigux
 
@@ -168,7 +197,7 @@ phase8-libbpf-segments-test:
     SEGMENTS_TEST_PATH: f"""const current_surveyed_commit = "{FIXTURE_SURVEYED_COMMIT}";
 
 test "phase 8 libbpf survey stays wired" {{
-    _ = "{segment_count_marker(2)}";
+    _ = "{segment_count_marker(12)}";
     _ = "phase8_libbpf_segments_only_build.zig";
     _ = "survey checkpoint: refreshed against inspected `master` head `{FIXTURE_SURVEYED_COMMIT}`";
 }}
@@ -349,8 +378,38 @@ def run_self_test() -> int:
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
             original_survey.replace(
-                segment_count_marker(2),
-                segment_count_marker(3),
+                LANDED_SLICES_MARKER,
+                "The six landed bounded slices are still parked here.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "survey_landed_slices_marker",
+            tmp_root,
+            f"{SURVEY_PATH}:{LANDED_SLICES_MARKER}",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                DEFERRED_FOLLOW_ONS_MARKER,
+                "The deferred follow-ons remain intentionally generic.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "survey_deferred_follow_ons_marker",
+            tmp_root,
+            f"{SURVEY_PATH}:{DEFERRED_FOLLOW_ONS_MARKER}",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                segment_count_marker(12),
+                segment_count_marker(13),
                 1,
             ),
             encoding="utf-8",
@@ -358,7 +417,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "survey_segment_count",
             tmp_root,
-            f"{SURVEY_PATH}:{segment_count_marker(2)}",
+            f"{SURVEY_PATH}:{segment_count_marker(12)}",
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
@@ -481,16 +540,16 @@ def run_self_test() -> int:
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
             original_manifest.replace(
-                '"map-reuse-compatibility"',
-                '"map-reuse-boundary"',
+                '"btf-relocation-and-program-load"',
+                '"btf-relocation-review-only"',
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "manifest_slug",
+            "manifest_tail_slug",
             tmp_root,
-            'tools/lib/bpf/zigux_segments/manifest.json:"map-reuse-compatibility"',
+            'tools/lib/bpf/zigux_segments/manifest.json:"btf-relocation-and-program-load"',
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
@@ -498,8 +557,8 @@ def run_self_test() -> int:
         original_segments_test = segments_test_path.read_text(encoding="utf-8")
         segments_test_path.write_text(
             original_segments_test.replace(
-                segment_count_marker(2),
-                segment_count_marker(1),
+                segment_count_marker(12),
+                segment_count_marker(11),
                 1,
             ),
             encoding="utf-8",
@@ -507,7 +566,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "segments_test_count_marker",
             tmp_root,
-            f"{SEGMENTS_TEST_PATH}:{segment_count_marker(2)}",
+            f"{SEGMENTS_TEST_PATH}:{segment_count_marker(12)}",
         )
         segments_test_path.write_text(original_segments_test, encoding="utf-8")
 
@@ -550,7 +609,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=14")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
