@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 
 
 HERE = Path(__file__).resolve()
@@ -381,6 +382,17 @@ def run_self_test() -> None:
     )
     kind, _ = validate_output(expectations, ok_output)
     assert kind == "pass"
+    case_count += 1
+
+    missing_expectations_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-missing.json"
+    if missing_expectations_path.exists():
+        missing_expectations_path.unlink()
+    try:
+        load_expectations(missing_expectations_path)
+    except FileNotFoundError as exc:
+        assert Path(exc.filename) == missing_expectations_path
+    else:
+        raise AssertionError("expected missing expectations fixture to raise FileNotFoundError")
     case_count += 1
 
     status_mismatch_output = ok_output.replace(
@@ -772,6 +784,11 @@ def main() -> int:
 
     try:
         expectations = load_expectations(EXPECTATIONS)
+    except FileNotFoundError:
+        print("PHASE1_BENCH_CHECK=fail")
+        print("PHASE1_BENCH_CHECK_REASON=expectations_missing")
+        print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")
+        return 1
     except json.JSONDecodeError as exc:
         print("PHASE1_BENCH_CHECK=fail")
         print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")
@@ -800,9 +817,8 @@ def main() -> int:
             print(result.stdout.rstrip("\n"))
         if result.stderr:
             print(result.stderr.rstrip("\n"))
-        return 1
+        return result.returncode
 
-    assert isinstance(expectations, dict)
     kind, payload = validate_output(expectations, result.stdout)
     if kind != "pass":
         print("PHASE1_BENCH_CHECK=fail")
@@ -811,8 +827,7 @@ def main() -> int:
         return 1
 
     print("PHASE1_BENCH_CHECK=pass")
-    print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")
-    print(f"PHASE1_BENCH_ZIG={zig}")
+    print(f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}")
     return 0
 
 
