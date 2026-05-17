@@ -1,5 +1,6 @@
 name: zigux-bootstrap
 # Keep this lane tied to files that the current checkout actually contains.
+# Force a fresh exact-head run after the 2026-05-17 23:41 UTC docs-only push reported no jobs.
 
 on:
   push:
