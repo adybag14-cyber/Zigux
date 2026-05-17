@@ -55,7 +55,7 @@ SURVEY_MARKERS = (
 )
 
 EXPECTED_FINAL_FIRST_ZERO_COUNT = 2
-EXPECTED_SELF_TEST_CASES = 7
+EXPECTED_SELF_TEST_CASES = 10
 
 
 def parse_args() -> argparse.Namespace:
@@ -92,7 +92,7 @@ def validate_root(root: Path) -> list[str]:
         final_first_zero_count = manifest_text.count('"final_first_zero": 109')
         if final_first_zero_count != EXPECTED_FINAL_FIRST_ZERO_COUNT:
             missing.append(
-                "manifest_count:\"final_first_zero\": 109:"
+                'manifest_count:"final_first_zero": 109:'
                 f"expected={EXPECTED_FINAL_FIRST_ZERO_COUNT}:actual={final_first_zero_count}"
             )
 
@@ -154,6 +154,39 @@ def run_self_test() -> int:
             manifest,
             replace_once(
                 read_text(manifest),
+                '"benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"',
+                '"benchmark_command": "zig build phase4-bitmap-diff-other --build-file zigux/tests/phase4_build.zig"',
+            ),
+        )
+        if not expect_failure(
+            root,
+            'manifest_marker:"benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"',
+        ):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest benchmark-command drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
+                '"acceptable_limit_max_elapsed_ns": 12288',
+                '"acceptable_limit_max_elapsed_ns": 16384',
+            ),
+        )
+        if not expect_failure(root, 'manifest_marker:"acceptable_limit_max_elapsed_ns": 12288'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest acceptable-limit drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
                 '"final_first_zero": 109',
                 '"final_first_zero": 110',
             ),
@@ -184,6 +217,21 @@ def run_self_test() -> int:
             manifest,
             replace_once(
                 read_text(manifest),
+                '"decision_owner": "Validation and Perf Team"',
+                '"decision_owner": "ABI and Runtime Team"',
+            ),
+        )
+        if not expect_failure(root, 'manifest_marker:"decision_owner": "Validation and Perf Team"'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest decision-owner drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
                 '"status": "shared CI perf promotion pending"',
                 '"status": "shared CI perf promotion approved"',
             ),
@@ -199,11 +247,11 @@ def run_self_test() -> int:
             survey,
             replace_once(
                 read_text(survey),
-                'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");',
-                'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-other-decision\\\"");',
+                'try requireMarker("\\"id\\": \\"phase4-perf-baseline-shared-promotion-decision\\"");',
+                'try requireMarker("\\"id\\": \\"phase4-perf-baseline-other-decision\\"");',
             ),
         )
-        if not expect_failure(root, 'survey_marker:try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");'):
+        if not expect_failure(root, 'survey_marker:try requireMarker("\\"id\\": \\"phase4-perf-baseline-shared-promotion-decision\\"");'):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("survey promotion-decision drift case did not fail closed")
             return 1
@@ -214,11 +262,11 @@ def run_self_test() -> int:
             survey,
             replace_once(
                 read_text(survey),
-                'try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");',
-                'try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline\\\"");',
+                'try requireMarker("\\"linux_style_wrapper\\": \\"make -C zigux phase4-perf-baseline-survey\\"");',
+                'try requireMarker("\\"linux_style_wrapper\\": \\"make -C zigux phase4-perf-baseline\\"");',
             ),
         )
-        if not expect_failure(root, 'survey_marker:try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");'):
+        if not expect_failure(root, 'survey_marker:try requireMarker("\\"linux_style_wrapper\\": \\"make -C zigux phase4-perf-baseline-survey\\"");'):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("survey wrapper drift case did not fail closed")
             return 1
