@@ -85,6 +85,31 @@ SURVEY_SNIPPETS = (
     "`zigux/tests/phase3_abi_dump.zig` keeps the current shared dump path explicit by emitting ABI constants plus the `InteropPolicy` and chrdev budget-window struct layouts; it no longer claims a dedicated policy/unsafe dump family or helper-local `MmioRange` layout packet of its own.",
 )
 
+REQUIRED_LAYOUT_ASSERT_SNIPPETS = (
+    "pub fn size(comptime T: type, expected: usize) !void {",
+    "pub fn alignment(comptime T: type, expected: usize) !void {",
+    'pub const @"align" = alignment;',
+    "pub fn offset(comptime T: type, comptime field_name: []const u8, expected: usize) !void {",
+    "pub fn fieldType(comptime T: type, comptime field_name: []const u8, comptime Expected: type) void {",
+    "pub fn byteValue(comptime label: []const u8, comptime actual: u8, comptime expected: u8) void {",
+    "pub fn u32Value(comptime label: []const u8, comptime actual: u32, comptime expected: u32) void {",
+    "pub fn assertNotifierChainPriorityIncreaseLayout() !void {",
+    "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() !void {",
+    "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout() !void {",
+    "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout() !void {",
+    "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() !void {",
+    "pub fn assertInteropPolicyModeValues() void {",
+    "pub fn assertNotifierResultValues() void {",
+    'test "phase3 layout assertions cover canonical bindings" {',
+    "    try assertNotifierChainPriorityIncreaseLayout();",
+    "    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();",
+    "    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();",
+    "    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();",
+    "    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout();",
+    "    assertInteropPolicyModeValues();",
+    "    assertNotifierResultValues();",
+)
+
 BLOB_MARKERS = {
     "PHASE3_LAYOUT_ASSERT_BLOB_SHA": LAYOUT_ASSERT_REL,
     "PHASE3_PANIC_POLICY_BLOB_SHA": PANIC_POLICY_REL,
@@ -123,14 +148,7 @@ def normalized_lines(text: str) -> list[str]:
     return lines
 
 
-def require_exact_line(
-    issues: list[str],
-    text: str,
-    line: str,
-    *,
-    prefix: str,
-    normalized: bool = False,
-) -> None:
+def require_exact_line(issues: list[str], text: str, line: str, *, prefix: str, normalized: bool = False) -> None:
     lines = normalized_lines(text) if normalized else text.splitlines()
     count = lines.count(line)
     if count == 1:
@@ -141,14 +159,7 @@ def require_exact_line(
     issues.append(f"duplicate_{prefix}:{line}:{count}")
 
 
-def require_prefix_once(
-    issues: list[str],
-    text: str,
-    prefix: str,
-    *,
-    normalized: bool = False,
-    label: str,
-) -> None:
+def require_prefix_once(issues: list[str], text: str, prefix: str, *, normalized: bool = False, label: str) -> None:
     lines = normalized_lines(text) if normalized else text.splitlines()
     matches = [line for line in lines if line.startswith(prefix)]
     if len(matches) == 1:
@@ -178,28 +189,17 @@ def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
     survey = (root / SURVEY_REL).read_text(encoding="utf-8")
+    layout_assert = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8")
 
     for marker, rel in PATH_MARKERS.items():
-        require_exact_line(
-            issues,
-            survey,
-            f"{marker}={rel}",
-            prefix="marker",
-            normalized=True,
-        )
+        require_exact_line(issues, survey, f"{marker}={rel}", prefix="marker", normalized=True)
 
     for marker in STATIC_MARKERS:
         require_exact_line(issues, survey, marker, prefix="marker", normalized=True)
 
-    require_prefix_once(
-        issues,
-        survey,
-        "PHASE3_SURVEY_PROVENANCE=",
-        normalized=True,
-        label="marker",
-    )
-
+    require_prefix_once(issues, survey, "PHASE3_SURVEY_PROVENANCE=", normalized=True, label="marker")
     require_snippets(issues, survey, "survey", SURVEY_SNIPPETS)
+    require_snippets(issues, layout_assert, "layout_assert", REQUIRED_LAYOUT_ASSERT_SNIPPETS)
 
     survey_lines = normalized_lines(survey)
     for marker, rel in BLOB_MARKERS.items():
@@ -222,12 +222,7 @@ def validate(root: Path) -> list[str]:
             if token not in text:
                 issues.append(f"missing_reference:{rel}:{token}")
 
-    checker = subprocess.run(
-        [sys.executable, root / POLICY_BYTE_GUARD_REL],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    checker = subprocess.run([sys.executable, root / POLICY_BYTE_GUARD_REL], capture_output=True, text=True, check=False)
     if checker.returncode != 0:
         issues.append(f"policy_byte_guard_exit:{checker.returncode}")
         for line in checker.stdout.splitlines():
@@ -244,8 +239,35 @@ def write_file(path: Path, content: str) -> None:
 
 
 def build_valid_workspace(root: Path) -> None:
+    layout_lines = [
+        "const std = @import(\"std\");",
+        "pub fn size(comptime T: type, expected: usize) !void {",
+        "pub fn alignment(comptime T: type, expected: usize) !void {",
+        'pub const @"align" = alignment;',
+        "pub fn offset(comptime T: type, comptime field_name: []const u8, expected: usize) !void {",
+        "pub fn fieldType(comptime T: type, comptime field_name: []const u8, comptime Expected: type) void {",
+        "pub fn byteValue(comptime label: []const u8, comptime actual: u8, comptime expected: u8) void {",
+        "pub fn u32Value(comptime label: []const u8, comptime actual: u32, comptime expected: u32) void {",
+        "pub fn assertNotifierChainPriorityIncreaseLayout() !void {",
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() !void {",
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout() !void {",
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout() !void {",
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() !void {",
+        "pub fn assertInteropPolicyModeValues() void {",
+        "pub fn assertNotifierResultValues() void {",
+        'test "phase3 layout assertions cover canonical bindings" {',
+        "    try assertNotifierChainPriorityIncreaseLayout();",
+        "    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();",
+        "    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();",
+        "    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();",
+        "    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout();",
+        "    assertInteropPolicyModeValues();",
+        "    assertNotifierResultValues();",
+        "}",
+    ]
+    write_file(root / LAYOUT_ASSERT_REL, "\n".join(layout_lines) + "\n")
+
     for rel in (
-        LAYOUT_ASSERT_REL,
         PANIC_POLICY_REL,
         ALLOCATOR_POLICY_REL,
         MMIO_REL,
@@ -286,108 +308,79 @@ def run_self_test() -> int:
         assert validate(root) == []
 
         build_valid_workspace(root)
-        stale_survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "PHASE3_MMIO_BLOB_SHA=",
-            "PHASE3_MMIO_BLOB_SHA=stale-",
-            1,
-        )
+        stale_survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace("PHASE3_MMIO_BLOB_SHA=", "PHASE3_MMIO_BLOB_SHA=stale-", 1)
         write_file(root / SURVEY_REL, stale_survey)
         issues = validate(root)
         expected = git_blob_sha(root / MMIO_REL)
         assert f"stale_blob_marker:PHASE3_MMIO_BLOB_SHA:stale-{expected}!={expected}" in issues
 
         build_valid_workspace(root)
-        missing_provenance = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `PHASE3_SURVEY_PROVENANCE=connector-current-head-sha-unavailable-in-run`\n",
-            "",
-            1,
-        )
+        missing_provenance = (root / SURVEY_REL).read_text(encoding="utf-8").replace("- `PHASE3_SURVEY_PROVENANCE=connector-current-head-sha-unavailable-in-run`\n", "", 1)
         write_file(root / SURVEY_REL, missing_provenance)
         issues = validate(root)
         assert "missing_marker:PHASE3_SURVEY_PROVENANCE=<value>" in issues
 
         build_valid_workspace(root)
-        missing_validate_gate = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`\n",
-            "",
-            1,
-        )
+        missing_validate_gate = (root / SURVEY_REL).read_text(encoding="utf-8").replace("- `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`\n", "", 1)
         write_file(root / SURVEY_REL, missing_validate_gate)
         issues = validate(root)
         assert "missing_marker:PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py" in issues
 
         build_valid_workspace(root)
-        missing_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            SURVEY_SNIPPETS[5] + "\n",
-            "",
-            1,
-        )
+        missing_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(SURVEY_SNIPPETS[5] + "\n", "", 1)
         write_file(root / SURVEY_REL, missing_survey_snippet)
         issues = validate(root)
         assert f"missing_survey_snippet:{SURVEY_SNIPPETS[5]}" in issues
 
         build_valid_workspace(root)
-        duplicate_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            SURVEY_SNIPPETS[1] + "\n",
-            SURVEY_SNIPPETS[1] + "\n" + SURVEY_SNIPPETS[1] + "\n",
-            1,
-        )
+        duplicate_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(SURVEY_SNIPPETS[1] + "\n", SURVEY_SNIPPETS[1] + "\n" + SURVEY_SNIPPETS[1] + "\n", 1)
         write_file(root / SURVEY_REL, duplicate_survey_snippet)
         issues = validate(root)
         assert f"duplicate_survey_snippet:{SURVEY_SNIPPETS[1]}:2" in issues
 
         build_valid_workspace(root)
-        missing_support_reference = (root / SUPPORT_NOTE_REL).read_text(encoding="utf-8").replace(
-            SELF_PATH,
-            "",
-            1,
-        )
+        missing_support_reference = (root / SUPPORT_NOTE_REL).read_text(encoding="utf-8").replace(SELF_PATH, "", 1)
         write_file(root / SUPPORT_NOTE_REL, missing_support_reference)
         issues = validate(root)
         assert f"missing_reference:{SUPPORT_NOTE_REL}:{SELF_PATH}" in issues
 
         build_valid_workspace(root)
-        missing_makefile_reference = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
-            SELF_PATH,
-            "",
-            1,
-        )
+        missing_makefile_reference = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(SELF_PATH, "", 1)
         write_file(root / MAKEFILE_REL, missing_makefile_reference)
         issues = validate(root)
         assert f"missing_reference:{MAKEFILE_REL}:{SELF_PATH}" in issues
 
         build_valid_workspace(root)
-        write_file(
-            root / POLICY_BYTE_GUARD_REL,
-            "#!/usr/bin/env python3\nimport sys\nprint(\"PHASE3_POLICY_BYTE_GUARDS=fail\")\nsys.exit(1)\n",
-        )
+        write_file(root / POLICY_BYTE_GUARD_REL, "#!/usr/bin/env python3\nimport sys\nprint(\"PHASE3_POLICY_BYTE_GUARDS=fail\")\nsys.exit(1)\n")
         issues = validate(root)
         assert "policy_byte_guard_exit:1" in issues
 
         build_valid_workspace(root)
-        duplicate_path_marker = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`\n",
-            "- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`\n- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`\n",
-            1,
-        )
+        duplicate_path_marker = (root / SURVEY_REL).read_text(encoding="utf-8").replace("- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`\n", "- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`\n- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`\n", 1)
         write_file(root / SURVEY_REL, duplicate_path_marker)
         issues = validate(root)
         assert "duplicate_marker:PHASE3_MMIO_PATH=zigux/helpers/mmio.zig:2" in issues
 
+        build_valid_workspace(root)
+        broken_layout = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8").replace('pub const @"align" = alignment;\n', '', 1)
+        write_file(root / LAYOUT_ASSERT_REL, broken_layout)
+        issues = validate(root)
+        assert 'missing_layout_assert_snippet:pub const @"align" = alignment;' in issues
+
+        build_valid_workspace(root)
+        broken_layout = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8").replace('pub fn assertInteropPolicyModeValues() void {\n', '', 1)
+        write_file(root / LAYOUT_ASSERT_REL, broken_layout)
+        issues = validate(root)
+        assert 'missing_layout_assert_snippet:pub fn assertInteropPolicyModeValues() void {' in issues
+
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate the Phase 3 policy and unsafe boundary survey against the current shared ABI packet."
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="run isolated validator coverage in a temporary workspace",
-    )
+    parser = argparse.ArgumentParser(description="Validate the Phase 3 policy and unsafe boundary survey against the current shared ABI packet.")
+    parser.add_argument("--self-test", action="store_true", help="run isolated validator coverage in a temporary workspace")
     args = parser.parse_args()
 
     if args.self_test:
