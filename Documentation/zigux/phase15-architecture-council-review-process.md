@@ -67,7 +67,9 @@ If a freeze-in-C review closes without a status change, the closeout record must
 - the current blocker
 - the required approver set
 - `retired_from_active_discussion` state
+- the automatic return-to-blocked trigger
 - the reopen triggers
+- the trigger-specific evidence refresh
 - the evidence archive path that will be refreshed before any later reopen request
 
 A closed stay-in-C record is not approval debt. It is an explicit decision to keep the anchor in C until narrower evidence exists.
