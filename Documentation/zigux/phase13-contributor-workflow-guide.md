@@ -39,6 +39,9 @@ When shared Phase 13 wording changes, reread these contributor-facing surfaces t
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `Documentation/zigux/phase13-notifier-summary-gap.md`
+- `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
@@ -46,7 +49,7 @@ If current `master` still does not materialize `scripts/zigux/validate-phase13-r
 
 Current `master` also still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note recorded as an adjacent repo-reality gap rather than a rereadable shared surface.
 
-If one of those broad reminder surfaces changes, refresh the others before widening helper-local claims.
+If one of those broad reminder surfaces changes, refresh the others before widening helper-local claims. Keep the shared-summary gap note, notifier gap note, and tests-readme alignment checker in that reread set so broad reminder work stays tied to the shipped gap-tracking packet instead of older validator-first route names.
 
 ## Helper-Local Packets
 
@@ -154,7 +157,7 @@ When contributor wording references absent direct companions, keep the absence e
 Before landing a broad Phase 13 reminder change, check that:
 
 - the shared contributor surfaces still describe the same active-not-closed helper packet
-- the stable shared handle still runs through the materialized `scripts/zigux/README.md` and `zigux/tests/README.md` reminder surfaces, while `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, and `scripts/zigux/check-phase13-shared-summary-surfaces.py` stay explicit as repo-reality gaps
+- the stable shared handle still runs through the materialized `scripts/zigux/README.md` and `zigux/tests/README.md` reminder surfaces, while `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `Documentation/zigux/phase13-notifier-summary-gap.md`, and `scripts/zigux/check-phase13-tests-readme-alignment.py` stay explicit as the shipped gap-tracking companions, and `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, and `scripts/zigux/check-phase13-shared-summary-surfaces.py` stay explicit as repo-reality gaps
 - `libfs`, `devres`, `landlock`, and adjacent notifier evidence still keep their separate owner maps
 - repo-reality gaps stay explicit instead of being promoted into shipped current-`master` evidence
 
