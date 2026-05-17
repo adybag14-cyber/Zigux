@@ -30,6 +30,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    root_module.addImport("uapi_dev_t", uapi_dev_t);
     root_module.addImport("dev_t_binding", dev_t_binding);
     root_module.addImport("version_binding", version_binding);
 
