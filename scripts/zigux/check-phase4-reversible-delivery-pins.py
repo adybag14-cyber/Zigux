@@ -11,6 +11,7 @@ from pathlib import Path
 
 NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 README = Path("zigux/tests/README.md")
+SCRIPTS_README = Path("scripts/zigux/README.md")
 REPO_REALITY_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
 
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
@@ -61,6 +62,20 @@ README_MARKERS = (
     "historical provenance for that missing broader packet",
 ) + README_OWNER_MARKERS
 
+SCRIPTS_README_MARKERS = (
+    "Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, and scripts-root surfaces while the broader validator, lab-matrix, and local-only perf packet is currently a repo-reality gap on `master`",
+    "Documentation/zigux/phase4-reversible-delivery-evidence.md",
+    "Documentation/zigux/review-checklist.md",
+    "zigux/tests/README.md",
+    "scripts/zigux/check-phase4-repo-reality-warning.py",
+    "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` still return missing on current `master`",
+    "keep those roadmap-backed differential-gate destinations parked as repo-reality gaps here too instead of treating older exact-readback pins as current scripts-root evidence",
+    "If future same-lane work republishes the broader validator, lab-matrix, and local-only perf packet or restores the roadmap-backed `atomic64_diff` pair, refresh this scripts-root reminder only after rereading `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `zigux/tests/README.md`, and the current direct-readback checker packet together on current `master`",
+    "Validation and Perf Team",
+    "ABI and Runtime Team plus Shared Subsystems Pod",
+)
+
 WARNING_MARKERS = (
     "DIRECT_READBACK_PACKET = (",
     "MISSING_BROADER_PACKET = (",
@@ -107,9 +122,11 @@ def require_positive_pin_self_test_count(text: str, label: str) -> None:
 def check(root: Path) -> None:
     note = read(root, NOTE)
     readme = read(root, README)
+    scripts_readme = read(root, SCRIPTS_README)
     repo_warning = read(root, REPO_REALITY_WARNING)
     require(note, NOTE_MARKERS, NOTE.as_posix())
     require(readme, README_MARKERS, README.as_posix())
+    require(scripts_readme, SCRIPTS_README_MARKERS, SCRIPTS_README.as_posix())
     require(repo_warning, WARNING_MARKERS, REPO_REALITY_WARNING.as_posix())
     require_positive_pin_self_test_count(note, NOTE.as_posix())
 
@@ -120,7 +137,7 @@ def main() -> int:
         cases = 0
         with tempfile.TemporaryDirectory(prefix="phase4-reversible-delivery-pins-") as tmp:
             root = Path(tmp)
-            for rel in (NOTE, README, REPO_REALITY_WARNING):
+            for rel in (NOTE, README, SCRIPTS_README, REPO_REALITY_WARNING):
                 src = args.root.resolve() / rel
                 dst = root / rel
                 dst.parent.mkdir(parents=True, exist_ok=True)
@@ -158,6 +175,22 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError("expected README historical route drift to fail")
+
+            readme_path.write_text((args.root.resolve() / README).read_text(encoding="utf-8"), encoding="utf-8")
+            scripts_readme_path = root / SCRIPTS_README
+            scripts_readme_path.write_text(
+                scripts_readme_path.read_text(encoding="utf-8").replace(
+                    SCRIPTS_README_MARKERS[6],
+                    "atomic64 reminder drifted",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected scripts README atomic64 drift to fail")
 
         print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass")
         print(f"PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES={cases}")
