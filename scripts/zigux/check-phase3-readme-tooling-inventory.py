@@ -15,13 +15,19 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-policy-slice.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
+    Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     Path("scripts/zigux/check-phase3-selftest-surface.py"),
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
+    Path("scripts/zigux/run-phase3-checks.py"),
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
+    Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("zigux/helpers/unsafe_policy.zig"),
+    Path("zigux/helpers/atomic.zig"),
+    Path("zigux/helpers/barrier.zig"),
+    Path("zigux/helpers/mmio.zig"),
     Path("zigux/tests/phase3_policy_starter_packet.zig"),
 )
 
@@ -35,13 +41,19 @@ REQUIRED_MARKERS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate_phase3_selftest.py",
+    "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
     "zigux/helpers/unsafe_policy.zig",
+    "zigux/helpers/atomic.zig",
+    "zigux/helpers/barrier.zig",
+    "zigux/helpers/mmio.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/tests/phase3_policy_starter_packet.zig",
 )
@@ -92,27 +104,37 @@ def run_self_test() -> int:
             return 1
 
         readme = root / SCRIPTS_README_PATH
-        readme.write_text(_read(readme).replace(REQUIRED_MARKERS[4], "", 1), encoding="utf-8")
+        readme.write_text(_read(readme).replace(REQUIRED_MARKERS[9], "", 1), encoding="utf-8")
         issues = validate_repo(root)
-        expected = f"missing scripts README marker: {REQUIRED_MARKERS[4]}"
+        expected = f"missing scripts README marker: {REQUIRED_MARKERS[9]}"
         if expected not in issues:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
-            print("expected missing README marker was not reported")
+            print("expected missing runner README marker was not reported")
             return 1
 
         _populate_repo(root)
-        missing_file = REQUIRED_FILES[-1]
+        missing_file = REQUIRED_FILES[9]
         (root / missing_file).unlink()
         issues = validate_repo(root)
         expected = f"missing repo file: {missing_file.as_posix()}"
         if expected not in issues:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
-            print("expected missing repo file was not reported")
+            print("expected missing runner file was not reported")
             return 1
 
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=3")
-    return 0
+        _populate_repo(root)
+        missing_file = REQUIRED_FILES[-2]
+        (root / missing_file).unlink()
+        issues = validate_repo(root)
+        expected = f"missing repo file: {missing_file.as_posix()}"
+        if expected not in issues:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected missing low-level wrapper helper file was not reported")
+            return 1
+
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=4")
+        return 0
 
 
 def main() -> int:
