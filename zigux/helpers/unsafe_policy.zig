@@ -1,5 +1,5 @@
 const std = @import("std");
-const abi = @import("abi_bindings.zig");
+const abi = @import("abi_bindings");
 
 pub const AccessBoundary = enum {
     typed_safe,
