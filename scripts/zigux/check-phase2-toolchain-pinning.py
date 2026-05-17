@@ -1,73 +1,120 @@
 #!/usr/bin/env python3
+"""Guard the current directly readable Phase 2 toolchain pinning packet."""
+
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
-README = ROOT / "scripts" / "zigux" / "README.md"
-MAKEFILE = ROOT / "zigux" / "Makefile"
-INSTALL_ZIG = ROOT / "scripts" / "zigux" / "install-zig.py"
-CHECK_ZIG_TOOLCHAIN = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
+SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
+SURFACE_PATHS = (
+    ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
+)
 
-REQUIRED_FILES = [
-    WORKFLOW,
-    README,
-    MAKEFILE,
-    INSTALL_ZIG,
-    CHECK_ZIG_TOOLCHAIN,
-]
+WORKFLOW_LINES = (
+    "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
+)
 
-EXACT_WORKFLOW_RUN_COUNTS = {
-    "python3 scripts/zigux/install-zig.py --self-test": 1,
-    "python3 scripts/zigux/install-zig.py --dest .zig-toolchain": 2,
-    "python3 scripts/zigux/check-zig-toolchain.py --self-test": 1,
-    "python3 scripts/zigux/check-zig-toolchain.py": 1,
-    "zig version": 2,
-}
+README_PRESENT_MARKERS = (
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/check-phase2-kbuild-routes.py`",
+    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
+    "`scripts/zigux/kconfig/conf_bridge.zig`",
+    "`scripts/zigux/kconfig/confdata_bridge.zig`",
+)
 
-REQUIRED_README_MARKERS = [
-    "Zig toolchain gate",
-    "check-zig-toolchain.py",
-    "check-zig-toolchain.py --self-test",
-    "minimum version",
-]
+README_WARNING_MARKERS = (
+    "repeated authenticated reads on current `master` still return missing for",
+    "`Documentation/zigux/phase2-closure.md`",
+    "`zigux/Makefile`",
+    "`scripts/zigux/install-zig.py`",
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`python3 scripts/zigux/install-zig.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2`",
+    "historical packet members",
+)
 
-REQUIRED_MAKEFILE_MARKERS = [
-    "ZIG ?= zig",
-    "$(ZIG) test scripts/zigux/fixdep.zig",
-    "$(ZIG) test scripts/zigux/genksyms.zig",
-    "$(ZIG) test scripts/zigux/genksyms_crc.zig",
-    "$(ZIG) test scripts/zigux/mk_elfconfig.zig",
-    "$(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
-    "$(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
-]
+README_FORBIDDEN_MARKERS = (
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+)
 
-DISALLOWED_WORKFLOW_MARKERS = [
-    "--channel master",
-]
+EXPECTED_SELF_TEST_CASE_COUNT = 28
 
-DISALLOWED_MAKEFILE_MARKERS = [
-    ".zig-toolchain/zig",
-    "zig-master",
-    "toolchains/zig",
-]
 
-INSTALL_ZIG_REQUIRED_MARKERS = [
-    "--dest",
-    "--self-test",
-]
+def read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise SystemExit(f"required file missing: {path}") from exc
 
-CHECK_ZIG_REQUIRED_MARKERS = [
-    "--self-test",
-    "minimum",
-    "version",
-]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 24
+def resolve_path(root: Path, path: Path) -> Path:
+    try:
+        return root / path.relative_to(ROOT)
+    except ValueError:
+        return root / path
+
+
+def count_exact_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
+def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker not in text]
+
+
+def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker in text]
+
+
+def collect_issues(root: Path) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    workflow_text = read_text(resolve_path(root, WORKFLOW))
+    readme_text = read_text(resolve_path(root, SCRIPTS_README))
+
+    for marker in WORKFLOW_LINES:
+        count = count_exact_lines(workflow_text, marker)
+        if count == 0:
+            issues.append(("MISSING_WORKFLOW_HOOKS", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
+
+    issues.extend(collect_missing_markers(readme_text, README_PRESENT_MARKERS, "MISSING_README_PRESENT_MARKERS"))
+    issues.extend(collect_missing_markers(readme_text, README_WARNING_MARKERS, "MISSING_README_WARNING_MARKERS"))
+    issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
+
+    for path in SURFACE_PATHS:
+        if not resolve_path(root, path).exists():
+            issues.append(("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()))
+
+    return issues
+
+
+def emit_issues(issues: list[tuple[str, str]]) -> int:
+    grouped: dict[str, list[str]] = {}
+    for code, value in issues:
+        grouped.setdefault(code, []).append(value)
+
+    print("PHASE2_TOOLCHAIN_PINNING=fail")
+    for code, values in grouped.items():
+        print(f"{code}_START")
+        for value in values:
+            print(value)
+        print(f"{code}_END")
+    return 1
 
 
 def write_text(path: Path, content: str) -> None:
@@ -75,277 +122,129 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def collect_issues(root: Path) -> list[tuple[str, str]]:
-    workflow = root / ".github" / "workflows" / "zigux-bootstrap.yml"
-    readme = root / "scripts" / "zigux" / "README.md"
-    makefile = root / "zigux" / "Makefile"
-    install_zig = root / "scripts" / "zigux" / "install-zig.py"
-    check_zig = root / "scripts" / "zigux" / "check-zig-toolchain.py"
-
-    issues: list[tuple[str, str]] = []
-
-    for path in (workflow, readme, makefile, install_zig, check_zig):
-        if not path.exists():
-            issues.append(("MISSING_FILE", str(path.relative_to(root))))
-
-    if issues:
-        return issues
-
-    workflow_text = workflow.read_text(encoding="utf-8")
-    readme_text = readme.read_text(encoding="utf-8")
-    makefile_text = makefile.read_text(encoding="utf-8")
-    install_zig_text = install_zig.read_text(encoding="utf-8")
-    check_zig_text = check_zig.read_text(encoding="utf-8")
-
-    for command, expected_count in EXACT_WORKFLOW_RUN_COUNTS.items():
-        expected_line = f"run: {command}"
-        actual_count = sum(1 for line in workflow_text.splitlines() if line.strip() == expected_line)
-        if actual_count != expected_count:
-            issues.append(("WORKFLOW_RUN_COUNT", f"{command}:count={actual_count}:expected={expected_count}"))
-
-    for marker in DISALLOWED_WORKFLOW_MARKERS:
-        if marker in workflow_text:
-            issues.append(("WORKFLOW_DISALLOWED_MARKER", marker))
-
-    for marker in REQUIRED_README_MARKERS:
-        if marker not in readme_text:
-            issues.append(("README_MARKER", marker))
-
-    for marker in REQUIRED_MAKEFILE_MARKERS:
-        if marker not in makefile_text:
-            issues.append(("MAKEFILE_MARKER", marker))
-
-    for marker in DISALLOWED_MAKEFILE_MARKERS:
-        if marker in makefile_text:
-            issues.append(("MAKEFILE_DISALLOWED_MARKER", marker))
-
-    for marker in INSTALL_ZIG_REQUIRED_MARKERS:
-        if marker not in install_zig_text:
-            issues.append(("INSTALL_ZIG_MARKER", marker))
-
-    for marker in CHECK_ZIG_REQUIRED_MARKERS:
-        if marker not in check_zig_text:
-            issues.append(("CHECK_ZIG_TOOLCHAIN_MARKER", marker))
-
-    return issues
-
-
-def emit_issues(issues: list[tuple[str, str]]) -> int:
-    grouped: dict[str, list[str]] = {}
-    for block, value in issues:
-        grouped.setdefault(block, []).append(value)
-
-    print("PHASE2_TOOLCHAIN_PINNING=fail")
-    for block, values in grouped.items():
-        print(f"{block}_START")
-        for value in values:
-            print(value)
-        print(f"{block}_END")
-    return 1
-
-
 def build_self_test_root(root: Path) -> None:
-    write_text(
-        root / ".github" / "workflows" / "zigux-bootstrap.yml",
-        """name: zigux-bootstrap
-jobs:
-  bootstrap:
-    steps:
-      - name: Self-test Zig installer
-        run: python3 scripts/zigux/install-zig.py --self-test
-      - name: Install Zig
-        run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain
-      - name: Show Zig version
-        run: zig version
-      - name: Self-test Zig toolchain checker
-        run: python3 scripts/zigux/check-zig-toolchain.py --self-test
-  phase2-cross:
-    steps:
-      - name: Install Zig
-        run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain
-      - name: Show Zig version
-        run: zig version
-      - name: Check Zig toolchain policy
-        run: python3 scripts/zigux/check-zig-toolchain.py
-""",
-    )
-    write_text(
-        root / "scripts" / "zigux" / "README.md",
-        """# scripts/zigux
-
-Zig toolchain gate
-- `check-zig-toolchain.py` verifies that the selected Zig binary exists and satisfies the configured minimum version.
-- `check-zig-toolchain.py --self-test` runs built-in parser and version-ordering coverage without needing a local Zig install.
-""",
-    )
-    write_text(
-        root / "zigux" / "Makefile",
-        """ZIG ?= zig
-
-phase2-tools:
-	$(ZIG) test scripts/zigux/fixdep.zig
-	$(ZIG) test scripts/zigux/genksyms.zig
-	$(ZIG) test scripts/zigux/genksyms_crc.zig
-	$(ZIG) test scripts/zigux/mk_elfconfig.zig
-
-phase2-kconfig:
-	$(ZIG) test scripts/zigux/kconfig/conf_bridge.zig
-	$(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig
-""",
-    )
-    write_text(
-        root / "scripts" / "zigux" / "install-zig.py",
-        """#!/usr/bin/env python3
-import argparse
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--dest")
-parser.add_argument("--self-test", action="store_true")
-""",
-    )
-    write_text(
-        root / "scripts" / "zigux" / "check-zig-toolchain.py",
-        """#!/usr/bin/env python3
-import argparse
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--self-test", action="store_true")
-minimum = "0.17.0"
-version = minimum
-""",
-    )
+    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
+    readme_lines = [
+        "# scripts/zigux",
+        "",
+        "## Phase 2",
+        "",
+        "- current packet",
+        *README_PRESENT_MARKERS,
+        *README_WARNING_MARKERS,
+    ]
+    write_text(resolve_path(root, SCRIPTS_README), "\n".join(readme_lines) + "\n")
+    for path in SURFACE_PATHS:
+        write_text(resolve_path(root, path), "present\n")
 
 
-def remove_all(text: str, marker: str) -> str:
+def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, "")
+    return text.replace(marker, replacement, 1)
+
+
+def replace_exact_line(text: str, marker: str, replacement: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines[index] = replacement
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
 
 
 def run_self_test() -> int:
     checks_run = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase2_toolchain_pinning_") as tmp_dir_str:
-        root = Path(tmp_dir_str)
+    with tempfile.TemporaryDirectory(prefix="zigux_phase2_toolchain_pinning_") as tmp_dir:
+        root = Path(tmp_dir)
 
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
 
-        build_self_test_root(root)
-        workflow = root / ".github" / "workflows" / "zigux-bootstrap.yml"
-        write_text(
-            workflow,
-            workflow.read_text(encoding="utf-8").replace(
-                "python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
-                "python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain",
-                1,
-            ),
-        )
-        issues = collect_issues(root)
-        assert ("WORKFLOW_DISALLOWED_MARKER", "--channel master") in issues
-        checks_run += 1
-
-        for command, expected_count in EXACT_WORKFLOW_RUN_COUNTS.items():
+        for marker in WORKFLOW_LINES:
             build_self_test_root(root)
-            workflow = root / ".github" / "workflows" / "zigux-bootstrap.yml"
-            write_text(
-                workflow,
-                workflow.read_text(encoding="utf-8").replace(
-                    f"        run: {command}\n",
-                    "",
-                    1,
-                ),
+            path = resolve_path(root, WORKFLOW)
+            path.write_text(
+                replace_exact_line(path.read_text(encoding="utf-8"), marker, "run: python3 scripts/zigux/other.py"),
+                encoding="utf-8",
             )
             issues = collect_issues(root)
-            assert (
-                "WORKFLOW_RUN_COUNT",
-                f"{command}:count={expected_count - 1}:expected={expected_count}",
-            ) in issues
+            assert ("MISSING_WORKFLOW_HOOKS", marker) in issues
             checks_run += 1
 
-        for marker in REQUIRED_README_MARKERS:
+        for marker in WORKFLOW_LINES:
             build_self_test_root(root)
-            readme = root / "scripts" / "zigux" / "README.md"
-            write_text(
-                readme,
-                remove_all(readme.read_text(encoding="utf-8"), marker),
-            )
+            path = resolve_path(root, WORKFLOW)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
-            assert ("README_MARKER", marker) in issues
+            assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
             checks_run += 1
 
-        build_self_test_root(root)
-        makefile = root / "zigux" / "Makefile"
-        write_text(
-            makefile,
-            makefile.read_text(encoding="utf-8").replace("ZIG ?= zig", "ZIG ?= .zig-toolchain/zig", 1),
-        )
-        issues = collect_issues(root)
-        assert ("MAKEFILE_DISALLOWED_MARKER", ".zig-toolchain/zig") in issues
-        checks_run += 1
-
-        for marker in REQUIRED_MAKEFILE_MARKERS:
+        for marker in README_PRESENT_MARKERS:
             build_self_test_root(root)
-            makefile = root / "zigux" / "Makefile"
-            write_text(
-                makefile,
-                remove_all(makefile.read_text(encoding="utf-8"), marker),
-            )
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
-            assert ("MAKEFILE_MARKER", marker) in issues
+            assert ("MISSING_README_PRESENT_MARKERS", marker) in issues
             checks_run += 1
 
-        for marker in INSTALL_ZIG_REQUIRED_MARKERS:
+        for marker in README_WARNING_MARKERS:
             build_self_test_root(root)
-            install_zig = root / "scripts" / "zigux" / "install-zig.py"
-            write_text(
-                install_zig,
-                remove_all(install_zig.read_text(encoding="utf-8"), marker),
-            )
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
-            assert ("INSTALL_ZIG_MARKER", marker) in issues
+            assert ("MISSING_README_WARNING_MARKERS", marker) in issues
             checks_run += 1
 
-        for marker in CHECK_ZIG_REQUIRED_MARKERS:
+        for marker in README_FORBIDDEN_MARKERS:
             build_self_test_root(root)
-            check_zig = root / "scripts" / "zigux" / "check-zig-toolchain.py"
-            write_text(
-                check_zig,
-                remove_all(check_zig.read_text(encoding="utf-8"), marker),
-            )
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
             issues = collect_issues(root)
-            assert ("CHECK_ZIG_TOOLCHAIN_MARKER", marker) in issues
+            assert ("FORBIDDEN_README_MARKERS", marker) in issues
             checks_run += 1
 
-    if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
-        print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=fail")
-        print(f"PHASE2_TOOLCHAIN_PINNING_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
-        print(f"PHASE2_TOOLCHAIN_PINNING_SELF_TEST_CASE_COUNT_EXPECTED={EXPECTED_SELF_TEST_CASE_COUNT}")
-        return 1
+        for rel_path in SURFACE_PATHS:
+            build_self_test_root(root)
+            resolve_path(root, rel_path).unlink()
+            issues = collect_issues(root)
+            assert ("MISSING_SURFACE_PATHS", rel_path.relative_to(ROOT).as_posix()) in issues
+            checks_run += 1
 
+    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=pass")
     print(f"PHASE2_TOOLCHAIN_PINNING_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check Phase 2 Zig toolchain pinning surfaces.")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in toolchain-pinning checker coverage.")
+    parser = argparse.ArgumentParser(
+        description="Check that the current directly readable Phase 2 toolchain pinning packet stays aligned."
+    )
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    issues = collect_issues(ROOT)
+    issues = collect_issues(args.root.resolve())
     if issues:
         return emit_issues(issues)
 
     print("PHASE2_TOOLCHAIN_PINNING=pass")
-    print(f"PHASE2_TOOLCHAIN_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE2_TOOLCHAIN_REQUIRED_MARKER_COUNT="
-        f"{len(EXACT_WORKFLOW_RUN_COUNTS) + len(REQUIRED_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(INSTALL_ZIG_REQUIRED_MARKERS) + len(CHECK_ZIG_REQUIRED_MARKERS)}"
-    )
+    print(f"PHASE2_TOOLCHAIN_PINNING_WORKFLOW_HOOK_COUNT={len(WORKFLOW_LINES)}")
+    print(f"PHASE2_TOOLCHAIN_PINNING_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
     return 0
 
 
