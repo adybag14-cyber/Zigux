@@ -14,6 +14,16 @@ ROOT = (
     else Path(__file__).resolve().parent
 )
 SURVEYED_COMMIT = "e42103fc02f544e1bd23a5ec2e5b584734f5af7d"
+RING_MISSING_DIRECT_READBACK = (
+    "repeated authenticated contents reads still return missing for "
+    "`drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, "
+    "`zigux/tests/phase10_virtio_ring.zig`, "
+    "`zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, "
+    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and "
+    "`zigux/tests/phase10_virtio_ring_survey.zig`, so keep the queue-local ring "
+    "helper ladder framed as manifest-backed review vocabulary until those direct "
+    "wrapper files materialize again"
+)
 
 DIRECT_PACKET_FILES = [
     "scripts/zigux/check-phase10-ring-packet.py",
@@ -33,6 +43,7 @@ MARKERS = {
         "zigux/tests/phase10_virtio_ring_manifest.json",
         "Documentation/zigux/phase10-virtio-ring-survey.md",
         "Documentation/zigux/phase10-virtio-ring-slice.md",
+        RING_MISSING_DIRECT_READBACK,
     ],
     "Documentation/zigux/phase10-virtio-ring-survey.md": [
         "`PHASE10_STATUS=parked`",
@@ -303,6 +314,12 @@ def run_self_test() -> int:
             expect_missing_marker(expected)
             path.write_text(json.dumps(original, indent=2) + "\n", encoding="utf-8")
 
+        replace_once(
+            "Documentation/zigux/phase10-closure-evidence.md",
+            RING_MISSING_DIRECT_READBACK,
+            "repeated authenticated contents reads still return missing for `drivers/virtio/virtio_ring.zig` only",
+            f"phase10-closure-evidence.md:{RING_MISSING_DIRECT_READBACK}",
+        )
         replace_once(
             "Documentation/zigux/phase10-virtio-ring-survey.md",
             "lane: `P10-L10`",
