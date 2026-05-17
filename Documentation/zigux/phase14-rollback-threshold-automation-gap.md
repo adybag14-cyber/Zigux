@@ -3,7 +3,7 @@
 ## Status
 
 - `PHASE14_ROLLBACK_THRESHOLD_GAP=present`
-- `PHASE14_ROLLBACK_THRESHOLD_GAP_KIND=makefile_selftest_coverage_drift`
+- `PHASE14_ROLLBACK_THRESHOLD_GAP_KIND=executable_packet_readback_gap`
 - `PHASE14_ROLLBACK_THRESHOLD_GAP_SCOPE=shared_smoke_packet_only`
 - `PHASE14_ROLLBACK_THRESHOLD_GAP_STATUS_BUCKET=study_only`
 - `PHASE14_ROLLBACK_THRESHOLD_GAP_OWNER=Repo Tooling Pod`
@@ -13,42 +13,50 @@
 
 The Phase 14 roadmap keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`
 in study-only boundary mode and keeps `net/core/skbuff.c` plus
-`kernel/rcu/tree.c` under freeze-in-C governance. That makes shared smoke
-automation truthfulness more valuable than new bridge growth.
+`kernel/rcu/tree.c` under freeze-in-C governance. That makes rollback-threshold
+truthfulness more valuable than new bridge growth.
 
-Current `master` already publishes a newer shared-smoke packet than the
-dedicated rollback-threshold checker exact-checks today:
+The directly readable rollback-threshold packet is stronger than an older
+docs-absence claim. Current exact contents reads still recover
+`Documentation/zigux/phase14-end-to-end-smoke-survey.md`,
+`Documentation/zigux/phase14-productization-gap-survey.md`,
+`Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, and
+`scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, so rollback
+owner, threshold, fallback path, and automatic return-to-blocked triggers
+remain directly reviewable.
 
-- `Documentation/zigux/phase14-end-to-end-smoke-survey.md` now names
-  `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` in the shared
-  packet and says `zigux/Makefile` replays both
-  `scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test` and
-  `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`
-  before the live checker invocations inside `make -C zigux phase14-validate`.
-- `Documentation/zigux/phase14-release-boundary-survey.md` also lists
-  `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` inside the shared
-  smoke packet.
-- `scripts/zigux/check-phase14-rollback-threshold-sequencing.py` still exact-checks
-  the older smaller `phase14-validate` subset and does not yet require those
-  newer tests-root and rollback-checker self-test markers.
+But the executable rollback-threshold packet members still return missing-path
+results on the same exact contents path:
+
+- `scripts/zigux/validate-phase14.py`
+- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+- `zigux/tests/phase14_build.zig`
+- `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+- `zigux/tests/phase14_end_to_end_smoke_survey.zig`
 
 ## Current bounded gap
 
-The live shared packet has advanced, but the dedicated rollback-threshold
-checker has not yet caught up to the newer self-test inventory it now describes.
-That creates a narrow truthfulness gap: the packet can still overstate what the
-rollback checker itself proves about `phase14-validate`.
+The remaining same-lane gap is no longer a smaller Makefile-self-test
+inventory mismatch inside
+`scripts/zigux/check-phase14-rollback-threshold-sequencing.py`.
+
+It is the narrower split between directly readable rollback-threshold
+note/checker evidence and the still-unrecovered validator, build, manifest,
+and smoke-survey companions that would replay that packet end to end.
+
+That means broader reminder surfaces should not present rollback-threshold
+automation as a fully re-read executable packet until those exact paths return
+through the same current-master contents read.
 
 ## Next bounded fix
 
-Refresh `scripts/zigux/check-phase14-rollback-threshold-sequencing.py` so its
-exact Makefile expectations catch up to the current shared-smoke packet by
-requiring:
+Either:
 
-- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test`
-- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`
-- `scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`
+- re-materialize the missing executable packet members above on current `master`
+- tighten broader Phase 14 reminder surfaces so they name the
+  rollback-threshold note/checker layer as directly readable while keeping the
+  executable layer explicit as the remaining gap
 
 Stop there. Do not widen into anchor-local bridge ownership, new Phase 14
 delivery claims, or broader shared-smoke note churn while this gap remains
-strictly checker-local.
+strictly rollback-packet-local.
