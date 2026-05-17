@@ -93,7 +93,7 @@ pub fn toupper(ch: u8) u8 {
 }
 
 pub fn fastTolower(ch: u8) u8 {
-    return ch | 0x20;
+    return if (isupper(ch)) (ch | 0x20) else ch;
 }
 
 pub fn isodigit(ch: u8) bool {
@@ -117,6 +117,7 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expectEqual(@as(u8, 'a'), tolower('A'));
     try std.testing.expectEqual(@as(u8, 'Z'), toupper('z'));
     try std.testing.expectEqual(@as(u8, 'm'), fastTolower('M'));
+    try std.testing.expectEqual(@as(u8, '!'), fastTolower('!'));
     try std.testing.expect(isascii('x'));
     try std.testing.expectEqual(@as(u8, 0x3f), toascii(0xbf));
     try std.testing.expect(isodigit('7'));
