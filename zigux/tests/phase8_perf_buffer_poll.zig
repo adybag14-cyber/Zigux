@@ -187,6 +187,7 @@ test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact
         found.disposition,
     );
     try std.testing.expectEqual(@as(?usize, 8192), found.mapped_size);
+    try std.testing.expectEqual(@as(usize, 8192), try perf_buffer_poll.resolveBufferWindowMappedSize(found));
     try std.testing.expectEqual(
         @as(i32, 0),
         perf_buffer_poll.resolveBufferWindowLookupReturn(found),
@@ -198,6 +199,7 @@ test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact
         missing.disposition,
     );
     try std.testing.expectEqual(@as(?usize, null), missing.mapped_size);
+    try std.testing.expectError(error.MissingWindow, perf_buffer_poll.resolveBufferWindowMappedSize(missing));
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
         perf_buffer_poll.resolveBufferWindowLookupReturn(missing),
@@ -209,6 +211,7 @@ test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact
         invalid.disposition,
     );
     try std.testing.expectEqual(@as(?usize, null), invalid.mapped_size);
+    try std.testing.expectError(error.InvalidIndex, perf_buffer_poll.resolveBufferWindowMappedSize(invalid));
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         perf_buffer_poll.resolveBufferWindowLookupReturn(invalid),
