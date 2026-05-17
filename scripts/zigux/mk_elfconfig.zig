@@ -160,6 +160,15 @@ test "classifies 32-bit ELF header" {
     try std.testing.expectEqual(Outcome.elf32, classify(&header));
 }
 
+test "classifies 32-bit ELF input even when trailing bytes are present" {
+    const header = [_]u8{
+        0x7f, 'E',  'L',  'F', elfclass32, 1, 1, 0,
+        0,    0,    0,    0,   0,          0, 0, 0,
+        0xaa, 0xbb, 0xcc,
+    };
+    try std.testing.expectEqual(Outcome.elf32, classify(&header));
+}
+
 test "classifies 64-bit ELF header" {
     const header = [_]u8{ 0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     try std.testing.expectEqual(Outcome.elf64, classify(&header));
