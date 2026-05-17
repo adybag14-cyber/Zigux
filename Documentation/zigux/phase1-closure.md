@@ -27,7 +27,9 @@ The currently reviewable Phase 1 packet is:
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 
 - `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/fixtures/phase1_helper_manifest.json`
-- `PHASE1_SHARED_REMINDER_SYNC_STATE=aligned`
+- `PHASE1_SHARED_REMINDER_SYNC_STATE=docs_root_and_scripts_root_synced_tests_root_and_checklist_pending`
+
+`Documentation/zigux/README.md` and `scripts/zigux/README.md` already carry the restored closure-anchor wording. `zigux/tests/README.md` and `Documentation/zigux/review-checklist.md` are the remaining shared reminder surfaces that still need the same narrowed contract.
 
 ## Current Repo-Reality Gaps
 
@@ -60,6 +62,6 @@ The validator checks this note against the committed helper manifest and the syn
 
 ## Next Step
 
-The next same-lane follow-up is to rematerialize one replay-side helper or bench companion on current `master` instead of widening reminder wording again.
+The next same-lane follow-up is to sync the remaining tests-root and checklist reminder surfaces against this restored closure note and closure validator before reopening any replay-side helper or bench claims.
 
-- `PHASE1_NEXT_SAFE_STEP=rematerialize one replay-side helper or bench companion on current master before widening reminder wording again`
+- `PHASE1_NEXT_SAFE_STEP=sync zigux/tests/README.md and Documentation/zigux/review-checklist.md against the restored closure note and closure validator`
