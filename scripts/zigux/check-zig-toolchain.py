@@ -267,6 +267,18 @@ def format_search_roots(search_roots: list[Path]) -> str:
     return ",".join(str(path) for path in search_roots)
 
 
+def describe_missing_archive(
+    archive_path: Path | None,
+    *,
+    explicit_archive: str | None,
+    search_roots: list[Path],
+) -> tuple[str, str | None]:
+    if explicit_archive is not None:
+        resolved = archive_path or Path(explicit_archive)
+        return f"explicit archive path does not exist: {resolved}", None
+    return "pinned Zig archive not found in archive search roots", format_search_roots(search_roots)
+
+
 def iter_repo_local_archive_candidates(
     *,
     root: Path = ROOT,
@@ -612,6 +624,28 @@ def run_self_test() -> int:
             ),
             ("x86_64-linux", missing_explicit_path),
         )
+        expect_equal(
+            describe_missing_archive(
+                missing_explicit_path,
+                explicit_archive=str(missing_explicit_path),
+                search_roots=iter_archive_search_roots(root),
+            ),
+            (
+                f"explicit archive path does not exist: {missing_explicit_path}",
+                None,
+            ),
+        )
+        expect_equal(
+            describe_missing_archive(
+                None,
+                explicit_archive=None,
+                search_roots=iter_archive_search_roots(root),
+            ),
+            (
+                "pinned Zig archive not found in archive search roots",
+                format_search_roots(iter_archive_search_roots(root)),
+            ),
+        )
         workspace_archive_path.write_bytes(b"zigux-archive-drift")
         drift_sha = hashlib.sha256(b"zigux-archive-drift").hexdigest()
         expect_equal(
@@ -772,7 +806,11 @@ def main() -> int:
 
         if archive_path is None or not archive_path.is_file():
             search_roots = iter_archive_search_roots()
-            message = "pinned Zig archive not found in archive search roots"
+            message, search_roots_summary = describe_missing_archive(
+                archive_path,
+                explicit_archive=args.archive,
+                search_roots=search_roots,
+            )
             print("ZIG_TOOLCHAIN_ARCHIVE_STATUS=missing")
             print(f"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path or args.archive or 'unresolved'}")
             print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}")
@@ -780,7 +818,8 @@ def main() -> int:
                 print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_FILENAME={expected_filename}")
             if expected_sha is not None:
                 print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={expected_sha}")
-            print(f"ZIG_TOOLCHAIN_ARCHIVE_SEARCH_ROOTS={format_search_roots(search_roots)}")
+            if search_roots_summary is not None:
+                print(f"ZIG_TOOLCHAIN_ARCHIVE_SEARCH_ROOTS={search_roots_summary}")
             print(f"ZIG_TOOLCHAIN_NOTE={message}")
             return 0 if args.allow_missing else 1
 
