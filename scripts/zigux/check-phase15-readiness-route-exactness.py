@@ -1,52 +1,51 @@
 #!/usr/bin/env python3
 
-"""Guard the current Phase 15 readiness-route exactness gap.
+"""Guard the current Phase 15 readiness-route exactness posture.
 
-This checker intentionally models the current mismatch between the shipped
-`phase15-validate` route, the validator-side readiness inventory, and the
-machine-readable readiness manifest. It should fail once those packets are
-repaired so the gap note can be updated or retired.
+This checker keeps one bounded Architecture Council truthfulness note aligned
+with the current blocked-route readiness packet on master. It should fail once
+the missing route companions land or the parked reminder wording drifts.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import re
 import tempfile
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-MAKEFILE_REL = "zigux/Makefile"
-VALIDATE_REL = "scripts/zigux/validate-phase15.py"
-MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
 NOTE_REL = "Documentation/zigux/phase15-readiness-route-exactness-gap.md"
+SURVEY_REL = "Documentation/zigux/phase15-readiness-gate-survey.md"
+MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
+VALIDATOR_REL = "scripts/zigux/validate-phase15.py"
+MAKEFILE_REL = "zigux/Makefile"
 
-MAKE_ROUTE_CHECKERS = [
+EXPECTED_MANIFEST_CHECKERS = [
     "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py",
 ]
 
-VALIDATOR_READINESS_CHECKERS = [
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
-    "scripts/zigux/check-phase15-shared-summary-gap.py",
-]
-
-MANIFEST_READINESS_CHECKERS = [
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
-]
-
 NOTE_MARKERS = [
-    "Make route: four checkers",
-    "validator readiness inventory: three checkers, missing only the docs",
-    "readiness manifest: two checkers, missing the docs alignment checker and the",
-    "shared-summary gap checker",
+    "current `master` no longer materializes the shared `phase15-validate` route",
+    "`zigux/Makefile` and `scripts/zigux/validate-phase15.py` still return missing",
+    "`zigux/tests/phase15_readiness_gate_manifest.json` now carries the",
+    "four-checker inventory",
+    "`Documentation/zigux/phase15-readiness-gate-survey.md` already treats",
+    "blocked route vocabulary rather than a directly",
+    "replayable shipped route",
     "scripts/zigux/check-phase15-readiness-route-exactness.py",
+]
+
+SURVEY_MARKERS = [
+    "- `scripts/zigux/validate-phase15.py`",
+    "- `zigux/Makefile`",
+    "- `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path",
+    "- `make -C zigux phase15-test` remains blocked route vocabulary rather than a directly readable shipped replay path",
+    "- `make -C zigux phase15` remains blocked route vocabulary rather than a directly readable shipped replay path",
 ]
 
 
@@ -60,68 +59,34 @@ def _write(root: Path, rel: str, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
-def _extract_make_route(text: str) -> list[str] | None:
-    match = re.search(r"phase15-validate:\n(?P<body>.*?)(?:\nphase15-test:|\Z)", text, re.S)
-    if not match:
-        return None
-
-    found: list[str] = []
-    for checker in MAKE_ROUTE_CHECKERS:
-        if f"{checker} --self-test" in match.group("body") and re.search(
-            rf"{re.escape(checker)}(?!\s*--self-test)",
-            match.group("body"),
-        ):
-            found.append(checker)
-    return found
-
-
-def _extract_list(text: str, name: str) -> list[str] | None:
-    match = re.search(rf"{re.escape(name)}\s*=\s*\[(?P<body>.*?)\]", text, re.S)
-    if not match:
-        return None
-    return re.findall(r'"([^"]+)"', match.group("body"))
-
-
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
-    for rel in (MAKEFILE_REL, VALIDATE_REL, MANIFEST_REL, NOTE_REL):
+    for rel in (NOTE_REL, SURVEY_REL, MANIFEST_REL):
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel}")
     if issues:
         return issues
+
+    for rel in (VALIDATOR_REL, MAKEFILE_REL):
+        if (root / rel).exists():
+            issues.append(f"unexpected_present:{rel}")
 
     note_text = _read(root, NOTE_REL)
     for marker in NOTE_MARKERS:
         if marker not in note_text:
             issues.append(f"note:missing:{marker}")
 
-    makefile_text = _read(root, MAKEFILE_REL)
-    make_route = _extract_make_route(makefile_text)
-    if make_route is None:
-        issues.append("makefile:phase15_validate_route_missing")
-    elif make_route != MAKE_ROUTE_CHECKERS:
-        issues.append(f"makefile:route={make_route}")
-
-    validate_text = _read(root, VALIDATE_REL)
-    make_markers = _extract_list(validate_text, "MAKE_MARKERS")
-    if make_markers is None:
-        issues.append("validate_phase15:make_markers_missing")
-    else:
-        for checker in MAKE_ROUTE_CHECKERS:
-            if checker not in make_markers:
-                issues.append(f"validate_phase15:make_markers_missing:{checker}")
-
-    readiness_checkers = _extract_list(validate_text, "READINESS_CHECKERS")
-    if readiness_checkers is None:
-        issues.append("validate_phase15:readiness_checkers_missing")
-    elif readiness_checkers != VALIDATOR_READINESS_CHECKERS:
-        issues.append(f"validate_phase15:readiness_checkers={readiness_checkers}")
+    survey_text = _read(root, SURVEY_REL)
+    for marker in SURVEY_MARKERS:
+        if marker not in survey_text:
+            issues.append(f"survey:missing:{marker}")
 
     manifest = json.loads(_read(root, MANIFEST_REL))
-    manifest_checkers = manifest.get("phase15_validate_checkers")
-    if manifest_checkers != MANIFEST_READINESS_CHECKERS:
-        issues.append(f"readiness_manifest:phase15_validate_checkers={manifest_checkers}")
+    if manifest.get("phase15_validate_checkers") != EXPECTED_MANIFEST_CHECKERS:
+        issues.append(
+            "manifest:phase15_validate_checkers no longer matches the blocked-route readiness packet"
+        )
 
     return issues
 
@@ -133,10 +98,13 @@ def _seed(root: Path) -> None:
         "\n".join(
             [
                 "# note",
-                "Make route: four checkers",
-                "validator readiness inventory: three checkers, missing only the docs",
-                "readiness manifest: two checkers, missing the docs alignment checker and the",
-                "shared-summary gap checker",
+                "current `master` no longer materializes the shared `phase15-validate` route",
+                "`zigux/Makefile` and `scripts/zigux/validate-phase15.py` still return missing",
+                "`zigux/tests/phase15_readiness_gate_manifest.json` now carries the",
+                "four-checker inventory",
+                "`Documentation/zigux/phase15-readiness-gate-survey.md` already treats",
+                "blocked route vocabulary rather than a directly",
+                "replayable shipped route",
                 "scripts/zigux/check-phase15-readiness-route-exactness.py",
                 "",
             ]
@@ -144,43 +112,15 @@ def _seed(root: Path) -> None:
     )
     _write(
         root,
-        MAKEFILE_REL,
+        SURVEY_REL,
         "\n".join(
             [
-                "phase15-validate:",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-docs-readme-alignment.py --self-test",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-docs-readme-alignment.py",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py --self-test",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-shared-summary-gap.py",
-                "phase15-test:",
-                "",
-            ]
-        ),
-    )
-    _write(
-        root,
-        VALIDATE_REL,
-        "\n".join(
-            [
-                "MAKE_MARKERS = [",
-                '  "scripts/zigux/check-phase15-docs-readme-alignment.py --self-test",',
-                '  "scripts/zigux/check-phase15-docs-readme-alignment.py",',
-                '  "scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",',
-                '  "scripts/zigux/check-phase15-scripts-readme-alignment.py",',
-                '  "scripts/zigux/check-phase15-review-process-handoff.py --self-test",',
-                '  "scripts/zigux/check-phase15-review-process-handoff.py",',
-                '  "scripts/zigux/check-phase15-shared-summary-gap.py --self-test",',
-                '  "scripts/zigux/check-phase15-shared-summary-gap.py",',
-                "]",
-                "READINESS_CHECKERS = [",
-                '  "scripts/zigux/check-phase15-scripts-readme-alignment.py",',
-                '  "scripts/zigux/check-phase15-review-process-handoff.py",',
-                '  "scripts/zigux/check-phase15-shared-summary-gap.py",',
-                "]",
+                "# survey",
+                "- `scripts/zigux/validate-phase15.py`",
+                "- `zigux/Makefile`",
+                "- `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path",
+                "- `make -C zigux phase15-test` remains blocked route vocabulary rather than a directly readable shipped replay path",
+                "- `make -C zigux phase15` remains blocked route vocabulary rather than a directly readable shipped replay path",
                 "",
             ]
         ),
@@ -189,87 +129,97 @@ def _seed(root: Path) -> None:
         root,
         MANIFEST_REL,
         json.dumps(
-            {
-                "phase15_validate_checkers": MANIFEST_READINESS_CHECKERS,
-            },
+            {"phase15_validate_checkers": EXPECTED_MANIFEST_CHECKERS},
             indent=2,
         )
         + "\n",
     )
 
 
-def _assert_result(actual: list[str], expected: list[str], label: str) -> None:
-    if actual != expected:
-        raise SystemExit(
-            f"phase15-readiness-route-exactness-self-test:{label}:got={actual}:want={expected}"
-        )
-
-
 def run_self_test() -> int:
     case_count = 0
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase15_readiness_route_") as tmp_dir:
-        root = Path(tmp_dir)
+        base = Path(tmp_dir)
 
+        root = base / "baseline"
         _seed(root)
         case_count += 1
-        _assert_result(validate(root), [], "baseline")
-
-        _seed(root)
-        case_count += 1
-        text = _read(root, VALIDATE_REL).replace(
-            '\n'.join(
-                [
-                    "READINESS_CHECKERS = [",
-                    '  "scripts/zigux/check-phase15-scripts-readme-alignment.py",',
-                    '  "scripts/zigux/check-phase15-review-process-handoff.py",',
-                    '  "scripts/zigux/check-phase15-shared-summary-gap.py",',
-                    "]",
-                ]
-            ),
-            '\n'.join(
-                [
-                    "READINESS_CHECKERS = [",
-                    '  "scripts/zigux/check-phase15-docs-readme-alignment.py",',
-                    '  "scripts/zigux/check-phase15-scripts-readme-alignment.py",',
-                    '  "scripts/zigux/check-phase15-review-process-handoff.py",',
-                    '  "scripts/zigux/check-phase15-shared-summary-gap.py",',
-                    "]",
-                ]
-            ),
-            1,
-        )
-        _write(root, VALIDATE_REL, text)
-        issues = validate(root)
-        if not any(item.startswith("validate_phase15:readiness_checkers=") for item in issues):
+        baseline = validate(root)
+        if baseline:
             raise SystemExit(
-                "phase15-readiness-route-exactness-self-test:validator_repaired_route_drift_not_detected"
+                f"phase15-readiness-route-exactness-self-test:baseline:{baseline}"
             )
 
+        root = base / "validator_present"
+        _seed(root)
+        case_count += 1
+        _write(root, VALIDATOR_REL, "# present\n")
+        issues = validate(root)
+        expected = [f"unexpected_present:{VALIDATOR_REL}"]
+        if issues != expected:
+            raise SystemExit(
+                f"phase15-readiness-route-exactness-self-test:validator-present:{issues}"
+            )
+
+        root = base / "makefile_present"
+        _seed(root)
+        case_count += 1
+        _write(root, MAKEFILE_REL, "phase15-validate:\n")
+        issues = validate(root)
+        expected = [f"unexpected_present:{MAKEFILE_REL}"]
+        if issues != expected:
+            raise SystemExit(
+                f"phase15-readiness-route-exactness-self-test:makefile-present:{issues}"
+            )
+
+        root = base / "manifest_mismatch"
         _seed(root)
         case_count += 1
         manifest = json.loads(_read(root, MANIFEST_REL))
-        manifest["phase15_validate_checkers"] = MAKE_ROUTE_CHECKERS
+        manifest["phase15_validate_checkers"] = EXPECTED_MANIFEST_CHECKERS[:-1]
         _write(root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
         issues = validate(root)
-        if not any(item.startswith("readiness_manifest:phase15_validate_checkers=") for item in issues):
+        expected = [
+            "manifest:phase15_validate_checkers no longer matches the blocked-route readiness packet"
+        ]
+        if issues != expected:
             raise SystemExit(
-                "phase15-readiness-route-exactness-self-test:manifest_repair_not_detected"
+                f"phase15-readiness-route-exactness-self-test:manifest:{issues}"
             )
 
+        root = base / "note_marker_missing"
         _seed(root)
         case_count += 1
-        broken_make = _read(root, MAKEFILE_REL).replace(
-            "scripts/zigux/check-phase15-docs-readme-alignment.py --self-test\n"
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-docs-readme-alignment.py\n",
+        note_text = _read(root, NOTE_REL).replace(
+            "replayable shipped route\n",
             "",
             1,
         )
-        _write(root, MAKEFILE_REL, broken_make)
+        _write(root, NOTE_REL, note_text)
         issues = validate(root)
-        if not any(item.startswith("makefile:route=") for item in issues):
+        expected = ["note:missing:replayable shipped route"]
+        if issues != expected:
             raise SystemExit(
-                "phase15-readiness-route-exactness-self-test:make_route_regression_not_detected"
+                f"phase15-readiness-route-exactness-self-test:note:{issues}"
+            )
+
+        root = base / "survey_marker_missing"
+        _seed(root)
+        case_count += 1
+        survey_text = _read(root, SURVEY_REL).replace(
+            "- `make -C zigux phase15-test` remains blocked route vocabulary rather than a directly readable shipped replay path\n",
+            "",
+            1,
+        )
+        _write(root, SURVEY_REL, survey_text)
+        issues = validate(root)
+        expected = [
+            "survey:missing:- `make -C zigux phase15-test` remains blocked route vocabulary rather than a directly readable shipped replay path"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                f"phase15-readiness-route-exactness-self-test:survey:{issues}"
             )
 
     print("PHASE15_READINESS_ROUTE_EXACTNESS_SELF_TEST=pass")
@@ -279,7 +229,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check the current Phase 15 readiness-route exactness gap."
+        description="Check the current Phase 15 blocked-route readiness posture."
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect.")
@@ -298,7 +248,7 @@ def main() -> int:
         return 1
 
     print("PHASE15_READINESS_ROUTE_EXACTNESS=pass")
-    print("PHASE15_READINESS_ROUTE_EXACTNESS_MODE=current_gap_matches_note")
+    print("PHASE15_READINESS_ROUTE_EXACTNESS_MODE=blocked_route_posture_matches_note")
     return 0
 
 
