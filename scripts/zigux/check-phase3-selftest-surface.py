@@ -111,6 +111,7 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
+    'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
     'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     "PHASE3_VALIDATE_SELFTEST=pass",
@@ -177,7 +178,8 @@ def run_self_test() -> int:
         (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS[-1], "review checklist"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[-1], "validator-support note"),
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[0], "scripts README"),
-        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[2], "selftest driver"),
+        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[3], "selftest driver"),
+        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[5], "selftest driver"),
     )
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_selftest_surface_") as temp_dir:
@@ -202,7 +204,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
