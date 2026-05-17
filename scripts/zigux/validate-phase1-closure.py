@@ -107,6 +107,11 @@ EXPECTED_FIND_BIT_REVIEW_FIELDS = {
     "same_word_start_masks": 'test "single-word next scans honor start masks"',
     "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
     "tail_word_inclusive_boundary_anchor": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    "tail_word_inclusive_boundary_contract": (
+        "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned "
+        "when the inclusive start lands on the last in-range bit of the final partial word, "
+        "while later starts still return nbits instead of leaking the out-of-range tail."
+    ),
     "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
     "zero_sized_short_circuit_anchor": 'test "zero-sized scans ignore populated backing words"',
     "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
