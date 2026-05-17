@@ -231,7 +231,7 @@ def run_self_test() -> int:
 
         docs_root_path = root / "Documentation/zigux/README.md"
         original_docs_root = docs_root_path.read_text(encoding="utf-8")
-        docs_root_path.writeText(
+        docs_root_path.write_text(
             original_docs_root.replace(
                 "scripts/zigux/check-phase10-harness-coverage.py",
                 "scripts/zigux/check-phase10-harness-coverage-missing.py",
