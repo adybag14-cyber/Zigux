@@ -8,47 +8,42 @@ import tempfile
 from pathlib import Path
 
 README_PATH = Path("scripts/zigux/README.md")
-RBTREE_SLICE_PATH = Path("Documentation/zigux/phase7-rbtree-slice.md")
-VALIDATOR_PATH = Path("scripts/zigux/validate-phase7.py")
+STRING_HELPERS_SLICE_PATH = Path("Documentation/zigux/phase7-string-helpers-slice.md")
 
 DIRECT_PACKET = [
     "scripts/zigux/README.md",
+    "Documentation/zigux/phase7-string-helpers-slice.md",
+    "lib/string_helpers.zig",
+    "samples/zigux/README.md",
+    "zigux/tests/phase7_rbtree_survey.zig",
+    "zigux/tests/phase7_string_helpers.zig",
+    "zigux/tests/phase7_string_helpers_manifest.json",
+    "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+    "zigux/tests/phase7_string_helpers_survey.zig",
+]
+
+PARKED_SHARED_CONTROL_PATHS = [
+    "Documentation/zigux/phase7-argv-split-slice.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
-    "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/check-phase7-make-wrapper.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-    "scripts/zigux/check-phase7-build-wiring.py",
-    "scripts/zigux/check-phase7-cmdline-packet.py",
-    "scripts/zigux/check-phase7-argv-split-packet.py",
-    "scripts/zigux/check-phase7-rbtree-parity.py",
+    "scripts/zigux/validate-phase7.py",
     "zigux/tests/phase7_build.zig",
-    "zigux/Makefile",
-    ".github/workflows/zigux-bootstrap.yml",
 ]
 
 README_REQUIRED_SNIPPETS = [
-    "Phase 7 flow - the current shared-control packet is directly readable again on current `master`:",
-    "`python3 scripts/zigux/validate-phase7.py --self-test`, `python3 scripts/zigux/check-phase7-make-wrapper.py --self-test`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test`, `python3 scripts/zigux/check-phase7-build-wiring.py --self-test`, `python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test`, `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`, `python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`, and `make -C zigux phase7-validate` replay the shipped Phase 7 wrapper, survey, and parity guards",
-    "current `master` still ships no `samples/zigux/*string*`, `*cmdline*`, `*argv*`, or `*rbtree*` Phase 5 reference sample",
+    "Phase 7 flow - the current scripts-root Phase 7 reminder is intentionally narrow:",
+    "helper-local string evidence now lives directly in `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, and `zigux/tests/phase7_string_helpers_sample_boundary.zig`, while the surviving broader shared-helper anchor is the directly readable `zigux/tests/phase7_rbtree_survey.zig`",
+    "authenticated contents reads on current `master` now return missing for the older shared-control wrapper packet members `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `zigux/tests/phase7_build.zig`, `Documentation/zigux/phase7-argv-split-slice.md`, and `Documentation/zigux/phase7-rbtree-slice.md`",
+    "leave broader shared-control validator or make-wrapper follow-up parked until those missing wrapper files rematerialize on current `master`",
 ]
 
-RBTREE_SLICE_REQUIRED_SNIPPETS = [
-    "Current repo reality at the shared bundle level is now route-present rather than blocked:",
-    "direct current `master` reads returned this slice note together with `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `scripts/zigux/check-phase7-rbtree-parity.py`.",
-    "* `python3 scripts/zigux/validate-phase7.py`",
-    "* `python3 scripts/zigux/check-phase7-make-wrapper.py`",
-    "* `python3 scripts/zigux/check-phase7-build-wiring.py`",
-    "* `zigux/tests/phase7_build.zig`",
-    "* `zigux/Makefile`",
-    "* `.github/workflows/zigux-bootstrap.yml`",
-]
-
-VALIDATOR_REQUIRED_SNIPPETS = [
-    '"zigux/tests/phase7_string_helpers_sample_boundary.zig": [',
-    '"scripts/zigux/validate-phase7.py",',
-    '"scripts/zigux/check-phase7-make-wrapper.py",',
-    '"scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",',
-    '"scripts/zigux/check-phase7-build-wiring.py",',
+STRING_HELPERS_SLICE_REQUIRED_SNIPPETS = [
+    "lane-key note: `helper-local` keeps the expanded string-helpers starter packet separate from the Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate shared-control lanes",
+    "Shared validator, Makefile, workflow, and shared-build-route reminders remain separate Phase 7 shared-control follow-up and should not be counted here as direct helper-local proof unless a fresh reread materializes them again on current `master`.",
+    "- do not count `scripts/zigux/validate-phase7.py`",
+    "unless a fresh same-family reread proves those broader shared-control reminders are directly readable again on current `master`.",
 ]
 
 SELF_TEST_CASE_COUNT = 8
@@ -82,11 +77,17 @@ def require_repo_reality(repo_root: Path) -> None:
             + ", ".join(missing_direct)
         )
 
+    rematerialized_paths = [rel for rel in PARKED_SHARED_CONTROL_PATHS if (repo_root / rel).exists()]
+    if rematerialized_paths:
+        raise ValidationError(
+            "parked Phase 7 shared-control paths unexpectedly rematerialized: "
+            + ", ".join(rematerialized_paths)
+        )
+
 
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / README_PATH, README_REQUIRED_SNIPPETS)
-    require_snippets(repo_root / RBTREE_SLICE_PATH, RBTREE_SLICE_REQUIRED_SNIPPETS)
-    require_snippets(repo_root / VALIDATOR_PATH, VALIDATOR_REQUIRED_SNIPPETS)
+    require_snippets(repo_root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS)
     require_repo_reality(repo_root)
 
 
@@ -97,9 +98,8 @@ def write(path: Path, content: str) -> None:
 
 def scaffold_repo(root: Path) -> None:
     write(root / README_PATH, "\n".join(README_REQUIRED_SNIPPETS) + "\n")
-    write(root / RBTREE_SLICE_PATH, "\n".join(RBTREE_SLICE_REQUIRED_SNIPPETS) + "\n")
-    write(root / VALIDATOR_PATH, "\n".join(VALIDATOR_REQUIRED_SNIPPETS) + "\n")
-    for rel in DIRECT_PACKET[3:]:
+    write(root / STRING_HELPERS_SLICE_PATH, "\n".join(STRING_HELPERS_SLICE_REQUIRED_SNIPPETS) + "\n")
+    for rel in DIRECT_PACKET[2:]:
         write(root / Path(rel), "# direct phase7 shared-control packet file\n")
 
 
@@ -128,12 +128,21 @@ def run_self_test() -> None:
         cases_run = 0
         for path, snippet in [
             (root / README_PATH, README_REQUIRED_SNIPPETS[0]),
-            (root / README_PATH, README_REQUIRED_SNIPPETS[1]),
-            (root / RBTREE_SLICE_PATH, RBTREE_SLICE_REQUIRED_SNIPPETS[0]),
-            (root / VALIDATOR_PATH, VALIDATOR_REQUIRED_SNIPPETS[3]),
+            (root / README_PATH, README_REQUIRED_SNIPPETS[2]),
+            (root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS[0]),
+            (root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS[2]),
         ]:
             expect_failure(root, path, snippet)
             cases_run += 1
+
+        write(root / Path(PARKED_SHARED_CONTROL_PATHS[0]), "# stale shared-control path returned\n")
+        try:
+            validate(root)
+        except ValidationError:
+            cases_run += 1
+        else:
+            raise AssertionError("expected rematerialized parked path to fail")
+        (root / Path(PARKED_SHARED_CONTROL_PATHS[0])).unlink()
 
         (root / Path(DIRECT_PACKET[-1])).unlink()
         try:
@@ -153,22 +162,13 @@ def run_self_test() -> None:
             raise AssertionError("expected missing README to fail")
 
         scaffold_repo(root)
-        (root / RBTREE_SLICE_PATH).unlink()
+        (root / STRING_HELPERS_SLICE_PATH).unlink()
         try:
             validate(root)
         except ValidationError:
             cases_run += 1
         else:
-            raise AssertionError("expected missing rbtree slice to fail")
-
-        scaffold_repo(root)
-        (root / VALIDATOR_PATH).unlink()
-        try:
-            validate(root)
-        except ValidationError:
-            cases_run += 1
-        else:
-            raise AssertionError("expected missing validator to fail")
+            raise AssertionError("expected missing string-helpers slice to fail")
 
         if cases_run != SELF_TEST_CASE_COUNT:
             raise AssertionError(
@@ -209,6 +209,7 @@ def main() -> int:
 
     print("PHASE7_SHARED_CONTROL_GAP=pass")
     print(f"PHASE7_SHARED_CONTROL_GAP_DIRECT_FILE_COUNT={len(DIRECT_PACKET)}")
+    print(f"PHASE7_SHARED_CONTROL_GAP_PARKED_FILE_COUNT={len(PARKED_SHARED_CONTROL_PATHS)}")
     return 0
 
 
