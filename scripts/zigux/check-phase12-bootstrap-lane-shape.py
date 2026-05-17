@@ -304,7 +304,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_marker:workflow_dispatch:")
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
