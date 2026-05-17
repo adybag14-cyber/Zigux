@@ -34,6 +34,7 @@ DOCS_ROOT_MARKERS = [
     "drivers/virtio/virtio_ring_verify.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "drivers/virtio/virtio_input_verify.zig",
+    "drivers/virtio/virtio_input_probe_preflight.zig",
     "drivers/virtio/virtio_mmio.zig",
     "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
@@ -394,6 +395,22 @@ def run_self_test() -> int:
             root,
             "docs_root:drivers/virtio/virtio_ring_verify.zig",
             "phase10-harness-coverage-self-test:docs_root_ring_verify_path",
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8")
+        case_count += 1
+
+        docs_root_path.write_text(
+            original_docs_root.replace(
+                "drivers/virtio/virtio_input_probe_preflight.zig",
+                "drivers/virtio/virtio_input_probe_preflight_missing.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "docs_root:drivers/virtio/virtio_input_probe_preflight.zig",
+            "phase10-harness-coverage-self-test:docs_root_probe_preflight_path",
         )
         docs_root_path.write_text(original_docs_root, encoding="utf-8")
         case_count += 1
