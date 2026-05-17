@@ -1,0 +1,33 @@
+{
+  "phase": "Phase 3",
+  "lane": "helper-interop",
+  "slug": "phase3-bitmap-cpumask-starter-packet",
+  "status": "starter_packet_present",
+  "scope": "helper-local bitmap summary and cpumask membership replay",
+  "packet_files": [
+    "Documentation/zigux/phase3-bitmap-cpumask-slice.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "include/zigux/bitmap_cpumask.h",
+    "zigux/uapi/bitmap_cpumask.zig",
+    "zigux/bindings/bitmap_cpumask.zig",
+    "zigux/helpers/bitmap_view.zig",
+    "zigux/helpers/cpumask_view.zig",
+    "zigux/tests/phase3_bitmap_cpumask_starter_packet.zig",
+    "zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig",
+    "zigux/tests/phase3_bitmap_cpumask_starter_packet_manifest.json",
+    "scripts/zigux/check-phase3-bitmap-cpumask-starter-packet.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-bitmap-cpumask-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-bitmap-cpumask-starter-packet.py",
+    "zig build phase3-bitmap-cpumask-starter-packet-test --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig"
+  ],
+  "repo_reality_gaps": [
+    "zigux/tests/phase3_bitmap_cpumask_dump.zig",
+    "zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c",
+    "zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json",
+    "zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json",
+    "scripts/zigux/validate-phase3.py"
+  ],
+  "next_safe_step": "keep the bitmap and cpumask helper family bounded to manifest-backed replay and truthful validator-support wording before widening into the older dump-style packet or broader Phase 3 closure claims"
+}
