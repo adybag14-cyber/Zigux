@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-Y04",
   "phase": "Phase 12",
-  "surveyed_commit": "9695696dae13fac53792eb77b7ff68ae2053ceea",
+  "surveyed_commit": "67cde4255edc1321a9a4ee92993c78dcc63c2853",
   "tracked_file_count": 4,
   "tracked_paths": [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
@@ -18,7 +18,7 @@
   "files": [
     {
       "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-      "blob_sha": "e3516e2cb471ab56a3272061a94adcedd7ec95fa"
+      "blob_sha": "20147ff70905150c1e35692c3e3b1509d150647b"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
@@ -30,7 +30,7 @@
     },
     {
       "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
-      "blob_sha": "851fd9ac462459ce28d0deebddffa0a4086c2177"
+      "blob_sha": "1fc412f8f451120b6e92f658fc3187f0bae7443e"
     }
   ]
 }
