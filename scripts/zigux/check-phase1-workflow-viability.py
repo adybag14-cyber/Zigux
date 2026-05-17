@@ -290,7 +290,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sampleRepo(root)
+        build_sample_repo(root)
         path = root / WORKFLOW_REL
         path.write_text(read_text(path) + "      - name: Check current Phase 1 bench packet\n        run: python3 scripts/zigux/check-phase1-bench.py\n", encoding="utf-8")
         if "workflow:forbidden-line:        run: python3 scripts/zigux/check-phase1-bench.py" not in collect_failures(root):
