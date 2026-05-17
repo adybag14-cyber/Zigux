@@ -73,6 +73,17 @@ Use the shared docs to preserve these bounded cues:
 * `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` keep the shared reminder packet explicit about the narrower trace-events formatting companion packet and the still-bounded companion-evidence posture without widening into runtime claims
 * `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, and `zigux/tests/phase5_kretprobe_example_manifest.json` keep the restored non-runtime kretprobe packet explicit without widening into the Phase 9 runtime family
 
+## Ownership and lifetime posture
+
+For `kobject`, follow the current mixed direct-plus-public-tree-backed packet recorded in `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`, while keeping `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` framed as current public-tree-backed companion evidence rather than direct authenticated-contents proof.
+
+Use the shared docs to preserve these bounded cues:
+
+* `runAnchorReplay()` and `ownershipSummary()` stay named beside the ownership-and-lifetime packet instead of being collapsed into a smaller kobject cue list
+* `runSingleInitBoundaryReplay()`, `runPreRegistrationBoundaryReplay()`, `runRegistrationOwnershipReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()` stay explicit across the sample root, focused test, manifest-backed contract, dedicated survey replay, and shared build route
+* shared reminder surfaces should keep `Documentation/zigux/phase5-kobject-sample-survey.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` honest about that mixed packet instead of dropping the dedicated survey replay or the shared `phase5_build.zig` companion from contributor-facing wording
+* keep sysfs creation, `kernel_kobj` integration, uevents, and module-registration claims out of scope so the packet stays in the non-runtime Phase 5 lane
+
 ## Approved idiom gap
 
 Current `master` still ships no standalone `samples/zigux/*printf*` or `*vsprintf*` Phase 5 reference sample, and it still ships no standalone broad `*format*` Phase 5 reference sample outside the bounded trace-events cues carried by `samples/zigux/trace_events_string_formatting_sample.zig` and the shared reminder packet.
@@ -85,16 +96,18 @@ Do not describe that formatting cue as a fifth Phase 5 sample, a standalone form
 
 ## Review posture
 
-Because current `master` keeps the restored direct kretprobe packet reviewable but the trace-events side remains in the narrower formatting-companion posture, same-lane follow-through should stay inside these bounded categories:
+Because current `master` keeps the restored direct kretprobe packet reviewable, the kobject ownership-and-lifetime packet in a mixed direct-plus-public-tree-backed posture, and the trace-events side in the narrower formatting-companion posture, same-lane follow-through should stay inside these bounded categories:
 
 * one trace-events reminder-surface truthfulness repair at a time
 * one trace-events approved-idiom-gap repair at a time
 * one trace-events sample-root, tests-root, approved-idiom-gap, or shared-build reminder alignment repair at a time
+* one kobject reminder-surface truthfulness repair at a time
 
 Avoid:
 
 * treating the narrower trace-events reminder packet as a restored direct sample packet when current sample-root and tests-root rereads still keep the direct sample-local companions in the gap bucket
 * treating `zigux/tests/phase5_build.zig` as direct authenticated proof while the current lane still only has bounded public-tree-backed confirmation for that shared build route
+* treating the mixed kobject packet as if its dedicated survey replay or shared `phase5_build.zig` companion were absent when the current public tree still carries them
 * broadening the lane into runtime-loader, module-registration, procfs, sysfs, workqueue, or ring-buffer claims
 * treating Phase 9 runtime samples as extra Phase 5 evidence
 * treating the trace-events packet as permission to reopen unrelated bytestream, kobject, or kretprobe reminder work here
