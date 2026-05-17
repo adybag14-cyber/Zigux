@@ -68,12 +68,18 @@ PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
     "summarizeBufferWindowLookup",
     "resolveBufferFdLookupReturn",
     "resolveBufferWindowLookupReturn",
+    "resolveBufferWindowMappedSize",
     "PollReturnDisposition.ready_count",
     "PollReturnDisposition.processing_failed",
     "first_process_error_index",
     "PollError.InconsistentProcessingAccountingSummary",
     "BufferFdLookupDisposition.missing_fd",
+    "BufferWindowLookupDisposition.found_window",
     "BufferWindowLookupDisposition.missing_window",
+    "BufferWindowLookupDisposition.invalid_index",
+    "error.MissingWindow",
+    "error.InvalidIndex",
+    "mapped_size",
     "PollError.TimeoutObservationHasReadyBuffer",
     "PollError.InterruptedObservationHasReadyBuffer",
     "PollError.FailedObservationHasBufferState",
@@ -197,6 +203,15 @@ test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact
     _ = summarizeBufferWindowLookup;
     _ = resolveBufferWindowLookupReturn;
     _ = BufferWindowLookupDisposition.missing_window;
+}
+
+test "phase 8 perf-buffer poll exposes typed mapped-size resolution beside errno-shaped window returns" {
+    _ = resolveBufferWindowMappedSize;
+    _ = BufferWindowLookupDisposition.found_window;
+    _ = BufferWindowLookupDisposition.invalid_index;
+    _ = mapped_size;
+    _ = error.MissingWindow;
+    _ = error.InvalidIndex;
 }
 
 test "phase 8 perf-buffer poll rejects impossible post-wait buffer states" {
