@@ -121,6 +121,7 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     try expectContains(rcu.repo_reality, "Documentation/zigux/phase14-rcu-tree-survey.md");
     try expectContains(rcu.repo_reality, "P14-L16");
     try expectContains(rcu.repo_reality, "phase14-rcu-tree-bridge-blocker");
+    try expectContains(rcu.repo_reality, "shared Phase 15 validator replay");
     try std.testing.expectEqualStrings("blocked_phase14_followup_still_wider_than_allowed_rcu_seam", rcu.current_blocker);
 
     const skbuff = manifest.deep_core_blocker_survey[3];
@@ -132,6 +133,7 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     try expectContains(skbuff.repo_reality, "boundary_map_only");
     try expectContains(skbuff.repo_reality, "Documentation/zigux/phase14-core-boundary-traceability.md");
     try expectContains(skbuff.repo_reality, "retained-in-C posture");
+    try expectContains(skbuff.repo_reality, "shared Phase 15 validator replay");
     try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", skbuff.current_blocker);
 
     try expectContains(manifest.maintenance_handoff.replay_before_trusting[0], "check-phase15-docs-readme-alignment.py");
@@ -141,20 +143,22 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     try expectContains(manifest.maintenance_handoff.replay_before_trusting[4], "phase15_freeze_map_governance.zig");
     try expectContains(manifest.maintenance_handoff.reopen_conditions[2], "no-silent-exception posture");
     try expectContains(manifest.maintenance_handoff.next_future_target, "phase15-shared-summary-gap.md");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "validate-phase15.py");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "phase15_build.zig");
     try expectContains(manifest.maintenance_handoff.next_future_target, "freeze-map-local");
 
     _ = findGap(manifest.gaps, "phase15-freeze-map-manifest") orelse return error.MissingGap;
     _ = findGap(manifest.gaps, "phase15-freeze-map-governance-gate") orelse return error.MissingGap;
-    _ = findGap(manifest.gaps, "phase15-shared-validator-route-gap") orelse return error.MissingGap;
-    _ = findGap(manifest.gaps, "phase15-shared-build-route-gap") orelse return error.MissingGap;
-    _ = findGap(manifest.gaps, "phase15-shared-wrapper-route-gap") orelse return error.MissingGap;
+    _ = findGap(manifest.gaps, "phase15-shared-validator-route-readback") orelse return error.MissingGap;
+    _ = findGap(manifest.gaps, "phase15-shared-build-route-readback") orelse return error.MissingGap;
+    _ = findGap(manifest.gaps, "phase15-shared-wrapper-route-readback") orelse return error.MissingGap;
 }
 
 test "phase 15 freeze-map governance doc records the current blocker posture honestly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 40 * 1024);
+    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 32 * 1024);
     defer std.testing.allocator.free(governance_note);
 
     try expectContains(governance_note, "PHASE15_STATUS=governance_slice_landed");
@@ -162,7 +166,7 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment");
     try expectContains(governance_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(governance_note, "current-master-readback-2026-05-17");
-    try expectContains(governance_note, "broader Phase 15 validator-first and wrapper routes no longer materialize on current `master`");
+    try expectContains(governance_note, "broader validator-first, dedicated build, and make-wrapper routes that still materialize on current `master`");
     try expectContains(governance_note, "exact branch-head parity is not recorded");
     try expectContains(governance_note, "blocked_no_bounded_scheduler_seam");
     try expectContains(governance_note, "blocked_no_bounded_allocator_seam");
@@ -177,11 +181,13 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "check-phase15-docs-readme-alignment.py");
     try expectContains(governance_note, "check-phase15-review-process-handoff.py");
     try expectContains(governance_note, "check-phase15-shared-summary-gap.py");
+    try expectContains(governance_note, "scripts/zigux/validate-phase15.py");
+    try expectContains(governance_note, "zigux/tests/phase15_build.zig");
     try expectContains(governance_note, "phase15-freeze-map-manifest");
     try expectContains(governance_note, "phase15-freeze-map-governance-gate");
-    try expectContains(governance_note, "phase15-shared-validator-route-gap");
-    try expectContains(governance_note, "phase15-shared-build-route-gap");
-    try expectContains(governance_note, "phase15-shared-wrapper-route-gap");
+    try expectContains(governance_note, "phase15-shared-validator-route-readback");
+    try expectContains(governance_note, "phase15-shared-build-route-readback");
+    try expectContains(governance_note, "phase15-shared-wrapper-route-readback");
 }
 
 test "phase 15 freeze-map required terms and maintenance handoff stay aligned" {
@@ -194,7 +200,7 @@ test "phase 15 freeze-map required terms and maintenance handoff stay aligned" {
     const freeze_map = try loadFile(io_instance.io(), "Documentation/zigux/freeze-map.md", 24 * 1024);
     defer std.testing.allocator.free(freeze_map);
 
-    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 40 * 1024);
+    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 32 * 1024);
     defer std.testing.allocator.free(governance_note);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
@@ -229,7 +235,7 @@ test "phase 15 freeze-map required terms and maintenance handoff stay aligned" {
     for (parsed.value.deep_core_blocker_survey) |survey| {
         try expectContains(governance_note, survey.anchor);
         try expectContains(governance_note, survey.roadmap_basis);
-        try expectContainsWithoutBackticks(governance_note, survey.repo_reality);
+        try expectContains(governance_note, survey.repo_reality);
         try expectContains(governance_note, survey.current_blocker);
     }
 }
