@@ -15,7 +15,6 @@ SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 SURFACE_PATHS = (
-    ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
@@ -26,8 +25,6 @@ SURFACE_PATHS = (
 )
 
 WORKFLOW_LINES = (
-    "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
 )
@@ -57,6 +54,30 @@ README_WARNING_MARKERS = (
     "historical packet members",
 )
 
+BOOTSTRAP_PRESENT_MARKERS = (
+    "`scripts/zigux/zig-toolchain-policy.json`",
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/check-phase2-kbuild-routes.py`",
+    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "the `zigux/tests/fixtures/kconfig_bridge/` manifest roster",
+)
+
+BOOTSTRAP_WARNING_MARKERS = (
+    "Repeated authenticated reads on current `master` still return missing for",
+    "`Documentation/zigux/phase2-closure.md`",
+    "`scripts/zigux/validate-phase2.py`",
+    "`scripts/zigux/validate-phase2-closure.py`",
+    "`zigux/Makefile`",
+    "`scripts/zigux/install-zig.py`",
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`scripts/zigux/check-phase2-cross.py`",
+    "Treat the absent validator-first, direct toolchain-resolution, cross-route, installer, and Linux-style make replay names as historical packet members",
+)
+
 README_FORBIDDEN_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
@@ -70,7 +91,7 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 48
+EXPECTED_SELF_TEST_CASE_COUNT = 61
 
 
 def read_text(path: Path) -> str:
@@ -156,6 +177,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     readme_text = read_text(resolve_path(root, SCRIPTS_README))
+    bootstrap_notes_text = read_text(resolve_path(root, BOOTSTRAP_NOTES))
 
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -166,6 +188,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     issues.extend(collect_missing_markers(readme_text, README_PRESENT_MARKERS, "MISSING_README_PRESENT_MARKERS"))
     issues.extend(collect_missing_markers(readme_text, README_WARNING_MARKERS, "MISSING_README_WARNING_MARKERS"))
+    issues.extend(collect_missing_markers(bootstrap_notes_text, BOOTSTRAP_PRESENT_MARKERS, "MISSING_BOOTSTRAP_PRESENT_MARKERS"))
+    issues.extend(collect_missing_markers(bootstrap_notes_text, BOOTSTRAP_WARNING_MARKERS, "MISSING_BOOTSTRAP_WARNING_MARKERS"))
     issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
 
     for path in SURFACE_PATHS:
@@ -208,6 +232,18 @@ def build_self_test_root(root: Path) -> None:
         *README_WARNING_MARKERS,
     ]
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(readme_lines) + "\n")
+    bootstrap_lines = [
+        "# Phase 2 Toolchain Bootstrap Notes",
+        "",
+        "## Current direct packet",
+        "",
+        *BOOTSTRAP_PRESENT_MARKERS,
+        "",
+        "## Current repo-reality gaps",
+        "",
+        *BOOTSTRAP_WARNING_MARKERS,
+    ]
+    write_text(resolve_path(root, BOOTSTRAP_NOTES), "\n".join(bootstrap_lines) + "\n")
     for path in SURFACE_PATHS:
         if path == POLICY_PATH:
             write_text(
@@ -228,6 +264,8 @@ def build_self_test_root(root: Path) -> None:
                 )
                 + "\n",
             )
+        elif path == BOOTSTRAP_NOTES:
+            continue
         else:
             write_text(resolve_path(root, path), "present\n")
 
@@ -300,6 +338,22 @@ def run_self_test() -> int:
             assert ("MISSING_README_WARNING_MARKERS", marker) in issues
             checks_run += 1
 
+        for marker in BOOTSTRAP_PRESENT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, BOOTSTRAP_NOTES)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_BOOTSTRAP_PRESENT_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in BOOTSTRAP_WARNING_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, BOOTSTRAP_NOTES)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_BOOTSTRAP_WARNING_MARKERS", marker) in issues
+            checks_run += 1
+
         for marker in README_FORBIDDEN_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, SCRIPTS_README)
@@ -308,7 +362,7 @@ def run_self_test() -> int:
             assert ("FORBIDDEN_README_MARKERS", marker) in issues
             checks_run += 1
 
-        for primary_path in (WORKFLOW, SCRIPTS_README):
+        for primary_path in (WORKFLOW, SCRIPTS_README, BOOTSTRAP_NOTES):
             build_self_test_root(root)
             resolve_path(root, primary_path).unlink()
             try:
@@ -321,6 +375,8 @@ def run_self_test() -> int:
             checks_run += 1
 
         for rel_path in SURFACE_PATHS:
+            if rel_path == BOOTSTRAP_NOTES:
+                continue
             build_self_test_root(root)
             resolve_path(root, rel_path).unlink()
             issues = collect_issues(root)
