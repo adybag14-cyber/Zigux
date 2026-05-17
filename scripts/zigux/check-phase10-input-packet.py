@@ -449,7 +449,7 @@ def run_self_test() -> int:
             'phase10_build:"phase10-virtio-input-verify-tests"',
             "phase10-input-live-packet-self-test:build_verify_test",
         )
-        build_path.writeText(original_build, encoding="utf-8")
+        build_path.write_text(original_build, encoding="utf-8")
         case_count += 1
 
         build_path.write_text(
