@@ -17,6 +17,15 @@ REQUIRED_MARKERS = (
     "`Documentation/zigux/phase13-release-coordination-matrix.md`",
     "`Documentation/zigux/phase13-release-notes-survey.md`",
     "`Documentation/zigux/phase13-roadmap-traceability.md`",
+    "`Documentation/zigux/phase13-libfs-survey.md`",
+    "`Documentation/zigux/phase13-devres-slice.md`",
+    "`Documentation/zigux/phase13-devres-survey.md`",
+    "`Documentation/zigux/phase13-landlock-ruleset-ownership.md`",
+    "`Documentation/zigux/phase13-landlock-ruleset-slice.md`",
+    "`Documentation/zigux/phase13-landlock-ruleset-survey.md`",
+    "`Documentation/zigux/phase13-landlock-syscalls-governance.md`",
+    "`Documentation/zigux/phase13-landlock-syscalls-slice.md`",
+    "`Documentation/zigux/phase13-landlock-syscalls-survey.md`",
     "`fs/libfs.zig`",
     "`zigux/tests/phase13_libfs.zig`",
     "`zigux/tests/phase13_libfs_reviewability.zig`",
@@ -34,11 +43,17 @@ REQUIRED_MARKERS = (
     "`zigux/tests/phase13_landlock_syscalls.zig`",
     "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
     "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
+    "`Documentation/zigux/review-checklist.md`",
+    "`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`",
     "`zigux/helpers/notifier_chain_view.zig`",
     "`zigux/bindings/notifier_abi.zig`",
     "`include/zigux/abi.h`",
     "`drivers/tty/hvc/hvc_console.h`",
     "Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
+)
+
+REQUIRED_TEXT = (
+    "keep the shared contributor-facing handle routed through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` until the missing shared build companion and any future rematerialized make-route support can be reread together; treat the Makefile-backed Phase 13 route family as repo-reality gaps rather than direct shipped current-`master` evidence",
 )
 
 FORBIDDEN_SHIPPED_LINES = (
@@ -80,6 +95,10 @@ def collect_missing_markers(text: str) -> list[str]:
     return [marker for marker in REQUIRED_MARKERS if marker not in text]
 
 
+def collect_missing_text(text: str) -> list[str]:
+    return [fragment for fragment in REQUIRED_TEXT if fragment not in text]
+
+
 def collect_forbidden_shipped_markers(text: str) -> list[str]:
     section = extract_phase13_shipped_section(text)
     return [line for line in FORBIDDEN_SHIPPED_LINES if line in section]
@@ -94,6 +113,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     for marker in collect_missing_markers(tests_readme_text):
         issues.append(("MISSING_MARKER", marker))
+    for fragment in collect_missing_text(tests_readme_text):
+        issues.append(("MISSING_TEXT", fragment))
     for marker in collect_forbidden_shipped_markers(tests_readme_text):
         issues.append(("FORBIDDEN_SHIPPED_MARKER", marker))
     for fragment in collect_forbidden_text(tests_readme_text):
@@ -126,6 +147,8 @@ def build_self_test_root(root: Path) -> None:
     section_lines.extend(f"- {marker}" for marker in REQUIRED_MARKERS[:-1])
     section_lines.append(REQUIRED_MARKERS[-1] + ", so keep those paths framed as repo-reality gaps rather than as shipped tests-root evidence.")
     section_lines.append("")
+    section_lines.extend(REQUIRED_TEXT)
+    section_lines.append("")
     section_lines.append(PHASE13_SECTION_END)
     write_text(resolve_path(root, TESTS_README), "\n".join(section_lines) + "\n")
 
@@ -138,7 +161,7 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 5
+    expected_case_count = 6
     with tempfile.TemporaryDirectory(prefix="zigux_p13_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -155,6 +178,19 @@ def run_self_test() -> int:
         )
         issues = collect_issues(root)
         assert ("MISSING_MARKER", "`zigux/tests/phase13_devres_boundary_evidence.zig`") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TESTS_README)
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                REQUIRED_TEXT[0],
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_TEXT", REQUIRED_TEXT[0]) in issues
         checks_run += 1
 
         build_self_test_root(root)
