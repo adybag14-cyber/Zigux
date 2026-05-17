@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REQUIRED_TESTS_README_MARKERS = (
     "Phase 2 review packet",
@@ -17,6 +18,8 @@ REQUIRED_TESTS_README_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
@@ -42,6 +45,8 @@ REQUIRED_TESTS_README_MARKERS = (
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2`",
+    "pinned `x86_64-linux` bootstrap archive note",
+    "repo-local `.zig-toolchain` fallback reused",
     "historical packet members rather than direct tests-root evidence",
     "keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
@@ -50,6 +55,14 @@ FORBIDDEN_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+)
+REQUIRED_DOCS_ROOT_MARKERS = (
+    "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
+    "now keep the current directly readable Phase 2 toolchain, kbuild, and kconfig bridge packet visible from the docs root",
+    "keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the pinned toolchain policy, the surviving kbuild and alignment guards, the live `conf_bridge` plus `confdata_bridge` helpers, and the current kconfig fixture roster",
+    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
+    "`zigux/tests/README.md`",
+    "`zigux/Makefile`",
 )
 
 
@@ -78,6 +91,7 @@ def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) ->
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     tests_readme_text = read_text(resolve_path(root, TESTS_README))
+    docs_root_text = read_text(resolve_path(root, DOCS_ROOT_README))
     issues = collect_missing_markers(
         tests_readme_text,
         REQUIRED_TESTS_README_MARKERS,
@@ -88,6 +102,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             tests_readme_text,
             FORBIDDEN_TESTS_README_MARKERS,
             "FORBIDDEN_TESTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            docs_root_text,
+            REQUIRED_DOCS_ROOT_MARKERS,
+            "MISSING_DOCS_ROOT_MARKERS",
         )
     )
     return issues
@@ -114,6 +135,7 @@ def write_text(path: Path, content: str) -> None:
 
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, TESTS_README), "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, DOCS_ROOT_README), "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -124,7 +146,13 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 1 + len(REQUIRED_TESTS_README_MARKERS) + len(FORBIDDEN_TESTS_README_MARKERS) + 1
+    expected_case_count = (
+        1
+        + len(REQUIRED_TESTS_README_MARKERS)
+        + len(FORBIDDEN_TESTS_README_MARKERS)
+        + len(REQUIRED_DOCS_ROOT_MARKERS)
+        + 2
+    )
     with tempfile.TemporaryDirectory(prefix="zigux_p2_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -144,15 +172,23 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("FORBIDDEN_TESTS_README_MARKERS", marker) in issues
             checks_run += 1
-        build_self_test_root(root)
-        resolve_path(root, TESTS_README).unlink()
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "required file missing" in str(exc)
+        for marker in REQUIRED_DOCS_ROOT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, DOCS_ROOT_README)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_DOCS_ROOT_MARKERS", marker) in issues
             checks_run += 1
-        else:
-            raise AssertionError("missing tests readme did not abort")
+        for path in (TESTS_README, DOCS_ROOT_README):
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            try:
+                collect_issues(root)
+            except SystemExit as exc:
+                assert "required file missing" in str(exc)
+                checks_run += 1
+            else:
+                raise AssertionError(f"missing file did not abort: {path}")
     assert checks_run == expected_case_count
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
@@ -160,7 +196,9 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Keep the current directly readable Phase 2 tests-root reminder packet aligned.")
+    parser = argparse.ArgumentParser(
+        description="Keep the current directly readable Phase 2 tests-root and docs-root reminder packet aligned."
+    )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
@@ -172,6 +210,7 @@ def main() -> int:
     print("PHASE2_TESTS_README_ALIGNMENT=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_REQUIRED_MARKER_COUNT={len(REQUIRED_TESTS_README_MARKERS)}")
     print(f"PHASE2_TESTS_README_ALIGNMENT_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_TESTS_README_MARKERS)}")
+    print(f"PHASE2_TESTS_README_ALIGNMENT_DOCS_ROOT_MARKER_COUNT={len(REQUIRED_DOCS_ROOT_MARKERS)}")
     return 0
 
 
