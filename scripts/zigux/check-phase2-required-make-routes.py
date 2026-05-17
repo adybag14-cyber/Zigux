@@ -16,7 +16,7 @@ BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 MAKEFILE = ROOT / "zigux" / "Makefile"
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 19
 
 
 def read_text(path: Path) -> str:
@@ -102,8 +102,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     for line in workflow_lines():
-        if count_exact_lines(workflow_text, line) != 1:
+        count = count_exact_lines(workflow_text, line)
+        if count == 0:
             issues.append(("MISSING_WORKFLOW_LINES", line))
+        elif count != 1:
+            issues.append(("DUPLICATE_WORKFLOW_LINES", f"{line}:count={count}"))
 
     bootstrap_notes_text = read_text(resolve_path(root, BOOTSTRAP_NOTES))
     review_checklist_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
@@ -203,6 +206,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.writeText = None
         workflow_path.write_text(
             replace_exact_line(workflow_path.read_text(encoding="utf-8"), workflow_lines()[0]),
             encoding="utf-8",
@@ -217,6 +221,24 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         assert ("MISSING_WORKFLOW_LINES", workflow_lines()[1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8") + workflow_lines()[0] + "\n",
+            encoding="utf-8",
+        )
+        assert ("DUPLICATE_WORKFLOW_LINES", f"{workflow_lines()[0]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8") + workflow_lines()[1] + "\n",
+            encoding="utf-8",
+        )
+        assert ("DUPLICATE_WORKFLOW_LINES", f"{workflow_lines()[1]}:count=2") in collect_issues(root)
         checks_run += 1
 
         for path, code, marker in (
