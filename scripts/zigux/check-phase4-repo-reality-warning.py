@@ -51,6 +51,7 @@ NOTE_REQ = (
     "The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run",
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
+    "The tests-root guide already keeps the broader packet missing-warning aligned, and the repo-reality warning checker now fails closed on that broader-packet distinction between authenticated direct-readback gaps and public current-`master` fallback visibility.",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
     "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
 )
@@ -81,6 +82,11 @@ README_ATOMIC64_GAP_MARKERS = (
     "roadmap-backed Phase 4 differential-gate destinations still missing on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`",
 )
 
+README_PUBLIC_FALLBACK_MARKERS = (
+    "public current-`master` fallback rereads can still expose older broader Phase 4 companions",
+    "keep that fallback visibility separate from authenticated direct-readback proof in this tests-root reminder until the same files return through direct contents reads",
+)
+
 README_PENDING_REQ = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/review-checklist.md",
@@ -89,7 +95,7 @@ README_PENDING_REQ = (
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet",
     "historical provenance for that missing broader packet",
-) + README_OWNER_MARKERS + README_ATOMIC64_GAP_MARKERS
+) + README_OWNER_MARKERS + README_ATOMIC64_GAP_MARKERS + README_PUBLIC_FALLBACK_MARKERS
 
 CHECKLIST_PENDING_REQ = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
@@ -193,6 +199,7 @@ def baseline_note() -> str:
             "Historical broader packet references still include `scripts/zigux/artifact_diff.py` and `scripts/zigux/check-artifact-diff-contract.py`, so the shared repo-reality warning must keep those contract anchors explicit even while the broader packet stays historical here.",
             "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.",
             "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, local-only perf, and bitmap-diff packet is directly readable again.",
+            "The tests-root guide already keeps the broader packet missing-warning aligned, and the repo-reality warning checker now fails closed on that broader-packet distinction between authenticated direct-readback gaps and public current-`master` fallback visibility.",
             "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
             "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9`",
             "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`",
@@ -302,8 +309,8 @@ def main() -> int:
             readme_path = root / README
             readme_path.write_text(
                 readme_path.read_text(encoding="utf-8").replace(
-                    README_OWNER_MARKERS[0],
-                    "current shared ownership reminder drifted",
+                    README_PUBLIC_FALLBACK_MARKERS[1],
+                    "fallback visibility wording drifted",
                 ),
                 encoding="utf-8",
             )
@@ -312,7 +319,7 @@ def main() -> int:
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected tests README route drift to fail")
+                raise AssertionError("expected tests README fallback-visibility drift to fail")
 
             build_baseline_tree(root)
             readme_path = root / README
