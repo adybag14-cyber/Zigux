@@ -163,20 +163,35 @@ static void write_case(
 int main(void) {
     uintptr_t bitmap_words[2];
     uintptr_t cpumask_words[1];
+    uintptr_t cpumask_cross_words[2];
     struct zigux_bitmap_view bitmap;
     struct zigux_cpumask_view cpumask;
+    struct zigux_cpumask_view cpumask_cross;
     struct zigux_bitmap_summary bitmap_summary;
     struct zigux_bitmap_summary cpumask_summary;
+    struct zigux_bitmap_summary cpumask_cross_summary;
     uint32_t cpumask_nr = 16U;
+    uint32_t cpumask_cross_nr = bits_per_word() + 11U;
 
     bitmap_words[0] = ((uintptr_t)1 << 1) | ((uintptr_t)1 << 3) | ((uintptr_t)1 << 5);
     bitmap_words[1] = ((uintptr_t)1 << 1) | ((uintptr_t)1 << 5) | ((uintptr_t)1 << 10);
     cpumask_words[0] = ((uintptr_t)1 << 0) | ((uintptr_t)1 << 2) | ((uintptr_t)1 << 7);
+    cpumask_cross_words[0] = ((uintptr_t)1 << 5) | ((uintptr_t)1 << 63);
+    cpumask_cross_words[1] = ((uintptr_t)1 << 1) | ((uintptr_t)1 << 6) | ((uintptr_t)1 << 10);
 
     bitmap = zigux_bitmap_view_make((uintptr_t)bitmap_words, bits_per_word() + 6U, word_count(bits_per_word() + 6U));
     cpumask = zigux_cpumask_view_make((uintptr_t)cpumask_words, 16U, word_count(16U), 16U);
+    cpumask_cross = zigux_cpumask_view_make(
+        (uintptr_t)cpumask_cross_words,
+        bits_per_word() + 11U,
+        word_count(bits_per_word() + 11U),
+        bits_per_word() + 11U
+    );
     bitmap_summary = summarize(bitmap);
     cpumask_summary = summarize(zigux_bitmap_view_make(cpumask.words_addr, cpumask.nbits, cpumask.word_count));
+    cpumask_cross_summary = summarize(
+        zigux_bitmap_view_make(cpumask_cross.words_addr, cpumask_cross.nbits, cpumask_cross.word_count)
+    );
 
     printf("{\n");
     printf("  \"word_bits\": %zu,\n", sizeof(uintptr_t) * 8U);
@@ -212,6 +227,27 @@ int main(void) {
         test_bit(zigux_bitmap_view_make(cpumask.words_addr, cpumask.nbits, cpumask.word_count), 7U),
         1U,
         test_bit(zigux_bitmap_view_make(cpumask.words_addr, cpumask.nbits, cpumask.word_count), 1U),
+        1
+    );
+    write_case(
+        "cpumask_cross_word_window",
+        "cpumask",
+        cpumask_cross.nbits,
+        &cpumask_cross_nr,
+        cpumask_cross.word_count,
+        cpumask_cross_summary.first_set,
+        cpumask_cross_summary.first_zero,
+        cpumask_cross_summary.weight,
+        bits_per_word() + 10U,
+        test_bit(
+            zigux_bitmap_view_make(cpumask_cross.words_addr, cpumask_cross.nbits, cpumask_cross.word_count),
+            bits_per_word() + 10U
+        ),
+        bits_per_word() + 11U,
+        test_bit(
+            zigux_bitmap_view_make(cpumask_cross.words_addr, cpumask_cross.nbits, cpumask_cross.word_count),
+            bits_per_word() + 11U
+        ),
         0
     );
 
