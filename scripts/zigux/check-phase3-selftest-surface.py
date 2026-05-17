@@ -149,8 +149,6 @@ SCRIPTS_README_MARKERS = (
     "zigux/helpers/unsafe_policy.zig",
     "zigux/helpers/atomic.zig",
     "zigux/unsafe/narrow.zig",
-    "zigux/uapi/dev_t.zig",
-    "zigux/uapi/version.zig",
     ".github/workflows/zigux-bootstrap.yml",
     "the shipped compatibility wrappers generated from the Phase 3 catalog",
 )
@@ -159,6 +157,8 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
+    'Path("scripts/zigux/run-phase3-checks.py")',
     'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     "PHASE3_VALIDATE_SELFTEST=pass",
@@ -224,10 +224,10 @@ def run_self_test() -> int:
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[7], "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[-1], "validator-support note"),
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[11], "scripts README"),
-        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[28], "scripts README"),
+        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[27], "scripts README"),
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[-1], "scripts README"),
-        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[3], "selftest driver"),
-        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[5], "selftest driver"),
+        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[4], "selftest driver"),
+        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[-1], "selftest driver"),
     )
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_selftest_surface_") as temp_dir:
