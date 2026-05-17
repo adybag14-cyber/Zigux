@@ -40,6 +40,35 @@ test "phase3 abi keeps boundary header and status layout explicit" {
     try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), err.flags);
 }
 
+test "phase3 abi keeps default header and interop policy reviewable" {
+    const header = abi.defaultHeader(0);
+    const policy = abi.defaultInteropPolicy();
+
+    try testing.expect(abi.headerIsCanonical(header));
+    try testing.expectEqual(@as(u32, @sizeOf(abi.BoundaryHeader)), header.size);
+    try testing.expectEqual(@as(u16, abi.ABI_VERSION), header.abi_version);
+    try testing.expectEqual(@as(u16, 0), header.flags);
+
+    try testing.expectEqual(@as(u8, @intFromEnum(abi.PanicMode.abort)), policy.panic_mode);
+    try testing.expectEqual(@as(u8, @intFromEnum(abi.AllocatorMode.caller_provided)), policy.allocator_mode);
+    try testing.expectEqual(@as(u8, @intFromEnum(abi.UnsafeScope.none)), policy.unsafe_scope);
+    try testing.expectEqual(@as(u8, 0), policy.reserved);
+
+    try testing.expectEqual(@as(?abi.PanicMode, .abort), panic_policy.modeFromInteropPolicy(policy));
+    try testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), allocator_policy.modeFromInteropPolicy(policy));
+    try testing.expectEqual(@as(?abi.UnsafeScope, .none), unsafe_policy.modeFromInteropPolicy(policy));
+    try testing.expectEqual(@as(?narrow_unsafe.UnsafeScopeTag, .none), narrow_unsafe.scopeFromInteropPolicy(policy));
+
+    try testing.expect(panic_policy.causesImmediateHaltInteropPolicy(policy));
+    try testing.expect(allocator_policy.requiresExplicitCallerInteropPolicy(policy));
+    try testing.expect(!allocator_policy.permitsGlobalFallbackInteropPolicy(policy));
+    try testing.expect(unsafe_policy.permitsNoUnsafeInteropPolicy(policy));
+    try testing.expect(!unsafe_policy.permitsVolatileMmioInteropPolicy(policy));
+    try testing.expect(!unsafe_policy.permitsRawPointerBridgeInteropPolicy(policy));
+    try testing.expect(narrow_unsafe.permitsNoUnsafeInteropPolicy(policy));
+    try testing.expect(!narrow_unsafe.requiresDedicatedAuditInteropPolicy(policy));
+}
+
 test "phase3 abi keeps version and dev_t starter helpers aligned" {
     const current = export_shim.currentVersion();
     const fields = export_shim.makeDevTFields(11, 29);
@@ -100,10 +129,10 @@ test "phase3 abi keeps policy helpers decoding the same interop bytes" {
     try testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), unsafe_policy.modeFromInteropPolicy(raw_policy));
     try testing.expectEqual(@as(?abi.UnsafeScope, null), unsafe_policy.modeFromInteropPolicy(reserved_policy));
 
-    try testing.expectEqual(@as(?abi.UnsafeScope, .none), narrow_unsafe.scopeFromInteropPolicy(safe_policy));
-    try testing.expectEqual(@as(?abi.UnsafeScope, .volatile_mmio), narrow_unsafe.scopeFromInteropPolicy(mmio_policy));
-    try testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), narrow_unsafe.scopeFromInteropPolicy(raw_policy));
-    try testing.expectEqual(@as(?abi.UnsafeScope, null), narrow_unsafe.scopeFromInteropPolicy(reserved_policy));
+    try testing.expectEqual(@as(?narrow_unsafe.UnsafeScopeTag, .none), narrow_unsafe.scopeFromInteropPolicy(safe_policy));
+    try testing.expectEqual(@as(?narrow_unsafe.UnsafeScopeTag, .volatile_mmio), narrow_unsafe.scopeFromInteropPolicy(mmio_policy));
+    try testing.expectEqual(@as(?narrow_unsafe.UnsafeScopeTag, .raw_pointer_bridge), narrow_unsafe.scopeFromInteropPolicy(raw_policy));
+    try testing.expectEqual(@as(?narrow_unsafe.UnsafeScopeTag, null), narrow_unsafe.scopeFromInteropPolicy(reserved_policy));
 
     try testing.expect(panic_policy.causesImmediateHaltInteropPolicy(safe_policy));
     try testing.expect(panic_policy.emitsKernelBugInteropPolicy(mmio_policy));
