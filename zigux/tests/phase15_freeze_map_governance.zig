@@ -121,7 +121,8 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     try expectContains(rcu.repo_reality, "Documentation/zigux/phase14-rcu-tree-survey.md");
     try expectContains(rcu.repo_reality, "P14-L16");
     try expectContains(rcu.repo_reality, "phase14-rcu-tree-bridge-blocker");
-    try expectContains(rcu.repo_reality, "shared Phase 15 validator replay");
+    try expectContains(rcu.repo_reality, "missing Phase 15 validator");
+    try expectContains(rcu.repo_reality, "repo-reality gaps");
     try std.testing.expectEqualStrings("blocked_phase14_followup_still_wider_than_allowed_rcu_seam", rcu.current_blocker);
 
     const skbuff = manifest.deep_core_blocker_survey[3];
@@ -133,7 +134,8 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     try expectContains(skbuff.repo_reality, "boundary_map_only");
     try expectContains(skbuff.repo_reality, "Documentation/zigux/phase14-core-boundary-traceability.md");
     try expectContains(skbuff.repo_reality, "retained-in-C posture");
-    try expectContains(skbuff.repo_reality, "shared Phase 15 validator replay");
+    try expectContains(skbuff.repo_reality, "missing Phase 15 validator");
+    try expectContains(skbuff.repo_reality, "repo-reality gaps");
     try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", skbuff.current_blocker);
 
     try expectContains(manifest.maintenance_handoff.replay_before_trusting[0], "check-phase15-docs-readme-alignment.py");
@@ -145,13 +147,22 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     try expectContains(manifest.maintenance_handoff.next_future_target, "phase15-shared-summary-gap.md");
     try expectContains(manifest.maintenance_handoff.next_future_target, "validate-phase15.py");
     try expectContains(manifest.maintenance_handoff.next_future_target, "phase15_build.zig");
-    try expectContains(manifest.maintenance_handoff.next_future_target, "freeze-map-local");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "repo-reality gaps");
 
-    _ = findGap(manifest.gaps, "phase15-freeze-map-manifest") orelse return error.MissingGap;
-    _ = findGap(manifest.gaps, "phase15-freeze-map-governance-gate") orelse return error.MissingGap;
-    _ = findGap(manifest.gaps, "phase15-shared-validator-route-readback") orelse return error.MissingGap;
-    _ = findGap(manifest.gaps, "phase15-shared-build-route-readback") orelse return error.MissingGap;
-    _ = findGap(manifest.gaps, "phase15-shared-wrapper-route-readback") orelse return error.MissingGap;
+    const validator_gap = findGap(manifest.gaps, "phase15-shared-validator-route-readback") orelse return error.MissingGap;
+    try std.testing.expectEqualStrings("repo_reality_gap_confirmed", validator_gap.status);
+    try std.testing.expectEqualStrings("shared_route_gap", validator_gap.kind);
+    try expectContains(validator_gap.why_now, "not-found for scripts/zigux/validate-phase15.py");
+
+    const build_gap = findGap(manifest.gaps, "phase15-shared-build-route-readback") orelse return error.MissingGap;
+    try std.testing.expectEqualStrings("repo_reality_gap_confirmed", build_gap.status);
+    try std.testing.expectEqualStrings("shared_route_gap", build_gap.kind);
+    try expectContains(build_gap.why_now, "not-found for zigux/tests/phase15_build.zig");
+
+    const wrapper_gap = findGap(manifest.gaps, "phase15-shared-wrapper-route-readback") orelse return error.MissingGap;
+    try std.testing.expectEqualStrings("repo_reality_gap_confirmed", wrapper_gap.status);
+    try std.testing.expectEqualStrings("shared_route_gap", wrapper_gap.kind);
+    try expectContains(wrapper_gap.why_now, "not-found for zigux/Makefile");
 }
 
 test "phase 15 freeze-map governance doc records the current blocker posture honestly" {
@@ -166,7 +177,8 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment");
     try expectContains(governance_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(governance_note, "current-master-readback-2026-05-17");
-    try expectContains(governance_note, "broader validator-first, dedicated build, and make-wrapper routes that still materialize on current `master`");
+    try expectContains(governance_note, "shared reminder surfaces still carry as repo-reality gaps on current `master`");
+    try expectContains(governance_note, "direct current-master contents reads still return not-found");
     try expectContains(governance_note, "exact branch-head parity is not recorded");
     try expectContains(governance_note, "blocked_no_bounded_scheduler_seam");
     try expectContains(governance_note, "blocked_no_bounded_allocator_seam");
@@ -183,6 +195,7 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "check-phase15-shared-summary-gap.py");
     try expectContains(governance_note, "scripts/zigux/validate-phase15.py");
     try expectContains(governance_note, "zigux/tests/phase15_build.zig");
+    try expectContains(governance_note, "repo-reality gaps");
     try expectContains(governance_note, "phase15-freeze-map-manifest");
     try expectContains(governance_note, "phase15-freeze-map-governance-gate");
     try expectContains(governance_note, "phase15-shared-validator-route-readback");
