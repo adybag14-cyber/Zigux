@@ -21,6 +21,10 @@ EXPECTED_CASES = {
     "elf64_trailing": {"input": "elf64_trailing.hex", "expected": "elf64_trailing_expected.json"},
     "empty": {"input": "empty.hex", "expected": "empty_expected.json"},
     "invalid_class": {"input": "invalid_class.hex", "expected": "invalid_class_expected.json"},
+    "invalid_class_trailing": {
+        "input": "invalid_class_trailing.hex",
+        "expected": "invalid_class_trailing_expected.json",
+    },
     "not_elf": {"input": "not_elf.hex", "expected": "not_elf_expected.json"},
     "truncated": {"input": "truncated.hex", "expected": "truncated_expected.json"},
 }
@@ -40,6 +44,8 @@ EXPECTED_FIXTURE_FILES = frozenset(
         "empty_expected.json",
         "invalid_class.hex",
         "invalid_class_expected.json",
+        "invalid_class_trailing.hex",
+        "invalid_class_trailing_expected.json",
         "not_elf.hex",
         "not_elf_expected.json",
         "truncated.hex",
@@ -47,7 +53,7 @@ EXPECTED_FIXTURE_FILES = frozenset(
     }
 )
 EXPECTED_RESULT_KEYS = frozenset({"stdout", "stderr", "exit_code"})
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 9
 
 C_REFERENCE_SOURCE = """// SPDX-License-Identifier: GPL-2.0
 #include <stdio.h>
