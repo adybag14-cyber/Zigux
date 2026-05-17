@@ -51,7 +51,7 @@ The honest current statement is freeze-in-C boundary evidence only, not a live b
 
 - treat the current shared smoke packet as live shared evidence for the validator-first route, the focused smoke shard, and the full replay entrypoints named above
 - do not use that packet to claim direct ownership transfer, parity, or unfrozen delivery for workqueue, ring buffer, skbuff, or RCU tree
-- the remaining shared-packet drift now sits in the shared-smoke wording rather than a validator-local exact-count gap: `Documentation/zigux/phase14-end-to-end-smoke-survey.md` still says `zigux/Makefile` reruns `scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test` and `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` inside `make -C zigux phase14-validate`, but direct readback of current `zigux/Makefile` shows those two reruns are not part of the live route
+- the shared packet wording is now aligned on this point: `Documentation/zigux/phase14-end-to-end-smoke-survey.md` keeps `scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test` and `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` framed as shared packet evidence rather than part of `make -C zigux phase14-validate`, which matches the current `zigux/Makefile` readback above
 - if a future direct readback loses any of the shared survey, manifest, validator, Makefile, or build-file anchors again, narrow this note back to a truthfulness-only retained-in-C summary and update the shared packet wording immediately
 - any future expansion beyond this shared reminder packet still needs explicit re-read evidence for the anchor-local files it names, plus the existing freeze-map discipline
 
@@ -68,4 +68,4 @@ The honest current statement is freeze-in-C boundary evidence only, not a live b
 ## Next bounded step
 
 Keep this cross-anchor note aligned when the shared smoke packet moves.
-On the next same-lane reread, compare this note with `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/Makefile`, and `zigux/tests/phase14_end_to_end_smoke_manifest.json` to confirm that the shared smoke note either stops claiming the tests-readme smoke checker is part of `make -C zigux phase14-validate` or the Makefile actually wires those two reruns before reopening anchor-local bridge or freeze-governance work from this shared boundary note.
+On the next same-lane reread, compare this note with `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/Makefile`, and `zigux/tests/phase14_end_to_end_smoke_manifest.json` to confirm that the shared smoke survey still treats the tests-readme smoke checker as shared packet evidence instead of a live `make -C zigux phase14-validate` rerun, and only reopen anchor-local bridge or freeze-governance work if that shared packet drifts again.
