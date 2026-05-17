@@ -33,12 +33,26 @@ REQUIRED_FILES = [
     BUILD_ONLY_CHECKER_PATH,
 ]
 
-WORKFLOW_MARKERS = [
+WORKFLOW_STEP_NAMES = [
+    "Checkout",
+    "Setup Python",
     "Compile current scripts",
     "Self-test current Phase 12 build-only checker",
     "Self-test current Phase 12 bootstrap lane checker",
     "Check current Phase 12 bootstrap lane shape",
     "Check current docs-root sanity markers",
+]
+
+WORKFLOW_COMMAND_MARKERS = [
+    "uses: actions/checkout@v6.0.2",
+    "uses: actions/setup-python@v6.2.0",
+    "python-version: '3.x'",
+    "set -euxo pipefail",
+    "find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort",
+    "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
+    "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test",
+    "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py",
+    "Path('Documentation/zigux/phase12-release-readiness-survey.md')",
 ]
 
 SURVEY_MARKERS = [
@@ -47,6 +61,28 @@ SURVEY_MARKERS = [
     "shared-summary lane owner: `pmo-release`",
     "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
 ]
+
+
+def validate_workflow(workflow_text: str) -> list[str]:
+    failures: list[str] = []
+    positions: list[int] = []
+
+    for step_name in WORKFLOW_STEP_NAMES:
+        marker = f"- name: {step_name}"
+        position = workflow_text.find(marker)
+        if position == -1:
+            failures.append(f"workflow_step:{step_name}")
+            continue
+        positions.append(position)
+
+    if positions and positions != sorted(positions):
+        failures.append("workflow_order:bootstrap-step-order")
+
+    for marker in WORKFLOW_COMMAND_MARKERS:
+        if marker not in workflow_text:
+            failures.append(f"workflow_marker:{marker}")
+
+    return failures
 
 
 def validate(root: Path) -> list[str]:
@@ -58,9 +94,7 @@ def validate(root: Path) -> list[str]:
     workflow_path = root / WORKFLOW_PATH
     if workflow_path.exists():
         workflow_text = workflow_path.read_text(encoding="utf-8")
-        for marker in WORKFLOW_MARKERS:
-            if marker not in workflow_text:
-                failures.append(f"workflow:{marker}")
+        failures.extend(validate_workflow(workflow_text))
 
     survey_path = root / SURVEY_PATH
     if survey_path.exists():
@@ -83,8 +117,17 @@ jobs:
   bootstrap:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.x'
       - name: Compile current scripts
-        run: python3 -m py_compile scripts/zigux/*.py
+        run: |
+          set -euxo pipefail
+          mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)
+          python3 -m py_compile "${scripts[@]}"
       - name: Self-test current Phase 12 build-only checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
       - name: Self-test current Phase 12 bootstrap lane checker
@@ -92,9 +135,12 @@ jobs:
       - name: Check current Phase 12 bootstrap lane shape
         run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py
       - name: Check current docs-root sanity markers
-        run: python3 - <<'PY'
-        print('ok')
-        PY
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          Path('Documentation/zigux/phase12-release-readiness-survey.md')
+          print('ok')
+          PY
 """
 
 
@@ -139,11 +185,47 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
-                "Check current Phase 12 bootstrap lane shape", "", 1
+                "- name: Setup Python\n"
+                "        uses: actions/setup-python@v6.2.0\n"
+                "        with:\n"
+                "          python-version: '3.x'\n",
+                "",
+                1,
             ),
             encoding="utf-8",
         )
-        expect_failure(base, "workflow:Check current Phase 12 bootstrap lane shape")
+        expect_failure(base, "workflow_step:Setup Python")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "- name: Check current Phase 12 bootstrap lane shape\n"
+                "        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py\n",
+                "",
+                1,
+            ).replace(
+                "- name: Check current docs-root sanity markers\n"
+                "        run: |\n"
+                "          python3 - <<'PY'\n"
+                "          from pathlib import Path\n"
+                "          Path('Documentation/zigux/phase12-release-readiness-survey.md')\n"
+                "          print('ok')\n"
+                "          PY\n",
+                "- name: Check current docs-root sanity markers\n"
+                "        run: |\n"
+                "          python3 - <<'PY'\n"
+                "          from pathlib import Path\n"
+                "          Path('Documentation/zigux/phase12-release-readiness-survey.md')\n"
+                "          print('ok')\n"
+                "          PY\n"
+                "      - name: Check current Phase 12 bootstrap lane shape\n"
+                "        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_order:bootstrap-step-order")
 
         write_fixture_tree(base)
         survey_path = base / SURVEY_PATH
@@ -156,7 +238,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=4")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=5")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -193,7 +275,10 @@ def main() -> int:
 
     print("PHASE12_BOOTSTRAP_LANE_SHAPE=pass")
     print(f"PHASE12_BOOTSTRAP_LANE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE12_BOOTSTRAP_LANE_MARKER_COUNT={len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS)}")
+    print(
+        "PHASE12_BOOTSTRAP_LANE_MARKER_COUNT="
+        f"{len(WORKFLOW_STEP_NAMES) + len(WORKFLOW_COMMAND_MARKERS) + len(SURVEY_MARKERS)}"
+    )
     return 0
 
 
