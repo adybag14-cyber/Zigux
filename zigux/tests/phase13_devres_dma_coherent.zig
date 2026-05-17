@@ -32,6 +32,15 @@ test "phase13 devres dma coherent replay anchors the current slice reality" {
     try requireContains(slice, "repo-reality gaps");
 }
 
+test "phase13 devres dma coherent replay keeps missing checker surfaces framed as gaps" {
+    const slice = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-devres-slice.md");
+    defer std.testing.allocator.free(slice);
+
+    try requireContains(slice, "`scripts/zigux/check-phase13-devres-packet-alignment.py`");
+    try requireContains(slice, "repo-reality gaps rather than described here as shipped current-`master` evidence");
+    try requireContains(slice, "paired survey, helper, manifest, and broader direct replay packet");
+}
+
 test "phase13 devres dma coherent replay keeps the planner note helper-first" {
     const note = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md");
     defer std.testing.allocator.free(note);
