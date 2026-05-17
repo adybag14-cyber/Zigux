@@ -103,7 +103,7 @@ ALLCONFIG_SENTINEL_MODES = {
     "alldefconfig",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 21
+EXPECTED_SELF_TEST_CASE_COUNT = 22
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -447,7 +447,7 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "oldconfig", "mode": "oldconfig", "kconfig": "Kconfig", "config": "refresh/.config", "arch": "x86", "expected": "oldconfig_expected.json"},
                     {"name": "allnoconfig", "mode": "allnoconfig", "kconfig": "Kconfig", "config": "none/.config", "arch": "arm64", "expected": "allnoconfig_expected.json"},
                     {"name": "allyesconfig", "mode": "allyesconfig", "kconfig": "Kconfig", "config": "yes/.config", "arch": "arm64", "expected": "allyesconfig_expected.json"},
-                    {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "expected": "allmodconfig_expected.json"},
+                    {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "allconfig": "", "expected": "allmodconfig_expected.json"},
                     {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "expected": "alldefconfig_expected.json"},
                     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "allrandom.config", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
                     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
@@ -526,6 +526,7 @@ def build_self_test_root(root: Path) -> None:
                     "alldefconfig_expected.json",
                 ],
                 "allconfig_override_packet": [
+                    "allmodconfig_expected.json",
                     "randconfig_expected.json",
                 ],
             },
@@ -684,6 +685,14 @@ def run_self_test() -> int:
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert ("MISSING_CONF_MODE_ARG_FIELDS", "defconfig:defconfig") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][5].pop("allconfig")
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_ALLCONFIG_OVERRIDE_PACKET_MISMATCH" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
