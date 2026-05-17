@@ -54,7 +54,7 @@ README_FORBIDDEN_MARKERS = (
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 33
+EXPECTED_SELF_TEST_CASE_COUNT = 35
 
 
 def read_text(path: Path) -> str:
@@ -215,6 +215,18 @@ def run_self_test() -> int:
             path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
             issues = collect_issues(root)
             assert ("FORBIDDEN_README_MARKERS", marker) in issues
+            checks_run += 1
+
+        for primary_path in (WORKFLOW, SCRIPTS_README):
+            build_self_test_root(root)
+            resolve_path(root, primary_path).unlink()
+            try:
+                collect_issues(root)
+            except SystemExit as exc:
+                assert "required file missing" in str(exc)
+                assert str(resolve_path(root, primary_path)) in str(exc)
+            else:
+                raise AssertionError("missing primary surface did not abort")
             checks_run += 1
 
         for rel_path in SURFACE_PATHS:
