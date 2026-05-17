@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-"""Fail-close the bounded Phase 11 HVC remove-handoff verifier branches.
+"""Fail-close the bounded Phase 11 HVC verify-side remove-handoff branch.
 
 This checker is intentionally narrow. It only guards the compile-local
-`drivers/tty/hvc/hvc_console_verify.zig` packet that keeps the two shipped
-remove-handoff branches explicit:
-
-- tty teardown outliving the console binding
-- tty already absent before remove runs
+`drivers/tty/hvc/hvc_console_verify.zig` packet that keeps the shipped
+verify-side remove-handoff branch explicit when the tty is already absent.
 
 It does not claim live notifier execution, tty registration, khvcd execution,
 sysrq execution, or host-backed teardown behavior.
@@ -24,26 +21,21 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-hvc-verify-remove-handoff.py"
 VERIFY_FILE = "drivers/tty/hvc/hvc_console_verify.zig"
 
 VERIFY_REMOVE_HANDOFF_MARKERS = [
-    'test "hvc_console verify keeps remove handoff explicit when tty teardown outlives console binding" {',
-    "const detached_binding = try console.summarizeRemoveHandoff(.{",
-    ".console_index_registered = false,",
-    ".tty_present = true,",
-    "try std.testing.expect(!detached_binding.clears_console_slot_binding);",
-    "try std.testing.expect(detached_binding.keeps_irq_for_followup_hangup);",
-    "try std.testing.expect(detached_binding.tty_vhangup_requested);",
-    "try std.testing.expect(detached_binding.tty_kref_put_after_vhangup);",
-    "try std.testing.expect(detached_binding.teardown_via_hangup_pending);",
-    "try std.testing.expect(detached_binding.host_io_pending);",
     'test "hvc_console verify keeps remove handoff explicit when tty is already absent" {',
-    "const tty_gone_remove = try console.summarizeRemoveHandoff(.{",
-    ".console_index_registered = true,",
+    "const summary = summarizeRemoveWhenTtyAlreadyAbsent(.{",
     ".tty_present = false,",
-    "try std.testing.expect(tty_gone_remove.clears_console_slot_binding);",
-    "try std.testing.expect(!tty_gone_remove.keeps_irq_for_followup_hangup);",
-    "try std.testing.expect(!tty_gone_remove.tty_vhangup_requested);",
-    "try std.testing.expect(!tty_gone_remove.tty_kref_put_after_vhangup);",
-    "try std.testing.expect(!tty_gone_remove.teardown_via_hangup_pending);",
-    "try std.testing.expect(!tty_gone_remove.host_io_pending);",
+    ".console_lock_slot_cleared = true,",
+    ".vtermno_and_cons_ops_released = true,",
+    ".tty_port_put_ordered = true,",
+    ".tty_vhangup_follow_through = true,",
+    ".tty_kref_put_release = true,",
+    ".keep_irq_until_hangup = true,",
+    "try std.testing.expect(!summary.tty_present);",
+    "try std.testing.expect(summary.tty_already_absent);",
+    "try std.testing.expect(summary.remove_handoff.console_lock_slot_cleared);",
+    "try std.testing.expect(summary.remove_handoff.tty_port_put_ordered);",
+    "try std.testing.expect(summary.remove_handoff.keep_irq_until_hangup);",
+    "try std.testing.expect(summary.keeps_live_remove_execution_out_of_scope);",
 ]
 
 
@@ -120,8 +112,8 @@ def run_self_test() -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Check that the bounded Phase 11 HVC verify helper keeps both "
-            "remove-handoff branches explicit."
+            "Check that the bounded Phase 11 HVC verify helper keeps the "
+            "landed remove-handoff branch explicit."
         )
     )
     parser.add_argument(
