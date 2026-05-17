@@ -29,9 +29,10 @@ Direct current-`master` readback in this run materialized these shared reminder 
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-Those files now show that the shared Phase 13 packet is active, helper-backed, still not closed, and already coupled to the shipped cross-phase contributor-sync and tests-root reminder companions rather than documentation-only.
+Those files now show that the shared Phase 13 packet is active, helper-backed, still not closed, and already coupled to the shipped cross-phase contributor-sync, scripts-root, and tests-root reminder companions rather than documentation-only.
 
 The coupled current-`master` packet also now keeps the shipped helper-local `libfs`, `devres`, and Landlock notes plus adjacent notifier evidence tied to a validator-first release handle instead of the older "survey-only, scripts-root missing" story.
 
