@@ -38,10 +38,11 @@ Treat those paths as active repo-reality gaps on current `master`, not as shippe
 
 ## Shared reminder contract
 
-- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` still need the same narrowing pass to match this present-versus-gap inventory, including `scripts/zigux/check-zig-toolchain.py` and `zigux/tests/fixtures/phase2_tool_manifest.json` as present anchors.
-- `Documentation/zigux/phase2-shared-reminder-gap.md` should stay explicit while `zigux/tests/README.md` and `scripts/zigux/check-phase2-tests-readme-alignment.py` still encode the broader pre-narrowing Phase 2 packet.
+- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` still need the same narrowing pass to match this present-versus-gap inventory, including `scripts/zigux/check-zig-toolchain.py` and `zigux/tests/fixtures/phase2_tool_manifest.json` as present anchors.
+- `scripts/zigux/README.md` is already narrowed to the current direct packet on this branch and should stay aligned with `Documentation/zigux/phase2-scripts-surface-reconciliation.md` while the broader shared docs-root and tests-root reminder surfaces catch up.
+- `Documentation/zigux/phase2-shared-reminder-gap.md` should stay explicit while `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` still encode the broader pre-narrowing Phase 2 packet.
 - Keep the scripts-root reminder aligned with the live toolchain checker, the live kconfig bridge packet, and the surviving alignment guards instead of reintroducing the older closure-side validator stack before those direct paths return on `master`.
 
 ## Lane 25 boundary
 
-Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth until the shared docs-root, scripts-root, and tests-root reminder surfaces are narrowed and the separate closure, cross-target, and tool-restoration lanes land.
+Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth until the remaining shared docs-root, review-checklist, tests-root, and checker surfaces are narrowed and the separate closure, cross-target, and tool-restoration lanes land.
