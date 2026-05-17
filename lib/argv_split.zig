@@ -508,6 +508,18 @@ test "argvSplit frees intermediate allocations when allocator failure interrupts
     );
 }
 
+test "argvSplitWithArgc keeps caller argc unchanged when allocation fails before returning a result" {
+    var backing = [_]u8{0} ** 15;
+    var fba = std.heap.FixedBufferAllocator.init(&backing);
+    var argc: usize = std.math.maxInt(usize);
+
+    try std.testing.expectError(
+        error.OutOfMemory,
+        argvSplitWithArgc(fba.allocator(), "alpha beta", &argc),
+    );
+    try std.testing.expectEqual(std.math.maxInt(usize), argc);
+}
+
 test "argvSplit reports overflow before sizing the null-terminated argv vector" {
     try std.testing.expectError(
         error.Overflow,
