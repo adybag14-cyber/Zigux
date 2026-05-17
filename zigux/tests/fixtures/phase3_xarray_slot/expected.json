@@ -32,6 +32,20 @@
       "pointer_raw": 64
     },
     {
+      "name": "inline_zero",
+      "kind": "xa_value",
+      "raw_hex": "0x1",
+      "raw_decimal": "1",
+      "is_null": false,
+      "is_value": true,
+      "is_err": false,
+      "is_pointer": false,
+      "is_tagged_internal": true,
+      "decoded_error": null,
+      "decoded_value": 0,
+      "pointer_raw": null
+    },
+    {
       "name": "inline_small",
       "kind": "xa_value",
       "raw_hex": "0x3b",
@@ -72,6 +86,20 @@
       "decoded_error": null,
       "decoded_value": null,
       "pointer_raw": 18446744073709547520
+    },
+    {
+      "name": "err_top",
+      "kind": "err_ptr",
+      "raw_hex": "0xffffffffffffffff",
+      "raw_decimal": "18446744073709551615",
+      "is_null": false,
+      "is_value": false,
+      "is_err": true,
+      "is_pointer": false,
+      "is_tagged_internal": true,
+      "decoded_error": -1,
+      "decoded_value": null,
+      "pointer_raw": null
     },
     {
       "name": "err_enomem",
