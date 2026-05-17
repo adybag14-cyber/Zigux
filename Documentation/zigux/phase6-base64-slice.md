@@ -65,4 +65,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave this helper parked unless fresh repo inspection shows a concrete parity or portability drift in the current standard, URL-safe, or IMAP packet. If the Phase 6 build-root and direct parity companions return on current `master`, reattach them one bounded packet at a time instead of broad shared-note churn.
+Leave this helper parked unless fresh repo inspection shows a concrete parity or portability drift in the current standard, URL-safe, or IMAP packet. The focused Phase 6 build-root and perf packet are already present on current `master`; the only still-missing same-helper companion visible from this note is the direct C-vs-Zig parity packet, so any reopen should stay there rather than broad shared-note churn.
