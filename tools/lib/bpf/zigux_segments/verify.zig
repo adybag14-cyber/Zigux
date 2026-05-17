@@ -1,6 +1,9 @@
 const std = @import("std");
 
+const cpu_mask = @import("cpu_mask.zig");
+const file_path_handle_bridge = @import("file_path_handle_bridge.zig");
 const logging = @import("logging.zig");
+const online_cpu_routing = @import("online_cpu_routing.zig");
 const perf_buffer_poll = @import("perf_buffer_poll.zig");
 const pin_path = @import("pin_path.zig");
 const type_names = @import("type_names.zig");
@@ -10,7 +13,10 @@ fn expectHasDecl(comptime Module: type, comptime decl_name: []const u8) !void {
 }
 
 test "helper-first materialized tools/lib/bpf Zigux segments compile together and keep their focused tests live" {
+    std.testing.refAllDecls(cpu_mask);
+    std.testing.refAllDecls(file_path_handle_bridge);
     std.testing.refAllDecls(logging);
+    std.testing.refAllDecls(online_cpu_routing);
     std.testing.refAllDecls(perf_buffer_poll);
     std.testing.refAllDecls(pin_path);
     std.testing.refAllDecls(type_names);
