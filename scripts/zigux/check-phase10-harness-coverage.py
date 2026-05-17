@@ -18,6 +18,7 @@ FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "drivers/virtio/virtio_mmio.zig",
     "zigux/tests/phase10_build.zig",
@@ -43,6 +44,7 @@ REVIEW_CHECKLIST_MARKERS = [
 COMPANION_MARKERS = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "zigux/tests/phase10_build.zig",
+    "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "drivers/virtio/virtio_mmio.zig",
     "make -C zigux phase10-validate",
@@ -68,6 +70,13 @@ BUILD_MARKERS = [
     '"phase10-virtio-input-verify-tests"',
     '"phase10-virtio-mmio-tests"',
     'Run the live Phase 10 virtio input, verify, and MMIO lab validation tests',
+]
+
+REGISTRATION_HELPER_MARKERS = [
+    "pub const RegistrationPreflightSummary = virtio_input.RegistrationPreflightSummary;",
+    "pub const RegistrationBlocker = virtio_input.RegistrationBlocker;",
+    "pub fn summarize(device: *const virtio_input.VirtioInputLab) RegistrationPreflightSummary {",
+    "pub fn blockerTag(blocker: RegistrationBlocker) []const u8 {",
 ]
 
 VERIFY_MARKERS = [
@@ -127,6 +136,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         root, "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
     )
     build = read_text(root, "zigux/tests/phase10_build.zig")
+    registration_helper = read_text(root, "drivers/virtio/virtio_input_registration_preflight.zig")
     verify = read_text(root, "drivers/virtio/virtio_input_verify.zig")
     mmio = read_text(root, "drivers/virtio/virtio_mmio.zig")
 
@@ -139,6 +149,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     )
     check_markers(missing_markers, "tests_root_companion", companion, COMPANION_MARKERS)
     check_markers(missing_markers, "phase10_build", build, BUILD_MARKERS)
+    check_markers(
+        missing_markers,
+        "virtio_input_registration_preflight",
+        registration_helper,
+        REGISTRATION_HELPER_MARKERS,
+    )
     check_markers(missing_markers, "virtio_input_verify", verify, VERIFY_MARKERS)
     check_markers(missing_markers, "virtio_mmio", mmio, MMIO_MARKERS)
 
@@ -166,6 +182,10 @@ def write_fixture(root: Path) -> None:
         )
         + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
+        "drivers/virtio/virtio_input_registration_preflight.zig": "\n".join(
+            REGISTRATION_HELPER_MARKERS
+        )
+        + "\n",
         "drivers/virtio/virtio_input_verify.zig": "\n".join(VERIFY_MARKERS) + "\n",
         "drivers/virtio/virtio_mmio.zig": "\n".join(MMIO_MARKERS) + "\n",
     }
@@ -211,7 +231,7 @@ def run_self_test() -> int:
 
         docs_root_path = root / "Documentation/zigux/README.md"
         original_docs_root = docs_root_path.read_text(encoding="utf-8")
-        docs_root_path.write_text(
+        docs_root_path.writeText(
             original_docs_root.replace(
                 "scripts/zigux/check-phase10-harness-coverage.py",
                 "scripts/zigux/check-phase10-harness-coverage-missing.py",
@@ -251,16 +271,16 @@ def run_self_test() -> int:
         original_companion = companion_path.read_text(encoding="utf-8")
         companion_path.write_text(
             original_companion.replace(
-                "drivers/virtio/virtio_mmio.zig",
-                "drivers/virtio/virtio_mmio_missing.zig",
+                "drivers/virtio/virtio_input_registration_preflight.zig",
+                "drivers/virtio/virtio_input_registration_preflight_missing.zig",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            "tests_root_companion:drivers/virtio/virtio_mmio.zig",
-            "phase10-harness-coverage-self-test:companion_mmio_path",
+            "tests_root_companion:drivers/virtio/virtio_input_registration_preflight.zig",
+            "phase10-harness-coverage-self-test:companion_registration_helper_path",
         )
         companion_path.write_text(original_companion, encoding="utf-8")
         case_count += 1
@@ -281,6 +301,24 @@ def run_self_test() -> int:
             "phase10-harness-coverage-self-test:build_mmio_test_name",
         )
         build_path.write_text(original_build, encoding="utf-8")
+        case_count += 1
+
+        registration_helper_path = root / "drivers/virtio/virtio_input_registration_preflight.zig"
+        original_registration_helper = registration_helper_path.read_text(encoding="utf-8")
+        registration_helper_path.write_text(
+            original_registration_helper.replace(
+                "pub const RegistrationBlocker = virtio_input.RegistrationBlocker;",
+                "pub const RegistrationGate = virtio_input.RegistrationBlocker;",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "virtio_input_registration_preflight:pub const RegistrationBlocker = virtio_input.RegistrationBlocker;",
+            "phase10-harness-coverage-self-test:registration_helper_blocker_alias",
+        )
+        registration_helper_path.write_text(original_registration_helper, encoding="utf-8")
         case_count += 1
 
         verify_path = root / "drivers/virtio/virtio_input_verify.zig"
@@ -380,7 +418,7 @@ def main() -> int:
     print(f"PHASE10_HARNESS_COVERAGE_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE10_HARNESS_COVERAGE_REQUIRED_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(BUILD_MARKERS) + len(VERIFY_MARKERS) + len(MMIO_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS) + len(MMIO_MARKERS)}"
     )
     return 0
 
