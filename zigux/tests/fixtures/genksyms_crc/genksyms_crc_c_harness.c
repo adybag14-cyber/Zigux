@@ -59,13 +59,21 @@ static uint32_t crc32(const char *s)
 static void json_escape(FILE *out, const char *text)
 {
 	for (; *text; ++text) {
-		switch (*text) {
+		unsigned char ch = (unsigned char)*text;
+		switch (ch) {
 		case '\\': fputs("\\\\", out); break;
 		case '"': fputs("\\\"", out); break;
+		case '\b': fputs("\\b", out); break;
+		case '\f': fputs("\\f", out); break;
 		case '\n': fputs("\\n", out); break;
 		case '\r': fputs("\\r", out); break;
 		case '\t': fputs("\\t", out); break;
-		default: fputc(*text, out); break;
+		default:
+			if (ch < 0x20)
+				fprintf(out, "\\u%04x", ch);
+			else
+				fputc(ch, out);
+			break;
 		}
 	}
 }
