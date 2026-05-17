@@ -42,7 +42,9 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 ## Shared reminder follow-up
 
-`zigux/tests/README.md` now mirrors the bounded starter packet. Keep the remaining shared reminder follow-up focused on `Documentation/zigux/review-checklist.md` and any future broad reminder surfaces so they stay anchored to `Documentation/zigux/phase3-abi-slice.md`, this note, and the `dev_t` starter replay route until additional current-tree-backed validator or export-boundary proof lands.
+`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still carry broader shared Phase 3 reminder language than the directly readable starter packet on current `master`.
+
+Keep the remaining shared reminder follow-up focused on narrowing those broad reminder surfaces so they stay anchored to `Documentation/zigux/phase3-abi-slice.md`, this note, and the `dev_t` starter replay route until additional current-tree-backed validator or export-boundary proof lands.
 
 ## Scope
 
