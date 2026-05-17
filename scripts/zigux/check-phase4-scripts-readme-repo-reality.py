@@ -18,22 +18,34 @@ DIRECT_READBACK_PACKET = (
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
 )
 
-MISSING_BROADER_PACKET = (
+RETURNED_BROADER_PACKET = (
     "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-validation-matrix.md",
     "scripts/zigux/check-phase4-gate-evidence.py",
-    "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "scripts/zigux/validate-phase4.py",
     "zigux/tests/phase4_build.zig",
+)
+
+DEDICATED_LOCAL_PERF_PACKET = (
+    "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    "scripts/zigux/check-phase4-perf-baseline-values.py",
     "zigux/tests/phase4_perf_baseline_manifest.json",
     "zigux/tests/phase4_perf_baseline_survey.zig",
 )
 
+RETURNED_DIFF_PACKET = (
+    "zigux/tests/atomic64_diff.zig",
+    "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/bitmap_diff.zig",
+    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
+)
+
 REQUIRED_MARKERS = (
-    "Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, and scripts-root surfaces",
-    "keep the current direct-readback rollback-owner wording, the host-side artifact-diff contract references, the broader-packet warning, and the pending shared-CI perf-promotion posture explicit",
-    "authenticated contents reads on current `master` still return missing for",
-    "keep the dedicated local-only perf packet and any broader shared-CI perf-promotion decision owned by the Validation and Perf Team",
+    "Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, and scripts-root surfaces, and current `master` now also materializes the broader validator and lab-matrix packet plus the dedicated local-only perf packet again",
+    "keep the current direct-readback rollback-owner wording, the host-side artifact-diff contract references, the broader-packet warning, the roadmap-backed `atomic64_diff` repo-reality wording, and the pending shared-CI perf-promotion posture explicit",
+    "are directly readable again on current `master`, so treat them as the returned broader validator and lab-matrix companions",
+    "keep the dedicated local-only perf packet explicit beside the shared rollback packet while shared-CI perf promotion stays pending and intentionally separate from the narrower exact-readback target set",
+    "are also directly readable on current `master`, so keep those roadmap-backed differential-gate and helper-backed rollback replays framed as current validator-backed companions",
     "keep the ABI and Runtime Team plus Shared Subsystems Pod explicit as coordination owners",
     "keep the parked kprobe plus parked `test_fsmount` reminder packet framed as adjacent last-known packet members",
 )
@@ -73,11 +85,29 @@ def require_repo_reality(root: Path) -> None:
             + ", ".join(missing_direct)
         )
 
-    present_broader = [path for path in MISSING_BROADER_PACKET if (root / path).exists()]
-    if present_broader:
+    missing_returned = [
+        path for path in RETURNED_BROADER_PACKET if not (root / path).exists()
+    ]
+    if missing_returned:
         raise RuntimeError(
-            "broader packet entries are now present and the scripts-root reminder must be narrowed: "
-            + ", ".join(present_broader)
+            "returned broader validator packet no longer matches the current tree: "
+            + ", ".join(missing_returned)
+        )
+
+    missing_perf = [
+        path for path in DEDICATED_LOCAL_PERF_PACKET if not (root / path).exists()
+    ]
+    if missing_perf:
+        raise RuntimeError(
+            "dedicated local-only perf packet no longer matches the current tree: "
+            + ", ".join(missing_perf)
+        )
+
+    missing_diff = [path for path in RETURNED_DIFF_PACKET if not (root / path).exists()]
+    if missing_diff:
+        raise RuntimeError(
+            "returned differential and helper-backed replay packet no longer matches the current tree: "
+            + ", ".join(missing_diff)
         )
 
 
@@ -85,7 +115,9 @@ def check(root: Path) -> None:
     readme = read(root, README)
     require(readme, REQUIRED_MARKERS, README.as_posix())
     require_paths_listed(readme, DIRECT_READBACK_PACKET, README.as_posix())
-    require_paths_listed(readme, MISSING_BROADER_PACKET, README.as_posix())
+    require_paths_listed(readme, RETURNED_BROADER_PACKET, README.as_posix())
+    require_paths_listed(readme, DEDICATED_LOCAL_PERF_PACKET, README.as_posix())
+    require_paths_listed(readme, RETURNED_DIFF_PACKET, README.as_posix())
     require_repo_reality(root)
 
 
@@ -101,15 +133,23 @@ def fixture_root(root: Path) -> None:
 
 ## Phase 4
 
-- Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, and scripts-root surfaces while the broader validator, lab-matrix, and local-only perf packet is currently a repo-reality gap on `master`, so this note should stay aligned with the direct-readback warning instead of treating that older packet as freshly present
-- `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` keep the current direct-readback rollback-owner wording, the host-side artifact-diff contract references, the broader-packet warning, and the pending shared-CI perf-promotion posture explicit, and this scripts-root note should mirror that same present-current-master posture
-- authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`, so treat those broader validator, lab-matrix, and local-only perf surfaces as historical packet members or stale `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance until a same-lane republish makes them directly readable again
-- keep the dedicated local-only perf packet and any broader shared-CI perf-promotion decision owned by the Validation and Perf Team, keep the ABI and Runtime Team plus Shared Subsystems Pod explicit as coordination owners for any wider promotion call, and keep the parked kprobe plus parked `test_fsmount` reminder packet framed as adjacent last-known packet members instead of reopening this shared scripts-root note into broader Phase 4 republish work
+- Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, and scripts-root surfaces, and current `master` now also materializes the broader validator and lab-matrix packet plus the dedicated local-only perf packet again, so this note should stay aligned with present readback while still keeping the perf packet intentionally separate from the narrower exact-readback target set
+- `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` keep the current direct-readback rollback-owner wording, the host-side artifact-diff contract references, the broader-packet warning, the roadmap-backed `atomic64_diff` repo-reality wording, and the pending shared-CI perf-promotion posture explicit, and this scripts-root note should mirror that same present-current-master posture
+- `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/validate-phase4.py`, and `zigux/tests/phase4_build.zig` are directly readable again on current `master`, so treat them as the returned broader validator and lab-matrix companions instead of leaving them in the missing-packet bucket
+- `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-baseline-values.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` keep the dedicated local-only perf packet explicit beside the shared rollback packet while shared-CI perf promotion stays pending and intentionally separate from the narrower exact-readback target set
+- `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` are also directly readable on current `master`, so keep those roadmap-backed differential-gate and helper-backed rollback replays framed as current validator-backed companions instead of as repo-reality gaps here
+- keep the dedicated local-only perf packet and any broader shared-CI perf-promotion decision owned by the Validation and Perf Team, keep the ABI and Runtime Team plus Shared Subsystems Pod explicit as coordination owners for any wider promotion call, and keep the parked kprobe plus parked `test_fsmount` reminder packet framed as adjacent last-known packet members instead of reopening this shared scripts-root note into unrelated Phase 4 packet churn
 """,
     )
 
-    for path in DIRECT_READBACK_PACKET:
-        write(root / path, "# present direct packet member\n")
+    for packet in (
+        DIRECT_READBACK_PACKET,
+        RETURNED_BROADER_PACKET,
+        DEDICATED_LOCAL_PERF_PACKET,
+        RETURNED_DIFF_PACKET,
+    ):
+        for path in packet:
+            write(root / path, "# present packet member\n")
 
 
 def self_test() -> None:
@@ -144,13 +184,31 @@ def self_test() -> None:
             raise AssertionError("expected missing direct packet member to fail")
 
         fixture_root(root)
-        write(root / Path(MISSING_BROADER_PACKET[0]), "# broader packet returned\n")
+        (root / Path(RETURNED_BROADER_PACKET[0])).unlink()
         try:
             check(root)
         except RuntimeError:
             cases += 1
         else:
-            raise AssertionError("expected returned broader packet member to fail")
+            raise AssertionError("expected missing returned broader packet member to fail")
+
+        fixture_root(root)
+        (root / Path(DEDICATED_LOCAL_PERF_PACKET[0])).unlink()
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected missing local-only perf packet member to fail")
+
+        fixture_root(root)
+        (root / Path(RETURNED_DIFF_PACKET[0])).unlink()
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected missing returned diff packet member to fail")
 
         fixture_root(root)
         write(
@@ -188,7 +246,16 @@ def main() -> int:
         f"PHASE4_SCRIPTS_README_REPO_REALITY_DIRECT_PACKET_MEMBERS={len(DIRECT_READBACK_PACKET)}"
     )
     print(
-        f"PHASE4_SCRIPTS_README_REPO_REALITY_MISSING_BROADER_MEMBERS={len(MISSING_BROADER_PACKET)}"
+        "PHASE4_SCRIPTS_README_REPO_REALITY_RETURNED_BROADER_PACKET_MEMBERS="
+        f"{len(RETURNED_BROADER_PACKET)}"
+    )
+    print(
+        "PHASE4_SCRIPTS_README_REPO_REALITY_DEDICATED_LOCAL_PERF_PACKET_MEMBERS="
+        f"{len(DEDICATED_LOCAL_PERF_PACKET)}"
+    )
+    print(
+        "PHASE4_SCRIPTS_README_REPO_REALITY_RETURNED_DIFF_PACKET_MEMBERS="
+        f"{len(RETURNED_DIFF_PACKET)}"
     )
     return 0
 
