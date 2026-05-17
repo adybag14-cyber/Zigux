@@ -17,6 +17,10 @@ fn noSpaceToNameTooLong(err: anyerror) PinPathError {
 }
 
 pub fn pathnameConcat(buffer: []u8, path: []const u8, name: []const u8) PinPathError![]u8 {
+    if (path.len != 0 and path[path.len - 1] == '/') {
+        return std.fmt.bufPrint(buffer, "{s}{s}", .{ path, name }) catch |err| noSpaceToNameTooLong(err);
+    }
+
     return std.fmt.bufPrint(buffer, "{s}/{s}", .{ path, name }) catch |err| noSpaceToNameTooLong(err);
 }
 
@@ -89,6 +93,19 @@ test "pathnameConcat keeps the bounded libbpf path-join behavior" {
     );
 }
 
+test "pathnameConcat preserves stable outputs when the root already ends in slash" {
+    var buffer: [64]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        "/root_map",
+        try pathnameConcat(&buffer, "/", "root_map"),
+    );
+    try std.testing.expectEqualStrings(
+        "/tmp/bpf/cache_map",
+        try pathnameConcat(&buffer, "/tmp/bpf/", "cache_map"),
+    );
+}
+
 test "buildMapPinPath defaults to bpffs when the caller leaves the root unset" {
     var buffer: [64]u8 = undefined;
 
@@ -112,6 +129,10 @@ test "buildSanitizedMapPinPath mirrors libbpf dot sanitization for pin names" {
     try std.testing.expectEqualStrings(
         "/tmp/bpf.v1.2/cache_map",
         try buildSanitizedMapPinPath(&buffer, "/tmp/bpf.v1.2", "cache.map"),
+    );
+    try std.testing.expectEqualStrings(
+        "/cache_map",
+        try buildSanitizedMapPinPath(&buffer, "/", "cache.map"),
     );
 }
 
