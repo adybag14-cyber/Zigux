@@ -75,4 +75,6 @@ Current `master` still ships no standalone Phase 5 sample-root files here for:
 
 Current `master` does now ship one bounded `*string*` and `*format*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`, but keep it tied to the non-runtime `trace-events` anchor and its selected-string plus `iter=%d` formatting cue instead of treating it as a standalone helper packet.
 
-Keep broader helper and formatting review surfaces in their existing helper, closure, or later-phase packets instead of treating this directory as proof that dedicated cmdline, argv, rbtree, bitmap, `printf`, or `vsprintf` sample families landed here.
+Keep direct `rbtree` reviewability under the separate Phase 7 helper packet rooted in `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, and `zigux/tests/phase7_build.zig` instead of treating this directory as proof that a Phase 5 ownership-tree sample landed.
+
+Keep broader helper and formatting review surfaces in their existing helper, closure, or later-phase packets instead of treating this directory as proof that dedicated cmdline, argv, bitmap, `printf`, or `vsprintf` sample families landed here.
