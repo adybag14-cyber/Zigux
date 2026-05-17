@@ -118,6 +118,22 @@ test "bitmap view helpers stay bounded and predictable" {
     try std.testing.expectEqual(@as(u32, 4), summary.weight);
 }
 
+test "bitmap helpers keep an all-clear bounded window distinct from the empty sentinel" {
+    var backing = [_]Word{0};
+    const view = viewFromWords(backing[0..], 16);
+    const summary = summarize(view);
+
+    try std.testing.expect(isValid(view));
+    try std.testing.expect(!testBit(view, 0));
+    try std.testing.expect(!testBit(view, 15));
+    try std.testing.expectEqual(@as(u32, 16), firstSet(view));
+    try std.testing.expectEqual(@as(u32, 0), firstZero(view));
+    try std.testing.expectEqual(@as(u32, 0), weight(view));
+    try std.testing.expectEqual(@as(u32, 16), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "bitmap tail masking keeps a full bounded bitmap from leaking zero bits" {
     var backing = [_]Word{
         ~@as(Word, 0),
