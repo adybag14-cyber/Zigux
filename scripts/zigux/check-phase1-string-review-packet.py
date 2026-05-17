@@ -26,6 +26,14 @@ STRING_REVIEW_RULE_LINE = (
     "names as historical packet members until current `master` exposes them again"
 )
 
+COUNTED_SEARCH_REVIEW_RULE_LINE = (
+    "- The counted-search owner term here also covers the current `strnchrNul()` and "
+    "`strnchrnul()` match-or-NUL boundary anchor already cataloged in "
+    "`zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads "
+    "should keep that helper-local boundary proof inside the same counted-search packet "
+    "instead of treating it as an unowned follow-up beside `strnchr()`."
+)
+
 EXPECTED_STRING_PACKET = {
     "helper_test_anchors": [
         'test "strtobool accepts common Linux forms"',
@@ -298,6 +306,13 @@ def collect_failures(root: Path) -> list[str]:
     failures.extend(
         require_exact_occurrence(
             lane_note_text,
+            "lane_note:counted_search_review_rule",
+            COUNTED_SEARCH_REVIEW_RULE_LINE,
+        )
+    )
+    failures.extend(
+        require_exact_occurrence(
+            lane_note_text,
             "lane_note:string_next_safe_step_note",
             EXPECTED_STRING_PACKET["next_safe_step_note"],
         )
@@ -333,6 +348,8 @@ def build_sample_repo(root: Path) -> None:
         LANE_NOTE_REL,
         "# sample\n\n"
         + STRING_REVIEW_RULE_LINE
+        + "\n\n"
+        + COUNTED_SEARCH_REVIEW_RULE_LINE
         + "\n\n- "
         + EXPECTED_STRING_PACKET["next_safe_step_note"]
         + "\n",
@@ -362,6 +379,8 @@ def run_self_test() -> int:
     mutation_specs = [
         ("lane_rule_removed", "lane_rule", "remove"),
         ("lane_rule_duplicated", "lane_rule", "duplicate"),
+        ("counted_search_rule_removed", "counted_search_rule", "remove"),
+        ("counted_search_rule_duplicated", "counted_search_rule", "duplicate"),
         ("next_safe_step_removed", "next_safe_step", "remove"),
         ("next_safe_step_duplicated", "next_safe_step", "duplicate"),
         ("helper_anchor_removed", "helper_anchor", "remove"),
@@ -385,6 +404,18 @@ def run_self_test() -> int:
                         text = text.replace(
                             STRING_REVIEW_RULE_LINE,
                             STRING_REVIEW_RULE_LINE + "\n" + STRING_REVIEW_RULE_LINE,
+                            1,
+                        )
+                    path.write_text(text, encoding="utf-8")
+                elif target == "counted_search_rule":
+                    path = root / LANE_NOTE_REL
+                    text = path.read_text(encoding="utf-8")
+                    if kind == "remove":
+                        text = text.replace(COUNTED_SEARCH_REVIEW_RULE_LINE + "\n", "", 1)
+                    else:
+                        text = text.replace(
+                            COUNTED_SEARCH_REVIEW_RULE_LINE,
+                            COUNTED_SEARCH_REVIEW_RULE_LINE + "\n" + COUNTED_SEARCH_REVIEW_RULE_LINE,
                             1,
                         )
                     path.write_text(text, encoding="utf-8")
