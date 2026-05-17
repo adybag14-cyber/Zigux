@@ -33,6 +33,9 @@ EXPECTED_DOC_MARKERS = (
     "`scripts/zigux/check-phase2-kconfig-readme-alignment.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-genksyms-bridge.py`",
+    "`scripts/zigux/genksyms.zig`",
+    "`zigux/tests/fixtures/genksyms_bridge/cases.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/manifest.json`",
     "`scripts/zigux/check-kconfig-bridge.py`",
     "`scripts/zigux/install-zig.py`",
     "`zigux/Makefile`",
@@ -60,6 +63,9 @@ EXPECTED_MISSING_FILES = [
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/genksyms.zig",
+    "zigux/tests/fixtures/genksyms_bridge/cases.json",
+    "zigux/tests/fixtures/genksyms_bridge/manifest.json",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/install-zig.py",
     "zigux/Makefile",
@@ -88,7 +94,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -245,6 +251,12 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        path = resolve_path(root, CLOSURE_DOC)
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), EXPECTED_DOC_MARKERS[15]), encoding="utf-8")
+        assert ("MISSING_CLOSURE_DOC_MARKERS", EXPECTED_DOC_MARKERS[15]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         path = resolve_path(root, DOCS_ROOT_README)
         path.write_text(
             replace_once(path.read_text(encoding="utf-8"), EXPECTED_DOCS_ROOT_MARKERS[0]),
@@ -273,7 +285,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = resolve_path(root, SCRIPTS_README)
-        path.write_text(
+        path.writeText(
             replace_once(path.read_text(encoding="utf-8"), EXPECTED_SCRIPTS_README_MARKERS[0]),
             encoding="utf-8",
         )
@@ -321,7 +333,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        resolve_path(root, MANIFEST).writeText("[]\n", encoding="utf-8")
+        write_text(root, MANIFEST, "[]\n")
         try:
             collect_issues(root)
         except SystemExit as exc:
