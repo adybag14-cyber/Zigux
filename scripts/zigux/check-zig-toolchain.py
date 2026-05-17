@@ -15,6 +15,8 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 FALLBACK_MIN_VERSION = "0.16.0"
+POLICY_KEYS = {"phase", "channel", "minimum_version", "archive_sha256", "upgrade_policy"}
+UPGRADE_POLICY_KEYS = {"channel_minimum_lockstep", "archive_target_scope", "required_make_routes"}
 
 
 @dataclass(frozen=True, order=True)
@@ -24,6 +26,16 @@ class ZigVersion:
     patch: int
     release_rank: int
     dev_build: int
+
+
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
 
 
 def parse_zig_version(raw: str) -> ZigVersion:
@@ -54,15 +66,23 @@ def require_string_list(value: object, field_name: str, policy_path: Path) -> li
     seen: set[str] = set()
     for entry in value:
         normalized_entry = require_non_empty_string(entry, field_name, policy_path)
-        if normalized_entry not in seen:
-            normalized.append(normalized_entry)
-            seen.add(normalized_entry)
-    if not normalized:
-        raise ValueError(f"invalid {field_name} in {policy_path}")
+        if normalized_entry in seen:
+            raise ValueError(
+                f"duplicate {field_name} entry in {policy_path}: {normalized_entry}"
+            )
+        normalized.append(normalized_entry)
+        seen.add(normalized_entry)
     return normalized
 
 
 def validate_policy_payload(payload: dict[str, object], policy_path: Path) -> dict[str, object]:
+    unexpected_policy_keys = sorted(set(payload) - POLICY_KEYS)
+    if unexpected_policy_keys:
+        raise ValueError(
+            f"unexpected toolchain policy keys in {policy_path}: "
+            + ", ".join(unexpected_policy_keys)
+        )
+
     phase = require_non_empty_string(payload.get("phase"), "phase", policy_path)
     channel = require_non_empty_string(payload.get("channel"), "channel", policy_path)
     minimum_version = require_non_empty_string(payload.get("minimum_version"), "minimum_version", policy_path)
@@ -72,6 +92,11 @@ def validate_policy_payload(payload: dict[str, object], policy_path: Path) -> di
     archive_sha256 = payload.get("archive_sha256")
     if not isinstance(archive_sha256, dict) or not archive_sha256:
         raise ValueError(f"invalid archive_sha256 in {policy_path}")
+    if isinstance(archive_sha256, DuplicateTrackingDict) and archive_sha256.duplicate_keys:
+        raise ValueError(
+            f"duplicate archive_sha256 targets in {policy_path}: "
+            + ", ".join(archive_sha256.duplicate_keys)
+        )
     normalized_archives: dict[str, str] = {}
     for target, digest in archive_sha256.items():
         normalized_target = require_non_empty_string(target, "archive_sha256 target", policy_path)
@@ -83,6 +108,17 @@ def validate_policy_payload(payload: dict[str, object], policy_path: Path) -> di
     upgrade_policy = payload.get("upgrade_policy")
     if not isinstance(upgrade_policy, dict):
         raise ValueError(f"invalid upgrade_policy in {policy_path}")
+    if isinstance(upgrade_policy, DuplicateTrackingDict) and upgrade_policy.duplicate_keys:
+        raise ValueError(
+            f"duplicate upgrade_policy keys in {policy_path}: "
+            + ", ".join(upgrade_policy.duplicate_keys)
+        )
+    unexpected_upgrade_keys = sorted(set(upgrade_policy) - UPGRADE_POLICY_KEYS)
+    if unexpected_upgrade_keys:
+        raise ValueError(
+            f"unexpected upgrade_policy keys in {policy_path}: "
+            + ", ".join(unexpected_upgrade_keys)
+        )
     lockstep = upgrade_policy.get("channel_minimum_lockstep")
     if not isinstance(lockstep, bool):
         raise ValueError(f"invalid channel_minimum_lockstep in {policy_path}")
@@ -131,11 +167,19 @@ def load_policy(policy_path: Path = TOOLCHAIN_POLICY) -> dict[str, object] | Non
     if not policy_path.exists():
         return None
     try:
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        payload = json.loads(
+            policy_path.read_text(encoding="utf-8"),
+            object_pairs_hook=DuplicateTrackingDict,
+        )
     except json.JSONDecodeError as exc:
         raise ValueError(f"invalid toolchain policy JSON in {policy_path}: {exc.msg}") from exc
     if not isinstance(payload, dict):
         raise ValueError(f"invalid toolchain policy payload in {policy_path}: expected object")
+    if isinstance(payload, DuplicateTrackingDict) and payload.duplicate_keys:
+        raise ValueError(
+            f"duplicate toolchain policy keys in {policy_path}: "
+            + ", ".join(payload.duplicate_keys)
+        )
     return validate_policy_payload(payload, policy_path)
 
 
@@ -503,6 +547,16 @@ def run_self_test() -> int:
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid required_make_routes")
         policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.90+abcdef","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "minimum_version must match channel")
+        policy_path.write_text('{"phase":"Phase 2","phase":"Phase 3","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "duplicate toolchain policy keys")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"unexpected":"value","upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "unexpected toolchain policy keys")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"channel_minimum_lockstep":false,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "duplicate upgrade_policy keys")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"],"unexpected_route":"phase2-extra"}}\n', encoding="utf-8")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "unexpected upgrade_policy keys")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-toolchain"]}}\n', encoding="utf-8")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "duplicate required_make_routes entry")
         policy_path.write_text('{not-json}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid toolchain policy JSON")
         expect_raises(lambda: parse_zig_version("master"))
