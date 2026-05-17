@@ -35,3 +35,46 @@ test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-
     try std.testing.expectEqual(updated, register);
     try std.testing.expectEqual(@as(?atomic.Ordering, .seq_cst), atomic.strongestAllowedFailureOrder(.seq_cst));
 }
+
+test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {
+    var state: u32 = 0x0040_0004;
+    try std.testing.expectEqual(
+        @as(?u32, null),
+        try atomic.compareExchangeStrong(u32, &state, 0x0040_0004, 0x00AA_5501, .acq_rel, .acquire),
+    );
+
+    barrier.release();
+
+    var register: u32 = 0;
+    const register_ptr: *volatile u32 = @ptrCast(&register);
+    const const_register_ptr: *const volatile u32 = @ptrCast(&register);
+
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        mmio.writeInteropPolicyBytes(u32, 0, 0, register_ptr, state),
+    );
+    try std.testing.expectError(
+        error.InvalidInteropPolicy,
+        mmio.readInteropPolicyBytes(u32, 1, 1, const_register_ptr),
+    );
+    try std.testing.expectEqual(@as(u32, 0), register);
+
+    try mmio.writeInteropPolicyBytes(u32, 1, 0, register_ptr, state);
+    barrier.acquire();
+    try std.testing.expectEqual(
+        @as(u32, 0x00AA_5501),
+        try mmio.readInteropPolicyBytes(u32, 1, 0, const_register_ptr),
+    );
+
+    const updated = try mmio.writeMaskedInteropPolicyBytes(
+        u32,
+        1,
+        0,
+        register_ptr,
+        0x0000_FF00,
+        0x0000_3300,
+    );
+    barrier.fullFence();
+    try std.testing.expectEqual(@as(u32, 0x00AA_3301), updated);
+    try std.testing.expectEqual(updated, register);
+}
