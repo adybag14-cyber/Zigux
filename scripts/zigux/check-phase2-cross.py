@@ -43,6 +43,22 @@ def load_fixture(path: Path) -> dict[str, object]:
     return payload
 
 
+def collect_list_issues(payload: object, issue_prefix: str) -> tuple[list[str], list[str] | None]:
+    if not isinstance(payload, list):
+        return [f"{issue_prefix}:not_list:{payload!r}"], None
+
+    if not all(isinstance(item, str) for item in payload):
+        return [f"{issue_prefix}:non_string:{payload!r}"], None
+
+    if any(not item for item in payload):
+        return [f"{issue_prefix}:empty_string:{payload!r}"], None
+
+    if len(set(payload)) != len(payload):
+        return [f"{issue_prefix}:duplicate_entries:{payload!r}"], None
+
+    return [], payload
+
+
 def validate_fixture(root: Path) -> list[str]:
     issues: list[str] = []
     payload = load_fixture(root / "zigux/tests/fixtures/phase2_cross_targets.json")
@@ -54,15 +70,23 @@ def validate_fixture(root: Path) -> list[str]:
     if payload.get("status") != EXPECTED_STATUS:
         issues.append(f"fixture:status:{payload.get('status')!r}")
 
-    targets = payload.get("targets")
-    if targets != EXPECTED_TARGETS:
+    target_issues, targets = collect_list_issues(payload.get("targets"), "fixture:targets")
+    issues.extend(target_issues)
+    if targets is not None and targets != EXPECTED_TARGETS:
         issues.append(f"fixture:targets:{targets!r}")
 
-    if payload.get("target_count") != len(EXPECTED_TARGETS):
-        issues.append(f"fixture:target_count:{payload.get('target_count')!r}")
+    target_count = payload.get("target_count")
+    if target_count != len(EXPECTED_TARGETS):
+        issues.append(f"fixture:target_count:{target_count!r}")
+    elif targets is not None and target_count != len(targets):
+        issues.append(f"fixture:target_count_mismatch:{target_count!r}!={len(targets)!r}")
 
-    zig_test_files = payload.get("zig_test_files")
-    if zig_test_files != EXPECTED_ZIG_TEST_FILES:
+    zig_file_issues, zig_test_files = collect_list_issues(
+        payload.get("zig_test_files"),
+        "fixture:zig_test_files",
+    )
+    issues.extend(zig_file_issues)
+    if zig_test_files is not None and zig_test_files != EXPECTED_ZIG_TEST_FILES:
         issues.append(f"fixture:zig_test_files:{zig_test_files!r}")
 
     return issues
@@ -184,6 +208,47 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").writeText = None
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": [EXPECTED_TARGETS[0], EXPECTED_TARGETS[0], EXPECTED_TARGETS[2]],
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert any(issue.startswith("fixture:targets:duplicate_entries:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": [EXPECTED_ZIG_TEST_FILES[0], 7],
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert any(issue.startswith("fixture:zig_test_files:non_string:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
         (root / "scripts/zigux/kconfig/conf_bridge.zig").unlink()
         missing = require_files(root)
         assert "scripts/zigux/kconfig/conf_bridge.zig" in missing
@@ -250,10 +315,11 @@ def main() -> int:
 
     payload = load_fixture(FIXTURE)
     targets = payload["targets"]
+    zig_test_files = payload["zig_test_files"]
     print("PHASE2_CROSS=pass")
     print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")
     print(f"PHASE2_CROSS_TARGETS={','.join(targets)}")
-    print(f"PHASE2_CROSS_FILE_COUNT={len(payload['zig_test_files'])}")
+    print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
     return 0
 
 
