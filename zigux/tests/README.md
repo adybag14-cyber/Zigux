@@ -127,6 +127,7 @@ Phase 8 review packet
     `scripts/zigux/check-phase8-tests-readme-alignment.py`
     `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
     `zigux/tests/phase8_perf_buffer_poll.zig`
+    `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   * repo-reality warning for the broader Phase 8 tooling packet:
     `Documentation/zigux/phase8-tooling-lane-sequencing.md`
     `Documentation/zigux/phase8-help-slice.md`
@@ -137,9 +138,8 @@ Phase 8 review packet
     `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
     `zigux/tests/phase8_libbpf_segments.zig`
     `zigux/Makefile`
-    `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
-  * keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker-and-test packet instead of reconstructing the broader shared tooling packet from older route names alone
-  * if future same-lane work rematerializes the missing docs, validator, focused build shard, libbpf segment test, Makefile routes, or the helper-local `perf_buffer_poll.zig` file, refresh this tests-root summary only after rereading the current direct-readback anchors together on current `master`
+  * keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet instead of reconstructing the broader shared tooling packet from older route names alone
+  * if future same-lane work rematerializes the missing docs, validator, focused build shard, libbpf segment test, or Makefile routes, refresh this tests-root summary only after rereading the current direct-readback anchors together on current `master`
 
 Phase 9 review packet
   * `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
