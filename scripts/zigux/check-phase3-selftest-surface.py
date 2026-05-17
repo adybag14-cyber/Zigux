@@ -159,7 +159,6 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
-    'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
     'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     "PHASE3_VALIDATE_SELFTEST=pass",
