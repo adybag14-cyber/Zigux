@@ -51,7 +51,7 @@ NOTE_REQ = (
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=8` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
 )
 
 DOCS_README_PENDING_REQ = (
@@ -187,7 +187,7 @@ def baseline_note() -> str:
             "",
             "Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` on current `master`.",
             f"Current direct-readback packet members: {direct_packet}.",
-            "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=8` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.",
+            "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.",
             f"The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run: authenticated contents reads returned missing for {broader_packet}.",
             "Historical broader packet references still include `scripts/zigux/artifact_diff.py` and `scripts/zigux/check-artifact-diff-contract.py`, so the shared repo-reality warning must keep those contract anchors explicit even while the broader packet stays historical here.",
             "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.",
