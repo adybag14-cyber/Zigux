@@ -105,7 +105,7 @@ Keep the broader current contributor-facing Phase 13 packet explicit through the
 - `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
 
-Keep the shared validator-first release handle anchored to current repo reality: current `master` now materializes the bounded `fs/libfs.zig` foothold together with `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`.
+Keep the shared contributor-facing release handle anchored to current repo reality: current `master` now materializes the bounded `fs/libfs.zig` foothold together with `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`.
 
 It also materializes the devres helper packet through `lib/devres.zig`, `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, and `zigux/tests/phase13_devres_manifest.json`, so broader contributor wording should keep that direct boundary-evidence replay explicit beside the shared devres packet instead of treating it as a missing companion.
 
@@ -128,4 +128,4 @@ Tests-root reviewer prompt:
 
 ## Shared rule
 
-When one of these packets changes, keep the tests-root replay note, the packet-local manifest or focused reviewability shard when one is actually present on current `master`, and the validator-first review surface reviewable together.
+When one of these packets changes, keep the tests-root replay note, the packet-local manifest or focused reviewability shard when one is actually present on current `master`, and the current shared reminder surfaces reviewable together.
