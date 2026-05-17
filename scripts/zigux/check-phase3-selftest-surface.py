@@ -241,6 +241,7 @@ def run_self_test() -> int:
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[11], "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[12], "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[13], "validator-support note"),
+        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[15], "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[-1], "validator-support note"),
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[25], "scripts README"),
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[20], "scripts README"),
@@ -273,7 +274,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=15")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
