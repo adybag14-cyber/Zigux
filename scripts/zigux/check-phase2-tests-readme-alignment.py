@@ -16,7 +16,7 @@ DOCS_ROOT_PHASE2_BOUNDARY_SENTENCE = (
     "the pinned installer path and reaches the same live toolchain gate indirectly through "
     "`python3 scripts/zigux/check-phase2-cross.py --target <matrix-zig-target>`, because "
     "that target-mode replay starts with `python3 scripts/zigux/check-zig-toolchain.py --zig "
-    "\"<resolved-zig>\"` before the cross-target Zig tests, while the Linux-style "
+    "\\\"<resolved-zig>\\\"` before the cross-target Zig tests, while the Linux-style "
     "`make -C zigux phase2-cross` route still picks up `phase2-toolchain` and its direct "
     '`python3 scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"` replay through '
     "`zigux/Makefile`."
@@ -25,6 +25,8 @@ DOCS_ROOT_PHASE2_BOUNDARY_SENTENCE = (
 DOCS_ROOT_MARKERS = (
     "Phase 2 notes - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "- `scripts/zigux/check-phase2-tests-readme-alignment.py`",
+    "`scripts/zigux/check-phase2-kconfig-readme-alignment.py`",
+    "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`make -C zigux phase2-cross`",
@@ -36,6 +38,8 @@ DOCS_ROOT_MARKERS = (
 TESTS_README_MARKERS = (
     "Phase 2 review packet",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
+    "`scripts/zigux/check-phase2-kconfig-readme-alignment.py`",
+    "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
@@ -50,7 +54,7 @@ SHARED_ROUTE_MARKERS = (
     "`make -C zigux phase2-cross`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 22
+EXPECTED_SELF_TEST_CASE_COUNT = 26
 
 
 def read_text(path: Path) -> str:
