@@ -71,9 +71,11 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 ## Shared reminder follow-up
 
-`zigux/tests/README.md` and `Documentation/zigux/review-checklist.md` now match the bounded three-slice posture on current `master`, while `Documentation/zigux/README.md` still needs one narrow truthfulness pass because it names `Documentation/zigux/phase3-shared-reminder-gap.md` as an active tracker even though authenticated reads on current `master` still return that path missing.
+`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still need one narrow truthfulness pass so they all describe the bounded three-slice Phase 3 posture already recorded in `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and this note.
 
-Keep that remaining docs-root follow-up focused on `Documentation/zigux/README.md` so it stays anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, this note, the manifest-backed starter packets, and the dedicated replay routes, and records any residual reminder drift directly instead of pointing at a missing tracker note, until additional current-tree-backed validator or export-boundary proof lands.
+`Documentation/zigux/phase3-shared-reminder-gap.md` is the current direct-readback tracker for that cleanup: it records the same three current-tree-backed slices, names those three shared reminder surfaces as the remaining drift, and keeps the next safe step limited to reminder-surface narrowing rather than broader validator or export-boundary claims.
+
+Keep that remaining follow-up focused on those shared summaries so they stop parking `include/zigux/abi.h` and `zigux/bindings/abi.zig` as broader missing routes and instead record any residual reminder drift directly, until additional current-tree-backed validator or export-boundary proof lands.
 
 ## Scope
 
