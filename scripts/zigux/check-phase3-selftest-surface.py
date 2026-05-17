@@ -42,7 +42,7 @@ README_MARKERS = (
     "zigux/tests/phase3_dev_t_starter_packet.zig",
     "zigux/tests/phase3_dev_t_starter_packet_build.zig",
     "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
-    "zigux/tests/phase3_errptr-xarray_starter_packet.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
     "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
     "zigux/tests/phase3_policy_starter_packet.zig",
     "zigux/tests/phase3_policy_starter_packet_build.zig",
