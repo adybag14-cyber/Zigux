@@ -33,6 +33,7 @@ test "phase10 virtio input queue planning caps and refills event buffers" {
     try std.testing.expectError(error.DescriptorCountMustBePowerOfTwo, device.configureEventQueue(3));
 
     try device.configureEventQueue(128);
+    try std.testing.expectError(error.StatusQueueNotConfigured, device.refillEventBuffers(8));
     try device.configureStatusQueue(8);
 
     const planned = try device.fillEventBuffers();
@@ -46,6 +47,10 @@ test "phase10 virtio input queue planning caps and refills event buffers" {
     const refilled = try device.refillEventBuffers(8);
     try std.testing.expectEqual(@as(u16, virtio_input.static_event_buffer_capacity), refilled.queued_event_buffer_count_before);
     try std.testing.expectEqual(@as(u16, 72), refilled.queued_event_buffer_count_after);
+
+    const saturated = try device.refillEventBuffers(512);
+    try std.testing.expectEqual(@as(u16, 72), saturated.queued_event_buffer_count_before);
+    try std.testing.expectEqual(@as(u16, 128), saturated.queued_event_buffer_count_after);
 
     try device.markReady();
     const summary = try device.queuePlanSummary();
