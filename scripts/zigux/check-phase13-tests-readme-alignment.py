@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parent
 TESTS_README = Path("zigux/tests/README.md")
 
 PHASE13_HEADING = "Phase 13 review packet"
-PHASE13_SECTION_END = "Keep the shared contributor-facing release handle anchored to current repo reality:"
+PHASE13_SECTION_END = "Tests-root reviewer prompt:"
 
 REQUIRED_MARKERS = (
     "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
@@ -49,9 +49,7 @@ REQUIRED_MARKERS = (
     "`zigux/bindings/notifier_abi.zig`",
     "`include/zigux/abi.h`",
     "`drivers/tty/hvc/hvc_console.h`",
-    "Current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep those validator-first and checker names framed as repo-reality gaps rather than shipped tests-root evidence.",
-    "Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note framed as an adjacent repo-reality gap rather than as shipped tests-root evidence.",
-    "Current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.",
+    "Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep those paths framed as repo-reality gaps rather than as shipped tests-root evidence.",
 )
 
 REQUIRED_TEXT = (
@@ -62,7 +60,7 @@ FORBIDDEN_SHIPPED_LINES = (
     "- `Documentation/zigux/phase13-notifier-list-survey.md`",
     "- `zigux/Makefile`",
     "- `make -C zigux phase13-validate`",
-    "- blocked convenience route `make -C zigux phase13`",
+    "- `make -C zigux phase13`",
     "- `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
 )
 
@@ -146,9 +144,9 @@ def build_self_test_root(root: Path) -> None:
         "",
         "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:",
     ]
-    section_lines.extend(f"- {marker}" for marker in REQUIRED_MARKERS[:-3])
+    section_lines.extend(f"- {marker}" for marker in REQUIRED_MARKERS[:-1])
     section_lines.append("")
-    section_lines.extend(REQUIRED_MARKERS[-3:])
+    section_lines.append(REQUIRED_MARKERS[-1])
     section_lines.append("")
     section_lines.append(REQUIRED_TEXT[0])
     section_lines.append("")
