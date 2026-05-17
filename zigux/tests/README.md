@@ -165,6 +165,43 @@ Phase 9 review packet
   * the surviving trace-events packet still keeps the roadmap-backed runtime pilot shape concrete by exposing `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking inside `samples/zigux/runtime_trace_events.zig`, while `samples/zigux/runtime_trace_events_unregistered_gate.zig` keeps the same narrow packet's unregistered function-thread failures fail-closed, so reviewers can still inspect one real runtime-module plus its companion boundary while the broader shared loader packet remains backlog
   * there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, `make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`
 
+Phase 11 review packet
+  * current direct-readback Phase 11 anchors:
+    `Documentation/zigux/phase11-driver-lane-sequencing.md`
+    `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+    `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+    `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+    `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+    `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+    `Documentation/zigux/phase11-hvc-console-survey.md`
+    `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
+    `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+    `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
+    `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
+    `zigux/tests/phase11_dw_wdt_manifest.json`
+    `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+    `scripts/zigux/check-phase11-build-inventory.py`
+    `scripts/zigux/check-phase11-matrix-gap-survey.py`
+    `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+    `zigux/tests/fixtures/phase11_build_inventory.json`
+    `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+    `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
+    `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+  * keep the current Phase 11 reminder tied to the smaller shared current-head truthfulness packet above instead of reconstructing the older shared replay-contract or Makefile route stack from historical wording alone
+  * current direct-readback HVC continuity packet:
+    `Documentation/zigux/phase11-hvc-console-survey.md`
+    `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
+    `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+    `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+    `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+    `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
+    `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+  * the coupled HVC survey now also reconfirms the returned starter-depth packet under `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `scripts/zigux/check-phase11-hvc-survey-packet.py`, but keep those as HVC-local continuity rather than shared sequencing inventory
+  * keep the restored four-driver validation matrices explicit for bcm2835, gpio, HVC, and DesignWare without using them to overclaim broader direct replay, teardown execution, tty registration, notifier execution, sysrq delivery, khvcd execution, watchdog-core glue, or hardware-backed parity closure
+  * keep the current DesignWare owner packet framed through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` rather than restating older clock-acquisition, shared-build, or verify-era packet wording as the broader current-head continuity packet
+  * current `master` still does not materialize `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, `zigux/tests/phase11_build.zig`, or `zigux/Makefile`
+  * treat the older `make -C zigux phase11-contract` route and the exact shared `zig build test --build-file zigux/tests/phase11_build.zig --summary all` replay as repo-reality-gap vocabulary until a fresh reread proves those shared surfaces returned
+
 Phase 12 review packet
   * `scripts/zigux/check-build-only-phase12-surface.py`
   * `Documentation/zigux/phase12-release-sequencing.md`
