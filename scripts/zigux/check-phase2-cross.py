@@ -271,6 +271,46 @@ def run_self_test() -> int:
                 {
                     "phase": EXPECTED_PHASE,
                     "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": "x86_64-linux-musl",
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert any(issue.startswith("fixture:targets:not_list:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": [EXPECTED_TARGETS[0], "", EXPECTED_TARGETS[2]],
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert any(issue.startswith("fixture:targets:empty_string:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
                     "status": "closed",
                     "target_count": len(EXPECTED_TARGETS),
                     "targets": EXPECTED_TARGETS,
@@ -323,6 +363,49 @@ def run_self_test() -> int:
         )
         issues = validate_fixture(root)
         assert any(issue.startswith("fixture:zig_test_files:non_string:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": [
+                        EXPECTED_ZIG_TEST_FILES[0],
+                        EXPECTED_ZIG_TEST_FILES[0],
+                    ],
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert any(issue.startswith("fixture:zig_test_files:duplicate_entries:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": [EXPECTED_ZIG_TEST_FILES[0], ""],
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert any(issue.startswith("fixture:zig_test_files:empty_string:") for issue in issues)
         case_count += 1
 
         build_self_test_root(root)
@@ -427,6 +510,14 @@ def run_self_test() -> int:
         invalid_json_code, invalid_json_output = run_main(["--root", str(root)])
         assert invalid_json_code == 1
         assert "PHASE2_CROSS_NOTE=invalid fixture JSON:" in invalid_json_output
+        case_count += 1
+
+        build_self_test_root(root)
+        non_object_fixture = fixture_path(root)
+        non_object_fixture.write_text('["not-an-object"]\n', encoding="utf-8")
+        non_object_code, non_object_output = run_main(["--root", str(root)])
+        assert non_object_code == 1
+        assert "PHASE2_CROSS_NOTE=fixture must be a JSON object" in non_object_output
         case_count += 1
 
     print("PHASE2_CROSS_SELF_TEST=pass")
