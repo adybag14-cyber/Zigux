@@ -81,6 +81,18 @@ EXPECTED_CASES = [
         "normalize_stderr": True,
     },
     {
+        "name": "missing_long_reference_argument",
+        "argv": ["--reference"],
+        "mode": "process_json",
+        "expected": "missing_long_reference_argument_expected.json",
+    },
+    {
+        "name": "missing_long_dump_types_argument",
+        "argv": ["--dump-types"],
+        "mode": "process_json",
+        "expected": "missing_long_dump_types_argument_expected.json",
+    },
+    {
         "name": "unexpected_long_option_argument",
         "argv": ["--help=extra"],
         "mode": "process_json",
@@ -191,6 +203,16 @@ EXPECTED_OUTPUTS = {
     "ambiguous_long_option_expected.json": {
         "stdout": "",
         "stderr": "option '--d' is ambiguous\n",
+        "exit_code": 1,
+    },
+    "missing_long_reference_argument_expected.json": {
+        "stdout": "",
+        "stderr": "option '--reference' requires an argument\n",
+        "exit_code": 1,
+    },
+    "missing_long_dump_types_argument_expected.json": {
+        "stdout": "",
+        "stderr": "option '--dump-types' requires an argument\n",
         "exit_code": 1,
     },
     "unexpected_long_option_argument_expected.json": {
