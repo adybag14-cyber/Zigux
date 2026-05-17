@@ -29,6 +29,7 @@ Treat those four anchors as the approved Phase 5 destination set unless the road
 Fresh repo-first inspection on 2026-05-17 confirmed that current `master` still keeps the shared non-runtime trace-events reminder packet in the narrower formatting-companion posture already reflected by the sample-root and tests-root reminder surfaces, while the older direct sample-local companions still need fresh reread proof before they can be treated as returned current-`master` evidence:
 
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
+* `Documentation/zigux/phase5-sample-lane-sequencing.md`
 * `Documentation/zigux/phase5-sample-review-guide.md`
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
@@ -50,6 +51,7 @@ Keep these older shared or sample-local paths framed as repo-reality gaps or cur
 For the shared tracing and probe lane, ground reviewer guidance in the restored direct kretprobe packet plus the narrower trace-events reminder packet above and these shared reminder surfaces:
 
 * `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+* `Documentation/zigux/phase5-sample-lane-sequencing.md`
 * `Documentation/zigux/phase5-sample-review-guide.md`
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
@@ -68,7 +70,7 @@ Use the shared docs to preserve these bounded cues:
 
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` keeps the selected-string plus `iter=%d` formatting cue bounded to the trace-events packet instead of turning it into a fifth Phase 5 sample
 * `samples/zigux/trace_events_string_formatting_sample.zig` keeps the sibling formatting companion explicit through `selectedStringForIteration(...)`, the exact `iter=%d` buffer print, and the non-allocating lifecycle boundary around the bounded replay instead of standing in for the whole trace-events packet
-* `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` keep the shared reminder packet explicit about the narrower trace-events formatting companion packet and the still-bounded companion-evidence posture without widening into runtime claims
+* `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` keep the shared reminder packet explicit about the narrower trace-events formatting companion packet and the still-bounded companion-evidence posture without widening into runtime claims
 * `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, and `zigux/tests/phase5_kretprobe_example_manifest.json` keep the restored non-runtime kretprobe packet explicit without widening into the Phase 9 runtime family
 
 ## Approved idiom gap
