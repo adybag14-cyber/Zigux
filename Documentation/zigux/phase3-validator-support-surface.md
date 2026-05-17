@@ -2,7 +2,7 @@
 
 This note records the current validator-facing Phase 3 surface on live `master`.
 
-Current `master` now carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings, one focused helper-local `err_ptr` / `xarray` interop slice, and one focused helper-local policy slice. It does not currently ship the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
+Current `master` now carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings plus a directly readable export shim companion, one focused helper-local `err_ptr` / `xarray` interop slice, and one focused helper-local policy slice. It does not currently ship the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
 
 ## Current starter packet present on `master`
 
@@ -11,8 +11,10 @@ Current `master` now carries one bounded `dev_t` starter packet with paired `dev
 - `include/zigux/dev_t.h`
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
+- `zigux/bindings/abi.zig`
 - `zigux/bindings/dev_t.zig`
 - `zigux/bindings/version.zig`
+- `zigux/kernel/export_shim.zig`
 - `zigux/tests/phase3_dev_t_starter_packet.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_build.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_manifest.json`
@@ -51,9 +53,9 @@ Current `master` now carries one bounded `dev_t` starter packet with paired `dev
 
 ## Review boundary
 
-Keep the shared Phase 3 reminder packet anchored to those three current-tree-backed slices until additional validator, export-boundary, or shared replay proof lands.
+Keep the shared Phase 3 reminder packet anchored to those three current-tree-backed slices until additional validator, broader export/UAPI layout, or shared replay proof lands.
 
-Do not treat the current starter packet, its manifest-backed replay guard, its direct Zig compile replay, plus the two focused helper slices as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
+Do not treat the current starter packet, its manifest-backed replay guard, its direct Zig compile replay, its starter export shim companion, plus the two focused helper slices as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
 
 ## Sampled broader gaps still absent on `master`
 
@@ -68,7 +70,6 @@ The following representative Phase 3 routes still read as absent on the live tre
 - `zigux/tests/phase3_export_uapi_layout_build.zig`
 - `zigux/tests/phase3_low_level_wrappers.zig`
 - `zigux/tests/phase3_low_level_wrappers_build.zig`
-- `zigux/kernel/export_shim.zig`
 - `Documentation/zigux/phase3-abi-header-family-survey.md`
 - `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
 
@@ -78,10 +79,10 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 `Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback tracker for that docs-root, tests-root, and review-checklist three-slice cleanup.
 
-`scripts/zigux/README.md` is already aligned with the same repo-reality posture: its Phase 3 scripts-root summary keeps `scripts/zigux/validate-phase3-export-uapi-survey.py`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, and `zigux/kernel/export_shim.zig` on the absent-route side instead of presenting them as shipped current-`master` companions.
+`scripts/zigux/README.md` is still parked on the older absent-route wording for `zigux/kernel/export_shim.zig`, so keep that broader scripts-root reminder follow-up separate from this starter-packet validation tightening and refresh it only inside the shared reminder lane.
 
-Keep the remaining follow-up focused on those three shared reminder surfaces so they stop parking `include/zigux/abi.h` and `zigux/bindings/abi.zig` as broader missing routes, and instead record any residual reminder drift directly until additional current-tree-backed validator or export-boundary proof lands.
+Keep the remaining follow-up focused on those shared reminder surfaces so they stop parking `include/zigux/abi.h`, `zigux/bindings/abi.zig`, and the starter export shim companion as broader missing routes, and instead record any residual reminder drift directly until additional current-tree-backed validator or export-boundary proof lands.
 
 ## Scope
 
-This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, and the two focused helper slices explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
+This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, the starter export shim companion, and the two focused helper slices explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
