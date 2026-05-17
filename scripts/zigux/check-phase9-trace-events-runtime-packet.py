@@ -56,7 +56,8 @@ SAMPLE_CONTINUITY_TEST_MARKER = (
 )
 SAMPLE_COLD_STAGE_MARKER = "try std.testing.expectEqual(ModuleStage.cold, module.stage());"
 SAMPLE_COLD_SELFTEST_REJECTION_MARKER = (
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());"
+    "try std.testing.expectEqual(ModuleStage.cold, module.stage());\n"
+    "    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());"
 )
 SAMPLE_COLD_EXIT_REJECTION_MARKER = (
     "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());"
@@ -135,23 +136,40 @@ SAMPLE_OUTSTANDING_REGISTRATION_MARKER = "error.OutstandingRegistration"
 UNREGISTERED_GATE_TEST_MARKER = (
     'test "phase9 trace-events sample keeps unregistered function-thread failures fail-closed" {'
 )
+UNREGISTERED_GATE_SUMMARY_STABLE_HELPER_MARKER = (
+    "fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {"
+)
 UNREGISTERED_GATE_INITIALIZED_STAGE_MARKER = (
     "try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);"
 )
 UNREGISTERED_GATE_INITIAL_FN_REJECTION_MARKER = (
     "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));"
 )
-UNREGISTERED_GATE_INITIAL_UNREGISTER_REJECTION_MARKER = (
-    "try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());"
+UNREGISTERED_GATE_INITIAL_FAIL_CLOSED_PAIR_MARKER = (
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));\n"
+    "    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());"
+)
+UNREGISTERED_GATE_INITIAL_SUMMARY_STABLE_MARKER = (
+    "try expectSummaryStable(initialized_before, initialized_after);"
 )
 UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER = (
     "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);"
 )
-UNREGISTERED_GATE_POST_SELFTEST_FN_REJECTION_MARKER = (
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));"
+UNREGISTERED_GATE_SELFTEST_RUNS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.selftest_runs);"
 )
-UNREGISTERED_GATE_SUMMARY_STABILITY_MARKER = (
+UNREGISTERED_GATE_TOTAL_EVENTS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 12), selftest_complete_before.total_events);"
+)
+UNREGISTERED_GATE_POST_SELFTEST_FAIL_CLOSED_PAIR_MARKER = (
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));\n"
+    "    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());"
+)
+UNREGISTERED_GATE_SELFTEST_SUMMARY_STABLE_MARKER = (
     "try expectSummaryStable(selftest_complete_before, selftest_complete_after);"
+)
+UNREGISTERED_GATE_SELFTEST_AFTER_UNREGISTER_LABEL_MARKER = (
+    "try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);"
 )
 
 SEQUENCING_REQUIRED_MARKERS = [
@@ -230,12 +248,17 @@ SAMPLE_REQUIRED_MARKERS = [
 
 UNREGISTERED_GATE_REQUIRED_MARKERS = [
     UNREGISTERED_GATE_TEST_MARKER,
+    UNREGISTERED_GATE_SUMMARY_STABLE_HELPER_MARKER,
     UNREGISTERED_GATE_INITIALIZED_STAGE_MARKER,
     UNREGISTERED_GATE_INITIAL_FN_REJECTION_MARKER,
-    UNREGISTERED_GATE_INITIAL_UNREGISTER_REJECTION_MARKER,
+    UNREGISTERED_GATE_INITIAL_FAIL_CLOSED_PAIR_MARKER,
+    UNREGISTERED_GATE_INITIAL_SUMMARY_STABLE_MARKER,
     UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER,
-    UNREGISTERED_GATE_POST_SELFTEST_FN_REJECTION_MARKER,
-    UNREGISTERED_GATE_SUMMARY_STABILITY_MARKER,
+    UNREGISTERED_GATE_SELFTEST_RUNS_MARKER,
+    UNREGISTERED_GATE_TOTAL_EVENTS_MARKER,
+    UNREGISTERED_GATE_POST_SELFTEST_FAIL_CLOSED_PAIR_MARKER,
+    UNREGISTERED_GATE_SELFTEST_SUMMARY_STABLE_MARKER,
+    UNREGISTERED_GATE_SELFTEST_AFTER_UNREGISTER_LABEL_MARKER,
 ]
 
 
@@ -364,8 +387,6 @@ test \"trace-events sample keeps selftest replay-summary continuity explicit aft
     try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
-    try std.testing.expectEqual(selftest_complete_summary.total_events, exited_summary.total_events);
-    try std.testing.expectEqual(selftest_complete_summary.registration_depth, exited_summary.registration_depth);
 }}
 
 test \"trace-events sample keeps failed-exit rollback explicit after selftest-ready replay\" {{
@@ -398,6 +419,7 @@ def build_unregistered_gate_fixture_text() -> str:
 const trace_events = @import(\"runtime_trace_events.zig\");
 
 const ModuleStage = trace_events.ModuleStage;
+const RuntimeTraceEventsSummary = trace_events.RuntimeTraceEventsSummary;
 const RuntimeTraceEventsSample = trace_events.RuntimeTraceEventsSample;
 
 fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {{
@@ -413,16 +435,22 @@ test \"phase9 trace-events sample keeps unregistered function-thread failures fa
     try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
 
+    const initialized_after = module.summary();
+    try expectSummaryStable(initialized_before, initialized_after);
+
     _ = try module.runSelftest();
     _ = try module.emitMainIteration(5);
 
     const selftest_complete_before = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 12), selftest_complete_before.total_events);
     try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
 
     const selftest_complete_after = module.summary();
     try expectSummaryStable(selftest_complete_before, selftest_complete_after);
+    try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);
 }}
 """
 
