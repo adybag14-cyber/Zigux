@@ -62,6 +62,22 @@ test "cpumask view helpers keep cpu windows reviewable" {
     try std.testing.expectEqual(@as(u32, 3), summary.weight);
 }
 
+test "cpumask helpers keep an all-clear bounded window distinct from the empty sentinel" {
+    var backing = [_]Word{0};
+    const view = viewFromWords(backing[0..], 16);
+    const summary = summarize(view);
+
+    try std.testing.expect(isValid(view));
+    try std.testing.expect(!cpuIsSet(view, 0));
+    try std.testing.expect(!cpuIsSet(view, 15));
+    try std.testing.expectEqual(@as(u32, 16), firstCpu(view));
+    try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(view));
+    try std.testing.expectEqual(@as(u32, 0), weight(view));
+    try std.testing.expectEqual(@as(u32, 16), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "cpumask helpers track cross-word cpu windows without leaking tail bits" {
     var backing = [_]Word{
         (@as(Word, 1) << 5) | (@as(Word, 1) << 63),
