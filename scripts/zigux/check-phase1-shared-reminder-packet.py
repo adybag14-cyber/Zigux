@@ -48,7 +48,7 @@ WORKFLOW_MARKERS = [
 
 BUILD_ZIG_MARKERS = [
     'root_source_file = b.path("phase1_host_tools_smoke.zig"),',
-    '"phase1-host-tools-smoke",',
+    '.name = "phase1-host-tools-smoke",',
     '"Run the shared Phase 1 host-tools smoke anchor from zigux/tests",',
     "smoke_step.dependOn(&phase1_host_tools_smoke.step);",
     "test_step.dependOn(&phase1_host_tools_smoke.step);",
