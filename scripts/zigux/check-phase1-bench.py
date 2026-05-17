@@ -383,6 +383,34 @@ def run_self_test() -> None:
     assert kind == "pass"
     case_count += 1
 
+    status_mismatch_output = ok_output.replace(
+        "PHASE1_BENCH=pass",
+        "PHASE1_BENCH=fail",
+        1,
+    )
+    kind, payload = validate_output(expectations, status_mismatch_output)
+    assert kind == "status"
+    assert payload == ("pass", "fail")
+    case_count += 1
+
+    missing_status_output = ok_output.replace("PHASE1_BENCH=pass\n", "", 1)
+    kind, payload = validate_output(expectations, missing_status_output)
+    assert kind == "status"
+    assert payload == ("pass", None)
+    case_count += 1
+
+    unexpected_output = ok_output + "\nPHASE1_BENCH_SPURIOUS=13"
+    kind, payload = validate_output(expectations, unexpected_output)
+    assert kind == "unexpected"
+    assert payload == ["PHASE1_BENCH_SPURIOUS"]
+    case_count += 1
+
+    duplicate_iteration_output = ok_output + "\nPHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000"
+    kind, payload = validate_output(expectations, duplicate_iteration_output)
+    assert kind == "duplicate"
+    assert payload == ["PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS"]
+    case_count += 1
+
     rbtree_iteration_mismatch_output = ok_output.replace(
         "PHASE1_BENCH_RBTREE_ITERATIONS=4000",
         "PHASE1_BENCH_RBTREE_ITERATIONS=4",
