@@ -115,6 +115,11 @@ pub const BufferWindowLookupSummary = struct {
     disposition: BufferWindowLookupDisposition,
 };
 
+pub const BufferWindowLookupError = error{
+    InvalidIndex,
+    MissingWindow,
+};
+
 pub const PollError = error{
     InvalidTimeout,
     ReadyCountExceedsObservedEvents,
@@ -572,6 +577,14 @@ pub fn summarizeBufferWindowLookup(
     };
 }
 
+pub fn resolveBufferWindowMappedSize(summary: BufferWindowLookupSummary) BufferWindowLookupError!usize {
+    return switch (summary.disposition) {
+        .found_window => summary.mapped_size.?,
+        .invalid_index => error.InvalidIndex,
+        .missing_window => error.MissingWindow,
+    };
+}
+
 pub fn resolveBufferWindowLookupReturn(summary: BufferWindowLookupSummary) i32 {
     return switch (summary.disposition) {
         .found_window => 0,
@@ -681,6 +694,32 @@ test "phase8 perf-buffer poll keeps buffer lookup returns errno-shaped" {
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         resolveBufferWindowLookupReturn(summarizeBufferWindowLookup(&buffer_windows, 4)),
+    );
+}
+
+test "phase8 perf-buffer poll exposes typed mapped-size resolution beside errno-shaped window returns" {
+    const buffer_windows = [_]?BufferWindowObservation{
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    const found = summarizeBufferWindowLookup(&buffer_windows, 2);
+    try std.testing.expectEqual(@as(usize, 8192), try resolveBufferWindowMappedSize(found));
+    try std.testing.expectEqual(@as(i32, 0), resolveBufferWindowLookupReturn(found));
+
+    const missing = summarizeBufferWindowLookup(&buffer_windows, 1);
+    try std.testing.expectError(error.MissingWindow, resolveBufferWindowMappedSize(missing));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveBufferWindowLookupReturn(missing),
+    );
+
+    const invalid = summarizeBufferWindowLookup(&buffer_windows, 4);
+    try std.testing.expectError(error.InvalidIndex, resolveBufferWindowMappedSize(invalid));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveBufferWindowLookupReturn(invalid),
     );
 }
 
