@@ -19,6 +19,7 @@ REQUIRED_EXACT_LINES = {
     "string_direct_owner": "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
     "find_bit_or_packet_note": '- current `master` also carries the newer direct `test "find or bit returns the next set bit from either bitmap"` proof inside `tools/lib/find_bit.zig`, so notes-only rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it',
     "find_bit_clump_packet_note": "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
+    "string_counted_search_alias_note": "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`.",
     "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; treat the older `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` names as historical packet members until current `master` exposes them again",
     "shared_reminder_gap_note": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=all four shared reminder surfaces now treat scripts/zigux/check-phase1-installer-companion-checks.py as historical until direct reads recover it, so the docs-root sync step is closed and the shared reminder packet can stay parked unless one of those surfaces drifts`",
     "shared_reminder_active_packet": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py`",
@@ -78,6 +79,7 @@ def sample_lane_note_text() -> str:
         REQUIRED_EXACT_LINES["find_bit_direct_owner"],
         REQUIRED_EXACT_LINES["rbtree_direct_owner"],
         REQUIRED_EXACT_LINES["string_direct_owner"],
+        REQUIRED_EXACT_LINES["string_counted_search_alias_note"],
         REQUIRED_EXACT_LINES["string_review_rule_note"],
         REQUIRED_EXACT_LINES["shared_reminder_next_step"],
         REQUIRED_EXACT_LINES["bitmap_next_safe_step"],
@@ -92,9 +94,9 @@ def sample_lane_note_text() -> str:
         "## Current Repo Reality\n\n"
         + "\n".join(ordered_lines[:6])
         + "\n\n## Direct-Anchor Owner Map\n\n"
-        + "\n".join(ordered_lines[6:11])
+        + "\n".join(ordered_lines[6:12])
         + "\n\n## Next Bounded Step\n\n"
-        + "\n".join(ordered_lines[11:])
+        + "\n".join(ordered_lines[12:])
         + "\n"
     )
 
