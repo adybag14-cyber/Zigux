@@ -135,7 +135,6 @@ fn modeAcceptsAllConfigOverride(mode: Mode) bool {
 }
 
 const bridge_option_prefixes = [_][]const u8{
-    "silent",
     "allconfig=",
     "seed=",
     "probability=",
@@ -143,6 +142,9 @@ const bridge_option_prefixes = [_][]const u8{
 };
 
 fn looksLikeBridgeOption(text: []const u8) bool {
+    if (std.mem.eql(u8, text, "silent")) {
+        return true;
+    }
     for (bridge_option_prefixes) |prefix| {
         if (std.mem.startsWith(u8, text, prefix)) {
             return true;
@@ -639,8 +641,14 @@ test "conf bridge escapes low control bytes in JSON strings" {
 }
 
 test "mode argument validation rejects bridge option shaped defconfig payload" {
+    try std.testing.expectError(error.MissingArgument, validateModeArgument(.defconfig, "silent"));
     try std.testing.expectError(error.MissingArgument, validateModeArgument(.defconfig, "allconfig=mini.config"));
     try std.testing.expectError(error.MissingArgument, validateModeArgument(.savedefconfig, "nosilentupdate=1"));
+}
+
+test "mode argument validation accepts defconfig path that only starts with silent" {
+    try std.testing.expectEqualStrings("silent-debug_defconfig", try validateModeArgument(.defconfig, "silent-debug_defconfig"));
+    try std.testing.expectEqualStrings("silent=debug_defconfig", try validateModeArgument(.savedefconfig, "silent=debug_defconfig"));
 }
 
 test "mode argument validation still accepts ordinary path text with equals" {
