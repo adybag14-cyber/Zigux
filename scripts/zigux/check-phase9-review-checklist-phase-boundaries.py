@@ -71,6 +71,8 @@ DOCS_README_PHASE9_NOTES_MARKER = "Phase 9 notes - `Documentation/zigux/phase9-r
 DOCS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 DOCS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 DOCS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
+DOCS_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
+DOCS_README_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-closed"
 DOCS_README_BACKLOG_MARKER = "does not currently expose the older shared runtime-loader packet that earlier reminder surfaces described"
 DOCS_README_PHASE2_BOUNDARY_MARKER = "remain Phase 2 config-surface bridge references"
 DOCS_README_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than runtime-pilot evidence"
@@ -141,6 +143,8 @@ DOCS_README_REQUIRED_MARKERS = [
     DOCS_README_TRACE_EVENTS_SAMPLE_MARKER,
     DOCS_README_SELFTEST_HOOK_MARKER,
     DOCS_README_LIFECYCLE_MARKER,
+    DOCS_README_UNREGISTERED_GATE_MARKER,
+    DOCS_README_FAIL_CLOSED_MARKER,
     DOCS_README_BACKLOG_MARKER,
     DOCS_README_PHASE2_BOUNDARY_MARKER,
     DOCS_README_PHASE3_BOUNDARY_MARKER,
@@ -253,7 +257,7 @@ def validate(root: Path) -> list[str]:
 def build_docs_readme_fixture_text() -> str:
     return f"""# Zigux Documentation
 
-{DOCS_README_PHASE9_NOTES_MARKER} - `Documentation/zigux/review-checklist.md` - {PHASE9_BOUNDARY_CHECKER_MARKER} - {TRACE_EVENTS_PACKET_CHECKER_MARKER} - `zigux/tests/README.md` - {DOCS_README_TRACE_EVENTS_SAMPLE_MARKER} now keep the current narrow runtime-pilot packet reviewable from the docs root: the surviving direct runtime-module sample still exposes {DOCS_README_SELFTEST_HOOK_MARKER} together with {DOCS_README_LIFECYCLE_MARKER}, while current `master` {DOCS_README_BACKLOG_MARKER}.
+{DOCS_README_PHASE9_NOTES_MARKER} - `Documentation/zigux/review-checklist.md` - {PHASE9_BOUNDARY_CHECKER_MARKER} - {TRACE_EVENTS_PACKET_CHECKER_MARKER} - `zigux/tests/README.md` - {DOCS_README_TRACE_EVENTS_SAMPLE_MARKER} - {DOCS_README_UNREGISTERED_GATE_MARKER} now keep the current narrow runtime-pilot packet reviewable from the docs root: the surviving direct runtime-module sample still exposes {DOCS_README_SELFTEST_HOOK_MARKER} together with {DOCS_README_LIFECYCLE_MARKER}, while the shipped unregistered-gate companion keeps {DOCS_README_FAIL_CLOSED_MARKER}, and while current `master` {DOCS_README_BACKLOG_MARKER}.
 - the same shared Phase 9 summary should keep the older non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {DOCS_README_PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {DOCS_README_PHASE3_BOUNDARY_MARKER}.
 """
 
