@@ -49,6 +49,21 @@ fn addPhase1HostToolsSmoke(
         .target = target,
         .optimize = optimize,
     });
+    const ctype_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/ctype.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const hweight_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/hweight.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const list_sort_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/list_sort.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const rbtree_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/rbtree.zig"),
         .target = target,
@@ -65,6 +80,9 @@ fn addPhase1HostToolsSmoke(
     root_module.addImport("cmdline", cmdline_module);
     root_module.addImport("find_bit", find_bit_module);
     root_module.addImport("bitmap", bitmap_module);
+    root_module.addImport("ctype", ctype_module);
+    root_module.addImport("hweight", hweight_module);
+    root_module.addImport("list_sort", list_sort_module);
     root_module.addImport("rbtree", rbtree_module);
     root_module.addImport("string", string_module);
 
