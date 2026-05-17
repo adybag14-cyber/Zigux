@@ -42,6 +42,7 @@ PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
     'test "phase 8 perf-buffer poll helper rejects ready waits without processing attempts" {',
     'test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {',
     'test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {',
+    'test "phase 8 perf-buffer poll rejects impossible post-wait buffer states" {',
     'test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {',
     '"Documentation/zigux/phase8-perf-buffer-poll-slice.md"',
     '"Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"',
@@ -57,6 +58,9 @@ PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
     "PollError.InconsistentProcessingAccountingSummary",
     "BufferFdLookupDisposition.missing_fd",
     "BufferWindowLookupDisposition.missing_window",
+    "PollError.TimeoutObservationHasReadyBuffer",
+    "PollError.InterruptedObservationHasReadyBuffer",
+    "PollError.FailedObservationHasBufferState",
     "PollError.WaitResultDisagreesWithExecutionOutcome",
     "PollError.WaitResultDisagreesWithReadyEventCount",
     "PollError.WaitResultDisagreesWithFailureCode",
@@ -156,6 +160,12 @@ test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact
     _ = BufferWindowLookupDisposition.missing_window;
 }
 
+test "phase 8 perf-buffer poll rejects impossible post-wait buffer states" {
+    _ = PollError.TimeoutObservationHasReadyBuffer;
+    _ = PollError.InterruptedObservationHasReadyBuffer;
+    _ = PollError.FailedObservationHasBufferState;
+}
+
 test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {
     _ = resolvePollExecutionResultFromWaitResult;
     _ = PollError.WaitResultDisagreesWithExecutionOutcome;
@@ -168,7 +178,7 @@ test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result an
 def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
     if expected not in failures:
-        raise SystemExit(f"expected failure not found: {expected}\\nactual={failures!r}")
+        raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
 
 
 def run_self_test() -> int:
