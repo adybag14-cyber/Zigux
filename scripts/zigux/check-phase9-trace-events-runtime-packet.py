@@ -79,6 +79,8 @@ SAMPLE_EXITED_UNREGISTER_REJECTION_MARKER = (
 )
 SAMPLE_EXITED_STAGE_MARKER = "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);"
 SAMPLE_EXIT_RUN_COUNT_MARKER = "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);"
+SAMPLE_EXITED_TOTAL_EVENTS_MARKER = "try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);"
+SAMPLE_EXITED_REGISTRATION_DEPTH_MARKER = "try std.testing.expectEqual(before_exit.registration_depth, after_exit.registration_depth);"
 SAMPLE_SELFTEST_COMPLETE_STAGE_MARKER = (
     "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_summary.stage);"
 )
@@ -150,6 +152,8 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_EXITED_UNREGISTER_REJECTION_MARKER,
     SAMPLE_EXITED_STAGE_MARKER,
     SAMPLE_EXIT_RUN_COUNT_MARKER,
+    SAMPLE_EXITED_TOTAL_EVENTS_MARKER,
+    SAMPLE_EXITED_REGISTRATION_DEPTH_MARKER,
     SAMPLE_SELFTEST_COMPLETE_STAGE_MARKER,
     SAMPLE_SELFTEST_COMPLETE_SELFTEST_RUNS_MARKER,
     SAMPLE_REJECTED_SELFTEST_STAGE_MARKER,
@@ -263,7 +267,10 @@ test \"trace-events sample keeps selftest replay-summary continuity explicit aft
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
+    const before_exit = module.summary();
     const after_exit = module.summary();
+    try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);
+    try std.testing.expectEqual(before_exit.registration_depth, after_exit.registration_depth);
     try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);
     try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
 }}
