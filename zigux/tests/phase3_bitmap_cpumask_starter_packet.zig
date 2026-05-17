@@ -172,6 +172,20 @@ test "cpumask starter helpers fail closed on malformed views" {
     try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "cpumask starter helpers fail closed when nr_cpu_ids drifts from nbits" {
+    const invalid = binding.initCpumaskView(0, 4, 0, 3);
+    const summary = cpumask_view.summarize(invalid);
+
+    try testing.expect(!cpumask_view.isValid(invalid));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid, 0));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.weight(invalid));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "cpumask starter helpers keep empty sentinel behavior explicit" {
     const view = cpumask_view.viewFromWords(&.{}, 0);
     const summary = cpumask_view.summarize(view);
