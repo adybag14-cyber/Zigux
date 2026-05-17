@@ -12,6 +12,7 @@ SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
     Path("Documentation/zigux/phase3-errptr-xarray-slice.md"),
+    Path("Documentation/zigux/phase3-policy-slice.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
     Path("scripts/zigux/check-phase3-selftest-surface.py"),
@@ -20,11 +21,14 @@ REQUIRED_FILES = (
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
+    Path("zigux/helpers/unsafe_policy.zig"),
+    Path("zigux/tests/phase3_policy_starter_packet.zig"),
 )
 
 REQUIRED_MARKERS = (
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-errptr-xarray-slice.md",
+    "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
     "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py",
@@ -37,7 +41,9 @@ REQUIRED_MARKERS = (
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
+    "zigux/helpers/unsafe_policy.zig",
     "zigux/kernel/export_shim.zig",
+    "zigux/tests/phase3_policy_starter_packet.zig",
 )
 
 
@@ -86,9 +92,9 @@ def run_self_test() -> int:
             return 1
 
         readme = root / SCRIPTS_README_PATH
-        readme.write_text(_read(readme).replace(REQUIRED_MARKERS[3], "", 1), encoding="utf-8")
+        readme.write_text(_read(readme).replace(REQUIRED_MARKERS[4], "", 1), encoding="utf-8")
         issues = validate_repo(root)
-        expected = f"missing scripts README marker: {REQUIRED_MARKERS[3]}"
+        expected = f"missing scripts README marker: {REQUIRED_MARKERS[4]}"
         if expected not in issues:
             print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
             print("expected missing README marker was not reported")
