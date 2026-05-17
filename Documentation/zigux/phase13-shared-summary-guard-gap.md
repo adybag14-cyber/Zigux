@@ -9,8 +9,7 @@ It is a bounded validation note, not a tranche-closure claim and not a replaceme
 - `PHASE13_STATUS=active`
 - `PHASE13_SHARED_SUMMARY_GUARD_GAP=present`
 - missing guard path: `scripts/zigux/check-phase13-shared-summary-surfaces.py`
-- stable shared handle: `python3 scripts/zigux/validate-phase13-release.py`
-- stable make handle: `make -C zigux phase13-validate`
+- stable shared handle: `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`
 - blocked convenience route `make -C zigux phase13`
 
 ## Gap Shape
@@ -35,8 +34,8 @@ That means the shared-summary guard is not only absent as a file. It is also a l
 ## Review Use
 
 1. Run `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`.
-2. Re-run `python3 scripts/zigux/validate-phase13-release.py` before widening broad Phase 13 summary wording.
-3. Keep `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` aligned around the same missing `scripts/zigux/check-phase13-shared-summary-surfaces.py` reality until the guard materializes and the shared packet is reread together.
+2. Keep `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` aligned around the same missing `scripts/zigux/check-phase13-shared-summary-surfaces.py` reality until the guard materializes and the shared packet is reread together.
+3. If a later same-lane pass widens broad Phase 13 summary wording, confirm any validator-first or shared-build handle against direct current-`master` readback instead of inheriting older reminder wording.
 
 ## Boundaries
 
