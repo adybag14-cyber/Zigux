@@ -1,12 +1,12 @@
 # Phase 2 Closure
 
-This note tracks the bounded Lane 22 closure anchor on the active Phase 2 branch.
+This note tracks the bounded Lane 24 closure anchor on the active Phase 2 branch.
 
 It stays branch-scoped: live `master` still lacks parts of the broader Phase 2 packet, but this lane branch now carries the shared validator, the manifest-packet checker, the dedicated kconfig README alignment checker, the dedicated toolchain pin-scope guard, and Linux-style `zigux/Makefile` routes alongside the restored closure note, the dedicated bootstrap companion, and the compact manifest.
 
 ## Status
 
-- `PHASE2_STATUS=lane22-branch-restacked`
+- `PHASE2_STATUS=lane24-branch-restacked`
 - `PHASE2_CLOSURE_ROUTE_STATUS=branch-closure-packet-restacked-on-current-master`
 - `PHASE2_CLOSURE_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase2-closure.py --self-test`
 - `PHASE2_CLOSURE_VALIDATOR_GATE=python3 scripts/zigux/validate-phase2-closure.py`
