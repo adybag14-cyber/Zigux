@@ -15,7 +15,7 @@ This note records the current bounded readiness posture for the landed Phase 15 
 
 Phase 15 is a governance tranche. The work here is about freeze-map discipline, review boundaries, and honest Architecture Council handoff, not a hidden deep-core delivery push.
 
-Current `master` already carries the freeze map, the freeze-map governance note, the governance-lane sequencing note, the handoff note, the shared-summary gap note, the review checklist, the dedicated review-process manifest, the readiness manifest, and the shipped docs-root and scripts-root alignment checks. At the same time, direct reads still return missing for the broader validator-first and shared-build companions that older reminder wording can accidentally imply are already present.
+Current `master` already carries the freeze map, the freeze-map governance note, the governance-lane sequencing note, the handoff note, the shared-summary gap note, the review checklist, the dedicated review-process manifest, the readiness manifest, the shipped docs-root and scripts-root alignment checks, and the focused readiness-packet checker. At the same time, direct reads still return missing for the broader validator-first and shared-build companions that older reminder wording can accidentally imply are already present.
 
 This survey keeps those two truths together:
 
@@ -34,10 +34,11 @@ This survey keeps those two truths together:
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
+- `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 
-These directly readable paths are enough to support maintenance-mode truthfulness work on reminder surfaces and governance notes.
+These directly readable paths are enough to support maintenance-mode truthfulness work on reminder surfaces, governance notes, and the focused readiness packet checker.
 
 They are not enough to claim that the broader validator-first or shared-build replay packet is fully landed.
 
@@ -66,7 +67,7 @@ Because those paths are still missing:
 - treat the current packet as ready for maintenance-mode truthfulness refreshes only
 - do not treat the missing validator, manifest, build, or wrapper companions as landed evidence until direct current-tree reads recover them
 - if a shared reminder surface drifts, repair the smallest truthful surface first instead of widening into a freeze-map status change claim
-- if one of the missing companions lands, reread the freeze-map governance note, governance-lane sequencing note, handoff note, shared-summary gap note, and both manifests together before broadening the readiness claim
+- if one of the missing companions lands, reread the freeze-map governance note, governance-lane sequencing note, handoff note, shared-summary gap note, the focused readiness-packet checker, and both manifests together before broadening the readiness claim
 
 ## Non-goals
 
@@ -78,4 +79,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-Keep this note parked until one of the missing focused companions lands or one of the broad reminder surfaces drifts far enough from the current governance packet that the readiness posture above becomes stale.
+Keep this note parked until one of the missing focused companions lands, one of the directly readable readiness-packet paths drifts, one of the broader reminder surfaces drifts far enough from the current governance packet that the readiness posture above becomes stale, or the focused readiness-packet checker needs another truthfulness refresh because current `master` changed again.
