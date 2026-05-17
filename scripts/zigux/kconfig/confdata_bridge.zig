@@ -245,9 +245,9 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
             errdefer allocator.free(owned_name);
             errdefer allocator.free(cooked_value);
             try entries.append(allocator, .{
-                .name = owned_name,
-                .kind = kind,
-                .value = cooked_value,
+              .name = owned_name,
+              .kind = kind,
+              .value = cooked_value,
             });
             try entry_indexes.put(owned_name, entries.items.len - 1);
         }
@@ -376,10 +376,10 @@ test "confdata bridge emits bounded json output" {
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_BANNER="zigux \"bridge\""
-        \\CONFIG_PATH="drivers\\zigux"
-        \\CONFIG_SUFFIX="zigux"tail
-        \\CONFIG_EMPTY=""
+        \\CONFIG_BANNER=\"zigux \\\"bridge\\\"\"
+        \\CONFIG_PATH=\"drivers\\\\zigux\"
+        \\CONFIG_SUFFIX=\"zigux\"tail
+        \\CONFIG_EMPTY=\"\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -397,7 +397,7 @@ test "confdata bridge decodes escaped quoted strings" {
 test "confdata bridge strips backslashes from escaped control sequences like upstream confdata" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_TEXT="line\nindent\tmark\bslot\fform\rend"
+        \\CONFIG_TEXT=\"line\\nindent\\tmark\\bslot\\fform\\rend\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -434,6 +434,50 @@ test "confdata bridge escapes low control bytes in json output" {
 
     try writeJsonEscaped(&capture, "\x01\x08\x0c");
     try std.testing.expectEqualStrings("\\u0001\\b\\f", capture.list.items);
+}
+
+test "confdata bridge emits escaped string values in json output" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(
+        std.testing.allocator,
+        "CONFIG_BANNER=\"zigux \\\"bridge\\\"\"\n" ++
+            "CONFIG_PATH=\"drivers\\\\zigux\"\n",
+        &capture,
+    );
+
+    try std.testing.expectEqualStrings(
+        "{\"counts\":{\"set\":2,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_BANNER\",\"kind\":\"string\",\"value\":\"zigux \\\"bridge\\\"\"},{\"name\":\"CONFIG_PATH\",\"kind\":\"string\",\"value\":\"drivers\\\\zigux\"}]}\n",
+        capture.list.items,
+    );
 }
 
 test "confdata bridge accepts CRLF config lines" {
@@ -793,7 +837,7 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
     var summary = try parseConfig(allocator,
         \\CONFIG_ALPHA=y
         \\CONFIG_BETA=7
-        \\CONFIG_ALPHA="final"
+        \\CONFIG_ALPHA=\"final\"
         \\CONFIG_BETA=m
         \\
     );
@@ -813,11 +857,11 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
 test "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA="stable"
-        \\CONFIG_ALPHA="unterminated
+        \\CONFIG_ALPHA=\"stable\"
+        \\CONFIG_ALPHA=\"unterminated
         \\# CONFIG_DEBUG is not set
-        \\CONFIG_DEBUG="broken
-        \\CONFIG_GAMMA="still-broken
+        \\CONFIG_DEBUG=\"broken
+        \\CONFIG_GAMMA=\"still-broken
         \\CONFIG_BETA=y
         \\
     );
@@ -838,7 +882,7 @@ test "confdata bridge keeps the prior duplicate value when a later quoted assign
 
     var unset_preserved = try parseConfig(allocator,
         \\# CONFIG_DELTA is not set
-        \\CONFIG_DELTA="broken
+        \\CONFIG_DELTA=\"broken
         \\CONFIG_EPSILON=7
         \\
     );
@@ -885,7 +929,7 @@ test "confdata bridge keeps only the last state across unset and set transitions
 
     const input =
         \\# CONFIG_ALPHA is not set
-        \\CONFIG_ALPHA="enabled"
+        \\CONFIG_ALPHA=\"enabled\"
         \\CONFIG_BETA=m
         \\# CONFIG_BETA is not set
         \\CONFIG_BETA=7
