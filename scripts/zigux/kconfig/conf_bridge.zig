@@ -482,6 +482,25 @@ test "conf bridge omits empty syncconfig nosilentupdate" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_NOSILENTUPDATE\"") == null);
 }
 
+test "conf bridge escapes quoted and backslashed syncconfig nosilentupdate in json output" {
+    var capture = try TestCapture.init(std.testing.allocator, 320);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .syncconfig,
+        .kconfig = "Kconfig",
+        .config = "out/.config",
+        .arch = "riscv64",
+        .silent = true,
+        .nosilentupdate = "keep\\\"quoted\\\\path",
+    });
+
+    try std.testing.expectEqualStrings(
+        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"syncconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--syncconfig\",\"Kconfig\"],\"env\":{\"ARCH\":\"riscv64\",\"KCONFIG_CONFIG\":\"out/.config\",\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\",\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\",\"KCONFIG_NOSILENTUPDATE\":\"keep\\\\\\\"quoted\\\\\\\\path\"}}\n",
+        capture.list.items,
+    );
+}
+
 test "conf bridge emits silent flag before mode flag" {
     var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
@@ -785,6 +804,15 @@ test "bridge options parser keeps empty syncconfig nosilentupdate unset" {
     const options = try parseBridgeOptions(.syncconfig, &.{"nosilentupdate="});
     try std.testing.expect(options.silent == false);
     try std.testing.expect(options.nosilentupdate == null);
+}
+
+test "bridge options parser accepts silent alongside syncconfig nosilentupdate" {
+    const options = try parseBridgeOptions(.syncconfig, &.{ "silent", "nosilentupdate=keep\\\"quoted\\\\path" });
+    try std.testing.expect(options.silent);
+    try std.testing.expectEqualStrings("keep\\\"quoted\\\\path", options.nosilentupdate.?);
+    try std.testing.expect(options.allconfig == null);
+    try std.testing.expect(options.seed == null);
+    try std.testing.expect(options.probability == null);
 }
 
 test "bridge options parser accepts generic silent flag" {
