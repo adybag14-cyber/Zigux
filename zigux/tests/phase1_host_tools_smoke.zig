@@ -18,7 +18,20 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqual(@as(u64, 64 << 10), parsed.value);
     try std.testing.expectEqualStrings(" tail", parsed.rest);
     try std.testing.expect(cmdline.parseOptionStr("rootwait,quiet", "quiet"));
+    try std.testing.expect(cmdline.parseOptionStr(",quiet", ""));
+    try std.testing.expect(cmdline.parseOptionStr("rootwait,,quiet", ""));
+    try std.testing.expect(!cmdline.parseOptionStr("quiet,", ""));
     try std.testing.expect(!cmdline.parseOptionStr("rootwait,quiet", "debug"));
+
+    const quoted = cmdline.nextArg("\"mode=fast path\" tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("mode", quoted.param);
+    try std.testing.expectEqualStrings("fast path", quoted.value.?);
+    try std.testing.expectEqualStrings("tail", quoted.remaining);
+
+    const unterminated = cmdline.nextArg("mode=\"fast boot") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("mode", unterminated.param);
+    try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
+    try std.testing.expectEqualStrings("", unterminated.remaining);
 
     const word_bits = find_bit.bits_per_long;
     const nbits = word_bits + 5;
