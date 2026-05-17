@@ -53,6 +53,74 @@ fn assertExactType(comptime Actual: type, comptime Expected: type) void {
     }
 }
 
+test "phase11 HVC exported helper proof keeps winsize layout explicit" {
+    comptime {
+        layout_assert.assertSize(WinsizeLayout, 8);
+        layout_assert.assertAlign(WinsizeLayout, 2);
+        layout_assert.assertOffset(WinsizeLayout, "ws_row", 0);
+        layout_assert.assertOffset(WinsizeLayout, "ws_col", 2);
+        layout_assert.assertOffset(WinsizeLayout, "ws_xpixel", 4);
+        layout_assert.assertOffset(WinsizeLayout, "ws_ypixel", 6);
+    }
+}
+
+test "phase11 HVC exported helper proof keeps hv_ops callback table layout explicit" {
+    comptime {
+        layout_assert.assertSize(HvOpsLayout, 72);
+        layout_assert.assertAlign(HvOpsLayout, 8);
+        layout_assert.assertOffset(HvOpsLayout, "get_chars", 0);
+        layout_assert.assertOffset(HvOpsLayout, "put_chars", 8);
+        layout_assert.assertOffset(HvOpsLayout, "flush", 16);
+        layout_assert.assertOffset(HvOpsLayout, "notifier_add", 24);
+        layout_assert.assertOffset(HvOpsLayout, "notifier_del", 32);
+        layout_assert.assertOffset(HvOpsLayout, "notifier_hangup", 40);
+        layout_assert.assertOffset(HvOpsLayout, "tiocmget", 48);
+        layout_assert.assertOffset(HvOpsLayout, "tiocmset", 56);
+        layout_assert.assertOffset(HvOpsLayout, "dtr_rts", 64);
+    }
+}
+
+test "phase11 HVC exported helper proof keeps hv_ops callback signatures exact" {
+    comptime {
+        assertExactType(
+            @FieldType(HvOpsLayout, "get_chars"),
+            ?*const fn (u32, [*]u8, usize) callconv(.c) isize,
+        );
+        assertExactType(
+            @FieldType(HvOpsLayout, "put_chars"),
+            ?*const fn (u32, [*]const u8, usize) callconv(.c) isize,
+        );
+        assertExactType(
+            @FieldType(HvOpsLayout, "flush"),
+            ?*const fn (u32, bool) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(HvOpsLayout, "notifier_add"),
+            ?*const fn (*HvcStruct, c_int) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(HvOpsLayout, "notifier_del"),
+            ?*const fn (*HvcStruct, c_int) callconv(.c) void,
+        );
+        assertExactType(
+            @FieldType(HvOpsLayout, "notifier_hangup"),
+            ?*const fn (*HvcStruct, c_int) callconv(.c) void,
+        );
+        assertExactType(
+            @FieldType(HvOpsLayout, "tiocmget"),
+            ?*const fn (*HvcStruct) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(HvOpsLayout, "tiocmset"),
+            ?*const fn (*HvcStruct, c_uint, c_uint) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(HvOpsLayout, "dtr_rts"),
+            ?*const fn (*HvcStruct, bool) callconv(.c) void,
+        );
+    }
+}
+
 test "phase11 HVC exported helper proof keeps the exported helper surface layout explicit" {
     comptime {
         layout_assert.assertSize(HvcExportSurface, 72);
