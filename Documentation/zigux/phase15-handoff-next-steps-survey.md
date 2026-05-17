@@ -19,6 +19,8 @@ Current `master` already carries the freeze-map, the freeze-map governance note,
 
 The older handoff target that treated the docs root as the next automatic Phase 15 follow-through was no longer precise enough for the current packet: the dedicated governance notes and shared-gap guard now define the tighter same-lane boundaries, while the broad reminder surfaces should only reopen when fresh drift actually appears.
 
+The handoff continuity packet itself is also narrower than an earlier handoff-local manifest or Zig-guard framing. Direct current-`master` reads still do not materialize `zigux/tests/phase15_handoff_next_steps_manifest.json` or `zigux/tests/phase15_handoff_next_steps.zig`, so this note should stay the handoff-specific source of truth until those dedicated companions actually land.
+
 That made future-target prep stale. Reviewers had to reconcile this note against the newer landed Phase 15 policy packet by hand.
 
 ## Current handed-off packet on current master
@@ -41,6 +43,7 @@ That made future-target prep stale. Reviewers had to reconcile this note against
 - `scripts/zigux/check-phase15-shared-summary-gap.py`, which together keep one focused review-process checker plus the shared-summary gap checker materialized on current `master`
 - the broad docs-root reminder surface `Documentation/zigux/README.md`, which should be treated as a shared-summary gap source only when fresh Phase 15 wording actually appears there
 - the broad `zigux/tests/README.md` reminder surface, which should be reread with the shared-summary gap note and the dedicated Phase 15 checkers instead of being carried here as an unlanded future target by default
+- no dedicated handoff-specific manifest or Zig replay is directly materialized on current `master`, so treat this note as the handoff-specific source of truth until those companions actually land
 
 ## Current governance posture to preserve
 
@@ -62,6 +65,7 @@ That made future-target prep stale. Reviewers had to reconcile this note against
 - if a broad Phase 15 reminder surface drifts away from the materialized governance packet, tighten `Documentation/zigux/phase15-shared-summary-gap.md` and `scripts/zigux/check-phase15-shared-summary-gap.py` immediately so they stop carrying stale missing-path or stale present-path claims
 - if the freeze-map anchor set or any blocker disposition changes, reopen `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/phase15-parity-scorecard.md` before widening this note
 - if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts, refresh this handoff note so it points to the current direct surfaces and checker-backed shared-gap packet instead of carrying stale future-target language
+- if dedicated handoff-specific companions are published later, reread this note together with those new direct paths before presenting them as current evidence here
 
 ## Non-goals
 
@@ -69,6 +73,7 @@ This note does not claim:
 
 - an Architecture Council approval workflow implementation
 - a direct port-readiness decision for any Phase 15 anchor
+- that a dedicated handoff-specific manifest or Zig replay is already shipped on current `master`
 - that the broader Phase 15 validator-first route or dedicated Phase 15 Zig build routes are already shipped on current `master`
 
 ## Next bounded step
