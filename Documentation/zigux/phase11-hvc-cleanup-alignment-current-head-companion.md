@@ -8,19 +8,30 @@ This note records the bounded current-head readback for the Phase 11 HVC cleanup
 - `PHASE11_FAMILY=hvc-console-cleanup-alignment`
 - `PHASE11_SURFACE=checker-truthfulness-readback`
 - `PHASE11_PROVENANCE_MODE=dated_master_readback`
-- surveyed against current `master` readback on `2026-05-16`
-- scope: document the live checker drift inside `scripts/zigux/check-phase11-hvc-cleanup-alignment.py` while keeping notifier callback execution, khvcd execution, tty registration, sysrq execution, watchdog-core glue, and host-backed teardown out of scope
-- role: current-head truthfulness companion for the bounded Phase 11 HVC teardown and failure-mode packet until the checker can be realigned in one coupled pass
+- surveyed against current `master` readback on `2026-05-17`
+- scope: keep the current HVC cleanup-alignment reminder truthful without widening into notifier callback execution, khvcd execution, tty registration, sysrq execution, watchdog-core glue, or host-backed teardown
+- role: current-head truthfulness companion for the bounded Phase 11 HVC continuity packet while the broader archival driver and replay surfaces remain absent from direct readback in this lane
 
 ## Why this companion exists
 
-The Phase 11 roadmap still keeps simple-driver progress inside bounded teardown and failure-mode review surfaces before riskier integration work. Current `master` already carries a richer HVC archival packet than the cleanup-alignment checker now describes.
+The Phase 11 roadmap still keeps simple-driver progress inside bounded teardown and failure-mode review surfaces before riskier integration work.
 
-The smallest honest same-lane follow-up in this environment is therefore not to guess at a whole-file checker rewrite, but to publish one current-head companion that records the drift clearly and keeps the next safe fix scoped to the existing HVC packet.
+The smallest honest same-lane follow-up in this environment is therefore not to recreate the older direct HVC packet from historical wording, but to keep one current-head companion aligned with what current `master` actually materializes.
 
 ## Current Repo Reality
 
-Current `master` now shows the bounded HVC packet through these live surfaces:
+Current `master` keeps the bounded HVC continuity packet reviewable through these live surfaces:
+
+- `Documentation/zigux/phase11-hvc-console-survey.md`
+- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
+- `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+- `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
+- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+
+Current direct contents reads in this run did not rematerialize:
 
 - `drivers/tty/hvc/hvc_console.zig`
 - `drivers/tty/hvc/hvc_console_verify.zig`
@@ -28,42 +39,43 @@ Current `master` now shows the bounded HVC packet through these live surfaces:
 - `zigux/tests/phase11_hvc_console.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
-- `Documentation/zigux/phase11-hvc-console-survey.md`
+- `zigux/tests/phase11_hvc_console_manifest.json`
+- `zigux/tests/phase11_hvc_console_modem_control_split.zig`
+- `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
+- `Documentation/zigux/phase11-hvc-console-slice.md`
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 
-Those current-head surfaces already keep the direct sysrq helper, the direct verify and cleanup companions, the exported-helper signature proof, and the bounded teardown packet reviewable without claiming live tty-driver registration, notifier callbacks, khvcd execution, live sysrq execution, or host-backed teardown parity.
+Keep those paths framed as archival packet vocabulary rather than current-head direct-readback evidence until a future reread proves they returned.
 
 ## Drift Kept Explicit
 
-Current `master` readback shows `scripts/zigux/check-phase11-hvc-cleanup-alignment.py` still encodes an older HVC packet shape in three concrete ways:
+Current `master` still keeps the smaller HVC continuity packet above reviewable, while the broader archival HVC driver, helper, replay, teardown, validation-matrix, and survey-checker surfaces remain absent from direct readback.
 
-- `REQUIRED_FILES["sysrq_helper"]` still points at `zigux/tests/phase11_hvc_console_sysrq_helper.zig`, while the live bounded helper in the current packet is `drivers/tty/hvc/hvc_console_sysrq.zig`.
-- `SURVEY_MARKERS` and the built-in self-test fixture still require an older survey next-step sentence about a future notifier or khvcd handoff, while the live survey note now records the already-landed archival packet and separately names the paired survey gate's exported-helper signature proof.
-- `MATRIX_MARKERS` still pin `PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed`, while the live validation matrix now publishes `PHASE11_HVC_CONSOLE_STATUS=hvc_notifier_handoff_landed`.
-
-This means the checker is no longer the best current-head description of the HVC cleanup packet, even though the packet itself remains bounded and reviewable.
+This companion therefore exists to keep that smaller current-head packet explicit so nearby shared reminders do not re-promote the missing direct HVC files from older wording alone.
 
 ## Safe Reading
 
-Use the current HVC survey note, validation matrix, teardown note, direct helper files, and `scripts/zigux/check-phase11-hvc-survey-packet.py` as the truthful readback for this lane on current `master`.
+Use the current HVC survey note, this companion, the verify-helper-boundary note, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, the shared build inventory anchor, and the surviving HVC proof shards as the truthful readback for this lane on current `master`.
 
-Read `scripts/zigux/check-phase11-hvc-cleanup-alignment.py` as a stale checker that still needs one coupled same-family repair, not as the source of truth for the present HVC packet layout.
+Read the archived direct driver, helper, replay, teardown, validation-matrix, and survey-checker paths above as historical packet vocabulary only until a future reread confirms they materialize again.
 
 ## Boundary Kept Honest
 
 This companion does not claim:
 
-- a landed checker repair in `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
+- that the archived direct HVC driver, verify, sysrq, split-replay, teardown, validation-matrix, or survey-checker packet is back on current `master`
 - notifier callback execution
 - khvcd worker execution
 - tty-driver registration
 - live sysrq dispatch
 - host-backed teardown or transport parity
 
-It only records the current-head mismatch between the checker and the already-landed bounded HVC packet.
+It only records the smaller current-head HVC continuity packet that current direct readback still supports.
 
 ## Next bounded step
 
-Realign `scripts/zigux/check-phase11-hvc-cleanup-alignment.py` and its self-test in one coupled follow-up so the checker matches the live HVC packet again. The smallest honest repair is still the one-file checker sync around the sysrq helper path, the survey marker wording, and the validation-matrix status marker.
+If future direct rereads rematerialize the archived HVC packet, refresh this companion, the HVC survey note, and any coupled checker in one pass.
+
+Until then, keep this smaller inventory-backed continuity packet explicit across the broad Phase 11 reminder surfaces.
