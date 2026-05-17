@@ -1,0 +1,24 @@
+{
+  "slug": "phase3-list-hlist-starter-packet",
+  "status": "starter_packet_present",
+  "packet_files": [
+    "Documentation/zigux/phase3-list-hlist-slice.md",
+    "include/zigux/list_hlist.h",
+    "zigux/uapi/list_hlist.zig",
+    "zigux/bindings/list_hlist.zig",
+    "zigux/helpers/list_view.zig",
+    "zigux/helpers/hlist_view.zig",
+    "zigux/tests/phase3_list_hlist_starter_packet.zig",
+    "zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+    "zigux/tests/phase3_list_hlist_starter_packet_manifest.json",
+    "zigux/tests/phase3_list_hlist_dump.zig",
+    "zigux/tests/fixtures/phase3_list_hlist/expected.json",
+    "zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c",
+    "scripts/zigux/check-phase3-list-hlist.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-list-hlist.py --self-test",
+    "python3 scripts/zigux/check-phase3-list-hlist.py"
+  ],
+  "next_safe_step": "keep the live list/hlist starter packet honest with bounded parity checks before widening into the older broader Phase 3 ABI scaffold"
+}
