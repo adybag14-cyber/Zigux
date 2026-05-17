@@ -12,7 +12,7 @@ The directly reviewable trace-events packet remains:
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
 Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample.
-Keep the approved formatting idiom bounded to the selected-string plus `iter=%d` reminder carried by `samples/zigux/trace_events_sample.zig` together with the existing `formattedMessage()`, `runStringFormattingCycleReplay()`, and exact `checked_focus` packet already surfaced by the paired survey note and survey gate.
+Keep the approved formatting idiom bounded to the selected-string plus `iter=%d` reminder carried by `samples/zigux/trace_events_sample.zig` together with the existing `runAnchorReplay()`, `formattedMessage()`, `runStringFormattingCycleReplay()`, and exact `checked_focus` packet already surfaced by the paired survey note and survey gate.
 
 ## Review boundary
 
