@@ -9,245 +9,110 @@ from pathlib import Path
 
 
 README_PATH = Path("Documentation/zigux/README.md")
-NOTE_PATH = Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")
-SURVEY_PATH = Path("Documentation/zigux/phase3-abi-header-family-survey.md")
-VALIDATOR_SUPPORT_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
-REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
+REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
+VALIDATOR_SUPPORT_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 SELFTEST_DRIVER_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
-MAKEFILE_PATH = Path("zigux/Makefile")
 
-README_MARKERS = ("validate_phase3_selftest.py",)
-README_PHASE3_PREFIX = "Phase 3 notes - "
-README_PHASE3_NEXT_PREFIX = "Phase 5 notes - "
-README_PHASE3_MARKER_COUNTS = {
-    "Documentation/zigux/phase3-abi-slice.md": 1,
-    "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
-    "Documentation/zigux/phase3-bindings-governance.md": 1,
-    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
-    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md": 1,
-    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md": 1,
-    "Documentation/zigux/phase3-validator-support-surface.md": 1,
-    "scripts/zigux/validate-phase3.py": 1,
-    "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
-    "scripts/zigux/validate-phase3-policy-unsafe-survey.py": 1,
-    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py": 1,
-    "scripts/zigux/check-phase3-readme-tooling-inventory.py": 1,
-    "scripts/zigux/check-phase3-selftest-surface.py": 1,
-    "scripts/zigux/phase3_catalog.py": 1,
-    "scripts/zigux/validate_phase3_selftest.py": 1,
-    "python3 scripts/zigux/run-phase3-checks.py --slug abi": 1,
-    "zig build phase3-test --build-file zigux/tests/build.zig": 1,
-    "make -C zigux phase3-validate": 1,
-    "make -C zigux phase3-selftest": 1,
-    "`include/zigux/dev_t.h` plus the narrower `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` starter-companion pair stay explicit": 1,
-}
-
-NOTE_POLICY_MARKERS = (
-    "keeping `zigux/uapi/dev_t.zig` explicit beside the dedicated survey",
-    "and next-step notes while leaving the narrower `zigux/uapi/version.zig`",
-    "export/UAPI packet actually grows",
+README_MARKERS = (
+    "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-errptr-xarray-slice.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "Documentation/zigux/phase3-shared-reminder-gap.md",
+    "include/linux/zigux.h",
+    "include/zigux/dev_t.h",
+    "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "zigux/tests/phase3_dev_t_starter_packet.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
+    "scripts/zigux/check-phase3-dev-t-starter-packet.py",
+    "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
 )
-NOTE_NEXT_STEP_PREFIX = "## Next bounded step"
-NOTE_NEXT_STEP_NEXT_PREFIX = "## Non-goals"
-
-HEADER_FAMILY_SURVEY_CURRENT_PACKET_PREFIX = "## Current packet"
-HEADER_FAMILY_SURVEY_CURRENT_PACKET_NEXT_PREFIX = "## Review boundary"
-HEADER_FAMILY_SURVEY_CURRENT_PACKET_MARKER_COUNTS = {
-    "include/zigux/dev_t.h": 1,
-    "zigux/bindings/abi.zig": 1,
-    "zigux/bindings/dev_t.zig": 1,
-    "zigux/bindings/notifier_abi.zig": 1,
-    "zigux/uapi/version.zig": 1,
-    "zigux/uapi/dev_t.zig": 1,
-    "zigux/tests/phase3_abi_dump.zig": 1,
-    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c": 1,
-    "zigux/tests/fixtures/phase3_abi/expected.json": 1,
-    "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
-    "scripts/zigux/validate-phase3-abi-bindings-syntax.py": 1,
-    "scripts/zigux/survey-phase3-abi-constant-parity.py": 1,
-}
-
-HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS = {
-    "Documentation/zigux/phase3-export-uapi-boundary-survey.md": 1,
-    "Documentation/zigux/phase3-linux-zigux-header-governance.md": 1,
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
-    "Documentation/zigux/README.md": 1,
-    "Documentation/zigux/review-checklist.md": 1,
-    "scripts/zigux/README.md": 1,
-    "zigux/tests/README.md": 1,
-    "zigux/uapi/dev_t.zig": 1,
-    "zigux/bindings/dev_t.zig": 1,
-    "zigux/bindings/abi.zig": 1,
-    "zigux/bindings/notifier_abi.zig": 1,
-    "zigux/tests/phase3_abi.zig": 1,
-    "zigux/tests/phase3_abi_dump.zig": 1,
-    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c": 1,
-    "zigux/tests/fixtures/phase3_abi/expected.json": 1,
-    "scripts/zigux/check-phase3-abi.py": 1,
-    "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
-    "scripts/zigux/validate-phase3-abi-bindings-syntax.py": 1,
-    "scripts/zigux/survey-phase3-abi-constant-parity.py": 1,
-    "`include/zigux/dev_t.h` plus `zigux/uapi/version.zig` starter-companion detail": 1,
-    "should stay anchored in this dedicated survey and the paired next-step note": 1,
-}
-HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX = "## Shared reminder"
-
-VALIDATOR_SUPPORT_CURRENT_PACKET_PREFIX = "## Current packet"
-VALIDATOR_SUPPORT_CURRENT_PACKET_NEXT_PREFIX = "## Review boundary"
-VALIDATOR_SUPPORT_CURRENT_PACKET_MARKER_COUNTS = {
-    "Documentation/zigux/phase3-kernel-export-shim-governance.md": 1,
-    "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
-    "Documentation/zigux/phase3-bindings-governance.md": 1,
-    "Documentation/zigux/phase3-export-uapi-boundary-survey.md": 1,
-    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
-    "scripts/zigux/check-phase3-abi.py": 1,
-    "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
-    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 1,
-    "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
-    "scripts/zigux/validate-phase3-validator-support-surface.py": 1,
-    "include/zigux/dev_t.h": 1,
-    "zigux/uapi/version.zig": 1,
-    "zigux/uapi/dev_t.zig": 1,
-    "zigux/bindings/abi.zig": 1,
-    "zigux/bindings/dev_t.zig": 1,
-    "zigux/bindings/notifier_abi.zig": 1,
-    "zigux/tests/phase3_export_uapi_layout.zig": 1,
-    "zigux/tests/phase3_export_uapi_layout_build.zig": 2,
-    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig": 1,
-    "make -C zigux phase3-export-uapi-layout-test": 1,
-    "zigux/tests/phase3_low_level_wrappers.zig": 1,
-    "zigux/tests/phase3_low_level_wrappers_build.zig": 2,
-    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig": 1,
-    "make -C zigux phase3-low-level-wrappers-test": 1,
-}
-VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX = "## Shared reminder"
-VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS = {
-    "scripts/zigux/README.md": 2,
-    "zigux/tests/README.md": 2,
-    "scripts/zigux/validate_phase3_selftest.py": 1,
-    "scripts/zigux/check-phase3-abi.py": 2,
-    "scripts/zigux/validate-phase3-validator-support-surface.py": 1,
-    "scripts/zigux/validate-phase3-export-uapi-survey.py": 1,
-    "Documentation/zigux/phase3-abi-bindings-survey.md": 1,
-    "Documentation/zigux/phase3-bindings-governance.md": 1,
-    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
-    "Documentation/zigux/review-checklist.md": 1,
-    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py": 2,
-    "Documentation/zigux/phase3-kernel-export-shim-governance.md": 1,
-    "include/zigux/dev_t.h": 2,
-    "zigux/uapi/version.zig": 2,
-    "zigux/uapi/dev_t.zig": 1,
-    "zigux/bindings/abi.zig": 2,
-    "zigux/bindings/dev_t.zig": 2,
-    "zigux/bindings/notifier_abi.zig": 1,
-    "zigux/tests/phase3_export_uapi_layout.zig": 1,
-    "zigux/tests/phase3_export_uapi_layout_build.zig": 2,
-    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig": 1,
-    "make -C zigux phase3-export-uapi-layout-test": 1,
-    "zigux/kernel/export_shim.zig": 1,
-    "keep the canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`": 1,
-    "starter-companion split explicit here whenever this validator-support packet": 1,
-    "names the dedicated header-family survey and next-step note": 1,
-    "header-governance context through the paired survey and next-step notes": 1,
-    "naming that validator directly": 1,
-    "kernel-facing governance note is already a broad": 1,
-}
-
-REVIEW_CHECKLIST_PHASE3_PROMPT_PREFIX = (
-    "  * if the change touches the shared Phase 3 ABI packet or a broad reminder surface, do "
-)
-REVIEW_CHECKLIST_PHASE3_PROMPT_NEXT_PREFIX = (
-    "  * if the change touches the parked Phase 8 `help` packet, do "
-)
-REVIEW_CHECKLIST_PHASE3_PROMPT_MARKER_COUNTS = {
-    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
-    "Documentation/zigux/review-checklist.md": 1,
-    "include/zigux/dev_t.h": 1,
-    "zigux/uapi/version.zig": 1,
-    "zigux/uapi/dev_t.zig": 1,
-    "bounded header-family and starter-companion packet": 1,
-    "dedicated survey plus paired next-step note": 1,
-}
 
 TESTS_README_MARKERS = (
-    "scripts/zigux/check-phase3-selftest-surface.py",
-    "python3 scripts/zigux/validate_phase3_selftest.py",
-    "make -C zigux phase3-selftest",
+    "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-errptr-xarray-slice.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "include/linux/zigux.h",
+    "include/zigux/dev_t.h",
+    "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "scripts/zigux/check-phase3-dev-t-starter-packet.py",
+    "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "zigux/kernel/export_shim.zig",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
 )
-TESTS_README_MARKER_COUNTS = {
-    "scripts/zigux/run-phase3-checks.py --self-test": 1,
-    "scripts/zigux/phase3_catalog.py --audit-doc-sync": 1,
-    "scripts/zigux/survey-phase3-abi-constant-parity.py": 1,
-    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
-    "Documentation/zigux/phase3-validator-support-surface.md": 1,
-    "scripts/zigux/validate-phase3-abi-header-family-survey.py": 1,
-    "include/zigux/dev_t.h": 1,
-    "zigux/uapi/version.zig": 1,
-    "zigux/uapi/dev_t.zig": 1,
-    "zigux/tests/fixtures/phase3_abi_manifest.json": 1,
-}
-TESTS_README_REMINDER_ONLY_MARKER_COUNTS = {
-    "scripts/zigux/phase3_catalog.py --self-test": 1,
-    "scripts/zigux/phase3_check_lib.py --self-test": 1,
-    "scripts/zigux/generate-phase3-check-wrappers.py --check": 1,
-}
-TESTS_README_PHASE3_REMINDER_MARKER_COUNTS = {
-    **{marker: 1 for marker in TESTS_README_MARKERS},
-    **TESTS_README_MARKER_COUNTS,
-    **TESTS_README_REMINDER_ONLY_MARKER_COUNTS,
-}
-TESTS_README_PHASE3_REMINDER_PREFIX = (
-    "  * keep the focused Phase 3 validator-support replay explicit in the tests root too:"
+
+REVIEW_CHECKLIST_MARKERS = (
+    "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-errptr-xarray-slice.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "include/linux/zigux.h",
+    "include/zigux/dev_t.h",
+    "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "scripts/zigux/check-phase3-dev-t-starter-packet.py",
+    "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+    "repo-reality gaps rather than shipped current-`master` evidence",
 )
-TESTS_README_PHASE3_REMINDER_NEXT_PREFIX = (
-    "  * keep the shared Phase 4 rollback packet explicit in the tests root too:"
+
+VALIDATOR_SUPPORT_MARKERS = (
+    "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-errptr-xarray-slice.md",
+    "Documentation/zigux/phase3-policy-slice.md",
+    "scripts/zigux/check-phase3-dev-t-starter-packet.py",
+    "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+    "scripts/zigux/check-phase3-policy-starter-packet.py",
+    "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
+    "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "zigux/tests/phase3_export_uapi_layout.zig",
+    "zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zigux/kernel/export_shim.zig",
+    "Documentation/zigux/phase3-shared-reminder-gap.md",
 )
 
 SCRIPTS_README_MARKERS = (
-    "check-phase3-selftest-surface.py",
-    "validate_phase3_selftest.py",
-    "make -C zigux phase3-selftest",
+    "scripts/zigux/check-phase3-selftest-surface.py",
+    "scripts/zigux/validate-phase3-validator-support-surface.py",
+    "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/generate-phase3-check-wrappers.py",
+    "scripts/zigux/run-phase3-checks.py",
+    "Documentation/zigux/phase3-boundary-lane-sequencing.md",
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/check-phase3-abi-dump-gate.py",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
+    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+    "include/linux/zigux.h",
+    "include/zigux/dev_t.h",
+    "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "zigux/kernel/export_shim.zig",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "zigux/tests/phase3_export_uapi_layout.zig",
 )
-SCRIPTS_README_PHASE3_MARKER_COUNTS = {
-    "Documentation/zigux/phase3-validator-support-surface.md": 1,
-    "zigux/kernel/export_shim.zig": 1,
-    "zigux/uapi/dev_t.zig": 1,
-}
-SCRIPTS_README_PHASE3_PREFIX = "Phase 3 flow - "
-SCRIPTS_README_PHASE3_NEXT_PREFIX = "Phase 4 flow - "
-SCRIPTS_HEADER_FAMILY_REMINDER_PREFIX = "Phase 3 header-family reminder - "
-SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS = {
-    "validate-phase3-abi-header-family-survey.py": 1,
-    "Documentation/zigux/phase3-abi-header-family-survey.md": 1,
-    "Documentation/zigux/phase3-linux-zigux-header-governance.md": 1,
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md": 1,
-    "include/zigux/dev_t.h": 1,
-    "zigux/uapi/version.zig": 1,
-    "zigux/uapi/dev_t.zig": 1,
-}
 
 SELFTEST_DRIVER_MARKERS = (
-    'Path("scripts/zigux/check-phase3-selftest-surface.py")',
-    'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
-    'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")',
+    'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
     'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
-    'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
-    'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
+    'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     "PHASE3_VALIDATE_SELFTEST=pass",
-)
-MAKEFILE_MARKERS = (
-    "phase3-validate:",
-    "$(PYTHON) scripts/zigux/check-phase3-selftest-surface.py --self-test",
-    "$(PYTHON) scripts/zigux/check-phase3-selftest-surface.py",
-    "$(PYTHON) scripts/zigux/validate_phase3_selftest.py",
-    "phase3-selftest:",
 )
 
 
@@ -268,310 +133,36 @@ def _check_markers(path: Path, markers: tuple[str, ...], label: str) -> list[str
     return [f"missing {label} marker: {marker}" for marker in markers if marker not in text]
 
 
-def _extract_section(text: str, start_prefix: str, next_prefix: str | None) -> str | None:
-    if start_prefix not in text:
-        return None
-    section = text.split(start_prefix, 1)[1]
-    if next_prefix is not None and next_prefix in section:
-        section = section.split(next_prefix, 1)[0]
-    elif next_prefix is None and "\n## " in section:
-        section = section.split("\n## ", 1)[0]
-    return section
-
-
-def _replace_in_section(
-    text: str,
-    start_prefix: str,
-    next_prefix: str | None,
-    old: str,
-    new: str = "",
-) -> str:
-    prefix, marker, suffix = text.partition(start_prefix)
-    if not marker:
-        return text
-    if next_prefix is None:
-        section = suffix
-        next_marker = ""
-        tail = ""
-    else:
-        section, next_marker, tail = suffix.partition(next_prefix)
-    return prefix + marker + section.replace(old, new, 1) + next_marker + tail
-
-
-def _check_section_marker_counts(
-    path: Path,
-    start_prefix: str,
-    next_prefix: str | None,
-    marker_counts: dict[str, int],
-    label: str,
-) -> list[str]:
-    try:
-        text = _read(path)
-    except FileNotFoundError:
-        return [f"missing repo file: {path.as_posix()}"]
-
-    section = _extract_section(text, start_prefix, next_prefix)
-    if section is None:
-        return [f"missing {label} section"]
-
-    issues: list[str] = []
-    for marker, expected_count in marker_counts.items():
-        actual_count = section.count(marker)
-        if actual_count != expected_count:
-            issues.append(
-                f"{label} marker count drift: {marker} (expected {expected_count}, found {actual_count})"
-            )
-    return issues
-
-
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
-
     issues.extend(_check_markers(repo_root / README_PATH, README_MARKERS, "docs README"))
-    issues.extend(
-        _check_section_marker_counts(
-            repo_root / README_PATH,
-            README_PHASE3_PREFIX,
-            README_PHASE3_NEXT_PREFIX,
-            README_PHASE3_MARKER_COUNTS,
-            "docs README Phase 3 notes",
-        )
-    )
-    issues.extend(
-        _check_section_marker_counts(
-            repo_root / NOTE_PATH,
-            NOTE_NEXT_STEP_PREFIX,
-            NOTE_NEXT_STEP_NEXT_PREFIX,
-            {marker: 1 for marker in NOTE_POLICY_MARKERS},
-            "abi.h next-step note",
-        )
-    )
-    issues.extend(
-        _check_section_marker_counts(
-            repo_root / SURVEY_PATH,
-            HEADER_FAMILY_SURVEY_CURRENT_PACKET_PREFIX,
-            HEADER_FAMILY_SURVEY_CURRENT_PACKET_NEXT_PREFIX,
-            HEADER_FAMILY_SURVEY_CURRENT_PACKET_MARKER_COUNTS,
-            "header-family survey current packet",
-        )
-    )
-    issues.extend(
-        _check_section_marker_counts(
-            repo_root / SURVEY_PATH,
-            HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX,
-            None,
-            HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS,
-            "header-family survey shared reminder",
-        )
-    )
-    issues.extend(
-        _check_section_marker_counts(
-            repo_root / VALIDATOR_SUPPORT_PATH,
-            VALIDATOR_SUPPORT_CURRENT_PACKET_PREFIX,
-            VALIDATOR_SUPPORT_CURRENT_PACKET_NEXT_PREFIX,
-            VALIDATOR_SUPPORT_CURRENT_PACKET_MARKER_COUNTS,
-            "validator-support current packet",
-        )
-    )
-    issues.extend(
-        _check_section_marker_counts(
-            repo_root / VALIDATOR_SUPPORT_PATH,
-            VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-            None,
-            VALIDATOR_SUPPORT_SHARED_REMINDER_MARKER_COUNTS,
-            "validator-support shared reminder",
-        )
-    )
-    issues.extend(
-        _check_section_marker_counts(
-            repo_root / REVIEW_CHECKLIST_PATH,
-            REVIEW_CHECKLIST_PHASE3_PROMPT_PREFIX,
-            REVIEW_CHECKLIST_PHASE3_PROMPT_NEXT_PREFIX,
-            REVIEW_CHECKLIST_PHASE3_PROMPT_MARKER_COUNTS,
-            "review checklist Phase 3 prompt",
-        )
-    )
-
     issues.extend(_check_markers(repo_root / TESTS_README_PATH, TESTS_README_MARKERS, "tests README"))
     issues.extend(
-        _check_section_marker_counts(
-            repo_root / TESTS_README_PATH,
-            TESTS_README_PHASE3_REMINDER_PREFIX,
-            TESTS_README_PHASE3_REMINDER_NEXT_PREFIX,
-            TESTS_README_PHASE3_REMINDER_MARKER_COUNTS,
-            "tests README Phase 3 reminder",
+        _check_markers(repo_root / REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS, "review checklist")
+    )
+    issues.extend(
+        _check_markers(
+            repo_root / VALIDATOR_SUPPORT_PATH,
+            VALIDATOR_SUPPORT_MARKERS,
+            "validator-support note",
         )
     )
-
     issues.extend(
         _check_markers(repo_root / SCRIPTS_README_PATH, SCRIPTS_README_MARKERS, "scripts README")
     )
     issues.extend(
-        _check_section_marker_counts(
-            repo_root / SCRIPTS_README_PATH,
-            SCRIPTS_README_PHASE3_PREFIX,
-            SCRIPTS_README_PHASE3_NEXT_PREFIX,
-            SCRIPTS_README_PHASE3_MARKER_COUNTS,
-            "scripts README Phase 3 flow",
-        )
-    )
-    issues.extend(
-        _check_section_marker_counts(
-            repo_root / SCRIPTS_README_PATH,
-            SCRIPTS_HEADER_FAMILY_REMINDER_PREFIX,
-            None,
-            SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS,
-            "scripts README header-family reminder",
-        )
-    )
-
-    issues.extend(
         _check_markers(repo_root / SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS, "selftest driver")
     )
-    issues.extend(_check_markers(repo_root / MAKEFILE_PATH, MAKEFILE_MARKERS, "makefile"))
     return issues
 
 
-def _expanded_marker_lines(marker_counts: dict[str, int]) -> list[str]:
-    lines: list[str] = []
-    for marker, count in marker_counts.items():
-        lines.extend(marker for _ in range(count))
-    return lines
-
-
 def _populate_repo(root: Path) -> None:
-    _write(
-        root / README_PATH,
-        "\n".join(
-            (
-                "# Zigux Documentation",
-                README_PHASE3_PREFIX + " ".join((*README_MARKERS, *README_PHASE3_MARKER_COUNTS.keys())),
-                README_PHASE3_NEXT_PREFIX + "later lane",
-            )
-        )
-        + "\n",
-    )
-    _write(
-        root / NOTE_PATH,
-        "\n".join(
-            (
-                "# Phase 3 ABI H Boundary Next Step",
-                "## Current landed surface",
-                NOTE_NEXT_STEP_PREFIX,
-                *NOTE_POLICY_MARKERS,
-                NOTE_NEXT_STEP_NEXT_PREFIX,
-                "## Non-goals",
-            )
-        )
-        + "\n",
-    )
-    _write(
-        root / SURVEY_PATH,
-        "\n".join(
-            (
-                "# Phase 3 ABI Header Family Survey",
-                HEADER_FAMILY_SURVEY_CURRENT_PACKET_PREFIX,
-                *_expanded_marker_lines(HEADER_FAMILY_SURVEY_CURRENT_PACKET_MARKER_COUNTS),
-                HEADER_FAMILY_SURVEY_CURRENT_PACKET_NEXT_PREFIX,
-                "review boundary marker",
-                HEADER_FAMILY_SURVEY_SHARED_REMINDER_PREFIX,
-                *_expanded_marker_lines(HEADER_FAMILY_SURVEY_SHARED_REMINDER_MARKER_COUNTS),
-            )
-        )
-        + "\n",
-    )
-    _write(
-        root / VALIDATOR_SUPPORT_PATH,
-        "\n".join(
-            (
-                "# Phase 3 Validator Support Surface",
-                VALIDATOR_SUPPORT_CURRENT_PACKET_PREFIX,
-                *VALIDATOR_SUPPORT_CURRENT_PACKET_MARKER_COUNTS.keys(),
-                VALIDATOR_SUPPORT_CURRENT_PACKET_NEXT_PREFIX,
-                "review boundary marker",
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                "scripts/zigux/README.md",
-                "zigux/tests/README.md",
-                "scripts/zigux/validate_phase3_selftest.py",
-                "scripts/zigux/validate-phase3-validator-support-surface.py",
-                "Documentation/zigux/phase3-abi-bindings-survey.md",
-                "Documentation/zigux/phase3-bindings-governance.md",
-                "Documentation/zigux/phase3-abi-header-family-survey.md",
-                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-                "Documentation/zigux/review-checklist.md",
-                "scripts/zigux/validate-phase3-export-uapi-survey.py",
-                "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
-                "Documentation/zigux/phase3-kernel-export-shim-governance.md",
-                "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
-                "include/zigux/dev_t.h",
-                "zigux/uapi/version.zig",
-                "zigux/uapi/dev_t.zig",
-                "zigux/bindings/abi.zig",
-                "zigux/bindings/dev_t.zig",
-                "zigux/bindings/notifier_abi.zig",
-                "zigux/tests/phase3_export_uapi_layout.zig",
-                "zigux/tests/phase3_export_uapi_layout_build.zig",
-                "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
-                "make -C zigux phase3-export-uapi-layout-test",
-                "zigux/kernel/export_shim.zig",
-                "keep the canonical `include/zigux/dev_t.h` plus `zigux/uapi/version.zig`",
-                "starter-companion split explicit here whenever this validator-support packet",
-                "names the dedicated header-family survey and next-step note",
-                "naming that validator directly",
-                "kernel-facing governance note is already a broad",
-                "keep `zigux/bindings/dev_t.zig` explicit beside `zigux/bindings/abi.zig`",
-                "current broad `scripts/zigux/README.md` and `zigux/tests/README.md` reminders still route header-governance context through the paired survey and next-step notes instead of naming `scripts/zigux/validate-phase3-linux-zigux-header-governance.py` directly",
-                "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
-                "zigux/tests/phase3_low_level_wrappers.zig",
-                "zigux/tests/phase3_low_level_wrappers_build.zig",
-                "scripts/zigux/check-phase3-abi.py",
-                "keep `scripts/zigux/check-phase3-abi.py` explicit in this note even though broad summaries still route that focused ABI gate through shared entrypoints",
-            )
-        )
-        + "\n",
-    )
-    _write(
-        root / REVIEW_CHECKLIST_PATH,
-        "\n".join(
-            (
-                "# Zigux Review Checklist",
-                "## Validation",
-                REVIEW_CHECKLIST_PHASE3_PROMPT_PREFIX
-                + " ".join(REVIEW_CHECKLIST_PHASE3_PROMPT_MARKER_COUNTS.keys()),
-                REVIEW_CHECKLIST_PHASE3_PROMPT_NEXT_PREFIX + "later lane",
-            )
-        )
-        + "\n",
-    )
-    _write(
-        root / TESTS_README_PATH,
-        "\n".join(
-            (
-                "# zigux/tests",
-                TESTS_README_PHASE3_REMINDER_PREFIX,
-                *TESTS_README_PHASE3_REMINDER_MARKER_COUNTS.keys(),
-                TESTS_README_PHASE3_REMINDER_NEXT_PREFIX,
-            )
-        )
-        + "\n",
-    )
-    _write(
-        root / SCRIPTS_README_PATH,
-        "\n".join(
-            (
-                "# scripts/zigux",
-                "Phase 2 flow - previous lane",
-                SCRIPTS_README_PHASE3_PREFIX + " ".join(SCRIPTS_README_MARKERS),
-                *SCRIPTS_README_PHASE3_MARKER_COUNTS.keys(),
-                SCRIPTS_README_PHASE3_NEXT_PREFIX + "later lane",
-                SCRIPTS_HEADER_FAMILY_REMINDER_PREFIX
-                + " ".join(SCRIPTS_HEADER_FAMILY_REMINDER_MARKER_COUNTS.keys()),
-            )
-        )
-        + "\n",
-    )
+    _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
+    _write(root / TESTS_README_PATH, "\n".join(TESTS_README_MARKERS) + "\n")
+    _write(root / REVIEW_CHECKLIST_PATH, "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
+    _write(root / VALIDATOR_SUPPORT_PATH, "\n".join(VALIDATOR_SUPPORT_MARKERS) + "\n")
+    _write(root / SCRIPTS_README_PATH, "\n".join(SCRIPTS_README_MARKERS) + "\n")
     _write(root / SELFTEST_DRIVER_PATH, "\n".join(SELFTEST_DRIVER_MARKERS) + "\n")
-    _write(root / MAKEFILE_PATH, "\n".join(MAKEFILE_MARKERS) + "\n")
 
 
 def _expect_issue(issues: list[str], expected: str) -> bool:
@@ -579,9 +170,17 @@ def _expect_issue(issues: list[str], expected: str) -> bool:
 
 
 def run_self_test() -> int:
+    cases = (
+        (README_PATH, README_MARKERS[0], "docs README"),
+        (TESTS_README_PATH, TESTS_README_MARKERS[-1], "tests README"),
+        (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS[-1], "review checklist"),
+        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[-1], "validator-support note"),
+        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[0], "scripts README"),
+        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[2], "selftest driver"),
+    )
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_selftest_surface_") as temp_dir:
         root = Path(temp_dir)
-
         _populate_repo(root)
 
         issues = validate_repo(root)
@@ -590,475 +189,19 @@ def run_self_test() -> int:
             print("\n".join(issues))
             return 1
 
-        docs_path = root / README_PATH
-        docs_path.write_text(_read(docs_path).replace(README_PHASE3_PREFIX, "Phase 3 overview - ", 1), encoding="utf-8")
-        issues = validate_repo(root)
-        if not _expect_issue(issues, "missing docs README Phase 3 notes section"):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected missing docs README Phase 3 notes section was not reported")
-            return 1
-
-        _populate_repo(root)
-        docs_path.write_text(
-            _read(docs_path).replace(
-                "scripts/zigux/validate-phase3.py",
-                README_PHASE3_NEXT_PREFIX + "\nscripts/zigux/validate-phase3.py",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "docs README Phase 3 notes marker count drift: "
-            "scripts/zigux/validate-phase3.py (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected docs README section-scoped validator drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        note_path = root / NOTE_PATH
-        note_path.write_text(_read(note_path).replace(NOTE_POLICY_MARKERS[0], "", 1), encoding="utf-8")
-        issues = validate_repo(root)
-        expected = (
-            "abi.h next-step note marker count drift: "
-            + NOTE_POLICY_MARKERS[0]
-            + " (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected abi.h next-step drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        validator_support_path = root / VALIDATOR_SUPPORT_PATH
-        validator_support_path.write_text(
-            _replace_in_section(
-                _read(validator_support_path),
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                None,
-                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "validator-support shared reminder marker count drift: "
-            "Documentation/zigux/phase3-abi-h-boundary-next-step.md (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support next-step drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        validator_support_path.write_text(
-            _replace_in_section(
-                _read(validator_support_path),
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                None,
-                "include/zigux/dev_t.h",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "validator-support shared reminder marker count drift: "
-            "include/zigux/dev_t.h (expected 2, found 1)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support dev_t header drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        validator_support_path.write_text(
-            _replace_in_section(
-                _read(validator_support_path),
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                None,
-                "zigux/uapi/version.zig",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "validator-support shared reminder marker count drift: "
-            "zigux/uapi/version.zig (expected 2, found 1)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support version companion drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        validator_support_path.write_text(
-            _replace_in_section(
-                _read(validator_support_path),
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                None,
-                "zigux/uapi/dev_t.zig",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "validator-support shared reminder marker count drift: "
-            "zigux/uapi/dev_t.zig (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support dev_t companion drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        validator_support_path.write_text(
-            _replace_in_section(
-                _read(validator_support_path),
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                None,
-                "zigux/bindings/dev_t.zig",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "validator-support shared reminder marker count drift: "
-            "zigux/bindings/dev_t.zig (expected 2, found 1)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support dev_t binding drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        validator_support_path.write_text(
-            _replace_in_section(
-                _read(validator_support_path),
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                None,
-                "zigux/bindings/notifier_abi.zig",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "validator-support shared reminder marker count drift: "
-            "zigux/bindings/notifier_abi.zig (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support notifier binding drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        validator_support_path.write_text(
-            _replace_in_section(
-                _read(validator_support_path),
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                None,
-                "scripts/zigux/validate-phase3-validator-support-surface.py",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "validator-support shared reminder marker count drift: "
-            "scripts/zigux/validate-phase3-validator-support-surface.py (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support shared-reminder validator drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        validator_support_path.write_text(
-            _replace_in_section(
-                _read(validator_support_path),
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                None,
-                "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "validator-support shared reminder marker count drift: "
-            "scripts/zigux/validate-phase3-linux-zigux-header-governance.py (expected 2, found 1)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support header-governance validator drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        validator_support_path.write_text(
-            _replace_in_section(
-                _read(validator_support_path),
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                None,
-                "Documentation/zigux/phase3-kernel-export-shim-governance.md",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "validator-support shared reminder marker count drift: "
-            "Documentation/zigux/phase3-kernel-export-shim-governance.md (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support export-shim governance drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        validator_support_path.write_text(
-            _replace_in_section(
-                _read(validator_support_path),
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                None,
-                "header-governance context through the paired survey and next-step notes",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "validator-support shared reminder marker count drift: "
-            "header-governance context through the paired survey and next-step notes (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support paired-survey wording drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        validator_support_path.write_text(
-            _replace_in_section(
-                _read(validator_support_path),
-                VALIDATOR_SUPPORT_SHARED_REMINDER_PREFIX,
-                None,
-                "kernel-facing governance note is already a broad",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "validator-support shared reminder marker count drift: "
-            "kernel-facing governance note is already a broad (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support kernel-governance wording drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        review_checklist_path = root / REVIEW_CHECKLIST_PATH
-        review_checklist_path.write_text(
-            _read(review_checklist_path).replace(
-                "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "review checklist Phase 3 prompt marker count drift: "
-            "Documentation/zigux/phase3-abi-h-boundary-next-step.md (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected review checklist next-step drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        tests_path = root / TESTS_README_PATH
-        tests_path.write_text(
-            _read(tests_path).replace("scripts/zigux/phase3_catalog.py --self-test", "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "tests README Phase 3 reminder marker count drift: "
-            "scripts/zigux/phase3_catalog.py --self-test (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected tests README reminder-only drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        tests_path.write_text(
-            _read(tests_path).replace("include/zigux/dev_t.h", "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "tests README Phase 3 reminder marker count drift: "
-            "include/zigux/dev_t.h (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected tests README dev_t header drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        tests_path.write_text(
-            _read(tests_path).replace("zigux/uapi/version.zig", "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "tests README Phase 3 reminder marker count drift: "
-            "zigux/uapi/version.zig (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected tests README version companion drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        tests_path.write_text(
-            _read(tests_path).replace("zigux/tests/fixtures/phase3_abi_manifest.json", "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "tests README Phase 3 reminder marker count drift: "
-            "zigux/tests/fixtures/phase3_abi_manifest.json (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected tests README abi manifest drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        scripts_path = root / SCRIPTS_README_PATH
-        scripts_path.write_text(
-            _replace_in_section(
-                _read(scripts_path),
-                SCRIPTS_README_PHASE3_PREFIX,
-                SCRIPTS_README_PHASE3_NEXT_PREFIX,
-                "Documentation/zigux/phase3-validator-support-surface.md",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "scripts README Phase 3 flow marker count drift: "
-            "Documentation/zigux/phase3-validator-support-surface.md (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected scripts README validator-support drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        scripts_path.write_text(
-            _replace_in_section(
-                _read(scripts_path),
-                SCRIPTS_README_PHASE3_PREFIX,
-                SCRIPTS_README_PHASE3_NEXT_PREFIX,
-                "zigux/kernel/export_shim.zig",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "scripts README Phase 3 flow marker count drift: "
-            "zigux/kernel/export_shim.zig (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected scripts README export-shim drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        scripts_path.write_text(
-            _replace_in_section(
-                _read(scripts_path),
-                SCRIPTS_README_PHASE3_PREFIX,
-                SCRIPTS_README_PHASE3_NEXT_PREFIX,
-                "zigux/uapi/dev_t.zig",
-            ),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "scripts README Phase 3 flow marker count drift: "
-            "zigux/uapi/dev_t.zig (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected scripts README dev_t UAPI drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        scripts_path.write_text(
-            _read(scripts_path).replace("include/zigux/dev_t.h", "", 1),
-            encoding="utf-8",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "scripts README header-family reminder marker count drift: "
-            "include/zigux/dev_t.h (expected 1, found 0)"
-        )
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected scripts README dev_t header reminder drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        driver_path = root / SELFTEST_DRIVER_PATH
-        export_uapi_driver_marker = 'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")'
-        driver_path.write_text(_read(driver_path).replace(export_uapi_driver_marker, "", 1), encoding="utf-8")
-        issues = validate_repo(root)
-        expected = f"missing selftest driver marker: {export_uapi_driver_marker}"
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected export-uapi selftest driver drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        driver_path = root / SELFTEST_DRIVER_PATH
-        driver_path.write_text(_read(driver_path).replace(SELFTEST_DRIVER_MARKERS[0], "", 1), encoding="utf-8")
-        issues = validate_repo(root)
-        expected = f"missing selftest driver marker: {SELFTEST_DRIVER_MARKERS[0]}"
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected selftest driver drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        driver_path.write_text(_read(driver_path).replace(SELFTEST_DRIVER_MARKERS[2], "", 1), encoding="utf-8")
-        issues = validate_repo(root)
-        expected = f"missing selftest driver marker: {SELFTEST_DRIVER_MARKERS[2]}"
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected header-family selftest driver drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        driver_path.write_text(_read(driver_path).replace(SELFTEST_DRIVER_MARKERS[3], "", 1), encoding="utf-8")
-        issues = validate_repo(root)
-        expected = f"missing selftest driver marker: {SELFTEST_DRIVER_MARKERS[3]}"
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected validator-support selftest driver drift was not reported")
-            return 1
-
-        _populate_repo(root)
-        makefile_path = root / MAKEFILE_PATH
-        makefile_path.write_text(_read(makefile_path).replace(MAKEFILE_MARKERS[1], "", 1), encoding="utf-8")
-        issues = validate_repo(root)
-        expected = f"missing makefile marker: {MAKEFILE_MARKERS[1]}"
-        if not _expect_issue(issues, expected):
-            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected makefile drift was not reported")
-            return 1
+        for path, marker, label in cases:
+            _populate_repo(root)
+            file_path = root / path
+            file_path.write_text(_read(file_path).replace(marker, "", 1), encoding="utf-8")
+            issues = validate_repo(root)
+            expected = f"missing {label} marker: {marker}"
+            if not _expect_issue(issues, expected):
+                print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+                print(f"expected missing marker was not reported: {expected}")
+                return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
