@@ -248,3 +248,31 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     zalloc.zfreeValue(allocator, ZallocValue, &zalloc_value);
     try std.testing.expect(zalloc_value == null);
 }
+
+test "phase1 host-tools smoke checks additional lane10 helper edges" {
+    var truncated_message = [_]u8{0xaa} ** 4;
+    try std.testing.expectEqualStrings("Suc", str_error_r.strErrorR(0, &truncated_message));
+    try std.testing.expectEqual(@as(u8, 0), truncated_message[3]);
+
+    slab.kmalloc_nr_allocated = 0;
+    const slab_array = slab.kmallocArray(3, 2, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+    for (slab_array) |value| {
+        try std.testing.expectEqual(@as(u8, 0), value);
+    }
+    slab.kfree(slab_array);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+    try std.testing.expect(slab.kmallocArray(std.math.maxInt(usize), 2, slab.GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+
+    var empty_vsprintf: [0]u8 = .{};
+    try std.testing.expectEqual(@as(usize, 0), vsprintf.vscnprintf(&empty_vsprintf, "{s}", .{"zigux"}));
+
+    const allocator = std.testing.allocator;
+    const EmptyValue = struct {
+        flag: bool,
+    };
+    var optional_value: ?*EmptyValue = null;
+    zalloc.zfreeValue(allocator, EmptyValue, &optional_value);
+    try std.testing.expect(optional_value == null);
+}
