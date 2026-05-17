@@ -82,6 +82,25 @@ test "cpumask helpers track cross-word cpu windows without leaking tail bits" {
     try std.testing.expectEqual(@as(u32, 5), summary.weight);
 }
 
+test "cpumask tail masking keeps a full bounded mask from leaking absent cpus" {
+    var backing = [_]Word{
+        ~@as(Word, 0),
+        bitmap.lastWordMask(bitmap.bits_per_word + 11),
+    };
+    const view = viewFromWords(backing[0..], bitmap.bits_per_word + 11);
+    const summary = summarize(view);
+
+    try std.testing.expect(isValid(view));
+    try std.testing.expect(cpuIsSet(view, bitmap.bits_per_word + 10));
+    try std.testing.expect(!cpuIsSet(view, bitmap.bits_per_word + 11));
+    try std.testing.expectEqual(@as(u32, 0), firstCpu(view));
+    try std.testing.expectEqual(bitmap.bits_per_word + 11, firstAbsentCpu(view));
+    try std.testing.expectEqual(bitmap.bits_per_word + 11, weight(view));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(bitmap.bits_per_word + 11, summary.first_zero);
+    try std.testing.expectEqual(bitmap.bits_per_word + 11, summary.weight);
+}
+
 test "cpumask validity requires nr_cpu_ids to match the bounded bit count" {
     const invalid = binding.initCpumaskView(0, 4, 0, 3);
 
