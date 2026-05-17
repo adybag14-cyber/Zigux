@@ -129,6 +129,21 @@ test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping be
     );
 }
 
+test "phase 8 perf-buffer poll helper rejects ready waits without processing attempts" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.InconsistentProcessingAccountingSummary,
+        perf_buffer_poll.summarizePollExecutionResultFromWaitResult(
+            12,
+            2,
+            &.{
+                .{ .ready = true },
+                .{ .ready = true },
+            },
+            &.{},
+        ),
+    );
+}
+
 test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {
     const buffer_fds = [_]?i32{ 9, null, 21 };
 
