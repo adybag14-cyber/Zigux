@@ -125,11 +125,11 @@ SHARED_FREEZE_BOUNDARY_MARKERS = [
 
 CLOSURE_EVIDENCE_MARKERS = [
     "`PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`",
-    "the surviving direct driver anchors are `drivers/virtio/virtio_input.zig` and `drivers/virtio/virtio_mmio.zig`",
-    "the surviving direct lab-validation replays stay limited to `zigux/tests/phase10_build.zig` plus the input and MMIO test packet",
-    "Repeated authenticated contents reads still return missing for `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core and ring members framed as manifest-backed packet vocabulary rather than direct current-`master` evidence.",
+    "the surviving direct driver anchors are `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, and `drivers/virtio/virtio_mmio_verify.zig`",
+    "the surviving direct lab-validation replays stay limited to `zigux/tests/phase10_build.zig` plus the input-side test packet",
+    "Repeated authenticated contents reads still return missing for `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core, MMIO replay, and ring members framed as manifest-backed or survey-backed packet vocabulary rather than direct current-`master` evidence.",
     "`virtqueue_wrappers=repo_reality_gap`",
-    "`lab_only_driver_validation=partial_direct_packet`",
+    "`lab_only_driver_validation=starter_landed`",
     "`mmio_wrappers=starter_landed`",
 ]
 
@@ -473,15 +473,15 @@ def run_self_test() -> int:
 
         closure_evidence_path.write_text(
             original_closure_evidence.replace(
-                "the surviving direct driver anchors are `drivers/virtio/virtio_input.zig` and `drivers/virtio/virtio_mmio.zig`",
-                "the surviving direct driver anchors are `drivers/virtio/virtio_input.zig`",
+                "the surviving direct driver anchors are `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, and `drivers/virtio/virtio_mmio_verify.zig`",
+                "the surviving direct driver anchors are `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, and `drivers/virtio/virtio_mmio_verify.zig`",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            "phase10_closure_evidence:the surviving direct driver anchors are `drivers/virtio/virtio_input.zig` and `drivers/virtio/virtio_mmio.zig`",
+            "phase10_closure_evidence:the surviving direct driver anchors are `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, and `drivers/virtio/virtio_mmio_verify.zig`",
             "phase10-harness-coverage-self-test:closure_evidence_driver_inventory",
         )
         closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
@@ -489,7 +489,7 @@ def run_self_test() -> int:
 
         closure_evidence_path.write_text(
             original_closure_evidence.replace(
-                "Repeated authenticated contents reads still return missing for `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core and ring members framed as manifest-backed packet vocabulary rather than direct current-`master` evidence.",
+                "Repeated authenticated contents reads still return missing for `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core, MMIO replay, and ring members framed as manifest-backed or survey-backed packet vocabulary rather than direct current-`master` evidence.",
                 "Repeated authenticated contents reads still return missing for `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, and `drivers/virtio/virtio_ring.zig`.",
                 1,
             ),
@@ -497,8 +497,24 @@ def run_self_test() -> int:
         )
         expect_missing_marker(
             root,
-            "phase10_closure_evidence:Repeated authenticated contents reads still return missing for `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core and ring members framed as manifest-backed packet vocabulary rather than direct current-`master` evidence.",
+            "phase10_closure_evidence:Repeated authenticated contents reads still return missing for `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those core, MMIO replay, and ring members framed as manifest-backed or survey-backed packet vocabulary rather than direct current-`master` evidence.",
             "phase10-harness-coverage-self-test:closure_evidence_missing_inventory",
+        )
+        closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
+        case_count += 1
+
+        closure_evidence_path.write_text(
+            original_closure_evidence.replace(
+                "`lab_only_driver_validation=starter_landed`",
+                "`lab_only_driver_validation=partial_direct_packet`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "phase10_closure_evidence:`lab_only_driver_validation=starter_landed`",
+            "phase10-harness-coverage-self-test:closure_evidence_lab_only_status",
         )
         closure_evidence_path.write_text(original_closure_evidence, encoding="utf-8")
         case_count += 1
