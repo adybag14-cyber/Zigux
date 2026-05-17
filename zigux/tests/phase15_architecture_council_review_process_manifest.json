@@ -36,7 +36,9 @@
     "the current blocker",
     "the required approver set",
     "`retired_from_active_discussion` state",
+    "the automatic return-to-blocked trigger",
     "the reopen triggers",
+    "the trigger-specific evidence refresh",
     "the evidence archive path that will be refreshed before any later reopen request"
   ],
   "reopen_evidence_fields": [
