@@ -71,6 +71,46 @@ SELF_TEST_CASES = (
         "This note records the current validator-facing Phase 3 surface on live `master`.",
     ),
     (
+        "zigux/kernel/export_shim.zig",
+        "zigux/kernel/export_shim.zig",
+    ),
+    (
+        "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
+        "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
+    ),
+    (
+        "scripts/zigux/validate-phase3-export-uapi-survey.py",
+        "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    ),
+    (
+        "zigux/tests/phase3_export_uapi_layout.zig",
+        "zigux/tests/phase3_export_uapi_layout.zig",
+    ),
+    (
+        "zigux/tests/phase3_export_uapi_layout_build.zig",
+        "zigux/tests/phase3_export_uapi_layout_build.zig",
+    ),
+    (
+        "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+        "scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    ),
+    (
+        "Documentation/zigux/phase3-abi-header-family-survey.md",
+        "Documentation/zigux/phase3-abi-header-family-survey.md",
+    ),
+    (
+        "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+        "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    ),
+    (
+        "zigux/tests/phase3_low_level_wrappers.zig",
+        "zigux/tests/phase3_low_level_wrappers.zig",
+    ),
+    (
+        "zigux/tests/phase3_low_level_wrappers_build.zig",
+        "zigux/tests/phase3_low_level_wrappers_build.zig",
+    ),
+    (
         "scripts/zigux/validate-phase3.py",
         "scripts/zigux/validate-phase3.py",
     ),
