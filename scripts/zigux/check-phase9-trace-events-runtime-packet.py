@@ -79,6 +79,24 @@ SAMPLE_EXITED_UNREGISTER_REJECTION_MARKER = (
 )
 SAMPLE_EXITED_STAGE_MARKER = "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);"
 SAMPLE_EXIT_RUN_COUNT_MARKER = "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);"
+SAMPLE_SELFTEST_COMPLETE_STAGE_MARKER = (
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_summary.stage);"
+)
+SAMPLE_SELFTEST_COMPLETE_SELFTEST_RUNS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.selftest_runs);"
+)
+SAMPLE_REJECTED_SELFTEST_STAGE_MARKER = (
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest.stage);"
+)
+SAMPLE_REJECTED_SELFTEST_SELFTEST_RUNS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);"
+)
+SAMPLE_REJECTED_EXIT_SELFTEST_STAGE_MARKER = (
+    "try std.testing.expectEqual(ModuleStage.exited, before_rejected_exit_selftest.stage);"
+)
+SAMPLE_REJECTED_EXIT_SELFTEST_EXIT_RUNS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);"
+)
 SAMPLE_OUTSTANDING_REGISTRATION_MARKER = "error.OutstandingRegistration"
 
 SEQUENCING_REQUIRED_MARKERS = [
@@ -132,6 +150,12 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_EXITED_UNREGISTER_REJECTION_MARKER,
     SAMPLE_EXITED_STAGE_MARKER,
     SAMPLE_EXIT_RUN_COUNT_MARKER,
+    SAMPLE_SELFTEST_COMPLETE_STAGE_MARKER,
+    SAMPLE_SELFTEST_COMPLETE_SELFTEST_RUNS_MARKER,
+    SAMPLE_REJECTED_SELFTEST_STAGE_MARKER,
+    SAMPLE_REJECTED_SELFTEST_SELFTEST_RUNS_MARKER,
+    SAMPLE_REJECTED_EXIT_SELFTEST_STAGE_MARKER,
+    SAMPLE_REJECTED_EXIT_SELFTEST_EXIT_RUNS_MARKER,
     SAMPLE_OUTSTANDING_REGISTRATION_MARKER,
 ]
 
@@ -204,7 +228,7 @@ def build_sample_fixture_text() -> str:
     return f"""const std = @import(\"std\");
 
 const Self = @This();
-const ModuleStage = enum {{ cold, exited }};
+const ModuleStage = enum {{ cold, initialized, selftest_complete, exited }};
 const EmissionSummary = struct {{}};
 
 pub const ModuleDescriptor = struct {{
@@ -233,6 +257,8 @@ test \"trace-events sample keeps selftest replay-summary continuity explicit aft
     try std.testing.expectEqual(ModuleStage.cold, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+    try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.selftest_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));
@@ -247,7 +273,13 @@ test \"trace-events sample keeps failed-exit rollback explicit after selftest-re
 }}
 
 test \"trace-events sample keeps rejected re-selftest rollback explicit\" {{
-    try std.testing.expect(true);
+    const before_rejected_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    const before_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, before_rejected_exit_selftest.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);
 }}
 """
 
