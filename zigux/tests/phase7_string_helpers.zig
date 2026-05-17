@@ -383,6 +383,26 @@ test "phase 7 string helpers starter quotes special log-hazard bytes without wid
     try std.testing.expectEqualStrings("path", bounded);
 }
 
+test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {
+    const upper_src = [_]u8{ 'm', 'i', 'x', 'e', 'd', 0, 'z' };
+    var upper_dst = [_]u8{ '#', '#', '#', '#', '#', '#', '#' };
+    string_helpers.stringUpper(&upper_dst, &upper_src);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'M', 'I', 'X', 'E', 'D', 0, '#' }, &upper_dst);
+
+    const lower_src = [_]u8{ 'Z', 'I', 'G', 'u', 'X', 0, 'Q' };
+    var lower_dst = [_]u8{ '#', '#', '#', '#', '#', '#', '#' };
+    string_helpers.string_lower(&lower_dst, &lower_src);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'z', 'i', 'g', 'u', 'x', 0, '#' }, &lower_dst);
+
+    var bounded_upper = [_]u8{ '#', '#', '#' };
+    string_helpers.string_upper(&bounded_upper, "phase7");
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'P', 'H', 'A' }, &bounded_upper);
+
+    var bounded_lower = [_]u8{ '#', '#', '#', '#' };
+    string_helpers.stringLower(&bounded_lower, "ZIGUX");
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'z', 'i', 'g', 'u' }, &bounded_lower);
+}
+
 test "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly" {
     try std.testing.checkAllAllocationFailures(
         std.testing.allocator,
