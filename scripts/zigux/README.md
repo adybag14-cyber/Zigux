@@ -72,6 +72,8 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 
 - Phase 12 flow - `validate-phase12.py` checks that the current complex-driver packet stays aligned
 - `scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit
+- `check-build-only-phase12-surface.py` validates the segmented Phase 12 release packet for the release coordination matrix, readiness survey, sequencing note, raw-GitHub survey, complex-driver lane note, libbpf-heavy lane note, tests guide, review checklist, and both libbpf snapshot fixtures
+- keeps the Phase 12 packet limited to build-only helper evidence for complex drivers and other heavy helper consumers without reopening queue ownership, DMA routing, recovery, or throughput semantics
 - `check-build-only-phase12-surface.py`
 - `Documentation/zigux/phase12-release-sequencing.md`
 - `scripts/zigux/check-phase12-release-readiness-packet.py`
