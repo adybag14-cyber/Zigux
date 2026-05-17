@@ -438,7 +438,7 @@ def run_self_test() -> int:
         case_count += 1
 
         build_sampleRepo(root)
-        workflow_path.writeText(
+        workflow_path.write_text(
             rewrite_once(workflow_path.read_text(encoding="utf-8"), DOCS_SANITY_MARKER, "missing"),
             encoding="utf-8",
         )
